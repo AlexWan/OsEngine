@@ -110,7 +110,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// прорисовать последние аск, бид и ласт
+        /// прорисовать последние аск, бид, ласт и кол-во позиций
         /// </summary>
         private static void PaintLastBidAsk(BotTabSimple tab, DataGridView securitiesDataGrid)
         {
@@ -148,16 +148,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                     decimal bid = tab.PriceBestBid;
 
                     decimal last = 0;
+					
+					int posCount = tab.PositionsAll.Count;
 
                     if (tab.CandlesAll != null && tab.CandlesAll.Count != 0)
                     {
                         last = tab.CandlesAll[tab.CandlesAll.Count - 1].Close;
                     }
 
-
                     row.Cells[3].Value = last.ToString();
                     row.Cells[4].Value = bid.ToString();
                     row.Cells[5].Value = ask.ToString();
+					row.Cells[6].Value = posCount.ToString();
                 }
             }
             catch (Exception error)
@@ -938,7 +940,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void CreateSecuritiesGrid()
         {
-            // номер, класс, тип, сокращонное название бумаги, полное имя, дополнительное имя, влк/выкл
+            // номер, класс, код инструмента, цены ласт, бид и аск, кол-во позиций, Чарт
 
             DataGridView newGrid =
                 DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.DisplayedCells);
@@ -992,11 +994,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum6);
 
-            DataGridViewButtonColumn colum7 = new DataGridViewButtonColumn();
-            //colum6.CellTemplate = cell0;
-            colum7.ReadOnly = false;
-            colum7.Width = 50;
+            DataGridViewColumn colum7 = new DataGridViewColumn();           
+            colum7.CellTemplate = cell0;
+            colum7.HeaderText = "Pos. count";
+            colum7.ReadOnly = true;
+            colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum7);
+
+            DataGridViewButtonColumn colum8 = new DataGridViewButtonColumn();
+            //colum6.CellTemplate = cell0;
+            colum8.ReadOnly = false;
+            colum8.Width = 50;
+            newGrid.Columns.Add(colum8);
 
 
             SecuritiesDataGrid = newGrid;
@@ -1027,7 +1036,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 int tabRow = SecuritiesDataGrid.SelectedCells[0].RowIndex;
                 int tabColumn = SecuritiesDataGrid.SelectedCells[0].ColumnIndex;
 
-                if (tabColumn == 6)
+                if (tabColumn == 7)
                 {
                     ShowChart(tabRow);
                 }
@@ -1085,7 +1094,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private DataGridViewRow GetRowFromTab(BotTabSimple tab, int num)
         {
-            // Num, Class, Type, Sec code, Last, Bid, Ask, Chart 
+            // Num, Class, Type, Sec code, Last, Bid, Ask, Positions count, Chart 
 
             DataGridViewRow nRow = new DataGridViewRow();
 
@@ -1101,6 +1110,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
+			
+			nRow.Cells.Add(new DataGridViewTextBoxCell());
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
