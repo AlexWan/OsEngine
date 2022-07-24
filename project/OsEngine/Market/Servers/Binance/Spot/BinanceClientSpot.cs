@@ -972,8 +972,16 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
-                    param.Add("&type=", "LIMIT");
-                    param.Add("&timeInForce=", "GTC");
+                    
+                    param.Add("&type=", order.TypeOrder == OrderPriceType.Limit ? "LIMIT" : "MARKET");
+                    if (order.TypeOrder == OrderPriceType.Limit)
+                    {
+                        param.Add("&timeInForce=", "GTC");
+                        param.Add("&price=",
+                            order.Price.ToString(CultureInfo.InvariantCulture)
+                                .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                    }
+
                     param.Add("&newClientOrderId=", "x-RKXTQ2AK" + order.NumberUser.ToString());
 
                     if (order.PositionConditionType == OrderPositionConditionType.Open)
@@ -987,9 +995,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
-                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
-                    param.Add("&price=",
-                        order.Price.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
 
                     var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.POST, "/sapi/v1/margin/order", param, true);
@@ -1030,7 +1035,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
-                    param.Add("&type=", "LIMIT");
+                    param.Add("&type=", order.TypeOrder == OrderPriceType.Limit ? "LIMIT" : "MARKET"); //param.Add("&type=", "LIMIT");
                     param.Add("&timeInForce=", "GTC");
                     param.Add("&newClientOrderId=", "x-RKXTQ2AK" + order.NumberUser.ToString());
                     param.Add("&quantity=",
