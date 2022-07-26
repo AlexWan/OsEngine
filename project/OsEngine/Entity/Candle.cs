@@ -316,7 +316,7 @@ namespace OsEngine.Entity
         public string ToolTip
         {
             //Date - 20131001 Time - 100000 
-            // Open - 97.8000000 High - 97.9900000 Low - 97.7500000 Close - 97.9000000
+            // Open - 97.8000000 High - 97.9900000 Low - 97.7500000 Close - 97.9000000 Body(%) - 0.97
             get
             {
 
@@ -388,7 +388,12 @@ namespace OsEngine.Entity
                 result += Low.ToStringWithNoEndZero();
                 result += " C: ";
                 result += Close.ToStringWithNoEndZero();
+				
+                result += "  \r\n";
 
+                result += " Body(%): ";
+                result += (Math.Floor(BodyPercent * 100m) / 100m).ToStringWithNoEndZero();
+				
                 return result;
             }
         }
@@ -410,8 +415,8 @@ namespace OsEngine.Entity
 
                 _stringToSave = "";
 
-                //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1
-                //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>
+                //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,0.97,1
+                //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<BODY%>,<VOLUME>
 
                 string result = "";
                 result += TimeStart.ToString("yyyyMMdd,HHmmss") + ",";
@@ -420,6 +425,7 @@ namespace OsEngine.Entity
                 result += High.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Low.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Close.ToString(CultureInfo.InvariantCulture) + ",";
+				result += BodyPercent.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Volume.ToString(CultureInfo.InvariantCulture);
 
                 _stringToSave = result;
