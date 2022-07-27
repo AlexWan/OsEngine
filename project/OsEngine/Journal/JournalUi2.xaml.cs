@@ -133,7 +133,6 @@ namespace OsEngine.Journal
             {
                 _chartEquity.Series.Clear();
                 _chartEquity.ChartAreas.Clear();
-                _chartEquity.Click -= _chartEquity_Click;
                 _chartEquity = null;
                 HostEquity.Child.Hide();
                 HostEquity.Child = null;
@@ -155,7 +154,6 @@ namespace OsEngine.Journal
             {
                 _chartDd.Series.Clear();
                 _chartDd.ChartAreas.Clear();
-                _chartDd.Click -= _chartDd_Click;
                 _chartDd = null;
                 HostDrawdown.Child.Hide();
                 HostDrawdown.Child = null;
@@ -580,7 +578,6 @@ namespace OsEngine.Journal
                 _chartEquity.Series.Clear();
                 _chartEquity.ChartAreas.Clear();
                 _chartEquity.BackColor = Color.FromArgb(17, 18, 23);
-                _chartEquity.Click += _chartEquity_Click;
 
                 ChartArea areaLineProfit = new ChartArea("ChartAreaProfit");
                 areaLineProfit.Position.Height = 70;
@@ -987,57 +984,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// equity chart click
-        /// клик по чарту эквити
-        /// </summary>
-        void _chartEquity_Click(object sender, EventArgs e)
-        {
-            if (double.IsNaN(_chartEquity.ChartAreas[0].CursorX.Position) ||
-                 _chartEquity.ChartAreas[0].CursorX.Position == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _chartEquity.Series.Count; i++)
-            {
-                if (_chartEquity.Series[i].Points.Count == 1)
-                {
-                    continue;
-                }
-                for (int i2 = 0; i2 < _chartEquity.Series[i].Points.Count; i2++)
-                {
-                    _chartEquity.Series[i].Points[i2].Label = "";
-                }
-            }
-
-            for (int i = 0; i < _chartEquity.Series.Count; i++)
-            {
-                if (_chartEquity.Series[i].Points.Count == 1)
-                {
-                    continue;
-                }
-                string label = "";
-
-                int index = Convert.ToInt32(_chartEquity.ChartAreas[0].CursorX.Position) - 1;
-
-                if (index >= _chartEquity.Series[i].Points.Count)
-                {
-                    return;
-                }
-
-                if (!string.IsNullOrWhiteSpace(_chartEquity.Series[i].Points[index].AxisLabel))
-                {
-                    label += _chartEquity.Series[i].Points[index].AxisLabel + "\n";
-                }
-
-                label += _chartEquity.Series[i].Points[index].YValues[0];
-
-                _chartEquity.Series[i].Points[index].Label = label;
-                _chartEquity.Series[i].Points[index].LabelForeColor = _chartEquity.Series[i].Points[index].Color;
-                _chartEquity.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
-            }
-        }
         // volume drawing
         // прорисовка объёма
 
@@ -1406,7 +1352,6 @@ namespace OsEngine.Journal
                 _chartDd.Series.Clear();
                 _chartDd.ChartAreas.Clear();
                 _chartDd.BackColor = Color.FromArgb(17, 18, 23);
-                _chartDd.Click += _chartDd_Click;
 
                 ChartArea areaDdPunct = new ChartArea("ChartAreaDdPunct");
                 areaDdPunct.Position.Height = 50;
@@ -1652,57 +1597,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// Click on the chart with max drawdown
-        /// клик по чарту с макс просадкой
-        /// </summary>
-        void _chartDd_Click(object sender, EventArgs e)
-        {
-            if (double.IsNaN(_chartDd.ChartAreas[0].CursorX.Position) ||
-                _chartDd.ChartAreas[0].CursorX.Position == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _chartDd.Series.Count; i++)
-            {
-                if (_chartDd.Series[i].Points.Count == 1)
-                {
-                    continue;
-                }
-                for (int i2 = 0; i2 < _chartDd.Series[i].Points.Count; i2++)
-                {
-                    _chartDd.Series[i].Points[i2].Label = "";
-                }
-            }
-
-            for (int i = 0; i < _chartDd.Series.Count; i++)
-            {
-                if (_chartDd.Series[i].Points.Count == 1)
-                {
-                    continue;
-                }
-                string label = "";
-
-                int index = Convert.ToInt32(_chartDd.ChartAreas[0].CursorX.Position) - 1;
-
-                if (index >= _chartDd.Series[i].Points.Count)
-                {
-                    return;
-                }
-
-                if (!string.IsNullOrWhiteSpace(_chartDd.Series[i].Points[index].AxisLabel))
-                {
-                    label += _chartDd.Series[i].Points[index].AxisLabel + "\n";
-                }
-
-                label += _chartDd.Series[i].Points[index].YValues[0];
-
-                _chartDd.Series[i].Points[index].Label = label;
-                _chartDd.Series[i].Points[index].LabelForeColor = _chartDd.Series[i].Points[index].Color;
-                _chartDd.Series[i].Points[index].LabelBackColor = Color.Black;
-            }
-        }
         // positions
         // позиции
 
