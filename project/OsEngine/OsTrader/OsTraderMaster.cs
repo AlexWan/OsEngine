@@ -615,16 +615,16 @@ namespace OsEngine.OsTrader
         /// </summary>
         private GlobalPosition _globalController;
 
-        /// <summary>
-        /// journal window
-        /// </summary>
-        private JournalUi _journalUi;
+
+        private JournalUi2 _journalUi2;
+
+        private JournalUi _journalUi1;
 
         /// <summary>
         /// show journal for all robots
         /// показать журнал по всем роботам
         /// </summary>
-        public void ShowCommunityJournal()
+        public void ShowCommunityJournal(int journalVersion)
         {
             try
             {
@@ -634,9 +634,15 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                if (_journalUi != null)
+                if (_journalUi2 != null)
                 {
-                    _journalUi.Activate();
+                    _journalUi2.Activate();
+                    return;
+                }
+
+                if (_journalUi1 != null)
+                {
+                    _journalUi1.Activate();
                     return;
                 }
 
@@ -667,10 +673,20 @@ namespace OsEngine.OsTrader
                     panelsJournal.Add(botPanel);
                 }
 
-                _journalUi = new JournalUi(panelsJournal, _startProgram);
-                _journalUi.LogMessageEvent += SendNewLogMessage;
-                _journalUi.Closed += _journalUi_Closed;
-                _journalUi.Show();
+                if(journalVersion == 2)
+                {
+                    _journalUi2 = new JournalUi2(panelsJournal, _startProgram);
+                    _journalUi2.LogMessageEvent += SendNewLogMessage;
+                    _journalUi2.Closed += _journalUi_Closed;
+                    _journalUi2.Show();
+                }
+                if (journalVersion == 1)
+                {
+                    _journalUi1 = new JournalUi(panelsJournal, _startProgram);
+                    _journalUi1.LogMessageEvent += SendNewLogMessage;
+                    _journalUi1.Closed += _journalUi_Closed;
+                    _journalUi1.Show();
+                }
             }
             catch (Exception error)
             {
@@ -680,10 +696,22 @@ namespace OsEngine.OsTrader
 
         private void _journalUi_Closed(object sender, EventArgs e)
         {
-            _journalUi.LogMessageEvent -= SendNewLogMessage;
-            _journalUi.Closed -= _journalUi_Closed;
-            _journalUi.IsErase = true;
-            _journalUi = null;
+            if(_journalUi2 != null)
+            {
+                _journalUi2.LogMessageEvent -= SendNewLogMessage;
+                _journalUi2.Closed -= _journalUi_Closed;
+                _journalUi2.IsErase = true;
+                _journalUi2 = null;
+            }
+
+            if (_journalUi1 != null)
+            {
+                _journalUi1.LogMessageEvent -= SendNewLogMessage;
+                _journalUi1.Closed -= _journalUi_Closed;
+                _journalUi1.IsErase = true;
+                _journalUi1 = null;
+            }
+
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
@@ -1361,8 +1389,6 @@ namespace OsEngine.OsTrader
         public event Action<BotPanel> BotCreateEvent;
 
         public event Action<BotPanel> BotDeleteEvent;
-
-
 
     }
 }

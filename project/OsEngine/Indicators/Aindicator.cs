@@ -124,7 +124,6 @@ namespace OsEngine.Indicators
             return (IndicatorParameterString)LoadParameterValues(newParameter);
         }
 
-
         /// <summary>
         /// create bool type parameter / 
         /// создать параметр типа Bool

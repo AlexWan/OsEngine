@@ -716,9 +716,9 @@ namespace OsEngine.Journal
                 CreateTableToStatistic();
             }
 
-            List<string> positionsAllState = PositionStaticticGenerator.GetStatisticNew(positionsAll, neadShowTickState);
-            List<string> positionsLongState = PositionStaticticGenerator.GetStatisticNew(positionsLong, neadShowTickState);
-            List<string> positionsShortState = PositionStaticticGenerator.GetStatisticNew(positionsShort, neadShowTickState);
+            List<string> positionsAllState = PositionStaticticGenerator.GetStatisticNew(positionsAll);
+            List<string> positionsLongState = PositionStaticticGenerator.GetStatisticNew(positionsLong);
+            List<string> positionsShortState = PositionStaticticGenerator.GetStatisticNew(positionsShort);
 
             if (positionsAllState == null)
             {
@@ -2264,8 +2264,6 @@ namespace OsEngine.Journal
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
-
-
 
     /// <summary>
     /// the class of DataGridView. modification of cells allows working with the thickness of the cell boundary

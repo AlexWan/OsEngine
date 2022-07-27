@@ -79,6 +79,46 @@ namespace OsEngine.Language
             "Eng:Volume Assemblage_" +
             "Ru:Ассемблирование объёма_");
 
+        public string Label5 => OsLocalization.ConvertToLocString(
+            "Eng:From_" +
+            "Ru:От_");
+
+        public string Label6 => OsLocalization.ConvertToLocString(
+            "Eng:To_" +
+            "Ru:До_");
+
+        public string Label7 => OsLocalization.ConvertToLocString(
+            "Eng:Reload_" +
+             "Ru:Перезагрузить_");
+
+        public string Label8 => OsLocalization.ConvertToLocString(
+            "Eng:Chart Type_" +
+            "Ru:Тип линии_");
+
+        public string Label9 => OsLocalization.ConvertToLocString(
+            "Eng:Group_" +
+            "Ru:Группа_");
+
+        public string Label10 => OsLocalization.ConvertToLocString(
+            "Eng:Name_" +
+            "Ru:Имя_");
+
+        public string Label11 => OsLocalization.ConvertToLocString(
+            "Eng:Class_" +
+            "Ru:Класс_");
+
+        public string Label12 => OsLocalization.ConvertToLocString(
+            "Eng:On/Off_" +
+            "Ru:Вкл/выкл_");
+
+        public string Label13 => OsLocalization.ConvertToLocString(
+           "Eng:New Bots Group Creation_" +
+           "Ru:Создание новой группы_");
+
+        public string Label14 => OsLocalization.ConvertToLocString(
+          "Eng:Accept_" +
+          "Ru:Принять_");
+
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +
             "Ru:Эквити_");

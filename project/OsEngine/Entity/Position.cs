@@ -483,6 +483,8 @@ namespace OsEngine.Entity
             }
         }
 
+        public decimal MultToJournal = 100;
+
         /// <summary>
         /// check the incoming order for this transaction
         /// проверить входящий ордер, на принадлежность этой сделке
@@ -1014,7 +1016,7 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// the amount of profit relative to the portfolio in absolute terms
-        /// количество прибыли относительно портфеля в абсолютном выражении
+        /// количество прибыли относительно портфеля в абсолютном выражении, С УЧЁТОМ КОМИССИИ И СТОИМОСТЕЙ ШАГА ЦЕНЫ
         /// </summary>
         public decimal ProfitPortfolioPunkt
         {
