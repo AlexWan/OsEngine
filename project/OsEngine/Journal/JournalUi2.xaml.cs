@@ -2560,9 +2560,9 @@ namespace OsEngine.Journal
             if (myJournals == null
                 || myJournals.Count == 0)
             {
-                _allPositions.Clear();
-                _longPositions.Clear();
-                _shortPositions.Clear();
+                _allPositions?.Clear();
+                _longPositions?.Clear();
+                _shortPositions?.Clear();
                 startTime = DateTime.MinValue;
                 endTime = DateTime.MinValue;
 
@@ -2612,6 +2612,11 @@ namespace OsEngine.Journal
             _allPositions = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
             _longPositions = _allPositions.FindAll(p => p.Direction == Side.Buy);
             _shortPositions = _allPositions.FindAll(p => p.Direction == Side.Sell);
+
+            if(_allPositions.Count == 0)
+            {
+                return;
+            }
 
             startTime = _allPositions[0].TimeOpen;
             endTime = _allPositions[_allPositions.Count - 1].TimeOpen;

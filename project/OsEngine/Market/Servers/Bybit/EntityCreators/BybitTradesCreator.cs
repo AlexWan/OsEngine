@@ -39,7 +39,7 @@ namespace OsEngine.Market.Servers.Bybit.EntityCreators
 
 
 
-        public static List<Trade> GetTradesCollection(Client client, string security, int limit, int from_id)
+        public static List<Trade> GetTradesCollection(Client client, string security, int limit, int from_id, BybitServerRealization server)
         {
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -52,7 +52,12 @@ namespace OsEngine.Market.Servers.Bybit.EntityCreators
                 parameters.Add("from", from_id.ToString());
             }
 
-            JToken account_response = BybitRestRequestBuilder.CreatePrivateGetQuery(client, "/v2/public/trading-records", parameters);
+            JToken account_response = server.CreatePrivateGetQuery(client, "/v2/public/trading-records", parameters);
+
+            if(account_response == null)
+            {
+                return null;
+            }
 
             string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
 

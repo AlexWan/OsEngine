@@ -744,6 +744,10 @@ namespace OsEngine.Market.Servers
         /// </summary>
         void _serverRealization_Disconnected()
         {
+            if(ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
             SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
 
