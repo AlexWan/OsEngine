@@ -14,10 +14,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Dynamic;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 
 
 namespace OsEngine.Market.Servers.Bybit
@@ -169,15 +167,15 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 if (ws_source_private != null)
                 {
-                    ws_source_private.Dispose();
                     ws_source_private.MessageEvent -= WsSourceOnMessageEvent;
+                    ws_source_private.Dispose();
                     ws_source_private = null;
                 }
 
                 if (ws_source_public != null)
                 {
-                    ws_source_public.Dispose();
                     ws_source_public.MessageEvent -= WsSourceOnMessageEvent;
+                    ws_source_public.Dispose();
                     ws_source_public = null;
                 }
 
