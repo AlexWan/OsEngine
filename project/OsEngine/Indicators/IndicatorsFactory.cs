@@ -143,6 +143,9 @@ namespace OsEngine.Indicators
             {
                 if (Indicator == null)
                 {
+                    if (!Directory.Exists(@"Custom\Indicators\Scripts"))
+                        Directory.CreateDirectory(@"Custom\Indicators\Scripts");
+
                     List<string> fullPaths = GetFullNamesFromFolder(@"Custom\Indicators\Scripts");
 
                     string longNameClass = nameClass + ".txt";
@@ -165,7 +168,7 @@ namespace OsEngine.Indicators
                     if (myPath == "")
                     {
                         MessageBox.Show("Error! Indicator with name " + nameClass + "not found");
-                        return null;
+                        return Indicator;
                     }
 
                     Indicator = Serialize(myPath, nameClass, name, canDelete);
