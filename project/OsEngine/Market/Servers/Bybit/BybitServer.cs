@@ -141,7 +141,6 @@ namespace OsEngine.Market.Servers.Bybit
                 client = new Client(public_key, secret_key, true, false);
             }
 
-
             cancel_token_source = new CancellationTokenSource();
             market_mepth_creator = new BybitMarketDepthCreator();
 
@@ -183,10 +182,11 @@ namespace OsEngine.Market.Servers.Bybit
                     !cancel_token_source.IsCancellationRequested)
                 {
                     cancel_token_source.Cancel();
+                    cancel_token_source = null;
                 }
 
-                market_mepth_creator = new BybitMarketDepthCreator();
                 cancel_token_source = new CancellationTokenSource();
+                market_mepth_creator = new BybitMarketDepthCreator();
 
                 client = null;
 
@@ -194,6 +194,8 @@ namespace OsEngine.Market.Servers.Bybit
 
                 _alreadySubscribleOrders = false;
                 _alreadySubscribleTrades = false;
+
+                OnDisconnectEvent();
             }
             catch (Exception e)
             {
@@ -349,7 +351,7 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    await Task.Delay(1000, token);
+                    await Task.Delay(10000, token);
 
                     GetPortfolios();
                     GetPositions();
