@@ -831,21 +831,22 @@ namespace OsEngine.OsTrader
                     _tabBotNames.Dispatcher.Invoke(StrategyKeeper_TestingFastEvent);
                     return;
                 }
-                if (_activPanel != null)
-                {
-                    _activPanel.StopPaint();
-                }
 
                 _fastRegimeOn = true;
                 ServerMaster.StopPaint();
                 _globalController.StopPaint();
+
                 if(_tabBotNames != null)
                 {
                     _tabBotNames.IsEnabled = false;
+
+                    if (_activPanel != null)
+                    {
+                        _activPanel.StopPaint();
+                    }
                 }
                 
                 _log.StopPaint();
-
             }
             catch (Exception error)
             {
