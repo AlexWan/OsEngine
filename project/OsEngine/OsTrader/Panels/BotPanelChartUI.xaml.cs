@@ -7,16 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms.Integration;
-using System.Windows.Shapes;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Journal;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.Market.Connectors;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
@@ -56,7 +52,6 @@ namespace OsEngine.OsTrader.Panels
 
             LocationChanged += RobotUi_LocationChanged;
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
-
         }
 
         // для тестирования

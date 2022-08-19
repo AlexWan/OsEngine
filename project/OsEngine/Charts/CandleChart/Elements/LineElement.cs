@@ -148,6 +148,11 @@ namespace OsEngine.Charts.CandleChart.Elements
         public Color Color;
 
         /// <summary>
+        /// толщина линии. От 1 до 10 пикселей
+        /// </summary>
+        public int LineWidth = 1;
+
+        /// <summary>
         /// line drawing start time
         /// время начала прорисовки линии
         /// </summary>

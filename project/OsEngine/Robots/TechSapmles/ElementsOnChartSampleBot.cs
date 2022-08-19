@@ -129,6 +129,7 @@ namespace OsEngine.Robots.TechSapmles
             line.TimeStart = candles[0].TimeStart;
             line.TimeEnd = candles[candles.Count-1].TimeStart;
             line.Color = Color.White;
+            line.LineWidth = 3; // Толщина линии
 
             line.Label = "Some label on Line";
             _tab.SetChartElement(line);
@@ -157,6 +158,7 @@ namespace OsEngine.Robots.TechSapmles
             line.TimeStart = candles[candles.Count - 10].TimeStart;
             line.TimeEnd = candles[candles.Count - 5].TimeStart;
             line.Color = Color.Green;
+            line.LineWidth = 1; // Толщина линии
 
             line.Label = "Some label on segment";
 
@@ -187,6 +189,7 @@ namespace OsEngine.Robots.TechSapmles
             line.TimeStart = candles[0].TimeStart;
             line.TimeEnd = candles[candles.Count - 1].TimeStart;
             line.Color = Color.White;
+            line.LineWidth = 5; // Толщина линии
 
             line.Label = "Some label on second chart";
             _tab.SetChartElement(line);

@@ -2344,12 +2344,12 @@ namespace OsEngine.Charts.CandleChart
             {
                 newSeries = new Series(lineElement.UniqName);
                 newSeries.ChartType = SeriesChartType.Line;
+                newSeries.BorderWidth = lineElement.LineWidth;
                 newSeries.Color = lineElement.Color;
                 newSeries.ChartArea = lineElement.Area;
                 newSeries.YAxisType = AxisType.Secondary;
                 newSeries.XAxisType = AxisType.Primary;
             }
-
 
             if (!string.IsNullOrWhiteSpace(lineElement.Label))
             {
