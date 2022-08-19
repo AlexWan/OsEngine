@@ -288,3 +288,17 @@ __pycache__/
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
+
+# Block updated libs
+project/OsEngine/bin/Debug/Jayrock.Json.dll
+project/OsEngine/bin/Debug/Jayrock.dll
+project/OsEngine/bin/Debug/LmaxClientLibrary.dll
+project/OsEngine/bin/Debug/OkonkwoOandaV20.dll
+project/OsEngine/bin/Debug/PusherClient.dll
+project/OsEngine/bin/Debug/RestSharp.dll
+project/OsEngine/bin/Debug/WebSocket4Net.dll
+project/OsEngine/bin/Debug/cgate_net64.dll
+project/OsEngine/bin/Debug/protobuf-net.dll
+project/OsEngine/bin/Debug/qC.dll
+project/OsEngine/bin/Debug/websocket-sharp.dll
+
