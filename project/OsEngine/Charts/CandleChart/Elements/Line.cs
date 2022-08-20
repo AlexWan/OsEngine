@@ -17,8 +17,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         /// <param name="nameUniq">unique item name/уникальное имя элемента</param>
         /// <param name="nameArea">chart area/область на чарте</param>
-        /// <param name="canResizeOnChart">it possible to pull line by point at base/можно ли перетягивать линию за точку в основании</param>
-        public Line(string nameUniq, string nameArea, bool canResizeOnChart)
+        public Line(string nameUniq, string nameArea)
         {
             UniqName = nameUniq;
             Area = nameArea;

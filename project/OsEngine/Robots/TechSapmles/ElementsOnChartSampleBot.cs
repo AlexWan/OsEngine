@@ -223,7 +223,7 @@ namespace OsEngine.Robots.TechSapmles
                 return;
             }
 
-            Line line = new Line("Inclined line", "Prime", false);
+            Line line = new Line("Inclined line", "Prime");
 
             line.ValueYStart = candles[candles.Count - 11].Close;
             line.TimeStart = candles[candles.Count - 11].TimeStart;
