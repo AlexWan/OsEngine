@@ -128,6 +128,7 @@ namespace OsEngine.Robots.TechSapmles
             line.Value = candles[candles.Count - 1].Close;
             line.TimeStart = candles[0].TimeStart;
             line.TimeEnd = candles[candles.Count-1].TimeStart;
+            line.CanResize = true;
             line.Color = Color.White;
             line.LineWidth = 3; // Толщина линии
 

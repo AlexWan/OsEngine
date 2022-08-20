@@ -168,6 +168,7 @@
       <DependentUpon>AlertToPriceCreateUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Elements\IChartElement.cs" />
+    <Compile Include="Charts\CandleChart\Elements\Line.cs" />
     <Compile Include="Charts\CandleChart\Elements\PointElement.cs" />
     <Compile Include="Charts\CandleChart\IChartPainter.cs" />
     <Compile Include="Charts\CandleChart\Indicators\AccumulationDistribution.cs" />
@@ -198,7 +199,7 @@
     <Compile Include="Charts\CandleChart\Indicators\AwesomeOscillatorUi.xaml.cs">
       <DependentUpon>AwesomeOscillatorUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Charts\CandleChart\Elements\LineElement.cs" />
+    <Compile Include="Charts\CandleChart\Elements\LineHorisontal.cs" />
     <Compile Include="Charts\CandleChart\Indicators\Ac.cs" />
     <Compile Include="Charts\CandleChart\Indicators\AcUi.xaml.cs">
       <DependentUpon>AcUi.xaml</DependentUpon>
