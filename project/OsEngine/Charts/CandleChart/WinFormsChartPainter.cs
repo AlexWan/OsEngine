@@ -2191,6 +2191,10 @@ namespace OsEngine.Charts.CandleChart
                 {
                     PaintHorisiontalLineOnArea((LineHorisontal)element);
                 }
+                if (element.TypeName() == "Line")
+                {
+                    PaintLineElemOnArea((Elements.Line)element);
+                }
                 else if (element.TypeName() == "PointElement")
                 {
                     PointElement elem = (PointElement)element;
@@ -2311,6 +2315,114 @@ namespace OsEngine.Charts.CandleChart
 
                 _chartElementsToClear.Enqueue(element);
             }
+        }
+
+        public void PaintLineElemOnArea(Elements.Line lineElement)
+        {
+            if (lineElement.ValueYStart == 0)
+            {
+                return;
+            }
+            if (lineElement.ValueYEnd == 0)
+            {
+                return;
+            }
+            if (_myCandles == null)
+            {
+                return;
+            }
+            if (_chart == null)
+            {
+                return;
+            }
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action<Elements.Line>(PaintLineElemOnArea), lineElement);
+                return;
+            }
+
+            Series newSeries = FindSeriesByNameSafe(lineElement.UniqName);
+
+            if (newSeries == null)
+            {
+                newSeries = new Series(lineElement.UniqName);
+                newSeries.ChartType = SeriesChartType.Line;
+                newSeries.BorderWidth = lineElement.LineWidth;
+                newSeries.Color = lineElement.Color;
+                newSeries.ChartArea = lineElement.Area;
+                newSeries.YAxisType = AxisType.Secondary;
+                newSeries.XAxisType = AxisType.Primary;
+            }
+
+            if (!string.IsNullOrWhiteSpace(lineElement.Label))
+            {
+                newSeries.Label = lineElement.Label;
+                newSeries.LabelForeColor = _colorKeeper.ColorText;
+            }
+
+            int firstIndex = 0;
+            int secondIndex = _myCandles.Count - 1;
+
+            if (lineElement.TimeStart != DateTime.MinValue)
+            {
+                int index = _myCandles.FindIndex(candle => candle.TimeStart >= lineElement.TimeStart);
+                if (index >= 0)
+                {
+                    firstIndex = index;
+                }
+            }
+
+            if (lineElement.TimeEnd != DateTime.MaxValue)
+            {
+                int index = _myCandles.FindIndex(candle => candle.TimeStart >= lineElement.TimeEnd);
+
+                if (index > 0)
+                {
+                    secondIndex = index;
+                }
+            }
+
+            if (firstIndex > secondIndex)
+            {
+                return;
+            }
+
+            if (firstIndex < 0 || firstIndex >= _myCandles.Count ||
+                secondIndex < 0 || secondIndex >= _myCandles.Count)
+            {
+                return;
+            }
+
+            if (lineElement.Label != null)
+            {
+                newSeries.Label = lineElement.Label;
+            }
+
+            if (newSeries.Points == null || newSeries.Points.Count == 0)
+            {
+                newSeries.Points.AddXY(firstIndex, lineElement.ValueYStart);
+                newSeries.Points.AddXY(secondIndex, lineElement.ValueYEnd);
+            }
+            else
+            {
+                if (newSeries.Points[0].YValues[0] != (double)lineElement.ValueYStart ||
+                    newSeries.Points[1].YValues[0] != (double)lineElement.ValueYEnd)
+                {
+                    ClearLabelOnY2(newSeries.Name + "Label", newSeries.ChartArea, newSeries.Color);
+                    newSeries.Points[0].YValues[0] = (double)lineElement.ValueYStart;
+                    newSeries.Points[1].YValues[0] = (double)lineElement.ValueYEnd;
+                    RePaintRightLebels();
+                }
+
+                if (newSeries.Points[0].XValue != firstIndex ||
+                    newSeries.Points[1].XValue != secondIndex)
+                {
+                    newSeries.Points[0].XValue = firstIndex;
+                    newSeries.Points[1].XValue = secondIndex;
+                }
+            }
+
+            PaintSeriesSafe(newSeries);
         }
 
         /// <summary>

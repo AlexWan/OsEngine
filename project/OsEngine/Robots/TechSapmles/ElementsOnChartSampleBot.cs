@@ -37,7 +37,13 @@ namespace OsEngine.Robots.TechSapmles
 
             _buttonAddLineOnSecondArea = CreateParameterButton("Линию на доп область на чарте");
             _buttonAddLineOnSecondArea.UserClickOnButtonEvent += _buttonAddLineOnSecondArea_UserClickOnButtonEvent;
+
+            _buttonAddInclinedLineOnPrimeArea = CreateParameterButton("Наклонная линия на главный чарт");
+            _buttonAddInclinedLineOnPrimeArea.UserClickOnButtonEvent += _buttonAddInclinedLineOnPrimeArea_UserClickOnButtonEvent;
+
         }
+
+
         public override string GetNameStrategyType()
         {
             return "ElementsOnChartSampleBot";
@@ -59,6 +65,8 @@ namespace OsEngine.Robots.TechSapmles
         StrategyParameterButton _buttonAddSegmentOnPrimeArea;
 
         StrategyParameterButton _buttonAddLineOnSecondArea;
+
+        StrategyParameterButton _buttonAddInclinedLineOnPrimeArea;
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
@@ -196,6 +204,40 @@ namespace OsEngine.Robots.TechSapmles
             _tab.SetChartElement(line);
 
             _lineOnSecondChart = line;
+        }
+
+        Line _lineInclinedOnPrimeChart;
+
+        private void _buttonAddInclinedLineOnPrimeArea_UserClickOnButtonEvent()
+        {
+            if (_tab.IsConnected == false)
+            {
+                return;
+            }
+
+            List<Candle> candles = _tab.CandlesFinishedOnly;
+
+            if (candles.Count == 0 ||
+                candles.Count < 12)
+            {
+                return;
+            }
+
+            Line line = new Line("Inclined line", "Prime", false);
+
+            line.ValueYStart = candles[candles.Count - 11].Close;
+            line.TimeStart = candles[candles.Count - 11].TimeStart;
+
+            line.ValueYEnd = candles[candles.Count - 1].Close;
+            line.TimeEnd = candles[candles.Count - 1].TimeStart;
+
+            line.Color = Color.Bisque;
+            line.LineWidth = 3; // Толщина линии
+
+            line.Label = "Some label on Line Inclined";
+            _tab.SetChartElement(line);
+
+            _lineInclinedOnPrimeChart = line;
         }
 
     }

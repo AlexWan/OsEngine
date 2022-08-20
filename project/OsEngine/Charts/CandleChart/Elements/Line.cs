@@ -130,13 +130,13 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// value of first point. У
         /// значение первой точки. У
         /// </summary>
-        public decimal ValueFirst;
+        public decimal ValueYStart;
 
         /// <summary>
         /// value of second point. У
         /// значение второй точки. У
         /// </summary>
-        public decimal ValueSecond;
+        public decimal ValueYEnd;
 
         /// <summary>
         /// line signature
