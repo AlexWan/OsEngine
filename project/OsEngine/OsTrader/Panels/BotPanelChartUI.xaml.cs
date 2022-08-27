@@ -7,17 +7,15 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms.Integration;
-using System.Windows.Shapes;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Journal;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.Market.Connectors;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.OsTrader.Panels
 {
@@ -31,6 +29,46 @@ namespace OsEngine.OsTrader.Panels
             Local();
 
             Closed += BotPanelChartUi_Closed;
+
+            if(panel.StartProgram == StartProgram.IsTester)
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                for(int i= 0; servers != null && i < servers.Count;i++)
+                {
+                    if(servers[i].ServerType == ServerType.Tester)
+                    {
+                        _testerServer = (TesterServer)servers[i];
+                        break;
+                    }
+                }
+
+                if(_testerServer != null)
+                {
+                    _testerServer.TestingFastEvent += Serv_TestingFastEvent;
+                }
+
+            }
+
+            LocationChanged += RobotUi_LocationChanged;
+            TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+        }
+
+        // для тестирования
+
+        TesterServer _testerServer = null;
+
+        private void Serv_TestingFastEvent()
+        {
+            if(_testerServer.TestingFastIsActivate == true)
+            {
+                _panel.StopPaint();
+            }
+            else if (_testerServer.TestingFastIsActivate == false)
+            {
+                StartPaint();
+                _panel.MoveChartToTheRight();
+            }
         }
 
         private void BotPanelChartUi_Closed(object sender, EventArgs e)
@@ -40,6 +78,12 @@ namespace OsEngine.OsTrader.Panels
             _panel = null;
             LocationChanged -= RobotUi_LocationChanged;
             TabControlBotsName.SizeChanged -= TabControlBotsName_SizeChanged;
+
+            if(_testerServer != null)
+            {
+                _testerServer.TestingFastEvent -= Serv_TestingFastEvent;
+                _testerServer = null;
+            }
         }
 
         public void StartPaint()
@@ -47,9 +91,6 @@ namespace OsEngine.OsTrader.Panels
             _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
              HostClosePosition, HostBotLog, RectChart,
              HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel);
-
-            LocationChanged += RobotUi_LocationChanged;
-            TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
         }
 
         private BotPanel _panel;
@@ -254,6 +295,8 @@ namespace OsEngine.OsTrader.Panels
 
                 BotPanelJournal botPanel = new BotPanelJournal();
                 botPanel.BotName = _panel.NameStrategyUniq;
+                botPanel.BotClass = _panel.GetNameStrategyType();
+
                 botPanel._Tabs = new List<BotTabJournal>();
 
                 for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
@@ -373,7 +416,6 @@ namespace OsEngine.OsTrader.Panels
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
+using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.Bybit.EntityCreators
 {
@@ -34,6 +35,30 @@ namespace OsEngine.Market.Servers.Bybit.EntityCreators
             }
 
             return portfolio;
+        }
+
+        public static List<PositionOnBoard> CreatePosOnBoard(JToken data)
+        {
+            List<PositionOnBoard> poses = new List<PositionOnBoard>();
+
+            foreach (var jtPosition in data)
+            {
+                JToken posJson = jtPosition.SelectToken("data");
+
+
+                PositionOnBoard pos = new PositionOnBoard();
+
+                pos.PortfolioName = "BybitPortfolio";
+                pos.SecurityNameCode 
+                    = posJson.SelectToken("symbol").ToString() 
+                    + "_" + posJson.SelectToken("side").ToString();
+
+                pos.ValueBegin = posJson.SelectToken("size").Value<decimal>();
+                pos.ValueCurrent = pos.ValueBegin;
+                poses.Add(pos);
+            }
+
+            return poses;
         }
 
         public static Portfolio Create(string portfolioName)

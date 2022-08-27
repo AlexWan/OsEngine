@@ -744,6 +744,10 @@ namespace OsEngine.Market.Servers
         /// </summary>
         void _serverRealization_Disconnected()
         {
+            if(ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
             SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
 
@@ -2107,9 +2111,18 @@ namespace OsEngine.Market.Servers
 
         private void UpDateOrder(Order order)
         {
-            for(int i = 0;i < _myExecuteOrders.Count;i++)
+            if (order == null)
             {
-               if(_myExecuteOrders[i].NumberUser == order.NumberUser)
+                return;
+            }
+
+            for (int i = 0; i < _myExecuteOrders.Count; i++)
+            {
+                if (_myExecuteOrders[i] == null)
+                {
+                    continue;
+                }
+                if (_myExecuteOrders[i].NumberUser == order.NumberUser)
                 {
                     CopySettings(order, _myExecuteOrders[i]);
                     _needToSaveOrders = true;
@@ -2118,6 +2131,10 @@ namespace OsEngine.Market.Servers
             }
             for (int i = 0; i < _myCanselOrders.Count; i++)
             {
+                if (_myCanselOrders[i] == null)
+                {
+                    continue;
+                }
                 if (_myCanselOrders[i].NumberUser == order.NumberUser)
                 {
                     CopySettings(order, _myCanselOrders[i]);

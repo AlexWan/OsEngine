@@ -21,7 +21,7 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         /// <param name="positions"></param>
         /// <param name="withPunkt">If data from several tabs or several robots, then you need to write false/если данные из нескольких вкладок или нескольких роботов, то нужно писать false</param>
-        public static List<string> GetStatisticNew(List<Position> positions, bool withPunkt)
+        public static List<string> GetStatisticNew(List<Position> positions)
         {
             if (positions == null)
             {
@@ -148,7 +148,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                profit += deals[i].ProfitPortfolioPunkt;
+                profit += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
             }
 
             return Round(profit);
@@ -214,13 +214,15 @@ namespace OsEngine.Journal.Internal
 
                 if (enter == 0) continue;
 
+                decimal value = (exit / enter * 100 - 100);
+
                 if (deals[i].Direction == Side.Buy)
                 {
-                    profit += exit / enter * 100 - 100;
+                    profit += value;
                 }
                 else if (deals[i].Direction == Side.Sell)
                 {
-                    profit += -(exit / enter * 100 - 100);
+                    profit += -(value);
                 }
             }
 
@@ -247,11 +249,13 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                profit += deals[i].ProfitOperationPunkt;
+                decimal curProfit = deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
 
-                if (deals[i].ProfitOperationPunkt != 0)
+                profit += curProfit;
+
+                if (curProfit != 0)
                 {
-                    someProfit = deals[i].ProfitOperationPunkt;
+                    someProfit = curProfit;
                 }
             }
 
@@ -284,7 +288,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                profit += deals[i].ProfitPortfolioPersent;
+                profit += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
             }
 
             return Math.Round(profit / deals.Length, 6);
@@ -304,7 +308,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                profit += deals[i].ProfitPortfolioPunkt;
+                profit += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
             }
 
             return Math.Round(profit / deals.Length, 6);
@@ -361,7 +365,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitOperationPunkt > 0)
                 {
-                    profit += deals[i].ProfitOperationPunkt;
+                    profit += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
                 }
             }
 
@@ -390,7 +394,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitOperationPersent > 0)
                 {
-                    profit += deals[i].ProfitOperationPersent;
+                    profit += deals[i].ProfitOperationPersent * (deals[i].MultToJournal / 100);
                 }
             }
             if (profit == 0)
@@ -418,7 +422,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitPortfolioPunkt > 0)
                 {
-                    profit += deals[i].ProfitPortfolioPunkt;
+                    profit += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
                 }
             }
 
@@ -447,7 +451,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitPortfolioPersent > 0)
                 {
-                    profit += deals[i].ProfitPortfolioPersent;
+                    profit += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
                 }
             }
             if (profit == 0)
@@ -531,7 +535,6 @@ namespace OsEngine.Journal.Internal
 
         }
 
-
         /// <summary>
         /// take the average loss in points
         /// взять средний убыток в пунктах
@@ -544,7 +547,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitOperationPunkt <= 0)
                 {
-                    loss += deals[i].ProfitOperationPunkt;
+                    loss += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
                 }
             }
             if (loss == 0)
@@ -566,7 +569,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitOperationPersent <= 0)
                 {
-                    loss += deals[i].ProfitOperationPersent;
+                    loss += deals[i].ProfitOperationPersent * (deals[i].MultToJournal / 100);
                 }
             }
             if (loss == 0)
@@ -588,7 +591,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitPortfolioPunkt <= 0)
                 {
-                    loss += deals[i].ProfitPortfolioPunkt;
+                    loss += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
                 }
             }
             if (loss == 0)
@@ -617,7 +620,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitPortfolioPersent <= 0)
                 {
-                    loss += deals[i].ProfitPortfolioPersent;
+                    loss += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
                 }
             }
             if (loss == 0)
@@ -682,7 +685,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                thisSumm += deals[i].ProfitPortfolioPersent;
+                thisSumm += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
 
                 decimal thisDown;
                 if (thisSumm > thisPik)
@@ -755,7 +758,7 @@ namespace OsEngine.Journal.Internal
 
             for(int i = 0;i < deals.Length;i++)
             {
-                commissionTotal += deals[i].CommissionTotal();
+                commissionTotal += deals[i].CommissionTotal() * (deals[i].MultToJournal / 100);
             }
 
             return Round(commissionTotal);
@@ -775,11 +778,11 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitOperationPunkt < 0)
                 {
-                    commonLossPunkt = commonLossPunkt + deals[i].ProfitOperationPunkt;
+                    commonLossPunkt = commonLossPunkt + deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
                 }
                 else
                 {
-                    commonProfitPunkt = commonProfitPunkt + deals[i].ProfitOperationPunkt;
+                    commonProfitPunkt = commonProfitPunkt + deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
                 }
             }
 
@@ -797,11 +800,11 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitOperationPunkt > 0)
                 {
-                    avProfit += deals[i].ProfitOperationPunkt;
+                    avProfit += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
                 }
                 else
                 {
-                    avLoss += deals[i].ProfitOperationPunkt;
+                    avLoss += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
                 }
             }
 
@@ -826,7 +829,7 @@ namespace OsEngine.Journal.Internal
             {
                 if (deals[i].ProfitOperationPunkt <= maxLossPunkt)   // ProfitOperationPersent
                 {
-                    maxLossPunkt = deals[i].ProfitOperationPunkt;
+                    maxLossPunkt = deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
                 }
             }
             decimal profit = GetAllProfitInPunkt(deals);

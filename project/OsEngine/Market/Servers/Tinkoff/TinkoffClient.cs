@@ -1183,7 +1183,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             string res = "{\"nano\": ";
 
-            res +=  nano + ",\"units\": ";
+            res += nano + ",\"units\": ";
 
             res += "\"" + units + "\"" + "}";
 

@@ -231,6 +231,49 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// candle body (%)
+        /// тело свечи (%)
+        /// </summary>
+        public decimal BodyPercent
+        {
+            get
+            {
+                if (IsUp)
+                {
+                    return (Close - Open) / Open * 100m;
+                }
+                else
+                {
+                    return (Open - Close) / Open * 100m;
+                }
+            }
+        }
+
+        /// <summary>
+        /// candle center
+        /// центр свечи
+        /// </summary>
+        public decimal Center
+        {
+            get
+            {
+                return (High - Low) / 2m + Low;
+            }
+        }
+
+        /// <summary>
+        /// candle volatility (regarding center, %)
+        /// волатильность свечи (от центра, %)
+        /// </summary>
+        public decimal Volatility
+        {
+            get
+            {
+                return (High - Center) / Center * 100m;
+            }
+        }
+
+        /// <summary>
         /// to load the status of the candlestick from the line
         /// загрузить состояние свечи из строки
         /// </summary>
@@ -273,7 +316,7 @@ namespace OsEngine.Entity
         public string ToolTip
         {
             //Date - 20131001 Time - 100000 
-            // Open - 97.8000000 High - 97.9900000 Low - 97.7500000 Close - 97.9000000
+            // Open - 97.8000000 High - 97.9900000 Low - 97.7500000 Close - 97.9000000 Body(%) - 0.97
             get
             {
 
@@ -346,6 +389,11 @@ namespace OsEngine.Entity
                 result += " C: ";
                 result += Close.ToStringWithNoEndZero();
 
+                result += "  \r\n";
+
+                result += " Body(%): ";
+                result += (Math.Floor(BodyPercent * 100m) / 100m).ToStringWithNoEndZero();
+				
                 return result;
             }
         }
@@ -367,8 +415,8 @@ namespace OsEngine.Entity
 
                 _stringToSave = "";
 
-                //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1
-                //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>
+                //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1,0.97
+                //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>,<BODY%>
 
                 string result = "";
                 result += TimeStart.ToString("yyyyMMdd,HHmmss") + ",";
@@ -377,7 +425,8 @@ namespace OsEngine.Entity
                 result += High.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Low.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Close.ToString(CultureInfo.InvariantCulture) + ",";
-                result += Volume.ToString(CultureInfo.InvariantCulture);
+                result += Volume.ToString(CultureInfo.InvariantCulture) + ",";
+                result += BodyPercent.ToString(CultureInfo.InvariantCulture);
 
                 _stringToSave = result;
 

@@ -13,14 +13,20 @@ namespace OsEngine.Indicators
 {
     public abstract class Aindicator : IIndicator
     {
-        public void Init(string name)
+        public void Init(string name,StartProgram startProgram)
         {
             Name = name;
             CanDelete = true;
-            Load();
+
+            if(startProgram != StartProgram.IsOsOptimizer)
+            {
+                Load();
+            }
 
             OnStateChange(IndicatorState.Configure);
         }
+
+        public StartProgram StartProgram;
 
         public abstract void OnStateChange(IndicatorState state);
 
@@ -117,7 +123,6 @@ namespace OsEngine.Indicators
 
             return (IndicatorParameterString)LoadParameterValues(newParameter);
         }
-
 
         /// <summary>
         /// create bool type parameter / 
@@ -233,6 +238,12 @@ namespace OsEngine.Indicators
             {
                 return;
             }
+
+            if(StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @"Parametrs.txt", false)
@@ -302,6 +313,11 @@ namespace OsEngine.Indicators
         public void Save()
         {
             if (Name == "")
+            {
+                return;
+            }
+
+            if(StartProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -456,6 +472,8 @@ namespace OsEngine.Indicators
 
         public bool PaintOn { get; set; }
 
+        public bool IsOn { get; set; } = true;
+
         #endregion
 
         /// <summary>
@@ -557,7 +575,29 @@ namespace OsEngine.Indicators
 
         private void ProcessLast(List<Candle> candles)
         {
-            if(candles.Count <= 0)
+            for (int i = 0; i < DataSeries.Count; i++)
+            {
+                while (DataSeries[i].Values.Count < candles.Count)
+                {
+                    DataSeries[i].Values.Add(0);
+                }
+            }
+
+            for (int i = 0; i < IncludeIndicators.Count; i++)
+            {
+                if (IncludeIndicators[i].IsOn == true &&
+                    IsOn == false)
+                {
+                    IncludeIndicators[i].IsOn = false;
+                }
+                if (IncludeIndicators[i].IsOn == false &&
+                    IsOn == true)
+                {
+                    IncludeIndicators[i].IsOn = true;
+                }
+            }
+
+            if (candles.Count <= 0)
             {
                 return;
             }
@@ -566,12 +606,9 @@ namespace OsEngine.Indicators
                 IncludeIndicators[i].Process(candles);
             }
 
-            for (int i = 0; i < DataSeries.Count; i++)
+            if (IsOn == false)
             {
-                while (DataSeries[i].Values.Count < candles.Count)
-                {
-                    DataSeries[i].Values.Add(0);
-                }
+                return;
             }
 
             OnProcess(candles, candles.Count - 1);
@@ -584,16 +621,37 @@ namespace OsEngine.Indicators
             {
                 return;
             }
+
+            for (int i = 0; i < DataSeries.Count; i++)
+            {
+                while (DataSeries[i].Values.Count < candles.Count)
+                {
+                    DataSeries[i].Values.Add(0);
+                }
+            }
+
+            for (int i = 0; i < IncludeIndicators.Count; i++)
+            {
+                if (IncludeIndicators[i].IsOn == true &&
+                    IsOn == false)
+                {
+                    IncludeIndicators[i].IsOn = false;
+                }
+                if (IncludeIndicators[i].IsOn == false &&
+                    IsOn == true)
+                {
+                    IncludeIndicators[i].IsOn = true;
+                }
+            }
+
             for (int i = 0; i < IncludeIndicators.Count; i++)
             {
                 IncludeIndicators[i].Process(candles);
             }
-            for (int i = 0; i < DataSeries.Count; i++)
+
+            if (IsOn == false)
             {
-                while (DataSeries[i].Values.Count < index + 1)
-                {
-                    DataSeries[i].Values.Add(0);
-                }
+                return;
             }
 
             OnProcess(candles, index);
@@ -651,10 +709,6 @@ namespace OsEngine.Indicators
             {
                 return;
             }
-            for (int i = 0; i < IncludeIndicators.Count; i++)
-            {
-                IncludeIndicators[i].Process(values);
-            }
 
             for (int i = 0; i < DataSeries.Count; i++)
             {
@@ -662,6 +716,30 @@ namespace OsEngine.Indicators
                 {
                     DataSeries[i].Values.Add(0);
                 }
+            }
+
+            for (int i = 0; i < IncludeIndicators.Count; i++)
+            {
+                if (IncludeIndicators[i].IsOn == true &&
+                    IsOn == false)
+                {
+                    IncludeIndicators[i].IsOn = false;
+                }
+                if (IncludeIndicators[i].IsOn == false &&
+                    IsOn == true)
+                {
+                    IncludeIndicators[i].IsOn = true;
+                }
+            }
+
+            for (int i = 0; i < IncludeIndicators.Count; i++)
+            {
+                IncludeIndicators[i].Process(values);
+            }
+
+            if (IsOn == false)
+            {
+                return;
             }
 
             while (_myCandles.Count < values.Count)
@@ -685,16 +763,36 @@ namespace OsEngine.Indicators
                 return;
             }
 
+            for (int i = 0; i < DataSeries.Count; i++)
+            {
+                while (DataSeries[i].Values.Count < values.Count)
+                {
+                    DataSeries[i].Values.Add(0);
+                }
+            }
+
+            for (int i = 0; i < IncludeIndicators.Count; i++)
+            {
+                if(IncludeIndicators[i].IsOn == true &&
+                    IsOn == false)
+                {
+                    IncludeIndicators[i].IsOn = false;
+                }
+                if (IncludeIndicators[i].IsOn == false &&
+                    IsOn == true)
+                {
+                    IncludeIndicators[i].IsOn = true;
+                }
+            }
+
             for (int i = 0; i < IncludeIndicators.Count; i++)
             {
                 IncludeIndicators[i].Process(values);
             }
-            for (int i = 0; i < DataSeries.Count; i++)
+
+            if (IsOn == false)
             {
-                while (DataSeries[i].Values.Count < index + 1)
-                {
-                    DataSeries[i].Values.Add(0);
-                }
+                return;
             }
 
             while (_myCandles.Count < index)

@@ -18,7 +18,6 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             TinkoffServerRealization realization = new TinkoffServerRealization();
             ServerRealization = realization;
-
             CreateParameterString(OsLocalization.Market.ServerParamToken, "");
         }
 
@@ -29,6 +28,11 @@ namespace OsEngine.Market.Servers.Tinkoff
         public List<Candle> GetCandleHistory(string nameSec, TimeFrame tf)
         {
             return ((TinkoffServerRealization)ServerRealization).GetCandleHistory(nameSec, tf);
+        }
+
+        public void UpDateCandleSeries(CandleSeries series)
+        {
+            ((TinkoffServerRealization)ServerRealization).UpDateCandleSeries(series);
         }
     }
 
@@ -136,7 +140,6 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         public List<Candle> GetCandleHistory(string nameSec, TimeFrame tf)
         {
-
             DateTime to = DateTime.Now;
             DateTime from = DateTime.Now.AddDays(-2);
 
@@ -169,6 +172,45 @@ namespace OsEngine.Market.Servers.Tinkoff
             if (tf == TimeFrame.Day)
             {
                 from = DateTime.Now.AddDays(-70);
+            }
+
+            return _client.GetCandleHistory(nameSec, tf, from, to);
+        }
+
+        private List<Candle> GetShortCandleHistory(string nameSec, TimeFrame tf)
+        {
+            DateTime to = DateTime.Now;
+            DateTime from = DateTime.Now.AddDays(-1);
+
+            if (tf == TimeFrame.Min3 || tf == TimeFrame.Min5)
+            {
+                from = DateTime.Now.AddDays(-1);
+            }
+            if (tf == TimeFrame.Min10 || tf == TimeFrame.Min15)
+            {
+                from = DateTime.Now.AddDays(-1);
+            }
+            if (tf == TimeFrame.Min20
+                || tf == TimeFrame.Min30
+                || tf == TimeFrame.Min45)
+            {
+                from = DateTime.Now.AddDays(-1);
+            }
+            if (tf == TimeFrame.Hour1)
+            {
+                from = DateTime.Now.AddDays(-1);
+            }
+            if (tf == TimeFrame.Hour2)
+            {
+                from = DateTime.Now.AddDays(-1);
+            }
+            if (tf == TimeFrame.Hour4)
+            {
+                from = DateTime.Now.AddDays(-2);
+            }
+            if (tf == TimeFrame.Day)
+            {
+                from = DateTime.Now.AddDays(-3);
             }
 
             return _client.GetCandleHistory(nameSec, tf, from, to);
@@ -208,6 +250,44 @@ namespace OsEngine.Market.Servers.Tinkoff
         public void Subscrible(Security security)
         {
             _client.SubscribleDepthsAndTrades(security);
+        }
+
+        public void UpDateCandleSeries(CandleSeries series)
+        {
+            List<Candle> actualCandles = series.CandlesAll;
+
+            if(actualCandles.Count < 2)
+            {
+                return;
+            }
+
+            List<Candle> newCandles = GetShortCandleHistory(series.Security.NameId, series.TimeFrameBuilder.TimeFrame);
+
+            if(newCandles == null 
+                || newCandles.Count == 0)
+            {
+                return;
+            }
+            
+            for(int i = newCandles.Count-1;i > 0 && i > newCandles.Count -5;i--)
+            {
+                Candle newCandle = newCandles[i];
+
+                for(int i2 = actualCandles.Count-1;i2 > 0 && i2 > actualCandles.Count-10;i2--)
+                {
+                    Candle actualCandle = actualCandles[i2];
+
+                    if(newCandle.TimeStart == actualCandle.TimeStart)
+                    {
+                        actualCandle.High = newCandle.High;
+                        actualCandle.Low = newCandle.Low;
+                        actualCandle.Close = newCandle.Close;
+                        actualCandle.Open = newCandle.Open;
+                        actualCandle.Volume = newCandle.Volume;
+                        break;
+                    }
+                }
+            }
         }
 
         /// <summary>

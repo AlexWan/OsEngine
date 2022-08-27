@@ -517,6 +517,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
 
+                if (formula == "-+")
+                {
+                    return "";
+                }
+
+                if (formula == "+-")
+                {
+                    return "";
+                }
+
                 string inside = "";
                 string s = formula;
                 int startindex = -1;

@@ -983,15 +983,16 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
 
+                    if (_portfolios.Count == 0)
+                    {
+                        CreatePortfolio();
+                    }
+
                     if (_needToReloadSecurities)
                     {
                         _needToReloadSecurities = false;
                         TesterRegime = TesterRegime.NotActive;
                         LoadSecurities();
-                    }
-                    if (_portfolios.Count == 0)
-                    {
-                        CreatePortfolio();
                     }
 
                     if (TesterRegime == TesterRegime.Pause ||

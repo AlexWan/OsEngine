@@ -761,7 +761,7 @@ namespace OsEngine.Charts.CandleChart
             try
             {
                 IndicarotCreateUi ui = new IndicarotCreateUi(this);
-                ui.Show();
+                ui.ShowDialog();
 
                 if (IndicatorUpdateEvent != null)
                 {

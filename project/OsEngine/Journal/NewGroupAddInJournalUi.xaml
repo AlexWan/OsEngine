@@ -1,0 +1,14 @@
+﻿<Window x:Class="OsEngine.Journal.NewGroupAddInJournalUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Journal"
+        mc:Ignorable="d"
+        Title="New Bots Group Creation" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico" Height="130" Width="300">
+    <Grid>
+        <TextBox Name="TextBoxNewGroupName" Margin="10,10,10,0" TextWrapping="Wrap" Text="NewGroupName..." VerticalAlignment="Top"/>
+        <Button Name="ButtonAccept" Content="Accept" Margin="65,0,65,10" Height="25" VerticalAlignment="Bottom" Click="ButtonAccept_Click"/>
+
+    </Grid>
+</Window>

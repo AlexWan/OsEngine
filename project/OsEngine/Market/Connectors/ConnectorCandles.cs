@@ -569,6 +569,11 @@ namespace OsEngine.Market.Connectors
             get { return TimeFrameBuilder.TimeFrameTimeSpan; }
         }
 
+        public CandleSeries CandleSeries
+        {
+            get { return _mySeries; }
+        }
+
         /// <summary>
         /// candle series that collects candles  
         /// серия свечек которая собирает для нас свечки
@@ -794,6 +799,10 @@ namespace OsEngine.Market.Connectors
                     {
                         Thread.Sleep(1);
                     }
+                    else if(ServerType == ServerType.Tester)
+                    {
+                        Thread.Sleep(10);
+                    }
                     else
                     {
                         Thread.Sleep(500);
@@ -887,9 +896,13 @@ namespace OsEngine.Market.Connectors
                             {
                                 return;
                             }
+                            if (_myServer == null)
+                            {
+                                continue;
+                            }
 
                             Thread.Sleep(1);
-                            _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder,_securityClass);
+                            _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder, _securityClass);
 
                             if (_mySeries == null &&
                                 _myServer.ServerType == ServerType.Optimizer &&

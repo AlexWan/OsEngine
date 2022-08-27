@@ -38,11 +38,14 @@ namespace OsEngine.Market.Services
 
         private void UnsubscribeEvents()
         {
-            _wsClient.Opened -= WsClientOnOpened;
-            _wsClient.DataReceived -= WsClientOnDataReceived;
-            _wsClient.MessageReceived -= WsClientOnMessageReceived;
-            _wsClient.Error -= WsClientOnError;
-            _wsClient.Closed -= WsClientOnClosed;
+            if (_wsClient != null)
+            {
+                _wsClient.Opened -= WsClientOnOpened;
+                _wsClient.DataReceived -= WsClientOnDataReceived;
+                _wsClient.MessageReceived -= WsClientOnMessageReceived;
+                _wsClient.Error -= WsClientOnError;
+                _wsClient.Closed -= WsClientOnClosed;
+            }
         }
 
         private void WsClientOnOpened(object sender, EventArgs e)
@@ -72,19 +75,19 @@ namespace OsEngine.Market.Services
 
         public void Start()
         {
-            _wsClient.Open();
+            _wsClient?.Open();
         }
 
         private void Stop()
         {
-            _wsClient.Close();
+            _wsClient?.Close();
             UnsubscribeEvents();
         }
 
         public void Dispose()
         {
             Stop();
-            _wsClient.Dispose();
+            _wsClient?.Dispose();
             _wsClient = null;
             MessageEvent?.Invoke(WsMessageType.Closed, "");
         }

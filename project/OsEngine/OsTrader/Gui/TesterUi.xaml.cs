@@ -246,7 +246,7 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonJournalCommunity_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.ShowCommunityJournal();
+            _strategyKeeper.ShowCommunityJournal(1);
         }
 
         private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)

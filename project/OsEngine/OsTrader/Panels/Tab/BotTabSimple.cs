@@ -369,6 +369,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <returns></returns>
         public IIndicator CreateCandleIndicator(IIndicator indicator, string nameArea)
         {
+            if (indicator == null)
+                throw new Exception("Error! Indicator with name " + nameArea + " not found");
+
+            Type indType = indicator.GetType();
+
+            if (indType.BaseType.Name == "Aindicator")
+            {
+                ((Aindicator)indicator).StartProgram = StartProgram.IsOsOptimizer;
+            }
             return _chartMaster.CreateIndicator(indicator, nameArea);
         }
 

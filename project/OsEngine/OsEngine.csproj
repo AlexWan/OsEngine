@@ -65,19 +65,19 @@
   <ItemGroup>
     <Reference Include="cgate_net64, Version=5.10.0.36987, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\cgate_net64.dll</HintPath>
+      <HintPath>Vendors\cgate_net64.dll</HintPath>
     </Reference>
     <Reference Include="Jayrock, Version=0.9.16530.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\Jayrock.dll</HintPath>
+      <HintPath>Vendors\Jayrock.dll</HintPath>
     </Reference>
     <Reference Include="Jayrock.Json, Version=0.9.16530.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\Jayrock.Json.dll</HintPath>
+      <HintPath>Vendors\Jayrock.Json.dll</HintPath>
     </Reference>
     <Reference Include="LmaxClientLibrary, Version=1.9.0.2, Culture=neutral, PublicKeyToken=f45712b013135aca, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\LmaxClientLibrary.dll</HintPath>
+      <HintPath>Vendors\LmaxClientLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -85,19 +85,19 @@
     </Reference>
     <Reference Include="OkonkwoOandaV20, Version=1.0.7247.23935, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\OkonkwoOandaV20.dll</HintPath>
+      <HintPath>Vendors\OkonkwoOandaV20.dll</HintPath>
     </Reference>
     <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\protobuf-net.dll</HintPath>
+      <HintPath>Vendors\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="PusherClient, Version=0.5.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\PusherClient.dll</HintPath>
+      <HintPath>Vendors\PusherClient.dll</HintPath>
     </Reference>
     <Reference Include="qC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\qC.dll</HintPath>
+      <HintPath>Vendors\qC.dll</HintPath>
     </Reference>
     <Reference Include="QUIKSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=eb70e0fec970faf8, processorArchitecture=MSIL">
       <HintPath>..\packages\QUIKSharp.1.0.0\lib\net45\QUIKSharp.dll</HintPath>
@@ -105,7 +105,7 @@
     </Reference>
     <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\RestSharp.dll</HintPath>
+      <HintPath>Vendors\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -133,11 +133,11 @@
     </Reference>
     <Reference Include="websocket-sharp, Version=1.0.2.32519, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\websocket-sharp.dll</HintPath>
+      <HintPath>Vendors\websocket-sharp.dll</HintPath>
     </Reference>
     <Reference Include="WebSocket4Net, Version=0.14.1.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\WebSocket4Net.dll</HintPath>
+      <HintPath>Vendors\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -168,6 +168,7 @@
       <DependentUpon>AlertToPriceCreateUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\Elements\IChartElement.cs" />
+    <Compile Include="Charts\CandleChart\Elements\Line.cs" />
     <Compile Include="Charts\CandleChart\Elements\PointElement.cs" />
     <Compile Include="Charts\CandleChart\IChartPainter.cs" />
     <Compile Include="Charts\CandleChart\Indicators\AccumulationDistribution.cs" />
@@ -198,7 +199,7 @@
     <Compile Include="Charts\CandleChart\Indicators\AwesomeOscillatorUi.xaml.cs">
       <DependentUpon>AwesomeOscillatorUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Charts\CandleChart\Elements\LineElement.cs" />
+    <Compile Include="Charts\CandleChart\Elements\LineHorisontal.cs" />
     <Compile Include="Charts\CandleChart\Indicators\Ac.cs" />
     <Compile Include="Charts\CandleChart\Indicators\AcUi.xaml.cs">
       <DependentUpon>AcUi.xaml</DependentUpon>
@@ -397,6 +398,12 @@
     <Compile Include="Journal\JournalUi.xaml.cs">
       <DependentUpon>JournalUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Journal\JournalUi2.xaml.cs">
+      <DependentUpon>JournalUi2.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Journal\NewGroupAddInJournalUi.xaml.cs">
+      <DependentUpon>NewGroupAddInJournalUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Language\AlertsLocal.cs" />
     <Compile Include="Language\ChartsLocal.cs" />
     <Compile Include="Language\ConverterLocal.cs" />
@@ -491,7 +498,6 @@
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitPortfolioCreator.cs" />
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitSecurityCreator.cs" />
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitTradesCreator.cs" />
-    <Compile Include="Market\Servers\Bybit\Utilities\BybitRestRequestBuilder.cs" />
     <Compile Include="Market\Servers\Bybit\Utilities\BybitSigner.cs" />
     <Compile Include="Market\Servers\Bybit\Utilities\BybitWsRequestBuilder.cs" />
     <Compile Include="Market\Servers\Bybit\Utilities\Signer.cs" />
@@ -882,6 +888,7 @@
     </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
+    <Compile Include="Robots\OnScriptIndicators\GridSample.cs" />
     <Compile Include="Robots\Engines\CandleEngine.cs" />
     <Compile Include="Robots\Engines\ClusterEngine.cs" />
     <Compile Include="Robots\Engines\ScreenerEngine.cs" />
@@ -895,7 +902,8 @@
     <Compile Include="Robots\OnScriptIndicators\BollingerRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerTrailing.cs" />
     <Compile Include="Robots\OnScriptIndicators\CciTrade.cs" />
-    <Compile Include="Robots\OnScriptIndicators\CustomParamsUseBotSample.cs" />
+    <Compile Include="Robots\TechSapmles\BlockIndicatorsSample.cs" />
+    <Compile Include="Robots\TechSapmles\CustomParamsUseBotSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdTrail.cs" />
@@ -908,6 +916,8 @@
     <Compile Include="Robots\OnScriptIndicators\SmaTrendSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\TimeOfDayBot.cs" />
     <Compile Include="Robots\Screeners\SmaScreener.cs" />
+    <Compile Include="Robots\TechSapmles\ElementsOnChartSampleBot.cs" />
+    <Compile Include="Robots\TechSapmles\TinkoffGetRealCandlesSample.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />
     <Compile Include="Robots\MarketMaker\PairTraderSpreadSma.cs" />
@@ -1230,6 +1240,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Journal\JournalUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Journal\JournalUi2.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Journal\NewGroupAddInJournalUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

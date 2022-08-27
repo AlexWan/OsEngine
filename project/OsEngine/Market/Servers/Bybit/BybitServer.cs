@@ -14,6 +14,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
+using System.Net;
+
 
 namespace OsEngine.Market.Servers.Bybit
 {
@@ -138,9 +141,12 @@ namespace OsEngine.Market.Servers.Bybit
                 client = new Client(public_key, secret_key, true, false);
             }
 
-            
             cancel_token_source = new CancellationTokenSource();
             market_mepth_creator = new BybitMarketDepthCreator();
+
+            _alreadySubscribleOrders = false;
+            _alreadySubscribleTrades = false;
+            _alreadySubSec.Clear();
 
             StartMessageReader();
 
@@ -151,28 +157,78 @@ namespace OsEngine.Market.Servers.Bybit
             ws_source_public = new WsSource(client.WsPublicUrl);
             ws_source_public.MessageEvent += WsSourceOnMessageEvent;
             ws_source_public.Start();
+
+        }
+
+        public override void Dispose()
+        {
+            try
+            {
+                if (ws_source_private != null)
+                {
+                    ws_source_private.MessageEvent -= WsSourceOnMessageEvent;
+                    ws_source_private.Dispose();
+                    ws_source_private = null;
+                }
+
+                if (ws_source_public != null)
+                {
+                    ws_source_public.MessageEvent -= WsSourceOnMessageEvent;
+                    ws_source_public.Dispose();
+                    ws_source_public = null;
+                }
+
+                if (cancel_token_source != null && 
+                    !cancel_token_source.IsCancellationRequested)
+                {
+                    cancel_token_source.Cancel();
+                    cancel_token_source = null;
+                }
+
+                cancel_token_source = new CancellationTokenSource();
+                market_mepth_creator = new BybitMarketDepthCreator();
+
+                client = null;
+
+                _alreadySubSec.Clear();
+
+                _alreadySubscribleOrders = false;
+                _alreadySubscribleTrades = false;
+
+                OnDisconnectEvent();
+            }
+            catch (Exception e)
+            {
+                SendLogMessage("Bybit dispose error: " + e, LogMessageType.Error);
+            }
         }
 
         private void WsSourceOnMessageEvent(WsMessageType message_type, string message)
         {
-            switch (message_type)
+            if (message_type == WsMessageType.Opened)
             {
-                case WsMessageType.Opened:
-                    SendLoginMessage();
-                    OnConnectEvent();
-                    StartPortfolioRequester();
-                    break;
-                case WsMessageType.Closed:
+                SendLoginMessage();
+                OnConnectEvent();
+                StartPortfolioRequester();
+            }
+            else if (message_type == WsMessageType.Closed)
+            {
+                OnDisconnectEvent();
+                Dispose();
+            }
+            else if (message_type == WsMessageType.StringData)
+            {
+                queue_messages_received_from_fxchange.Enqueue(message);
+            }
+            else if (message_type == WsMessageType.Error)
+            {
+                if(message.Contains("no address was supplied"))
+                {
                     OnDisconnectEvent();
-                    break;
-                case WsMessageType.StringData:
-                    queue_messages_received_from_fxchange.Enqueue(message);
-                    break;
-                case WsMessageType.Error:
-                    SendLogMessage(message, LogMessageType.Error);
-                    break;
-                default:
-                    throw new NotSupportedException(message);
+                    Dispose();
+                }
+
+                SendLogMessage(message, LogMessageType.Error);
             }
         }
 
@@ -295,9 +351,10 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    await Task.Delay(1000, token);
+                    await Task.Delay(10000, token);
 
                     GetPortfolios();
+                    GetPositions();
                 }
                 catch (TaskCanceledException)
                 {
@@ -310,6 +367,59 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        private void GetPositions()
+        {
+            // https://api-testnet.bybit.com/private/linear/position/list?api_key={api_key}&symbol=BTCUSDT&timestamp={timestamp}&sign={sign}"
+
+            // /private/linear/position/list
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters.Add("api_key", client.ApiKey);
+            parameters.Add("recv_window", "90000000");
+
+            JToken account_response = CreatePrivateGetQuery(client, "/private/linear/position/list", parameters);
+
+            if (account_response == null)
+            {
+                return;
+            }
+
+            if (_portfolios == null ||
+                 _portfolios.Count == 0)
+            {
+                return;
+            }
+
+            Portfolio myPortf = null;
+
+            for(int i = 0;i < _portfolios.Count;i++)
+            {
+                if(_portfolios[i].Number == "BybitPortfolio")
+                {
+                    myPortf = _portfolios[i];
+                }
+            }
+
+            if(myPortf == null)
+            {
+                return;
+            }
+
+            List<PositionOnBoard> poses = BybitPortfolioCreator.CreatePosOnBoard(account_response.SelectToken("result"));
+
+            if(poses == null)
+            {
+                return;
+            }
+
+            for(int i = 0;i < poses.Count;i++)
+            {
+                myPortf.SetNewPosition(poses[i]);
+            }
+
+            OnPortfolioEvent(_portfolios);
+        }
+
         public override void GetPortfolios()
         {
             List<Portfolio> portfolios = new List<Portfolio>();
@@ -319,7 +429,12 @@ namespace OsEngine.Market.Servers.Bybit
             parameters.Add("api_key", client.ApiKey);
             parameters.Add("recv_window", "90000000");
 
-            JToken account_response = BybitRestRequestBuilder.CreatePrivateGetQuery(client, "/v2/private/wallet/balance", parameters );
+            JToken account_response = CreatePrivateGetQuery(client, "/v2/private/wallet/balance", parameters );
+
+            if (account_response == null)
+            {
+                return;
+            }
 
             string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
 
@@ -336,11 +451,19 @@ namespace OsEngine.Market.Servers.Bybit
             }
 
             OnPortfolioEvent(portfolios);
+            _portfolios = portfolios;
         } // both futures
+
+        List<Portfolio> _portfolios;
 
         public override void GetSecurities() // both futures
         {
-            JToken account_response = BybitRestRequestBuilder.CreatePublicGetQuery(client, "/v2/public/symbols");
+            JToken account_response = CreatePublicGetQuery(client, "/v2/public/symbols");
+
+            if(account_response == null)
+            {
+                return;
+            }
 
             string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
 
@@ -391,14 +514,24 @@ namespace OsEngine.Market.Servers.Bybit
             parameters.Add("close_on_trigger", "false");
             parameters.Add("recv_window", "90000000");
 
-            JToken place_order_response;
+            JToken place_order_response = null;
 
             DateTime time = GetServerTime();
 
-            if (client.FuturesMode == "Inverse")
-                place_order_response =  BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/v2/private/order/create", parameters, time);
-            else 
-                place_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/private/linear/order/create", parameters, time);
+            try
+            {
+                if (client.FuturesMode == "Inverse")
+                    place_order_response = CreatePrivatePostQuery(client, "/v2/private/order/create", parameters, time);
+                else
+                    place_order_response = CreatePrivatePostQuery(client, "/private/linear/order/create", parameters, time);
+            }
+            catch
+            {
+                SendLogMessage($"Internet Error. Order exchange error num {order.NumberUser}", LogMessageType.Error);
+                order.State = OrderStateType.Fail;
+                OnOrderEvent(order);
+                return;
+            }
 
             var isSuccessful = place_order_response.SelectToken("ret_msg").Value<string>();
 
@@ -435,9 +568,9 @@ namespace OsEngine.Market.Servers.Bybit
 
             JToken cancel_order_response;
             if (futures_type == "Inverse Perpetual")
-                cancel_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/v2/private/order/cancel", parameters, time); ///private/linear/order/cancel
+                cancel_order_response = CreatePrivatePostQuery(client, "/v2/private/order/cancel", parameters, time); ///private/linear/order/cancel
             else
-                cancel_order_response = BybitRestRequestBuilder.CreatePrivatePostQuery(client, "/private/linear/order/cancel", parameters, time); 
+                cancel_order_response = CreatePrivatePostQuery(client, "/private/linear/order/cancel", parameters, time); 
             
             var isSuccessful = cancel_order_response.SelectToken("ret_msg").Value<string>();
 
@@ -465,9 +598,14 @@ namespace OsEngine.Market.Servers.Bybit
 
                 JToken account_response;
                 if(futures_type == "Inverse Perpetual")
-                    account_response = BybitRestRequestBuilder.CreatePrivateGetQuery(client, "/v2/private/order", parameters); ///private/linear/order/search
+                    account_response = CreatePrivateGetQuery(client, "/v2/private/order", parameters); ///private/linear/order/search
                 else
-                    account_response = BybitRestRequestBuilder.CreatePrivateGetQuery(client, "/private/linear/order/search", parameters); 
+                    account_response = CreatePrivateGetQuery(client, "/private/linear/order/search", parameters);
+
+                if (account_response == null)
+                {
+                    continue;
+                }
 
                 string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
 
@@ -519,17 +657,21 @@ namespace OsEngine.Market.Servers.Bybit
         private DateTime GetServerTime()
         {
             DateTime time = DateTime.MinValue;
-            JToken t = BybitRestRequestBuilder.CreatePublicGetQuery(client, "/v2/public/time");
+            JToken t = CreatePublicGetQuery(client, "/v2/public/time");
+
+            if (t == null)
+            {
+                return DateTime.Now;
+            }
+
             JToken tt = t.Root.SelectToken("time_now");
 
             string timeString = tt.ToString();
             time = Utils.LongToDateTime(Convert.ToInt64(timeString.ToDecimal()));
             return time;
-
         }
 
         #endregion
-
 
         #region Подписка на данные
 
@@ -539,12 +681,25 @@ namespace OsEngine.Market.Servers.Bybit
             ws_source_private.SendMessage(login_message);
         }
 
+        List<string> _alreadySubSec = new List<string>();
+
         public override void Subscrible(Security security)
         {
+            for(int i = 0;i < _alreadySubSec.Count;i++)
+            {
+                if(_alreadySubSec[i] == security.Name)
+                {
+                    return;
+                }
+            }
+
+            _alreadySubSec.Add(security.Name);
+
             SubscribeMarketDepth(security.Name);
             SubscribeTrades(security.Name);
-            SubscribeOrders(security.Name);
-            SubscribeMyTrades(security.Name);
+
+            SubscribeOrders();
+            SubscribeMyTrades();
         }
 
         private void SubscribeMarketDepth(string security)
@@ -563,15 +718,28 @@ namespace OsEngine.Market.Servers.Bybit
             ws_source_public?.SendMessage(request);
         }
 
-        private void SubscribeOrders(string security)
-        {
-            string request = BybitWsRequestBuilder.GetSubscribeRequest("order");
+        private bool _alreadySubscribleOrders;
 
+        private bool _alreadySubscribleTrades;
+
+        private void SubscribeOrders()
+        {
+            if(_alreadySubscribleOrders)
+            {
+                return;
+            }
+            _alreadySubscribleOrders = true;
+            string request = BybitWsRequestBuilder.GetSubscribeRequest("order");
             ws_source_private?.SendMessage(request);
         }
 
-        private void SubscribeMyTrades(string security)
+        private void SubscribeMyTrades()
         {
+            if (_alreadySubscribleTrades)
+            {
+                return;
+            }
+            _alreadySubscribleTrades = true;
             string request = BybitWsRequestBuilder.GetSubscribeRequest("execution");
 
             ws_source_private?.SendMessage(request);
@@ -693,7 +861,8 @@ namespace OsEngine.Market.Servers.Bybit
                         break;
                     }
 
-                    List<Candle> new_candles = BybitCandlesCreator.GetCandleCollection(client, security, need_interval_for_query, from);
+                    List<Candle> new_candles = 
+                        BybitCandlesCreator.GetCandleCollection(client, security, need_interval_for_query, from,this);
 
                     if (new_candles != null && new_candles.Count != 0)
                         tmp_candles.AddRange(new_candles);
@@ -745,12 +914,12 @@ namespace OsEngine.Market.Servers.Bybit
                 List<Trade> result_trades = new List<Trade>();
                 DateTime end_over = end_time;
 
-                List<Trade> point_trades = BybitTradesCreator.GetTradesCollection(client, security, 1, -1);
+                List<Trade> point_trades = BybitTradesCreator.GetTradesCollection(client, security, 1, -1,this);
                 int last_trade_id = Convert.ToInt32(point_trades.Last().Id);
 
                 while (true)
                 {
-                    List<Trade> new_trades = BybitTradesCreator.GetTradesCollection(client, security, 1000, last_trade_id - 1000);
+                    List<Trade> new_trades = BybitTradesCreator.GetTradesCollection(client, security, 1000, last_trade_id - 1000,this);
 
                     if (new_trades != null && new_trades.Count != 0)
                     {
@@ -790,39 +959,182 @@ namespace OsEngine.Market.Servers.Bybit
 
         #endregion
 
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
-        public override void Dispose()
+        public JToken CreatePrivateGetQuery(Client client, string end_point, Dictionary<string, string> parameters)
+        {
+            //int time_factor = 1;
+
+            //if (client.NetMode == "Main")
+            //    time_factor = 0;
+
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                Dictionary<string, string> sorted_params = parameters.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
+
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var param in sorted_params)
+                {
+                    sb.Append(param.Key + $"=" + param.Value + $"&");
+                }
+
+                long nonce = Utils.GetMillisecondsFromEpochStart();
+
+                string str_params = sb.ToString() + "timestamp=" + (nonce).ToString();
+
+                string url = client.RestUrl + end_point + $"?" + str_params;
+
+                Uri uri = new Uri(url + $"&sign=" + BybitSigner.CreateSignature(client, str_params));
+
+                var http_web_request = (HttpWebRequest)WebRequest.Create(uri);
+
+                http_web_request.Method = "Get";
+
+                http_web_request.Host = client.RestUrl.Replace($"https://", "");
+
+
+                HttpWebResponse http_web_response = (HttpWebResponse)http_web_request.GetResponse();
+
+                string response_msg;
+
+                using (var stream = http_web_response.GetResponseStream())
+                {
+                    using (StreamReader reader = new StreamReader(stream ?? throw new InvalidOperationException()))
+                    {
+                        response_msg = reader.ReadToEnd();
+                    }
+                }
+
+                http_web_response.Close();
+
+                if (http_web_response.StatusCode != HttpStatusCode.OK)
+                {
+                    throw new Exception("Failed request " + response_msg);
+                }
+
+                return JToken.Parse(response_msg);
+            }
+            catch
+            {
+                return null;
+            }
+
+        }
+
+        public JToken CreatePublicGetQuery(Client client, string end_point)
         {
             try
             {
-                if (ws_source_private != null)
+                _rateGate.WaitToProceed();
+
+                string url = client.RestUrl + end_point;
+
+                Uri uri = new Uri(url);
+
+                var http_web_request = (HttpWebRequest)WebRequest.Create(uri);
+
+                HttpWebResponse http_web_response = (HttpWebResponse)http_web_request.GetResponse();
+
+                string response_msg;
+
+                using (var stream = http_web_response.GetResponseStream())
                 {
-                    ws_source_private.Dispose();
-                    ws_source_private.MessageEvent -= WsSourceOnMessageEvent;
-                    ws_source_private = null;          
+                    using (StreamReader reader = new StreamReader(stream ?? throw new InvalidOperationException()))
+                    {
+                        response_msg = reader.ReadToEnd();
+                    }
                 }
 
-                if (ws_source_public != null)
+                http_web_response.Close();
+
+                if (http_web_response.StatusCode != HttpStatusCode.OK)
                 {
-                    ws_source_public.Dispose();
-                    ws_source_public.MessageEvent -= WsSourceOnMessageEvent;
-                    ws_source_public = null;
+                    throw new Exception("Failed request " + response_msg);
                 }
 
-                if (cancel_token_source != null && !cancel_token_source.IsCancellationRequested)
-                {
-                    cancel_token_source.Cancel();
-                }
-
-                market_mepth_creator = new BybitMarketDepthCreator();
-                cancel_token_source = new CancellationTokenSource();
-
-                client = null;
+                return JToken.Parse(response_msg);
             }
-            catch (Exception e)
+            catch
             {
-                SendLogMessage("Bybit dispose error: " + e, LogMessageType.Error);
+                return null;
             }
+
         }
+
+        public JToken CreatePrivatePostQuery(Client client, string end_point, Dictionary<string, string> parameters, DateTime serverTime)
+        {
+            _rateGate.WaitToProceed();
+
+            parameters.Add("timestamp", (Utils.GetMillisecondsFromEpochStart(serverTime.ToUniversalTime())).ToString());
+
+            Dictionary<string, string> sorted_params = parameters.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var param in sorted_params)
+            {
+                if (param.Value == "false" || param.Value == "true")
+                    sb.Append("\"" + param.Key + "\":" + param.Value + ",");
+                else
+                    sb.Append("\"" + param.Key + "\":\"" + param.Value + "\",");
+            }
+
+            StringBuilder sb_signer = new StringBuilder();
+
+            foreach (var param in sorted_params)
+            {
+                sb_signer.Append(param.Key + $"=" + param.Value + $"&");
+            }
+
+            string str_signer = sb_signer.ToString();
+
+            str_signer = str_signer.Remove(str_signer.Length - 1);
+
+            sb.Append("\"sign\":\"" + BybitSigner.CreateSignature(client, str_signer) + "\""); // api_key=bLP2z8x0sEeFHgt14S&close_on_trigger=False&order_link_id=&order_type=Limit&price=11018.00&qty=1&side=Buy&symbol=BTCUSD&time_in_force=GoodTillCancel&timestamp=1600513511844
+                                                                                               // api_key=bLP2z8x0sEeFHgt14S&close_on_trigger=False&order_link_id=&order_type=Limit&price=10999.50&qty=1&side=Buy&symbol=BTCUSD&time_in_force=GoodTillCancel&timestamp=1600514673126
+                                                                                               // {"api_key":"bLP2z8x0sEeFHgt14S","close_on_trigger":"False","order_link_id":"","order_type":"Limit","price":"11050.50","qty":"1","side":"Buy","symbol":"BTCUSD","time_in_force":"GoodTillCancel","timestamp":"1600515164173","sign":"fb3c69fa5d30526810a4b60fe4b8f216a3baf2c81745289ff7ddc21ab8232ccc"}
+
+
+            string url = client.RestUrl + end_point;
+
+            string str_data = "{" + sb.ToString() + "}";
+
+            byte[] data = Encoding.UTF8.GetBytes(str_data);
+
+            Uri uri = new Uri(url);
+
+            var http_web_request = (HttpWebRequest)WebRequest.Create(uri);
+
+            http_web_request.Method = "POST";
+
+            http_web_request.ContentType = "application/json";
+
+            http_web_request.ContentLength = data.Length;
+
+            using (Stream req_tream = http_web_request.GetRequestStream())
+            {
+                req_tream.Write(data, 0, data.Length);
+            }
+
+            HttpWebResponse httpWebResponse = (HttpWebResponse)http_web_request.GetResponse();
+
+            string response_msg;
+
+            using (var stream = httpWebResponse.GetResponseStream())
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    response_msg = reader.ReadToEnd();
+                }
+            }
+
+            httpWebResponse.Close();
+
+            return JToken.Parse(response_msg);
+        }
+
     }
 }
