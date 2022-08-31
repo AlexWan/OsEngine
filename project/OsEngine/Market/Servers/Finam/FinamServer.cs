@@ -367,7 +367,6 @@ namespace OsEngine.Market.Servers.Finam
             }
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
             string resultPage = "";
@@ -377,7 +376,34 @@ namespace OsEngine.Market.Servers.Finam
                 resultPage = sr.ReadToEnd();
                 sr.Close();
             }
+
+
             return resultPage;
+        }
+
+        private static string GetSecFromFile()
+        {
+            if (!File.Exists(@"FinamSecurities.txt"))
+            {
+                return "";
+            }
+
+            string result = "";
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"FinamSecurities.txt"))
+                {
+                    result = reader.ReadToEnd();
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -396,7 +422,14 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         private void GetSecurities()
         {
-            var response = GetPage($"https://www.finam.ru{GetIchartsPath()}");
+            string path = $"https://www.finam.ru{GetIchartsPath()}";
+
+            var response = GetPage(path);
+
+            if(response.Contains("Страница недоступна"))
+            {
+                response = GetSecFromFile();
+            }
 
             string[] arraySets = response.Split('=');
             string[] arrayIds = arraySets[1].Split('[')[1].Split(']')[0].Split(',');

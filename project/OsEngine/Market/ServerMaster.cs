@@ -128,12 +128,29 @@ namespace OsEngine.Market
                     }
                 }
 
-                for (int i = 0;i < popularity.Count;i++)
+                for (int i = 0; i < popularity.Count; i++)
                 {
-                    if(popularity[i].ServerType == ServerType.Tester)
+                    if (popularity[i].ServerType == ServerType.Tester)
                     {
                         continue;
                     }
+
+                    bool isInArray = false;
+
+                    for (int i2 = 0; i2 < serverTypes.Count; i2++)
+                    {
+                        if(serverTypes[i2].ToString() == popularity[i].ServerType.ToString())
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if(isInArray)
+                    {
+                        continue;
+                    }
+
                     serverTypes.Insert(0, popularity[i].ServerType);
                 }
 

@@ -989,8 +989,15 @@ namespace OsEngine.Entity
                 position.StopOrderPrice = nRow.Cells[14].Value.ToString().ToDecimal();
                 position.ProfitOrderRedLine = nRow.Cells[15].Value.ToString().ToDecimal();
                 position.ProfitOrderPrice = nRow.Cells[16].Value.ToString().ToDecimal();
-                position.SignalTypeOpen = nRow.Cells[17].Value.ToString().RemoveExcessFromSecurityName();
-                position.SignalTypeClose = nRow.Cells[18].Value.ToString().RemoveExcessFromSecurityName();
+                if(nRow.Cells[17].Value != null)
+                {
+                    position.SignalTypeOpen = nRow.Cells[17].Value.ToString().RemoveExcessFromSecurityName();
+                }
+                
+                if(nRow.Cells[18].Value != null)
+                {
+                    position.SignalTypeClose = nRow.Cells[18].Value.ToString().RemoveExcessFromSecurityName();
+                }
             }
             catch(Exception error)
             {
