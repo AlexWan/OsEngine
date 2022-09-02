@@ -1359,7 +1359,7 @@ namespace OsEngine.Market.Servers.Transaq
                     Trade trade = new Trade()
                     {
                         SecurityNameCode = t.Seccode,
-                        Id = t.Secid,
+                        Id = t.Tradeno,
                         Price = Convert.ToDecimal(t.Price.Replace(".", ",")),
                         Side = t.Buysell == "B" ? Side.Buy : Side.Sell,
                         Volume = Convert.ToDecimal(t.Quantity.Replace(".", ",")),
