@@ -331,6 +331,12 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void TestingStart()
         {
+            if (_lastStartSecurityTime.AddSeconds(5) > DateTime.Now)
+            {
+                SendLogMessage(OsLocalization.Market.Message97, LogMessageType.Error);
+                return;
+            }
+
             TesterRegime = TesterRegime.Pause;
             Thread.Sleep(200);
             _serverTime = DateTime.MinValue;
@@ -3117,6 +3123,8 @@ namespace OsEngine.Market.Servers.Tester
 
         private object _starterLocker = new object();
 
+        private DateTime _lastStartSecurityTime;
+
         /// <summary>
         /// start uploading data on instrument
         /// Начать выгрузку данных по инструменту. 
@@ -3243,6 +3251,8 @@ namespace OsEngine.Market.Servers.Tester
                 SendLogMessage(OsLocalization.Market.Message14 + series.Security.Name +
                                OsLocalization.Market.Message15 + series.TimeFrame +
                                OsLocalization.Market.Message16, LogMessageType.System);
+
+                _lastStartSecurityTime = DateTime.Now;
 
                 return series;
             }

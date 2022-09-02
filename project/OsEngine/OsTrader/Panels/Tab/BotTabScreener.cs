@@ -149,7 +149,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     decimal last = 0;
 					
-					int posCount = tab.PositionsAll.Count;
+					int posCount = tab.PositionsOpenAll.Count;
 
                     if (tab.CandlesAll != null && tab.CandlesAll.Count != 0)
                     {
@@ -233,7 +233,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Clear()
         {
+            LastTimeCandleUpdate = DateTime.MinValue;
 
+            for (int i = 0; Tabs != null && i < Tabs.Count; i++)
+            {
+                Tabs[i].Clear();
+            }
         }
 
         /// <summary>
@@ -1004,7 +1009,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             DataGridViewButtonColumn colum8 = new DataGridViewButtonColumn();
             //colum6.CellTemplate = cell0;
             colum8.ReadOnly = false;
-            colum8.Width = 50;
+            colum8.Width = 70;
             newGrid.Columns.Add(colum8);
 
 

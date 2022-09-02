@@ -536,6 +536,10 @@ namespace OsEngine.Language
             "Eng: Incorrect data entered _" +
             "Ru: Введены не верные данные_");
 
+        public string Message97 => OsLocalization.ConvertToLocString(
+            "Eng: Testing cannot be started because there is a procedure for connecting securities to the trading _" +
+            "Ru: Тестирование не может быть начато, т.к. идёт процедура подключения бумаг в торги_");
+
         public string TitleTester => OsLocalization.ConvertToLocString(
             "Eng:Exchange emulator_" +
             "Ru:Эмулятор биржи_");
