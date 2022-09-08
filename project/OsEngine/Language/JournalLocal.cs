@@ -219,6 +219,10 @@ namespace OsEngine.Language
             "Eng:Commission amount_" +
             "Ru:Объём комиссии_");
 
+        public string GridRow17 => OsLocalization.ConvertToLocString(
+            "Eng:Average trade time_" +
+            "Ru:Среднее время удержания_");
+
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to save!_" +
             "Ru:Необходимо выбрать файл для сохранения!_");

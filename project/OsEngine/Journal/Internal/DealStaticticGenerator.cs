@@ -43,6 +43,7 @@ namespace OsEngine.Journal.Internal
                  Чистый П\У
                  Чистый П\У %
                  Количество сделок
+                 Среднее время удержания
 
                  Сред. П\У по сделке
                  Сред. П\У % по сделке
@@ -101,6 +102,8 @@ namespace OsEngine.Journal.Internal
             report.Add(Convert.ToDouble(GetAllProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //Net profit
             report.Add(Math.Round(GetAllProfitPersent(deals), 6).ToString(new CultureInfo("ru-RU")));//Net profti %
             report.Add(deals.Length.ToString(new CultureInfo("ru-RU")));// Number of transactions
+            report.Add(GetAverageTimeOnPoses(deals));
+
             report.Add(Math.Round(GetProfitFactor(deals), 6).ToString(new CultureInfo("ru-RU")));   //Profit Factor
             report.Add(Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")));   // Recovery
             report.Add("");
@@ -136,6 +139,46 @@ namespace OsEngine.Journal.Internal
             /*report += Math.Round(GetSharp(), 2).ToString(new CultureInfo("ru-RU"));
             */
             return report;
+        }
+
+        public static string GetAverageTimeOnPoses(Position[] deals)
+        {
+            string result = "";
+
+            TimeSpan allTime = new TimeSpan();
+            int dealsCount = 0;
+
+            for(int i = 0;i < deals.Length;i++)
+            {
+                DateTime openTime = deals[i].TimeOpen;
+                DateTime closeTime = deals[i].TimeClose;
+                
+                if(closeTime == DateTime.MinValue)
+                {
+                    continue;
+                }
+                
+                dealsCount++;
+
+                allTime += closeTime - openTime;
+            }
+
+            if(dealsCount == 0)
+            {
+                result = "0";
+            }
+            else
+            {
+                long seconds = Convert.ToInt64(allTime.Ticks / dealsCount);
+                allTime = new TimeSpan(seconds);
+
+                result = 
+                    "H: " + Convert.ToInt32(allTime.TotalHours) 
+                    + " M: " + Convert.ToInt32(allTime.Minutes)
+                    + " S: " + Convert.ToInt32(allTime.Seconds);
+            }
+            
+            return result;
         }
 
         /// <summary>
