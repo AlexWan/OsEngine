@@ -626,7 +626,12 @@ namespace OsEngine.Journal
 
         private void _chartEquity_MouseMove(object sender, MouseEventArgs e)
         {
-            if(_chartEquity.ChartAreas[0].AxisX.ScaleView.Size == double.NaN)
+            if (_chartEquity.Series == null
+                || _chartEquity.Series.Count == 0)
+            {
+                return;
+            }
+            if (_chartEquity.ChartAreas[0].AxisX.ScaleView.Size == double.NaN)
             {
                 return;
             }
@@ -1404,6 +1409,12 @@ namespace OsEngine.Journal
                 return;
             }
 
+            if(_chartDd.Series == null 
+                || _chartDd.Series.Count == 0)
+            {
+                return;
+            }
+
             int curCountOfPoints = _chartDd.Series[0].Points.Count;
 
             double sizeArea = _chartDd.ChartAreas[0].InnerPlotPosition.Size.Width;
@@ -1454,7 +1465,17 @@ namespace OsEngine.Journal
             if (_chartDd.Series[1].Points.Count > numPointInt)
             {
                 _chartDd.Series[1].Points[numPointInt].Label
-                = _chartDd.Series[1].Points[numPointInt].LegendText;
+                = _chartDd.Series[1].Points[numPointInt].AxisLabel;
+            }
+
+            if (_chartDd.Series[2].Points.Count > _lastSeriesDrowDownPointWithLabel)
+            {
+                _chartDd.Series[2].Points[_lastSeriesDrowDownPointWithLabel].Label = "";
+            }
+            if (_chartDd.Series[2].Points.Count > numPointInt)
+            {
+                _chartDd.Series[2].Points[numPointInt].Label
+                = _chartDd.Series[2].Points[numPointInt].LegendText;
             }
 
             _lastSeriesDrowDownPointWithLabel = numPointInt;
@@ -1510,6 +1531,13 @@ namespace OsEngine.Journal
             drowDownPunct.BorderWidth = 2;
             drowDownPunct.ShadowOffset = 2;
 
+            Series nullLine = new Series("SeriesNullLine");
+            nullLine.ChartType = SeriesChartType.Line;
+            nullLine.YAxisType = AxisType.Secondary;
+            nullLine.LabelForeColor = Color.White;
+            nullLine.ChartArea = "ChartAreaDdPunct";
+            nullLine.ShadowOffset = 0;
+
             for (int i = 0; i < ddPunct.Count; i++)
             {
                 decimal val = Math.Round(ddPunct[i], 6);
@@ -1519,9 +1547,14 @@ namespace OsEngine.Journal
                positionsAll[i].TimeCreate.ToString(_currentCulture);
 
                 drowDownPunct.Points[drowDownPunct.Points.Count - 1].LegendText = val.ToString();
+
+                nullLine.Points.Add(0);
+                nullLine.Points[nullLine.Points.Count - 1].AxisLabel =
+                    positionsAll[i].TimeCreate.ToString(_currentCulture);
             }
 
             _chartDd.Series.Add(drowDownPunct);
+            _chartDd.Series.Add(nullLine);
 
             decimal minOnY = decimal.MaxValue;
 
