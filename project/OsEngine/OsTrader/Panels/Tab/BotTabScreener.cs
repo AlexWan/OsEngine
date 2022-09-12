@@ -1166,6 +1166,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (_indicators.Find(ind => ind.Num == num) != null)
             {
+                NeadToReloadTabs = true;
                 return;
             }
 
