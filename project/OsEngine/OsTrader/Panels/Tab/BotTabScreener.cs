@@ -149,7 +149,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     decimal last = 0;
 					
-					int posCount = tab.PositionsAll.Count;
+                    int posCurr = tab.PositionsOpenAll.Count; 
+                    int posTotal = tab.PositionsAll.Count; 
 
                     if (tab.CandlesAll != null && tab.CandlesAll.Count != 0)
                     {
@@ -159,7 +160,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     row.Cells[3].Value = last.ToString();
                     row.Cells[4].Value = bid.ToString();
                     row.Cells[5].Value = ask.ToString();
-					row.Cells[6].Value = posCount.ToString();
+					row.Cells[6].Value = posCurr.ToString() + "/" + posTotal.ToString();
                 }
             }
             catch (Exception error)
@@ -996,7 +997,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn colum7 = new DataGridViewColumn();           
             colum7.CellTemplate = cell0;
-            colum7.HeaderText = "Pos. count";
+            colum7.HeaderText = "Pos. (Curr/Total)";
             colum7.ReadOnly = true;
             colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum7);
