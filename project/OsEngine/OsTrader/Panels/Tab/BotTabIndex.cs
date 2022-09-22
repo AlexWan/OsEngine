@@ -1105,14 +1105,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 exitVal.ValueCandles = exitCandles;
             }
 
-            for (int i = 0; i < exitVal.ValueCandles.Count; i++)
-            {
-                if (exitVal.ValueCandles[i] == null)
-                {
-
-                }
-            }
-
             return exitVal.Name;
         }
 
