@@ -3574,6 +3574,18 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
+            for (int i = 0; i < _allTrades.Length; i++)
+            {
+                List<Trade> curTrades = _allTrades[i];
+
+                if (curTrades != null &&
+                    curTrades.Count > 100)
+                {
+                    curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
+                    _allTrades[i] = curTrades;
+                }
+            }
+
             ServerTime = tradesNew[tradesNew.Count - 1].Time;
 
             if (NewTradeEvent != null)
