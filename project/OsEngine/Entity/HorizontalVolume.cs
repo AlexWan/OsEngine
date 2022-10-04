@@ -996,6 +996,11 @@ namespace OsEngine.Entity
                 return price;
             }
 
+            if(StepSecurity > StepLines)
+            {
+                return price;
+            }
+
             while (price % StepLines != 0)
             {
                 price -= StepSecurity;
