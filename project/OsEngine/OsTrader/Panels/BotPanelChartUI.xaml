@@ -67,7 +67,7 @@
                 </TabItem>
             </TabControl>
         </Grid>
-        <Rectangle Fill="#FCEE21" Height="174" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0" Grid.Row="1">
+        <Rectangle Fill="#FCEE21" Height="150" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,23.667" Grid.Row="1">
             <Rectangle.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -77,7 +77,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-28,0,0,99.667" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
             <Label.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -94,15 +94,36 @@
         </TabControl>
         <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,26,308,10">
             <Rectangle x:Name="RectChart"/>
-            <Grid x:Name="GridChart"/>
+            <Grid x:Name="GridChart">
+                <Button x:Name="ButtonShowInformPanel" Content="&lt;" HorizontalAlignment="Left" Margin="1,0,0,1" VerticalAlignment="Bottom" Width="22" RenderTransformOrigin="0.5,0.5" Height="22" Click="ButtonShowInformPanel_Click">
+                    <Button.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform Angle="90"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Button.RenderTransform>
+                </Button>
+            </Grid>
             <WindowsFormsHost x:Name="ChartHostPanel" Margin="26,23,0,0"/>
-            <TabControl x:Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,10" Width="28">
+            <TabControl x:Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,25.667" Width="28">
                 <TabItem Header=" 1" Margin="0,0,0,-5" VerticalAlignment="Top" >
                     <Grid Background="#FFE5E5E5"/>
                 </TabItem>
             </TabControl>
             <Grid Name="GridChartControlPanel" Height="23" Margin="26,0,4,0" VerticalAlignment="Top"/>
         </Grid>
+        <Button Name="ButtonHideInformPanel" Content=">" HorizontalAlignment="Left" Margin="1,0,0,1" Grid.Row="1" VerticalAlignment="Bottom" Width="22" RenderTransformOrigin="0.5,0.5" Height="22" Click="ButtonHideInformPanel_Click">
+            <Button.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Button.RenderTransform>
+        </Button>
+        <Button x:Name="ButtonHideShowSettingsPanel" Content="&gt;" HorizontalAlignment="Right" Margin="0,3,3,0" VerticalAlignment="Top"  Width="22" Height="22" Click="ButtonHideShowSettingsPanel_Click"/>
     </Grid>
 </Window>
-
