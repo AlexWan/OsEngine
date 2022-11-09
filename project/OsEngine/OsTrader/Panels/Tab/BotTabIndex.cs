@@ -81,7 +81,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             else
             {
                 _chartMaster.Clear();
-                
             }
         }
 

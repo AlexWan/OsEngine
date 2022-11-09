@@ -428,6 +428,10 @@
     <Compile Include="Market\Connectors\ConnectorCandlesUi.xaml.cs">
       <DependentUpon>ConnectorCandlesUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Connectors\MassSourcesCreateUi.xaml.cs">
+      <DependentUpon>MassSourcesCreateUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Connectors\MassSourcesCreator.cs" />
     <Compile Include="Market\ServerMasterPainter.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
@@ -1260,6 +1264,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Market\Connectors\ConnectorCandlesUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Connectors\MassSourcesCreateUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -16,6 +16,7 @@ using System.Threading;
 using OsEngine.Robots.Engines;
 using OsEngine.Language;
 using OsEngine.Alerts;
+using OsEngine.Market.Connectors;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -1773,51 +1774,5 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-    }
-
-    /// <summary>
-    /// класс для хранения бумаги активированной к подключению в скринере
-    /// </summary>
-    public class ActivatedSecurity
-    {
-        /// <summary>
-        /// имя бумаги
-        /// </summary>
-        public string SecurityName;
-
-        /// <summary>
-        /// имя класса
-        /// </summary>
-        public string SecurityClass;
-
-        /// <summary>
-        /// включена ли бумага к активации
-        /// </summary>
-        public bool IsOn;
-
-        /// <summary>
-        /// взять строку сохранения
-        /// </summary>
-        public string GetSaveStr()
-        {
-            string result = "";
-
-            result += SecurityName + "^" + SecurityClass + "^" + IsOn;
-
-            return result;
-        }
-
-        /// <summary>
-        /// настроить класс из строки сохранения
-        /// </summary>
-        public void SetFromStr(string str)
-        {
-            string[] strArray = str.Split('^');
-
-            SecurityName = strArray[0];
-            SecurityClass = strArray[1];
-            IsOn = Convert.ToBoolean(strArray[2]);
-
-        }
     }
 }

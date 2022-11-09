@@ -6,6 +6,7 @@
 using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Language;
+using OsEngine.Entity;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -23,56 +24,57 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Title = OsLocalization.Trader.Label81;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
+
+            this.Closed += BotTabIndexUi_Closed;
+        }
+
+        public bool IndexOrSourcesChanged = false;
+
+        private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
+        {
+            _sourcesGrid.CellDoubleClick -= Grid1CellValueChangeClick;
+            DataGridFactory.ClearLink(_sourcesGrid);
+            _sourcesGrid.Rows.Clear();
+            _sourcesGrid = null;
+            _spread = null;
         }
 
         private BotTabIndex _spread;
 
-        private DataGridView _grid1;
+        private DataGridView _sourcesGrid;
 
         private void CreateTable()
         {
-            _grid1 = new DataGridView();
-            _grid1.CellDoubleClick += Grid1CellValueChangeClick;
+            _sourcesGrid = DataGridFactory.GetDataGridView(
+                DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
-            _grid1.AllowUserToOrderColumns = false;
-            _grid1.AllowUserToResizeColumns = false;
-            _grid1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            _grid1.AllowUserToDeleteRows = false;
-            _grid1.AllowUserToAddRows = false;
-            _grid1.RowHeadersVisible = false;
-            _grid1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            _grid1.MultiSelect = false;
-
-            DataGridViewCellStyle style1 = new DataGridViewCellStyle();
-            style1.Alignment = DataGridViewContentAlignment.TopLeft;
-            style1.WrapMode = DataGridViewTriState.True;
-            _grid1.DefaultCellStyle = style1;
+            _sourcesGrid.CellDoubleClick += Grid1CellValueChangeClick;
 
             DataGridViewTextBoxCell fcell0 = new DataGridViewTextBoxCell();
-            fcell0.Style = style1;
 
             DataGridViewColumn fcolumn0 = new DataGridViewColumn();
             fcolumn0.CellTemplate = fcell0;
             fcolumn0.HeaderText = OsLocalization.Trader.Label82;
             fcolumn0.ReadOnly = true;
             fcolumn0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid1.Columns.Add(fcolumn0);
+            _sourcesGrid.Columns.Add(fcolumn0);
 
             DataGridViewColumn fcolumn1 = new DataGridViewColumn();
             fcolumn1.CellTemplate = fcell0;
             fcolumn1.HeaderText = OsLocalization.Trader.Label83;
             fcolumn1.ReadOnly = true;
             fcolumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid1.Columns.Add(fcolumn1);
+            _sourcesGrid.Columns.Add(fcolumn1);
 
-            HostSecurity1.Child = _grid1;
+            HostSecurity1.Child = _sourcesGrid;
         }
 
         void Grid1CellValueChangeClick(object sender, DataGridViewCellEventArgs e)
         {
-            int index = _grid1.CurrentCell.RowIndex;
+            int index = _sourcesGrid.CurrentCell.RowIndex;
             _spread.ShowIndexConnectorIndexDialog(index);
             ReloadSecurityTable();
+            IndexOrSourcesChanged = true;
         }
 
         private void ReloadSecurityTable()
@@ -82,7 +84,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            _grid1.Rows.Clear();
+            _sourcesGrid.Rows.Clear();
 
             for (int i = 0; i < _spread.Tabs.Count; i++)
             {
@@ -104,7 +106,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     row.Cells[1].Value = _spread.Tabs[i].SecurityName;
 
                 }
-                _grid1.Rows.Add(row);
+                _sourcesGrid.Rows.Add(row);
             }
         }
 
@@ -112,22 +114,29 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _spread.ShowNewSecurityDialog();
             ReloadSecurityTable();
+            IndexOrSourcesChanged = true;
         }
 
         private void ButtonDeleteSecurity_Click(object sender, RoutedEventArgs e)
         {
-            if (_grid1.CurrentCell == null)
+            if (_sourcesGrid.CurrentCell == null)
             {
                 return;
             }
 
-            _spread.DeleteSecurityTab(_grid1.CurrentCell.RowIndex);
+            _spread.DeleteSecurityTab(_sourcesGrid.CurrentCell.RowIndex);
             ReloadSecurityTable();
+            IndexOrSourcesChanged = true;
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            _spread.UserFormula = TextboxUserFormula.Text;
+            if(_spread.UserFormula != TextboxUserFormula.Text 
+                || IndexOrSourcesChanged == true)
+            {
+                _spread.UserFormula = TextboxUserFormula.Text;
+            }
+
             Close();
         }
     }

@@ -13,17 +13,17 @@ using System.Windows;
 using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market;
-using OsEngine.Market.Connectors;
 using System.Windows.Forms;
+using OsEngine.OsTrader.Panels.Tab;
 
-namespace OsEngine.OsTrader.Panels.Tab
+namespace OsEngine.Market.Connectors
 {
     /// <summary>
-    /// Логика взаимодействия для BotTabScreenerUi.xaml
+    /// Логика взаимодействия для MassSourcesCreateUi.xaml
     /// </summary>
-    public partial class BotTabScreenerUi : Window
+    public partial class MassSourcesCreateUi : Window
     {
-        public BotTabScreenerUi(BotTabScreener connectorBot)
+        public MassSourcesCreateUi(MassSourcesCreator connectorBot)
         {
             try
             {
@@ -192,7 +192,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        BotTabScreener _screener;
+        MassSourcesCreator _screener;
 
         public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
         {
@@ -1225,9 +1225,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 _screener.SecuritiesNames = securities;
-                _screener.SaveSettings();
-
-                _screener.NeadToReloadTabs = true;
 
                 Close();
             }
@@ -1255,18 +1252,18 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void TextBoxSearchSec_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if(TextBoxSearchSec.Text.Contains(OsLocalization.Trader.Label174))
+            if (TextBoxSearchSec.Text.Contains(OsLocalization.Trader.Label174))
             {
                 TextBoxSearchSec.Text = TextBoxSearchSec.Text.Replace(OsLocalization.Trader.Label174, "");
             }
 
             string str = TextBoxSearchSec.Text;
 
-            for(int i = 0;i < _gridSecurities.Rows.Count;i++)
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
             {
                 DataGridViewRow row = _gridSecurities.Rows[i];
 
-                if(row.Cells.Count < 2 ||
+                if (row.Cells.Count < 2 ||
                     row.Cells[1].Value == null)
                 {
                     continue;
