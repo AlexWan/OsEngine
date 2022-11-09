@@ -20,7 +20,7 @@ namespace OsEngine.Market.Connectors
     public class OrderExecutionEmulator
     {
         private static List<OrderExecutionEmulator> _emulators = new List<OrderExecutionEmulator>();
-        
+
         private static void Listen(OrderExecutionEmulator emulator)
         {
             _emulators.Add(emulator);
@@ -34,9 +34,9 @@ namespace OsEngine.Market.Connectors
 
         private static async void WatcherThread()
         {
-            while(true)
+            while (true)
             {
-               await Task.Delay(250);
+                await Task.Delay(250);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {
@@ -60,16 +60,16 @@ namespace OsEngine.Market.Connectors
             Listen(this);
         }
 
-// order management
-// менеджмент ордеров
+        // order management
+        // менеджмент ордеров
 
         /// <summary>
         /// place order to the exchange
         /// выставить ордер на биржу
         /// </summary>
-        public void OrderExecute(Order order) 
+        public void OrderExecute(Order order)
         {
-            if(order.SecurityNameCode != null)
+            if (order.SecurityNameCode != null)
             {
                 order.SecurityNameCode = order.SecurityNameCode + " TestPaper";
             }
@@ -77,11 +77,16 @@ namespace OsEngine.Market.Connectors
             {
                 order.SecurityNameCode = "TestPaper";
             }
-            
+
             order.PortfolioNumber = "TestPortfolio";
-  
+
             ActivateSimple(order);
-            ordersOnBoard.Add(order);
+
+            lock (_executorLocker)
+            {
+                ordersOnBoard.Add(order);
+            }
+
             CheckExecution(true, order);
         }
 
@@ -91,7 +96,17 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public void OrderCancel(Order order)
         {
-            ordersOnBoard.Remove(order);
+            lock (_executorLocker)
+            {
+                for (int i = 0; i < ordersOnBoard.Count; i++)
+                {
+                    if (ordersOnBoard[i].NumberUser == order.NumberUser)
+                    {
+                        ordersOnBoard.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
 
             Order newOrder = new Order();
             newOrder.NumberMarket = order.NumberMarket;
@@ -153,6 +168,8 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         private List<Order> ordersOnBoard;
 
+        private string _executorLocker = "lockerOrderExecutor";
+
         /// <summary>
         /// check whether any orders are executed 
         /// проверить исполнился ли какой-нибудь ордер
@@ -166,74 +183,113 @@ namespace OsEngine.Market.Connectors
                 return false;
             }
 
-            if (order.TypeOrder == OrderPriceType.Market)
+            lock (_executorLocker)
             {
-                if (order.Side == Side.Buy)
+                if (order.TypeOrder == OrderPriceType.Market)
                 {
-                    decimal price = _bestSell;
-
-                    if(price == 0)
+                    if (order.Side == Side.Buy)
                     {
-                        price = order.Price;
-                    }
+                        decimal price = _bestSell;
 
-                    ExecuteSimple(order, price);
-                    ordersOnBoard.Remove(order);
-                    return true;
+                        if (price == 0)
+                        {
+                            price = order.Price;
+                        }
+
+                        ExecuteSimple(order, price);
+
+                        for (int i = 0; i < ordersOnBoard.Count; i++)
+                        {
+                            if (ordersOnBoard[i].NumberUser == order.NumberUser)
+                            {
+                                ordersOnBoard.RemoveAt(i);
+                                break;
+                            }
+                        }
+
+                        return true;
+                    }
+                    else if (order.Side == Side.Sell)
+                    {
+                        decimal price = _bestBuy;
+
+                        if (price == 0)
+                        {
+                            price = order.Price;
+                        }
+
+                        ExecuteSimple(order, price);
+
+                        for(int i = 0;i < ordersOnBoard.Count;i++)
+                        {
+                            if(ordersOnBoard[i].NumberUser == order.NumberUser)
+                            {
+                                ordersOnBoard.RemoveAt(i);
+                                break;
+                            }
+                        }
+                        
+                        return true;
+                    }
                 }
-                else if (order.Side == Side.Sell )
+                else //if (order.TypeOrder == OrderPriceType.Limit)
                 {
-                    decimal price = _bestBuy;
-
-                    if (price == 0)
+                    if (order.Side == Side.Buy &&
+                  order.Price >= _bestSell && _bestSell != 0)
                     {
-                        price = order.Price;
-                    }
+                        decimal price;
 
-                    ExecuteSimple(order, price);
-                    ordersOnBoard.Remove(order);
-                    return true;
+                        if (isFirstTime)
+                        {
+                            price = _bestSell;
+                        }
+                        else
+                        {
+                            price = order.Price;
+                        }
+
+                        ExecuteSimple(order, price);
+
+                        for (int i = 0; i < ordersOnBoard.Count; i++)
+                        {
+                            if (ordersOnBoard[i].NumberUser == order.NumberUser)
+                            {
+                                ordersOnBoard.RemoveAt(i);
+                                break;
+                            }
+                        }
+
+                        return true;
+                    }
+                    else if (order.Side == Side.Sell &&
+                             order.Price <= _bestBuy && _bestBuy != 0)
+                    {
+                        decimal price;
+
+                        if (isFirstTime)
+                        {
+                            price = _bestBuy;
+                        }
+                        else
+                        {
+                            price = order.Price;
+                        }
+                        ExecuteSimple(order, price);
+
+                        for (int i = 0; i < ordersOnBoard.Count; i++)
+                        {
+                            if (ordersOnBoard[i].NumberUser == order.NumberUser)
+                            {
+                                ordersOnBoard.RemoveAt(i);
+                                break;
+                            }
+                        }
+
+                        return true;
+                    }
                 }
             }
-            else //if (order.TypeOrder == OrderPriceType.Limit)
-            {
-                if (order.Side == Side.Buy &&
-              order.Price >= _bestSell && _bestSell != 0)
-                {
-                    decimal price;
 
-                    if (isFirstTime)
-                    {
-                        price = _bestSell;
-                    }
-                    else
-                    {
-                        price = order.Price;
-                    }
-
-                    ExecuteSimple(order, price);
-                    ordersOnBoard.Remove(order);
-                    return true;
-                }
-                else if (order.Side == Side.Sell &&
-                         order.Price <= _bestBuy && _bestBuy != 0)
-                {
-                    decimal price;
-
-                    if (isFirstTime)
-                    {
-                        price = _bestBuy;
-                    }
-                    else
-                    {
-                        price = order.Price;
-                    }
-                    ExecuteSimple(order, price);
-                    ordersOnBoard.Remove(order);
-                    return true;
-                }
-            }
-          
             return false;
         }
 
@@ -296,8 +352,8 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-// server needs to be loaded with new data to execute stop- and profit-orders
-// сервер нужно прогружать новыми данными, чтобы исполнялись стопы и профиты
+        // server needs to be loaded with new data to execute stop- and profit-orders
+        // сервер нужно прогружать новыми данными, чтобы исполнялись стопы и профиты
 
         /// <summary>
         /// buy price
@@ -326,7 +382,7 @@ namespace OsEngine.Market.Connectors
         /// <param name="time"> time / время </param>
         public void ProcessBidAsc(decimal sell, decimal buy, DateTime time)
         {
-            if(sell == 0 || buy == 0)
+            if (sell == 0 || buy == 0)
             {
                 return;
             }
@@ -344,7 +400,7 @@ namespace OsEngine.Market.Connectors
 
             _serverTime = time;
 
-            for (int i = 0;ordersOnBoard != null && i < ordersOnBoard.Count; i++)
+            for (int i = 0; ordersOnBoard != null && i < ordersOnBoard.Count; i++)
             {
                 if (CheckExecution(false, ordersOnBoard[i]))
                 {
