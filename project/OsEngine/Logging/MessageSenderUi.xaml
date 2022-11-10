@@ -38,6 +38,7 @@
         <CheckBox x:Name="CheckBoxWebhookError" Content="Error" HorizontalAlignment="Left" Margin="711,112,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="CheckBoxWebhookConnect" Content="Connection" HorizontalAlignment="Left" Margin="856,112,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonWebhookGlobeSet" Content="Configure server" Margin="711,150,0,0" VerticalAlignment="Top" Click="ButtonWebhookGlobeSet_Click" HorizontalAlignment="Left" Width="249" />
+        <CheckBox x:Name="CheckBoxWebhookUser" Content="User" HorizontalAlignment="Left" Margin="856,68,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

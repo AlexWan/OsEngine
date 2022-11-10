@@ -56,6 +56,7 @@ namespace OsEngine.Logging
             CheckBoxWebhookError.Content = OsLocalization.Logging.Label8;
             CheckBoxWebhookSystem.Content = OsLocalization.Logging.Label9;
             CheckBoxWebhookConnect.Content = OsLocalization.Logging.Label10;
+            CheckBoxWebhookUser.Content = OsLocalization.Logging.Label20;
         }
 
         /// <summary>
@@ -81,6 +82,7 @@ namespace OsEngine.Logging
             CheckBoxWebhookError.IsChecked = _sender.WebhookErrorSendOn;
             CheckBoxWebhookSystem.IsChecked = _sender.WebhookSystemSendOn;
             CheckBoxWebhookConnect.IsChecked = _sender.WebhookConnectSendOn;
+            CheckBoxWebhookUser.IsChecked = _sender.WebhookUserSendOn;
 
 
             ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label1);
@@ -141,7 +143,7 @@ namespace OsEngine.Logging
             _sender.WebhookErrorSendOn = CheckBoxWebhookError.IsChecked.Value;
             _sender.WebhookSystemSendOn = CheckBoxWebhookSystem.IsChecked.Value;
             _sender.WebhookConnectSendOn = CheckBoxWebhookConnect.IsChecked.Value;
-
+            _sender.WebhookUserSendOn = CheckBoxWebhookUser.IsChecked.Value;
 
             if (ComboBoxModeMail.Text == OsLocalization.Logging.Label1)
             {

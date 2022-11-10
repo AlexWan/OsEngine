@@ -27,6 +27,7 @@ namespace OsEngine.Logging
         public bool WebhookConnectSendOn;
         public bool WebhookTradeSendOn;
         public bool WebhookNoNameSendOn;
+        public bool WebhookUserSendOn;
 
         public bool MailSendOn;
 
@@ -112,6 +113,7 @@ namespace OsEngine.Logging
                     WebhookConnectSendOn = Convert.ToBoolean(reader.ReadLine());
                     WebhookTradeSendOn = Convert.ToBoolean(reader.ReadLine());
                     WebhookNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
+                    WebhookUserSendOn = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -159,6 +161,7 @@ namespace OsEngine.Logging
                     writer.WriteLine(WebhookConnectSendOn);
                     writer.WriteLine(WebhookTradeSendOn);
                     writer.WriteLine(WebhookNoNameSendOn);
+                    writer.WriteLine(WebhookUserSendOn);
                     writer.Close();
                 }
             }
@@ -217,6 +220,11 @@ namespace OsEngine.Logging
                 }
                 if (message.Type == LogMessageType.Trade &&
                     WebhookTradeSendOn)
+                {
+                    ServerWebhook.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.User &&
+                    WebhookUserSendOn)
                 {
                     ServerWebhook.GetServer().Send(message, _name);
                 }

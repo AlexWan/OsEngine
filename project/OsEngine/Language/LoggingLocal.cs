@@ -118,5 +118,8 @@ namespace OsEngine.Language
         public string Label19 => OsLocalization.ConvertToLocString(
             "Eng:Webhooks_" +
             "Ru:Вебхуки_");
+        public string Label20 => OsLocalization.ConvertToLocString(
+           "Eng:User_" +
+           "Ru:Юзер_");
     }
 }
