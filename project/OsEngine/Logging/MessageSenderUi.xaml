@@ -19,6 +19,7 @@
         <CheckBox Name="CheckBoxSmsSystem" Content="System" HorizontalAlignment="Left" Margin="206,90,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxSmsError" Content="Error" HorizontalAlignment="Left" Margin="47,112,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxSmsConnect" Content="Connection" HorizontalAlignment="Left" Margin="206,112,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxSmsUser" Content="User" HorizontalAlignment="Left" Margin="206,68,0,0" VerticalAlignment="Top"/>
         <Label Name="Label52" Content="Regime" HorizontalAlignment="Left" Margin="380,40,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxModeMail" Margin="471,40,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="158"></ComboBox>
         <CheckBox x:Name="CheckBoxMailSignal" Content="Signal" HorizontalAlignment="Left" Margin="380,68,0,0" VerticalAlignment="Top"/>
@@ -26,6 +27,7 @@
         <CheckBox x:Name="CheckBoxMailSystem" Content="System" HorizontalAlignment="Left" Margin="525,90,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="CheckBoxMailError" Content="Error" HorizontalAlignment="Left" Margin="380,112,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="CheckBoxMailConnect" Content="Connection" HorizontalAlignment="Left" Margin="525,112,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxMailUser" Content="User" HorizontalAlignment="Left" Margin="525,68,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonMailGlobeSet" Content="Configure server" Margin="380,150,0,0" VerticalAlignment="Top" Click="ButtonMailGlobeSet_Click" HorizontalAlignment="Left" Width="249" />
         <Button x:Name="ButtonSmsGlobeSet" Content="Configure server" HorizontalAlignment="Left" VerticalAlignment="Top" Width="256" Click="ButtonSmsGlobeSet_Click" Margin="47,150,0,0" />
         <Rectangle Margin="655,5,5,37"/>
@@ -39,6 +41,5 @@
         <CheckBox x:Name="CheckBoxWebhookConnect" Content="Connection" HorizontalAlignment="Left" Margin="856,112,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonWebhookGlobeSet" Content="Configure server" Margin="711,150,0,0" VerticalAlignment="Top" Click="ButtonWebhookGlobeSet_Click" HorizontalAlignment="Left" Width="249" />
         <CheckBox x:Name="CheckBoxWebhookUser" Content="User" HorizontalAlignment="Left" Margin="856,68,0,0" VerticalAlignment="Top"/>
-
     </Grid>
 </Window>

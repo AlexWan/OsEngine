@@ -44,12 +44,14 @@ namespace OsEngine.Logging
             CheckBoxSmsError.Content = OsLocalization.Logging.Label8;
             CheckBoxSmsSystem.Content = OsLocalization.Logging.Label9;
             CheckBoxSmsConnect.Content = OsLocalization.Logging.Label10;
+            CheckBoxSmsUser.Content = OsLocalization.Logging.Label20;
 
             CheckBoxMailSignal.Content = OsLocalization.Logging.Label6;
             CheckBoxMailTrade.Content = OsLocalization.Logging.Label7;
             CheckBoxMailError.Content = OsLocalization.Logging.Label8;
             CheckBoxMailSystem.Content = OsLocalization.Logging.Label9;
             CheckBoxMailConnect.Content = OsLocalization.Logging.Label10;
+            CheckBoxMailUser.Content = OsLocalization.Logging.Label20;
 
             CheckBoxWebhookSignal.Content = OsLocalization.Logging.Label6;
             CheckBoxWebhookTrade.Content = OsLocalization.Logging.Label7;
@@ -102,7 +104,7 @@ namespace OsEngine.Logging
             CheckBoxMailError.IsChecked = _sender.MailErrorSendOn;
             CheckBoxMailSystem.IsChecked = _sender.MailSystemSendOn;
             CheckBoxMailConnect.IsChecked = _sender.MailConnectSendOn;
-
+            CheckBoxMailUser.IsChecked = _sender.MailUserSendOn;   
 
             ComboBoxModeSms.Items.Add(OsLocalization.Logging.Label1);
             ComboBoxModeSms.Items.Add(OsLocalization.Logging.Label2);
@@ -121,6 +123,7 @@ namespace OsEngine.Logging
             CheckBoxSmsError.IsChecked = _sender.SmsErrorSendOn;
             CheckBoxSmsSystem.IsChecked = _sender.SmsSystemSendOn;
             CheckBoxSmsConnect.IsChecked = _sender.SmsConnectSendOn;
+            CheckBoxSmsUser.IsChecked = _sender.SmsUserSendOn;
         }
 
         /// <summary>
@@ -159,6 +162,7 @@ namespace OsEngine.Logging
            _sender.MailErrorSendOn = CheckBoxMailError.IsChecked.Value;
            _sender.MailSystemSendOn = CheckBoxMailSystem.IsChecked.Value;
            _sender.MailConnectSendOn = CheckBoxMailConnect.IsChecked.Value;
+           _sender.MailUserSendOn = CheckBoxMailUser.IsChecked.Value;
 
 
             if (ComboBoxModeSms.Text == OsLocalization.Logging.Label1)
@@ -175,6 +179,7 @@ namespace OsEngine.Logging
             _sender.SmsErrorSendOn = CheckBoxSmsError.IsChecked.Value;
             _sender.SmsSystemSendOn = CheckBoxSmsSystem.IsChecked.Value;
             _sender.SmsConnectSendOn = CheckBoxSmsConnect.IsChecked.Value;
+            _sender.SmsUserSendOn = CheckBoxSmsUser.IsChecked.Value;
             _sender.Save();
         }
 

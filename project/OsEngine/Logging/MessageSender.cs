@@ -37,6 +37,7 @@ namespace OsEngine.Logging
         public bool MailConnectSendOn;
         public bool MailTradeSendOn;
         public bool MailNoNameSendOn;
+        public bool MailUserSendOn;
 
         public bool SmsSendOn;
 
@@ -46,6 +47,7 @@ namespace OsEngine.Logging
         public bool SmsConnectSendOn;
         public bool SmsTradeSendOn;
         public bool SmsNoNameSendOn;
+        public bool SmsUserSendOn;
 
         private string _name; // name / имя
 
@@ -95,6 +97,7 @@ namespace OsEngine.Logging
                     MailConnectSendOn = Convert.ToBoolean(reader.ReadLine());
                     MailTradeSendOn = Convert.ToBoolean(reader.ReadLine());
                     MailNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
+                    MailUserSendOn = Convert.ToBoolean(reader.ReadLine());
 
                     SmsSendOn = Convert.ToBoolean(reader.ReadLine());
 
@@ -104,6 +107,7 @@ namespace OsEngine.Logging
                     SmsConnectSendOn = Convert.ToBoolean(reader.ReadLine());
                     SmsTradeSendOn = Convert.ToBoolean(reader.ReadLine());
                     SmsNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
+                    SmsUserSendOn = Convert.ToBoolean(reader.ReadLine());
 
                     WebhookSendOn = Convert.ToBoolean(reader.ReadLine());
 
@@ -143,6 +147,7 @@ namespace OsEngine.Logging
                     writer.WriteLine(MailConnectSendOn);
                     writer.WriteLine(MailTradeSendOn);
                     writer.WriteLine(MailNoNameSendOn);
+                    writer.WriteLine(MailUserSendOn);
 
                     writer.WriteLine(SmsSendOn);
 
@@ -152,6 +157,7 @@ namespace OsEngine.Logging
                     writer.WriteLine(SmsConnectSendOn);
                     writer.WriteLine(SmsTradeSendOn);
                     writer.WriteLine(SmsNoNameSendOn);
+                    writer.WriteLine(SmsUserSendOn);
 
                     writer.WriteLine(WebhookSendOn);
 
@@ -257,6 +263,11 @@ namespace OsEngine.Logging
                 {
                     ServerMail.GetServer().Send(message, _name);
                 }
+                if (message.Type == LogMessageType.User &&
+                    MailUserSendOn)
+                {
+                    ServerMail.GetServer().Send(message, _name);
+                }
             }
             if (SmsSendOn)
             {
@@ -282,6 +293,11 @@ namespace OsEngine.Logging
                 }
                 if (message.Type == LogMessageType.Trade &&
                     SmsTradeSendOn)
+                {
+                    ServerSms.GetSmsServer().Send(message.GetString());
+                }
+                if (message.Type == LogMessageType.User &&
+                    SmsUserSendOn)
                 {
                     ServerSms.GetSmsServer().Send(message.GetString());
                 }
