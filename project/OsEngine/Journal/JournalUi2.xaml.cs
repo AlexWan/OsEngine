@@ -221,70 +221,77 @@ namespace OsEngine.Journal
                 return;
             }
 
-            List<Position> allSortPoses = new List<Position>();
-            List<Position> longPositions = new List<Position>();
-            List<Position> shortPositions = new List<Position>();
-
-            for(int i = 0;i < _allPositions.Count;i++)
+            try
             {
-                if(_allPositions[i].TimeCreate < startTime
-                    || _allPositions[i].TimeCreate > endTime)
+                List<Position> allSortPoses = new List<Position>();
+                List<Position> longPositions = new List<Position>();
+                List<Position> shortPositions = new List<Position>();
+
+                for (int i = 0; i < _allPositions.Count; i++)
                 {
-                    continue;
+                    if (_allPositions[i].TimeCreate < startTime
+                        || _allPositions[i].TimeCreate > endTime)
+                    {
+                        continue;
+                    }
+                    allSortPoses.Add(_allPositions[i]);
                 }
-                allSortPoses.Add(_allPositions[i]);
+
+                for (int i = 0; i < _longPositions.Count; i++)
+                {
+                    if (_longPositions[i].TimeCreate < startTime
+                        || _longPositions[i].TimeCreate > endTime)
+                    {
+                        continue;
+                    }
+                    longPositions.Add(_longPositions[i]);
+                }
+
+                for (int i = 0; i < _shortPositions.Count; i++)
+                {
+                    if (_shortPositions[i].TimeCreate < startTime
+                        || _shortPositions[i].TimeCreate > endTime)
+                    {
+                        continue;
+                    }
+                    shortPositions.Add(_shortPositions[i]);
+                }
+
+
+                lock (_paintLocker)
+                {
+
+                    if (TabControlPrime.SelectedIndex == 0)
+                    {
+                        PaintProfitOnChart(allSortPoses);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 1)
+                    {
+                        bool neadShowTickState = !(_botsJournals.Count > 1);
+
+                        PaintStatTable(allSortPoses, _longPositions, _shortPositions, neadShowTickState);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 2)
+                    {
+                        PaintDrowDown(allSortPoses);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 3)
+                    {
+                        PaintVolumeOnChart(allSortPoses);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 4)
+                    {
+                        PaintOpenPositionGrid(allSortPoses);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 5)
+                    {
+                        PaintClosePositionGrid(allSortPoses);
+                    }
+                }
             }
-
-            for (int i = 0; i < _longPositions.Count; i++)
+            catch(Exception error)
             {
-                if (_longPositions[i].TimeCreate < startTime
-                    || _longPositions[i].TimeCreate > endTime)
-                {
-                    continue;
-                }
-                longPositions.Add(_longPositions[i]);
-            }
-
-            for (int i = 0; i < _shortPositions.Count; i++)
-            {
-                if (_shortPositions[i].TimeCreate < startTime
-                    || _shortPositions[i].TimeCreate > endTime)
-                {
-                    continue;
-                }
-                shortPositions.Add(_shortPositions[i]);
-            }
-
-
-            lock (_paintLocker)
-            {
-
-                if (TabControlPrime.SelectedIndex == 0)
-                {
-                    PaintProfitOnChart(allSortPoses);
-                }
-                else if (TabControlPrime.SelectedIndex == 1)
-                {
-                    bool neadShowTickState = !(_botsJournals.Count > 1);
-
-                    PaintStatTable(allSortPoses, _longPositions, _shortPositions, neadShowTickState);
-                }
-                else if (TabControlPrime.SelectedIndex == 2)
-                {
-                    PaintDrowDown(allSortPoses);
-                }
-                else if (TabControlPrime.SelectedIndex == 3)
-                {
-                    PaintVolumeOnChart(allSortPoses);
-                }
-                else if (TabControlPrime.SelectedIndex == 4)
-                {
-                    PaintOpenPositionGrid(allSortPoses);
-                }
-                else if (TabControlPrime.SelectedIndex == 5)
-                {
-                    PaintClosePositionGrid(allSortPoses);
-                }
+                System.Windows.MessageBox.Show(error.ToString());
             }
         }
 
