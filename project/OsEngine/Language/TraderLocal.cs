@@ -720,5 +720,13 @@ namespace OsEngine.Language
         public string Label177 => OsLocalization.ConvertToLocString(
                "Eng:Only indicators from SCRIPTS can be used in screeners_" +
                "Ru:В скринерах можно применять только индикаторы из СКРИПТОВ!_");
+
+        public string Label178 => OsLocalization.ConvertToLocString(
+               "Eng:Server_" +
+               "Ru:Сервер_");
+
+        public string Label179 => OsLocalization.ConvertToLocString(
+               "Eng:Time frame_" +
+               "Ru:Тайм фрейм_");
     }
 }

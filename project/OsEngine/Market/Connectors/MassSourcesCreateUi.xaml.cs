@@ -23,7 +23,7 @@ namespace OsEngine.Market.Connectors
     /// </summary>
     public partial class MassSourcesCreateUi : Window
     {
-        public MassSourcesCreateUi(MassSourcesCreator connectorBot)
+        public MassSourcesCreateUi(MassSourcesCreator connectorBot, List<Security> activatedSec)
         {
             try
             {

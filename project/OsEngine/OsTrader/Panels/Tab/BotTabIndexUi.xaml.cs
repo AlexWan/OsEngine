@@ -66,6 +66,20 @@ namespace OsEngine.OsTrader.Panels.Tab
             fcolumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _sourcesGrid.Columns.Add(fcolumn1);
 
+            DataGridViewColumn fcolumn2 = new DataGridViewColumn();
+            fcolumn2.CellTemplate = fcell0;
+            fcolumn2.HeaderText = OsLocalization.Trader.Label178;
+            fcolumn2.ReadOnly = true;
+            fcolumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _sourcesGrid.Columns.Add(fcolumn2);
+
+            DataGridViewColumn fcolumn3 = new DataGridViewColumn();
+            fcolumn3.CellTemplate = fcell0;
+            fcolumn3.HeaderText = OsLocalization.Trader.Label179;
+            fcolumn3.ReadOnly = true;
+            fcolumn3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _sourcesGrid.Columns.Add(fcolumn3);
+
             HostSecurity1.Child = _sourcesGrid;
         }
 
@@ -93,7 +107,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 row.Cells.Add((new DataGridViewTextBoxCell()));
                 row.Cells[0].Value = "A"+i;
 
-
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 if (string.IsNullOrWhiteSpace(_spread.Tabs[i].SecurityName))
                 {
@@ -102,10 +115,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-
                     row.Cells[1].Value = _spread.Tabs[i].SecurityName;
-
                 }
+                
+                row.Cells.Add((new DataGridViewTextBoxCell()));
+                row.Cells[2].Value = _spread.Tabs[i].ServerType.ToString();
+
+                row.Cells.Add((new DataGridViewTextBoxCell()));
+                row.Cells[3].Value = _spread.Tabs[i].TimeFrame.ToString();
+
                 _sourcesGrid.Rows.Add(row);
             }
         }
