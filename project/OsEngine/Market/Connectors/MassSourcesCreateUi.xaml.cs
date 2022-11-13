@@ -23,7 +23,7 @@ namespace OsEngine.Market.Connectors
     /// </summary>
     public partial class MassSourcesCreateUi : Window
     {
-        public MassSourcesCreateUi(MassSourcesCreator connectorBot, List<Security> activatedSec)
+        public MassSourcesCreateUi(MassSourcesCreator connectorBot)
         {
             try
             {
@@ -39,7 +39,7 @@ namespace OsEngine.Market.Connectors
 
                 // save connectors
                 // сохраняем коннекторы
-                _screener = connectorBot;
+                _sorcesCreator = connectorBot;
 
                 // upload settings to controls
                 // загружаем настройки в контролы
@@ -82,13 +82,13 @@ namespace OsEngine.Market.Connectors
 
                 ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
 
-                CheckBoxIsEmulator.IsChecked = _screener.EmulatorIsOn;
+                CheckBoxIsEmulator.IsChecked = _sorcesCreator.EmulatorIsOn;
 
                 ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
 
                 ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick);
                 ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
-                ComboBoxCandleMarketDataType.SelectedItem = _screener.CandleMarketDataType;
+                ComboBoxCandleMarketDataType.SelectedItem = _sorcesCreator.CandleMarketDataType;
 
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Simple);
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Renko);
@@ -99,44 +99,44 @@ namespace OsEngine.Market.Connectors
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Range);
                 ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Rеvers);
 
-                ComboBoxCandleCreateMethodType.SelectedItem = _screener.CandleCreateMethodType;
+                ComboBoxCandleCreateMethodType.SelectedItem = _sorcesCreator.CandleCreateMethodType;
 
-                CheckBoxSetForeign.IsChecked = _screener.SetForeign;
+                CheckBoxSetForeign.IsChecked = _sorcesCreator.SetForeign;
 
                 LoadTimeFrameBox();
 
-                TextBoxCountTradesInCandle.Text = _screener.CountTradeInCandle.ToString();
-                _countTradesInCandle = _screener.CountTradeInCandle;
+                TextBoxCountTradesInCandle.Text = _sorcesCreator.CountTradeInCandle.ToString();
+                _countTradesInCandle = _sorcesCreator.CountTradeInCandle;
                 TextBoxCountTradesInCandle.TextChanged += TextBoxCountTradesInCandle_TextChanged;
 
-                TextBoxVolumeToClose.Text = _screener.VolumeToCloseCandleInVolumeType.ToString();
-                _volumeToClose = _screener.VolumeToCloseCandleInVolumeType;
+                TextBoxVolumeToClose.Text = _sorcesCreator.VolumeToCloseCandleInVolumeType.ToString();
+                _volumeToClose = _sorcesCreator.VolumeToCloseCandleInVolumeType;
                 TextBoxVolumeToClose.TextChanged += TextBoxVolumeToClose_TextChanged;
 
-                TextBoxRencoPunkts.Text = _screener.RencoPunktsToCloseCandleInRencoType.ToString();
-                _rencoPuncts = _screener.RencoPunktsToCloseCandleInRencoType;
+                TextBoxRencoPunkts.Text = _sorcesCreator.RencoPunktsToCloseCandleInRencoType.ToString();
+                _rencoPuncts = _sorcesCreator.RencoPunktsToCloseCandleInRencoType;
                 TextBoxRencoPunkts.TextChanged += TextBoxRencoPunkts_TextChanged;
 
-                if (_screener.RencoIsBuildShadows)
+                if (_sorcesCreator.RencoIsBuildShadows)
                 {
                     CheckBoxRencoIsBuildShadows.IsChecked = true;
                 }
 
-                TextBoxDeltaPeriods.Text = _screener.DeltaPeriods.ToString();
+                TextBoxDeltaPeriods.Text = _sorcesCreator.DeltaPeriods.ToString();
                 TextBoxDeltaPeriods.TextChanged += TextBoxDeltaPeriods_TextChanged;
-                _deltaPeriods = _screener.DeltaPeriods;
+                _deltaPeriods = _sorcesCreator.DeltaPeriods;
 
-                TextBoxRangeCandlesPunkts.Text = _screener.RangeCandlesPunkts.ToString();
+                TextBoxRangeCandlesPunkts.Text = _sorcesCreator.RangeCandlesPunkts.ToString();
                 TextBoxRangeCandlesPunkts.TextChanged += TextBoxRangeCandlesPunkts_TextChanged;
-                _rangeCandlesPunkts = _screener.RangeCandlesPunkts;
+                _rangeCandlesPunkts = _sorcesCreator.RangeCandlesPunkts;
 
-                TextBoxReversCandlesPunktsMinMove.Text = _screener.ReversCandlesPunktsMinMove.ToString();
+                TextBoxReversCandlesPunktsMinMove.Text = _sorcesCreator.ReversCandlesPunktsMinMove.ToString();
                 TextBoxReversCandlesPunktsMinMove.TextChanged += TextBoxReversCandlesPunktsMinMove_TextChanged;
-                _reversCandlesPunktsBackMove = _screener.ReversCandlesPunktsBackMove;
+                _reversCandlesPunktsBackMove = _sorcesCreator.ReversCandlesPunktsBackMove;
 
-                TextBoxReversCandlesPunktsBackMove.Text = _screener.ReversCandlesPunktsBackMove.ToString();
+                TextBoxReversCandlesPunktsBackMove.Text = _sorcesCreator.ReversCandlesPunktsBackMove.ToString();
                 TextBoxReversCandlesPunktsBackMove.TextChanged += TextBoxReversCandlesPunktsBackMove_TextChanged;
-                _reversCandlesPunktsMinMove = _screener.ReversCandlesPunktsMinMove;
+                _reversCandlesPunktsMinMove = _sorcesCreator.ReversCandlesPunktsMinMove;
 
                 ShowDopCandleSettings();
 
@@ -145,16 +145,16 @@ namespace OsEngine.Market.Connectors
                 ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = _screener.ComissionType.ToString();
+                ComboBoxComissionType.SelectedItem = _sorcesCreator.ComissionType.ToString();
 
-                TextBoxComissionValue.Text = _screener.ComissionValue.ToString();
+                TextBoxComissionValue.Text = _sorcesCreator.ComissionValue.ToString();
 
-                CheckBoxSaveTradeArrayInCandle.IsChecked = _screener.SaveTradesInCandles;
+                CheckBoxSaveTradeArrayInCandle.IsChecked = _sorcesCreator.SaveTradesInCandles;
                 CheckBoxSaveTradeArrayInCandle.Click += delegate (object sender, RoutedEventArgs args)
                 {
                     _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
                 };
-                _saveTradesInCandles = _screener.SaveTradesInCandles;
+                _saveTradesInCandles = _sorcesCreator.SaveTradesInCandles;
 
                 Title = OsLocalization.Market.TitleConnectorCandle;
                 Label1.Content = OsLocalization.Market.Label1;
@@ -192,7 +192,7 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        MassSourcesCreator _screener;
+        MassSourcesCreator _sorcesCreator;
 
         public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
         {
@@ -230,7 +230,7 @@ namespace OsEngine.Market.Connectors
             }
             catch
             {
-                TextBoxReversCandlesPunktsBackMove.Text = _screener.ReversCandlesPunktsBackMove.ToString();
+                TextBoxReversCandlesPunktsBackMove.Text = _sorcesCreator.ReversCandlesPunktsBackMove.ToString();
             }
         }
 
@@ -255,7 +255,7 @@ namespace OsEngine.Market.Connectors
             }
             catch
             {
-                TextBoxReversCandlesPunktsMinMove.Text = _screener.ReversCandlesPunktsMinMove.ToString();
+                TextBoxReversCandlesPunktsMinMove.Text = _sorcesCreator.ReversCandlesPunktsMinMove.ToString();
             }
         }
 
@@ -280,7 +280,7 @@ namespace OsEngine.Market.Connectors
             }
             catch
             {
-                TextBoxRangeCandlesPunkts.Text = _screener.RangeCandlesPunkts.ToString();
+                TextBoxRangeCandlesPunkts.Text = _sorcesCreator.RangeCandlesPunkts.ToString();
             }
         }
 
@@ -568,13 +568,13 @@ namespace OsEngine.Market.Connectors
                 ComboBoxPortfolio.Items.Clear();
 
 
-                string portfolio = _screener.PortfolioName;
+                string portfolio = _sorcesCreator.PortfolioName;
 
 
                 if (portfolio != null)
                 {
-                    ComboBoxPortfolio.Items.Add(_screener.PortfolioName);
-                    ComboBoxPortfolio.Text = _screener.PortfolioName;
+                    ComboBoxPortfolio.Items.Add(_sorcesCreator.PortfolioName);
+                    ComboBoxPortfolio.Text = _sorcesCreator.PortfolioName;
                 }
 
                 List<Portfolio> portfolios = server.Portfolios;
@@ -662,9 +662,9 @@ namespace OsEngine.Market.Connectors
                     if (ComboBoxClass.Items.IndexOf(clas) == -1)
                         ComboBoxClass.Items.Add(clas);
                 }
-                if (string.IsNullOrEmpty(_screener.SecuritiesClass) == false)
+                if (string.IsNullOrEmpty(_sorcesCreator.SecuritiesClass) == false)
                 {
-                    ComboBoxClass.SelectedItem = _screener.SecuritiesClass;
+                    ComboBoxClass.SelectedItem = _sorcesCreator.SecuritiesClass;
                 }
 
             }
@@ -833,7 +833,7 @@ namespace OsEngine.Market.Connectors
                 nRow.Cells.Add(checkBox);
 
                 ActivatedSecurity activatedSecurity =
-                    _screener.SecuritiesNames.Find(s => s.SecurityName == securities[indexSecuriti].Name);
+                    _sorcesCreator.SecuritiesNames.Find(s => s.SecurityName == securities[indexSecuriti].Name);
 
                 if (activatedSecurity != null &&
                     activatedSecurity.IsOn == true)
@@ -862,7 +862,7 @@ namespace OsEngine.Market.Connectors
         {
             ComboBoxTimeFrame.Items.Clear();
 
-            if (_screener.StartProgram == StartProgram.IsTester)
+            if (_sorcesCreator.StartProgram == StartProgram.IsTester)
             {
                 // Timeframe
                 // таймФрейм
@@ -943,7 +943,7 @@ namespace OsEngine.Market.Connectors
 
             }
 
-            ComboBoxTimeFrame.SelectedItem = _screener.TimeFrame;
+            ComboBoxTimeFrame.SelectedItem = _sorcesCreator.TimeFrame;
 
             if (ComboBoxTimeFrame.SelectedItem == null)
             {
@@ -1153,61 +1153,61 @@ namespace OsEngine.Market.Connectors
             try
             {
 
-                _screener.PortfolioName = ComboBoxPortfolio.Text;
+                _sorcesCreator.PortfolioName = ComboBoxPortfolio.Text;
                 if (CheckBoxIsEmulator.IsChecked != null)
                 {
-                    _screener.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
+                    _sorcesCreator.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
                 }
                 TimeFrame timeFrame;
                 Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
 
-                _screener.TimeFrame = timeFrame;
-                Enum.TryParse(ComboBoxTypeServer.Text, true, out _screener.ServerType);
+                _sorcesCreator.TimeFrame = timeFrame;
+                Enum.TryParse(ComboBoxTypeServer.Text, true, out _sorcesCreator.ServerType);
 
                 CandleMarketDataType createType;
                 Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
-                _screener.CandleMarketDataType = createType;
+                _sorcesCreator.CandleMarketDataType = createType;
 
                 CandleCreateMethodType methodType;
                 Enum.TryParse(ComboBoxCandleCreateMethodType.Text, true, out methodType);
 
                 ComissionType typeComission;
                 Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-                _screener.ComissionType = typeComission;
+                _sorcesCreator.ComissionType = typeComission;
 
                 if (ComboBoxClass.SelectedItem != null)
                 {
-                    _screener.SecuritiesClass = ComboBoxClass.SelectedItem.ToString();
+                    _sorcesCreator.SecuritiesClass = ComboBoxClass.SelectedItem.ToString();
                 }
 
                 try
                 {
-                    _screener.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+                    _sorcesCreator.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _screener.CandleCreateMethodType = methodType;
+                _sorcesCreator.CandleCreateMethodType = methodType;
 
                 if (CheckBoxSetForeign.IsChecked.HasValue)
                 {
-                    _screener.SetForeign = CheckBoxSetForeign.IsChecked.Value;
+                    _sorcesCreator.SetForeign = CheckBoxSetForeign.IsChecked.Value;
                 }
 
-                _screener.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
-                _screener.CountTradeInCandle = _countTradesInCandle;
-                _screener.VolumeToCloseCandleInVolumeType = _volumeToClose;
-                _screener.DeltaPeriods = _deltaPeriods;
-                _screener.RangeCandlesPunkts = _rangeCandlesPunkts;
-                _screener.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
-                _screener.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
-                _screener.SaveTradesInCandles = _saveTradesInCandles;
+                _sorcesCreator.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
+                _sorcesCreator.CountTradeInCandle = _countTradesInCandle;
+                _sorcesCreator.VolumeToCloseCandleInVolumeType = _volumeToClose;
+                _sorcesCreator.DeltaPeriods = _deltaPeriods;
+                _sorcesCreator.RangeCandlesPunkts = _rangeCandlesPunkts;
+                _sorcesCreator.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
+                _sorcesCreator.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
+                _sorcesCreator.SaveTradesInCandles = _saveTradesInCandles;
 
                 if (CheckBoxRencoIsBuildShadows.IsChecked != null)
                 {
-                    _screener.RencoIsBuildShadows = CheckBoxRencoIsBuildShadows.IsChecked.Value;
+                    _sorcesCreator.RencoIsBuildShadows = CheckBoxRencoIsBuildShadows.IsChecked.Value;
                 }
 
                 List<ActivatedSecurity> securities = new List<ActivatedSecurity>();
@@ -1224,7 +1224,7 @@ namespace OsEngine.Market.Connectors
                     securities.Add(sec);
                 }
 
-                _screener.SecuritiesNames = securities;
+                _sorcesCreator.SecuritiesNames = securities;
 
                 Close();
             }

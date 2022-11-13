@@ -229,6 +229,10 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < _allPositions.Count; i++)
                 {
+                    if(_allPositions[i] == null)
+                    {
+                        continue;
+                    }
                     if (_allPositions[i].TimeCreate < startTime
                         || _allPositions[i].TimeCreate > endTime)
                     {
@@ -239,6 +243,10 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < _longPositions.Count; i++)
                 {
+                    if (_longPositions[i] == null)
+                    {
+                        continue;
+                    }
                     if (_longPositions[i].TimeCreate < startTime
                         || _longPositions[i].TimeCreate > endTime)
                     {
@@ -249,6 +257,10 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < _shortPositions.Count; i++)
                 {
+                    if (_shortPositions[i] == null)
+                    {
+                        continue;
+                    }
                     if (_shortPositions[i].TimeCreate < startTime
                         || _shortPositions[i].TimeCreate > endTime)
                     {

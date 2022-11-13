@@ -38,7 +38,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             TabName = name;
             _startProgram = startProgram;
 
-            Tabs = new List<ConnectorCandles>();
             _valuesToFormula = new List<ValueSave>();
             _chartMaster = new ChartCandleMaster(TabName, _startProgram);
 
@@ -61,9 +60,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// connectors array
         /// Массив для хранения списка интсрументов
         /// </summary>
-        public List<ConnectorCandles> Tabs;
+        public List<ConnectorCandles> Tabs = new List<ConnectorCandles>();
 
- // управление
+        // управление
 
         /// <summary>
         /// show GUI
@@ -100,9 +99,59 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowNewSecurityDialog()
         {
-            CreateNewSecurityConnector();
-            Tabs[Tabs.Count - 1].ShowDialog(false);
-            Save();
+            MassSourcesCreator creator = new MassSourcesCreator();
+            MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
+            ui.ShowDialog();
+            
+            if(creator.SecuritiesNames != null &&
+                creator.SecuritiesNames.Count != 0)
+            {
+                for(int i = 0;i < creator.SecuritiesNames.Count;i++)
+                {
+                    TryRunSecurity(creator.SecuritiesNames[i], creator);
+                }
+
+                Save();
+            }
+        }
+
+        private void TryRunSecurity(ActivatedSecurity security, MassSourcesCreator creator)
+        {
+            for(int i = 0; i < Tabs.Count;i++)
+            {
+                if(Tabs[i].SecurityName == security.SecurityName &&
+                    Tabs[i].ServerType == creator.ServerType)
+                {
+                    return;
+                }
+            }
+
+            ConnectorCandles connector = new ConnectorCandles(TabName + Tabs.Count, _startProgram);
+            connector.SaveTradesInCandles = false;
+
+            connector.ServerType = creator.ServerType;
+            connector.SecurityName = security.SecurityName;
+            connector.SecurityClass = security.SecurityClass;
+            connector.TimeFrame = creator.TimeFrame;
+            connector.EmulatorIsOn = creator.EmulatorIsOn;
+            connector.CandleCreateMethodType = creator.CandleCreateMethodType;
+            connector.CandleMarketDataType = creator.CandleMarketDataType;
+            connector.SetForeign = creator.SetForeign;
+            connector.CountTradeInCandle = creator.CountTradeInCandle;
+            connector.VolumeToCloseCandleInVolumeType = creator.VolumeToCloseCandleInVolumeType;
+            connector.RencoPunktsToCloseCandleInRencoType = creator.RencoPunktsToCloseCandleInRencoType;
+            connector.RencoIsBuildShadows = creator.RencoIsBuildShadows;
+            connector.DeltaPeriods = creator.DeltaPeriods;
+            connector.RangeCandlesPunkts = creator.RangeCandlesPunkts;
+            connector.ReversCandlesPunktsMinMove = creator.ReversCandlesPunktsMinMove;
+            connector.ReversCandlesPunktsBackMove = creator.ReversCandlesPunktsBackMove;
+            connector.ComissionType = creator.ComissionType;
+            connector.ComissionValue = creator.ComissionValue;
+            connector.SaveTradesInCandles = creator.SaveTradesInCandles;
+
+            Tabs.Add(connector);
+            Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
+
         }
 
         /// <summary>
