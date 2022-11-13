@@ -1766,4 +1766,5 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         Off
     }
+
 }
