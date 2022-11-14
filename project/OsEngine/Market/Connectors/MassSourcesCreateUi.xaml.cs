@@ -1214,6 +1214,14 @@ namespace OsEngine.Market.Connectors
 
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {
+                    DataGridViewCheckBoxCell checkBoxCell = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
+
+                    if (checkBoxCell.Value == null ||
+                        Convert.ToBoolean(checkBoxCell.Value.ToString()) == false)
+                    {
+                        continue;
+                    }
+
                     ActivatedSecurity sec = GetSecurity(_gridSecurities.Rows[i]);
 
                     if (sec == null)
