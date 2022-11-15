@@ -242,7 +242,7 @@ namespace OsEngine.Market.Servers.OKX
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage(error.Message, LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -276,9 +276,9 @@ namespace OsEngine.Market.Servers.OKX
                         GetPortfolios();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception error)
                 {
-                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -431,9 +431,9 @@ namespace OsEngine.Market.Servers.OKX
                     }
                 }
 
-                catch (Exception exception)
+                catch (Exception error)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -614,9 +614,9 @@ namespace OsEngine.Market.Servers.OKX
                     }
                 }
 
-                catch (Exception exception)
+                catch (Exception error)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -730,9 +730,9 @@ namespace OsEngine.Market.Servers.OKX
                         MyOrderEvent(oldOrder);
                     }
                 }
-                catch (Exception eror)
+                catch (Exception error)
                 {
-                    SendLogMessage(eror.Message + eror.StackTrace, LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -780,7 +780,7 @@ namespace OsEngine.Market.Servers.OKX
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage(error.Message, LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -820,9 +820,9 @@ namespace OsEngine.Market.Servers.OKX
 
 
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -882,7 +882,7 @@ namespace OsEngine.Market.Servers.OKX
                         SendLogMessage("service is unavailable", LogMessageType.Error);
                         return;
                     }
-                    SendLogMessage(error.Message, LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -911,7 +911,7 @@ namespace OsEngine.Market.Servers.OKX
             }
             catch (Exception error)
             {
-                SendLogMessage(error.Message, LogMessageType.Error);
+                SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
             }
 
             return String.Empty;
@@ -994,7 +994,7 @@ namespace OsEngine.Market.Servers.OKX
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage(error.Message, LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -1103,9 +1103,9 @@ namespace OsEngine.Market.Servers.OKX
                         Thread.Sleep(1);
                     }
                 }
-                catch (Exception exception)
+                catch (Exception error)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -1223,9 +1223,9 @@ namespace OsEngine.Market.Servers.OKX
                     }
                 }
 
-                catch (Exception exception)
+                catch (Exception error)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
                 }
             }
         }
@@ -1313,7 +1313,7 @@ namespace OsEngine.Market.Servers.OKX
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
             }
         }
 

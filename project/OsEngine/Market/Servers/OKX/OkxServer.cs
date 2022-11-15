@@ -439,7 +439,7 @@ namespace OsEngine.Market.Servers.OKX
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -525,7 +525,7 @@ namespace OsEngine.Market.Servers.OKX
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
             }
         }
 
