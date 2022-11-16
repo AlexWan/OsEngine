@@ -99,7 +99,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowNewSecurityDialog()
         {
-            MassSourcesCreator creator = new MassSourcesCreator();
+            MassSourcesCreator creator = new MassSourcesCreator(_startProgram);
+
             MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
             ui.ShowDialog();
             

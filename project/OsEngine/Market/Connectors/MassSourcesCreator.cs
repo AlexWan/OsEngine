@@ -22,6 +22,11 @@ namespace OsEngine.Market.Connectors
     public class MassSourcesCreator
     {
 
+        public MassSourcesCreator(StartProgram startProgram)
+        {
+            _startProgram = startProgram;
+        }
+
         /// <summary>
         /// program that created the robot / 
         /// программа создавшая робота
