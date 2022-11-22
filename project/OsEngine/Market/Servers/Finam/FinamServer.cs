@@ -429,7 +429,6 @@ namespace OsEngine.Market.Servers.Finam
                 string path = $"https://www.finam.ru{GetIchartsPath()}";
 
                 response = GetPage(path);
-
             }
             catch (Exception e)
             {
