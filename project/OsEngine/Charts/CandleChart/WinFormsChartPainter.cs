@@ -1627,6 +1627,11 @@ namespace OsEngine.Charts.CandleChart
 
                     for (int indTrades = 0; indTrades < trades.Count; indTrades++)
                     {
+                        if(trades[indTrades] == null)
+                        {
+                            continue;
+                        }
+                        
                         DateTime timePoint = trades[indTrades].Time;
 
                         if (timePoint == DateTime.MinValue)
@@ -1781,11 +1786,6 @@ namespace OsEngine.Charts.CandleChart
                 {
                     // going through Order limit on close
                     // проходим Лимит ОРДЕРА НА ЗАКРЫТИИ
-
-                    if (i == 16)
-                    {
-
-                    }
                     if (deals[i].State == PositionStateType.Closing &&
                         deals[i].CloseOrders != null &&
                         deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].State == OrderStateType.Activ)

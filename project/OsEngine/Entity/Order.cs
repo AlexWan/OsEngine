@@ -96,7 +96,18 @@ namespace OsEngine.Entity
             {
                 if (_trades != null && (_volumeExecute == 0 || _volumeExecuteChange))
                 {
-                    _volumeExecute = _trades.Sum(trade => trade.Volume);
+                    _volumeExecute = 0;
+                    
+                    for(int i = 0;i < _trades.Count;i++)
+                    {
+                        if(_trades[i] == null)
+                        {
+                            continue;
+                        }
+
+                        _volumeExecute += _trades[i].Volume;
+                    }
+                    
                     _volumeExecuteChange = false;
                     return _volumeExecute;
                 }

@@ -2155,6 +2155,10 @@ namespace OsEngine.Market.Servers
         {
             for (int i = 0; i < _myExecuteOrders.Count; i++)
             {
+                if(_myExecuteOrders[i] == null)
+                {
+                    continue;
+                }
                 if (_myExecuteOrders[i].NumberMarket == trade.NumberOrderParent)
                 {
                     _myExecuteOrders[i].SetTrade(trade);
@@ -2167,6 +2171,11 @@ namespace OsEngine.Market.Servers
             {
                 if (_myCanselOrders[i].NumberMarket == trade.NumberOrderParent)
                 {
+                    if(_myCanselOrders[i] == null)
+                    {
+                        continue;
+                    }
+
                     _myCanselOrders[i].SetTrade(trade);
                     _needToSaveOrders = true;
                     return;

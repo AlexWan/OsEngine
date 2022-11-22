@@ -32,6 +32,7 @@ using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.FTX;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.InteractiveBrokers;
+using OsEngine.Market.Servers.OKX;
 
 namespace OsEngine.Entity
 {
@@ -763,6 +764,30 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
+
+                        else if (serverType == ServerType.OKX)
+                        {
+
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                OkxServer okx = (OkxServer)_server;
+                                List<Candle> candles = okx.GetCandleHistory(series.Security.Name,
+                                    series.TimeFrameSpan);
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+
                     }
                 }
             }

@@ -238,6 +238,10 @@ namespace OsEngine.Entity
         {
             get
             {
+                if (Close <= 0m || Open <= 0m)
+                {
+                    return 0m;
+                }
                 if (IsUp)
                 {
                     return (Close - Open) / Open * 100m;
@@ -269,6 +273,10 @@ namespace OsEngine.Entity
         {
             get
             {
+                if (Center == 0m)
+                {
+                    return 0m;
+                }
                 return (High - Center) / Center * 100m;
             }
         }

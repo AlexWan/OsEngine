@@ -1281,7 +1281,8 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                if (candles == null)
+                if (candles == null 
+                    || candles.Count == 0)
                 {
                     return;
                 }

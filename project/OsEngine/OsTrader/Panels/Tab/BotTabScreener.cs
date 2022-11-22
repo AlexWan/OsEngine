@@ -16,6 +16,7 @@ using System.Threading;
 using OsEngine.Robots.Engines;
 using OsEngine.Language;
 using OsEngine.Alerts;
+using OsEngine.Market.Connectors;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -149,7 +150,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     decimal last = 0;
 					
-					int posCount = tab.PositionsOpenAll.Count;
+                    int posCurr = tab.PositionsOpenAll.Count; 
+                    int posTotal = tab.PositionsAll.Count;  
 
                     if (tab.CandlesAll != null && tab.CandlesAll.Count != 0)
                     {
@@ -159,7 +161,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     row.Cells[3].Value = last.ToString();
                     row.Cells[4].Value = bid.ToString();
                     row.Cells[5].Value = ask.ToString();
-					row.Cells[6].Value = posCount.ToString();
+					row.Cells[6].Value = posCurr.ToString() + "/" + posTotal.ToString();
                 }
             }
             catch (Exception error)
@@ -1001,7 +1003,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn colum7 = new DataGridViewColumn();           
             colum7.CellTemplate = cell0;
-            colum7.HeaderText = "Pos. count";
+            colum7.HeaderText = "Pos. (curr/total)";
             colum7.ReadOnly = true;
             colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum7);
@@ -1165,6 +1167,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (_indicators.Find(ind => ind.Num == num) != null)
             {
+                NeadToReloadTabs = true;
                 return;
             }
 
@@ -1771,51 +1774,5 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-    }
-
-    /// <summary>
-    /// класс для хранения бумаги активированной к подключению в скринере
-    /// </summary>
-    public class ActivatedSecurity
-    {
-        /// <summary>
-        /// имя бумаги
-        /// </summary>
-        public string SecurityName;
-
-        /// <summary>
-        /// имя класса
-        /// </summary>
-        public string SecurityClass;
-
-        /// <summary>
-        /// включена ли бумага к активации
-        /// </summary>
-        public bool IsOn;
-
-        /// <summary>
-        /// взять строку сохранения
-        /// </summary>
-        public string GetSaveStr()
-        {
-            string result = "";
-
-            result += SecurityName + "^" + SecurityClass + "^" + IsOn;
-
-            return result;
-        }
-
-        /// <summary>
-        /// настроить класс из строки сохранения
-        /// </summary>
-        public void SetFromStr(string str)
-        {
-            string[] strArray = str.Split('^');
-
-            SecurityName = strArray[0];
-            SecurityClass = strArray[1];
-            IsOn = Convert.ToBoolean(strArray[2]);
-
-        }
     }
 }

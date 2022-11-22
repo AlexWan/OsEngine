@@ -221,70 +221,89 @@ namespace OsEngine.Journal
                 return;
             }
 
-            List<Position> allSortPoses = new List<Position>();
-            List<Position> longPositions = new List<Position>();
-            List<Position> shortPositions = new List<Position>();
-
-            for(int i = 0;i < _allPositions.Count;i++)
+            try
             {
-                if(_allPositions[i].TimeCreate < startTime
-                    || _allPositions[i].TimeCreate > endTime)
+                List<Position> allSortPoses = new List<Position>();
+                List<Position> longPositions = new List<Position>();
+                List<Position> shortPositions = new List<Position>();
+
+                for (int i = 0; i < _allPositions.Count; i++)
                 {
-                    continue;
+                    if(_allPositions[i] == null)
+                    {
+                        continue;
+                    }
+                    if (_allPositions[i].TimeCreate < startTime
+                        || _allPositions[i].TimeCreate > endTime)
+                    {
+                        continue;
+                    }
+                    allSortPoses.Add(_allPositions[i]);
                 }
-                allSortPoses.Add(_allPositions[i]);
+
+                for (int i = 0; i < _longPositions.Count; i++)
+                {
+                    if (_longPositions[i] == null)
+                    {
+                        continue;
+                    }
+                    if (_longPositions[i].TimeCreate < startTime
+                        || _longPositions[i].TimeCreate > endTime)
+                    {
+                        continue;
+                    }
+                    longPositions.Add(_longPositions[i]);
+                }
+
+                for (int i = 0; i < _shortPositions.Count; i++)
+                {
+                    if (_shortPositions[i] == null)
+                    {
+                        continue;
+                    }
+                    if (_shortPositions[i].TimeCreate < startTime
+                        || _shortPositions[i].TimeCreate > endTime)
+                    {
+                        continue;
+                    }
+                    shortPositions.Add(_shortPositions[i]);
+                }
+
+
+                lock (_paintLocker)
+                {
+
+                    if (TabControlPrime.SelectedIndex == 0)
+                    {
+                        PaintProfitOnChart(allSortPoses);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 1)
+                    {
+                        bool neadShowTickState = !(_botsJournals.Count > 1);
+
+                        PaintStatTable(allSortPoses, _longPositions, _shortPositions, neadShowTickState);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 2)
+                    {
+                        PaintDrowDown(allSortPoses);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 3)
+                    {
+                        PaintVolumeOnChart(allSortPoses);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 4)
+                    {
+                        PaintOpenPositionGrid(allSortPoses);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 5)
+                    {
+                        PaintClosePositionGrid(allSortPoses);
+                    }
+                }
             }
-
-            for (int i = 0; i < _longPositions.Count; i++)
+            catch(Exception error)
             {
-                if (_longPositions[i].TimeCreate < startTime
-                    || _longPositions[i].TimeCreate > endTime)
-                {
-                    continue;
-                }
-                longPositions.Add(_longPositions[i]);
-            }
-
-            for (int i = 0; i < _shortPositions.Count; i++)
-            {
-                if (_shortPositions[i].TimeCreate < startTime
-                    || _shortPositions[i].TimeCreate > endTime)
-                {
-                    continue;
-                }
-                shortPositions.Add(_shortPositions[i]);
-            }
-
-
-            lock (_paintLocker)
-            {
-
-                if (TabControlPrime.SelectedIndex == 0)
-                {
-                    PaintProfitOnChart(allSortPoses);
-                }
-                else if (TabControlPrime.SelectedIndex == 1)
-                {
-                    bool neadShowTickState = !(_botsJournals.Count > 1);
-
-                    PaintStatTable(allSortPoses, _longPositions, _shortPositions, neadShowTickState);
-                }
-                else if (TabControlPrime.SelectedIndex == 2)
-                {
-                    PaintDrowDown(allSortPoses);
-                }
-                else if (TabControlPrime.SelectedIndex == 3)
-                {
-                    PaintVolumeOnChart(allSortPoses);
-                }
-                else if (TabControlPrime.SelectedIndex == 4)
-                {
-                    PaintOpenPositionGrid(allSortPoses);
-                }
-                else if (TabControlPrime.SelectedIndex == 5)
-                {
-                    PaintClosePositionGrid(allSortPoses);
-                }
+                System.Windows.MessageBox.Show(error.ToString());
             }
         }
 
@@ -515,42 +534,42 @@ namespace OsEngine.Journal
 
             if (positionsAllState == null)
             {
-                for (int i = 0; i < 29; i++)
+                for (int i = 0; i < 30; i++)
                 {
                     _gridStatistics.Rows[i].Cells[1].Value = "";
                 }
             }
             if (positionsLongState == null)
             {
-                for (int i = 0; i < 29; i++)
+                for (int i = 0; i < 30; i++)
                 {
                     _gridStatistics.Rows[i].Cells[2].Value = "";
                 }
             }
             if (positionsShortState == null)
             {
-                for (int i = 0; i < 29; i++)
+                for (int i = 0; i < 30; i++)
                 {
                     _gridStatistics.Rows[i].Cells[3].Value = "";
                 }
             }
             if (positionsLongState != null)
             {
-                for (int i = 0; i < 29; i++)
+                for (int i = 0; i < 30; i++)
                 {
                     _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
                 }
             }
             if (positionsShortState != null)
             {
-                for (int i = 0; i < 29; i++)
+                for (int i = 0; i < 30; i++)
                 {
                     _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
                 }
             }
             if (positionsAllState != null)
             {
-                for (int i = 0; i < 29; i++)
+                for (int i = 0; i < 30; i++)
                 {
                     _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
                 }

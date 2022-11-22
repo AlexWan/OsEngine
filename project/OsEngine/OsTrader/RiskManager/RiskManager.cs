@@ -285,7 +285,10 @@ namespace OsEngine.OsTrader.RiskManager
                     return;
                 }
 
-                if (_startProgram != StartProgram.IsOsTrader)
+                if (_startProgram == StartProgram.IsOsOptimizer ||
+                    _startProgram == StartProgram.IsOsMiner ||
+                    _startProgram == StartProgram.IsOsConverter ||
+                    _startProgram == StartProgram.IsOsData)
                 {
                     return;
                 }

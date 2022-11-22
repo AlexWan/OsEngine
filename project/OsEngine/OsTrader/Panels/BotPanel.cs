@@ -17,6 +17,8 @@ using OsEngine.Journal.Internal;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
 
@@ -1066,6 +1068,14 @@ position => position.State != PositionStateType.OpeningFail
                         BotTabSimple bot = (BotTabSimple)_botTabs[i];
                         bot.CloseAllAtMarket();
                         bot.Portfolio = null;
+
+                        if (bot.Connector.ServerType == ServerType.Tester)
+                        {
+                            List<IServer> allServers = ServerMaster.GetServers();
+                            TesterServer testServer = (TesterServer)allServers.Find(server => server.ServerType == ServerType.Tester);
+                            testServer.TesterRegime = TesterRegime.Pause;
+                        }
+
                     }
                 }
             }
@@ -1756,4 +1766,5 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         Off
     }
+
 }

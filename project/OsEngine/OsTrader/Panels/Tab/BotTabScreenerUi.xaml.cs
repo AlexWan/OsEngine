@@ -13,7 +13,7 @@ using System.Windows;
 using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market;
-
+using OsEngine.Market.Connectors;
 using System.Windows.Forms;
 
 namespace OsEngine.OsTrader.Panels.Tab
@@ -329,7 +329,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 TextBoxDeltaPeriods.Text = _deltaPeriods.ToString();
             }
         }
-
 
         /// <summary>
         /// the number of trades in the candle with timeframe "Trades" has changed

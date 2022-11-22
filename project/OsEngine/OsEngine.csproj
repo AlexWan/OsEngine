@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OsEngine</RootNamespace>
     <AssemblyName>OsEngine</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -375,6 +375,7 @@
       <DependentUpon>DateTimeSelectionDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\Extensions.cs" />
+    <Compile Include="Entity\GuiLockationMaster.cs" />
     <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />
@@ -428,6 +429,10 @@
     <Compile Include="Market\Connectors\ConnectorCandlesUi.xaml.cs">
       <DependentUpon>ConnectorCandlesUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Connectors\MassSourcesCreateUi.xaml.cs">
+      <DependentUpon>MassSourcesCreateUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Connectors\MassSourcesCreator.cs" />
     <Compile Include="Market\ServerMasterPainter.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
@@ -684,6 +689,22 @@
     <Compile Include="Market\Servers\MOEX\MoexIssPermission.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderServer.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\CandlesResponce.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\DepthResponse.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\Encryptor.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\ErrorMessage.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\HttpInterceptor.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\InstIdOrdId.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\ObjectChanel.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\OrderRequest.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\PorfolioResponse.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\RequestSubscribe.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\SecurityResponce.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\TradeDetailsResponce.cs" />
+    <Compile Include="Market\Servers\OKX\Entity\TradeResponse.cs" />
+    <Compile Include="Market\Servers\OKX\OkxClient.cs" />
+    <Compile Include="Market\Servers\OKX\OkxServer.cs" />
+    <Compile Include="Market\Servers\OKX\OkxServerPermission.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerServer.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorage.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml.cs">
@@ -1260,6 +1281,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Market\Connectors\ConnectorCandlesUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Connectors\MassSourcesCreateUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

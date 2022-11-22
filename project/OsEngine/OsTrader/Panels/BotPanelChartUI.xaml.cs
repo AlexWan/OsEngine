@@ -30,20 +30,20 @@ namespace OsEngine.OsTrader.Panels
 
             Closed += BotPanelChartUi_Closed;
 
-            if(panel.StartProgram == StartProgram.IsTester)
+            if (panel.StartProgram == StartProgram.IsTester)
             {
                 List<IServer> servers = ServerMaster.GetServers();
 
-                for(int i= 0; servers != null && i < servers.Count;i++)
+                for (int i = 0; servers != null && i < servers.Count; i++)
                 {
-                    if(servers[i].ServerType == ServerType.Tester)
+                    if (servers[i].ServerType == ServerType.Tester)
                     {
                         _testerServer = (TesterServer)servers[i];
                         break;
                     }
                 }
 
-                if(_testerServer != null)
+                if (_testerServer != null)
                 {
                     _testerServer.TestingFastEvent += Serv_TestingFastEvent;
                 }
@@ -52,6 +52,10 @@ namespace OsEngine.OsTrader.Panels
 
             LocationChanged += RobotUi_LocationChanged;
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
+
+            Title = panel.GetType().Name;
+            TabControlBotsName.Items[0] = panel.NameStrategyUniq;
+            ButtonShowInformPanel.Visibility = Visibility.Hidden;
         }
 
         // для тестирования
@@ -60,7 +64,7 @@ namespace OsEngine.OsTrader.Panels
 
         private void Serv_TestingFastEvent()
         {
-            if(_testerServer.TestingFastIsActivate == true)
+            if (_testerServer.TestingFastIsActivate == true)
             {
                 _panel.StopPaint();
             }
@@ -79,7 +83,7 @@ namespace OsEngine.OsTrader.Panels
             LocationChanged -= RobotUi_LocationChanged;
             TabControlBotsName.SizeChanged -= TabControlBotsName_SizeChanged;
 
-            if(_testerServer != null)
+            if (_testerServer != null)
             {
                 _testerServer.TestingFastEvent -= Serv_TestingFastEvent;
                 _testerServer = null;
@@ -140,6 +144,7 @@ namespace OsEngine.OsTrader.Panels
             ButtonRiskManager.Content = OsLocalization.Trader.Label46;
             ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
             ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
+            ButtonRedactTab.Content = OsLocalization.Trader.Label44;
         }
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
@@ -417,5 +422,88 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
+        private void ButtonHideInformPanel_Click(object sender, RoutedEventArgs e)
+        {
+            TabControlPrime.Visibility = Visibility.Hidden;
+            GridPrime.RowDefinitions[1].Height = new GridLength(0);
+            GreedTraderEngine.Margin = new Thickness(0, 0, 0, 0);
+            ButtonShowInformPanel.Visibility = Visibility.Visible;
+
+            //GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
+
+            if (GreedTraderEngine.Visibility == Visibility.Visible)
+            {
+                GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
+            }
+            else
+            {
+                GreedChartPanel.Margin = new Thickness(0, 26, 0, 0);
+            }
+        }
+
+        private void ButtonShowInformPanel_Click(object sender, RoutedEventArgs e)
+        {
+            ButtonShowInformPanel.Visibility = Visibility.Hidden;
+
+            GridPrime.RowDefinitions[1].Height = new GridLength(190);
+            GreedTraderEngine.Margin = new Thickness(0, 0, 0, 182);
+            TabControlPrime.Visibility = Visibility.Visible;
+
+            //GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
+
+            if (GreedTraderEngine.Visibility == Visibility.Visible)
+            {
+                GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
+            }
+            else
+            {
+                GreedChartPanel.Margin = new Thickness(0, 26, 0, 10);
+            }
+
+        }
+
+        private void ButtonHideShowSettingsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            if (ButtonHideShowSettingsPanel.Content.ToString() == ">")
+            {
+                HideSettigsPanel();
+                ButtonHideShowSettingsPanel.Content = "<";
+            }
+            else if (ButtonHideShowSettingsPanel.Content.ToString() == "<")
+            {
+                ShowSettingsPanel();
+                ButtonHideShowSettingsPanel.Content = ">";
+            }
+
+        }
+
+        private void HideSettigsPanel()
+        {
+            GreedTraderEngine.Visibility = Visibility.Hidden;
+
+            if (TabControlPrime.Visibility == Visibility.Visible)
+            {
+                GreedChartPanel.Margin = new Thickness(0, 26, 0, 10);
+            }
+            else
+            {
+                GreedChartPanel.Margin = new Thickness(0, 26, 0, 0);
+            }
+
+        }
+
+        private void ShowSettingsPanel()
+        {
+            GreedTraderEngine.Visibility = Visibility.Visible;
+
+            if (TabControlPrime.Visibility == Visibility.Visible)
+            {
+                GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
+            }
+            else
+            {
+                GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
+            }
+        }
     }
 }

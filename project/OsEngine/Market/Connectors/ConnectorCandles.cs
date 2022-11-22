@@ -785,6 +785,8 @@ namespace OsEngine.Market.Connectors
 
         private bool _neadToStopThread;
 
+        private object _myServerLocker = new object();
+
         /// <summary>
         /// subscribe to receive candle
         /// подписаться на получение свечек
@@ -902,11 +904,19 @@ namespace OsEngine.Market.Connectors
                             }
 
                             Thread.Sleep(1);
-                            _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder, _securityClass);
+                            lock (_myServerLocker)
+                            {
+                                if (_myServer != null)
+                                {
+                                    _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder, _securityClass);
+                                }
+                            }
 
+                            OptimizerServer myOptimizerServer = _myServer as OptimizerServer;
                             if (_mySeries == null &&
-                                _myServer.ServerType == ServerType.Optimizer &&
-                                ((OptimizerServer)_myServer).NumberServer != ServerUid)
+                                myOptimizerServer != null &&
+                                myOptimizerServer.ServerType == ServerType.Optimizer &&
+                                myOptimizerServer.NumberServer != ServerUid)
                             {
                                 for (int i = 0; i < servers.Count; i++)
                                 {

@@ -7,6 +7,11 @@ namespace OsEngine.Language
 {
     public class MarketLocal
     {
+
+        public string ServerParamPassword => OsLocalization.ConvertToLocString(
+           "Eng:Password_" +
+           "Ru:Пароль_");
+
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:No connection to the exchange was found!_" +
             "Ru:Ни одного соединения с биржей не найдено!_");
