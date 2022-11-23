@@ -12,6 +12,7 @@ using OsEngine.Market.Servers.OKX.Entity;
 using OsEngine.Market.Servers.Entity;
 using WebSocket4Net;
 using System.Net.Http;
+using SuperSocket.ClientEngine;
 
 
 namespace OsEngine.Market.Servers.OKX
@@ -27,6 +28,12 @@ namespace OsEngine.Market.Servers.OKX
         private string _publicWebSocket = "wss://ws.okx.com:8443/ws/v5/public";
         private string _privateWebSocket = "wss://ws.okx.com:8443/ws/v5/private";
 
+        private bool _isDisposed = false;
+
+        //Задержка на подписку для вебсокетов
+        public RateGate _rateGateWebSocket = new RateGate(1, TimeSpan.FromMilliseconds(1200));
+
+
         public OkxClient(string PublicKey, string SeckretKey, string Password, bool HedgeModeIsOn)
         {
             this.PublicKey = PublicKey;
@@ -41,7 +48,6 @@ namespace OsEngine.Market.Servers.OKX
             ThreadCleaningDoneOrders.Start();
         }
 
-        private bool _isDisposed = false;
         public void Connect()
         {
             if (string.IsNullOrEmpty(PublicKey) ||
@@ -90,7 +96,6 @@ namespace OsEngine.Market.Servers.OKX
                 foreach (var ws in _wsChanelPositions)
                 {
                     ws.Value.Closed -= new EventHandler(DisconnectPsoitonsChanel);
-                    ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
                     ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessagePositions);
 
                     ws.Value.Close();
@@ -109,7 +114,6 @@ namespace OsEngine.Market.Servers.OKX
                 foreach (var ws in _wsChanelOrders)
                 {
                     ws.Value.Closed -= new EventHandler(DisconnectOrdersChanel);
-                    ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
                     ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageOrders);
 
                     ws.Value.Close();
@@ -128,7 +132,6 @@ namespace OsEngine.Market.Servers.OKX
                 foreach (var ws in _wsChanelDepths)
                 {
                     ws.Value.Closed -= new EventHandler(DisconnectDepthsChanel);
-                    ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
                     ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageDepths);
 
                     ws.Value.Close();
@@ -148,7 +151,6 @@ namespace OsEngine.Market.Servers.OKX
                 foreach (var ws in _wsChanelTrades)
                 {
                     ws.Value.Closed -= new EventHandler(DisconnectTradesChanel);
-                    ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
                     ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageTrade);
 
                     ws.Value.Close();
@@ -366,6 +368,12 @@ namespace OsEngine.Market.Servers.OKX
             {
                 var res = client.GetAsync(url).Result;
                 var contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    SendLogMessage(contentStr, LogMessageType.Error);
+                }
+
                 return contentStr;
             }
         }
@@ -444,11 +452,14 @@ namespace OsEngine.Market.Servers.OKX
             {
                 _wsClientPositions = new WebSocket(_privateWebSocket);
 
-                _wsClientPositions.Opened += new EventHandler((sender, e) => { ConnectPositionsChanel(sender, e, security.Name); });
+                _wsClientPositions.Opened += new EventHandler((sender, e) => {
+                    //_rateGateWebSocketPositions.WaitToProceed();
+                    ConnectPositionsChanel(sender, e, security.Name);
+                });
 
                 _wsClientPositions.Closed += new EventHandler(DisconnectPsoitonsChanel);
 
-                _wsClientPositions.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
+                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, security.Name, "Position Chanell"); });
 
                 _wsClientPositions.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessagePositions);
 
@@ -627,11 +638,14 @@ namespace OsEngine.Market.Servers.OKX
             {
                 _wsClientOrders = new WebSocket(_privateWebSocket);
 
-                _wsClientOrders.Opened += new EventHandler((sender, e) => { ConnectOrdersChanel(sender, e, security.Name); });
+                _wsClientOrders.Opened += new EventHandler((sender, e) => {
+                    //_rateGateWebSocketOrders.WaitToProceed();
+                    ConnectOrdersChanel(sender, e, security.Name);
+                });
 
                 _wsClientOrders.Closed += new EventHandler(DisconnectOrdersChanel);
 
-                _wsClientOrders.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
+                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, security.Name, "Orders Chanell"); });
 
                 _wsClientOrders.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageOrders);
 
@@ -744,6 +758,12 @@ namespace OsEngine.Market.Servers.OKX
             {
                 var res = client.GetAsync(url).Result;
                 var contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    SendLogMessage(contentStr, LogMessageType.Error);
+                }
+
                 return contentStr;
             }
         }
@@ -792,6 +812,12 @@ namespace OsEngine.Market.Servers.OKX
             {
                 var res = client.GetAsync(url).Result;
                 var contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    SendLogMessage(contentStr, LogMessageType.Error);
+                }
+
                 return contentStr;
             }
         }
@@ -834,10 +860,14 @@ namespace OsEngine.Market.Servers.OKX
 
         private SecurityResponce GetFuturesSecurities(HttpClient httpClient)
         {
-
             var response = httpClient.GetAsync("https://www.okx.com" + "/api/v5/public/instruments?instType=SWAP").Result;
 
             string json = response.Content.ReadAsStringAsync().Result;
+
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                SendLogMessage(json, LogMessageType.Error);
+            }
 
             SecurityResponce securityResponce = JsonConvert.DeserializeAnonymousType(json, new SecurityResponce());
 
@@ -846,10 +876,14 @@ namespace OsEngine.Market.Servers.OKX
 
         private SecurityResponce GetSpotSecurities(HttpClient httpClient)
         {
-
             var response = httpClient.GetAsync("https://www.okx.com" + "/api/v5/public/instruments?instType=SPOT").Result;
 
             var json = response.Content.ReadAsStringAsync().Result;
+
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                SendLogMessage(json, LogMessageType.Error);
+            }
 
             SecurityResponce securityResponce = JsonConvert.DeserializeAnonymousType(json, new SecurityResponce());
 
@@ -945,6 +979,7 @@ namespace OsEngine.Market.Servers.OKX
 
             do
             {
+
                 int limit = NumberCandlesToLoad;
                 if (NumberCandlesToLoad > 100)
                 {
@@ -965,6 +1000,11 @@ namespace OsEngine.Market.Servers.OKX
                 var responce = httpClient.GetAsync(url).Result;
                 var json = responce.Content.ReadAsStringAsync().Result;
                 candlesResponce.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponce()).data);
+
+                if (responce.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    SendLogMessage(json, LogMessageType.Error);
+                }
 
                 NumberCandlesToLoad -= limit;
 
@@ -1031,11 +1071,14 @@ namespace OsEngine.Market.Servers.OKX
             {
                 _wsClientDepths = new WebSocket(_publicWebSocket);
 
-                _wsClientDepths.Opened += new EventHandler((sender, e) => { ConnectDepthsChanel(sender, e, security.Name); });
+                _wsClientDepths.Opened += new EventHandler((sender, e) => {
+                    //_rateGateWebSocketDepths.WaitToProceed();
+                    ConnectDepthsChanel(sender, e, security.Name);
+                });
 
                 _wsClientDepths.Closed += new EventHandler(DisconnectDepthsChanel);
 
-                _wsClientDepths.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
+                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, security.Name, "Depths Chanell"); });
 
                 _wsClientDepths.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageDepths);
 
@@ -1161,11 +1204,14 @@ namespace OsEngine.Market.Servers.OKX
             {
                 _wsClientTrades = new WebSocket(_publicWebSocket); // create web-socket / создаем вебсоке
 
-                _wsClientTrades.Opened += new EventHandler((sender, e) => { ConnectTradesChanel(sender, e, security.Name); }); //Connect
+                _wsClientTrades.Opened += new EventHandler((sender, e) => {
+                    //_rateGateWebSocketTicks.WaitToProceed();
+                    ConnectTradesChanel(sender, e, security.Name);
+                }); //Connect
 
                 _wsClientTrades.Closed += new EventHandler(DisconnectTradesChanel);
 
-                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
+                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, security.Name, "Trades Chanell"); });
 
                 _wsClientTrades.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageTrade);
 
@@ -1243,9 +1289,13 @@ namespace OsEngine.Market.Servers.OKX
             _newMessageTrade.Enqueue(e.Message);
         }
 
-        private void WsError(object sender, EventArgs e)
+        private void WsError(object sender, EventArgs e, string CoinPairs, string Chanell)
         {
-            SendLogMessage("Ошибка из ws4net :" + e.ToString(), LogMessageType.Error);
+            var q = (ErrorEventArgs)e;
+            if (q.Exception != null)
+            {
+                SendLogMessage($"{Chanell} Ошибка из ws4net {CoinPairs} :" + q.Exception, LogMessageType.Error);
+            }
         }
 
         private void ConnectTradesChanel(object sender, EventArgs e, string securityName)
@@ -1291,6 +1341,12 @@ namespace OsEngine.Market.Servers.OKX
             {
                 var res = client.GetAsync(url).Result;
                 var contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage(contentStr, LogMessageType.Error);
+                }
+
                 return contentStr;
             }
         }
@@ -1381,6 +1437,11 @@ namespace OsEngine.Market.Servers.OKX
                 var responce = httpClient.GetAsync(url).Result;
                 var json = responce.Content.ReadAsStringAsync().Result;
                 candlesResponce.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponce()).data);
+
+                if (responce.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage(json, LogMessageType.Error);
+                }
 
                 NumberCandlesToLoad -= limit;
 
