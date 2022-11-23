@@ -422,11 +422,21 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         private void GetSecurities()
         {
-            string path = $"https://www.finam.ru{GetIchartsPath()}";
+            string response = "";
 
-            var response = GetPage(path);
+            try
+            {
+                string path = $"https://www.finam.ru{GetIchartsPath()}";
 
-            if(response.Contains("Страница недоступна"))
+                response = GetPage(path);
+            }
+            catch (Exception e)
+            {
+                SendLogMessage("Tools data loading error.\r\nLoading tools data from cache.\r\nTools data may be obsolete. Error data:\r\n" + e, LogMessageType.System);
+                //response = GetSecFromFile();
+            }
+
+            if (response == "" || response.Contains("Страница недоступна"))
             {
                 response = GetSecFromFile();
             }
