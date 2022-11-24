@@ -65,7 +65,6 @@ namespace OsEngine.Market.Connectors
                     CheckBoxIsEmulator.IsEnabled = false;
                     CheckBoxSetForeign.IsEnabled = false;
                     ComboBoxTypeServer.SelectedItem = ServerType.Tester;
-                    //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
                     ComboBoxPortfolio.Items.Add(ServerMaster.GetServers()[0].Portfolios[0].Number);
                     ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
 
@@ -74,7 +73,7 @@ namespace OsEngine.Market.Connectors
 
                     ComboBoxPortfolio.IsEnabled = false;
                     ComboBoxTypeServer.IsEnabled = false;
-                    
+                    ComboBoxSecurities.SelectionChanged += ComboBoxSecurities_SelectionChanged;
                 }
                 else
                 {
@@ -84,8 +83,6 @@ namespace OsEngine.Market.Connectors
                 LoadClassOnBox();
 
                 LoadSecurityOnBox();
-
-                
 
                 ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
 
@@ -158,10 +155,8 @@ namespace OsEngine.Market.Connectors
                 TextBoxComissionValue.Text = _connectorBot.ComissionValue.ToString();
 
                 CheckBoxSaveTradeArrayInCandle.IsChecked = _connectorBot.SaveTradesInCandles;
-                CheckBoxSaveTradeArrayInCandle.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
-                };
+                CheckBoxSaveTradeArrayInCandle.Click += CheckBoxSaveTradeArrayInCandle_Click;
+
                 _saveTradesInCandles = _connectorBot.SaveTradesInCandles;
 
                 Title = OsLocalization.Market.TitleConnectorCandle;
@@ -197,9 +192,40 @@ namespace OsEngine.Market.Connectors
             Closing += ConnectorCandlesUi_Closing;
         }
 
+        private void CheckBoxSaveTradeArrayInCandle_Click(object sender, RoutedEventArgs e)
+        {
+            _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
+        }
+
         private void ConnectorCandlesUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _connectorBot = null;
+
+            List<IServer> serversAll = ServerMaster.GetServers();
+
+            for(int i = 0; serversAll != null && i < serversAll.Count;i++)
+            {
+                if(serversAll[i] == null)
+                {
+                    continue;
+                }
+                serversAll[i].SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
+                serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+            }
+
+            ComboBoxSecurities.SelectionChanged -= ComboBoxSecurities_SelectionChanged;
+            ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
+            ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
+            TextBoxCountTradesInCandle.TextChanged -= TextBoxCountTradesInCandle_TextChanged;
+            TextBoxVolumeToClose.TextChanged -= TextBoxVolumeToClose_TextChanged;
+            TextBoxRencoPunkts.TextChanged -= TextBoxRencoPunkts_TextChanged;
+            TextBoxDeltaPeriods.TextChanged -= TextBoxDeltaPeriods_TextChanged;
+            TextBoxRangeCandlesPunkts.TextChanged -= TextBoxRangeCandlesPunkts_TextChanged;
+            TextBoxReversCandlesPunktsMinMove.TextChanged -= TextBoxReversCandlesPunktsMinMove_TextChanged;
+            TextBoxReversCandlesPunktsBackMove.TextChanged -= TextBoxReversCandlesPunktsBackMove_TextChanged;
+            ComboBoxCandleCreateMethodType.SelectionChanged -= ComboBoxCandleCreateMethodType_SelectionChanged;
+            ComboBoxSecurities.KeyDown -= ComboBoxSecuritiesOnKeyDown;
+            CheckBoxSaveTradeArrayInCandle.Click -= CheckBoxSaveTradeArrayInCandle_Click;
         }
 
         public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
@@ -600,6 +626,10 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         void server_SecuritiesCharngeEvent(List<Security> securities)
         {
+            if(_connectorBot == null)
+            {
+                return;
+            }
             LoadClassOnBox();
         }
 
@@ -609,6 +639,10 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
         {
+            if (_connectorBot == null)
+            {
+                return;
+            }
             LoadPortfolioOnBox();
         }
 
@@ -861,8 +895,6 @@ namespace OsEngine.Market.Connectors
                     // and they are inserted only when we select the security in the method
                     // далее, если используем готовые свечки, то нужно ставить только те ТФ, которые есть
                     // и вставляются они только когда мы выбираем бумагу в методе 
-
-                    ComboBoxSecurities.SelectionChanged += ComboBoxSecurities_SelectionChanged;
                     GetTimeFramesInTester();
                     ComboBoxCandleCreateMethodType.SelectedItem = CandleCreateMethodType.Simple;
                     ComboBoxCandleCreateMethodType.IsEnabled = false;
