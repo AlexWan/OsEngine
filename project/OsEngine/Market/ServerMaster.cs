@@ -624,6 +624,19 @@ namespace OsEngine.Market
         {
             IServerPermission serverPermission = null;
 
+
+            if (type == ServerType.OKX)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new OkxServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
             if (type == ServerType.Binance)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);
