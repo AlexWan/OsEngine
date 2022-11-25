@@ -31,8 +31,7 @@ namespace OsEngine.Market.Servers.OKX
         private bool _isDisposed = false;
 
         //Задержка на подписку для вебсокетов
-        public RateGate _rateGateWebSocket = new RateGate(1, TimeSpan.FromMilliseconds(1200));
-
+        public RateGate _rateGateWebSocket = new RateGate(1, TimeSpan.FromMilliseconds(1500));
 
         public OkxClient(string PublicKey, string SeckretKey, string Password, bool HedgeModeIsOn)
         {
@@ -792,6 +791,10 @@ namespace OsEngine.Market.Servers.OKX
 
                     PorfolioResponse portfolio = JsonConvert.DeserializeAnonymousType(json, new PorfolioResponse());
 
+
+                    portfolio.data[0].details.AddRange(GeneratePositionToContracts());
+
+
                     if (UpdatePortfolio != null)
                     {
                         UpdatePortfolio(portfolio);
@@ -807,7 +810,65 @@ namespace OsEngine.Market.Servers.OKX
 
         private string GetBalance()
         {
-            var url = $"{_baseUrl}{"api/v5/account/balance"}"; ///api/v5/account/balance   api/v5/asset/balances
+            var url = $"{_baseUrl}{"api/v5/account/balance"}";
+            using (var client = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, null)))
+            {
+                var res = client.GetAsync(url).Result;
+                var contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    SendLogMessage(contentStr, LogMessageType.Error);
+                }
+
+                return contentStr;
+            }
+        }
+
+
+        private List<PortdolioDetails> GeneratePositionToContracts()
+        {
+            List<PorfolioData> potfolios = new List<PorfolioData>();
+            List<PortdolioDetails> details = new List<PortdolioDetails>();
+
+
+            try
+            {
+                string blockBalance = GetBlockBalance();
+
+                PositonsResponce positons = JsonConvert.DeserializeAnonymousType(blockBalance, new PositonsResponce());
+
+                for (int i = 0; i < positons.data.Count; i++)
+                {
+                    PorfolioData porfolioData = new PorfolioData()
+                    {
+                        details = new List<PortdolioDetails> { new PortdolioDetails()
+                        {
+                            ccy = positons.data[i].instId + "_" + positons.data[i].posSide.ToUpper(),
+                            availEq = positons.data[i].pos, //notionalUsd
+                            frozenBal = "0"
+                    }   }
+                    };
+
+                    potfolios.Add(porfolioData);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
+            }
+
+            for (int i = 0; i < potfolios.Count; i++)
+            {
+                details.AddRange(potfolios[i].details);
+            }
+            return details;
+        }
+
+        private string GetBlockBalance()
+        {
+
+            var url = $"{_baseUrl}{"api/v5/account/positions"}";
             using (var client = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, null)))
             {
                 var res = client.GetAsync(url).Result;
@@ -838,6 +899,8 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 PorfolioResponse portfolio = JsonConvert.DeserializeAnonymousType(json, new PorfolioResponse());
+
+                portfolio.data[0].details.AddRange(GeneratePositionToContracts());
 
                 if (NewPortfolio != null && portfolio != null)
                 {

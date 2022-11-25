@@ -466,14 +466,17 @@ namespace OsEngine.Market.Servers.OKX
         private void SetCoinZeroBalance(Portfolio portfolio)
         {
 
-            for (int i = 0; i < CoinsWithNonZeroBalance.Count; i++)
+            var array = portfolio.GetPositionOnBoard();
+
+
+            for (int i = 0; i < array.Count; i++)
             {
-                var coin = portfolio.GetPositionOnBoard().Find(pos => pos.SecurityNameCode.Equals(CoinsWithNonZeroBalance[i].SecurityNameCode));
+                var coin = CoinsWithNonZeroBalance.Find(pos => pos.SecurityNameCode.Equals(array[i].SecurityNameCode));
 
                 if (coin == null)
                 {
                     PositionOnBoard newPortf = new PositionOnBoard();
-                    newPortf.SecurityNameCode = CoinsWithNonZeroBalance[i].SecurityNameCode;
+                    newPortf.SecurityNameCode = array[i].SecurityNameCode;
                     newPortf.ValueBegin = 0;
                     newPortf.ValueCurrent = 0;
                     newPortf.ValueBlocked = 0;
@@ -582,14 +585,14 @@ namespace OsEngine.Market.Servers.OKX
                 if (securityType == SecurityType.CurrencyPair)
                 {
                     security.Name = item.instId;
-                    security.NameFull = item.quoteCcy + "_SPOT";//item.baseCcy;
-                    security.NameClass = item.quoteCcy + "_SPOT";
+                    security.NameFull = item.quoteCcy + "_SPOT";
+                    security.NameClass = "SPOT";
                 }
                 if (securityType == SecurityType.Futures)
                 {
-                    security.Name = item.instId; //+ "_" + item.alias;
-                    security.NameFull = item.ctValCcy + "_SWAP";//item.settleCcy;
-                    security.NameClass = item.ctValCcy + "_SWAP";
+                    security.Name = item.instId;
+                    security.NameFull = item.ctValCcy + "_SWAP";
+                    security.NameClass = "SWAP";
                 }
 
 

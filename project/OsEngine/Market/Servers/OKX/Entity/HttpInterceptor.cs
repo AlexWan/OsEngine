@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OsEngine.Market.Servers.Entity;
+using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -12,6 +13,11 @@ namespace OsEngine.Market.Servers.OKX.Entity
         private string _passPhrase;
         private string _secret;
         private string _bodyStr;
+
+
+        //Задерждка для рест запросов
+        public RateGate _rateGateRest = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
         public HttpInterceptor(string apiKey, string secret, string passPhrase, string bodyStr)
         {
             this._apiKey = apiKey;
@@ -23,6 +29,8 @@ namespace OsEngine.Market.Servers.OKX.Entity
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            _rateGateRest.WaitToProceed();
+
             var method = request.Method.Method;
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             request.Headers.Add("OK-ACCESS-KEY", this._apiKey);
