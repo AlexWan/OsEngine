@@ -711,7 +711,7 @@ namespace OsEngine.Entity
         {
             _valueString = save[1];
 
-            _setStringValues = new List<string>();
+            _setStringValues = new List<string>() { _valueString };
 
             for (int i = 2; i < save.Length; i++)
             {

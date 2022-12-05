@@ -433,7 +433,6 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-
         /// <summary>
         /// the number of trades in the candle with timeframe "Trades" has changed
         /// изменилось кол-во трейдов в свече с ТФ "трейды"

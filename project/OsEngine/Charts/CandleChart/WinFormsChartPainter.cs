@@ -829,8 +829,24 @@ namespace OsEngine.Charts.CandleChart
         public decimal GetCursorSelectPrice()
         {
             ChartArea candleArea = GetChartArea("Prime");
-            return Convert.ToDecimal(candleArea.CursorY.Position);
-            
+
+            if (candleArea == null ||
+                candleArea.CursorY == null ||
+                double.IsNaN(candleArea.CursorY.Position) ||
+                double.IsInfinity(candleArea.CursorY.Position))
+            {
+                return 0;
+            }
+
+            try
+            {
+                return Convert.ToDecimal(candleArea.CursorY.Position);
+            }
+            catch
+            {
+                return 0;
+            }
+
         }
 
         public void RemoveCursor()

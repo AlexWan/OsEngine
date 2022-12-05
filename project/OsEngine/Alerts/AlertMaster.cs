@@ -744,6 +744,11 @@ namespace OsEngine.Alerts
                     return;
                 }
 
+                if(pricePoint == 0)
+                {
+                    return;
+                }
+
                 _alertChartUi.SetFormChart(_connector.Candles(false), numberCandle, pricePoint);
             }
             catch (Exception error)
