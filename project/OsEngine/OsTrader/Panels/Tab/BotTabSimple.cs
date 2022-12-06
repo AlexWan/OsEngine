@@ -3069,6 +3069,33 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                if (StartProgram == StartProgram.IsOsOptimizer ||
+                    StartProgram == StartProgram.IsTester)
+                {
+                    // проверяем чтобы стоп был не дальше цены активации глубоко в рынке
+
+                    decimal lastBid = PriceBestBid;
+                    decimal lastAsk = PriceBestAsk;
+
+                    if(lastAsk != 0 && lastBid != 0)
+                    {
+                        if(position.Direction == Side.Buy &&
+                            priceActivate > lastAsk)
+                        {
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label180
+                                , LogMessageType.Error);
+                        }
+                        if (position.Direction == Side.Sell &&
+                            priceActivate < lastBid)
+                        {
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label180
+                                , LogMessageType.Error);
+                        }
+                    }
+                }
+
                 position.StopOrderIsActiv = false;
 
                 if (StartProgram == StartProgram.IsOsOptimizer ||
@@ -3127,6 +3154,33 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (volume == 0)
                 {
                     return;
+                }
+
+                if (StartProgram == StartProgram.IsOsOptimizer ||
+                    StartProgram == StartProgram.IsTester)
+                {
+                    // проверяем чтобы профит был не дальше цены активации глубоко в рынке
+
+                    decimal lastBid = PriceBestBid;
+                    decimal lastAsk = PriceBestAsk;
+
+                    if (lastAsk != 0 && lastBid != 0)
+                    {
+                        if (position.Direction == Side.Buy &&
+                            priceActivate < lastBid)
+                        {
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label181
+                                , LogMessageType.Error);
+                        }
+                        if (position.Direction == Side.Sell &&
+                            priceActivate > lastAsk)
+                        {
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label181
+                                , LogMessageType.Error);
+                        }
+                    }
                 }
 
 

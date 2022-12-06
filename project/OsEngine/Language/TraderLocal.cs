@@ -728,5 +728,14 @@ namespace OsEngine.Language
         public string Label179 => OsLocalization.ConvertToLocString(
                "Eng:Time frame_" +
                "Ru:Тайм фрейм_");
+
+        public string Label180 => OsLocalization.ConvertToLocString(
+               "Eng:The price of a stop order in the market. In the tester and optimizer, because of this, there may and will be errors with profit calculation. Correct the logic of the robot_" +
+               "Ru:Цена стоп ордера в рынке.В тестере и оптимизаторе из-за этого могут и будут ошибки с подсчётом прибыли.Исправьте логику робота_");
+
+        public string Label181 => OsLocalization.ConvertToLocString(
+               "Eng:The price of a profit order in the market. In the tester and optimizer, because of this, there may and will be errors with profit calculation. Correct the logic of the robot_" +
+               "Ru:Цена профит ордера в рынке.В тестере и оптимизаторе из-за этого могут и будут ошибки с подсчётом прибыли.Исправьте логику робота_");
+
     }
 }
