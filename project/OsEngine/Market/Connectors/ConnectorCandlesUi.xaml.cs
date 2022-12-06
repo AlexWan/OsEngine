@@ -195,6 +195,7 @@ namespace OsEngine.Market.Connectors
                 LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                LabelCandleType.Content = OsLocalization.Market.Label65;
 
                 ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;

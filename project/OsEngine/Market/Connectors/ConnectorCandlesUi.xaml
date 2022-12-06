@@ -58,7 +58,7 @@
             <TextBox x:Name ="TextBoxReversCandlesPunktsBackMove" Margin="213,362,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
             <CheckBox x:Name="CheckBoxSaveTradeArrayInCandle" Content="Save trades array in Candle" HorizontalAlignment="Left" Margin="87,64,0,0" VerticalAlignment="Top"/>
             <Label x:Name="LabelTimeFrame" Content="TimeFrame" HorizontalAlignment="Left" Margin="10,114,0,0" VerticalAlignment="Top" Width="78"/>
-            <Label x:Name="LabelCandleType" Content="CandleType" HorizontalAlignment="Left" Margin="2,0,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+            <Label x:Name="LabelCandleType" Content="Candle type" HorizontalAlignment="Left" Margin="2,0,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         </Grid>
         <Button Name="ButtonRightInSearchResults" Content=">" HorizontalAlignment="Left" Margin="407,211,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
         <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="310,211,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
