@@ -127,6 +127,8 @@ namespace OsEngine.Market.Servers.OKX
         public void Subscrible(Security security)
         {
 
+            _client.SetLeverage(security);
+
             _client._rateGateWebSocket.WaitToProceed();
 
             _client.SubscribleTrades(security);
