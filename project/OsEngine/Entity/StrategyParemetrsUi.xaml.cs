@@ -184,7 +184,7 @@ namespace OsEngine.Entity
                 _grid.CellValueChanged -= _grid_CellValueChanged;
                 _grid.CellClick -= _grid_Click;
                 _grid.Rows.Clear();
-                DataGridFactory.ClearLink(_grid);
+                DataGridFactory.ClearLinks(_grid);
                 _grid = null;
             }
 

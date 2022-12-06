@@ -33,7 +33,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
         {
             _sourcesGrid.CellDoubleClick -= Grid1CellValueChangeClick;
-            DataGridFactory.ClearLink(_sourcesGrid);
+            DataGridFactory.ClearLinks(_sourcesGrid);
             _sourcesGrid.Rows.Clear();
             _sourcesGrid = null;
             _spread = null;

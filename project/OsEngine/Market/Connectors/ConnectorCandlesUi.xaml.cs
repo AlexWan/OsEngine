@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Input;
 using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
+using System.Windows.Forms;
 
 namespace OsEngine.Market.Connectors
 {
@@ -28,6 +29,14 @@ namespace OsEngine.Market.Connectors
             try
             {
                 InitializeComponent();
+
+                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                LabelCommasResultShow.Visibility = Visibility.Hidden;
+                LabelCountResultsShow.Visibility = Visibility.Hidden;
+
+                CreateGridSecurities();
 
                 List<IServer> servers = ServerMaster.GetServers();
 
@@ -73,7 +82,6 @@ namespace OsEngine.Market.Connectors
 
                     ComboBoxPortfolio.IsEnabled = false;
                     ComboBoxTypeServer.IsEnabled = false;
-                    ComboBoxSecurities.SelectionChanged += ComboBoxSecurities_SelectionChanged;
                 }
                 else
                 {
@@ -145,7 +153,11 @@ namespace OsEngine.Market.Connectors
                 ShowDopCandleSettings();
 
                 ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
-                ComboBoxSecurities.KeyDown += ComboBoxSecuritiesOnKeyDown;
+
+                TextBoxSearchSecurity.MouseEnter += TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
 
                 ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
@@ -164,9 +176,8 @@ namespace OsEngine.Market.Connectors
                 Label2.Content = OsLocalization.Market.Label2;
                 Label3.Content = OsLocalization.Market.Label3;
                 CheckBoxIsEmulator.Content = OsLocalization.Market.Label4;
-                Label5.Content = OsLocalization.Market.Label5;
+                Label5.Content = OsLocalization.Market.Label7;
                 Label6.Content = OsLocalization.Market.Label6;
-                Label7.Content = OsLocalization.Market.Label7;
                 Label8.Content = OsLocalization.Market.Label8;
                 Label9.Content = OsLocalization.Market.Label9;
                 LabelTimeFrame.Content = OsLocalization.Market.Label10;
@@ -183,6 +194,10 @@ namespace OsEngine.Market.Connectors
                 LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
                 LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
+                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+
+                ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
             }
             catch (Exception error)
             {
@@ -213,7 +228,6 @@ namespace OsEngine.Market.Connectors
                 serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
             }
 
-            ComboBoxSecurities.SelectionChanged -= ComboBoxSecurities_SelectionChanged;
             ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
             ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
             TextBoxCountTradesInCandle.TextChanged -= TextBoxCountTradesInCandle_TextChanged;
@@ -224,8 +238,15 @@ namespace OsEngine.Market.Connectors
             TextBoxReversCandlesPunktsMinMove.TextChanged -= TextBoxReversCandlesPunktsMinMove_TextChanged;
             TextBoxReversCandlesPunktsBackMove.TextChanged -= TextBoxReversCandlesPunktsBackMove_TextChanged;
             ComboBoxCandleCreateMethodType.SelectionChanged -= ComboBoxCandleCreateMethodType_SelectionChanged;
-            ComboBoxSecurities.KeyDown -= ComboBoxSecuritiesOnKeyDown;
             CheckBoxSaveTradeArrayInCandle.Click -= CheckBoxSaveTradeArrayInCandle_Click;
+            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+            TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+            TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+            TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+            ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+            ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+
+            DeleteGridSecurities();
         }
 
         public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
@@ -239,75 +260,6 @@ namespace OsEngine.Market.Connectors
             if (canChangeSettingsSaveCandlesIn == false)
             {
                 CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
-            }
-        }
-
-        /// <summary>
-        /// search tools by first letter in the title
-        /// поиск инструментов по первой букве в названии
-        /// </summary>
-        private void ComboBoxSecuritiesOnKeyDown(object sender, KeyEventArgs e)
-        {
-            List<IServer> serversAll = ServerMaster.GetServers();
-
-            IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
-
-            if (server == null)
-            {
-                return;
-            }
-
-            if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl ||
-                e.Key == Key.LeftAlt || e.Key == Key.RightAlt ||
-                e.Key == Key.LeftShift || e.Key == Key.RightShift ||
-                e.Key == Key.Enter)
-            {
-                return;
-            }
-
-            string curText = ComboBoxSecurities.Text;
-
-            ComboBoxSecurities.Items.Clear();
-
-            // upload instruments matching the search terms
-            // грузим инструменты подходящие под условия поиска
-
-            List<Security> needSecurities = null;
-            string findStr = "";
-            if (curText != null)
-            {
-                findStr = curText;
-            }
-
-            if (e.Key == Key.Back)
-            {
-                if (findStr.Length != 0)
-                    findStr = findStr.Remove(findStr.Length - 1);
-            }
-            else
-            {
-                findStr += e.Key;
-            }
-
-            ComboBoxSecurities.Text = findStr;
-            ComboBoxSecurities.Items.Add(findStr);
-            ComboBoxSecurities.SelectedItem = findStr;
-
-            needSecurities = server.Securities.FindAll(
-                sec => sec.Name.StartsWith(ComboBoxSecurities.Text, StringComparison.CurrentCultureIgnoreCase));
-
-
-            for (int i = 0;
-                needSecurities != null &&
-                i < needSecurities.Count;
-                i++)
-            {
-                string classSec = needSecurities[i].NameClass;
-                if (ComboBoxClass.SelectedItem != null && classSec == ComboBoxClass.SelectedItem.ToString())
-                {
-                    ComboBoxSecurities.Items.Add(needSecurities[i].Name);
-                    //ComboBoxSecurities.SelectedItem = needSecurities[i];
-                }
             }
         }
 
@@ -433,10 +385,6 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// the number of trades in the candle with timeframe "Trades" has changed
-        /// изменилось кол-во трейдов в свече с ТФ "трейды"
-        /// </summary>
         void TextBoxCountTradesInCandle_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
@@ -504,10 +452,6 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// it's need when security changes. For test connection we look at Timeframe for this security
-        /// нужно когда изменяется бумага. При тестовом подключении смотрим здесь ТайФреймы для этой бумаги
-        /// </summary>
         void ComboBoxSecurities_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             GetTimeFramesInTester();
@@ -515,7 +459,7 @@ namespace OsEngine.Market.Connectors
 
         private void GetTimeFramesInTester()
         {
-            if (ComboBoxSecurities.SelectedItem == null)
+            /*if (ComboBoxSecurities.SelectedItem == null)
             {
                 return;
             }
@@ -556,7 +500,7 @@ namespace OsEngine.Market.Connectors
                 Enum.TryParse(lastTf, out oldFrame);
 
                 ComboBoxTimeFrame.SelectedItem = oldFrame;
-            }
+            }*/
         }
 
         /// <summary>
@@ -602,6 +546,8 @@ namespace OsEngine.Market.Connectors
                 LoadClassOnBox();
                 LoadSecurityOnBox();
                 LoadTimeFrameBox();
+                UpdateSearchResults();
+                UpdateSearchPanel();
             }
             catch (Exception error)
             {
@@ -785,70 +731,6 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// upload data from storage to form
-        /// выгрузить данные из хранилища на форму
-        /// </summary>
-        private void LoadSecurityOnBox()
-        {
-            try
-            {
-                List<IServer> serversAll = ServerMaster.GetServers();
-
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
-
-                if (server == null)
-                {
-                    return;
-                }
-                // clear all
-                // стираем всё
-
-                ComboBoxSecurities.Items.Clear();
-                // download available instruments
-                // грузим инструменты доступные для скачивания
-
-                var securities = server.Securities;
-
-                if (securities != null)
-                {
-                    for (int i = 0; i < securities.Count; i++)
-                    {
-                        if (securities[i] == null)
-                        {
-                            continue;
-                        }
-                        string classSec = securities[i].NameClass;
-                        if (ComboBoxClass.SelectedItem != null && ComboBoxClass.SelectedItem.Equals(classSec))
-                        {
-                            ComboBoxSecurities.Items.Add(securities[i].Name);
-                            ComboBoxSecurities.SelectedItem = securities[i].Name;
-                        }
-                    }
-                }
-
-                // download already running instruments
-                // грузим уже запущенные инструменты
-
-                string paper = _connectorBot.SecurityName;
-
-                if (paper != null)
-                {
-                    ComboBoxSecurities.Text = paper;
-                    ComboBoxSecurities.SelectedItem = paper;
-                    if (ComboBoxSecurities.Text == null)
-                    {
-                        ComboBoxSecurities.Items.Add(_connectorBot.SecurityName);
-                        ComboBoxSecurities.Text = _connectorBot.SecurityName;
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
         private void LoadTimeFrameBox()
         {
             ComboBoxTimeFrame.Items.Clear();
@@ -1013,7 +895,414 @@ namespace OsEngine.Market.Connectors
             {
                 ComboBoxTimeFrame.SelectedItem = TimeFrame.Min1;
             }
+
+            if (ComboBoxTimeFrame.SelectedItem == null 
+                && ComboBoxTimeFrame.Items != null 
+                && ComboBoxTimeFrame.Items.Count != 0)
+            {
+                ComboBoxTimeFrame.SelectedItem = ComboBoxTimeFrame.Items[0];
+            }
         }
+
+        #region работа с бумагами в таблице
+
+        private void LoadSecurityOnBox()
+        {
+           try
+            {
+                _gridSecurities.Rows.Clear();
+
+                List<IServer> serversAll = ServerMaster.GetServers();
+
+                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+
+                if (server == null)
+                {
+                    return;
+                }
+                // clear all
+                // стираем всё
+
+
+                List<Security> securities = server.Securities;
+
+                if(securities == null ||
+                    securities.Count == 0)
+                {
+                    return;
+                }
+
+                if(ComboBoxClass.SelectedItem != null)
+                {
+                    string classSec = ComboBoxClass.SelectedItem.ToString();
+
+                    List<Security> securitiesOfMyClass = new List<Security>();
+
+                    for(int i = 0;i < securities.Count;i++)
+                    {
+                        if(securities[i].NameClass == classSec)
+                        {
+                            securitiesOfMyClass.Add(securities[i]);
+                        }
+                    }
+
+                    securities = securitiesOfMyClass;
+                }
+                
+                UpdateGridSec(securities);
+
+                UpdateSearchResults();
+                UpdateSearchPanel();
+
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        DataGridView _gridSecurities;
+
+        private void DeleteGridSecurities()
+        {
+            DataGridFactory.ClearLinks(_gridSecurities);
+            _gridSecurities.CellClick -= _gridSecurities_CellClick;
+            SecurityTable.Child = null;
+        }
+
+        private void CreateGridSecurities()
+        {
+            // номер, тип, сокращонное название бумаги, полное имя, влк/выкл
+
+            DataGridView newGrid =
+                DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.DisplayedCells);
+
+            newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            newGrid.ScrollBars = ScrollBars.Vertical;
+            DataGridViewCellStyle style = newGrid.DefaultCellStyle;
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = style;
+
+            DataGridViewColumn colum0 = new DataGridViewColumn();
+            colum0.CellTemplate = cell0;
+            colum0.HeaderText = OsLocalization.Trader.Label165;
+            colum0.ReadOnly = true;
+            colum0.Width = 100;
+            newGrid.Columns.Add(colum0);
+
+            DataGridViewColumn colum2 = new DataGridViewColumn();
+            colum2.CellTemplate = cell0;
+            colum2.HeaderText = OsLocalization.Trader.Label167;
+            colum2.ReadOnly = true;
+            colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum2);
+
+            DataGridViewColumn colum3 = new DataGridViewColumn();
+            colum3.CellTemplate = cell0;
+            colum3.HeaderText = OsLocalization.Trader.Label169;
+            colum3.ReadOnly = true;
+            colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum3);
+
+            DataGridViewColumn colum4 = new DataGridViewColumn();
+            colum4.CellTemplate = cell0;
+            colum4.HeaderText = OsLocalization.Trader.Label168;
+            colum4.ReadOnly = true;
+            colum4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum4);
+
+            DataGridViewCheckBoxColumn colum7 = new DataGridViewCheckBoxColumn();
+            colum7.HeaderText = OsLocalization.Trader.Label171;
+            colum7.ReadOnly = false;
+            colum7.Width = 50;
+            newGrid.Columns.Add(colum7);
+
+            _gridSecurities = newGrid;
+            SecurityTable.Child = _gridSecurities;
+
+            _gridSecurities.CellClick += _gridSecurities_CellClick;
+        }
+
+        private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int columnInd = e.ColumnIndex;
+
+            if(columnInd != 4)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+
+                DataGridViewCheckBoxCell checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[4];
+
+                if(checkBox.Value == null)
+                {
+                    continue;
+                }
+
+                if (Convert.ToBoolean(checkBox.Value.ToString()) == true)
+                {
+                    checkBox.Value = false;
+
+                    break;
+                }
+            }
+        }
+
+        private void UpdateGridSec(List<Security> securities)
+        {
+            _gridSecurities.Rows.Clear();
+
+            _gridSecurities.ClearSelection();
+
+            if(securities == null 
+                || securities.Count == 0)
+            {
+                return;
+            }
+
+            // номер, тип, сокращонное название бумаги, полное имя, площадка, влк/выкл
+
+            string selectedName = _connectorBot.SecurityName;
+            string selectedClass = _connectorBot.SecurityClass;
+
+            if(string.IsNullOrEmpty(selectedClass) &&
+                _connectorBot.Security != null)
+            {
+                selectedClass = _connectorBot.Security.NameClass;
+            }
+
+            if (string.IsNullOrEmpty(selectedClass) &&
+                  string.IsNullOrEmpty(ComboBoxClass.Text) == false)
+            {
+                selectedClass = ComboBoxClass.Text;
+            }
+
+            int selectedRow = 0;
+
+            for (int indexSecuriti = 0; indexSecuriti < securities.Count; indexSecuriti++)
+            {
+                DataGridViewRow nRow = new DataGridViewRow();
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[0].Value = (indexSecuriti + 1).ToString();
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[1].Value = securities[indexSecuriti].SecurityType;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[2].Value = securities[indexSecuriti].Name;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[3].Value = securities[indexSecuriti].NameFull;
+
+                DataGridViewCheckBoxCell checkBox = new DataGridViewCheckBoxCell();
+                nRow.Cells.Add(checkBox);
+
+
+                if (securities[indexSecuriti].NameClass == selectedClass
+                        &&
+                       securities[indexSecuriti].Name == selectedName)
+                {
+                    checkBox.Value = true;
+                    selectedRow = indexSecuriti;
+                }
+
+                _gridSecurities.Rows.Add(nRow);
+            }
+
+            _gridSecurities.Rows[selectedRow].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = selectedRow;
+        }
+
+        private string GetSelectedSecurity()
+        {
+            string security = "";
+
+            for(int i = 0; i < _gridSecurities.Rows.Count;i++)
+            {
+
+                DataGridViewCheckBoxCell checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[4];
+
+                if(checkBox.Value == null)
+                {
+                    continue;
+                }
+
+                if (Convert.ToBoolean(checkBox.Value.ToString()) == true)
+                {
+                    security = _gridSecurities.Rows[i].Cells[2].Value.ToString();
+
+                    break;
+                }
+            }
+
+            return security;
+        }
+
+        #endregion
+
+        #region поиск по таблице бумаг
+
+        private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == ""
+                && TextBoxSearchSecurity.IsKeyboardFocused == false)
+            {
+                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+            }
+        }
+
+        private void TextBoxSearchSecurity_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+            {
+                TextBoxSearchSecurity.Text = "";
+            }
+        }
+
+        private void TextBoxSearchSecurity_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == "")
+            {
+                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+            }
+        }
+
+        List<int> _searchResults = new List<int>();
+
+        private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            UpdateSearchResults();
+            UpdateSearchPanel();
+        }
+
+        private void UpdateSearchResults()
+        {
+            _searchResults.Clear();
+
+            string key = TextBoxSearchSecurity.Text;
+
+            if (key == "")
+            {
+                UpdateSearchPanel();
+                return;
+            }
+
+            key = key.ToLower();
+
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+                string security = "";
+                string secSecond = "";
+
+                if (_gridSecurities.Rows[i].Cells[2].Value != null)
+                {
+                    security = _gridSecurities.Rows[i].Cells[2].Value.ToString();
+                }
+
+                if (_gridSecurities.Rows[i].Cells[3].Value != null)
+                {
+                    secSecond = _gridSecurities.Rows[i].Cells[3].Value.ToString();
+                }
+
+                security = security.ToLower();
+                secSecond = secSecond.ToLower();
+
+                if (security.Contains(key) ||
+                    secSecond.Contains(key))
+                {
+                    _searchResults.Add(i);
+                }
+            }
+        }
+
+        private void UpdateSearchPanel()
+        {
+            if(_searchResults.Count == 0)
+            {
+                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                LabelCommasResultShow.Visibility = Visibility.Hidden;
+                LabelCountResultsShow.Visibility = Visibility.Hidden;
+                return;
+            }
+
+            int firstRow = _searchResults[0];
+
+            _gridSecurities.Rows[firstRow].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = firstRow;
+
+            if (_searchResults.Count < 2)
+            {
+                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                LabelCommasResultShow.Visibility = Visibility.Hidden;
+                LabelCountResultsShow.Visibility = Visibility.Hidden;
+                return;
+            }
+
+            LabelCurrentResultShow.Content = 1.ToString();
+            LabelCountResultsShow.Content = (_searchResults.Count).ToString();
+
+            ButtonRightInSearchResults.Visibility = Visibility.Visible;
+            ButtonLeftInSearchResults.Visibility = Visibility.Visible;
+            LabelCurrentResultShow.Visibility = Visibility.Visible;
+            LabelCommasResultShow.Visibility = Visibility.Visible;
+            LabelCountResultsShow.Visibility = Visibility.Visible;
+        }
+
+        private void ButtonLeftInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
+
+            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+            if (indexRow <= 0)
+            {
+                indexRow = maxRowIndex;
+                LabelCurrentResultShow.Content = maxRowIndex.ToString();
+            }
+            else
+            {
+                LabelCurrentResultShow.Content = (indexRow).ToString();
+            }
+
+            int realInd = _searchResults[indexRow-1];
+
+            _gridSecurities.Rows[realInd].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+        }
+
+        private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
+
+            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+            if(indexRow >= maxRowIndex)
+            {
+                indexRow = 0;
+                LabelCurrentResultShow.Content = 1.ToString();
+            }
+            else
+            {
+                LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+            }
+
+            int realInd = _searchResults[indexRow];
+
+            _gridSecurities.Rows[realInd].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+        }
+
+        #endregion
+
 
         /// <summary>
         /// accept button
@@ -1023,7 +1312,9 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (string.IsNullOrEmpty(ComboBoxSecurities.Text))
+                string security = GetSelectedSecurity();
+
+                if (string.IsNullOrEmpty(security))
                 {
                     return; 
                 }
@@ -1043,7 +1334,7 @@ namespace OsEngine.Market.Connectors
                 Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
 
                 _connectorBot.TimeFrame = timeFrame;
-                _connectorBot.SecurityName = ComboBoxSecurities.Text;
+                _connectorBot.SecurityName = security;
 
                 _connectorBot.SecurityClass = ComboBoxClass.Text;
 
@@ -1097,13 +1388,8 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        // log messages
-        // сообщения в лог 
+        #region сообщения в лог 
 
-        /// <summary>
-        /// send new message to up
-        /// выслать новое сообщение на верх
-        /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -1112,14 +1398,11 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// outgoing log message
-        /// исходящее сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        // additional settings for different types of candles
-        // дополнительные настройки разных типов свечей
+        #endregion
+
+        #region дополнительные настройки разных типов свечей
 
         private void ShowDopCandleSettings()
         {
@@ -1196,15 +1479,15 @@ namespace OsEngine.Market.Connectors
         private void CreateSimpleCandleSettings()
         {
             ComboBoxTimeFrame.Visibility = Visibility.Visible;
-            ComboBoxTimeFrame.Margin = new Thickness(206, 360, 0, 0);
+            ComboBoxTimeFrame.Margin = new Thickness(213, 114, 0, 0);
 
             LabelTimeFrame.Visibility = Visibility.Visible;
-            LabelTimeFrame.Margin = new Thickness(41, 360, 0, 0);
+            LabelTimeFrame.Margin = new Thickness(10, 114, 0, 0);
 
             CheckBoxSetForeign.Visibility = Visibility.Visible;
-            CheckBoxSetForeign.Margin = new Thickness(120, 400, 0, 0);
+            CheckBoxSetForeign.Margin = new Thickness(87, 140, 0, 0);
 
-            this.Height = 490;
+            this.Height = 670;
         }
 
         private void CreateDeltaCandleSettings()
@@ -1212,10 +1495,10 @@ namespace OsEngine.Market.Connectors
             TextBoxDeltaPeriods.Visibility = Visibility.Visible;
             LabelDeltaPeriods.Visibility = Visibility.Visible;
 
-            TextBoxDeltaPeriods.Margin = new Thickness(246, 360, 0, 0);
-            LabelDeltaPeriods.Margin = new Thickness(41, 360, 0, 0);
+            TextBoxDeltaPeriods.Margin = new Thickness(213, 114, 0, 0);
+            LabelDeltaPeriods.Margin = new Thickness(10, 114, 0, 0);
 
-            this.Height = 465;
+            this.Height = 670;
         }
 
         private void CreateTicksCandleSettings()
@@ -1223,22 +1506,22 @@ namespace OsEngine.Market.Connectors
             TextBoxCountTradesInCandle.Visibility = Visibility.Visible;
             LabelCountTradesInCandle.Visibility = Visibility.Visible;
 
-            TextBoxCountTradesInCandle.Margin = new Thickness(206, 360, 0, 0);
-            LabelCountTradesInCandle.Margin = new Thickness(41, 360, 0, 0);
-            Height = 465;
+            TextBoxCountTradesInCandle.Margin = new Thickness(213, 114, 0, 0);
+            LabelCountTradesInCandle.Margin = new Thickness(10, 114, 0, 0);
+            Height = 670;
         }
 
         private void CreateRencoCandleSettings()
         {
             TextBoxRencoPunkts.Visibility = Visibility.Visible;
-            TextBoxRencoPunkts.Margin = new Thickness(206, 360, 0, 0);
+            TextBoxRencoPunkts.Margin = new Thickness(213, 114, 0, 0);
 
             LabelRencoPunkts.Visibility = Visibility.Visible;
-            LabelRencoPunkts.Margin = new Thickness(41, 360, 0, 0);
+            LabelRencoPunkts.Margin = new Thickness(10, 114, 0, 0);
 
             CheckBoxRencoIsBuildShadows.Visibility = Visibility.Visible;
-            CheckBoxRencoIsBuildShadows.Margin = new Thickness(120, 400, 0, 0);
-            Height = 500;
+            CheckBoxRencoIsBuildShadows.Margin = new Thickness(87, 140, 0, 0);
+            Height = 670;
         }
 
         private void CreateVolumeCandleSettings()
@@ -1246,20 +1529,20 @@ namespace OsEngine.Market.Connectors
             LabelVolumeToClose.Visibility = Visibility.Visible;
             TextBoxVolumeToClose.Visibility = Visibility.Visible;
 
-            LabelVolumeToClose.Margin = new Thickness(41, 360, 0, 0);
-            TextBoxVolumeToClose.Margin = new Thickness(206, 360, 0, 0);
-            Height = 465;
+            TextBoxVolumeToClose.Margin = new Thickness(213, 114, 0, 0);
+            LabelVolumeToClose.Margin = new Thickness(10, 114, 0, 0);
+            Height = 670;
         }
 
         private void CreateHaikenAshiCandleSettings()
         {
             ComboBoxTimeFrame.Visibility = Visibility.Visible;
-            ComboBoxTimeFrame.Margin = new Thickness(206, 360, 0, 0);
+            ComboBoxTimeFrame.Margin = new Thickness(213, 114, 0, 0);
 
             LabelTimeFrame.Visibility = Visibility.Visible;
-            LabelTimeFrame.Margin = new Thickness(41, 360, 0, 0);
+            LabelTimeFrame.Margin = new Thickness(10, 114, 0, 0);
 
-            Height = 465;
+            Height = 670;
         }
 
         private void CreateRangeCandleSettings()
@@ -1267,27 +1550,30 @@ namespace OsEngine.Market.Connectors
             LabelRangeCandlesPunkts.Visibility = Visibility.Visible;
             TextBoxRangeCandlesPunkts.Visibility = Visibility.Visible;
 
-            LabelRangeCandlesPunkts.Margin = new Thickness(41, 360, 0, 0);
-            TextBoxRangeCandlesPunkts.Margin = new Thickness(206, 360, 0, 0);
-            Height = 465;
+            TextBoxRangeCandlesPunkts.Margin = new Thickness(213, 114, 0, 0);
+            LabelRangeCandlesPunkts.Margin = new Thickness(10, 114, 0, 0);
+            Height = 670;
 
         }
 
         private void CreateReversCandleSettings()
         {
             TextBoxReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
-            TextBoxReversCandlesPunktsMinMove.Margin = new Thickness(206, 360, 0, 0);
+            TextBoxReversCandlesPunktsMinMove.Margin = new Thickness(213, 114, 0, 0);
 
             LabelReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
-            LabelReversCandlesPunktsMinMove.Margin = new Thickness(41, 360, 0, 0);
+            LabelReversCandlesPunktsMinMove.Margin = new Thickness(10, 114, 0, 0);
 
             TextBoxReversCandlesPunktsBackMove.Visibility = Visibility.Visible;
-            TextBoxReversCandlesPunktsBackMove.Margin = new Thickness(206, 390, 0, 0);
+            TextBoxReversCandlesPunktsBackMove.Margin = new Thickness(213, 140, 0, 0);
 
             LabelReversCandlesPunktsBackMove.Visibility = Visibility.Visible;
-            LabelReversCandlesPunktsBackMove.Margin = new Thickness(41, 390, 0, 0);
+            LabelReversCandlesPunktsBackMove.Margin = new Thickness(10, 140, 0, 0);
 
-            Height = 490;
+            Height = 700;
         }
+
+        #endregion
     }
+
 }

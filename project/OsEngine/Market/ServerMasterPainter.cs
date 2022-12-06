@@ -105,7 +105,7 @@ namespace OsEngine.Market
                 _gridSources.DoubleClick -= _gridSources_DoubleClick;
                 _gridSources.Rows.Clear();
                 _gridSources.Columns.Clear();
-                DataGridFactory.ClearLink(_gridSources);
+                DataGridFactory.ClearLinks(_gridSources);
                 _gridSources = null;
             }
 

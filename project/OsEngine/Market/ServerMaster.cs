@@ -899,13 +899,15 @@ namespace OsEngine.Market
                         return;
                     }
                 }
+
+                _needServerTypes.Add(type);
             }
             catch(Exception error)
             {
                 LogMessageEvent(error.ToString(), LogMessageType.Error);
             }
 
-            _needServerTypes.Add(type);
+           
         }
 
         /// <summary>

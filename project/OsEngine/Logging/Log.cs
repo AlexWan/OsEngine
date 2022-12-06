@@ -202,7 +202,7 @@ namespace OsEngine.Logging
                 _grid.DoubleClick -= _grid_DoubleClick;
                 _grid.Rows.Clear();
                 _grid.Columns.Clear();
-                DataGridFactory.ClearLink(_grid);
+                DataGridFactory.ClearLinks(_grid);
                 _grid = null;
             }
 

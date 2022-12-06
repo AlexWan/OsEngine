@@ -310,7 +310,7 @@ namespace OsEngine.Journal
 
             if (_gridStatistics != null)
             {
-                DataGridFactory.ClearLink(_gridStatistics);
+                DataGridFactory.ClearLinks(_gridStatistics);
                 _gridStatistics.Rows.Clear();
                 _gridStatistics = null;
                 HostStatistics.Child.Hide();
@@ -320,7 +320,7 @@ namespace OsEngine.Journal
 
             if (_openPositionGrid != null)
             {
-                DataGridFactory.ClearLink(_openPositionGrid);
+                DataGridFactory.ClearLinks(_openPositionGrid);
                 _openPositionGrid.Rows.Clear();
                 _openPositionGrid.Click -= _openPositionGrid_Click;
                 _openPositionGrid.DoubleClick -= _openPositionGrid_DoubleClick;
@@ -332,7 +332,7 @@ namespace OsEngine.Journal
 
             if (_closePositionGrid != null)
             {
-                DataGridFactory.ClearLink(_closePositionGrid);
+                DataGridFactory.ClearLinks(_closePositionGrid);
                 _closePositionGrid.Rows.Clear();
                 _closePositionGrid.Click -= _closePositionGrid_Click;
                 _closePositionGrid.DoubleClick -= _closePositionGrid_DoubleClick;

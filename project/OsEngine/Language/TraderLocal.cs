@@ -737,5 +737,9 @@ namespace OsEngine.Language
                "Eng:The price of a profit order in the market. In the tester and optimizer, because of this, there may and will be errors with profit calculation. Correct the logic of the robot_" +
                "Ru:Цена профит ордера в рынке.В тестере и оптимизаторе из-за этого могут и будут ошибки с подсчётом прибыли.Исправьте логику робота_");
 
+        public string Label182 => OsLocalization.ConvertToLocString(
+               "Eng: Board_" +
+               "Ru: Площадка_");
+
     }
 }

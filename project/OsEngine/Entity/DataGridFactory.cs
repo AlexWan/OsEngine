@@ -36,6 +36,7 @@ namespace OsEngine.Entity
             grid.GridColor = Color.FromArgb(17, 18, 23);
             grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             grid.BorderStyle = BorderStyle.None;
+
             DataGridViewCellStyle style = new DataGridViewCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;
             style.WrapMode = DataGridViewTriState.True;
@@ -44,7 +45,16 @@ namespace OsEngine.Entity
             style.ForeColor = Color.FromArgb(154, 156, 158);
           
             grid.DefaultCellStyle = style;
-            grid.ColumnHeadersDefaultCellStyle = style;
+
+            DataGridViewCellStyle headerStyle = new DataGridViewCellStyle();
+            headerStyle.Alignment = DataGridViewContentAlignment.TopLeft;
+            headerStyle.WrapMode = DataGridViewTriState.True;
+            headerStyle.BackColor = Color.FromArgb(21, 26, 30);
+            headerStyle.SelectionBackColor = Color.FromArgb(21, 26, 30);
+            headerStyle.ForeColor = Color.FromArgb(154, 156, 158);
+
+
+            grid.ColumnHeadersDefaultCellStyle = headerStyle;
 
             grid.MouseLeave += GridMouseLeaveEvent;
 
@@ -171,7 +181,7 @@ namespace OsEngine.Entity
             grid.ContextMenu.Show(grid, new Point(mouse.X, mouse.Y));
         }
 
-        public static void ClearLink(DataGridView grid)
+        public static void ClearLinks(DataGridView grid)
         {
             grid.MouseLeave -= GridMouseLeaveEvent;
             grid.MouseWheel -= GridMouseWheelEvent;

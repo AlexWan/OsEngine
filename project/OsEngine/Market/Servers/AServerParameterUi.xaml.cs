@@ -58,7 +58,7 @@ namespace OsEngine.Market.Servers
             _paramsGrid.CellValueChanged -= _newGrid_CellValueChanged;
             _paramsGrid.Click -= _newGrid_Click;
             _paramsGrid.Rows.Clear();
-            DataGridFactory.ClearLink(_paramsGrid);
+            DataGridFactory.ClearLinks(_paramsGrid);
             _paramsGrid = null;
 
           

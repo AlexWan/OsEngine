@@ -62,7 +62,7 @@ namespace OsEngine.Language
 
         public string Label6 => OsLocalization.ConvertToLocString(
             "Eng:Classes displayed_" +
-            "Ru:Отображаемые классы_");
+            "Ru:Класс бумаг_");
 
         public string Label7 => OsLocalization.ConvertToLocString(
             "Eng:Security_" +
@@ -119,6 +119,178 @@ namespace OsEngine.Language
         public string Label20 => OsLocalization.ConvertToLocString(
             "Eng:Deploy servers automatically_" +
             "Ru:Разворачивать сервера автоматически_");
+
+        public string Label21 => OsLocalization.ConvertToLocString(
+           "Eng: Connection state _" +
+           "Ru: Статус сервера _");
+
+        public string Label22 => OsLocalization.ConvertToLocString(
+         "Eng:Broadcast data_" +
+         "Ru:Транслируемые данные_");
+
+        public string Label23 => OsLocalization.ConvertToLocString(
+            "Eng:Logging_" +
+            "Ru:Лог_");
+
+        public string Label24 => OsLocalization.ConvertToLocString(
+            "Eng:Source_" +
+            "Ru:Источник_");
+
+        public string Label25 => OsLocalization.ConvertToLocString(
+            "Eng:Translation type_" +
+            "Ru:Транслируем_");
+
+        public string Label26 => OsLocalization.ConvertToLocString(
+            "Eng:From_" +
+            "Ru:От_");
+
+        public string Label27 => OsLocalization.ConvertToLocString(
+            "Eng:To_" +
+            "Ru:До_");
+
+        public string Label28 => OsLocalization.ConvertToLocString(
+            "Eng:Sets_" +
+            "Ru:Сеты_");
+
+        public string Label29 => OsLocalization.ConvertToLocString(
+            "Eng: Broadcast data _" +
+            "Ru: Транслируемые данные _");
+
+        public string Label30 => OsLocalization.ConvertToLocString(
+            "Eng: Order settings _" +
+            "Ru: Настройки исполнения _");
+
+        public string Label31 => OsLocalization.ConvertToLocString(
+            "Eng: Portfolio _" +
+            "Ru: Общий портфель _");
+
+        public string Label32 => OsLocalization.ConvertToLocString(
+            "Eng:Limit slippage_" +
+            "Ru:Проскальзывание для лимитов_");
+
+        public string Label33 => OsLocalization.ConvertToLocString(
+            "Eng:Stop slippage_" +
+            "Ru:Проскальзывание для стопов_");
+
+        public string Label34 => OsLocalization.ConvertToLocString(
+            "Eng:Order execution_" +
+            "Ru:Исполнение ордеров_");
+
+        public string Label35 => OsLocalization.ConvertToLocString(
+            "Eng:Disabled_" +
+            "Ru:Отключено_");
+
+        public string Label36 => OsLocalization.ConvertToLocString(
+            "Eng:In steps_" +
+            "Ru:В шагах_");
+
+        public string Label37 => OsLocalization.ConvertToLocString(
+            "Eng:Price touch_" +
+            "Ru:Прикосновение цены_");
+
+        public string Label38 => OsLocalization.ConvertToLocString(
+            "Eng:Price crossing_" +
+            "Ru:Пересечение цены_");
+
+        public string Label39 => OsLocalization.ConvertToLocString(
+            "Eng:Enable portfolio calculation_" +
+            "Ru:Включить расчёт портфеля_");
+
+        public string Label40 => OsLocalization.ConvertToLocString(
+            "Eng:Initial deposit_" +
+            "Ru:Начальный депозит_");
+
+        public string Label41 => OsLocalization.ConvertToLocString(
+            "Eng:Server address_" +
+            "Ru:Адрес сервера_");
+
+        public string Label42 => OsLocalization.ConvertToLocString(
+            "Eng:Base active_" +
+            "Ru:Базовый актив_");
+
+        public string Label43 => OsLocalization.ConvertToLocString(
+            "Eng:Market_" +
+            "Ru:Биржа_");
+
+        public string Label44 => OsLocalization.ConvertToLocString(
+            "Eng:Security Type_" +
+            "Ru:Тип инструмента_");
+
+        public string Label45 => OsLocalization.ConvertToLocString(
+            "Eng:Symbol_" +
+            "Ru:Символ_");
+
+        public string Label46 => OsLocalization.ConvertToLocString(
+            "Eng:Prime market_" +
+            "Ru:Биржа основная_");
+
+        public string Label47 => OsLocalization.ConvertToLocString(
+            "Eng:Delete_" +
+            "Ru:Удалить_");
+
+        public string Label48 => OsLocalization.ConvertToLocString(
+            "Eng:Add_" +
+            "Ru:Добавить_");
+
+        public string Label49 => OsLocalization.ConvertToLocString(
+            "Eng:The host cannot be empty. Connection terminated_" +
+            "Ru:Хост не может быть пустым. Подключение прервано_");
+
+        public string Label50 => OsLocalization.ConvertToLocString(
+            "Eng:The port value is not a valid value. Connection terminated_" +
+            "Ru:В значении порт не верное значение. Подключение прервано_");
+
+        public string Label51 => OsLocalization.ConvertToLocString(
+            "Eng:The value Id number is not a valid value. Connection terminated_" +
+            "Ru:В значении номер Id не верное значение. Подключение прервано_");
+
+        public string Label52 => OsLocalization.ConvertToLocString(
+            "Eng:There are no securities to download. The connection was stopped. Specify the securities in the appropriate window_" +
+            "Ru:Не указаны инструменты которые надо скачать. Подключение остановлено. Укажите инструменты в соответствующем окне_");
+
+        public string Label53 => OsLocalization.ConvertToLocString(
+            "Eng:Portfolio created _" +
+            "Ru:Создан портфель _");
+
+        public string Label55 => OsLocalization.ConvertToLocString(
+            "Eng:Not enough data to start the server_" +
+            "Ru:Не хватает данных чтобы запустить сервер_");
+
+        public string Label56 => OsLocalization.ConvertToLocString(
+            "Eng:Connection failed. The server is not responding_" +
+            "Ru:Подключение не удалось. Сервер не отвечает_");
+
+        public string Label57 => OsLocalization.ConvertToLocString(
+            "Eng:Failed to start connection, missing one or more required parameters_" +
+            "Ru:Не удалось начать подключение, отсутствует один или несколько обязательных параметров_");
+
+        public string Label58 => OsLocalization.ConvertToLocString(
+            "Eng:Login failed_" +
+            "Ru:Ошибка входа в систему_");
+
+        public string Label59 => OsLocalization.ConvertToLocString(
+            "Eng:Save trades array in Candle_" +
+            "Ru:Сохранять трейды в свече_");
+
+        public string Label60 => OsLocalization.ConvertToLocString(
+            "Eng:MD is internal?_" +
+            "Ru:Стаканы эмулируются?_");
+
+        public string Label61 => OsLocalization.ConvertToLocString(
+            "Eng:Currency_" +
+            "Ru:Валюта_");
+
+        public string Label62 => OsLocalization.ConvertToLocString(
+            "Eng:>>next pos_" +
+            "Ru:>>к сделке_");
+
+        public string Label63 => OsLocalization.ConvertToLocString(
+            "Eng:>>go to_" +
+            "Ru:>>переход к_");
+
+        public string Label64 => OsLocalization.ConvertToLocString(
+            "Eng:search..._" +
+            "Ru:поиск..._");
 
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
@@ -239,9 +411,7 @@ namespace OsEngine.Language
             "Eng: Logging _" +
             "Ru: Логирование _");
 
-        public string Label21 => OsLocalization.ConvertToLocString(
-            "Eng: Connection state _" +
-            "Ru: Статус сервера _");
+
 
         public string ButtonConnect => OsLocalization.ConvertToLocString(
             "Eng:Connect_" +
@@ -549,46 +719,6 @@ namespace OsEngine.Language
             "Eng:Exchange emulator_" +
             "Ru:Эмулятор биржи_");
 
-        public string Label22 => OsLocalization.ConvertToLocString(
-            "Eng:Broadcast data_" +
-            "Ru:Транслируемые данные_");
-
-        public string Label23 => OsLocalization.ConvertToLocString(
-            "Eng:Logging_" +
-            "Ru:Лог_");
-
-        public string Label24 => OsLocalization.ConvertToLocString(
-            "Eng:Source_" +
-            "Ru:Источник_");
-
-        public string Label25 => OsLocalization.ConvertToLocString(
-            "Eng:Translation type_" +
-            "Ru:Транслируем_");
-
-        public string Label26 => OsLocalization.ConvertToLocString(
-            "Eng:From_" +
-            "Ru:От_");
-
-        public string Label27 => OsLocalization.ConvertToLocString(
-            "Eng:To_" +
-            "Ru:До_");
-
-        public string Label28 => OsLocalization.ConvertToLocString(
-            "Eng:Sets_" +
-            "Ru:Сеты_");
-
-        public string Label29 => OsLocalization.ConvertToLocString(
-            "Eng: Broadcast data _" +
-            "Ru: Транслируемые данные _");
-
-        public string Label30 => OsLocalization.ConvertToLocString(
-            "Eng: Order settings _" +
-            "Ru: Настройки исполнения _");
-
-        public string Label31 => OsLocalization.ConvertToLocString(
-            "Eng: Portfolio _" +
-            "Ru: Общий портфель _");
-
         public string ButtonSetFolder => OsLocalization.ConvertToLocString(
             "Eng:Find in folder_" +
             "Ru:Указать в папке_");
@@ -600,131 +730,6 @@ namespace OsEngine.Language
         public string Button2 => OsLocalization.ConvertToLocString(
             "Eng:Start test_" +
             "Ru:Начать тест_");
-
-        public string Label32 => OsLocalization.ConvertToLocString(
-            "Eng:Limit slippage_" +
-            "Ru:Проскальзывание для лимитов_");
-
-        public string Label33 => OsLocalization.ConvertToLocString(
-            "Eng:Stop slippage_" +
-            "Ru:Проскальзывание для стопов_");
-
-        public string Label34 => OsLocalization.ConvertToLocString(
-            "Eng:Order execution_" +
-            "Ru:Исполнение ордеров_");
-
-        public string Label35 => OsLocalization.ConvertToLocString(
-            "Eng:Disabled_" +
-            "Ru:Отключено_");
-
-        public string Label36 => OsLocalization.ConvertToLocString(
-            "Eng:In steps_" +
-            "Ru:В шагах_");
-
-        public string Label37 => OsLocalization.ConvertToLocString(
-            "Eng:Price touch_" +
-            "Ru:Прикосновение цены_");
-
-        public string Label38 => OsLocalization.ConvertToLocString(
-            "Eng:Price crossing_" +
-            "Ru:Пересечение цены_");
-
-        public string Label39 => OsLocalization.ConvertToLocString(
-            "Eng:Enable portfolio calculation_" +
-            "Ru:Включить расчёт портфеля_");
-
-        public string Label40 => OsLocalization.ConvertToLocString(
-            "Eng:Initial deposit_" +
-            "Ru:Начальный депозит_");
-
-        public string Label41 => OsLocalization.ConvertToLocString(
-            "Eng:Server address_" +
-            "Ru:Адрес сервера_");
-
-        public string Label42 => OsLocalization.ConvertToLocString(
-            "Eng:Base active_" +
-            "Ru:Базовый актив_");
-
-        public string Label43 => OsLocalization.ConvertToLocString(
-            "Eng:Market_" +
-            "Ru:Биржа_");
-
-        public string Label44 => OsLocalization.ConvertToLocString(
-            "Eng:Security Type_" +
-            "Ru:Тип инструмента_");
-
-        public string Label45 => OsLocalization.ConvertToLocString(
-            "Eng:Symbol_" +
-            "Ru:Символ_");
-
-        public string Label46 => OsLocalization.ConvertToLocString(
-            "Eng:Prime market_" +
-            "Ru:Биржа основная_");
-
-        public string Label47 => OsLocalization.ConvertToLocString(
-            "Eng:Delete_" +
-            "Ru:Удалить_");
-
-        public string Label48 => OsLocalization.ConvertToLocString(
-            "Eng:Add_" +
-            "Ru:Добавить_");
-
-        public string Label49 => OsLocalization.ConvertToLocString(
-            "Eng:The host cannot be empty. Connection terminated_" +
-            "Ru:Хост не может быть пустым. Подключение прервано_");
-
-        public string Label50 => OsLocalization.ConvertToLocString(
-            "Eng:The port value is not a valid value. Connection terminated_" +
-            "Ru:В значении порт не верное значение. Подключение прервано_");
-
-        public string Label51 => OsLocalization.ConvertToLocString(
-            "Eng:The value Id number is not a valid value. Connection terminated_" +
-            "Ru:В значении номер Id не верное значение. Подключение прервано_");
-
-        public string Label52 => OsLocalization.ConvertToLocString(
-            "Eng:There are no securities to download. The connection was stopped. Specify the securities in the appropriate window_" +
-            "Ru:Не указаны инструменты которые надо скачать. Подключение остановлено. Укажите инструменты в соответствующем окне_");
-
-        public string Label53 => OsLocalization.ConvertToLocString(
-            "Eng:Portfolio created _" +
-            "Ru:Создан портфель _");
-
-
-        public string Label55 => OsLocalization.ConvertToLocString(
-            "Eng:Not enough data to start the server_" +
-            "Ru:Не хватает данных чтобы запустить сервер_");
-
-        public string Label56 => OsLocalization.ConvertToLocString(
-            "Eng:Connection failed. The server is not responding_" +
-            "Ru:Подключение не удалось. Сервер не отвечает_");
-
-        public string Label57 => OsLocalization.ConvertToLocString(
-            "Eng:Failed to start connection, missing one or more required parameters_" +
-            "Ru:Не удалось начать подключение, отсутствует один или несколько обязательных параметров_");
-
-        public string Label58 => OsLocalization.ConvertToLocString(
-            "Eng:Login failed_" +
-            "Ru:Ошибка входа в систему_");
-
-        public string Label59 => OsLocalization.ConvertToLocString(
-            "Eng:Save trades array in Candle_" +
-            "Ru:Сохранять трейды в свече_");
-
-        public string Label60 => OsLocalization.ConvertToLocString(
-            "Eng:MD is internal?_" +
-            "Ru:Стаканы эмулируются?_");
-
-        public string Label61 => OsLocalization.ConvertToLocString(
-            "Eng:Currency_" +
-            "Ru:Валюта_");
-
-        public string Label62 => OsLocalization.ConvertToLocString(
-            "Eng:>>next pos_" +
-            "Ru:>>к сделке_");
-
-        public string Label63 => OsLocalization.ConvertToLocString(
-            "Eng:>>go to_" +
-            "Ru:>>переход к_");
 
         public string ServerParam1 => OsLocalization.ConvertToLocString(
             "Eng:Keep trade history_" +

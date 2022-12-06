@@ -336,7 +336,7 @@ namespace OsEngine.Alerts
                 GridViewBox.Rows.Clear();
                 GridViewBox.Click -= GridViewBox_Click;
                 GridViewBox.DoubleClick -= GridViewBox_DoubleClick;
-                DataGridFactory.ClearLink(GridViewBox);
+                DataGridFactory.ClearLinks(GridViewBox);
                 GridViewBox = null;
             }
 
