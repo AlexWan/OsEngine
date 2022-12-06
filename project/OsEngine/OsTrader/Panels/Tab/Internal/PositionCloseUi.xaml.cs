@@ -18,10 +18,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             InitializeComponent();
 
-            TextBoxPrice.Text = lastSecurityPrice.ToString(new CultureInfo("ru-RU"));
+            TextBoxPrice.Text = lastSecurityPrice.ToStringWithNoEndZero();
             TextBoxSecurity.Text = position.OpenOrders[0].SecurityNameCode;
             TextBoxPositionNumber.Text = position.Number.ToString(new CultureInfo("ru-RU"));
-            TextBoxVolume.Text = position.OpenVolume.ToString(new CultureInfo("ru-RU"));
+            TextBoxVolume.Text = position.OpenVolume.ToStringWithNoEndZero();
             TextBoxAcebergOrdersCount.Text = "1";
 
 
@@ -91,7 +91,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             try
             {
-                Price = Convert.ToDecimal(TextBoxPrice.Text);
+                Price = TextBoxPrice.Text.ToDecimal();
 
                 Enum.TryParse(ComboBoxOrderType.Text, true, out OpenType);
 

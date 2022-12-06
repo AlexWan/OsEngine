@@ -25,7 +25,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             TextBoxSecurity.Text = nameSecurity;
             TextBoxVolume.Text = "1";
-            TextBoxPrice.Text = lastPrice.ToString(new CultureInfo("ru-RU"));
+            TextBoxPrice.Text = lastPrice.ToStringWithNoEndZero();
 
             ComboBoxOrderType.Items.Add(PositionOpenType.Limit);
             ComboBoxOrderType.Items.Add(PositionOpenType.Market);
@@ -93,8 +93,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             try
             {
-                Price = Convert.ToDecimal(TextBoxPrice.Text);
-                Volume = Convert.ToDecimal(TextBoxVolume.Text);
+                Price = TextBoxPrice.Text.ToDecimal();
+                Volume = TextBoxVolume.Text.ToDecimal();
 
                 if (Volume <= 0)
                 {

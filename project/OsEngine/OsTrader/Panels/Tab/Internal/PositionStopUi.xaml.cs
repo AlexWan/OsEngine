@@ -18,11 +18,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             InitializeComponent();
             Title = title;
 
-            TextBoxPriceOrder.Text = lastSecurityPrice.ToString(new CultureInfo("ru-RU"));
-            TextBoxPriceActivation.Text = lastSecurityPrice.ToString(new CultureInfo("ru-RU"));
+            TextBoxPriceOrder.Text = lastSecurityPrice.ToStringWithNoEndZero();
+            TextBoxPriceActivation.Text = lastSecurityPrice.ToStringWithNoEndZero();
             TextBoxSecurity.Text = position.OpenOrders[0].SecurityNameCode;
             TextBoxPositionNumber.Text = position.Number.ToString(new CultureInfo("ru-RU"));
-            TextBoxVolume.Text = position.OpenVolume.ToString(new CultureInfo("ru-RU"));
+            TextBoxVolume.Text = position.OpenVolume.ToStringWithNoEndZero();
 
             LabelPositionNumber.Content = OsLocalization.Trader.Label101;
             LabelSecurity.Content = OsLocalization.Trader.Label102;
@@ -42,8 +42,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             try
             {
-                PriceOrder = Convert.ToDecimal(TextBoxPriceOrder.Text);
-                PriceActivate = Convert.ToDecimal(TextBoxPriceActivation.Text);
+                PriceOrder = TextBoxPriceOrder.Text.ToDecimal();
+                PriceActivate = TextBoxPriceActivation.Text.ToDecimal();
                 IsAccept = true;
             }
             catch
