@@ -47,6 +47,13 @@ namespace OsEngine.Entity
                 .Replace(":", "")
                 .Replace("@", "")
                 .Replace(";", "")
+                .Replace("$", "")
+                .Replace("%", "")
+                .Replace("(", "")
+                .Replace(")", "")
+                .Replace("\\", "")
+                .Replace("#", "")
+                .Replace("!", "")
                 .Replace(x.ToString(), "");
 
 

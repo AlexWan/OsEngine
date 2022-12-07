@@ -3986,7 +3986,7 @@ namespace OsEngine.Market.Servers.Tester
 		/// save a log message new 
         /// сохранить новую запись в лог
         /// </summary>
-        private void SendLogMessage(string message, LogMessageType type)
+        public void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {

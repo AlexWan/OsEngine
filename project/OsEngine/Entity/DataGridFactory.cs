@@ -813,10 +813,12 @@ namespace OsEngine.Entity
 
         public static DataGridView GetDataGridDataSource()
         {
-            DataGridView myGridView = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            DataGridView myGridView = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = myGridView.DefaultCellStyle;
+
+            myGridView.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;

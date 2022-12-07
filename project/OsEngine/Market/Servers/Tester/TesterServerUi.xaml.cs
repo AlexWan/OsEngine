@@ -24,7 +24,6 @@ namespace OsEngine.Market.Servers.Tester
     /// </summary>
     public partial class TesterServerUi 
     {
-
         /// <summary>
         /// constructor
         /// конструктор
@@ -35,6 +34,8 @@ namespace OsEngine.Market.Servers.Tester
         {
             InitializeComponent();
             _server = server;
+            _log = log;
+
             _server.LoadSecurityTestSettings();
             LabelStatus.Content = _server.ServerStatus;
 
@@ -125,10 +126,6 @@ namespace OsEngine.Market.Servers.Tester
             ProgressBar.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
             ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
 
-            barUpdater = new Thread(UpdaterProgressBarThreadArea);
-            barUpdater.CurrentCulture = new CultureInfo("ru-RU");
-            barUpdater.IsBackground = true;
-            barUpdater.Start();
             Closing += TesterServerUi_Closing;
 
             // chart/чарт
@@ -204,6 +201,13 @@ namespace OsEngine.Market.Servers.Tester
             ButtonNextPos.Content = OsLocalization.Market.Label62;
             ButtonGoTo.Content = OsLocalization.Market.Label63;
 
+            Thread worker = new Thread(SecuritiesGridPainterWorkerPlace);
+            worker.Start();
+
+            Thread barUpdater = new Thread(UpdaterProgressBarThreadArea);
+            barUpdater.CurrentCulture = new CultureInfo("ru-RU");
+            barUpdater.IsBackground = true;
+            barUpdater.Start();
         }
 
         /// <summary>
@@ -212,7 +216,38 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         void TesterServerUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            barUpdater.Abort();
+            _uiIsClosed = true;
+
+            Closing -= TesterServerUi_Closing;
+
+            TextBoxStartDepozit.TextChanged -= TextBoxStartDepozit_TextChanged;
+            TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
+            TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
+            TextBoxSlipageSimpleOrder.TextChanged -= TextBoxSlipageSimpleOrderTextChanged;
+            TextBoxSlipageStop.TextChanged -= TextBoxSlipageStop_TextChanged;
+            ComboBoxSets.SelectionChanged -= ComboBoxSets_SelectionChanged;
+            ComboBoxDataType.SelectionChanged -= ComboBoxDataType_SelectionChanged;
+            ComboBoxDataSourseType.SelectionChanged -= ComboBoxDataSourseType_SelectionChanged;
+            SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
+            SliderTo.ValueChanged -= SliderTo_ValueChanged;
+
+            _server.ConnectStatusChangeEvent -= _server_ConnectStatusChangeEvent;
+            _server.NewCurrentValue -= _server_NewCurrentValue;
+            _server.TestingStartEvent -= _server_TestingStartEvent;
+            _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
+            _server.TestRegimeChangeEvent -= _server_TestRegimeChangeEvent;
+            _server.TestingFastEvent -= _server_TestingFastEvent;
+
+            _server = null;
+
+            DataGridFactory.ClearLinks(_securitiesGrid);
+            _securitiesGrid.DoubleClick -= _myGridView_DoubleClick;
+            _securitiesGrid.CellValueChanged -= _myGridView_CellValueChanged;
+            HostSecurities.Child = null;
+            _securitiesGrid = null;
+
+            _log.StopPaint();
+            _log = null;
         }
 
         /// <summary>
@@ -251,12 +286,6 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
-        /// thread updates a progress bar
-        /// поток обновляющий полосу прогресса
-        /// </summary>
-        private readonly Thread barUpdater;
-
-        /// <summary>
         /// work method of thread updates a progress bar
         /// метод работы потока обновляющего прогресс бар
         /// </summary>
@@ -265,6 +294,11 @@ namespace OsEngine.Market.Servers.Tester
             while (true)
             {
                 Thread.Sleep(100);
+
+                if(_uiIsClosed)
+                {
+                    return;
+                }
 
                 ChangeProgressBar();
             }
@@ -282,7 +316,21 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
+            try
+            {
+                ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
+            }
+            catch (Exception error)
+            {
+                try
+                {
+                    _server.SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
         }
 
         /// <summary>
@@ -344,6 +392,8 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private TesterServer _server;
 
+        private Log _log;
+
         /// <summary>
         /// changed server status 
         /// изменился статус сервера
@@ -364,7 +414,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         void _server_SecuritiesChangeEvent(List<Security> securities)
         {
-            PaintGrid();
+            _neadToRePaintGrid = true;
         }
 
         /// <summary>
@@ -375,7 +425,6 @@ namespace OsEngine.Market.Servers.Tester
         {
             _chartActive = true;
             CreateChart();
-            PaintGrid();
             PaintPausePlayButtonByActualServerState();
         }
 
@@ -385,7 +434,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         void server_TestingNewSecurityEvent()
         {
-            PaintGrid();
+            _neadToRePaintGrid = true;
         }
 
         private void _server_TestRegimeChangeEvent(TesterRegime regime)
@@ -779,14 +828,45 @@ namespace OsEngine.Market.Servers.Tester
             area.AxisY2.Minimum = min;
         }
 
-// instrument table
-//  таблица с инструментами
+        // instrument table
+        //  таблица с инструментами
+
+        bool _neadToRePaintGrid;
+
+        bool _uiIsClosed;
+
+        private void SecuritiesGridPainterWorkerPlace()
+        {
+            while(true)
+            {
+                Thread.Sleep(5000);
+
+                if(_uiIsClosed)
+                {
+                    return;
+                }
+
+                if(_neadToRePaintGrid)
+                {
+                    _neadToRePaintGrid = false;
+
+                    try
+                    {
+                        PaintGrid();
+                    }
+                    catch(Exception error)
+                    {
+                        _server.SendLogMessage(error.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// instrument table
         /// таблица с инструментами
         /// </summary>
-        private DataGridView _myGridView;
+        private DataGridView _securitiesGrid;
 
         /// <summary>
         /// create instrument table
@@ -794,13 +874,12 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void CreateGrid()
         {
-            _myGridView = DataGridFactory.GetDataGridDataSource();
-
-            _myGridView.DoubleClick += _myGridView_DoubleClick;
-            HostSecurities.Child = _myGridView;
+            _securitiesGrid = DataGridFactory.GetDataGridDataSource();
+            _securitiesGrid.DoubleClick += _myGridView_DoubleClick;
+            HostSecurities.Child = _securitiesGrid;
             HostSecurities.Child.Show();
-            _myGridView.Rows.Add();
-            _myGridView.CellValueChanged += _myGridView_CellValueChanged;
+            _securitiesGrid.Rows.Add();
+            _securitiesGrid.CellValueChanged += _myGridView_CellValueChanged;
         }
 
         /// <summary>
@@ -809,109 +888,123 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void PaintGrid()
         {
-            if (_myGridView.InvokeRequired)
+            if (_securitiesGrid.InvokeRequired)
             {
-                _myGridView.Invoke(new Action(PaintGrid));
+                _securitiesGrid.Invoke(new Action(PaintGrid));
                 return;
             }
 
-            SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
-            SliderTo.ValueChanged -= SliderTo_ValueChanged;
-
-            ProgressBar.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
-            ProgressBar.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-            ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
-
-            _myGridView.Rows.Clear();
-
-            List<SecurityTester> securities = _server.SecuritiesTester;
-
-            if (securities != null && securities.Count != 0)
+            try
             {
-                for (int i = 0; i < securities.Count; i++)
+                SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
+                SliderTo.ValueChanged -= SliderTo_ValueChanged;
+
+                ProgressBar.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
+                ProgressBar.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+                ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
+
+                _securitiesGrid.Rows.Clear();
+
+                List<SecurityTester> securities = _server.SecuritiesTester;
+
+                if (securities != null && securities.Count != 0)
                 {
-                    DataGridViewRow nRow = new DataGridViewRow();
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[0].Value = securities[i].FileAdress;
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[1].Value = securities[i].Security.Name;
-
-                    if (securities[i].DataType == SecurityTesterDataType.Candle)
+                    for (int i = 0; i < securities.Count; i++)
                     {
-                        DataGridViewComboBoxCell comboBox = new DataGridViewComboBoxCell();
-
-                        comboBox.Items.Add(TimeFrame.Day.ToString());
-                        comboBox.Items.Add(TimeFrame.Hour1.ToString());
-                        comboBox.Items.Add(TimeFrame.Hour2.ToString());
-                        comboBox.Items.Add(TimeFrame.Hour4.ToString());
-                        comboBox.Items.Add(TimeFrame.Min1.ToString());
-                        comboBox.Items.Add(TimeFrame.Min2.ToString());
-                        comboBox.Items.Add(TimeFrame.Min5.ToString());
-                        comboBox.Items.Add(TimeFrame.Min3.ToString());
-                        comboBox.Items.Add(TimeFrame.Min10.ToString());
-                        comboBox.Items.Add(TimeFrame.Min20.ToString());
-                        comboBox.Items.Add(TimeFrame.Min15.ToString());
-                        comboBox.Items.Add(TimeFrame.Min30.ToString());
-                        comboBox.Items.Add(TimeFrame.Min45.ToString());
-                        comboBox.Items.Add(TimeFrame.Sec1.ToString());
-                        comboBox.Items.Add(TimeFrame.Sec2.ToString());
-                        comboBox.Items.Add(TimeFrame.Sec5.ToString());
-                        comboBox.Items.Add(TimeFrame.Sec10.ToString());
-                        comboBox.Items.Add(TimeFrame.Sec15.ToString());
-                        comboBox.Items.Add(TimeFrame.Sec20.ToString());
-                        comboBox.Items.Add(TimeFrame.Sec30.ToString());
-
-                        nRow.Cells.Add(comboBox);
-                        nRow.Cells[2].Value = securities[i].TimeFrame.ToString();
-                    }
-                    else
-                    {
+                        DataGridViewRow nRow = new DataGridViewRow();
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[2].Value = securities[i].DataType;
+                        nRow.Cells[0].Value = securities[i].FileAdress;
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells[1].Value = securities[i].Security.Name;
+
+                        if (securities[i].DataType == SecurityTesterDataType.Candle)
+                        {
+                            DataGridViewComboBoxCell comboBox = new DataGridViewComboBoxCell();
+
+                            comboBox.Items.Add(TimeFrame.Day.ToString());
+                            comboBox.Items.Add(TimeFrame.Hour1.ToString());
+                            comboBox.Items.Add(TimeFrame.Hour2.ToString());
+                            comboBox.Items.Add(TimeFrame.Hour4.ToString());
+                            comboBox.Items.Add(TimeFrame.Min1.ToString());
+                            comboBox.Items.Add(TimeFrame.Min2.ToString());
+                            comboBox.Items.Add(TimeFrame.Min5.ToString());
+                            comboBox.Items.Add(TimeFrame.Min3.ToString());
+                            comboBox.Items.Add(TimeFrame.Min10.ToString());
+                            comboBox.Items.Add(TimeFrame.Min20.ToString());
+                            comboBox.Items.Add(TimeFrame.Min15.ToString());
+                            comboBox.Items.Add(TimeFrame.Min30.ToString());
+                            comboBox.Items.Add(TimeFrame.Min45.ToString());
+                            comboBox.Items.Add(TimeFrame.Sec1.ToString());
+                            comboBox.Items.Add(TimeFrame.Sec2.ToString());
+                            comboBox.Items.Add(TimeFrame.Sec5.ToString());
+                            comboBox.Items.Add(TimeFrame.Sec10.ToString());
+                            comboBox.Items.Add(TimeFrame.Sec15.ToString());
+                            comboBox.Items.Add(TimeFrame.Sec20.ToString());
+                            comboBox.Items.Add(TimeFrame.Sec30.ToString());
+
+                            nRow.Cells.Add(comboBox);
+                            nRow.Cells[2].Value = securities[i].TimeFrame.ToString();
+                        }
+                        else
+                        {
+                            nRow.Cells.Add(new DataGridViewTextBoxCell());
+                            nRow.Cells[2].Value = securities[i].DataType;
+                        }
+
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells[3].Value = securities[i].Security.PriceStep.ToStringWithNoEndZero();
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells[4].Value = securities[i].TimeStart;
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells[5].Value = securities[i].TimeEnd;
+
+                        _securitiesGrid.Rows.Add(nRow);
                     }
+                }
 
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[3].Value = securities[i].Security.PriceStep.ToStringWithNoEndZero();
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[4].Value = securities[i].TimeStart;
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[5].Value = securities[i].TimeEnd;
+                TextBoxFrom.Text = _server.TimeStart.ToString(new CultureInfo("RU-ru"));
+                TextBoxTo.Text = _server.TimeEnd.ToString(new CultureInfo("RU-ru"));
 
-                    _myGridView.Rows.Add(nRow);
+                SliderFrom.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+                SliderFrom.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
+                SliderFrom.Value = (_server.TimeStart - DateTime.MinValue).TotalMinutes;
+
+                SliderTo.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+                SliderTo.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
+                SliderTo.Value = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+
+                if (_server.TimeEnd != DateTime.MinValue &&
+                    SliderFrom.Minimum + SliderTo.Maximum - (_server.TimeEnd - DateTime.MinValue).TotalMinutes > 0)
+                {
+                    SliderTo.Value =
+                    SliderFrom.Minimum + SliderTo.Maximum - (_server.TimeEnd - DateTime.MinValue).TotalMinutes;
+                }
+
+                SliderFrom.ValueChanged += SliderFrom_ValueChanged;
+                SliderTo.ValueChanged += SliderTo_ValueChanged;
+            }
+            catch(Exception error)
+            {
+                try
+                {
+                    _server.SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                catch
+                {
+                    // ignore
                 }
             }
-
-            TextBoxFrom.Text = _server.TimeStart.ToString(new CultureInfo("RU-ru"));
-            TextBoxTo.Text = _server.TimeEnd.ToString(new CultureInfo("RU-ru"));
-
-            SliderFrom.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-            SliderFrom.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
-            SliderFrom.Value = (_server.TimeStart - DateTime.MinValue).TotalMinutes;
-
-            SliderTo.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-            SliderTo.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
-            SliderTo.Value = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-
-            if (_server.TimeEnd != DateTime.MinValue &&
-                SliderFrom.Minimum + SliderTo.Maximum - (_server.TimeEnd - DateTime.MinValue).TotalMinutes > 0)
-            {
-                SliderTo.Value =
-                SliderFrom.Minimum + SliderTo.Maximum - (_server.TimeEnd - DateTime.MinValue).TotalMinutes;
-            }
-
-            SliderFrom.ValueChanged += SliderFrom_ValueChanged;
-            SliderTo.ValueChanged += SliderTo_ValueChanged;
         }
 
         private void _myGridView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             List<SecurityTester> securities = _server.SecuritiesTester;
 
-            for (int i = 0; i < securities.Count && i < _myGridView.Rows.Count; i++)
+            for (int i = 0; i < securities.Count && i < _securitiesGrid.Rows.Count; i++)
             {
                 TimeFrame frame;
 
-                if (Enum.TryParse(_myGridView.Rows[i].Cells[2].Value.ToString(), out frame))
+                if (Enum.TryParse(_securitiesGrid.Rows[i].Cells[2].Value.ToString(), out frame))
                 {
                     securities[i].TimeFrame = frame;
                 }
@@ -927,7 +1020,7 @@ namespace OsEngine.Market.Servers.Tester
             DataGridViewRow row = null;
             try
             {
-                row = _myGridView.SelectedRows[0];
+                row = _securitiesGrid.SelectedRows[0];
             }
             catch (Exception)
             {
