@@ -92,7 +92,7 @@ namespace OsEngine.Journal
             CreateBotsGrid();
             PaintBotsGrid();
 
-            Task task2 = new Task(LeftBotsPanelPainter);
+            Thread task2 = new Thread(LeftBotsPanelPainter);
             task2.Start();
 
             CreateSlidersShowPositions();
@@ -2794,8 +2794,8 @@ namespace OsEngine.Journal
             bot.IsOn = Convert.ToBoolean(textInCell);
 
             SaveGroups();
-            _neadToRapaintBotsGrid = true;
             CreatePositionsLists();
+            _neadToRapaintBotsGrid = true;
         }
 
         private void ChangeOnOffByGroup(DataGridViewCellEventArgs e)
