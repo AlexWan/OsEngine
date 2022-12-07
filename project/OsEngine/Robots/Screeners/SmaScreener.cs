@@ -22,10 +22,12 @@ namespace OsEngine.Robots.Screeners
             _screenerTab.CreateCandleIndicator(1, "Sma", new List<string>() { "100" }, "Prime");
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            MaxPoses = CreateParameter("Max poses", 1, 1, 20, 1);
             Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
             Volume = CreateParameter("Volume", 0.1m, 0.1m, 50, 0.1m);
             TrailStop = CreateParameter("Trail Stop", 0.7m, 0.5m, 5, 0.1m);
             CandlesLookBack = CreateParameter("Candles Look Back count", 10, 5, 100, 1);
+
         }
 
         public override string GetNameStrategyType()
@@ -42,6 +44,11 @@ namespace OsEngine.Robots.Screeners
         /// вкладка скринера
         /// </summary>
         BotTabScreener _screenerTab;
+
+        /// <summary>
+        /// максимальное кол-во позиций
+        /// </summary>
+        public StrategyParameterInt MaxPoses;
 
         /// <summary>
         /// slippage
@@ -109,6 +116,13 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
+            int allPosesInAllTabs = this.PositionsCount;
+
+            if(allPosesInAllTabs >= MaxPoses.ValueInt)
+            {
+                return;
+            }
+
             List<Position> positions = tab.PositionsOpenAll;
 
             if(positions.Count == 0)
@@ -147,7 +161,7 @@ namespace OsEngine.Robots.Screeners
                     return;
                 }
 
-                decimal close = candles[candles.Count - 1].High;
+                decimal close = candles[candles.Count - 1].Low;
                 decimal priceActivation = close - close * TrailStop.ValueDecimal/100;
                 decimal priceOrder = priceActivation - tab.Securiti.PriceStep * Slippage.ValueInt;
 

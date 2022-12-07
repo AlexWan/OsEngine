@@ -1256,8 +1256,16 @@ namespace OsEngine.Market.Servers.Transaq
                     security.SecurityType = securityData.Sectype == "FUT" ? SecurityType.Futures
                         : securityData.Sectype == "SHARE" ? SecurityType.Stock
                         : securityData.Sectype == "OPT" ? SecurityType.Option
+                        : securityData.Sectype == "BOND" ? SecurityType.Bond
                         : securityData.Sectype == "CURRENCY" || securityData.Sectype == "CETS" ? SecurityType.CurrencyPair
                         : SecurityType.None;
+
+                    if (security.NameClass == "MCT"
+                        && security.SecurityType == SecurityType.None
+                        && (security.NameFull.Contains("call") || security.NameFull.Contains("put")))
+                    {
+                        security.NameClass = "MCT_put_call";
+                    }
 
                     security.Lot = securityData.Lotsize.ToDecimal();
 

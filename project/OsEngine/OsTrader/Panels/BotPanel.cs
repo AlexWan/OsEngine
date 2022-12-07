@@ -661,6 +661,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
+
                 List<Journal.Journal> journals = GetJournals();
 
                 if (journals == null ||
