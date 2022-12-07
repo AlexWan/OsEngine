@@ -328,7 +328,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-           
+
+            ReloadIndicatorsOnTabs();
+
         }
 
         /// <summary>
@@ -818,6 +820,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             SuncFirstTab();
+            SaveIndicators();
         }
 
         /// <summary>
@@ -1225,6 +1228,61 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(Tabs != null 
+                    && Tabs.Count != 0)
+                {
+                    _indicators = new List<IndicatorOnTabs>();
+
+                    List<IIndicator> indic = Tabs[0].Indicators;
+
+                    for (int i = 0; i < indic.Count; i++)
+                    {
+                        if(indic[i].GetType().BaseType.Name != "Aindicator")
+                        {
+                            continue;
+                        }
+
+                        Aindicator aindicator = (Aindicator)indic[i];
+
+                        IndicatorOnTabs indicator = new IndicatorOnTabs();
+                        indicator.Num = i+1;
+
+                        indicator.Type = indic[i].GetType().Name;
+                        indicator.NameArea = indic[i].NameArea;
+
+                        List<string> parameters = new List<string>();
+
+
+                        for (int i2 = 0; i2 < aindicator.Parameters.Count; i2++)
+                        {
+                            string curParam = "";
+
+                            if (aindicator.Parameters[i2].Type == IndicatorParameterType.Int)
+                            {
+                                curParam = ((IndicatorParameterInt)aindicator.Parameters[i2]).ValueInt.ToString() ;
+                            }
+                            if (aindicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
+                            {
+                                curParam = ((IndicatorParameterDecimal)aindicator.Parameters[i2]).ValueDecimal.ToString();
+                            }
+                            if (aindicator.Parameters[i2].Type == IndicatorParameterType.Bool)
+                            {
+                                curParam = ((IndicatorParameterBool)aindicator.Parameters[i2]).ValueBool.ToString();
+                            }
+                            if (aindicator.Parameters[i2].Type == IndicatorParameterType.String)
+                            {
+                                curParam = ((IndicatorParameterString)aindicator.Parameters[i2]).ValueString;
+                            }
+                            parameters.Add(curParam);
+                        }
+
+                        indicator.Params = parameters;
+
+                        _indicators.Add(indicator);
+
+                    }
+                }
+
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ScreenerIndicators.txt", false))
                 {
                     for (int i = 0; i < _indicators.Count; i++)
@@ -1264,7 +1322,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             for (int i = 0; i < Tabs.Count; i++)
             {
-                Aindicator newIndicator = IndicatorsFactory.CreateIndicatorByName(ind.Type, ind.Num + ind.Type, false);
+                Aindicator newIndicator = IndicatorsFactory.CreateIndicatorByName(ind.Type, ind.Num + ind.Type + TabName, false);
                 newIndicator.CanDelete = false;
 
                 try

@@ -850,6 +850,11 @@ namespace OsEngine.Charts.CandleChart
             {
                 indicator.NameArea = nameArea;
 
+                if (indicator.GetType().BaseType.Name == "Aindicator")
+                {
+                    ((Aindicator)indicator).StartProgram = _startProgram;
+                }
+
                 if (_indicators != null)
                 {
                     // check if there is such indicator in the collection
