@@ -55,6 +55,11 @@ namespace OsEngine.Entity
     {
         public StrategyParameterLabel(string name, string label, string value, int rowHeight, int textHeight, System.Drawing.Color color, string tabName = null)
         {
+            if(name.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
+
             _name = name;
             Label = label;
             Value = value;
@@ -127,6 +132,11 @@ namespace OsEngine.Entity
         /// <param name="step">Step change in optimization/Шаг изменения при оптимизации</param>
         public StrategyParameterInt(string name, int value, int start, int stop, int step, string tabName = null)
         {
+            if (name.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
+
             if (start > stop)
             {
                 throw new Exception("Начальное значение параметра не может быть больше последнему");
@@ -315,6 +325,10 @@ namespace OsEngine.Entity
         /// <param name="step">Step change in optimization/Шаг изменения при оптимизации</param>
         public StrategyParameterDecimal(string name, decimal value, decimal start, decimal stop, decimal step, string tabName = null)
         {
+            if (name.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
             if (start > stop)
             {
                 throw new Exception("Начальное значение параметра не может быть больше последнему");
@@ -494,6 +508,10 @@ namespace OsEngine.Entity
     {
         public StrategyParameterBool(string name, bool value, string tabName = null)
         {
+            if (name.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
             _name = name;
             _valueBoolDefolt = value;
             _valueBool = value;
@@ -628,6 +646,10 @@ namespace OsEngine.Entity
         /// <param name="collection">Possible value options/Возможные варианты значений</param>
         public StrategyParameterString(string name, string value, List<string> collection, string tabName = null)
         {
+            if (name.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
             bool isInArray = false;
 
             if (collection == null)
@@ -664,6 +686,10 @@ namespace OsEngine.Entity
         /// <param name="value">Default value/Значение по умолчанию</param>
         public StrategyParameterString(string name, string value, string tabName = null)
         {
+            if (name.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
             if (value == null)
             {
                 value = "";
@@ -799,6 +825,10 @@ namespace OsEngine.Entity
     {
         public StrategyParameterTimeOfDay(string name, int hour, int minute, int second, int millisecond, string tabName = null)
         {
+            if (name.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
             _name = name;
             Value = new TimeOfDay();
             Value.Hour = hour;
@@ -984,6 +1014,11 @@ namespace OsEngine.Entity
     {
         public StrategyParameterButton(string buttonLabel, string tabName = null)
         {
+
+            if (buttonLabel.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
             _name = buttonLabel;
             _type = StrategyParameterType.Button;
             TabName = tabName;

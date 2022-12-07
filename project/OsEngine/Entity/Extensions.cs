@@ -22,11 +22,40 @@ namespace OsEngine.Entity
                 .Replace("/", "")
                 .Replace("*", "")
                 .Replace(":", "")
+                .Replace("@", "")
                 .Replace(";", "")
                 .Replace(x.ToString(), "");// это для того чтобы из названия бумаги удалять кавычки (правка @cibermax).;
 
             return value;
 
+        }
+
+        public static bool HaveExcessInString(this string value)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            int len = value.Length;
+
+            char x = '"';
+
+            value = value
+                .Replace("/", "")
+                .Replace("*", "")
+                .Replace(":", "")
+                .Replace("@", "")
+                .Replace(";", "")
+                .Replace(x.ToString(), "");
+
+
+            if(len != value.Length)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static decimal ToDecimal(this string value)
