@@ -380,6 +380,11 @@ namespace OsEngine.Journal
                 return;
             }
 
+            if(_allPositions == null)
+            {
+                return;
+            }
+
             lock (_paintLocker)
             {
 

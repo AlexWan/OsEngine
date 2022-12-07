@@ -221,6 +221,11 @@ namespace OsEngine.Journal
                 return;
             }
 
+            if(_allPositions == null)
+            {
+                return;
+            }
+
             try
             {
                 List<Position> allSortPoses = new List<Position>();
