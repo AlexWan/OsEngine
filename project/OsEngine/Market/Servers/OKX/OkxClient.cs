@@ -1428,11 +1428,6 @@ namespace OsEngine.Market.Servers.OKX
             {
                 var res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
 
-                if (res.StatusCode != HttpStatusCode.OK)
-                {
-                    throw new Exception(res.StatusCode.ToString() + " PositionModeError");
-                }
-
                 var contentStr = res.Content.ReadAsStringAsync().Result;
                 return contentStr;
             }
@@ -1467,11 +1462,6 @@ namespace OsEngine.Market.Servers.OKX
             using (var client = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, bodyStr)))
             {
                 var res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
-
-                if (res.StatusCode != HttpStatusCode.OK)
-                {
-                    throw new Exception(res.StatusCode.ToString() + " PositionModeError");
-                }
 
                 var contentStr = res.Content.ReadAsStringAsync().Result;
                 return contentStr;
