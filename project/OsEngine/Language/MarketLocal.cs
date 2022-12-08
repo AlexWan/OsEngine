@@ -295,7 +295,11 @@ namespace OsEngine.Language
         public string Label65 => OsLocalization.ConvertToLocString(
             "Eng:Candle type_" +
             "Ru:Настройки свечей_");
-        
+
+        public string Label66 => OsLocalization.ConvertToLocString(
+            "Eng:Securities_" +
+            "Ru:Инструменты_");
+
 
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +

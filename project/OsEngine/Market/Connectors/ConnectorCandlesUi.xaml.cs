@@ -35,6 +35,10 @@ namespace OsEngine.Market.Connectors
                 LabelCurrentResultShow.Visibility = Visibility.Hidden;
                 LabelCommasResultShow.Visibility = Visibility.Hidden;
                 LabelCountResultsShow.Visibility = Visibility.Hidden;
+                TextBoxSearchSecurity.MouseEnter += TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
 
                 CreateGridSecurities();
 
@@ -153,11 +157,6 @@ namespace OsEngine.Market.Connectors
                 ShowDopCandleSettings();
 
                 ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
-
-                TextBoxSearchSecurity.MouseEnter += TextBoxSearchSecurity_MouseEnter;
-                TextBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
-                TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
-                TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
 
                 ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());

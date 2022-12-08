@@ -15,6 +15,7 @@ using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market;
 using System.Windows.Forms;
 using OsEngine.OsTrader.Panels.Tab;
+using System.Windows.Input;
 
 namespace OsEngine.Market.Connectors
 {
@@ -23,11 +24,22 @@ namespace OsEngine.Market.Connectors
     /// </summary>
     public partial class MassSourcesCreateUi : Window
     {
+
         public MassSourcesCreateUi(MassSourcesCreator connectorBot)
         {
             try
             {
                 InitializeComponent();
+
+                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                LabelCommasResultShow.Visibility = Visibility.Hidden;
+                LabelCountResultsShow.Visibility = Visibility.Hidden;
+                TextBoxSearchSecurity.MouseEnter += TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
 
                 List<IServer> servers = ServerMaster.GetServers();
 
@@ -150,10 +162,13 @@ namespace OsEngine.Market.Connectors
                 TextBoxComissionValue.Text = _sorcesCreator.ComissionValue.ToString();
 
                 CheckBoxSaveTradeArrayInCandle.IsChecked = _sorcesCreator.SaveTradesInCandles;
+
+
                 CheckBoxSaveTradeArrayInCandle.Click += delegate (object sender, RoutedEventArgs args)
                 {
                     _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
                 };
+
                 _saveTradesInCandles = _sorcesCreator.SaveTradesInCandles;
 
                 Title = OsLocalization.Market.TitleConnectorCandle;
@@ -179,17 +194,63 @@ namespace OsEngine.Market.Connectors
                 LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
                 LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
-                LabelSelectedSec.Content = OsLocalization.Trader.Label164;
-                CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
+                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                LabelSecurities.Content = OsLocalization.Market.Label66;
 
-                TextBoxSearchSec.Text = OsLocalization.Trader.Label174;
-                TextBoxSearchSec.TextChanged += TextBoxSearchSec_TextChanged;
+                CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
+                TextBoxSearchSecurity.TextChanged += TextBoxSearchSec_TextChanged;
+                ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
+
+                Closed += MassSourcesCreateUi_Closed;
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
+        }
+
+        private void MassSourcesCreateUi_Closed(object sender, EventArgs e)
+        {
+            List<IServer> serversAll = ServerMaster.GetServers();
+
+            for (int i = 0; serversAll != null && i < serversAll.Count; i++)
+            {
+                if (serversAll[i] == null)
+                {
+                    continue;
+                }
+                serversAll[i].SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
+                serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+            }
+
+            TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+            TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+            TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+            ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
+            ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
+            TextBoxCountTradesInCandle.TextChanged -= TextBoxCountTradesInCandle_TextChanged;
+            TextBoxVolumeToClose.TextChanged -= TextBoxVolumeToClose_TextChanged;
+            TextBoxRencoPunkts.TextChanged -= TextBoxRencoPunkts_TextChanged;
+            TextBoxDeltaPeriods.TextChanged -= TextBoxDeltaPeriods_TextChanged;
+            TextBoxRangeCandlesPunkts.TextChanged -= TextBoxRangeCandlesPunkts_TextChanged;
+            TextBoxReversCandlesPunktsMinMove.TextChanged -= TextBoxReversCandlesPunktsMinMove_TextChanged;
+            TextBoxReversCandlesPunktsBackMove.TextChanged -= TextBoxReversCandlesPunktsBackMove_TextChanged;
+            ComboBoxCandleCreateMethodType.SelectionChanged -= ComboBoxCandleCreateMethodType_SelectionChanged;
+            CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
+            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSec_TextChanged;
+            ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+            ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+            _sorcesCreator = null;
+
+
+            Closed -= MassSourcesCreateUi_Closed;
+
+            DataGridFactory.ClearLinks(_gridSecurities);
+            _gridSecurities = null;
+            SecuritiesHost.Child = null;
         }
 
         MassSourcesCreator _sorcesCreator;
@@ -493,6 +554,8 @@ namespace OsEngine.Market.Connectors
 
                 if (server2 != null)
                 {
+                    server2.SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
+                    server2.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
                     server2.SecuritiesChangeEvent += server_SecuritiesCharngeEvent;
                     server2.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
                 }
@@ -854,6 +917,164 @@ namespace OsEngine.Market.Connectors
             {
                 _gridSecurities.Rows[i].Cells[6].Value = isCheck;
             }
+        }
+
+        #endregion
+
+        #region поиск по таблице бумаг
+
+        private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == ""
+                && TextBoxSearchSecurity.IsKeyboardFocused == false)
+            {
+                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+            }
+        }
+
+        private void TextBoxSearchSecurity_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+            {
+                TextBoxSearchSecurity.Text = "";
+            }
+        }
+
+        private void TextBoxSearchSecurity_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == "")
+            {
+                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+            }
+        }
+
+        List<int> _searchResults = new List<int>();
+
+        private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            UpdateSearchResults();
+            UpdateSearchPanel();
+        }
+
+        private void UpdateSearchResults()
+        {
+            _searchResults.Clear();
+
+            string key = TextBoxSearchSecurity.Text;
+
+            if (key == "")
+            {
+                UpdateSearchPanel();
+                return;
+            }
+
+            key = key.ToLower();
+
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+                string security = "";
+                string secSecond = "";
+
+                if (_gridSecurities.Rows[i].Cells[4].Value != null)
+                {
+                    security = _gridSecurities.Rows[i].Cells[4].Value.ToString();
+                }
+
+                if (_gridSecurities.Rows[i].Cells[3].Value != null)
+                {
+                    secSecond = _gridSecurities.Rows[i].Cells[3].Value.ToString();
+                }
+
+                security = security.ToLower();
+                secSecond = secSecond.ToLower();
+
+                if (security.Contains(key) ||
+                    secSecond.Contains(key))
+                {
+                    _searchResults.Add(i);
+                }
+            }
+        }
+
+        private void UpdateSearchPanel()
+        {
+            if (_searchResults.Count == 0)
+            {
+                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                LabelCommasResultShow.Visibility = Visibility.Hidden;
+                LabelCountResultsShow.Visibility = Visibility.Hidden;
+                return;
+            }
+
+            int firstRow = _searchResults[0];
+
+            _gridSecurities.Rows[firstRow].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = firstRow;
+
+            if (_searchResults.Count < 2)
+            {
+                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                LabelCommasResultShow.Visibility = Visibility.Hidden;
+                LabelCountResultsShow.Visibility = Visibility.Hidden;
+                return;
+            }
+
+            LabelCurrentResultShow.Content = 1.ToString();
+            LabelCountResultsShow.Content = (_searchResults.Count).ToString();
+
+            ButtonRightInSearchResults.Visibility = Visibility.Visible;
+            ButtonLeftInSearchResults.Visibility = Visibility.Visible;
+            LabelCurrentResultShow.Visibility = Visibility.Visible;
+            LabelCommasResultShow.Visibility = Visibility.Visible;
+            LabelCountResultsShow.Visibility = Visibility.Visible;
+        }
+
+        private void ButtonLeftInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
+
+            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+            if (indexRow <= 0)
+            {
+                indexRow = maxRowIndex;
+                LabelCurrentResultShow.Content = maxRowIndex.ToString();
+            }
+            else
+            {
+                LabelCurrentResultShow.Content = (indexRow).ToString();
+            }
+
+            int realInd = _searchResults[indexRow - 1];
+
+            _gridSecurities.Rows[realInd].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+        }
+
+        private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
+
+            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+            if (indexRow >= maxRowIndex)
+            {
+                indexRow = 0;
+                LabelCurrentResultShow.Content = 1.ToString();
+            }
+            else
+            {
+                LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+            }
+
+            int realInd = _searchResults[indexRow];
+
+            _gridSecurities.Rows[realInd].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
         }
 
         #endregion
@@ -1260,12 +1481,12 @@ namespace OsEngine.Market.Connectors
 
         private void TextBoxSearchSec_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (TextBoxSearchSec.Text.Contains(OsLocalization.Trader.Label174))
+            if (TextBoxSearchSecurity.Text.Contains(OsLocalization.Trader.Label174))
             {
-                TextBoxSearchSec.Text = TextBoxSearchSec.Text.Replace(OsLocalization.Trader.Label174, "");
+                TextBoxSearchSecurity.Text = TextBoxSearchSecurity.Text.Replace(OsLocalization.Trader.Label174, "");
             }
 
-            string str = TextBoxSearchSec.Text;
+            string str = TextBoxSearchSecurity.Text;
 
             for (int i = 0; i < _gridSecurities.Rows.Count; i++)
             {
