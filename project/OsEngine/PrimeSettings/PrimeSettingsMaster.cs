@@ -159,8 +159,26 @@ namespace OsEngine.PrimeSettings
             }
         }
 
-       
         private static string _port;
+
+        public static string LabelInHeaderBotStation
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _labelInHeaderBotStation;
+            }
+            set
+            {
+                _labelInHeaderBotStation = value;
+                Save();
+            }
+        }
+
+        private static string _labelInHeaderBotStation;
 
         /// <summary>
         /// save settings
@@ -180,6 +198,7 @@ namespace OsEngine.PrimeSettings
                     writer.WriteLine(_token);
                     writer.WriteLine(_ip);
                     writer.WriteLine(_port);
+                    writer.WriteLine(_labelInHeaderBotStation);
 
                     writer.Close();
                 }
@@ -215,6 +234,7 @@ namespace OsEngine.PrimeSettings
                     _token = reader.ReadLine();
                     _ip = reader.ReadLine();
                     _port = reader.ReadLine();
+                    _labelInHeaderBotStation = reader.ReadLine();
 
                     reader.Close();
                 }

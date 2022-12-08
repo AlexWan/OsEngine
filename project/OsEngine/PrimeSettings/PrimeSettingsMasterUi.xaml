@@ -12,15 +12,17 @@
                 <Grid>
                     <ComboBox x:Name="ComboBoxLocalization" Margin="190,29,74,0" VerticalAlignment="Top" Height="23"/>
                     <Label Name="LanguageLabel"  Content="Language" HorizontalAlignment="Left" Margin="86,29,0,0" VerticalAlignment="Top"/>
-                    <CheckBox Name="CheckBoxExtraLogWindow" Margin="0,57,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23" />
-                    <Label Name="ShowExtraLogWindowLabel" Content="Show emergency log window" HorizontalAlignment="Left" Margin="86,57,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxExtraLogSound" Margin="0,85,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-                    <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="86,85,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,113,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-                    <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="86,113,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Left" Margin="43,169,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="165" />
-                    <CheckBox x:Name="CheckBoxServerTestingIsActive" Margin="0,141,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-                    <Label x:Name="LabelServerTestingIsActive" Content="Server Testing Is Active" HorizontalAlignment="Left" Margin="86,141,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelHeader"  Content="Bot header" HorizontalAlignment="Left" Margin="86,57,0,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxExtraLogWindow" Margin="0,85,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23" />
+                    <Label Name="ShowExtraLogWindowLabel" Content="Show emergency log window" HorizontalAlignment="Left" Margin="86,85,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxExtraLogSound" Margin="0,113,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+                    <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="86,113,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,141,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+                    <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="86,141,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Left" Margin="43,215,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="119" />
+                    <CheckBox x:Name="CheckBoxServerTestingIsActive" Margin="0,169,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+                    <Label x:Name="LabelServerTestingIsActive" Content="Server Testing Is Active" HorizontalAlignment="Left" Margin="86,169,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxBotHeader" HorizontalAlignment="Left" Margin="190,57,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="127"/>
                 </Grid>
             </TabItem>
             <TabItem Name="AdminItem" Header="Admin panel access" Width="150">

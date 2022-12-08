@@ -79,6 +79,7 @@ namespace OsEngine.OsTrader.Gui
 
         private void Local()
         {
+            Title = Title + " " + OsEngine.PrimeSettings.PrimeSettingsMaster.LabelInHeaderBotStation;
             TabPozition.Header = OsLocalization.Trader.Label18;
             TabItemClosedPos.Header = OsLocalization.Trader.Label19;
             TabItemAllPos.Header = OsLocalization.Trader.Label20;

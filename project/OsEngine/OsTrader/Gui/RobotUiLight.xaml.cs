@@ -43,7 +43,8 @@ namespace OsEngine.OsTrader.Gui
 
         private void Local()
         {
-            TabItemAllPos.Header = OsLocalization.Trader.Label20;
+            Title = Title + " " + OsEngine.PrimeSettings.PrimeSettingsMaster.LabelInHeaderBotStation;
+            TabItemAllPos.Header = OsLocalization.Trader.Label20 ;
             TextBoxPositionBord.Header = OsLocalization.Trader.Label21;
             TextBoxPositionAllOrders.Header = OsLocalization.Trader.Label22;
             TabItemLogPrime.Header = OsLocalization.Trader.Label24;

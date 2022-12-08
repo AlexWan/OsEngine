@@ -72,5 +72,11 @@ namespace OsEngine.Language
         public string LabelOxyPlotCharting => OsLocalization.ConvertToLocString(
             "Eng:Use OxyPlot chart_" +
             "Ru:Использовать OxyPlot_");
+
+        public string LabelBotHeader => OsLocalization.ConvertToLocString(
+             "Eng:Bot header_" +
+            "Ru:Текст шапки_");
+
+        
     }
 }
