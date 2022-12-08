@@ -704,7 +704,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableTabsSimple()
         {
-            _gridTableTabsSimple = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridTableTabsSimple = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridTableTabsSimple.DefaultCellStyle;
@@ -912,7 +912,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableTabsIndex()
         {
-            _gridTableTabsIndex = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridTableTabsIndex = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridTableTabsIndex.DefaultCellStyle;
@@ -1051,7 +1051,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableOptimizeFazes()
         {
-            _gridFazes = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridFazes = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _gridFazes.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -1224,7 +1224,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableParametrs()
         {
-            _gridParametrs = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridParametrs = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _gridParametrs.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -1639,7 +1639,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableFazes()
         {
-            _gridFazesEnd = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridFazesEnd = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _gridFazesEnd.ScrollBars = ScrollBars.Vertical;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridFazesEnd.DefaultCellStyle;

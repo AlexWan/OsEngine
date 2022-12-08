@@ -188,7 +188,7 @@ namespace OsEngine.OsOptimizer
             }
 
             return false;
-        }
+        } 
 
         /// <summary>
         /// robot sorting type in the results table
