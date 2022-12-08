@@ -319,6 +319,11 @@ namespace OsEngine.Entity
 
             for (int i = 0; i < _trades.Count; i++)
             {
+                if(_trades[i] == null)
+                {
+                    continue;
+                }
+
                 price += _trades[i].Volume*_trades[i].Price;
                 volumeExecute += _trades[i].Volume;
             }
