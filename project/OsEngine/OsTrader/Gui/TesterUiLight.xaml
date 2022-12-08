@@ -13,7 +13,7 @@
         </Grid.RowDefinitions>
 
         <Grid x:Name="GreedPozitonLogHost" Margin="25,0,10,10" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
-            <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0" SelectionChanged="TabControlPrime_SelectionChanged"  >
+            <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0" >
                 <TabItem Name="TabItemAllPos" Header="All positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost x:Name="HostAllPosition" Foreground="Black" />
