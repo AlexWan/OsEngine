@@ -156,6 +156,38 @@ namespace OsEngine.Market
             }
         }
 
+        /// <summary>
+        /// take trade server typre from system
+        /// взять типы торговых серверов в системе
+        /// </summary>
+        public static List<ServerType> ServersTypesToOsData
+        {
+            get
+            {
+                List<ServerType> serverTypes = new List<ServerType>();
+
+                serverTypes.Add(ServerType.Finam);
+                serverTypes.Add(ServerType.MoexDataServer);
+                serverTypes.Add(ServerType.MfdWeb);
+
+                serverTypes.Add(ServerType.BitMax);
+                serverTypes.Add(ServerType.Binance);
+                serverTypes.Add(ServerType.BinanceFutures);
+                serverTypes.Add(ServerType.BitMex);
+                serverTypes.Add(ServerType.BitStamp);
+                serverTypes.Add(ServerType.Bitfinex);
+                serverTypes.Add(ServerType.Kraken);
+                serverTypes.Add(ServerType.Exmo);
+                serverTypes.Add(ServerType.HuobiSpot);
+                serverTypes.Add(ServerType.HuobiFutures);
+                serverTypes.Add(ServerType.HuobiFuturesSwap);
+                serverTypes.Add(ServerType.Bybit);
+                serverTypes.Add(ServerType.OKX);
+
+                return serverTypes;
+            }
+        }
+
         public static bool HasActiveServers()
         {
             return _servers != null && _servers.Count > 0;

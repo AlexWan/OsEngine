@@ -257,7 +257,7 @@ namespace OsEngine.OsData
 
             _gridSources.Rows.Clear();
 
-            List<ServerType> servers = ServerMaster.ServersTypes;
+            List<ServerType> servers = ServerMaster.ServersTypesToOsData;
 
             List<IServer> serversCreate = ServerMaster.GetServers();
 
