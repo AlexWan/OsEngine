@@ -1222,7 +1222,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (_connector.ServerType == ServerType.InteractiveBrokers ||
                 _connector.ServerType == ServerType.Lmax ||
                 _connector.ServerType == ServerType.BitMax ||
-                _connector.ServerType == ServerType.FTX ||
                 _connector.ServerType == ServerType.BinanceFutures ||
                 _connector.ServerType == ServerType.Transaq ||
                 _connector.ServerType == ServerType.Tester ||
