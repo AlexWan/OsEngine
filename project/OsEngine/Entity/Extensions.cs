@@ -42,17 +42,8 @@ namespace OsEngine.Entity
             char x = '"';
 
             value = value
-                .Replace("/", "")
                 .Replace("*", "")
-                .Replace(":", "")
                 .Replace("@", "")
-                .Replace(";", "")
-                .Replace("$", "")
-                .Replace("(", "")
-                .Replace(")", "")
-                .Replace("\\", "")
-                .Replace("#", "")
-                .Replace("!", "")
                 .Replace(x.ToString(), "");
 
 
