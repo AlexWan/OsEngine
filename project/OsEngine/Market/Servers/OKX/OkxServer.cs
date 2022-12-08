@@ -470,6 +470,10 @@ namespace OsEngine.Market.Servers.OKX
 
             var array = portfolio.GetPositionOnBoard();
 
+            if (array == null)
+            {
+                return;
+            }
 
             for (int i = 0; i < array.Count; i++)
             {
