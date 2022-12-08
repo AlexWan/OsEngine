@@ -199,7 +199,6 @@ namespace OsEngine.Market.Connectors
                 LabelSecurities.Content = OsLocalization.Market.Label66;
 
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
-                TextBoxSearchSecurity.TextChanged += TextBoxSearchSec_TextChanged;
                 ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
 
@@ -240,7 +239,6 @@ namespace OsEngine.Market.Connectors
             TextBoxReversCandlesPunktsBackMove.TextChanged -= TextBoxReversCandlesPunktsBackMove_TextChanged;
             ComboBoxCandleCreateMethodType.SelectionChanged -= ComboBoxCandleCreateMethodType_SelectionChanged;
             CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
-            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSec_TextChanged;
             ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
             _sorcesCreator = null;
@@ -1475,40 +1473,6 @@ namespace OsEngine.Market.Connectors
             }
 
             return sec;
-        }
-
-        // поиск бумаги
-
-        private void TextBoxSearchSec_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            if (TextBoxSearchSecurity.Text.Contains(OsLocalization.Trader.Label174))
-            {
-                TextBoxSearchSecurity.Text = TextBoxSearchSecurity.Text.Replace(OsLocalization.Trader.Label174, "");
-            }
-
-            string str = TextBoxSearchSecurity.Text;
-
-            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
-            {
-                DataGridViewRow row = _gridSecurities.Rows[i];
-
-                if (row.Cells.Count < 2 ||
-                    row.Cells[1].Value == null)
-                {
-                    continue;
-                }
-
-                string secName = row.Cells[3].Value.ToString();
-
-                if (secName.StartsWith(str))
-                {
-                    row.Selected = true;
-                    _gridSecurities.FirstDisplayedScrollingRowIndex = i;
-                    break;
-                }
-
-            }
-
         }
 
     }

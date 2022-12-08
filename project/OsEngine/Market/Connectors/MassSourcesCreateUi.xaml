@@ -51,7 +51,7 @@
         <TextBox x:Name ="TextBoxComissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <CheckBox x:Name="CheckBoxSaveTradeArrayInCandle" Content="Save trades array in Candle" HorizontalAlignment="Left" Margin="120,284,0,0" VerticalAlignment="Top"/>
         <Rectangle Margin="414,5,10,35" />
-        <WindowsFormsHost Name="SecuritiesHost" Margin="419,84,15.2,40"/>
+        <WindowsFormsHost Name="SecuritiesHost" Margin="419,82,15.2,40"/>
         <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
         <CheckBox x:Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,59,15.2,0" VerticalAlignment="Top"/>
 

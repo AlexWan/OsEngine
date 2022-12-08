@@ -20,8 +20,6 @@
         <ComboBox x:Name="ComboBoxTypeServer" Margin="206,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
         <Label x:Name="Label3" Content="Portfolio for operations" HorizontalAlignment="Left"  Margin="41,84,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxPortfolio" Margin="206,84,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="41,231,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxClass" Margin="206,231,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
         <Label x:Name="LabelTimeFrame" Content="TimeFrame" HorizontalAlignment="Left" Margin="41,334,0,0" VerticalAlignment="Top" Width="78"/>
         <ComboBox x:Name ="ComboBoxTimeFrame" Margin="206,334,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <CheckBox x:Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="120,112,0,0" VerticalAlignment="Top"/>
@@ -53,12 +51,18 @@
         <TextBox x:Name ="TextBoxComissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <CheckBox x:Name="CheckBoxSaveTradeArrayInCandle" Content="Save trades array in Candle" HorizontalAlignment="Left" Margin="120,284,0,0" VerticalAlignment="Top"/>
         <Rectangle Margin="414,5,10,35" />
-        <WindowsFormsHost Name="SecuritiesHost" Margin="419,43,15,40"/>
-        <Label Name="LabelSelectedSec" Content="Selected Securities" HorizontalAlignment="Left" Margin="419,10,0,0" VerticalAlignment="Top" />
+        <WindowsFormsHost Name="SecuritiesHost" Margin="419,82,15.2,40"/>
         <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
-        <CheckBox x:Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,10,15,0" VerticalAlignment="Top"/>
-
-        <TextBox Name="TextBoxSearchSec" HorizontalAlignment="Right" Margin="0,10,151,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
+        <CheckBox x:Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,59,15.2,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxSearchSecurity" HorizontalAlignment="Right" Margin="0,33,15.2,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
+        <Label x:Name="LabelSecurities" Content="Securities" HorizontalAlignment="Left" Margin="419,5,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="841,10,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Button x:Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="731,10,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="774,10,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="789,10,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="808,10,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="419,33,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxClass" Margin="547,33,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="138"/>
 
     </Grid>
 </Window>
