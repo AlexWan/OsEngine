@@ -228,14 +228,15 @@ namespace OsEngine.OsData
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Data.Label4;
             colum0.ReadOnly = true;
-            colum0.Width = 100;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colu = new DataGridViewColumn();
             colu.CellTemplate = cell0;
             colu.HeaderText = OsLocalization.Data.Label5;
             colu.ReadOnly = true;
-            colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colu.Width = 130;
+            
             newGrid.Columns.Add(colu);
 
             _gridSources = newGrid;
@@ -359,7 +360,7 @@ namespace OsEngine.OsData
         /// </summary>
         private void CreateSetGrid()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             newGrid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -369,14 +370,15 @@ namespace OsEngine.OsData
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Data.Label3;
             colum0.ReadOnly = true;
-            colum0.Width = 100;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colu = new DataGridViewColumn();
             colu.CellTemplate = cell0;
             colu.HeaderText = OsLocalization.Data.Label5;
             colu.ReadOnly = true;
-            colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colu.Width = 100;
+          
             newGrid.Columns.Add(colu);
 
             _gridset = newGrid;
