@@ -263,6 +263,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
         {
+            endTime = endTime.AddDays(1);
+
             string markerDateTime = "";
 
             List<Trade> trades = new List<Trade>();
