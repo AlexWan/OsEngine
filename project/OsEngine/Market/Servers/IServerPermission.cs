@@ -50,6 +50,8 @@
 
         TimeFramePermission TradeTimeFramePermission { get; }
 
+        int WaitTimeAfterFirstStartToSendOrders { get; }
+
         #endregion
 
 

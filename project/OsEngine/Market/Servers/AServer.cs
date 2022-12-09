@@ -118,15 +118,34 @@ namespace OsEngine.Market.Servers
 
         private object trades_locker = new object();
 
-        private double _waitTimeAfterFirstStart = 60;
-
         /// <summary>
         /// время ожиадания после старта сервера, по прошествии которого можно выставлять ордера
         /// </summary>
         protected double WaitTimeAfterFirstStart
         {
             set { _waitTimeAfterFirstStart = value; }
+
+            get
+            {
+                if(_alreadyLoadAwaitInfoFromServerPermission == false)
+                {
+                    _alreadyLoadAwaitInfoFromServerPermission = true;
+
+                    IServerPermission permission = ServerMaster.GetServerPermission(this.ServerType);
+
+                    if(permission != null)
+                    {
+                        _waitTimeAfterFirstStart = permission.WaitTimeAfterFirstStartToSendOrders;
+                    }
+                }
+
+                return _waitTimeAfterFirstStart;
+            }
         }
+
+        private double _waitTimeAfterFirstStart = 60;
+
+        private bool _alreadyLoadAwaitInfoFromServerPermission = false;
 
         private IServerRealization _serverRealization;
 
@@ -1957,7 +1976,7 @@ namespace OsEngine.Market.Servers
         {
             while (true)
             {
-                if (LastStartServerTime.AddSeconds(_waitTimeAfterFirstStart) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(WaitTimeAfterFirstStart) > DateTime.Now)
                 {
                     await Task.Delay(1000);
                     continue;
@@ -2042,7 +2061,7 @@ namespace OsEngine.Market.Servers
             {
                 UserSetOrderOnExecute(order);
             }
-            if (LastStartServerTime.AddSeconds(_waitTimeAfterFirstStart) > DateTime.Now)
+            if (LastStartServerTime.AddSeconds(WaitTimeAfterFirstStart) > DateTime.Now)
             {
                 order.State = OrderStateType.Fail;
                 _ordersToSend.Enqueue(order);

@@ -99,6 +99,12 @@ namespace OsEngine.Market.Servers.Kraken
         {
             get { return _tradeTimeFramePermission; }
         }
+
+        public int WaitTimeAfterFirstStartToSendOrders
+        {
+            get { return 1; }
+        }
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {

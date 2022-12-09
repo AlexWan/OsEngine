@@ -101,6 +101,12 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             get { return _tradeTimeFramePermission; }
         }
+
+        public int WaitTimeAfterFirstStartToSendOrders
+        {
+            get { return 5; }
+        }
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {

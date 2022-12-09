@@ -23,8 +23,6 @@ namespace OsEngine.Market.Servers.GateIo
             ServerRealization = new GateIoServerRealization();
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
-
-            WaitTimeAfterFirstStart = 10;
         }
 
         /// <summary>

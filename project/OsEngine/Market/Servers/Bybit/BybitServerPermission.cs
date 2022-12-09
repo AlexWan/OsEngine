@@ -100,6 +100,12 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         {
             get { return _tradeTimeFramePermission; }
         }
+
+        public int WaitTimeAfterFirstStartToSendOrders
+        {
+            get { return 1; }
+        }
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {

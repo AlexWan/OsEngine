@@ -100,6 +100,12 @@ namespace OsEngine.Market.Servers.MFD
         {
             get { return _tradeTimeFramePermission; }
         }
+
+        public int WaitTimeAfterFirstStartToSendOrders
+        {
+            get { return 60; }
+        }
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
