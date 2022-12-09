@@ -193,6 +193,15 @@ namespace OsEngine.Journal
                 HostClosePosition.Child = null;
                 HostClosePosition = null;
             }
+
+            if(_gridLeftBotsPanel != null)
+            {
+                HostBotsSelected.Child = null;
+                _gridLeftBotsPanel.CellEndEdit -= _gridLeftBotsPanel_CellEndEdit;
+                _gridLeftBotsPanel.CellBeginEdit -= _gridLeftBotsPanel_CellBeginEdit;
+                DataGridFactory.ClearLinks(_gridLeftBotsPanel);
+                _gridLeftBotsPanel = null;
+            }
         }
 
         private object _paintLocker = new object();
@@ -2443,6 +2452,7 @@ namespace OsEngine.Journal
             HostBotsSelected.Child.Show();
 
             _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
+            _gridLeftBotsPanel.CellBeginEdit += _gridLeftBotsPanel_CellBeginEdit;
         }
 
         private void PaintBotsGrid()
@@ -2503,7 +2513,7 @@ namespace OsEngine.Journal
             row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
 
             DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
-            cell.Value = false;
+            cell.Value = group.Panels[0].IsOn;
 
             row.Cells.Add(cell); // вкл / выкл
 
@@ -2759,46 +2769,73 @@ namespace OsEngine.Journal
             }
         }
 
+        private void _gridLeftBotsPanel_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            if (e.ColumnIndex == 4)
+            {
+                _lastChangeRow = e.RowIndex;
+               Task.Run(ChangeOnOffAwait);
+            }
+        }
+
         private void _gridLeftBotsPanel_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             if(e.ColumnIndex == 0)
             {
                 ChangeGroup(e);
             }
-            else if(e.ColumnIndex == 4)
-            {
-                ChangeOnOff(e);
-            }
             else if (e.ColumnIndex == 5)
             {
                 ChangeMult(e);
             }
+
         }
 
-        private void ChangeOnOff(DataGridViewCellEventArgs e)
+        int _lastChangeRow;
+
+        private void ChangeOnOffAwait()
         {
-            string textInCell = _gridLeftBotsPanel.Rows[e.RowIndex].Cells[4].Value.ToString();
+            Thread.Sleep(200);
+            ChangeOnOff(_lastChangeRow);
+        }
 
-            BotPanelJournal bot = GetBotByNum(e.RowIndex);
-
-            if (bot == null)
+        private void ChangeOnOff(int rowIndx)
+        {
+            if(TextBoxFrom.Dispatcher.CheckAccess() == false)
             {
-                ChangeOnOffByGroup(e);
+                TextBoxFrom.Dispatcher.Invoke(new Action<int>(ChangeOnOff), rowIndx);
                 return;
             }
 
-            bot.IsOn = Convert.ToBoolean(textInCell);
+            string textInCell = _gridLeftBotsPanel.Rows[rowIndx].Cells[4].Value.ToString();
+
+            BotPanelJournal bot = GetBotByNum(rowIndx);
+
+            if (bot == null)
+            {
+                ChangeOnOffByGroup(rowIndx);
+                return;
+            }
+
+            if(Convert.ToBoolean(textInCell) == false)
+            {
+                bot.IsOn = true;
+            }
+            else
+            {
+                bot.IsOn = false;
+            }
 
             SaveGroups();
             CreatePositionsLists();
             _neadToRapaintBotsGrid = true;
         }
 
-        private void ChangeOnOffByGroup(DataGridViewCellEventArgs e)
+        private void ChangeOnOffByGroup(int rowIndx)
         {
-            string textInCell = _gridLeftBotsPanel.Rows[e.RowIndex].Cells[4].Value.ToString();
+            string textInCell = _gridLeftBotsPanel.Rows[rowIndx].Cells[4].Value.ToString();
 
-            PanelGroups group = GetGroupByNum(e.RowIndex);
+            PanelGroups group = GetGroupByNum(rowIndx);
 
             if (group == null)
             {
@@ -2809,11 +2846,11 @@ namespace OsEngine.Journal
             {
                 if(textInCell =="True")
                 {
-                    group.Panels[i].IsOn = true;
+                    group.Panels[i].IsOn = false;
                 }
                 else if(textInCell == "False")
                 {
-                    group.Panels[i].IsOn = false;
+                    group.Panels[i].IsOn = true;
                 }
             }
 
