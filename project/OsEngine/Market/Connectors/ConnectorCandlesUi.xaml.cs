@@ -459,10 +459,8 @@ namespace OsEngine.Market.Connectors
 
         private void GetTimeFramesInTester()
         {
-            /*if (ComboBoxSecurities.SelectedItem == null)
-            {
-                return;
-            }
+            string security = GetSelectedSecurity();
+
             TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
 
             if (server.TypeTesterData != TesterDataType.Candle)
@@ -472,7 +470,7 @@ namespace OsEngine.Market.Connectors
 
             List<SecurityTester> securities = server.SecuritiesTester;
 
-            string name = ComboBoxSecurities.SelectedItem.ToString();
+            string name = security;
 
             string lastTf = null;
 
@@ -500,7 +498,7 @@ namespace OsEngine.Market.Connectors
                 Enum.TryParse(lastTf, out oldFrame);
 
                 ComboBoxTimeFrame.SelectedItem = oldFrame;
-            }*/
+            }
         }
 
         /// <summary>
@@ -1028,6 +1026,8 @@ namespace OsEngine.Market.Connectors
         {
             int columnInd = e.ColumnIndex;
 
+            int rowInd = e.RowIndex;
+
             if(columnInd != 4)
             {
                 return;
@@ -1050,6 +1050,11 @@ namespace OsEngine.Market.Connectors
                     break;
                 }
             }
+
+            DataGridViewCheckBoxCell checkBoxActive = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowInd].Cells[4];
+            checkBoxActive.Value = true;
+
+            LoadTimeFrameBox();
         }
 
         private void UpdateGridSec(List<Security> securities)

@@ -2426,7 +2426,7 @@ namespace OsEngine.Journal
             column22.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridLeftBotsPanel.Columns.Add(column22);
 
-            DataGridViewComboBoxColumn column4 = new DataGridViewComboBoxColumn();
+            DataGridViewCheckBoxColumn column4 = new DataGridViewCheckBoxColumn();
             column4.HeaderText = OsLocalization.Journal.Label12;
             column4.ReadOnly = false;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
@@ -2502,11 +2502,8 @@ namespace OsEngine.Journal
             row.Cells.Add(new DataGridViewTextBoxCell()); // имя
             row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
 
-            DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
-            cell.Items.Add("True");
-            cell.Items.Add("False");
-            cell.Items.Add("massive");
-            cell.Value = "massive";
+            DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
+            cell.Value = false;
 
             row.Cells.Add(cell); // вкл / выкл
 
@@ -2547,10 +2544,9 @@ namespace OsEngine.Journal
             row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
             row.Cells[row.Cells.Count - 1].Value = panel.BotClass;
 
-            DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
-            cell.Items.Add("True");
-            cell.Items.Add("False");
+            DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
             cell.Value = panel.IsOn.ToString();
+
             row.Cells.Add(cell); // вкл / выкл
 
             row.Cells.Add(new DataGridViewTextBoxCell()); // мультипликатор
