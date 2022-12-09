@@ -152,6 +152,15 @@ namespace OsEngine.Market
                     serverTypes.Insert(0, popularity[i].ServerType);
                 }
 
+                for (int i = 0; i < serverTypes.Count; i++)
+                {
+                    if(serverTypes[i].ToString() == "None")
+                    {
+                        serverTypes.RemoveAt(i);
+                        break;
+                    }
+                }
+
                 return serverTypes;
             }
         }
