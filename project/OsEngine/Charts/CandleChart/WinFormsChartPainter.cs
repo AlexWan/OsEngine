@@ -1746,7 +1746,7 @@ namespace OsEngine.Charts.CandleChart
                             }
                             else
                             {
-                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.DarkRed;
+                                buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Fuchsia;
                             }
                         }
                     }
