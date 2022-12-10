@@ -271,9 +271,13 @@ namespace OsEngine.Entity
 
             if (_trades != null)
             {
-                foreach (var tradeInArray in _trades)
+                for (int i = 0; i < _trades.Count;i++)
                 {
-                    if (tradeInArray.NumberTrade == trade.NumberTrade)
+                    if (_trades[i] == null)
+                    {
+                        continue;
+                    }
+                    if (_trades[i].NumberTrade == trade.NumberTrade)
                     {
                         // / such an application is already in storage, a stupid API is poisoning with toxic data, we exit
                         // такая заявка уже в хранилище, глупое АПИ травит токсичными данными, выходим
@@ -348,8 +352,11 @@ namespace OsEngine.Entity
             {
                 return TimeCallBack;
             }
-
-           return _trades[_trades.Count - 1].Time;
+            if (_trades[0] == null)
+            {
+                return TimeCallBack;
+            }
+            return _trades[_trades.Count - 1].Time;
         }
 
         /// <summary>
@@ -421,6 +428,11 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; i < _trades.Count; i++)
                 {
+                    if(_trades[i] == null)
+                    {
+                        continue;
+                    }
+
                     result.Append(_trades[i].GetStringFofSave() + "*");
                 }
             }

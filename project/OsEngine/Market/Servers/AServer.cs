@@ -2079,7 +2079,7 @@ namespace OsEngine.Market.Servers
 
             _ordersToExecute.Enqueue(ord);
 
-            _myExecuteOrders.Add(order);
+            _myExecuteOrdersAllSessions.Add(order);
 
             SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                            OsLocalization.Market.Message20 + order.Side +
@@ -2106,7 +2106,7 @@ namespace OsEngine.Market.Servers
 
             _ordersToExecute.Enqueue(ord);
 
-            _myCanselOrders.Add(order);
+            _myCanselOrdersAllSessions.Add(order);
 
             SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
         }
@@ -2135,28 +2135,28 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            for (int i = 0; i < _myExecuteOrders.Count; i++)
+            for (int i = 0; i < _myExecuteOrdersAllSessions.Count; i++)
             {
-                if (_myExecuteOrders[i] == null)
+                if (_myExecuteOrdersAllSessions[i] == null)
                 {
                     continue;
                 }
-                if (_myExecuteOrders[i].NumberUser == order.NumberUser)
+                if (_myExecuteOrdersAllSessions[i].NumberUser == order.NumberUser)
                 {
-                    CopySettings(order, _myExecuteOrders[i]);
+                    CopySettings(order, _myExecuteOrdersAllSessions[i]);
                     _needToSaveOrders = true;
                     break;
                 }
             }
-            for (int i = 0; i < _myCanselOrders.Count; i++)
+            for (int i = 0; i < _myCanselOrdersAllSessions.Count; i++)
             {
-                if (_myCanselOrders[i] == null)
+                if (_myCanselOrdersAllSessions[i] == null)
                 {
                     continue;
                 }
-                if (_myCanselOrders[i].NumberUser == order.NumberUser)
+                if (_myCanselOrdersAllSessions[i].NumberUser == order.NumberUser)
                 {
-                    CopySettings(order, _myCanselOrders[i]);
+                    CopySettings(order, _myCanselOrdersAllSessions[i]);
                     _needToSaveOrders = true;
                     break;
                 }
@@ -2172,39 +2172,44 @@ namespace OsEngine.Market.Servers
 
         private void UpDateMyTrade(MyTrade trade)
         {
-            for (int i = 0; i < _myExecuteOrders.Count; i++)
+            for (int i = 0; i < _myExecuteOrdersAllSessions.Count; i++)
             {
-                if(_myExecuteOrders[i] == null)
+                if(_myExecuteOrdersAllSessions[i] == null)
                 {
                     continue;
                 }
-                if (_myExecuteOrders[i].NumberMarket == trade.NumberOrderParent)
+                if (_myExecuteOrdersAllSessions[i].NumberMarket == trade.NumberOrderParent)
                 {
-                    _myExecuteOrders[i].SetTrade(trade);
+                    _myExecuteOrdersAllSessions[i].SetTrade(trade);
                     _needToSaveOrders = true;
                     return;
                 }
             }
 
-            for (int i = 0; i < _myCanselOrders.Count; i++)
+            for (int i = 0; i < _myCanselOrdersAllSessions.Count; i++)
             {
-                if (_myCanselOrders[i].NumberMarket == trade.NumberOrderParent)
+                if (_myCanselOrdersAllSessions[i].NumberMarket == trade.NumberOrderParent)
                 {
-                    if(_myCanselOrders[i] == null)
+                    if(_myCanselOrdersAllSessions[i] == null)
                     {
                         continue;
                     }
 
-                    _myCanselOrders[i].SetTrade(trade);
+                    _myCanselOrdersAllSessions[i].SetTrade(trade);
                     _needToSaveOrders = true;
                     return;
                 }
             }
         }
 
-        private List<Order> _myExecuteOrders = new List<Order>();
+        private List<Order> _myExecuteOrdersAllSessions = new List<Order>();
 
-        private List<Order> _myCanselOrders = new List<Order>();
+        private List<Order> _myCanselOrdersAllSessions = new List<Order>();
+
+        private List<Order> _myExecuteOrdersThisSession = new List<Order>();
+
+        private List<Order> _myCanselOrdersThisSession = new List<Order>();
+
 
         private DateTime _lastTimeCheckOrders = DateTime.MinValue;
 
@@ -2214,12 +2219,14 @@ namespace OsEngine.Market.Servers
 
         bool _needToSaveOrders;
 
+
+
         private void SaveLoadOrdersThreadArea()
         {
             LoadOrders();
 
-            myExecureOrdersCount = _myExecuteOrders.Count;
-            myCanselOrdersCount = _myCanselOrders.Count;
+            myExecureOrdersCount = _myExecuteOrdersAllSessions.Count;
+            myCanselOrdersCount = _myCanselOrdersAllSessions.Count;
 
             while (true)
             {
@@ -2244,21 +2251,21 @@ namespace OsEngine.Market.Servers
                         if (_lastTimeCheckOrders == DateTime.MinValue)
                         {
                             _lastTimeCheckOrders = DateTime.Now;
-                            CheckOrderState();
+                            CheckOrderStatesOnStartProgramm();
                             SaveOrders();
                         }
 
                         continue;
                     }
 
-                    if (_myExecuteOrders.Count != myExecureOrdersCount ||
-                        _myCanselOrders.Count != myCanselOrdersCount ||
+                    if (_myExecuteOrdersAllSessions.Count != myExecureOrdersCount ||
+                        _myCanselOrdersAllSessions.Count != myCanselOrdersCount ||
                         _needToSaveOrders == true)
                     {
                         SaveOrders();
                         _needToSaveOrders = false;
-                        myExecureOrdersCount = _myExecuteOrders.Count;
-                        myCanselOrdersCount = _myCanselOrders.Count;
+                        myExecureOrdersCount = _myExecuteOrdersAllSessions.Count;
+                        myCanselOrdersCount = _myCanselOrdersAllSessions.Count;
                     }
                 }
                 catch(Exception error)
@@ -2297,7 +2304,7 @@ namespace OsEngine.Market.Servers
                         string str = reader.ReadLine();
                         Order ord = new Order();
                         ord.SetOrderFromString(str);
-                        _myExecuteOrders.Add(ord);
+                        _myExecuteOrdersAllSessions.Add(ord);
                     }
                     reader.Close();
                 }
@@ -2314,9 +2321,9 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" OpenOrders.txt", false))
                 {
-                    for (int i = _myExecuteOrders.Count - 1; i >= 0 && i > _myExecuteOrders.Count - 100; i--)
+                    for (int i = _myExecuteOrdersAllSessions.Count - 1; i >= 0 && i > _myExecuteOrdersAllSessions.Count - 100; i--)
                     {
-                        string saveStr = _myExecuteOrders[i].GetStringForSave().ToString();
+                        string saveStr = _myExecuteOrdersAllSessions[i].GetStringForSave().ToString();
                         writer.WriteLine(saveStr);
                     }
                    
@@ -2344,7 +2351,7 @@ namespace OsEngine.Market.Servers
                         string str = reader.ReadLine();
                         Order ord = new Order();
                         ord.SetOrderFromString(str);
-                        _myCanselOrders.Add(ord);
+                        _myCanselOrdersAllSessions.Add(ord);
                     }
 
                     reader.Close();
@@ -2362,9 +2369,9 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" CanselOrders.txt", false))
                 {
-                    for (int i = _myCanselOrders.Count - 1; i >= 0 && i > _myCanselOrders.Count - 100; i--)
+                    for (int i = _myCanselOrdersAllSessions.Count - 1; i >= 0 && i > _myCanselOrdersAllSessions.Count - 100; i--)
                     {
-                        string saveStr = _myCanselOrders[i].GetStringForSave().ToString();
+                        string saveStr = _myCanselOrdersAllSessions[i].GetStringForSave().ToString();
                         writer.WriteLine(saveStr);
                     }
                     writer.Close();
@@ -2376,15 +2383,15 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        private void CheckOrderState()
+        private void CheckOrderStatesOnStartProgramm()
         {
-            if(_myExecuteOrders.Count != 0)
+            if(_myExecuteOrdersAllSessions.Count != 0)
             {
-                _serverRealization.GetOrdersState(_myExecuteOrders);
+                _serverRealization.GetOrdersState(_myExecuteOrdersAllSessions);
             }
-            if(_myCanselOrders.Count != 0)
+            if(_myCanselOrdersAllSessions.Count != 0)
             {
-                _serverRealization.GetOrdersState(_myCanselOrders);
+                _serverRealization.GetOrdersState(_myCanselOrdersAllSessions);
             }
         }
 
