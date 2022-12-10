@@ -2081,6 +2081,8 @@ namespace OsEngine.Market.Servers
 
             _myExecuteOrdersAllSessions.Add(order);
 
+            _myExecuteOrdersThisSession.Add(order);
+
             SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                            OsLocalization.Market.Message20 + order.Side +
                            OsLocalization.Market.Message21 + order.Volume +
@@ -2107,6 +2109,7 @@ namespace OsEngine.Market.Servers
             _ordersToExecute.Enqueue(ord);
 
             _myCanselOrdersAllSessions.Add(order);
+            _myCanselOrdersThisSession.Add(order);
 
             SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
         }
@@ -2210,7 +2213,6 @@ namespace OsEngine.Market.Servers
 
         private List<Order> _myCanselOrdersThisSession = new List<Order>();
 
-
         private DateTime _lastTimeCheckOrders = DateTime.MinValue;
 
         int myExecureOrdersCount;
@@ -2218,8 +2220,6 @@ namespace OsEngine.Market.Servers
         int myCanselOrdersCount;
 
         bool _needToSaveOrders;
-
-
 
         private void SaveLoadOrdersThreadArea()
         {
@@ -2245,35 +2245,74 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if (LastStartServerTime.AddSeconds(30) < DateTime.Now
-                        && LastStartServerTime.AddSeconds(120) > DateTime.Now)
-                    {
-                        if (_lastTimeCheckOrders == DateTime.MinValue)
-                        {
-                            _lastTimeCheckOrders = DateTime.Now;
-                            CheckOrderStatesOnStartProgramm();
-                            SaveOrders();
-                        }
+                    AllSessionOrdersManagment();
 
-                        continue;
-                    }
+                    ThisSessionOrdersManagment();
 
-                    if (_myExecuteOrdersAllSessions.Count != myExecureOrdersCount ||
-                        _myCanselOrdersAllSessions.Count != myCanselOrdersCount ||
-                        _needToSaveOrders == true)
-                    {
-                        SaveOrders();
-                        _needToSaveOrders = false;
-                        myExecureOrdersCount = _myExecuteOrdersAllSessions.Count;
-                        myCanselOrdersCount = _myCanselOrdersAllSessions.Count;
-                    }
                 }
                 catch(Exception error)
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     Thread.Sleep(10000);
                 }
-               
+            }
+        }
+
+        private void ThisSessionOrdersManagment()
+        {
+            for(int i = 0;i < _myExecuteOrdersThisSession.Count;i++)
+            {
+                Order order = _myExecuteOrdersThisSession[i];
+
+                if (order.TimeCreate.AddMinutes(3)< ServerTime)
+                {
+                    List<Order> ordersToCheck = new List<Order>();
+                    ordersToCheck.Add(order);
+
+                    ServerRealization.GetOrdersState(ordersToCheck);
+
+                    _myExecuteOrdersThisSession.RemoveAt(i);
+
+                    return;
+                }
+            }
+        }
+
+        private void AllSessionOrdersManagment()
+        {
+
+            if (LastStartServerTime.AddSeconds(30) < DateTime.Now
+                && LastStartServerTime.AddSeconds(120) > DateTime.Now)
+            {
+                if (_lastTimeCheckOrders == DateTime.MinValue)
+                {
+                    _lastTimeCheckOrders = DateTime.Now;
+                    CheckOrderStatesOnStartProgramm();
+
+                    while(_myExecuteOrdersAllSessions.Count > 1)
+                    {
+                        _myExecuteOrdersAllSessions.RemoveAt(0);
+                    }
+
+                    while (_myCanselOrdersAllSessions.Count > 1)
+                    {
+                        _myCanselOrdersAllSessions.RemoveAt(0);
+                    }
+
+                    SaveOrders();
+                }
+
+                return;
+            }
+
+            if (_myExecuteOrdersAllSessions.Count != myExecureOrdersCount ||
+                _myCanselOrdersAllSessions.Count != myCanselOrdersCount ||
+                _needToSaveOrders == true)
+            {
+                SaveOrders();
+                _needToSaveOrders = false;
+                myExecureOrdersCount = _myExecuteOrdersAllSessions.Count;
+                myCanselOrdersCount = _myCanselOrdersAllSessions.Count;
             }
         }
 

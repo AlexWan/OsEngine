@@ -1304,21 +1304,25 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         continue;
                     }
 
+                    Order newOrder = new Order();
+                    newOrder.NumberMarket = myOrder.orderId;
+                    newOrder.NumberUser = oldOpenOrders[i].NumberUser;
+                    newOrder.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
+                    newOrder.State = OrderStateType.Done;
 
-                    MyTrade trade = new MyTrade();
-                    trade.NumberOrderParent = myOrder.orderId;
-                    trade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
-                    trade.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
-                    trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
-                    trade.Side = oldOpenOrders[i].Side;
-                    trade.Price = myOrder.price.ToDecimal();
-                    trade.Volume = myOrder.executedQty.ToDecimal() - oldOpenOrders[i].VolumeExecute;
+                    newOrder.Volume = oldOpenOrders[i].Volume;
+                    newOrder.VolumeExecute = oldOpenOrders[i].VolumeExecute;
+                    newOrder.Price = oldOpenOrders[i].Price;
+                    newOrder.TypeOrder = oldOpenOrders[i].TypeOrder;
+                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
+                    newOrder.TimeCancel = newOrder.TimeCallBack;
+                    newOrder.ServerType = ServerType.Binance;
+                    newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
 
-                    oldOpenOrders[i].SetTrade(trade);
 
-                    if (MyTradeEvent != null)
+                    if (MyOrderEvent != null)
                     {
-                        MyTradeEvent(trade);
+                        MyOrderEvent(newOrder);
                     }
                 }
                 else
