@@ -1261,7 +1261,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                price = price + Securiti.PriceStep * 20;
+                price = price + Securiti.PriceStep * 40;
 
                 OrderPriceType type = OrderPriceType.Market;
 
@@ -1744,7 +1744,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                price = price - Securiti.PriceStep * 20;
+                price = price - Securiti.PriceStep * 40;
 
                 OrderPriceType type = OrderPriceType.Market;
 
@@ -2262,11 +2262,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Buy)
                 {
-                    price = _connector.BestBid - Securiti.PriceStep * 20;
+                    price = _connector.BestBid - Securiti.PriceStep * 40;
                 }
                 else
                 {
-                    price = price + Securiti.PriceStep * 20;
+                    price = price + Securiti.PriceStep * 40;
                 }
 
                 if (price == 0)
