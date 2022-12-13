@@ -265,7 +265,8 @@ namespace OsEngine.Entity
                         cell.Value = param.ValueString;
                         row.Cells.Add(cell);
                     }
-                    else if (param.ValuesString.Count == 1)
+                    else if (param.ValuesString.Count == 1
+                        || (param.ValuesString.Count == 0 && param.ValueString != null))
                     {
                         DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
                         cell.Value = param.ValueString;

@@ -310,13 +310,23 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+
         /// <summary>
         /// whether the connector is connected to download data / 
         /// подключен ли коннектор на скачивание данных
         /// </summary>
         public bool IsConnected
         {
-            get { return _connector.IsConnected; }
+            get
+            {
+
+                if (_connector == null)
+                {
+                    return false;
+                }
+
+                return _connector.IsConnected;
+            }
         }
 
         /// <summary>
@@ -325,7 +335,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool IsReadyToTrade
         {
-            get { return _connector.IsReadyToTrade; }
+            get
+            {
+                if (_connector == null)
+                {
+                    return false;
+                }
+
+                return _connector.IsReadyToTrade;
+            }
         }
 
         /// <summary>
