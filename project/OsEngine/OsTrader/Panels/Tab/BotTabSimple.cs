@@ -56,8 +56,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.TickChangeEvent += _connector_TickChangeEvent;
                 _connector.LogMessageEvent += SetNewLogMessage;
                 _connector.ConnectorStartedReconnectEvent += _connector_ConnectorStartedReconnectEvent;
+                _connector.SecuritySubscribeEvent += _connector_SecuritySubscribeEvent;
 
-                if(startProgram != StartProgram.IsOsOptimizer)
+                if (startProgram != StartProgram.IsOsOptimizer)
                 {
                     _marketDepthPainter = new MarketDepthPainter(TabName);
                     _marketDepthPainter.LogMessageEvent += SetNewLogMessage;
@@ -241,6 +242,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.ConnectorStartedReconnectEvent -= _connector_ConnectorStartedReconnectEvent;
                     _connector.Delete();
                     _connector.LogMessageEvent -= SetNewLogMessage;
+                    _connector.SecuritySubscribeEvent -= _connector_SecuritySubscribeEvent;
+
                     _connector = null;
                 }
 
@@ -4326,6 +4329,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// security for connector defined
+        /// бумага для коннектора определена
+        /// </summary>
+        private void _connector_SecuritySubscribeEvent(Security security)
+        {
+            if (SecuritySubscribeEvent != null)
+            {
+                SecuritySubscribeEvent(security);
+            }
+        }
+
+        /// <summary>
         /// server time has changed / 
         /// изменилось время сервера
         /// </summary>
@@ -4506,6 +4521,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// изменились параметры индикатора
         /// </summary>
         public event Action IndicatorUpdateEvent;
+
+        /// <summary>
+        /// security for connector defined
+        /// бумага для коннектора определена
+        /// </summary>
+        public event Action<Security> SecuritySubscribeEvent;
     }
 
 
