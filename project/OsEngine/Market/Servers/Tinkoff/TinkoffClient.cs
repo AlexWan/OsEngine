@@ -14,23 +14,32 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using System.IO;
 using OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema;
-
+using System.Diagnostics;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace OsEngine.Market.Servers.Tinkoff
 {
     public class TinkoffClient
     {
-        public TinkoffClient(string token)
+        public TinkoffClient(string token, bool IsGrpcConnection)
         {
+            this.IsGrpcConnection = IsGrpcConnection;
+
             _token = token;
 
             Task worker = new Task(WorkerPlace);
             worker.Start();
 
             _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(500));
+            rateGateGrpcConnect = new RateGate(1, TimeSpan.FromMilliseconds(1000));
         }
 
+        private bool IsGrpcConnection;
+
         RateGate _rateGate;
+
+        RateGate rateGateGrpcConnect;
 
         public string _token;
 
@@ -62,6 +71,11 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
 
             _isDisposed = true;
+
+            if (IsGrpcConnection == true)
+            {
+                KillRouter();
+            }
         }
 
         private bool _isDisposed;
@@ -74,7 +88,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         public string CreatePrivatePostQuery(string end_point, Dictionary<string, string> parameters)
         {
-            lock(_queryLocker)
+            lock (_queryLocker)
             {
                 _rateGate.WaitToProceed();
 
@@ -88,7 +102,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 int i = 0;
                 foreach (var param in parameters)
                 {
-                    if(param.Value.StartsWith("["))
+                    if (param.Value.StartsWith("["))
                     {
                         sb.Append("\"" + param.Key + "\"" + ": " + param.Value);
                     }
@@ -100,7 +114,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                     {
                         sb.Append("\"" + param.Key + "\"" + ": \"" + param.Value + "\"");
                     }
-                    
+
                     i++;
                     if (i < parameters.Count)
                     {
@@ -203,7 +217,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             {
                 return null;
             }
-            
+
             InstrumentsResponse securitiesResp = JsonConvert.DeserializeAnonymousType(res, new InstrumentsResponse());
 
             List<Security> securities = new List<Security>();
@@ -218,7 +232,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 newSecurity.NameId = jtSecurity.figi;
                 newSecurity.NameFull = jtSecurity.name;
 
-                if(jtSecurity.minPriceIncrement != null)
+                if (jtSecurity.minPriceIncrement != null)
                 {
                     newSecurity.PriceStep = jtSecurity.minPriceIncrement.GetValue();
                 }
@@ -227,7 +241,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                     newSecurity.PriceStep = 1;
                 }
 
-                if(newSecurity.PriceStep == 0)
+                if (newSecurity.PriceStep == 0)
                 {
                     newSecurity.PriceStep = 1;
                 }
@@ -263,7 +277,7 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             List<Candle> candles = new List<Candle>();
 
-            while(from.Hour > 1)
+            while (from.Hour > 1)
             {
                 from = from.AddHours(-1);
             }
@@ -321,12 +335,12 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             return candlesCollapsed;
         }
-        
+
         private List<Candle> ConvertToOsEngineCandles(CandlesResponse responce)
         {
             List<Candle> candles = new List<Candle>();
 
-            for(int i = 0;i < responce.candles.Count;i++)
+            for (int i = 0; i < responce.candles.Count; i++)
             {
                 CandleTinkoff canTin = responce.candles[i];
 
@@ -346,7 +360,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private List<Candle> CollapseCandles(List<Candle> candles, int collapseCount)
         {
-            if(collapseCount == 1)
+            if (collapseCount == 1)
             {
                 return candles;
             }
@@ -355,10 +369,10 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             int curNumCollapse = 0;
 
-            for(int i = 0;i < candles.Count;i++)
+            for (int i = 0; i < candles.Count; i++)
             {
-                if(curNumCollapse == 0 
-                    || candles[i].TimeStart.DayOfYear 
+                if (curNumCollapse == 0
+                    || candles[i].TimeStart.DayOfYear
                     != newCandles[newCandles.Count - 1].TimeStart.DayOfYear)
                 {
                     Candle newCandle = new Candle();
@@ -394,7 +408,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             //CANDLE_INTERVAL_1_MIN, CANDLE_INTERVAL_5_MIN, CANDLE_INTERVAL_15_MIN, CANDLE_INTERVAL_HOUR, CANDLE_INTERVAL_DAY
             if (tf == TimeFrame.Min1)
             {
-               
+
             }
             if (tf == TimeFrame.Min2)
             {
@@ -406,7 +420,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
             else if (tf == TimeFrame.Min5)
             {
-                
+
             }
             else if (tf == TimeFrame.Min10)
             {
@@ -414,7 +428,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
             else if (tf == TimeFrame.Min15)
             {
-               
+
             }
             else if (tf == TimeFrame.Min30)
             {
@@ -426,7 +440,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
             else if (tf == TimeFrame.Hour1)
             {
-                
+
             }
             else if (tf == TimeFrame.Hour2)
             {
@@ -438,7 +452,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
             else if (tf == TimeFrame.Day)
             {
-               
+
             }
 
             return result;
@@ -603,11 +617,14 @@ namespace OsEngine.Market.Servers.Tinkoff
                         _lastBalanceUpdTime = DateTime.Now;
                     }
 
-                    UpDateLastPrices();
-
-                    for (int i = 0; i < _securitiesSubscrible.Count; i++)
+                    if (IsGrpcConnection == false)
                     {
-                        GetMarketDepth(_securitiesSubscrible[i]);
+                        UpDateLastPrices();
+
+                        for (int i = 0; i < _securitiesSubscrible.Count; i++)
+                        {
+                            GetMarketDepth(_securitiesSubscrible[i]);
+                        }
                     }
                 }
                 catch (Exception e)
@@ -629,7 +646,196 @@ namespace OsEngine.Market.Servers.Tinkoff
                 return;
             }
             _securitiesSubscrible.Add(security);
+
+            // new logic router
+
+            if (IsGrpcConnection == true)
+            {
+                rateGateGrpcConnect.WaitToProceed();
+
+                CreateProcessRouter();
+
+                Thread thread = new Thread(() => {
+                    SubscribleTradesAndDepthsGrcConnetction(security);
+                });
+                thread.IsBackground = true;
+                thread.Name = "router";
+                thread.Start();
+            }
         }
+
+        // new Logic router
+
+        private Process RouterAplication;
+
+        private void KillRouter()
+        {
+            if (RouterAplication != null)
+            {
+                RouterAplication.Kill();
+            }
+        }
+
+        private void CreateProcessRouter()
+        {
+            if (RouterAplication == null)
+            {
+                RouterAplication = Process.Start(Directory.GetCurrentDirectory() + @"\Tinkoff_Router\Tinkoff_Router.exe", _token);
+            }
+        }
+
+        private void SubscribleTradesAndDepthsGrcConnetction(Security security)
+        {
+            try
+            {
+                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                IPAddress iP = IPAddress.Parse("127.0.0.1");
+                socket.Connect(iP, Convert.ToInt32(7980));
+
+                string Request = security.NameId;
+
+                byte[] array = Encoding.UTF8.GetBytes(Request);
+
+                socket.Send(array);
+
+                WorkingStreamConnectionInRouter(socket, security);
+
+            }
+            catch (Exception error)
+            {
+
+                _isDisposed = true;
+                SendLogMessage(error.Message + error.StackTrace, LogMessageType.Error);
+            }
+        }
+
+        private void WorkingStreamConnectionInRouter(Socket socket, Security security)
+        {
+            byte[] recv = new byte[8192];
+
+            while (true)
+            {
+                socket.Receive(recv, SocketFlags.None);
+
+                string response = Encoding.ASCII.GetString(recv);
+
+                var q = response.Contains(", \"instrumentUid\":");
+                response = response.Replace(", \"instrumentUid\":", "|");
+                response = response.Split('|')[0] + "}";
+
+                if (response.Contains("direction"))
+                {
+                    UpdateTicks(response, security);
+                }
+                else if (response.Contains("depth"))
+                {
+                    UpdateDepths(response, security);
+                }
+                else
+                {
+                    ThrowErrorResponse(response);
+                }
+                socket.Send(new byte[1024]);
+            }
+        }
+
+        private void ThrowErrorResponse(string response)
+        {
+            if (response.Contains("Stream limit exceeded 80001."))
+            {
+                SendLogMessage("Лимит стримов превышен код ошибки 80001. Обратитесь в техподдержку Тинькофф. Перевидите \"Подключение через роутер\" в false в настройках подключения", LogMessageType.Error);
+                _isDisposed = true;
+            }
+            else
+            {
+                SendLogMessage(response, LogMessageType.Error);
+            }
+        }
+
+        private void UpdateDepths(string response, Security security)
+        {
+            try
+            {
+                MarketDepthTinkoffResponse depths = JsonConvert.DeserializeAnonymousType(response, new MarketDepthTinkoffResponse());
+
+
+                List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+
+                for (int i = 0; i < depths.bids.Count; i++)
+                {
+                    MarketDepthLevel newBid = new MarketDepthLevel();
+                    newBid.Bid = depths.bids[i].quantity.ToDecimal();
+                    newBid.Price = depths.bids[i].price.GetValue().ToStringWithNoEndZero().ToDecimal();
+                    bids.Add(newBid);
+                }
+
+                MarketDepth depth = new MarketDepth();
+
+                depth.SecurityNameCode = security.Name;
+                depth.Time = MaxTimeOnServer;
+                depth.Bids = bids;
+
+                List<MarketDepthLevel> asks = new List<MarketDepthLevel>();
+
+
+                for (int i = 0; i < depths.asks.Count; i++)
+                {
+                    MarketDepthLevel newAsk = new MarketDepthLevel();
+                    newAsk.Ask = depths.asks[i].quantity.ToDecimal();
+                    newAsk.Price = depths.asks[i].price.GetValue().ToStringWithNoEndZero().ToDecimal();
+                    asks.Add(newAsk);
+                }
+
+                depth.Asks = asks;
+
+                if (depth.Asks == null ||
+                    depth.Asks.Count == 0 ||
+                    depth.Bids == null ||
+                    depth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                if (UpdateMarketDepth != null)
+                {
+                    UpdateMarketDepth(depth);
+                }
+
+
+            }
+            catch (Exception er)
+            {
+                SendLogMessage(er.Message, LogMessageType.Error);
+            }
+        }
+
+        private void UpdateTicks(string response, Security security)
+        {
+            try
+            {
+                TinkoffTrades trades = JsonConvert.DeserializeAnonymousType(response, new TinkoffTrades());
+                NewTradesEvent(
+                new List<Trade>() {
+                                        new Trade()
+                                        {
+                                            Side = trades.direction.Equals("TRADE_DIRECTION_BUY") ? Side.Buy : Side.Sell,
+                                            SecurityNameCode = security.Name,
+                                            Time = FromIso8601(trades.time),
+                                            Price = trades.price.GetValue().ToStringWithNoEndZero().ToDecimal(),
+                                            Volume = trades.quantity.ToDecimal(),
+                                            Id = FromIso8601(trades.time).Ticks.ToString()
+                                        }
+                                   }
+                );
+
+            }
+            catch (Exception er)
+            {
+                SendLogMessage(er.Message, LogMessageType.Error);
+            }
+        }
+        // end new logic router
 
         List<Security> _securitiesSubscrible = new List<Security>();
 
@@ -646,14 +852,14 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             string figiResponse = "[";
 
-            for(int i = 0;i < _securitiesSubscrible.Count;i++)
+            for (int i = 0; i < _securitiesSubscrible.Count; i++)
             {
-                figiResponse 
-                    += "\"" 
+                figiResponse
+                    += "\""
                     + _securitiesSubscrible[i].NameId
                     + "\"";
 
-                if(i + 1 != _securitiesSubscrible.Count)
+                if (i + 1 != _securitiesSubscrible.Count)
                 {
                     figiResponse += ",";
                 }
@@ -675,12 +881,12 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             List<Trade> newFakeTrades = new List<Trade>();
 
-            for(int i = 0;i < priceResp.lastPrices.Count;i++)
+            for (int i = 0; i < priceResp.lastPrices.Count; i++)
             {
                 LastPrice price = priceResp.lastPrices[i];
                 Security mySec = GetSecurityByFigi(price.figi);
 
-                if(mySec == null)
+                if (mySec == null)
                 {
                     continue;
                 }
@@ -709,7 +915,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private void CreateFakeMd(List<Trade> trades)
         {
-            for(int i = 0;i < trades.Count;i++)
+            for (int i = 0; i < trades.Count; i++)
             {
                 CreateFakeMdByTrade(trades[i]);
             }
@@ -723,7 +929,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             newBid.Bid = trade.Volume;
             newBid.Price = trade.Price;
             bids.Add(newBid);
-            
+
 
             MarketDepth depth = new MarketDepth();
 
@@ -737,7 +943,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             newAsk.Ask = trade.Volume;
             newAsk.Price = trade.Price;
             asks.Add(newAsk);
-            
+
             depth.Asks = asks;
 
             if (depth.Asks == null ||
@@ -758,7 +964,7 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             set
             {
-                if(value < _timeOnServer)
+                if (value < _timeOnServer)
                 {
                     return;
                 }
@@ -799,7 +1005,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
-            for(int i = 0;i < mdResp.bids.Count;i++)
+            for (int i = 0; i < mdResp.bids.Count; i++)
             {
                 MarketDepthLevel newBid = new MarketDepthLevel();
                 newBid.Bid = Convert.ToDecimal(mdResp.bids[i].quantity);
@@ -887,7 +1093,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                     PortfoliosResponse portfoliosResponse = JsonConvert.DeserializeAnonymousType(resPort, new PortfoliosResponse());
 
                     List<PositionOnBoard> byPower = GetPortfolioByPower(portfoliosResponse, account.id);
-                    
+
                     UpdatePositionsInPortfolio(portfoliosResponse, portfoliosResponse.positions, account.id, byPower);
                 }
 
@@ -989,7 +1195,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 myPortfolio.SetNewPosition(sectionPoses[i]);
             }
 
-            for(int i = 0;i < byPower.Count;i++)
+            for (int i = 0; i < byPower.Count; i++)
             {
                 myPortfolio.SetNewPosition(byPower[i]);
             }
@@ -1002,7 +1208,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             {
                 string name = allPoses[i].SecurityNameCode;
 
-                if(sectionPoses.Find(s => s.SecurityNameCode == name) != null)
+                if (sectionPoses.Find(s => s.SecurityNameCode == name) != null)
                 {
                     continue;
                 }
@@ -1058,10 +1264,10 @@ namespace OsEngine.Market.Servers.Tinkoff
                     param.Add("figi", security.NameId);
                     param.Add("quantity", order.Volume.ToString());
                     param.Add("price", ToQuotation(order.Price));
-                    
+
 
                     string side = "ORDER_DIRECTION_BUY";
-                    if(order.Side == Side.Sell)
+                    if (order.Side == Side.Sell)
                     {
                         side = "ORDER_DIRECTION_SELL";
                     }
@@ -1070,7 +1276,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                     param.Add("accountId", order.PortfolioNumber);
 
                     string type = "ORDER_TYPE_LIMIT";
-                    if(order.TypeOrder == OrderPriceType.Market)
+                    if (order.TypeOrder == OrderPriceType.Market)
                     {
                         type = "ORDER_TYPE_MARKET";
                     }
@@ -1082,15 +1288,15 @@ namespace OsEngine.Market.Servers.Tinkoff
                     {
                         json = CreatePrivatePostQuery(url, param);
                     }
-                    catch(Exception error)
+                    catch (Exception error)
                     {
-                        if(error.GetType().Name == "WebException")
+                        if (error.GetType().Name == "WebException")
                         {
                             WebException wExp = (WebException)error;
 
                             SendLogMessage("Error on order Execution \n" + wExp.Message.ToString(), LogMessageType.Error);
 
-                            SendLogMessage(wExp.Response.ToString() + "\n" 
+                            SendLogMessage(wExp.Response.ToString() + "\n"
                                 + wExp.Response.Headers.ToString() + "\n"
                                 , LogMessageType.Error);
                         }
@@ -1107,7 +1313,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
                         return;
                     }
-                    
+
 
                     if (json == null)
                     {
@@ -1277,9 +1483,9 @@ namespace OsEngine.Market.Servers.Tinkoff
         /// </summary>
         public bool GetAllOrders(List<Order> oldOpenOrders)
         {
-            for(int i = 0;i < oldOpenOrders.Count;i++)
+            for (int i = 0; i < oldOpenOrders.Count; i++)
             {
-                if(oldOpenOrders[i].ServerType != ServerType.Tinkoff)
+                if (oldOpenOrders[i].ServerType != ServerType.Tinkoff)
                 {
                     continue;
                 }
@@ -1297,13 +1503,13 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             try
             {
-                lock(_openOrdersArrayLocker)
+                lock (_openOrdersArrayLocker)
                 {
                     for (int i = 0; i < _openedOrders.Count; i++)
                     {
                         Order orderFromArray = _openedOrders[i];
 
-                        if(orderFromArray.State == OrderStateType.Done ||
+                        if (orderFromArray.State == OrderStateType.Done ||
                             orderFromArray.State == OrderStateType.Fail ||
                             orderFromArray.State == OrderStateType.Cancel)
                         {
@@ -1319,7 +1525,7 @@ namespace OsEngine.Market.Servers.Tinkoff
 
                         Order curOrder = GetOldOrderState(orderFromArray.PortfolioNumber, orderFromArray.NumberMarket, _openedOrders[i]);
 
-                        if(curOrder == null)
+                        if (curOrder == null)
                         {
                             continue;
                         }
@@ -1342,35 +1548,35 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         private Order GetOldOrderState(string portfolioId, string orderId, Order oldOrder)
         {
-            if(IsConnected == false)
+            if (IsConnected == false)
             {
                 return null;
             }
 
             OrderStateResponce orderResp = GetHistorycalOrderResponce(portfolioId, orderId);
 
-            if(orderResp == null)
+            if (orderResp == null)
             {
                 return null;
             }
 
             Order order = GenerateOrder(orderResp, oldOrder);
 
-            if (orderResp.stages != null && 
+            if (orderResp.stages != null &&
                 orderResp.stages.Count != 0)
             {
                 List<MyTrade> myTrades = GenerateMyTrades(orderResp, oldOrder);
 
-                if(MyTradeEvent != null)
+                if (MyTradeEvent != null)
                 {
-                    for(int i = 0;i < myTrades.Count;i++)
+                    for (int i = 0; i < myTrades.Count; i++)
                     {
                         MyTradeEvent(myTrades[i]);
                     }
                 }
             }
 
-            if(MyOrderEvent != null)
+            if (MyOrderEvent != null)
             {
                 MyOrderEvent(order);
             }
@@ -1438,7 +1644,7 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             List<MyTrade> trades = new List<MyTrade>();
 
-            for(int i = 0;i < orderResp.stages.Count;i++)
+            for (int i = 0; i < orderResp.stages.Count; i++)
             {
                 MyTrade trade = new MyTrade();
                 trade.SecurityNameCode = oldOrder.SecurityNameCode;

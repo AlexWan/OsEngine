@@ -761,6 +761,10 @@ namespace OsEngine.Language
             "Eng:Token_" +
             "Ru:Token_");
 
+        public string ServerParamGrpcConnection => OsLocalization.ConvertToLocString(
+           "Eng:Сonnection in router_" +
+           "Ru:Подключение через роутер_");
+
         public string ServerParamId => OsLocalization.ConvertToLocString(
             "Eng:Id_" +
             "Ru:Идентификатор_");
