@@ -74,7 +74,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ButtonFirst.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
             ButtonSecond.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
             LabelIndicatorDeviation.Content = OsLocalization.Charts.LabelIndicatorDeviation;
-            
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

@@ -38,6 +38,9 @@ namespace OsEngine.Logging
             Label15.Content = OsLocalization.Logging.Label15;
             Label12.Content = OsLocalization.Logging.Label12;
             Label14.Content = OsLocalization.Logging.Label14;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void buttonAccept_Click(object sender, RoutedEventArgs e) // accept / принять

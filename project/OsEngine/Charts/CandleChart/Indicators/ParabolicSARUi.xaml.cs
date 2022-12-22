@@ -57,8 +57,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             LabelIndicatorStep.Content = OsLocalization.Charts.LabelIndicatorStep;
             LabelIndicatorMaxStep.Content = OsLocalization.Charts.LabelIndicatorMaxStep;
 
+            this.Activate();
+            this.Focus();
         }
-
 
         /// <summary>
         /// accept button

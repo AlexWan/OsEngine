@@ -26,6 +26,9 @@ namespace OsEngine.Alerts
             TextBoxMessage.Text = message;
 
             Title = OsLocalization.Alerts.TitleAlertMessageSimpleUi;
+
+            this.Activate();
+            this.Focus();
         }
     }
 }

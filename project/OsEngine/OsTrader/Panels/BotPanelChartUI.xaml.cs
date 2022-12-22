@@ -56,6 +56,9 @@ namespace OsEngine.OsTrader.Panels
             Title = panel.GetType().Name;
             TabControlBotsName.Items[0] = panel.NameStrategyUniq;
             ButtonShowInformPanel.Visibility = Visibility.Hidden;
+
+            this.Activate();
+            this.Focus();
         }
 
         // для тестирования

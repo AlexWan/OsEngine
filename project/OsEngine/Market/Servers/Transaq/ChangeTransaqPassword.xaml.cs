@@ -16,6 +16,9 @@ namespace OsEngine.Market.Servers.Transaq
             InitializeComponent();
             _server = server;
             TextInfo.Text = message;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

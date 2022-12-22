@@ -28,6 +28,8 @@ namespace OsEngine.OsConverter
             Label4.Header = OsLocalization.Converter.Label4;
             ButtonStart.Content = OsLocalization.Converter.Label5;
 
+            this.Activate();
+            this.Focus();
         }
 
         private OsConverterMaster _master;

@@ -55,6 +55,9 @@ namespace OsEngine.OsMiner.Patterns
             InitializeMiningTab();
 
             Local();
+
+            this.Activate();
+            this.Focus();
         }
 
         private void Local()

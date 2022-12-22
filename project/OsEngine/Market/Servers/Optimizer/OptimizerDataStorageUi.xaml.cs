@@ -78,6 +78,9 @@ namespace OsEngine.Market.Servers.Optimizer
             LabelTo.Content = OsLocalization.Market.Label27;
             Label28.Content = OsLocalization.Market.Label28;
             ButtonSetDataFromPath.Content = OsLocalization.Market.ButtonSetFolder;
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

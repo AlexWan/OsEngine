@@ -35,6 +35,9 @@ namespace OsEngine.OsTrader.Gui
 
             Local();
             TabControlMd.SelectedIndex = 2;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void Local()

@@ -46,6 +46,8 @@ namespace OsEngine.Market.Servers.Tester
             Title = OsLocalization.Charts.Label8;
             LabelGoTo.Content = OsLocalization.Charts.Label9;
 
+            this.Activate();
+            this.Focus();
         }
 
         public void SetLocation(double parentRight, double parentTop)

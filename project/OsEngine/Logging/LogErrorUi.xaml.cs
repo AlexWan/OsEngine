@@ -19,6 +19,9 @@ namespace OsEngine.Logging
             InitializeComponent();
             HostLog.Child = gridErrorLog;
             Title = OsLocalization.Logging.TitleExtraLog;
+
+            this.Activate();
+            this.Focus();
         }
     }
 }

@@ -208,6 +208,9 @@ namespace OsEngine.Market.Connectors
             {
                 MessageBox.Show(error.ToString());
             }
+
+            this.Activate();
+            this.Focus();
         }
 
         private void MassSourcesCreateUi_Closed(object sender, EventArgs e)

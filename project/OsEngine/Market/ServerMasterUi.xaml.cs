@@ -56,6 +56,9 @@ namespace OsEngine.Market
                 painter.Dispose();
                 painter = null;
             };
+
+            this.Activate();
+            this.Focus();
         }
     }
 }

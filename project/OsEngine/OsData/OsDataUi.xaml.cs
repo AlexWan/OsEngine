@@ -31,6 +31,9 @@ namespace OsEngine.OsData
             CheckBoxPaintOnOff.Content = OsLocalization.Data.Label25;
             Label26.Header = OsLocalization.Data.Label26;
             NewDataSetButton.Content = OsLocalization.Data.Label30;
+
+            this.Activate();
+            this.Focus();
         }
 
         void CheckBoxPaintOnOff_Click(object sender, RoutedEventArgs e)

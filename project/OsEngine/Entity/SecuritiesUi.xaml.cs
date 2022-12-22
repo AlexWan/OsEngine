@@ -32,6 +32,9 @@ namespace OsEngine.Entity
             _server = server;
 
             Title = OsLocalization.Entity.TitleSecuritiesUi;
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

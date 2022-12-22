@@ -17,6 +17,8 @@ namespace OsEngine.Entity
         public ProxyHolderAddUi()
         {
             InitializeComponent();
+            this.Activate();
+            this.Focus();
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)

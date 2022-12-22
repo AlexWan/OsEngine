@@ -37,7 +37,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             LabelLinesStep.Content = OsLocalization.Trader.Label80;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
 
-
+            this.Activate();
+            this.Focus();
         }
 
         private void TextBoxStep_TextChanged(object sender, TextChangedEventArgs e)

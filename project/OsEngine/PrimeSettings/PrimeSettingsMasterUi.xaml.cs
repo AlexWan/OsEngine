@@ -55,6 +55,9 @@ namespace OsEngine.PrimeSettings
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void ChangeText()

@@ -23,6 +23,9 @@ namespace OsEngine.Alerts
             Title = OsLocalization.Alerts.TitleAlertMessageFullUi;
 
             OsLocalization.LocalizationTypeChangeEvent += delegate { Title = OsLocalization.Alerts.TitleAlertMessageFullUi; };
+
+            this.Activate();
+            this.Focus();
         }
     }
 }

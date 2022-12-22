@@ -161,6 +161,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     _lastScriptGrid = true;
                 }
             };
+
+            this.Activate();
+            this.Focus();
         }
 
         public IIndicator IndicatorCandle;

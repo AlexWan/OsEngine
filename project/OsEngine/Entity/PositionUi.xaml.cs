@@ -46,6 +46,9 @@ namespace OsEngine.Entity
             PositionLabel2.Content = OsLocalization.Entity.PositionLabel2;
             PositionLabel3.Content = OsLocalization.Entity.PositionLabel3;
             SaveChangesButton.Content = OsLocalization.Entity.PositionLabel4;
+
+            this.Activate();
+            this.Focus();
         }
 
         StartProgram _startProgramm;

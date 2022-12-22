@@ -27,6 +27,9 @@ namespace OsEngine.OsMiner
             Title = OsLocalization.Miner.Title1;
             Label3.Content = OsLocalization.Miner.Label3;
             ButtonAccept.Content = OsLocalization.Miner.Button1;
+
+            this.Activate();
+            this.Focus();
         }
 
         public bool IsActivate;

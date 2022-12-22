@@ -72,6 +72,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             LabelIndicatorSmaType.Content = OsLocalization.Charts.LabelIndicatorSmaType;
 
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

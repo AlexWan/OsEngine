@@ -44,6 +44,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelSide.Content = OsLocalization.Trader.Label106;
 
+            this.Activate();
+            this.Focus();
         }
 
         void ComboBoxOrderType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

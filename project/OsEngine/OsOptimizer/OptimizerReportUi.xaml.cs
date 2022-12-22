@@ -53,7 +53,9 @@ namespace OsEngine.OsOptimizer
             {
                 Title += "  " + master.TabsSimpleNamesAndTimeFrames[0].NameSecurity + "  " + master.TabsSimpleNamesAndTimeFrames[0].TimeFrame;
             }
-            
+
+            this.Activate();
+            this.Focus();
         }
 
         public void Paint(List<OptimazerFazeReport> reports)

@@ -40,6 +40,8 @@ namespace OsEngine.Market.Servers.SmartCom
             ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
             ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
 
+            this.Activate();
+            this.Focus();
         }
 
         void _server_ConnectStatusChangeEvent(string state)

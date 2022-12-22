@@ -26,6 +26,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonAccept.Content = OsLocalization.Trader.Label17;
 
             this.Closed += BotTabIndexUi_Closed;
+
+            this.Activate();
+            this.Focus();
         }
 
         public bool IndexOrSourcesChanged = false;

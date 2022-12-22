@@ -122,8 +122,6 @@ namespace OsEngine.Robots.Trend
                 _tab.CloseAtTrailingStop(position,
                     activationPrice, orderPrice);
             }
-
-
         }
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)

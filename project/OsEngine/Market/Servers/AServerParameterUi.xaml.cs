@@ -47,6 +47,9 @@ namespace OsEngine.Market.Servers
                 TabItemLog.IsSelected = true;
             }
             this.Closed += AServerParameterUi_Closed;
+
+            this.Activate();
+            this.Focus();
         }
 
         public void Dispose()

@@ -48,7 +48,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColorDown;
             CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
-         }
+
+            this.Activate();
+            this.Focus();
+        }
 
         /// <summary>
         /// accept button

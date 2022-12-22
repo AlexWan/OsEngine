@@ -117,7 +117,6 @@ namespace OsEngine.OsData
 
             ComboBoxMarketDepthDepth.SelectedItem = _set.MarketDepthDepth;
 
-
             CreateSecuritiesTable();
             ReloadSecuritiesOnTable();
             CheckButtons();
@@ -134,6 +133,8 @@ namespace OsEngine.OsData
             CheckBoxNeadToLoadDataInServers.Content = OsLocalization.Data.Label21;
             CheckBoxNeadToUpDate.Content = OsLocalization.Data.Label22;
 
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

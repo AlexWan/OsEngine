@@ -47,7 +47,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColorDown;
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
 
-
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

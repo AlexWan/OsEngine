@@ -39,6 +39,9 @@ namespace OsEngine.Robots.MarketMaker
             LabelSlippage1.Content = OsLocalization.Trader.Label92 + 1;
             LabelVolume1.Content = OsLocalization.Trader.Label30 + 2;
             LabelSlippage1.Content = OsLocalization.Trader.Label92 + 2;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

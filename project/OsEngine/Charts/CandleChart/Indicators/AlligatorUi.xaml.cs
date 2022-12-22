@@ -85,6 +85,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             LabelIndicatorShift1.Content = OsLocalization.Charts.LabelIndicatorShift;
             LabelIndicatorShift2.Content = OsLocalization.Charts.LabelIndicatorShift;
             LabelIndicatorShift3.Content = OsLocalization.Charts.LabelIndicatorShift;
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

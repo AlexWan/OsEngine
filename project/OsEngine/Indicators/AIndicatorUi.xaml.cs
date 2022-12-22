@@ -35,6 +35,8 @@ namespace OsEngine.Indicators
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
             ButtonDefault.Content = OsLocalization.Charts.Label5;
 
+            this.Activate();
+            this.Focus();
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

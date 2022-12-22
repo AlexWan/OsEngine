@@ -62,6 +62,9 @@ namespace OsEngine.Entity
             }
 
             this.Closed += ParemetrsUi_Closed;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void ParemetrsUi_Closed(object sender, EventArgs e)

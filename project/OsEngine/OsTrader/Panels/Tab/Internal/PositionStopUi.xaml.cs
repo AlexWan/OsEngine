@@ -30,6 +30,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelActivationPrice.Content = OsLocalization.Trader.Label108;
             LabelOrderPrice.Content = OsLocalization.Trader.Label109;
+
+            this.Activate();
+            this.Focus();
         }
 
         public bool IsAccept;

@@ -95,6 +95,9 @@ namespace OsEngine
             CommandLineInterfaceProcess();
 
             Task.Run(ClearOptimizerWorkResults);
+
+            this.Activate();
+            this.Focus();
         }
 
         private void ChangeText()

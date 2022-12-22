@@ -43,6 +43,8 @@ namespace OsEngine.Robots.Patterns
             LabelProfit.Content = OsLocalization.Trader.Label87 + " %";
             LabelStop.Content = OsLocalization.Trader.Label86 + " %";
 
+            this.Activate();
+            this.Focus();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

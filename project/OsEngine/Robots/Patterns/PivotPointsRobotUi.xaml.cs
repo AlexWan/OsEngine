@@ -39,6 +39,9 @@ namespace OsEngine.Robots.Patterns
             LabelSlippage.Content = OsLocalization.Trader.Label92;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelStopOrder.Content = OsLocalization.Trader.Label123;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

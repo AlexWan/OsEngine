@@ -82,6 +82,8 @@ namespace OsEngine.Journal
 
             Closing += JournalUi_Closing;
 
+            this.Activate();
+            this.Focus();
         }
 
         private CultureInfo _currentCulture;

@@ -62,6 +62,9 @@ namespace OsEngine.Alerts
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
 
             LabelOsa.MouseDown += LabelOsa_MouseDown;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void ChangeText()

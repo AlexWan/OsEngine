@@ -52,7 +52,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
             LabelIndicatorSmoothing.Content = OsLocalization.Charts.LabelIndicatorSmoothing;
 
-
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

@@ -45,6 +45,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             HostColorAvg.Child.BackColor = _donchian.ColorAvg;
 
             CheckBoxPaintOnOff.IsChecked = _donchian.PaintOn;
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

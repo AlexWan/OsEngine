@@ -51,6 +51,9 @@ namespace OsEngine.OsData
             ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
             CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
             CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void CheckBoxSelectAllCheckBox_Click(object sender, RoutedEventArgs e)

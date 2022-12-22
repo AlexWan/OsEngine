@@ -31,6 +31,9 @@ namespace OsEngine.Market.Servers.Finam
             Label21.Content = OsLocalization.Market.Label21;
             ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
             ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
+
+            this.Activate();
+            this.Focus();
         }
 
         void _server_ConnectStatusChangeEvent(string state)

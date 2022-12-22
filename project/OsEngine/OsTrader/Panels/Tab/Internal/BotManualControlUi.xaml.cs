@@ -101,6 +101,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 MessageBox.Show(error.ToString());
             }
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

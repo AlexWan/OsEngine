@@ -208,6 +208,9 @@ namespace OsEngine.Market.Servers.Tester
             barUpdater.CurrentCulture = new CultureInfo("ru-RU");
             barUpdater.IsBackground = true;
             barUpdater.Start();
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

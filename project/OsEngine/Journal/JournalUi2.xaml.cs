@@ -96,6 +96,9 @@ namespace OsEngine.Journal
             task2.Start();
 
             CreateSlidersShowPositions();
+
+            this.Activate();
+            this.Focus();
         }
 
         private CultureInfo _currentCulture;

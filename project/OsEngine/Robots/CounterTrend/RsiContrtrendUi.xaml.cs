@@ -38,6 +38,9 @@ namespace OsEngine.Robots.CounterTrend
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelRsiOverbought.Content = OsLocalization.Trader.Label141;
             LabelRsiOversold.Content = OsLocalization.Trader.Label142;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

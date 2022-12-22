@@ -205,6 +205,9 @@ namespace OsEngine.Market.Connectors
             }
 
             Closing += ConnectorCandlesUi_Closing;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void CheckBoxSaveTradeArrayInCandle_Click(object sender, RoutedEventArgs e)

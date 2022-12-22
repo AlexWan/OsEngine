@@ -35,6 +35,8 @@ namespace OsEngine.OsTrader.Gui
 
             _painterServer = new ServerMasterPainter(HostServers, HostServerLog, CheckBoxServerAutoOpen);
 
+            this.Activate();
+            this.Focus();
         }
 
         ServerMasterPainter _painterServer;

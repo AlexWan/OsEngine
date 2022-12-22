@@ -31,6 +31,9 @@ namespace OsEngine.OsConverter
             ComboBoxTimeFrameInitial.Items.Add(TimeFrame.Min1.ToString());
             ComboBoxTimeFrameInitial.Items.Add(TimeFrame.Min5.ToString());
             ComboBoxTimeFrameInitial.SelectedItem = TimeFrame.Min1.ToString();
+
+            this.Activate();
+            this.Focus();
         }
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)

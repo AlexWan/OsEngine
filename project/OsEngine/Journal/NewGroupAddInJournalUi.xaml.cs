@@ -20,6 +20,9 @@ namespace OsEngine.Journal
             _oldGroupNames = oldGroupNames;
             Title = OsLocalization.Journal.Label13;
             ButtonAccept.Content = OsLocalization.Journal.Label14;
+
+            this.Activate();
+            this.Focus();
         }
 
         public bool IsAccepted;

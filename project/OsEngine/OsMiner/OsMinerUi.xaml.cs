@@ -18,6 +18,9 @@ namespace OsEngine.OsMiner
             Label6.Header = OsLocalization.Miner.Label6;
             Label52.Content = OsLocalization.Miner.Label5;
             Label7.Content = OsLocalization.Miner.Label7;
+
+            this.Activate();
+            this.Focus();
         }
 
         private OsMinerMaster _miner;

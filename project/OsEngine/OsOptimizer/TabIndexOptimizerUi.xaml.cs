@@ -92,6 +92,9 @@ namespace OsEngine.OsOptimizer
             ButtonAddSecurity.Content = OsLocalization.Optimizer.Label4;
             ButtonDeleteSecurity.Content = OsLocalization.Optimizer.Label5;
             ButtonAccept.Content = OsLocalization.Optimizer.Label6;
+
+            this.Activate();
+            this.Focus();
         }
 
         private List<SecurityTester> _securities;

@@ -40,6 +40,9 @@ namespace OsEngine.Robots.CounterTrend
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelUp.Content = OsLocalization.Trader.Label155;
             LabelLow.Content = OsLocalization.Trader.Label156;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

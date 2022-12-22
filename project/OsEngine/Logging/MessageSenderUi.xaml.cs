@@ -56,6 +56,9 @@ namespace OsEngine.Logging
             CheckBoxWebhookError.Content = OsLocalization.Logging.Label8;
             CheckBoxWebhookSystem.Content = OsLocalization.Logging.Label9;
             CheckBoxWebhookConnect.Content = OsLocalization.Logging.Label10;
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

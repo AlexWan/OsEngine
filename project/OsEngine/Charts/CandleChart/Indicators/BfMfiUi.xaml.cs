@@ -27,6 +27,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
 
+            this.Activate();
+            this.Focus();
         }
 
         private void ShowSettingsOnForm()// upload settings to form/выгрузить настройки на форму

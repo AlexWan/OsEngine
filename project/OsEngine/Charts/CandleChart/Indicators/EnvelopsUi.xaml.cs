@@ -54,6 +54,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             LabelIndicatorDeviation.Content = OsLocalization.Charts.LabelIndicatorDeviation;
             ButtonMa.Content = OsLocalization.Charts.LabelIndicatorSettingsSma;
 
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

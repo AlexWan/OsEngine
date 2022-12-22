@@ -179,6 +179,9 @@ namespace OsEngine.OsOptimizer
             this.Closing += Ui_Closing;
 
             Task.Run(new Action(StrategyLoader));
+
+            this.Activate();
+            this.Focus();
         }
 
         void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)

@@ -62,6 +62,9 @@ namespace OsEngine.Robots
 
             ItemInclude.Header = OsLocalization.Charts.Label6;
             ItemScript.Header = OsLocalization.Charts.Label7;
+
+            this.Activate();
+            this.Focus();
         }
 
         private List<string> _botsIncluded;

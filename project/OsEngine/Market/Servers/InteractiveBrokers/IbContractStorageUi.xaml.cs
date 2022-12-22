@@ -99,6 +99,9 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             Closing += IbContractStorageUi_Closing;
             _grid.Click += _grid_Click;
             _grid.CellValueChanged += _grid_CellValueChanged;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void IbContractStorageUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

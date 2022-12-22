@@ -57,6 +57,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
             LabelIndicatorDeviation.Content = OsLocalization.Charts.LabelIndicatorDeviation;
 
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

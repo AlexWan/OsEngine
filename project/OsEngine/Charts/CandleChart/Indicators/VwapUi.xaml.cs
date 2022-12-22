@@ -71,6 +71,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             HostColorWeekDown.Child = new System.Windows.Forms.TextBox();
             HostColorWeekDown.Child.BackColor = _indicator.ColorWeekDev;
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

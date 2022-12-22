@@ -40,6 +40,8 @@ namespace OsEngine.OsTrader.RiskManager
             CheckBoxIsOn.Content = OsLocalization.Trader.Label16;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
 
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

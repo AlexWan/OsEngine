@@ -51,6 +51,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TextBoxStochasticLength.Text = _rsi.StochasticLength.ToString();
             TextBoxK.Text = _rsi.K.ToString();
             TextBoxD.Text = _rsi.D.ToString();
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

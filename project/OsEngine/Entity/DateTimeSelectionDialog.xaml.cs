@@ -30,7 +30,9 @@ namespace OsEngine.Entity
             LabelMinute.Content = OsLocalization.Entity.TimeChangeDialogLabel4;
             LabelSecond.Content = OsLocalization.Entity.TimeChangeDialogLabel5;
 
-         }
+            this.Activate();
+            this.Focus();
+        }
 
         public DateTime Time;
 

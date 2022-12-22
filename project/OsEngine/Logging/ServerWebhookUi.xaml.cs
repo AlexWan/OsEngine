@@ -38,6 +38,9 @@ namespace OsEngine.Logging
             Label16.Content = OsLocalization.Logging.Label16;
             Label17.Content = OsLocalization.Logging.Label17;
             CheckBoxSendScreenshots.Content = OsLocalization.Logging.Label18;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void buttonAccept_Click(object sender, RoutedEventArgs e) // accept / принять

@@ -36,7 +36,8 @@ namespace OsEngine.Robots.MarketMaker
             CheckBoxNeadToPaint.Content = OsLocalization.Trader.Label131;
             ButtonAccept.Content = OsLocalization.Trader.Label117;
 
-
+            this.Activate();
+            this.Focus();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

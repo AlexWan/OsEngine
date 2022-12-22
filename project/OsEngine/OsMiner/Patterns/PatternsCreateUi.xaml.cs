@@ -18,6 +18,9 @@ namespace OsEngine.OsMiner.Patterns
             Title = OsLocalization.Miner.Label26;
             LabelName.Content = OsLocalization.Miner.Message4;
             ButtonAccept.Content = OsLocalization.Miner.Button1;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

@@ -52,6 +52,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
             LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
             LabelIndicatorMultiplier.Content = OsLocalization.Charts.LabelIndicatorMultiplier;
+
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

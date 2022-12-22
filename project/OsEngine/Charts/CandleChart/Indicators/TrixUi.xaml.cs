@@ -61,6 +61,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             LabelIndicatorPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
             LabelIndicatorSmaType.Content = OsLocalization.Charts.LabelIndicatorSmaType;
 
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>

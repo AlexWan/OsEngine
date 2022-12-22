@@ -53,6 +53,9 @@ namespace OsEngine.Market.Servers.AstsBridge
             CheckBoxNeadToSaveTrade.Content = OsLocalization.Market.ServerParam1;
             LabelDaysToLoad.Content = OsLocalization.Market.ServerParam2;
 
+            this.Activate();
+            this.Focus();
+
         }
 
         void _server_ConnectStatusChangeEvent(string state)

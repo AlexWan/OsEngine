@@ -117,6 +117,9 @@ namespace OsEngine.Alerts
 
 
             LabelOsa.MouseDown += LabelOsa_MouseDown;
+
+            this.Activate();
+            this.Focus();
         }
 
         private void ChangeText()

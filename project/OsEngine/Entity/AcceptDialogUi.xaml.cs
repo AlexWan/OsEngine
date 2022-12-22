@@ -64,6 +64,8 @@ namespace OsEngine.Entity
             Title = OsLocalization.Entity.TitleAcceptDialog;
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
 
+            this.Activate();
+            this.Focus();
         }
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)

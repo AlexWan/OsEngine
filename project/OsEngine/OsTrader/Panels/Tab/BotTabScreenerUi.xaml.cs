@@ -205,6 +205,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 MessageBox.Show(error.ToString());
             }
+
+            this.Activate();
+            this.Focus();
         }
 
         private void BotTabScreenerUi_Closed(object sender, EventArgs e)

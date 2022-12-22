@@ -24,6 +24,9 @@ namespace OsEngine.OsMiner.Patterns
             PaintTable();
 
             Title = OsLocalization.Miner.Title2;
+
+            this.Activate();
+            this.Focus();
         }
 
         public event Action<TestResult> UserClickOnNewPattern; 

@@ -40,6 +40,8 @@ namespace OsEngine.OsTrader.Gui
             TabControlPrime.MouseEnter += TabControlPrime_MouseEnter;
             TabControlPrime.MouseLeave += TabControlPrime_MouseLeave;
 
+            this.Activate();
+            this.Focus();
         }
 
         private void Local()
