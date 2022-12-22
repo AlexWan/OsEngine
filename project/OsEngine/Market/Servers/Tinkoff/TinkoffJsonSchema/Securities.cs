@@ -67,12 +67,17 @@ namespace OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema
             }
 
             string unitsWithNoMin = units.Replace("-", "");
-            string nanoWithNoMin = nano.Replace("-", "");
+            string nanoWithNoMin;
+            nanoWithNoMin = "0";
+            if (nano != null)
+            {
+                nanoWithNoMin = nano.Replace("-", "");
+            }
 
             // 23.11 -> {"units":"23","nano":110000000}"
             // 23.01 -> {"units":"23","nano":10000000}"
 
-            while(nanoWithNoMin.Length < 9)
+            while (nanoWithNoMin.Length < 9)
             {
                 nanoWithNoMin = nanoWithNoMin.Insert(0, "0");
             }

@@ -774,6 +774,7 @@
     <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\OrdersTInkoff.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\Portfolios.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\Securities.cs" />
+    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\TinkoffTrades.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffServer.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffServerPermission.cs" />
     <Compile Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml.cs">

@@ -19,6 +19,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             TinkoffServerRealization realization = new TinkoffServerRealization();
             ServerRealization = realization;
             CreateParameterString(OsLocalization.Market.ServerParamToken, "");
+            CreateParameterBoolean(OsLocalization.Market.ServerParamGrpcConnection, false);
         }
 
         /// <summary>
@@ -105,7 +106,8 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             if (_client == null)
             {
-                _client = new TinkoffClient(((ServerParameterString)ServerParameters[0]).Value);
+                _client = new TinkoffClient(((ServerParameterString)ServerParameters[0]).Value,
+                    ((ServerParameterBool)ServerParameters[1]).Value);
                 _client.Connected += _client_Connected;
                 _client.UpdatePairs += _client_UpdatePairs;
                 _client.Disconnected += _client_Disconnected;
@@ -151,7 +153,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             {
                 from = DateTime.Now.AddDays(-10);
             }
-            if (tf == TimeFrame.Min20 
+            if (tf == TimeFrame.Min20
                 || tf == TimeFrame.Min30
                 || tf == TimeFrame.Min45)
             {
@@ -256,28 +258,28 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             List<Candle> actualCandles = series.CandlesAll;
 
-            if(actualCandles.Count < 2)
+            if (actualCandles.Count < 2)
             {
                 return;
             }
 
             List<Candle> newCandles = GetShortCandleHistory(series.Security.NameId, series.TimeFrameBuilder.TimeFrame);
 
-            if(newCandles == null 
+            if (newCandles == null
                 || newCandles.Count == 0)
             {
                 return;
             }
-            
-            for(int i = newCandles.Count-1;i > 0 && i > newCandles.Count -5;i--)
+
+            for (int i = newCandles.Count - 1; i > 0 && i > newCandles.Count - 5; i--)
             {
                 Candle newCandle = newCandles[i];
 
-                for(int i2 = actualCandles.Count-1;i2 > 0 && i2 > actualCandles.Count-10;i2--)
+                for (int i2 = actualCandles.Count - 1; i2 > 0 && i2 > actualCandles.Count - 10; i2--)
                 {
                     Candle actualCandle = actualCandles[i2];
 
-                    if(newCandle.TimeStart == actualCandle.TimeStart)
+                    if (newCandle.TimeStart == actualCandle.TimeStart)
                     {
                         actualCandle.High = newCandle.High;
                         actualCandle.Low = newCandle.Low;
