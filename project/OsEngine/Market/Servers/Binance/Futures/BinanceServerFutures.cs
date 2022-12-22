@@ -286,8 +286,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 if (newTrades != null && newTrades.Count != 0)
                     trades.AddRange(newTrades);
                 else
+                {
+                    startOver.AddDays(1);
                     break;
-
+                }    
+                   
                 startOver = trades[trades.Count - 1].Time.AddMilliseconds(1);
 
 

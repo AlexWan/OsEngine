@@ -844,17 +844,45 @@ namespace OsEngine.OsData
             {
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
-                    SendNewLogMessage(OsLocalization.Data.Label28 + SecuritiesNames[i].Id, LogMessageType.System);
-                    
-                    while (_myServer.GetTickDataToSecurity(SecuritiesNames[i].Id, SecuritiesNames[i].Class, TimeStart, TimeEnd, GetActualTimeToTrade("Data\\" + SetName + "\\" + SecuritiesNames[i].Name.RemoveExcessFromSecurityName() + "\\Tick"), NeadToUpdate) == false)
-                    {
-                        await Task.Delay(5000);
-                    }
-                    SendNewLogMessage(OsLocalization.Data.Label29 + SecuritiesNames[i].Id, LogMessageType.System);
+                    StartThisTrades(SecuritiesNames[i]);
                 }
             }
 
             _setIsActive = true;
+        }
+
+        string _lockerTradesToLoad = "tradesLoadLocker";
+
+        /// <summary>
+        /// run on download/запустить на скачивание
+        /// </summary>
+        /// <param name="name">paper name/название бумаги</param>
+        /// <param name="timeFrame">time frame/тайм фрейм</param>
+        private async void StartThisTrades(SecurityToLoad loadSec)
+        {
+            bool tradesIsLoad = false;
+
+            while (tradesIsLoad == false)
+            {
+                lock(_lockerTradesToLoad)
+                {
+                    tradesIsLoad =
+                        _myServer.GetTickDataToSecurity(loadSec.Id, loadSec.Class,
+                        TimeStart, TimeEnd,
+                        GetActualTimeToTrade("Data\\" + SetName + "\\" + loadSec.Name.RemoveExcessFromSecurityName() + "\\Tick"), NeadToUpdate);
+
+                    if (tradesIsLoad)
+                    {
+                        SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + "Trades" + " Loaded", LogMessageType.System);
+                    }
+                    else
+                    {
+                        SendNewLogMessage("Security: " + loadSec.Name + " Tf: " + "Trades" + " Did not load. We will try it again", LogMessageType.System);
+                    }
+                }
+
+                await Task.Delay(10000);
+            }
         }
 
         /// <summary>
