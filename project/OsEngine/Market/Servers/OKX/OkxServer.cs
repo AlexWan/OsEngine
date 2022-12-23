@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Net.Http;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.OKX
 {
@@ -138,6 +139,7 @@ namespace OsEngine.Market.Servers.OKX
             Thread checkOrdersWorkerPlace = new Thread(CheckOrdersWorkerPlace);
             checkOrdersWorkerPlace.CurrentCulture = new CultureInfo("ru-RU");
             checkOrdersWorkerPlace.IsBackground = true;
+            checkOrdersWorkerPlace.Name = "ConvertToTrade";
             checkOrdersWorkerPlace.Start();
 
             _client.SubscribleOrders(security);
@@ -205,26 +207,30 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     if (OrdersToCheckMyTrades.IsEmpty == false)
                     {
-                        Thread.Sleep(1000);
-
-                        Order orderToCheck = null;
-
-                        if (OrdersToCheckMyTrades.TryDequeue(out orderToCheck))
+                        new Task(() =>
                         {
-                            List<MyTrade> tradesInOrder = GenerateTradesToOrder(orderToCheck);
+                            Task.Delay(300);
 
-                            for (int i = 0; i < tradesInOrder.Count; i++)
+                            Order orderToCheck = null;
+
+                            if (OrdersToCheckMyTrades.TryDequeue(out orderToCheck))
                             {
-                                lock (lockerMyTrades)
+                                List<MyTrade> tradesInOrder = GenerateTradesToOrder(orderToCheck, 1);
+
+                                for (int i = 0; i < tradesInOrder.Count; i++)
                                 {
-                                    MyTradeEvent(tradesInOrder[i]);
+                                    lock (lockerMyTrades)
+                                    {
+                                        MyTradeEvent(tradesInOrder[i]);
+                                    }
                                 }
                             }
-                        }
+                        }).Start();
+
                     }
                     else
                     {
-                        Thread.Sleep(1000);
+                        Thread.Sleep(200);
                     }
                 }
                 catch (Exception error)
@@ -235,8 +241,16 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private List<MyTrade> GenerateTradesToOrder(Order order)
+        private List<MyTrade> GenerateTradesToOrder(Order order, int SeriasCalls)
         {
+            List<MyTrade> myTrades = new List<MyTrade>();
+
+            if (SeriasCalls >= 4)
+            {
+                SendLogMessage($"Trade is not found to order: {order.NumberUser}", LogMessageType.Error);
+                return myTrades;
+            }
+
             var PublicKey = (ServerParameterString)ServerParameters[0];
             var SeckretKey = (ServerParameterPassword)ServerParameters[1];
             var Password = (ServerParameterPassword)ServerParameters[2];
@@ -258,30 +272,44 @@ namespace OsEngine.Market.Servers.OKX
 
                 var quotes = JsonConvert.DeserializeAnonymousType(contentStr, new TradeDetailsResponce());
 
-
-                List<MyTrade> myTrades = new List<MyTrade>();
-
-                for (int i = 0; i < quotes.data.Count; i++)
+                if (quotes == null ||
+                    quotes.data == null ||
+                    quotes.data.Count == 0)
                 {
-                    var item = quotes.data[i];
+                    Thread.Sleep(200 * SeriasCalls);
 
-                    MyTrade myTrade = new MyTrade();
+                    SeriasCalls++;
 
-                    myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts));
-                    myTrade.NumberOrderParent = item.ordId.ToString();
-                    myTrade.NumberTrade = item.tradeId.ToString();
-                    myTrade.Volume = item.fillSz.Replace('.', ',').ToDecimal();
-                    if (!item.fillPx.Equals(String.Empty))
-                    {
-                        myTrade.Price = item.fillPx.Replace('.', ',').ToDecimal();
-                    }
-                    myTrade.SecurityNameCode = item.instId;
-                    myTrade.Side = item.posSide.Equals("long") ? Side.Buy : Side.Sell;
-
-                    myTrades.Add(myTrade);
-
+                    return GenerateTradesToOrder(order, SeriasCalls);
                 }
+
+                CreateListTrades(myTrades, quotes);
+
                 return myTrades;
+            }
+        }
+
+        private void CreateListTrades(List<MyTrade> myTrades, TradeDetailsResponce quotes)
+        {
+            for (int i = 0; i < quotes.data.Count; i++)
+            {
+                var item = quotes.data[i];
+
+                MyTrade myTrade = new MyTrade();
+
+                myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts));
+                myTrade.NumberOrderParent = item.ordId.ToString();
+                myTrade.NumberTrade = item.tradeId.ToString();
+                myTrade.Volume = item.fillSz.Replace('.', ',').ToDecimal();
+                if (!item.fillPx.Equals(String.Empty))
+                {
+                    myTrade.Price = item.fillPx.Replace('.', ',').ToDecimal();
+                }
+                myTrade.SecurityNameCode = item.instId;
+                myTrade.Side = item.posSide.Equals("long") ? Side.Buy : Side.Sell;
+
+                myTrades.Add(myTrade);
+
             }
         }
 
@@ -591,13 +619,13 @@ namespace OsEngine.Market.Servers.OKX
                 if (securityType == SecurityType.CurrencyPair)
                 {
                     security.Name = item.instId;
-                    security.NameFull = item.quoteCcy + "_SPOT";
+                    security.NameFull = item.instId;
                     security.NameClass = "SPOT";
                 }
                 if (securityType == SecurityType.Futures)
                 {
                     security.Name = item.instId;
-                    security.NameFull = item.ctValCcy + "_SWAP";
+                    security.NameFull = item.instId;
                     security.NameClass = "SWAP";
                 }
 
