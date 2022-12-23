@@ -30,6 +30,17 @@ namespace OsEngine.Market.Servers.OKX
 
         private bool _isDisposed = false;
 
+
+        #region LockersWebSockets
+
+        private object lockerPositionsWs = new object();
+        private object lockerOrdersWs = new object();
+        private object lockerTradesWs = new object();
+        private object lockerDepthsWs = new object();
+
+        #endregion
+
+
         //Задержка на подписку для вебсокетов
         public RateGate _rateGateWebSocket = new RateGate(1, TimeSpan.FromMilliseconds(1500));
 
@@ -210,34 +221,46 @@ namespace OsEngine.Market.Servers.OKX
             {
                 try
                 {
-                    Thread.Sleep(20000);
+                    Thread.Sleep(10000);
 
-                    foreach (var wsPos in _wsChanelPositions)
+                    lock (lockerPositionsWs)
                     {
-                        if (wsPos.Value.State == WebSocketState.Open)
+                        foreach (var wsPos in _wsChanelPositions)
                         {
-                            wsPos.Value.Send("ping");
+                            if (wsPos.Value.State == WebSocketState.Open)
+                            {
+                                wsPos.Value.Send("ping");
+                            }
                         }
                     }
-                    foreach (var wsOrd in _wsChanelOrders)
+                    lock (lockerOrdersWs)
                     {
-                        if (wsOrd.Value.State == WebSocketState.Open)
+                        foreach (var wsOrd in _wsChanelOrders)
                         {
-                            wsOrd.Value.Send("ping");
+                            if (wsOrd.Value.State == WebSocketState.Open)
+                            {
+                                wsOrd.Value.Send("ping");
+                            }
                         }
                     }
-                    foreach (var wsDepth in _wsChanelDepths)
+                    lock (lockerTradesWs)
                     {
-                        if (wsDepth.Value.State == WebSocketState.Open)
+                        foreach (var wsTrade in _wsChanelTrades)
                         {
-                            wsDepth.Value.Send("ping");
+                            if (wsTrade.Value.State == WebSocketState.Open)
+                            {
+                                wsTrade.Value.Send("ping");
+                            }
                         }
                     }
-                    foreach (var wsTrade in _wsChanelTrades)
+                    lock (lockerDepthsWs)
                     {
-                        if (wsTrade.Value.State == WebSocketState.Open)
+                        foreach (var wsDepth in _wsChanelDepths)
                         {
-                            wsTrade.Value.Send("ping");
+                            if (wsDepth.Value.State == WebSocketState.Open)
+                            {
+                                wsDepth.Value.Send("ping");
+                            }
                         }
                     }
                 }
@@ -471,7 +494,10 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 _wsClientPositions.Open();
-                _wsChanelPositions.Add(security.Name, _wsClientPositions);
+                lock (lockerPositionsWs)
+                {
+                    _wsChanelPositions.Add(security.Name, _wsClientPositions);
+                }
             }
         }
 
@@ -657,7 +683,11 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 _wsClientOrders.Open();
-                _wsChanelOrders.Add(security.Name, _wsClientOrders);
+
+                lock (lockerOrdersWs)
+                {
+                    _wsChanelOrders.Add(security.Name, _wsClientOrders);
+                }
             }
         }
 
@@ -1154,7 +1184,11 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 _wsClientDepths.Open();
-                _wsChanelDepths.Add(security.Name, _wsClientDepths);
+
+                lock (lockerDepthsWs)
+                {
+                    _wsChanelDepths.Add(security.Name, _wsClientDepths);
+                }
             }
         }
 
@@ -1287,7 +1321,11 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 _wsClientTrades.Open();
-                _wsChanelTrades.Add(security.Name, _wsClientTrades);
+
+                lock (lockerTradesWs)
+                {
+                    _wsChanelTrades.Add(security.Name, _wsClientTrades);
+                }
             }
         }
 
