@@ -534,7 +534,7 @@ namespace OsEngine.Journal.Internal
                     }
                 }
 
-                if (isOpenOrder || isCloseOrder)
+                if ((isOpenOrder || isCloseOrder) && updateOrder.State != OrderStateType.Cancel && updateOrder.State != OrderStateType.Fail)
                 {
                     PositionStateType positionState = _deals[i].State;
                     decimal lastPosVolume = _deals[i].OpenVolume;
