@@ -179,7 +179,7 @@ colum09.HeaderText = "Action";           7
             if (coluIndex == 6 &&
      rowIndex == botsCount + 1)
             { // вызываем общий журнал
-                _master.ShowCommunityJournal(2);
+                _master.ShowCommunityJournal(2, 0, 0);
             }
             else if (coluIndex == 7 &&
     rowIndex == botsCount + 1)

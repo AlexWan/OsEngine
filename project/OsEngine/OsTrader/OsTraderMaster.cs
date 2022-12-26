@@ -624,7 +624,7 @@ namespace OsEngine.OsTrader
         /// show journal for all robots
         /// показать журнал по всем роботам
         /// </summary>
-        public void ShowCommunityJournal(int journalVersion)
+        public void ShowCommunityJournal(int journalVersion, double top, double left)
         {
             try
             {
@@ -678,6 +678,17 @@ namespace OsEngine.OsTrader
                     _journalUi2 = new JournalUi2(panelsJournal, _startProgram);
                     _journalUi2.LogMessageEvent += SendNewLogMessage;
                     _journalUi2.Closed += _journalUi_Closed;
+
+                    if (top != 0 & left != 0)
+                    {
+                        _journalUi2.Top = top;
+                        _journalUi2.Left = left;
+                    }
+                    else
+                    {
+                        _journalUi2.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                    }
+
                     _journalUi2.Show();
                 }
                 if (journalVersion == 1)
@@ -685,6 +696,17 @@ namespace OsEngine.OsTrader
                     _journalUi1 = new JournalUi(panelsJournal, _startProgram);
                     _journalUi1.LogMessageEvent += SendNewLogMessage;
                     _journalUi1.Closed += _journalUi_Closed;
+
+                    if (top != 0 & left != 0)
+                    {
+                        _journalUi1.Top = top;
+                        _journalUi1.Left = left;
+                    }
+                    else
+                    {
+                        _journalUi1.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                    }
+                                
                     _journalUi1.Show();
                 }
             }
