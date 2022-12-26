@@ -249,7 +249,7 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonJournalCommunity_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.ShowCommunityJournal(1);
+            _strategyKeeper.ShowCommunityJournal(1, Top + ButtonJournalCommunity.ActualHeight, Left + ButtonJournalCommunity.ActualHeight);
         }
 
         private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)
