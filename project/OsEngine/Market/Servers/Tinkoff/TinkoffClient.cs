@@ -1077,6 +1077,11 @@ namespace OsEngine.Market.Servers.Tinkoff
                         continue;
                     }
 
+                    if (_accountsResponse.accounts[i].accessLevel.Equals("ACCOUNT_ACCESS_LEVEL_FULL_ACCESS") == false)
+                    {
+                        continue;
+                    }
+
                     string portUrl = _url + "OperationsService/GetPortfolio";
 
                     Dictionary<string, string> param = new Dictionary<string, string>();
