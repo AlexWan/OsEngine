@@ -81,7 +81,12 @@ namespace OsEngine.Journal
             LabelFrom.Content = OsLocalization.Journal.Label5;
             LabelTo.Content = OsLocalization.Journal.Label6;
             ButtonReload.Content = OsLocalization.Journal.Label7;
+            ButtonAutoReload.Content = OsLocalization.Journal.Label15;
+            ButtonAutoReload.Click += ButtonAutoReload_Click;
+            ButtonAutoReload.IsChecked = false;
+
             LabelEqutyCharteType.Content = OsLocalization.Journal.Label8;
+            
 
             CreatePositionsLists();
 
@@ -382,6 +387,15 @@ namespace OsEngine.Journal
             }
         }
 
+        // авто обновление
+
+        private bool _autoReloadIsOn;
+
+        private void ButtonAutoReload_Click(object sender, RoutedEventArgs e)
+        {
+            _autoReloadIsOn = ButtonAutoReload.IsChecked.Value;
+        }
+
         /// <summary>
         /// the location of stream updating statistics
         /// место работы потока обновляющего статистку
@@ -401,7 +415,20 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                RePaint();
+                if(_autoReloadIsOn == false)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    CreatePositionsLists();
+                    RePaint();
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
             }
         }
         // tab management
@@ -2356,7 +2383,10 @@ namespace OsEngine.Journal
             // GridTabPrime
             GridActivBots.Visibility = Visibility.Hidden;
             ButtonShowLeftPanel.Visibility = Visibility.Visible;
-            GridTabPrime.Margin = new Thickness(0, 0, -0.333, -0.333); 
+            GridTabPrime.Margin = new Thickness(0, 0, -0.333, -0.333);
+
+            this.MinWidth = 950;
+            this.MinHeight = 300;
         }
 
         private void ButtonShowLeftPanel_Click(object sender, RoutedEventArgs e)
@@ -2364,6 +2394,9 @@ namespace OsEngine.Journal
             GridActivBots.Visibility = Visibility.Visible;
             ButtonShowLeftPanel.Visibility = Visibility.Hidden;
             GridTabPrime.Margin = new Thickness(510, 0, -0.333, -0.333);
+
+            this.MinWidth = 1450;
+            this.MinHeight = 500;
         }
 
         // Left Bots Panel
@@ -3011,7 +3044,6 @@ namespace OsEngine.Journal
 
         }
 
-
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
@@ -3095,6 +3127,7 @@ namespace OsEngine.Journal
         {
             RePaint();
         }
+
     }
 
     /// <summary>

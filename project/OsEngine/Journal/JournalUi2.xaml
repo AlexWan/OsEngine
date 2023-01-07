@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Journal"
         mc:Ignorable="d"
-        Title="Journal" Height="800" Width="1370" MinWidth="1400" MinHeight="500" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Journal" Height="800" Width="1370" MinWidth="1450" MinHeight="500" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
         <Grid Name="GridTabPrime" Margin="510,0,-0.333,-0.333">
 
@@ -54,13 +54,13 @@
         <Grid Name="GridActivBots" Margin="0,0" HorizontalAlignment="Left" Width="510">
             <Rectangle RadiusX="0" Margin="0,0,0,36" Stroke="Black"/>
             <WindowsFormsHost x:Name="HostBotsSelected" Margin="0,65,0,27.667"/>
-            <Button x:Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" Margin="0,0,0,-0.333" VerticalAlignment="Bottom" Width="140" Click="ButtonHideLeftPanel_Click"/>
+            <Button x:Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" Margin="0,0,0,-0.333" VerticalAlignment="Bottom" Width="140" Click="ButtonHideLeftPanel_Click" RenderTransformOrigin="0.5,0.508"/>
             <Label Name="LabelFrom" Content="From" HorizontalAlignment="Left" Margin="0,9,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelTo" Content="To" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
             <TextBox Name="TextBoxFrom" HorizontalAlignment="Left" Margin="43,9,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
             <TextBox Name="TextBoxTo" HorizontalAlignment="Left" Margin="43,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-            <Slider Name="SliderFrom" HorizontalAlignment="Left" Margin="168,10,0,0" VerticalAlignment="Top" Width="260"/>
-            <Slider Name="SliderTo" Margin="168,40,84,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
+            <Slider Name="SliderFrom" HorizontalAlignment="Left" Margin="168,10,0,0" VerticalAlignment="Top" Width="224"/>
+            <Slider Name="SliderTo" Margin="168,40,119,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
                 <Slider.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>
@@ -70,7 +70,8 @@
                     </TransformGroup>
                 </Slider.RenderTransform>
             </Slider>
-            <Button Name="ButtonReload" Content="Reload" HorizontalAlignment="Right" Margin="0,24,5,0" VerticalAlignment="Top" Width="72" Height="26" Click="ButtonReload_Click"/>
+            <Button Name="ButtonReload" Content="Reload" HorizontalAlignment="Right" Margin="0,41,0,0" VerticalAlignment="Top" Width="110" Height="21" Click="ButtonReload_Click"/>
+            <CheckBox Name="ButtonAutoReload" Content="Auto update" HorizontalAlignment="Left" Margin="400,5,0,0" VerticalAlignment="Top" Width="110"/>
         </Grid>
 
 
