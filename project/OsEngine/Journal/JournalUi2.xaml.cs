@@ -61,7 +61,7 @@ namespace OsEngine.Journal
             ComboBoxChartType.SelectedItem = "Absolute";
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
 
-           _currentCulture = CultureInfo.CurrentCulture;
+            _currentCulture = CultureInfo.CurrentCulture;
 
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
 

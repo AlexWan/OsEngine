@@ -17,6 +17,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Layout;
+using System.IO;
 
 namespace OsEngine.OsTrader.Panels
 {
@@ -60,6 +61,9 @@ namespace OsEngine.OsTrader.Panels
 
             this.Activate();
             this.Focus();
+
+            _panelName = panel.NameStrategyUniq;
+            CheckPanels();
 
             GlobalGUILayout.Listen(this, "botPanel_" + panel.NameStrategyUniq);
         }
@@ -430,6 +434,31 @@ namespace OsEngine.OsTrader.Panels
 
         private void ButtonHideInformPanel_Click(object sender, RoutedEventArgs e)
         {
+            HideInformPanel();
+            SaveLeftPanelPosition();
+        }
+
+        private void ButtonShowInformPanel_Click(object sender, RoutedEventArgs e)
+        {
+            ShowInformPanel();
+            SaveLeftPanelPosition();
+        }
+
+        private void ButtonHideShowSettingsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            if (ButtonHideShowSettingsPanel.Content.ToString() == ">")
+            {
+                HideSettigsPanel();
+            }
+            else if (ButtonHideShowSettingsPanel.Content.ToString() == "<")
+            {
+                ShowSettingsPanel();
+            }
+            SaveLeftPanelPosition();
+        }
+
+        private void HideInformPanel()
+        {
             TabControlPrime.Visibility = Visibility.Hidden;
             GridPrime.RowDefinitions[1].Height = new GridLength(0);
             GreedTraderEngine.Margin = new Thickness(0, 0, 0, 0);
@@ -445,9 +474,10 @@ namespace OsEngine.OsTrader.Panels
             {
                 GreedChartPanel.Margin = new Thickness(0, 26, 0, 0);
             }
+            _informPanelIsHide = true;
         }
 
-        private void ButtonShowInformPanel_Click(object sender, RoutedEventArgs e)
+        private void ShowInformPanel()
         {
             ButtonShowInformPanel.Visibility = Visibility.Hidden;
 
@@ -465,26 +495,12 @@ namespace OsEngine.OsTrader.Panels
             {
                 GreedChartPanel.Margin = new Thickness(0, 26, 0, 10);
             }
-
-        }
-
-        private void ButtonHideShowSettingsPanel_Click(object sender, RoutedEventArgs e)
-        {
-            if (ButtonHideShowSettingsPanel.Content.ToString() == ">")
-            {
-                HideSettigsPanel();
-                ButtonHideShowSettingsPanel.Content = "<";
-            }
-            else if (ButtonHideShowSettingsPanel.Content.ToString() == "<")
-            {
-                ShowSettingsPanel();
-                ButtonHideShowSettingsPanel.Content = ">";
-            }
-
+            _informPanelIsHide = false;
         }
 
         private void HideSettigsPanel()
         {
+            ButtonHideShowSettingsPanel.Content = "<";
             GreedTraderEngine.Visibility = Visibility.Hidden;
 
             if (TabControlPrime.Visibility == Visibility.Visible)
@@ -495,11 +511,12 @@ namespace OsEngine.OsTrader.Panels
             {
                 GreedChartPanel.Margin = new Thickness(0, 26, 0, 0);
             }
-
+            _settingsPanelIsHide = true;
         }
 
         private void ShowSettingsPanel()
         {
+            ButtonHideShowSettingsPanel.Content = ">";
             GreedTraderEngine.Visibility = Visibility.Visible;
 
             if (TabControlPrime.Visibility == Visibility.Visible)
@@ -509,6 +526,65 @@ namespace OsEngine.OsTrader.Panels
             else
             {
                 GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
+            }
+            _settingsPanelIsHide = false;
+        }
+
+        // сохранение и загрузка состояния схлопывающихся панелей
+
+        private string _panelName;
+
+        private bool _settingsPanelIsHide;
+
+        private bool _informPanelIsHide;
+
+        private void CheckPanels()
+        {
+            if (!File.Exists(@"Engine\LayoutRobotUi" + _panelName + ".txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\LayoutRobotUi" + _panelName + ".txt"))
+                {
+                    _settingsPanelIsHide = Convert.ToBoolean(reader.ReadLine());
+                    _informPanelIsHide = Convert.ToBoolean(reader.ReadLine());
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            if (_settingsPanelIsHide)
+            {
+                HideSettigsPanel();
+            }
+
+            if (_informPanelIsHide)
+            {
+                HideInformPanel();
+            }
+        }
+
+        private void SaveLeftPanelPosition()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\LayoutRobotUi" + _panelName + ".txt", false))
+                {
+                    writer.WriteLine(_settingsPanelIsHide);
+                    writer.WriteLine(_informPanelIsHide);
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
             }
         }
     }
