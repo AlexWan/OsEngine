@@ -782,10 +782,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 }
 
                 if (sec.filters.Count > 1 &&
-                    sec.filters[2] != null &&
-                    sec.filters[2].minQty != null)
+                    sec.filters[1] != null &&
+                    sec.filters[1].minQty != null)
                 {
-                    decimal minQty = sec.filters[2].minQty.ToDecimal();
+                    decimal minQty = sec.filters[1].minQty.ToDecimal();
                     string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
                     if (qtyInStr.Split('.').Length > 1)
                     {
