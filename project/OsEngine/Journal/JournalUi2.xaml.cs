@@ -106,7 +106,17 @@ namespace OsEngine.Journal
             this.Activate();
             this.Focus();
 
-            GlobalGUILayout.Listen(this, "Journal2Ui_" + startProgram.ToString());
+            string botNames = "";
+            for (int i = 0; i < botsJournals.Count; i++)
+            {
+                botNames += botsJournals[i].BotName;
+            }
+
+            _journalName = botNames + startProgram.ToString();
+
+            CheckLeftPanel();
+
+            GlobalGUILayout.Listen(this, "Journal2Ui_" + startProgram.ToString() + botNames);
         }
 
         private CultureInfo _currentCulture;
@@ -2383,6 +2393,18 @@ namespace OsEngine.Journal
 
         private void ButtonHideLeftPanel_Click(object sender, RoutedEventArgs e)
         {
+            HideLeftPanel();
+            SaveLeftPanelPosition();
+        }
+
+        private void ButtonShowLeftPanel_Click(object sender, RoutedEventArgs e)
+        {
+            ShowLeftPanel();
+            SaveLeftPanelPosition();
+        }
+
+        private void HideLeftPanel()
+        {
             // GridTabPrime
             GridActivBots.Visibility = Visibility.Hidden;
             ButtonShowLeftPanel.Visibility = Visibility.Visible;
@@ -2390,9 +2412,10 @@ namespace OsEngine.Journal
 
             this.MinWidth = 950;
             this.MinHeight = 300;
+            _leftPanelIsHide = true;
         }
 
-        private void ButtonShowLeftPanel_Click(object sender, RoutedEventArgs e)
+        private void ShowLeftPanel()
         {
             GridActivBots.Visibility = Visibility.Visible;
             ButtonShowLeftPanel.Visibility = Visibility.Hidden;
@@ -2400,6 +2423,54 @@ namespace OsEngine.Journal
 
             this.MinWidth = 1450;
             this.MinHeight = 500;
+            _leftPanelIsHide = false;
+        }
+
+        private string _journalName;
+
+        private bool _leftPanelIsHide;
+
+        private void CheckLeftPanel()
+        {
+            if (!File.Exists(@"Engine\LayoutJournal" + _journalName + ".txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\LayoutJournal" + _journalName + ".txt"))
+                {
+                    _leftPanelIsHide = Convert.ToBoolean(reader.ReadLine());
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            if (_leftPanelIsHide)
+            {
+                HideLeftPanel();
+            }
+        }
+
+        private void SaveLeftPanelPosition()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\LayoutJournal" + _journalName + ".txt", false))
+                {
+                    writer.WriteLine(_leftPanelIsHide);
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
         }
 
         // Left Bots Panel

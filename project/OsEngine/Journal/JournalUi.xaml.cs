@@ -86,7 +86,12 @@ namespace OsEngine.Journal
             this.Activate();
             this.Focus();
 
-            GlobalGUILayout.Listen(this, "JournalUi_" + startProgram.ToString());
+            string botNames = "";
+            for (int i = 0; i < botsJournals.Count; i++)
+            {
+                botNames += botsJournals[i].BotName;
+            }
+            GlobalGUILayout.Listen(this, "JournalUi_" + startProgram.ToString() + botNames);
         }
 
         private CultureInfo _currentCulture;
