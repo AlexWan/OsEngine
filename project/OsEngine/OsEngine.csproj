@@ -847,6 +847,7 @@
     <Compile Include="OsTrader\AdminPanelApi\IApiServer.cs" />
     <Compile Include="OsTrader\AdminPanelApi\ServerModel.cs" />
     <Compile Include="OsTrader\AdminPanelApi\TcpServer.cs" />
+    <Compile Include="Layout\GlobalGUILayout.cs" />
     <Compile Include="OsTrader\GlobalPosition.cs" />
     <Compile Include="Journal\Journal.cs" />
     <Compile Include="Logging\MessageSender.cs" />

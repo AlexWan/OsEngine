@@ -16,6 +16,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.Layout;
 
 namespace OsEngine.OsTrader.Panels
 {
@@ -59,6 +60,8 @@ namespace OsEngine.OsTrader.Panels
 
             this.Activate();
             this.Focus();
+
+            GlobalGUILayout.Listen(this, "botPanel_" + panel.NameStrategyUniq);
         }
 
         // для тестирования

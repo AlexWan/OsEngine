@@ -1,5 +1,6 @@
 ﻿
 using OsEngine.Language;
+using OsEngine.Layout;
 
 namespace OsEngine.OsMiner
 {
@@ -21,6 +22,8 @@ namespace OsEngine.OsMiner
 
             this.Activate();
             this.Focus();
+
+            GlobalGUILayout.Listen(this, "OsMinerUi");
         }
 
         private OsMinerMaster _miner;

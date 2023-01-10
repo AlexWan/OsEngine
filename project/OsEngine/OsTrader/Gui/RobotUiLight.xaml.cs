@@ -8,6 +8,7 @@ using System.ComponentModel;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Layout;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -37,6 +38,8 @@ namespace OsEngine.OsTrader.Gui
 
             this.Activate();
             this.Focus();
+
+            GlobalGUILayout.Listen(this, "botStationLightUi");
         }
 
         ServerMasterPainter _painterServer;

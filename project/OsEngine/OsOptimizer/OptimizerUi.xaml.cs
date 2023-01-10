@@ -19,6 +19,7 @@ using MessageBox = System.Windows.MessageBox;
 using ProgressBar = System.Windows.Controls.ProgressBar;
 using OsEngine.OsOptimizer.OptEntity;
 using System.Threading;
+using OsEngine.Layout;
 
 namespace OsEngine.OsOptimizer
 {
@@ -182,6 +183,8 @@ namespace OsEngine.OsOptimizer
 
             this.Activate();
             this.Focus();
+
+            GlobalGUILayout.Listen(this, "optimizerUi");
         }
 
         void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)

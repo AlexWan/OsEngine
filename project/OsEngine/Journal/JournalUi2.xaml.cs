@@ -25,6 +25,7 @@ using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using System.Threading;
+using OsEngine.Layout;
 
 namespace OsEngine.Journal
 {
@@ -104,6 +105,8 @@ namespace OsEngine.Journal
 
             this.Activate();
             this.Focus();
+
+            GlobalGUILayout.Listen(this, "Journal2Ui_" + startProgram.ToString());
         }
 
         private CultureInfo _currentCulture;

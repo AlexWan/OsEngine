@@ -10,6 +10,7 @@ using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Layout;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -38,6 +39,8 @@ namespace OsEngine.OsTrader.Gui
 
             this.Activate();
             this.Focus();
+
+            GlobalGUILayout.Listen(this, "testerUi");
         }
 
         private void Local()

@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using System.Windows;
 using OsEngine.Language;
+using OsEngine.Layout;
 
 namespace OsEngine.OsData
 {
@@ -49,6 +50,7 @@ namespace OsEngine.OsData
                 _osDataMaster.StopPaint();
                 _osDataMaster.SaveSettings();
             }
+            GlobalGUILayout.Listen(this, "osData");
         }
 
         void OsDataUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

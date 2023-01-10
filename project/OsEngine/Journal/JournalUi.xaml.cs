@@ -27,6 +27,7 @@ using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
 using ContextMenu = System.Windows.Forms.ContextMenu;
 using MenuItem = System.Windows.Forms.MenuItem;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
+using OsEngine.Layout;
 
 namespace OsEngine.Journal
 {
@@ -84,6 +85,8 @@ namespace OsEngine.Journal
 
             this.Activate();
             this.Focus();
+
+            GlobalGUILayout.Listen(this, "JournalUi_" + startProgram.ToString());
         }
 
         private CultureInfo _currentCulture;
