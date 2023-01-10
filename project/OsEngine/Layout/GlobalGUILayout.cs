@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Threading;
 using OsEngine.Entity;
 using System.IO;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace OsEngine.Layout
 {
@@ -21,6 +23,11 @@ namespace OsEngine.Layout
                 {
                     _isFirstTime = false;
                     Load();
+
+                    if(ScreenSettingsIsAllRigth() == false)
+                    {
+                        UiOpenWindows = new List<OpenWindow>();
+                    }
 
                     Thread worker = new Thread(SaveWorkerPlace);
                     worker.Start();
@@ -59,6 +66,8 @@ namespace OsEngine.Layout
 
             SubscribeEvents(ui, name);           
         }
+
+
 
         private static string _lockerArrayWithWindows = "openUiLocker";
 
@@ -253,6 +262,71 @@ namespace OsEngine.Layout
                     }
 
                     reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        // Проверка размера экрана
+
+        private static bool ScreenSettingsIsAllRigth()
+        {
+            int widthCur = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size.Width;
+            int heightCur = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size.Height;
+            int monitorCountCur = System.Windows.Forms.Screen.AllScreens.Length;
+
+            if (!File.Exists(@"Engine\ScreenResolution.txt"))
+            {
+                SaveResolution(widthCur, heightCur, monitorCountCur);
+                return true;
+            }
+
+            int widthOld = 0;
+            int heightOld = 0;
+            int monitorCountOld = 0;
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\ScreenResolution.txt"))
+                {
+                    widthOld = Convert.ToInt32(reader.ReadLine());
+                    heightOld = Convert.ToInt32(reader.ReadLine());
+                    monitorCountOld = Convert.ToInt32(reader.ReadLine());
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            if(widthCur != widthOld ||
+                heightCur != heightOld ||
+                monitorCountCur != monitorCountOld)
+            {
+                SaveResolution(widthCur, heightCur, monitorCountCur);
+                return false;
+            }
+
+            SaveResolution(widthCur, heightCur, monitorCountCur);
+            return true;
+        }
+
+        private static void SaveResolution(int widthCur, int heightCur, int monitorCountCur)
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\ScreenResolution.txt", false))
+                {
+                    writer.WriteLine(widthCur.ToString());
+                    writer.WriteLine(heightCur.ToString());
+                    writer.WriteLine(monitorCountCur.ToString());
+
+                    writer.Close();
                 }
             }
             catch (Exception)
