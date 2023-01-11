@@ -520,6 +520,42 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
+        /// total profit absolute
+        /// итоговая прибыль в абсолютном выражении
+        /// </summary>
+        public decimal TotalProfitAbs
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                decimal result = 0;
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i].AllPosition == null ||
+                        journals[i].AllPosition.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    List<Position> positions = journals[i].AllPosition.FindAll((
+position => position.State != PositionStateType.OpeningFail
+&& position.EntryPrice != 0 && position.ClosePrice != 0));
+
+                    result += PositionStaticticGenerator.GetAllProfitInPunkt(positions.ToArray());
+                }
+                return result;
+            }
+        }
+
+        /// <summary>
         /// average profit from the transaction / 
         /// средняя прибыль со сделки
         /// </summary>

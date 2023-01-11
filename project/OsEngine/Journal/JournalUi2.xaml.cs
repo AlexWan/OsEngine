@@ -2454,6 +2454,10 @@ namespace OsEngine.Journal
             {
                 HideLeftPanel();
             }
+            else
+            {
+                ShowLeftPanel();
+            }
         }
 
         private void SaveLeftPanelPosition()
