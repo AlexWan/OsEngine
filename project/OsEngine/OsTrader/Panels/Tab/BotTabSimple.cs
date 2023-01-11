@@ -3096,16 +3096,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if(position.Direction == Side.Buy &&
                             priceActivate > lastAsk)
                         {
-                         //   SetNewLogMessage(
-                         //       OsLocalization.Trader.Label180
-                         //       , LogMessageType.Error);
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label180
+                                , LogMessageType.Error);
                         }
                         if (position.Direction == Side.Sell &&
                             priceActivate < lastBid)
                         {
-                         //   SetNewLogMessage(
-                          //      OsLocalization.Trader.Label180
-                         //       , LogMessageType.Error);
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label180
+                                , LogMessageType.Error);
                         }
                     }
                 }
@@ -3183,16 +3183,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (position.Direction == Side.Buy &&
                             priceActivate < lastBid)
                         {
-                         //   SetNewLogMessage(
-                         //       OsLocalization.Trader.Label181
-                         //       , LogMessageType.Error);
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label181
+                                , LogMessageType.Error);
                         }
                         if (position.Direction == Side.Sell &&
                             priceActivate > lastAsk)
                         {
-                          //  SetNewLogMessage(
-                          //      OsLocalization.Trader.Label181
-                          //      , LogMessageType.Error);
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label181
+                                , LogMessageType.Error);
                         }
                     }
                 }
