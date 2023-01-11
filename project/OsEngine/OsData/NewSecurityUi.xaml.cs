@@ -120,7 +120,7 @@ namespace OsEngine.OsData
                 TextBoxSearchSec.Text = TextBoxSearchSec.Text.Replace(OsLocalization.Trader.Label174, "");
             }
 
-            string str = TextBoxSearchSec.Text;
+            string str = TextBoxSearchSec.Text.ToUpper();
 
             for (int i = 0; i < _grid.Rows.Count; i++)
             {
