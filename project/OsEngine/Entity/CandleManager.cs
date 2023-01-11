@@ -496,7 +496,7 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.BitMax)
+                        else if (serverType == ServerType.AscendEx_BitMax)
                         {
                             BitMaxProServer bitMax = (BitMaxProServer)_server;
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||

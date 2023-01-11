@@ -46,7 +46,7 @@ namespace OsEngine.Market.Servers.BitMax
         /// </summary>
         public ServerType ServerType
         {
-            get { return ServerType.BitMax; }
+            get { return ServerType.AscendEx_BitMax; }
         }
 
         /// <summary>

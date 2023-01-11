@@ -31,7 +31,7 @@ namespace OsEngine.Market.Servers.BitMax
         private readonly string _secretKey;
         //private readonly bool _isMargin;
 
-        private readonly string _baseUrl = "https://bitmax.io/";
+        private readonly string _baseUrl = "https://ascendex.com/";
 
         /// <summary>
         /// connecto to the exchange
@@ -458,7 +458,7 @@ namespace OsEngine.Market.Servers.BitMax
 
         private WebSocket _wsClient;
 
-        private string _wsUri = "wss://bitmax.io/";
+        private string _wsUri = "wss://ascendex.com/";
 
         /// <summary>
         /// create data stream

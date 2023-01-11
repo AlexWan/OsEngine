@@ -86,7 +86,7 @@ namespace OsEngine.Market
 
                 serverTypes.Add(ServerType.GateIo);
                 serverTypes.Add(ServerType.GateIoFutures);
-                serverTypes.Add(ServerType.BitMax);
+                serverTypes.Add(ServerType.AscendEx_BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BitMex);
@@ -179,7 +179,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
 
-                serverTypes.Add(ServerType.BitMax);
+                serverTypes.Add(ServerType.AscendEx_BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BitMex);
@@ -340,7 +340,7 @@ namespace OsEngine.Market
                 {
                     newServer = new ExmoServer();
                 }
-                if (type == ServerType.BitMax)
+                if (type == ServerType.AscendEx_BitMax)
                 {
                     newServer = new BitMaxProServer();
                 }
@@ -1168,7 +1168,7 @@ namespace OsEngine.Market
         /// BitMax exchange
         /// биржа BitMax
         /// </summary>
-        BitMax,
+        AscendEx_BitMax,
 
         /// <summary>
         /// transaq
