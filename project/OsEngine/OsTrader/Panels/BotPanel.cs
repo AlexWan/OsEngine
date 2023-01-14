@@ -739,6 +739,8 @@ position => position.State != PositionStateType.OpeningFail
             if (_paramUi == null)
             {
                 _paramUi = new ParemetrsUi(_parameters, ParamGuiSettings);
+				_paramUi.Left = System.Windows.Forms.Cursor.Position.X - Convert.ToDouble(ParamGuiSettings.Width);
+                _paramUi.Top = System.Windows.Forms.Cursor.Position.Y;
                 _paramUi.Show();
                 _paramUi.Closing += _paramUi_Closing;
             }
