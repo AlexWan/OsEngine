@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
 using System.Windows;
+using System.Windows.Input;
 
 namespace OsEngine.OsData
 {
@@ -48,9 +49,22 @@ namespace OsEngine.OsData
 
             Title = OsLocalization.Data.TitleNewSecurity;
             Label1.Content = OsLocalization.Data.Label1;
+            TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
             ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
             CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
             CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
+
+            ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+            ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+            LabelCurrentResultShow.Visibility = Visibility.Hidden;
+            LabelCommasResultShow.Visibility = Visibility.Hidden;
+            LabelCountResultsShow.Visibility = Visibility.Hidden;
+            TextBoxSearchSecurity.MouseEnter += TextBoxSearchSecurity_MouseEnter;
+            TextBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
+            TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
+            TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
+            ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
+            ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
 
             this.Activate();
             this.Focus();
@@ -60,97 +74,51 @@ namespace OsEngine.OsData
         {
             bool isCheck = CheckBoxSelectAllCheckBox.IsChecked.Value;
 
-            for (int i = 0; i < _grid.Rows.Count; i++)
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
             {
-                _grid.Rows[i].Cells[2].Value = isCheck;
+                _gridSecurities.Rows[i].Cells[2].Value = isCheck;
             }
         }
 
         /// <summary>
         /// paper table/таблица для бумаг
         /// </summary>
-        private DataGridView _grid;
+        private DataGridView _gridSecurities;
 
         /// <summary>
         /// create a table for papers/создать таблицу для бумаг
         /// </summary>
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+            _gridSecurities = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
-            _grid.ScrollBars = ScrollBars.Vertical;
+            _gridSecurities.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _grid.DefaultCellStyle;
+            cell0.Style = _gridSecurities.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
             column0.HeaderText = OsLocalization.Data.Label2;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column0);
+            _gridSecurities.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
             column1.HeaderText = OsLocalization.Data.Label3;
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column1);
+            _gridSecurities.Columns.Add(column1);
 
             DataGridViewCheckBoxColumn colum6 = new DataGridViewCheckBoxColumn();
             //colum6.CellTemplate = cell0;
             colum6.HeaderText = OsLocalization.Trader.Label171;
             colum6.ReadOnly = false;
             colum6.Width = 50;
-            _grid.Columns.Add(colum6);
+            _gridSecurities.Columns.Add(colum6);
 
-            HostSecurity.Child = _grid;
-
-
-            TextBoxSearchSec.Text = OsLocalization.Trader.Label174;
-            TextBoxSearchSec.TextChanged += TextBoxSearchSec_TextChanged;
-        }
-
-        // поиск бумаги
-
-        private void TextBoxSearchSec_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            if (TextBoxSearchSec.Text.Contains(OsLocalization.Trader.Label174))
-            {
-                TextBoxSearchSec.Text = TextBoxSearchSec.Text.Replace(OsLocalization.Trader.Label174, "");
-            }
-
-            string str = TextBoxSearchSec.Text.ToUpper();
-
-            for (int i = 0; i < _grid.Rows.Count; i++)
-            {
-                DataGridViewRow row = _grid.Rows[i];
-
-                if (row.Cells.Count < 2 ||
-                    row.Cells[1].Value == null)
-                {
-                    continue;
-                }
-
-                string secName = row.Cells[0].Value.ToString();
-
-                if (secName.StartsWith(str))
-                {
-                    row.Selected = true;
-                    _grid.FirstDisplayedScrollingRowIndex = i;
-                    break;
-                }
-
-                string sec2Name = row.Cells[1].Value.ToString();
-
-                if (sec2Name.StartsWith(str))
-                {
-                    row.Selected = true;
-                    _grid.FirstDisplayedScrollingRowIndex = i;
-                    break;
-                }
-            }
-
+            HostSecurity.Child = _gridSecurities;
         }
 
         /// <summary>
@@ -212,7 +180,7 @@ namespace OsEngine.OsData
             }
 
             _securitiesInBox = new List<Security>();
-            _grid.Rows.Clear();
+            _gridSecurities.Rows.Clear();
 
             List<DataGridViewRow> rows = new List<DataGridViewRow>();
             for (int i = 0; _securities != null && i < _securities.Count; i++)
@@ -239,7 +207,7 @@ namespace OsEngine.OsData
                 _securitiesInBox.Add(_securities[i]);
             }
 
-            _grid.Rows.AddRange(rows.ToArray());
+            _gridSecurities.Rows.AddRange(rows.ToArray());
         }
 
         /// <summary>
@@ -255,19 +223,19 @@ namespace OsEngine.OsData
         /// </summary>
         private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (_grid.SelectedCells[0] == null ||
-                string.IsNullOrWhiteSpace(_grid.SelectedCells[0].ToString()))
+            if (_gridSecurities.SelectedCells[0] == null ||
+                string.IsNullOrWhiteSpace(_gridSecurities.SelectedCells[0].ToString()))
             {
                 return;
             }
 
-            for (int i = 0; i < _grid.Rows.Count; i++)
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
             {
-                if (_grid.Rows[i].Cells[2].Value != null &&
-                    _grid.Rows[i].Cells[2].Value.ToString() == "True")
+                if (_gridSecurities.Rows[i].Cells[2].Value != null &&
+                    _gridSecurities.Rows[i].Cells[2].Value.ToString() == "True")
                 {
                     Security Selected = _securitiesInBox.Find(
-                    security => security.Name == _grid.Rows[i].Cells[0].Value.ToString());
+                    security => security.Name == _gridSecurities.Rows[i].Cells[0].Value.ToString());
                     SelectedSecurity.Add(Selected);
                 }
             }
@@ -275,5 +243,163 @@ namespace OsEngine.OsData
 
             Close();
         }
+
+        #region поиск по таблице бумаг
+
+        private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == ""
+                && TextBoxSearchSecurity.IsKeyboardFocused == false)
+            {
+                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+            }
+        }
+
+        private void TextBoxSearchSecurity_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+            {
+                TextBoxSearchSecurity.Text = "";
+            }
+        }
+
+        private void TextBoxSearchSecurity_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (TextBoxSearchSecurity.Text == "")
+            {
+                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+            }
+        }
+
+        List<int> _searchResults = new List<int>();
+
+        private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            UpdateSearchResults();
+            UpdateSearchPanel();
+        }
+
+        private void UpdateSearchResults()
+        {
+            _searchResults.Clear();
+
+            string key = TextBoxSearchSecurity.Text;
+
+            if (key == "")
+            {
+                UpdateSearchPanel();
+                return;
+            }
+
+            key = key.ToLower();
+
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+                string security = "";
+                string secSecond = "";
+
+                if (_gridSecurities.Rows[i].Cells[0].Value != null)
+                {
+                    security = _gridSecurities.Rows[i].Cells[0].Value.ToString();
+                }
+
+                if (_gridSecurities.Rows[i].Cells[1].Value != null)
+                {
+                    secSecond = _gridSecurities.Rows[i].Cells[1].Value.ToString();
+                }
+
+                security = security.ToLower();
+                secSecond = secSecond.ToLower();
+
+                if (security.Contains(key) ||
+                    secSecond.Contains(key))
+                {
+                    _searchResults.Add(i);
+                }
+            }
+        }
+
+        private void UpdateSearchPanel()
+        {
+            if (_searchResults.Count == 0)
+            {
+                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                LabelCommasResultShow.Visibility = Visibility.Hidden;
+                LabelCountResultsShow.Visibility = Visibility.Hidden;
+                return;
+            }
+
+            int firstRow = _searchResults[0];
+
+            _gridSecurities.Rows[firstRow].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = firstRow;
+
+            if (_searchResults.Count < 2)
+            {
+                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                LabelCommasResultShow.Visibility = Visibility.Hidden;
+                LabelCountResultsShow.Visibility = Visibility.Hidden;
+                return;
+            }
+
+            LabelCurrentResultShow.Content = 1.ToString();
+            LabelCountResultsShow.Content = (_searchResults.Count).ToString();
+
+            ButtonRightInSearchResults.Visibility = Visibility.Visible;
+            ButtonLeftInSearchResults.Visibility = Visibility.Visible;
+            LabelCurrentResultShow.Visibility = Visibility.Visible;
+            LabelCommasResultShow.Visibility = Visibility.Visible;
+            LabelCountResultsShow.Visibility = Visibility.Visible;
+        }
+
+        private void ButtonLeftInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
+
+            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+            if (indexRow <= 0)
+            {
+                indexRow = maxRowIndex;
+                LabelCurrentResultShow.Content = maxRowIndex.ToString();
+            }
+            else
+            {
+                LabelCurrentResultShow.Content = (indexRow).ToString();
+            }
+
+            int realInd = _searchResults[indexRow - 1];
+
+            _gridSecurities.Rows[realInd].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+        }
+
+        private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
+
+            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+            if (indexRow >= maxRowIndex)
+            {
+                indexRow = 0;
+                LabelCurrentResultShow.Content = 1.ToString();
+            }
+            else
+            {
+                LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+            }
+
+            int realInd = _searchResults[indexRow];
+
+            _gridSecurities.Rows[realInd].Selected = true;
+            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+        }
+
+        #endregion
     }
 }
