@@ -1570,7 +1570,6 @@ position => position.State != PositionStateType.OpeningFail
 
         // call control windows / вызыв окон управления
 
-
         /// <summary>
         /// show general risk manager window / 
         /// показать окно общего для панели рискМенеджера
@@ -1596,6 +1595,95 @@ position => position.State != PositionStateType.OpeningFail
         /// показать индивидуальные настройки
         /// </summary>
         public abstract void ShowIndividualSettingsDialog();
+
+        // global position reaction
+
+        public void UserSetPositionAction(Position pos, SignalType signal)
+        {
+            try
+            {
+                if (signal == SignalType.CloseAll)
+                {
+                    for (int i = 0; i < _tabSimple.Count; i++)
+                    {
+                        _tabSimple[i].CloseAllAtMarket();
+                    }
+                    for (int i = 0; i < _tabScreener.Count; i++)
+                    {
+                        _tabScreener[i].CloseAllPositionAtMarket();
+                    }
+
+                    return;
+                }
+
+                // дальше нужно чтобы позиция была точно из этого робота
+
+                BotTabSimple tabWithPosition = null;
+
+                for (int i = 0; i < _tabSimple.Count; i++)
+                {
+                    List<Position> posOnThisTab = _tabSimple[i].PositionsOpenAll;
+
+                    for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
+                    {
+                        if (posOnThisTab[i2].Number == pos.Number)
+                        {
+                            tabWithPosition = _tabSimple[i];
+                        }
+                    }
+
+                    if (tabWithPosition != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (tabWithPosition != null)
+                {
+                    for (int i = 0; i < _tabScreener.Count; i++)
+                    {
+                        tabWithPosition = _tabScreener[i].GetTabWithThisPosition(pos.Number);
+
+                        if (tabWithPosition != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (tabWithPosition == null)
+                {
+                    return;
+                }
+
+                if (signal == SignalType.CloseOne)
+                {
+                    tabWithPosition.ShowClosePositionDialog(pos);
+                }
+                else if (signal == SignalType.Modificate)
+                {
+                    tabWithPosition.ShowPositionModificateDialog(pos);
+                }
+                else if (signal == SignalType.ReloadStop)
+                {
+                    tabWithPosition.ShowStopSendDialog(pos);
+                }
+                else if (signal == SignalType.ReloadProfit)
+                {
+                    tabWithPosition.ShowProfitSendDialog(pos);
+                }
+                else if (signal == SignalType.DeletePos)
+                {
+                    tabWithPosition._journal.DeletePosition(pos);
+                }
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+          
+
+        }
 
         // log / сообщения в лог 
 

@@ -11,6 +11,11 @@ using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
+using System.Drawing;
+using System.IO;
+using System.Text;
+using OsEngine.Language;
+using OsEngine.Alerts;
 
 namespace OsEngine.OsTrader
 {
@@ -33,10 +38,12 @@ namespace OsEngine.OsTrader
 
             _host = allPositionHost;
 
-            _grid = CreateNewTable();
+            _gridOpenDeal = CreateNewTable();
 
-            _host.Child = _grid;
+            _host.Child = _gridOpenDeal;
             _host.Child.Show();
+
+            _gridOpenDeal.Click += _gridAllPositions_Click;
 
             Task task = new Task(WatcherHome);
             task.Start();
@@ -57,21 +64,38 @@ namespace OsEngine.OsTrader
                     _journals = new List<Journal.Journal>();
                 }
 
-                _journals.Add(journal);
-                journal.PositionStateChangeEvent += journal_PositionChangeEvent;
-
-                List<Position> openPositions = journal.OpenPositions;
-
-                for (int i = 0; openPositions != null && i < openPositions.Count; i++)
+                for(int i = 0;i < _journals.Count;i++)
                 {
-                    journal_PositionChangeEvent(openPositions[i]);
+                    if(_journals[i].Name == journal.Name)
+                    {
+                        return;
+                    }
                 }
+
+                _journals.Add(journal);
 
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        public Position GetPositionForNumber(int number)
+        {
+            List<Position> deals = new List<Position>();
+
+            for(int i = 0;i < _journals.Count;i++)
+            {
+                if(_journals[i] != null)
+                {
+                    List<Position> curPoses = _journals[i].OpenPositions;
+
+                    deals.AddRange(curPoses);
+                }
+            }
+
+            return deals.Find(position => position.Number == number);
         }
 
         /// <summary>
@@ -82,19 +106,14 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_grid.InvokeRequired)
+                if (_gridOpenDeal.InvokeRequired)
                 {
-                    _grid.Invoke(new Action(ClearJournals));
+                    _gridOpenDeal.Invoke(new Action(ClearJournals));
                     return;
                 }
 
-                for (int i = 0; _journals != null && i < _journals.Count; i++)
-                {
-                    _journals[i].PositionStateChangeEvent -= journal_PositionChangeEvent;
-                }
-
                 _journals = null;
-                _grid.Rows.Clear();
+                _gridOpenDeal.Rows.Clear();
             }
             catch (Exception error)
             {
@@ -117,7 +136,7 @@ namespace OsEngine.OsTrader
         /// <summary>
         /// таблица для прорисовки позиций
         /// </summary>
-        private DataGridView _grid;
+        private DataGridView _gridOpenDeal;
 
         /// <summary>
         /// table for drawing positions
@@ -161,7 +180,7 @@ namespace OsEngine.OsTrader
                     _host.Dispatcher.Invoke(StartPaint);
                     return;
                 }
-                _host.Child = _grid;
+                _host.Child = _gridOpenDeal;
             }
             catch (Exception error)
             {
@@ -186,71 +205,6 @@ namespace OsEngine.OsTrader
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
             return null;
-        }
-
-        /// <summary>
-        /// position has changed in the journals
-        /// в журнале изменилась позиция
-        /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void journal_PositionChangeEvent(Position position)
-        {
-            if (_startProgram != StartProgram.IsTester)
-            {
-                return;
-            }
-
-            try
-            {
-                if (_grid == null)
-                {
-                    return;
-                }
-                if (_grid.InvokeRequired)
-                {
-                    _grid.Invoke(new Action<Position>(journal_PositionChangeEvent), position);
-                    return;
-                }
-
-                if (position.State != PositionStateType.Open && position.State != PositionStateType.Opening &&
-                    position.State != PositionStateType.Closing && position.State != PositionStateType.ClosingFail)
-                {
-                    for (int i = 0; i < _grid.Rows.Count; i++)
-                    {
-                        if ((int)_grid.Rows[i].Cells[0].Value == position.Number)
-                        {
-                            _grid.Rows.Remove(_grid.Rows[i]);
-                            return;
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < _grid.Rows.Count; i++)
-                    {
-                        if ((int)_grid.Rows[i].Cells[0].Value == position.Number)
-                        {
-                            _grid.Rows.Remove(_grid.Rows[i]);
-                            DataGridViewRow row1 = GetRow(position);
-                            if (row1 != null)
-                            {
-                                _grid.Rows.Insert(i, row1);
-                            }
-
-                            return;
-                        }
-                    }
-                    DataGridViewRow row = GetRow(position);
-                    if (row != null)
-                    {
-                        _grid.Rows.Add(row);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
         }
 
         /// <summary>
@@ -467,7 +421,8 @@ namespace OsEngine.OsTrader
         /// </summary>
         private async void WatcherHome()
         {
-            if (_startProgram != StartProgram.IsOsTrader)
+            if(_startProgram != StartProgram.IsTester &&
+                _startProgram != StartProgram.IsOsTrader)
             {
                 return;
             }
@@ -492,9 +447,9 @@ namespace OsEngine.OsTrader
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
         private void CheckPosition()
         {
-            if (_grid.InvokeRequired)
+            if (_gridOpenDeal.InvokeRequired)
             {
-                _grid.Invoke(new Action(CheckPosition));
+                _gridOpenDeal.Invoke(new Action(CheckPosition));
                 return;
             }
             try
@@ -514,12 +469,12 @@ namespace OsEngine.OsTrader
                     Position position = openPositions[i1];
                     
                     bool isIn = false;
-                    for (int i = 0; i < _grid.Rows.Count; i++)
+                    for (int i = 0; i < _gridOpenDeal.Rows.Count; i++)
                     {
-                        if (_grid.Rows[i].Cells[0].Value != null &&
-                            _grid.Rows[i].Cells[0].Value.ToString() == position.Number.ToString())
+                        if (_gridOpenDeal.Rows[i].Cells[0].Value != null &&
+                            _gridOpenDeal.Rows[i].Cells[0].Value.ToString() == position.Number.ToString())
                         {
-                            TryRePaint(position, _grid.Rows[i]);
+                            TryRePaint(position, _gridOpenDeal.Rows[i]);
                             isIn = true;
                             break;
                         }
@@ -531,16 +486,16 @@ namespace OsEngine.OsTrader
 
                         if(row != null)
                         {
-                            _grid.Rows.Add(row);
+                            _gridOpenDeal.Rows.Add(row);
                         }
                     }
                 }
 
-                for (int i = 0; i < _grid.Rows.Count; i++)
+                for (int i = 0; i < _gridOpenDeal.Rows.Count; i++)
                 {
-                    if (openPositions.Find(pos => pos.Number == (int)_grid.Rows[i].Cells[0].Value) == null)
+                    if (openPositions.Find(pos => pos.Number == (int)_gridOpenDeal.Rows[i].Cells[0].Value) == null)
                     {
-                        _grid.Rows.Remove(_grid.Rows[i]);
+                        _gridOpenDeal.Rows.Remove(_gridOpenDeal.Rows[i]);
                     }
                 }
 
@@ -550,6 +505,234 @@ namespace OsEngine.OsTrader
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        // вызов закрытия всех позиций у всех роботов
+
+        private void _gridAllPositions_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
+            try
+            {
+                MenuItem[] items = new MenuItem[6];
+
+                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
+                items[0].Click += PositionCloseAll_Click;
+
+                items[1] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem3 };
+                items[1].Click += PositionCloseForNumber_Click;
+
+                items[2] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem4 };
+                items[2].Click += PositionModificationForNumber_Click;
+
+                items[3] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
+                items[3].Click += PositionNewStop_Click;
+
+                items[4] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
+                items[4].Click += PositionNewProfit_Click;
+
+                items[5] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
+                items[5].Click += PositionClearDelete_Click;
+
+                ContextMenu menu = new ContextMenu(items);
+
+                _gridOpenDeal.ContextMenu = menu;
+                _gridOpenDeal.ContextMenu.Show(_gridOpenDeal, new Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+
+        /// <summary>
+        /// the user has ordered the closing of all positions
+        /// пользователь заказал закрытие всех позиций
+        /// </summary>
+        void PositionCloseAll_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message5);
+                ui.ShowDialog();
+                
+                if(ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(null, SignalType.CloseAll);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// the user has ordered the closing of the transaction by number
+        /// пользователь заказал закрытие сделки по номеру
+        /// </summary>
+        void PositionCloseForNumber_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number;
+                try
+                {
+                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.CloseOne);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// the user has ordered a position modification
+        /// пользователь заказал модификацию позиции
+        /// </summary>
+        void PositionModificationForNumber_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number;
+                try
+                {
+                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.Modificate);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// the user has ordered a new stop for the position
+        /// пользователь заказал новый стоп для позиции
+        /// </summary>
+        void PositionNewStop_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number;
+                try
+                {
+                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.ReloadStop);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// the user has ordered a new profit for the position
+        /// пользователь заказал новый профит для позиции
+        /// </summary>
+        void PositionNewProfit_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number;
+                try
+                {
+                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.ReloadProfit);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// the user has ordered the deletion of a position
+        /// пользователь заказал удаление позиции
+        /// </summary>
+        void PositionClearDelete_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                int number;
+                try
+                {
+                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.DeletePos);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public event Action<Position, SignalType> UserSelectActionEvent;
 
         // messages in log / сообщения в лог 
 

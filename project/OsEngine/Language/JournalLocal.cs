@@ -242,5 +242,9 @@ namespace OsEngine.Language
         public string Message4 => OsLocalization.ConvertToLocString(
              "Eng:Are you sure you want to delete positions?_" +
              "Ru:Вы уверены что хотите очистить журнал? Данные будет не восстановить!_");
+
+        public string Message5 => OsLocalization.ConvertToLocString(
+             "Eng:Are you sure you want to close all positions at market?_" +
+             "Ru:Вы уверены что хотите закрыть все позиции по маркету?_");
     }
 }

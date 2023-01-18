@@ -992,6 +992,7 @@ namespace OsEngine.Journal.Internal
         {
             return _deals.Find(position => position.Number == number);
         }
+
         // Drawing of positions in the tables
         // прорисовка позиций в таблицах
 
@@ -1646,6 +1647,14 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
 
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message5);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
                 if (UserSelectActionEvent != null)
                 {
                     UserSelectActionEvent(null, SignalType.CloseAll);
@@ -1783,6 +1792,14 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
                 int number;
                 try
                 {

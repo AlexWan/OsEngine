@@ -118,6 +118,7 @@ namespace OsEngine.OsTrader
             _riskManager.LogMessageEvent += SendNewLogMessage;
             _globalController = new GlobalPosition(_hostAllDeals, _startProgram);
             _globalController.LogMessageEvent += SendNewLogMessage;
+            _globalController.UserSelectActionEvent += _globalController_UserSelectActionEvent;
 
             _log = new Log("Prime", _startProgram);
             _log.StartPaint(hostLogPrime);
@@ -170,6 +171,7 @@ namespace OsEngine.OsTrader
             _riskManager.LogMessageEvent += SendNewLogMessage;
             _globalController = new GlobalPosition(_hostAllDeals, _startProgram);
             _globalController.LogMessageEvent += SendNewLogMessage;
+            _globalController.UserSelectActionEvent += _globalController_UserSelectActionEvent;
 
             _log = new Log("Prime", _startProgram);
             _log.StartPaint(hostLogPrime);
@@ -475,7 +477,6 @@ namespace OsEngine.OsTrader
             }
         }
 
-        // Global Risk Manager
         // Глобальный Риск Менеджер
 
         /// <summary>
@@ -521,7 +522,6 @@ namespace OsEngine.OsTrader
             try
             {
                 _riskManager.ClearJournals();
-                _globalController.ClearJournals();
 
                 if (PanelsArray != null)
                 {
@@ -614,7 +614,6 @@ namespace OsEngine.OsTrader
         /// менеджер общей позиции роботов
         /// </summary>
         private GlobalPosition _globalController;
-
 
         private JournalUi2 _journalUi2;
 
@@ -736,6 +735,14 @@ namespace OsEngine.OsTrader
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
+        }
+
+        private void _globalController_UserSelectActionEvent(Position pos, SignalType signal)
+        {
+            for(int i = 0;i < PanelsArray.Count;i++)
+            {
+                PanelsArray[i].UserSetPositionAction(pos, signal);
+            }
         }
 
         // log / логироавние

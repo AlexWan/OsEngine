@@ -1546,6 +1546,61 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        // внешнее управление позициями
+
+        public void CloseAllPositionAtMarket()
+        {
+            try
+            {
+                if (Tabs == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    Tabs[i].CloseAllAtMarket();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public BotTabSimple GetTabWithThisPosition(int positionNum)
+        {
+            try
+            {
+                BotTabSimple tabWithPosition = null;
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    List<Position> posOnThisTab = Tabs[i].PositionsOpenAll;
+
+                    for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
+                    {
+                        if (posOnThisTab[i2].Number == positionNum)
+                        {
+                            tabWithPosition = Tabs[i];
+                        }
+                    }
+
+                    if (tabWithPosition != null)
+                    {
+                        break;
+                    }
+                }
+
+                return tabWithPosition;
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+        }
+
         // исходящие события
 
         /// <summary>
