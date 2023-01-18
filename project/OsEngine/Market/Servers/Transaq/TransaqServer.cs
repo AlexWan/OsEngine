@@ -373,6 +373,11 @@ namespace OsEngine.Market.Servers.Transaq
                     continue;
                 }
 
+                if (_client == null)
+                {
+                    continue;
+                }
+
                 if (!_client.IsConnected)
                 {
                     continue;
