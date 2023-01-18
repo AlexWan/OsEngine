@@ -571,6 +571,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
 
+                if (formula == "+" ||
+                    formula == "-" ||
+                    formula == "*" ||
+                    formula == "/")
+                {
+                    return "";
+                }
+
                 if (formula == "+-")
                 {
                     return "";
