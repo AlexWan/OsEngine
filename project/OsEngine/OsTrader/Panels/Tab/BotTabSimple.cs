@@ -3096,16 +3096,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if(position.Direction == Side.Buy &&
                             priceActivate > lastAsk)
                         {
-                            SetNewLogMessage(
-                                OsLocalization.Trader.Label180
-                                , LogMessageType.Error);
+                            priceActivate = lastAsk;
+                            //SetNewLogMessage(
+                            //    OsLocalization.Trader.Label180
+                            //    , LogMessageType.Error);
                         }
                         if (position.Direction == Side.Sell &&
                             priceActivate < lastBid)
                         {
-                            SetNewLogMessage(
-                                OsLocalization.Trader.Label180
-                                , LogMessageType.Error);
+                            priceActivate = lastBid;
+                            //SetNewLogMessage(
+                            //    OsLocalization.Trader.Label180
+                            //    , LogMessageType.Error);
                         }
                     }
                 }
