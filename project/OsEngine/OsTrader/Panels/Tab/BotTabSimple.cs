@@ -3183,16 +3183,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (position.Direction == Side.Buy &&
                             priceActivate < lastBid)
                         {
-                            SetNewLogMessage(
-                                OsLocalization.Trader.Label181
-                                , LogMessageType.Error);
+                            priceActivate = lastBid;
+                           // SetNewLogMessage(
+                            //    OsLocalization.Trader.Label181
+                            //    , LogMessageType.Error);
                         }
                         if (position.Direction == Side.Sell &&
                             priceActivate > lastAsk)
                         {
-                            SetNewLogMessage(
-                                OsLocalization.Trader.Label181
-                                , LogMessageType.Error);
+                            priceActivate = lastAsk;
+                            //SetNewLogMessage(
+                            //   OsLocalization.Trader.Label181
+                            //   , LogMessageType.Error);
                         }
                     }
                 }
