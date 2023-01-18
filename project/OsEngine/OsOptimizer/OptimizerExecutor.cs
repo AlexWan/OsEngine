@@ -901,7 +901,7 @@ namespace OsEngine.OsOptimizer
                    bot.TabsSimple[0].TimeServerCurrent.AddHours(1) < reportFaze.Faze.TimeEnd)
             {
                 Thread.Sleep(20);
-                if (timeStartWaiting.AddSeconds(20) < DateTime.Now)
+                if (timeStartWaiting.AddSeconds(200) < DateTime.Now)
                 {
                     break;
                 }
