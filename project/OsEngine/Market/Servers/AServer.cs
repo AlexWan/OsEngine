@@ -763,25 +763,14 @@ namespace OsEngine.Market.Servers
         {
             while (true)
             {
-                Thread.Sleep(30000);
+                Thread.Sleep(60000);
 
                 if (_myExecuteOrdersAllSessions.Count == 0)
                 {
                     continue;
                 }
 
-                List<Order> ordersToCheked = new List<Order>();
-
-                for (int i = 0; i < _myExecuteOrdersAllSessions.Count; i++)
-                {
-                    if (_myExecuteOrdersAllSessions[i].State == OrderStateType.Patrial ||
-                    _myExecuteOrdersAllSessions[i].State == OrderStateType.Activ)
-                    {
-                        ordersToCheked.Add(_myExecuteOrdersAllSessions[i]);
-                    }
-                }
-
-                _serverRealization.ResearchTradesToOrders(ordersToCheked);
+                _serverRealization.ResearchTradesToOrders(_myExecuteOrdersAllSessions);
             }
         }
 
