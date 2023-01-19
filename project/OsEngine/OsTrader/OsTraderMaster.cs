@@ -416,9 +416,7 @@ namespace OsEngine.OsTrader
         {
             try
             {
-
-
-                if (_activPanel != null)
+                if (_activPanel != null && _gridChart != null)
                 {
                     _activPanel.StopPaint();
                 }
