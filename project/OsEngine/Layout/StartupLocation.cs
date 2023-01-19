@@ -36,6 +36,9 @@ namespace OsEngine.Layout
 
             ui.Left = xPosByWin32;
             ui.Top = yPosByWin32;
+
+            ui.Activated -= Ui_Start_MouseInCentre_ContentActivated;
+            ui.Closed -= Ui_Start_MouseInCentre_ContentActivatedClosed;
         }
 
         /// <summary>
@@ -76,6 +79,9 @@ namespace OsEngine.Layout
 
             ui.Left = leftPos;
             ui.Top = topPos;
+
+            ui.Activated -= Ui_Start_MouseInCentre_ContentActivated;
+            ui.Closed -= Ui_Start_MouseInCentre_ContentActivatedClosed;
         }
 
 

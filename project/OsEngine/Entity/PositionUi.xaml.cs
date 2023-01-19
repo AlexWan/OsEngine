@@ -767,9 +767,14 @@ namespace OsEngine.Entity
             int number;
             try
             {
-                number = _openOrdersGrid.CurrentCell.RowIndex;
+                number = _tradesGrid.CurrentCell.RowIndex;
             }
             catch (Exception)
+            {
+                return;
+            }
+
+            if(number >= _tradesGrid.Rows.Count)
             {
                 return;
             }

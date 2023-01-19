@@ -259,7 +259,7 @@ namespace OsEngine.Entity
             if (_trades != null &&
                 _trades.Count > 0
                 && State == OrderStateType.Done
-                && Volume == VolumeExecute)
+                && (Volume != 0 && Volume == VolumeExecute))
             {
                 return;
             }
