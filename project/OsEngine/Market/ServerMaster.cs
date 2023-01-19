@@ -908,35 +908,38 @@ namespace OsEngine.Market
         /// </summary>
         public static bool NeadToConnectAuto;
 
+        private static string _startServerLocker = "startServLocker";
+
         /// <summary>
         /// select a specific server type for connection
         /// заказать на подключение определённый тип сервера
         /// </summary>
         public static void SetNeedServer(ServerType type)
         {
-            if (_needServerTypes == null)
+            lock (_startServerLocker)
             {
-                _needServerTypes = new List<ServerType>();
-            }
-
-            try
-            {
-                for (int i = 0; i < _needServerTypes.Count; i++)
+                if (_needServerTypes == null)
                 {
-                    if (_needServerTypes[i] == type)
-                    {
-                        return;
-                    }
+                    _needServerTypes = new List<ServerType>();
                 }
 
-                _needServerTypes.Add(type);
-            }
-            catch(Exception error)
-            {
-                LogMessageEvent(error.ToString(), LogMessageType.Error);
-            }
+                try
+                {
+                    for (int i = 0; i < _needServerTypes.Count; i++)
+                    {
+                        if (_needServerTypes[i] == type)
+                        {
+                            return;
+                        }
+                    }
 
-           
+                    _needServerTypes.Add(type);
+                }
+                catch (Exception error)
+                {
+                    LogMessageEvent(error.ToString(), LogMessageType.Error);
+                }
+            }
         }
 
         /// <summary>
