@@ -38,6 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AtrUi(Atr atr)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _atr = atr;
 
             TextBoxLenght.Text = _atr.Lenght.ToString();

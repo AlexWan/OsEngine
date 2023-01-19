@@ -17,6 +17,7 @@ namespace OsEngine.Indicators
         public AIndicatorUi(Aindicator indicator)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             Title = indicator.GetType().Name + " " + OsLocalization.Charts.Label1;
             _indicator = indicator;
 

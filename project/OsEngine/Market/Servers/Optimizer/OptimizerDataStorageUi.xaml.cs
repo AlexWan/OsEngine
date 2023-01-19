@@ -25,6 +25,7 @@ namespace OsEngine.Market.Servers.Optimizer
         public OptimizerDataStorageUi(OptimizerDataStorage server, Log log)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
 
             log.StartPaint(Host);

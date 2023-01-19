@@ -40,6 +40,7 @@ namespace OsEngine.OsData
         public NewSecurityUi(List<Security> securities)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _securities = securities;
 
             GetClasses();

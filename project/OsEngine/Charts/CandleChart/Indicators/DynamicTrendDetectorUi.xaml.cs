@@ -38,6 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public DynamicTrendDetectorUi(DynamicTrendDetector dtd)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _dtd = dtd;
 
             TextBoxLenght.Text = _dtd.Lenght.ToString();

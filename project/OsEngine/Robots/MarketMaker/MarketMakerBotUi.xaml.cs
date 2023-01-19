@@ -18,6 +18,7 @@ namespace OsEngine.Robots.MarketMaker
         public MarketMakerBotUi(MarketMakerBot strategy)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);

@@ -29,6 +29,7 @@ namespace OsEngine.Market.Connectors
             try
             {
                 InitializeComponent();
+                OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
                 ButtonRightInSearchResults.Visibility = Visibility.Hidden;
                 ButtonLeftInSearchResults.Visibility = Visibility.Hidden;

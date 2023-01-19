@@ -38,6 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public WilliamsRangeUi(WilliamsRange wr)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _wr = wr;
 
             TextBoxLenght.Text = _wr.Nperiod.ToString();

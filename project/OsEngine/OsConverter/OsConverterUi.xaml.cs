@@ -16,6 +16,7 @@ namespace OsEngine.OsConverter
         public OsConverterUi()
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             LabelOsa.Content = "V " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 

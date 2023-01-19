@@ -17,6 +17,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
 
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             TextBoxPrice.Text = lastSecurityPrice.ToStringWithNoEndZero();
             TextBoxSecurity.Text = position.OpenOrders[0].SecurityNameCode;

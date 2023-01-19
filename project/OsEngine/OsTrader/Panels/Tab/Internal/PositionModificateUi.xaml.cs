@@ -16,6 +16,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public PositionModificateUi(decimal lastPrice, string nameSecurity)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             ComboBoxSide.Items.Add(Side.Buy);
             ComboBoxSide.Items.Add(Side.Sell);

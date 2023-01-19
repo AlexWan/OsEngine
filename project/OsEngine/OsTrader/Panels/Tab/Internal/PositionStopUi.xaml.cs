@@ -16,6 +16,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public PositionStopUi(Position position, decimal lastSecurityPrice, string title)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             Title = title;
 
             TextBoxPriceOrder.Text = lastSecurityPrice.ToStringWithNoEndZero();

@@ -17,6 +17,7 @@ namespace OsEngine.Robots.Trend
         public ParabolicSarTradeUi(ParabolicSarTrade strategy)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();

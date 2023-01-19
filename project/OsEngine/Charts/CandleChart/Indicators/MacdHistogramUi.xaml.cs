@@ -35,6 +35,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public MacdHistogramUi(MacdHistogram macd)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _macd = macd;
 
             HostColorUp.Child = new TextBox();

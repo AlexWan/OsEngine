@@ -20,8 +20,9 @@ namespace OsEngine.Robots
         public BotCreateUi(List<string> botsIncluded, List<string> botsFromScript, StartProgram startProgram)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
-            for(int i = 0;i < botsIncluded.Count;i++)
+            for (int i = 0;i < botsIncluded.Count;i++)
             {
                 for(int i2 = 0;i2 < botsFromScript.Count;i2++)
                 {

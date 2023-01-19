@@ -28,6 +28,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public BotManualControlUi(BotManualControl strategySettings)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             try
             {

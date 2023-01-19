@@ -17,6 +17,7 @@ namespace OsEngine.Robots.CounterTrend
         public RsiContrtrendUi(RsiContrtrend strategy)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);

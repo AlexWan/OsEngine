@@ -36,6 +36,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public PivotUi(Pivot pivot)
         {
             InitializeComponent();
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _pivot = pivot;
 
 
