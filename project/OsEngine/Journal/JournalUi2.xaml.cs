@@ -240,6 +240,8 @@ namespace OsEngine.Journal
         /// </summary>
         public void RePaint()
         {
+            CreatePositionsLists();
+
             if (!TabControlPrime.CheckAccess())
             {
                 TabControlPrime.Dispatcher.Invoke(RePaint);
@@ -435,7 +437,6 @@ namespace OsEngine.Journal
 
                 try
                 {
-                    CreatePositionsLists();
                     RePaint();
                 }
                 catch (Exception error)
@@ -2023,6 +2024,7 @@ namespace OsEngine.Journal
             newPos.Number = NumberGen.GetNumberDeal(_startProgram);
             newPos.NameBot = botName;
             _botsJournals[number]._Tabs[0].Journal.SetNewDeal(newPos);
+
 
             RePaint();
         }

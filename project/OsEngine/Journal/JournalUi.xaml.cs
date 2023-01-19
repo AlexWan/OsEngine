@@ -379,6 +379,8 @@ namespace OsEngine.Journal
         /// </summary>
         public void RePaint()
         {
+            CreatePositionsLists(_botsJournals);
+
             if (!TabControlLeft.CheckAccess())
             {
                 TabControlLeft.Dispatcher.Invoke(RePaint);
@@ -542,7 +544,6 @@ namespace OsEngine.Journal
         private void TabBotsSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ReloadTabs();
-            CreatePositionsLists(_botsJournals);
             RePaint();
         }
 
