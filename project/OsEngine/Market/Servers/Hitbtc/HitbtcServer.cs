@@ -812,6 +812,11 @@ namespace OsEngine.Market.Servers.Hitbtc
             }
         }
 
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
+
         /// <summary>
         /// outgoing lom message
         /// исходящее сообщение для лога

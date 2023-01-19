@@ -1171,6 +1171,11 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
         }
 
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
+
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 }

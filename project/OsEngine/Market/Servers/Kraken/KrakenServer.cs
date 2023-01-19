@@ -526,6 +526,11 @@ namespace OsEngine.Market.Servers.Kraken
             }
         }
 
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
+
         /// <summary>
         /// outgoing log message
         /// исходящее сообщение для лога

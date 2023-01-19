@@ -177,6 +177,11 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// outgoing lom message
         /// исходящее сообщение для лога

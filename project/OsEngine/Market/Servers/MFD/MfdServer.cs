@@ -583,5 +583,9 @@ namespace OsEngine.Market.Servers.MFD
             }
         }
 
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
     }
 }

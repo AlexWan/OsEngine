@@ -723,6 +723,11 @@ namespace OsEngine.Market.Servers.OKX
 
         }
 
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
+
         #endregion
 
         #region Outgoing events

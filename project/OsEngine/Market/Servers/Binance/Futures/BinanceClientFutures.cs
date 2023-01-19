@@ -269,6 +269,73 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
+        #region проверка ордеров на исполнение
+
+        private string GetMyTradesToBinance()
+        {
+            var res = CreateQuery(
+                       Method.GET,
+                       "/" + type_str_selector + "/v1/userTrades",
+                       new Dictionary<string, string>(),
+                       true);
+            return res;
+        }
+
+        private MyTrade ConvertTradesToSystem(TradesResponseReserches responcetrade)
+        {
+            try
+            {
+                MyTrade trade = new MyTrade();
+                trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(responcetrade.time));
+                trade.NumberOrderParent = responcetrade.orderid.ToString();
+                trade.NumberTrade = responcetrade.id.ToString();
+                trade.Volume = responcetrade.qty.ToDecimal();
+                trade.Price = responcetrade.price.ToDecimal();
+                trade.SecurityNameCode = responcetrade.symbol;
+                trade.Side = responcetrade.side == "BUY" ? Side.Buy : Side.Sell;
+
+                return trade;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.Message, LogMessageType.Error);
+                return null;
+            }
+        }
+
+        public void ResearchTradesToOrders_Binance(List<Order> orders)
+        {
+            try
+            {
+
+                var res = GetMyTradesToBinance();
+                List<TradesResponseReserches> responceTrades = JsonConvert.DeserializeAnonymousType(res, new List<TradesResponseReserches>());
+
+                for (int i = 0; i < orders.Count; i++)
+                {
+                    for (int j = 0; j < responceTrades.Count; j++)
+                    {
+                        if (orders[i].NumberMarket == Convert.ToString(responceTrades[j].orderid))
+                        {
+                            var trade = ConvertTradesToSystem(responceTrades[j]);
+
+                            if (MyTradeEvent != null && trade != null)
+                            {
+                                MyTradeEvent(trade);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
+        }
+
+        #endregion
+
+
         /// <summary>
         /// get realtime Mark Price and Funding Rate
         /// получать среднюю цену инструмента (на всех биржах) и ставку фандирования в реальном времени
