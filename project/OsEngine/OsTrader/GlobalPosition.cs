@@ -588,6 +588,10 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
+                    if(_gridOpenDeal.CurrentCell == null)
+                    {
+                        return;
+                    }
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
@@ -618,6 +622,10 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
+                    if(_gridOpenDeal.CurrentCell == null)
+                    {
+                        return;
+                    }
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
@@ -648,6 +656,10 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
+                    if(_gridOpenDeal.CurrentCell == null)
+                    {
+                        return;
+                    }
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
@@ -677,6 +689,10 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
+                    if(_gridOpenDeal.CurrentCell == null)
+                    {
+                        return;
+                    }
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
@@ -714,6 +730,10 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
+                    if(_gridOpenDeal.CurrentCell == null)
+                    {
+                        return;
+                    }
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
