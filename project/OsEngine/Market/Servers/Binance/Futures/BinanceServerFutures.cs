@@ -878,7 +878,15 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return security;
         }
 
-
+        // проверка ордеров на трейды
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+            if (_client == null)
+            {
+                return;
+            }
+            _client.ResearchTradesToOrders_Binance(orders);
+        }
 
         void _client_Connected()
         {

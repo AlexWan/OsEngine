@@ -777,5 +777,10 @@ namespace OsEngine.Market.Servers.MOEX
                 MessageBox.Show(message);
             }
         }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
     }
 }

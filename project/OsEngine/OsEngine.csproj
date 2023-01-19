@@ -452,6 +452,7 @@
     <Compile Include="Market\Servers\Binance\Futures\Entity\AgregatedHistoryTrade.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\BinanceFutureseDepthResponse.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\OrderUpdResponse.cs" />
+    <Compile Include="Market\Servers\Binance\Futures\Entity\TradesResponseReserches.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceClientSpot.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\AccountResponse.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\AccountResponseMargin.cs" />

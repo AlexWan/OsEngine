@@ -271,8 +271,13 @@ namespace OsEngine.Market.Servers.NinjaTrader
             }
         }
 
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+           
+        }
+
         /// <summary>
-		/// outgoing log message
+        /// outgoing log message
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

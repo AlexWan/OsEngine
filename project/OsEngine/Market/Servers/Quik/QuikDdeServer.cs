@@ -1170,6 +1170,11 @@ namespace OsEngine.Market.Servers.Quik
             }
         }
 
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
+
         /// <summary>
         /// send exeptions
         /// отправляет исключения
