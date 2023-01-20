@@ -741,5 +741,9 @@ namespace OsEngine.Language
                "Eng: Board_" +
                "Ru: Площадка_");
 
+        public string Label183 => OsLocalization.ConvertToLocString(
+              "Eng: Not all securities are loaded_" +
+              "Ru: Не все инструменты загружены_");
+
     }
 }
