@@ -97,9 +97,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 Thread.Sleep(500);
 
-                for (int i = 0; i < _screeners.Count; i++)
+                for (int i = 0; _screeners != null &&
+                    _screeners.Count != 0 &&
+                    i < _screeners.Count; i++)
                 {
-                    for (int i2 = 0; i2 < _screeners[i].Tabs.Count; i2++)
+                    for (int i2 = 0; _screeners[i].Tabs != null &&
+                        _screeners[i].Tabs.Count != 0 &&
+                        i2 < _screeners[i].Tabs.Count; i2++)
                     {
                         PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
                     }
@@ -592,6 +596,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool SaveTradesInCandles;
 
+        public bool IsLoadTabs = false;
+
         public bool NeadToReloadTabs = false;
 
         /// <summary>
@@ -643,7 +649,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             // 3 создаём не достающие вкладки
-
+            IsLoadTabs = true;
             for (int i = 0; i < SecuritiesNames.Count; i++)
             {
                 int tabCount = Tabs.Count;
@@ -661,7 +667,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
             }
-
+            IsLoadTabs = false;
             ReloadIndicatorsOnTabs();
 
             if (Tabs.Count != 0)

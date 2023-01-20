@@ -922,6 +922,20 @@ namespace OsEngine.OsTrader
             }
         }
 
+        /// <summary>
+        /// Screenr Is Activ
+        /// Активен ли скриннер
+        /// </summary>
+        private bool TabsScreenrIsActiv()
+        {
+            if (_activPanel.TabsScreener == null ||
+                _activPanel.TabsScreener.Count == 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
         // Storage Management / Управление хранилищем
 
         /// <summary>
@@ -936,6 +950,18 @@ namespace OsEngine.OsTrader
                _activPanel == null)
                 {
                     return;
+                }
+
+                if (TabsScreenrIsActiv())
+                {
+                    for (int i = 0; i < _activPanel.TabsScreener.Count; i++)
+                    {
+                        if (_activPanel.TabsScreener[i].IsLoadTabs == true)
+                        {
+                            SendNewLogMessage(OsLocalization.Trader.Label183, LogMessageType.Error);
+                            return;
+                        }
+                    }
                 }
 
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label4);
