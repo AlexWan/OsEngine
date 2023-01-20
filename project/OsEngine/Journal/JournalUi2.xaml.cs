@@ -1925,6 +1925,11 @@ namespace OsEngine.Journal
             int number;
             try
             {
+                if(_openPositionGrid.CurrentCell == null)
+                {
+                    return;
+                }
+
                 number = Convert.ToInt32(_openPositionGrid.Rows[_openPositionGrid.CurrentCell.RowIndex].Cells[0].Value);
             }
             catch (Exception)
@@ -2220,6 +2225,10 @@ namespace OsEngine.Journal
             int number;
             try
             {
+                if(_closePositionGrid.CurrentCell == null)
+                {
+                    return;
+                }
                 number = Convert.ToInt32(_closePositionGrid.Rows[_closePositionGrid.CurrentCell.RowIndex].Cells[0].Value);
             }
             catch (Exception)
@@ -2239,6 +2248,10 @@ namespace OsEngine.Journal
             int number;
             try
             {
+                if(_closePositionGrid.CurrentCell == null)
+                {
+                    return;
+                }
                 number = Convert.ToInt32(_closePositionGrid.Rows[_closePositionGrid.CurrentCell.RowIndex].Cells[0].Value);
             }
             catch (Exception)
