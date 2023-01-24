@@ -9,6 +9,7 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Language;
 using System.Threading;
+using System.Windows;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -91,31 +92,46 @@ namespace OsEngine.OsTrader.Gui
             colum05.Width = 120;
             newGrid.Columns.Add(colum05);
 
-            DataGridViewButtonColumn colum06 = new DataGridViewButtonColumn();
+            DataGridViewCheckBoxColumn column06 = new DataGridViewCheckBoxColumn();
+            column06.HeaderText = OsLocalization.Trader.Label184; // On/off
+            column06.ReadOnly = false;
+            column06.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            column06.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(column06);
+
+            DataGridViewCheckBoxColumn column07 = new DataGridViewCheckBoxColumn();
+            column07.HeaderText = OsLocalization.Trader.Label185; // Emulator on/off
+            column07.ReadOnly = false;
+            column07.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column07.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            newGrid.Columns.Add(column07);
+
+            DataGridViewButtonColumn colum08 = new DataGridViewButtonColumn();
             //colum06.CellTemplate = cell0;
             //colum06.HeaderText = "Chart";
-            colum06.ReadOnly = true;
-            colum06.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colum06);
-
-            DataGridViewButtonColumn colum07 = new DataGridViewButtonColumn();
-            //colum07.CellTemplate = cell0;
-            //colum07.HeaderText = "Parameters";
-            colum07.ReadOnly = true;
-            colum07.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colum07);
+            colum08.ReadOnly = true;
+            colum08.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum08);
 
             DataGridViewButtonColumn colum09 = new DataGridViewButtonColumn();
-            // colum09.CellTemplate = cell0;
-            //colum09.HeaderText = "Action";
+            //colum07.CellTemplate = cell0;
+            //colum07.HeaderText = "Parameters";
             colum09.ReadOnly = true;
             colum09.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum09);
+
+            DataGridViewButtonColumn colum11 = new DataGridViewButtonColumn();
+            // colum09.CellTemplate = cell0;
+            //colum09.HeaderText = "Action";
+            colum11.ReadOnly = true;
+            colum11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum11);
 
             _grid = newGrid;
             _host.Child = _grid;
 
             _grid.Click += _grid_Click;
+            _grid.CellBeginEdit += _grid_CellBeginEdit;
             _grid.MouseLeave += _grid_MouseLeave;
         }
 
@@ -135,14 +151,17 @@ namespace OsEngine.OsTrader.Gui
             int rowIndex = _grid.SelectedCells[0].RowIndex;
 
             /*
-colum0.HeaderText = "Num";               0
-colum01.HeaderText = "Name";             1
-colum02.HeaderText = "Type";             2
-colum04.HeaderText = "First Security";   3
-colum05.HeaderText = "Position";         4
-colum06.HeaderText = "Chart";            5
-colum07.HeaderText = "Parameters";       6
-colum09.HeaderText = "Action";           7
+colum0.HeaderText = "Num";
+colum01.HeaderText = "Name";
+colum02.HeaderText = "Type";
+colum03.HeaderText = "First Security";
+colum04.HeaderText = "Position";
+colum05.HeaderText = "On/off";
+colum06.HeaderText = "Emulator on/off";
+colum07.HeaderText = "Chart";
+colum08.HeaderText = "Parameters";
+colum9.HeaderText = "Journal";
+colum10.HeaderText = "Action";
 */
 
             int botsCount = 0;
@@ -159,34 +178,170 @@ colum09.HeaderText = "Action";           7
                 bot = _master.PanelsArray[rowIndex];
             }
 
-
-            if(coluIndex == 5 &&
+            if (coluIndex == 7 &&
                 rowIndex < botsCount)
             { // вызываем чарт робота
                 bot.ShowChartDialog();
             }
-            else if (coluIndex == 6 &&
+            else if (coluIndex == 8 &&
    rowIndex < botsCount)
             { // вызываем параметры
                 bot.ShowParametrDialog();
             }
-            else if (coluIndex == 7 &&
+            else if (coluIndex == 9 &&
     rowIndex < botsCount)
             { // вызываем окно удаление робота
                 _master.DeleteByNum(rowIndex);
             }
 
-            if (coluIndex == 6 &&
+            if (coluIndex == 8 &&
      rowIndex == botsCount + 1)
             { // вызываем общий журнал
                 _master.ShowCommunityJournal(2, 0, 0);
             }
-            else if (coluIndex == 7 &&
+            else if (coluIndex == 9 &&
     rowIndex == botsCount + 1)
             { // вызываем добавление нового бота
                 _master.CreateNewBot();
             }
         }
+
+        #region работа с чек-боксами включений и отключений
+
+        int _lastChangeRow;
+        int _lastChangeColumn;
+
+        private void _grid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            if(_lastTimeClick.AddMilliseconds(500) > DateTime.Now)
+            {
+                return;
+            }
+            _lastTimeClick = DateTime.Now;
+
+            _lastChangeRow = e.RowIndex;
+            _lastChangeColumn = e.ColumnIndex;
+
+            Task.Run(ChangeOnOffAwait);
+        }
+
+        DateTime _lastTimeClick = DateTime.MinValue;
+
+        private async void ChangeOnOffAwait()
+        {
+            try
+            {
+                await Task.Delay(200);
+                ChangeFocus();
+                await Task.Delay(200);
+                ChangeOnOff();
+            }
+            catch(Exception error)
+            {
+                System.Windows.MessageBox.Show(error.ToString());
+            }
+        }
+
+        private void ChangeFocus()
+        {
+            if (_grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action(ChangeFocus));
+                return;
+            }
+
+            _grid.Rows[_lastChangeRow].Cells[0].Selected = true;
+        }
+
+        private void ChangeOnOff()
+        {
+            if (_grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action(ChangeOnOff));
+                return;
+            }
+
+            int coluIndex = _lastChangeColumn;
+            int rowIndex = _lastChangeRow;
+
+            int botsCount = 0;
+
+            if (_master.PanelsArray != null)
+            {
+                botsCount = _master.PanelsArray.Count;
+            }
+
+            if (coluIndex == 5 &&
+                rowIndex < botsCount &&
+                _grid.Rows[rowIndex].Cells[5].Value != null)
+            {
+                string textInCell = _grid.Rows[rowIndex].Cells[5].Value.ToString();
+                bool isOn = Convert.ToBoolean(textInCell);
+
+                OnOffBot(rowIndex, isOn);
+            }
+            if (coluIndex == 5 &&
+                rowIndex == botsCount &&
+                _grid.Rows[rowIndex].Cells[5].Value != null)
+            {
+                string textInCell = _grid.Rows[rowIndex].Cells[5].Value.ToString();
+                bool isOn = Convert.ToBoolean(textInCell);
+
+                OnOffAll(isOn);
+            }
+
+            if (coluIndex == 6 &&
+                rowIndex < botsCount &&
+                _grid.Rows[rowIndex].Cells[6].Value != null)
+            {
+                string textInCell = _grid.Rows[rowIndex].Cells[6].Value.ToString();
+
+                bool isOn = Convert.ToBoolean(textInCell);
+
+                OnOffEmulatorBot(rowIndex, isOn);
+            }
+            if (coluIndex == 6 &&
+                rowIndex == botsCount &&
+                _grid.Rows[rowIndex].Cells[6].Value != null)
+            {
+                string textInCell = _grid.Rows[rowIndex].Cells[6].Value.ToString();
+                bool isOn = Convert.ToBoolean(textInCell);
+
+                OnOffEmulatorAll(isOn);
+            }
+        }
+
+        private void OnOffBot(int botNum, bool value)
+        {
+            BotPanel bot = _master.PanelsArray[botNum];
+            bot.OnOffEventsInTabs = value;
+        }
+
+        private void OnOffAll(bool value)
+        {
+            for(int i = 0;i < _master.PanelsArray.Count;i++)
+            {
+                BotPanel bot = _master.PanelsArray[i];
+                bot.OnOffEventsInTabs = value;
+            }
+        }
+
+        private void OnOffEmulatorBot(int botNum, bool value)
+        {
+            BotPanel bot = _master.PanelsArray[botNum];
+            bot.OnOffEmulatorsInTabs = value;
+        }
+
+        private void OnOffEmulatorAll(bool value)
+        {
+            for (int i = 0; i < _master.PanelsArray.Count; i++)
+            {
+                BotPanel bot = _master.PanelsArray[i];
+                bot.OnOffEmulatorsInTabs = value;
+            }
+        }
+
+        #endregion
 
         private void RePaintTable()
         {
@@ -208,12 +363,16 @@ colum09.HeaderText = "Action";           7
 colum0.HeaderText = "Num";
 colum01.HeaderText = "Name";
 colum02.HeaderText = "Type";
-colum04.HeaderText = "First Security";
-colum05.HeaderText = "Position";
-colum06.HeaderText = "Chart";
-colum07.HeaderText = "Parameters";
-colum08.HeaderText = "Journal";
-colum09.HeaderText = "Action";
+colum03.HeaderText = "First Security";
+colum04.HeaderText = "Position";
+
+colum05.HeaderText = "On/off";
+colum06.HeaderText = "Emulator on/off";
+
+colum07.HeaderText = "Chart";
+colum08.HeaderText = "Parameters";
+colum9.HeaderText = "Journal";
+colum10.HeaderText = "Action";
 */
             DataGridViewRow row = new DataGridViewRow();
 
@@ -236,14 +395,20 @@ colum09.HeaderText = "Action";
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[4].Value = bot.PositionsCount;
 
-            row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[5].Value =  OsLocalization.Trader.Label172;//"Chart";
+            row.Cells.Add(new DataGridViewCheckBoxCell());
+            row.Cells[5].Value = bot.OnOffEventsInTabs;
+
+            row.Cells.Add(new DataGridViewCheckBoxCell());
+            row.Cells[6].Value = bot.OnOffEmulatorsInTabs;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[6].Value = OsLocalization.Trader.Label45;//"Parameters";
+            row.Cells[7].Value =  OsLocalization.Trader.Label172;//"Chart";
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[7].Value = OsLocalization.Trader.Label39;//"Delete";
+            row.Cells[8].Value = OsLocalization.Trader.Label45;//"Parameters";
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[9].Value = OsLocalization.Trader.Label39;//"Delete";
 
             if (num % 2 == 0)
             {
@@ -258,12 +423,35 @@ colum09.HeaderText = "Action";
 
         private DataGridViewRow GetNullRow()
         {
+            /*
+colum0.HeaderText = "Num";
+colum01.HeaderText = "Name";
+colum02.HeaderText = "Type";
+colum03.HeaderText = "First Security";
+colum04.HeaderText = "Position";
+
+colum05.HeaderText = "On/off";
+colum06.HeaderText = "Emulator on/off";
+
+colum07.HeaderText = "Chart";
+colum08.HeaderText = "Parameters";
+colum9.HeaderText = "Journal";
+*/
+
             DataGridViewRow row = new DataGridViewRow();
 
-            for(int i = 0;i < 8;i++)
-            {
-                row.Cells.Add(new DataGridViewTextBoxCell());
-            }
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+
+            row.Cells.Add(new DataGridViewCheckBoxCell());
+            row.Cells.Add(new DataGridViewCheckBoxCell());
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells.Add(new DataGridViewButtonCell());
 
             return row;
         }
@@ -277,11 +465,18 @@ colum09.HeaderText = "Action";
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells.Add(new DataGridViewTextBoxCell());
+
             row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[5].Value = "";
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[6].Value = "";
+
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[6].Value = OsLocalization.Trader.Label40; //"Journal";
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[7].Value = OsLocalization.Trader.Label38; //"Add New...";
+            row.Cells[8].Value = OsLocalization.Trader.Label40; //"Journal";
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[9].Value = OsLocalization.Trader.Label38; //"Add New...";
 
             return row;
         }
@@ -290,9 +485,14 @@ colum09.HeaderText = "Action";
         {
             while(true)
             {
-                Thread.Sleep(5000);
+                Thread.Sleep(2000);
 
-                if(MainWindow.ProccesIsWorked == false)
+                if (_lastTimeClick.AddSeconds(2) > DateTime.Now)
+                {
+                    continue;
+                }
+
+                if (MainWindow.ProccesIsWorked == false)
                 {
                     return;
                 }
@@ -314,6 +514,11 @@ colum09.HeaderText = "Action";
             {
                 for (int i = 0; i < _master.PanelsArray.Count; i++)
                 {
+                    if (_lastTimeClick.AddSeconds(2) > DateTime.Now)
+                    {
+                        return;
+                    }
+
                     DataGridViewRow row = _grid.Rows[i];
 
                     BotPanel bot = _master.PanelsArray[i];
@@ -336,7 +541,21 @@ colum09.HeaderText = "Action";
                     {
                         row.Cells[4].Value = bot.PositionsCount;
                     }
-                    
+
+                    if (row.Cells[5].Value == null ||
+                       (row.Cells[5].Value != null
+                       && row.Cells[5].Value.ToString() != bot.OnOffEventsInTabs.ToString()))
+                    {
+                        row.Cells[5].Value = bot.OnOffEventsInTabs;
+                    }
+
+                    if (row.Cells[6].Value == null ||
+                       (row.Cells[6].Value != null
+                        && row.Cells[6].Value.ToString() != bot.OnOffEmulatorsInTabs.ToString()))
+                    {
+                        row.Cells[6].Value = bot.OnOffEmulatorsInTabs;
+                    }
+
                 }
             }
             catch (Exception error)

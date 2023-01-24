@@ -1709,7 +1709,6 @@ namespace OsEngine.Journal
             }
         }
 
-        // positions
         // позиции
 
         /// <summary>
@@ -2069,7 +2068,7 @@ namespace OsEngine.Journal
                 }
             }
         }
-        // closed positions
+
         // позиции закрытые
 
         /// <summary>
@@ -2385,7 +2384,6 @@ namespace OsEngine.Journal
             }
         }
 
-        // messages to the log
         // сообщения в лог
 
         /// <summary>

@@ -12,6 +12,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
+using System.IO;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -42,75 +43,186 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _horizontalVolume.MaxSummClusterChangeEvent += delegate (HorizontalVolumeCluster line)
             {
-                MaxSummClusterChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MaxSummClusterChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MaxBuyClusterChangeEvent += delegate (HorizontalVolumeCluster line)
             {
-                MaxBuyClusterChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MaxBuyClusterChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MaxSellClusterChangeEvent += delegate (HorizontalVolumeCluster line)
             {
-                MaxSellClusterChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MaxSellClusterChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MaxDeltaClusterChangeEvent += delegate (HorizontalVolumeCluster line)
             {
-                MaxDeltaClusterChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MaxDeltaClusterChangeEvent?.Invoke(line);
+                }
             };
 
             _horizontalVolume.MinSummClusterChangeEvent += delegate (HorizontalVolumeCluster line)
             {
-                MinSummClusterChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MinSummClusterChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MinBuyClusterChangeEvent += delegate (HorizontalVolumeCluster line)
             {
-                MinBuyClusterChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MinBuyClusterChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MinSellClusterChangeEvent += delegate (HorizontalVolumeCluster line)
             {
-                MinSellClusterChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MinSellClusterChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MinDeltaClusterChangeEvent += delegate (HorizontalVolumeCluster line)
             {
-                MinDeltaClusterChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MinDeltaClusterChangeEvent?.Invoke(line);
+                }
             };
 
 
             _horizontalVolume.MaxSummLineChangeEvent += delegate (HorizontalVolumeLine line)
             {
-                MaxSummLineChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MaxSummLineChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MaxBuyLineChangeEvent += delegate (HorizontalVolumeLine line)
             {
-                MaxBuyLineChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MaxBuyLineChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MaxSellLineChangeEvent += delegate (HorizontalVolumeLine line)
-            {
-                MaxSellLineChangeEvent?.Invoke(line);
-            };
+                {
+                    if (EventsIsOn)
+                    {
+                        MaxSellLineChangeEvent?.Invoke(line);
+                    }
+                };
             _horizontalVolume.MaxDeltaLineChangeEvent += delegate (HorizontalVolumeLine line)
             {
-                MaxDeltaLineChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MaxDeltaLineChangeEvent?.Invoke(line);
+                }
             };
 
             _horizontalVolume.MinSummLineChangeEvent += delegate (HorizontalVolumeLine line)
             {
-                MinSummLineChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MinSummLineChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MinBuyLineChangeEvent += delegate (HorizontalVolumeLine line)
             {
-                MinBuyLineChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MinBuyLineChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MinSellLineChangeEvent += delegate (HorizontalVolumeLine line)
             {
-                MinSellLineChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MinSellLineChangeEvent?.Invoke(line);
+                }
             };
             _horizontalVolume.MinDeltaLineChangeEvent += delegate (HorizontalVolumeLine line)
             {
-                MinDeltaLineChangeEvent?.Invoke(line);
+                if (EventsIsOn)
+                {
+                    MinDeltaLineChangeEvent?.Invoke(line);
+                }
             };
 
-            _chartMaster = new ChartClusterMaster(name, startProgram,_horizontalVolume);
+            _chartMaster = new ChartClusterMaster(name, startProgram, _horizontalVolume);
             _chartMaster.LogMessageEvent += SendNewLogMessage;
+
+            Load();
+        }
+
+        /// <summary>
+        /// включена ли подача событий на верх или нет
+        /// </summary>
+        public bool EventsIsOn
+        {
+            get
+            {
+                return _eventsIsOn;
+            }
+            set
+            {
+                if (_eventsIsOn == value)
+                {
+                    return;
+                }
+                _eventsIsOn = value;
+                Save();
+            }
+        }
+
+        private bool _eventsIsOn = true;
+
+        private void Save()
+        {
+            try
+            {
+
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ClusterOnOffSet.txt", false))
+                {
+                    writer.WriteLine(EventsIsOn);
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void Load()
+        {
+            if (!File.Exists(@"Engine\" + TabName + @"ClusterOnOffSet.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + TabName + @"ClusterOnOffSet.txt"))
+                {
+                    _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                _eventsIsOn = true;
+                // ignore
+            }
         }
 
         /// <summary>

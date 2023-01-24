@@ -34,7 +34,7 @@ namespace OsEngine.OsTrader.Panels.Tab
     public class BotTabIndex : IIBotTab
     {
         public BotTabIndex(string name, StartProgram  startProgram)
-        {
+        { 
             TabName = name;
             _startProgram = startProgram;
 
@@ -247,17 +247,40 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(save);
 
                     writer.WriteLine(_userFormula);
-
+                    writer.WriteLine(EventsIsOn);
                     writer.Close();
                 }
             }
             catch (Exception)
             {
+                EventsIsOn = true;
                 // ignore
             }
         }
 
         bool _isLoaded = false;
+
+        /// <summary>
+        /// включена ли подача событий на верх или нет
+        /// </summary>
+        public bool EventsIsOn
+        {
+            get
+            {
+                return _eventsIsOn;
+            }
+            set
+            {
+                if (_eventsIsOn == value)
+                {
+                    return;
+                }
+                _eventsIsOn = value;
+                Save();
+            }
+        }
+
+        private bool _eventsIsOn = true;
 
         /// <summary>
         /// load / 
@@ -288,11 +311,21 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     UserFormula = reader.ReadLine();
 
+                    if(reader.EndOfStream == false)
+                    {
+                        _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
+                    }
+                    else
+                    {
+                        _eventsIsOn = true;
+                    }
+
                     reader.Close();
                 }
             }
             catch (Exception)
             {
+                _eventsIsOn = true;
                 _isLoaded = false;
                 // ignore
             }
@@ -416,7 +449,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     _chartMaster.SetCandles(Candles);
 
-                    if (SpreadChangeEvent != null)
+                    if (SpreadChangeEvent != null && EventsIsOn == true)
                     {
                         SpreadChangeEvent(Candles);
                     }
@@ -472,7 +505,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         _chartMaster.SetCandles(Candles);
 
-                        if (SpreadChangeEvent != null)
+                        if (SpreadChangeEvent != null && EventsIsOn == true)
                         {
                             SpreadChangeEvent(Candles);
                         }

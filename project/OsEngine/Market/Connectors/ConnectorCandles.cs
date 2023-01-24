@@ -104,11 +104,21 @@ namespace OsEngine.Market.Connectors
                     Enum.TryParse(reader.ReadLine(), true, out ServerType);
                     _securityClass = reader.ReadLine();
 
+                    if(reader.EndOfStream == false)
+                    {
+                        _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
+                    }
+                    else
+                    {
+                        _eventsIsOn = true;
+                    }
+
                     reader.Close();
                 }
             }
             catch
             {
+                _eventsIsOn = true;
                 // ignore
             }
         }
@@ -136,6 +146,7 @@ namespace OsEngine.Market.Connectors
                     writer.WriteLine(SecurityName);
                     writer.WriteLine(ServerType);
                     writer.WriteLine(SecurityClass);
+                    writer.WriteLine(EventsIsOn);
 
                     writer.Close();
                 }
@@ -605,6 +616,29 @@ namespace OsEngine.Market.Connectors
         public bool EmulatorIsOn;
 
         /// <summary>
+        /// включена ли подача событий на верх или нет
+        /// </summary>
+        public bool EventsIsOn
+        {
+            get
+            {
+                return _eventsIsOn;
+            }
+            set
+            {
+                if (_eventsIsOn == value)
+                {
+                    return;
+                }
+                _eventsIsOn = value;
+                Save();
+            }
+        }
+
+        private bool _eventsIsOn = true;
+
+
+        /// <summary>
         /// shows whether non-trading intervals are needed
         /// нужно ли запрашивать неторговые интервалы
         /// </summary>
@@ -1018,7 +1052,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (NewCandlesChangeEvent != null)
+                if (NewCandlesChangeEvent != null && EventsIsOn == true)
                 {
                     NewCandlesChangeEvent(Candles(true));
                 }
@@ -1037,7 +1071,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (LastCandlesChangeEvent != null)
+                if (LastCandlesChangeEvent != null && EventsIsOn == true)
                 {
                     LastCandlesChangeEvent(Candles(false));
                 }
@@ -1112,7 +1146,7 @@ namespace OsEngine.Market.Connectors
                     _emulator.ProcessBidAsc(_bestBid, _bestAsk, MarketTime);
                 }
 
-                if (BestBidAskChangeEvent != null)
+                if (BestBidAskChangeEvent != null && EventsIsOn == true)
                 {
                     BestBidAskChangeEvent(bestBid, bestAsk);
                 }
@@ -1136,7 +1170,7 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                if (GlassChangeEvent != null)
+                if (GlassChangeEvent != null && EventsIsOn == true)
                 {
                     GlassChangeEvent(glass);
                 }
@@ -1192,7 +1226,7 @@ namespace OsEngine.Market.Connectors
 
             try
             {
-                if (TickChangeEvent != null)
+                if (TickChangeEvent != null && EventsIsOn == true)
                 {
                     TickChangeEvent(tradesList);
                 }
@@ -1211,7 +1245,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (TimeChangeEvent != null)
+                if (TimeChangeEvent != null && EventsIsOn == true)
                 {
                     TimeChangeEvent(time);
                 }

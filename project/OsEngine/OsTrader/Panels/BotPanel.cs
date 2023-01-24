@@ -1200,10 +1200,10 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _tabIndex;
-            }
+                return _tabsIndex;
+            } 
         }
-        private List<BotTabIndex> _tabIndex = new List<BotTabIndex>();
+        private List<BotTabIndex> _tabsIndex = new List<BotTabIndex>();
 
         /// <summary>
         /// clustered tabs / 
@@ -1213,11 +1213,11 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _tabCluster;
+                return _tabsCluster;
             }
         }
 
-        private List<BotTabCluster> _tabCluster = new List<BotTabCluster>();
+        private List<BotTabCluster> _tabsCluster = new List<BotTabCluster>();
 
         /// <summary>
         /// Screener tabs / 
@@ -1227,11 +1227,11 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _tabScreener;
+                return _tabsScreener;
             }
         }
 
-        private List<BotTabScreener> _tabScreener = new List<BotTabScreener>();
+        private List<BotTabScreener> _tabsScreener = new List<BotTabScreener>();
 
         /// <summary>
         /// user toggled tabs / 
@@ -1293,17 +1293,17 @@ position => position.State != PositionStateType.OpeningFail
                 else if (tabType == BotTabType.Index)
                 {
                     newTab = new BotTabIndex(nameTab, StartProgram);
-                    _tabIndex.Add((BotTabIndex)newTab);
+                    _tabsIndex.Add((BotTabIndex)newTab);
                 }
                 else if (tabType == BotTabType.Cluster)
                 {
                     newTab = new BotTabCluster(nameTab, StartProgram);
-                    _tabCluster.Add((BotTabCluster)newTab);
+                    _tabsCluster.Add((BotTabCluster)newTab);
                 }
                 else if (tabType == BotTabType.Screener)
                 {
                     newTab = new BotTabScreener(nameTab, StartProgram);
-                    _tabScreener.Add((BotTabScreener)newTab);
+                    _tabsScreener.Add((BotTabScreener)newTab);
 
                     ((BotTabScreener)newTab).NewTabCreateEvent += (tab) =>
                     {
@@ -1606,9 +1606,9 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         _tabSimple[i].CloseAllAtMarket();
                     }
-                    for (int i = 0; i < _tabScreener.Count; i++)
+                    for (int i = 0; i < _tabsScreener.Count; i++)
                     {
-                        _tabScreener[i].CloseAllPositionAtMarket();
+                        _tabsScreener[i].CloseAllPositionAtMarket();
                     }
 
                     return;
@@ -1638,9 +1638,9 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (tabWithPosition != null)
                 {
-                    for (int i = 0; i < _tabScreener.Count; i++)
+                    for (int i = 0; i < _tabsScreener.Count; i++)
                     {
-                        tabWithPosition = _tabScreener[i].GetTabWithThisPosition(pos.Number);
+                        tabWithPosition = _tabsScreener[i].GetTabWithThisPosition(pos.Number);
 
                         if (tabWithPosition != null)
                         {
@@ -1681,6 +1681,129 @@ position => position.State != PositionStateType.OpeningFail
             }
           
 
+        }
+
+        // on / off переключалки и свойства
+
+        public bool OnOffEventsInTabs
+        {
+            get
+            {
+                for(int i = 0; _tabSimple != null && i < _tabSimple.Count;i++)
+                {
+                    return _tabSimple[i].Connector.EventsIsOn;
+                }
+
+                for (int i = 0; _tabsIndex != null && i < _tabsIndex.Count; i++)
+                {
+                    return _tabsIndex[i].EventsIsOn;
+                }
+
+                for (int i = 0; _tabsCluster != null && i < _tabsCluster.Count; i++)
+                {
+                    return _tabsCluster[i].EventsIsOn;
+                }
+
+                for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
+                {
+                    return _tabsScreener[i].EventsIsOn;
+                }
+
+                return false;
+            }
+            set
+            {
+                if (StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
+                for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
+                {
+                    _tabSimple[i].Connector.EventsIsOn = value;
+                }
+
+                for (int i = 0; _tabsIndex != null && i < _tabsIndex.Count; i++)
+                {
+                    _tabsIndex[i].EventsIsOn = value;
+                }
+
+                for (int i = 0; _tabsCluster != null && i < _tabsCluster.Count; i++)
+                {
+                    _tabsCluster[i].EventsIsOn = value;
+                }
+
+                for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
+                {
+                    _tabsScreener[i].EventsIsOn = value;
+                }
+            }
+        }
+
+        public bool OnOffEmulatorsInTabs
+        {
+            get
+            {
+                for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
+                {
+                    return _tabSimple[i].Connector.EmulatorIsOn;
+                }
+
+                for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
+                {
+                    BotTabScreener bot = _tabsScreener[i];
+                    
+                    for(int i2 = 0; i2< bot.Tabs.Count; i2++)
+                    {
+                        try
+                        {
+                            return bot.Tabs[i2].Connector.EmulatorIsOn;
+                        }
+                        catch
+                        {
+                            // ignore. Не все вкладки запустились
+                        }
+                    }
+                    return bot.EmulatorIsOn;
+                }
+
+                return false;
+            }
+            set
+            {
+                if(StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
+                for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
+                {
+                    _tabSimple[i].Connector.EmulatorIsOn = value;
+                }
+
+                for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
+                {
+                    BotTabScreener bot = _tabsScreener[i];
+
+                    if (bot.EmulatorIsOn != value)
+                    {
+                        bot.EmulatorIsOn = value;
+                        bot.SaveSettings();
+                    }
+
+                    for (int i2 = 0; i2 < bot.Tabs.Count; i2++)
+                    {
+                        try
+                        {
+                            bot.Tabs[i2].Connector.EmulatorIsOn = value;
+                        }
+                        catch
+                        {
+                            // ignore. Не все вкладки запустились
+                        }
+                    }
+                }
+            }
         }
 
         // log / сообщения в лог 

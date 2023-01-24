@@ -177,7 +177,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-
         #region сервис
 
         public BotTabScreener(string name, StartProgram startProgram)
@@ -279,6 +278,42 @@ namespace OsEngine.OsTrader.Panels.Tab
         private bool _tabIsLoad = false;
 
         /// <summary>
+        /// включена ли подача событий на верх или нет
+        /// </summary>
+        public bool EventsIsOn
+        {
+            get
+            {
+                return _eventsIsOn;
+            }
+            set
+            {
+                if(_eventsIsOn == value)
+                {
+                    return;
+                }
+
+                _eventsIsOn = value;
+
+                try
+                {
+                    for (int i = 0; i < Tabs.Count; i++)
+                    {
+                        Tabs[i].Connector.EventsIsOn = value;
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                SaveSettings();
+            }
+        }
+
+        private bool _eventsIsOn = true;
+
+        /// <summary>
         /// load / 
         /// загрузить настройки из файла
         /// </summary>
@@ -365,6 +400,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(ComissionType);
                     writer.WriteLine(ComissionValue);
                     writer.WriteLine(SaveTradesInCandles);
+                    writer.WriteLine(_eventsIsOn);
 
                     for (int i = 0; i < SecuritiesNames.Count; i++)
                     {
@@ -415,6 +451,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Enum.TryParse(reader.ReadLine(), out ComissionType);
                     ComissionValue = reader.ReadLine().ToDecimal();
                     SaveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
+                    _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
 
                     while (reader.EndOfStream == false)
                     {
@@ -1058,7 +1095,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
         }
-
+        
         /// <summary>
         /// перерисовать грид
         /// </summary>
@@ -1623,7 +1660,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             tab.CandleFinishedEvent += (List<Candle> candles) =>
             {
-                if(CandleFinishedEvent != null)
+                if(CandleFinishedEvent != null && EventsIsOn)
                 {
                     CandleFinishedEvent(candles, tab);
                 }
@@ -1631,42 +1668,42 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             tab.CandleUpdateEvent += (List<Candle> candles) =>
             {
-                if (CandleUpdateEvent != null)
+                if (CandleUpdateEvent != null && EventsIsOn)
                 {
                     CandleUpdateEvent(candles, tab);
                 }
             };
             tab.NewTickEvent += (Trade trade) =>
             {
-                if (NewTickEvent != null)
+                if (NewTickEvent != null && EventsIsOn)
                 {
                     NewTickEvent(trade, tab);
                 }
             };
             tab.MyTradeEvent += (MyTrade trade) =>
             {
-                if (MyTradeEvent != null)
+                if (MyTradeEvent != null && EventsIsOn)
                 {
                     MyTradeEvent(trade, tab);
                 }
             };
             tab.MyTradeEvent += (MyTrade trade) =>
             {
-                if (MyTradeEvent != null)
+                if (MyTradeEvent != null && EventsIsOn)
                 {
                     MyTradeEvent(trade, tab);
                 }
             };
             tab.OrderUpdateEvent += (Order order) =>
             {
-                if (OrderUpdateEvent != null)
+                if (OrderUpdateEvent != null && EventsIsOn)
                 {
                     OrderUpdateEvent(order, tab);
                 }
             };
             tab.MarketDepthUpdateEvent += (MarketDepth md) =>
             {
-                if (MarketDepthUpdateEvent != null)
+                if (MarketDepthUpdateEvent != null && EventsIsOn)
                 {
                     MarketDepthUpdateEvent(md, tab);
                 }
@@ -1674,63 +1711,63 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             tab.PositionClosingSuccesEvent += (Position pos) =>
             {
-                if (PositionClosingSuccesEvent != null)
+                if (PositionClosingSuccesEvent != null && EventsIsOn)
                 {
                     PositionClosingSuccesEvent(pos, tab);
                 }
             };
             tab.PositionOpeningSuccesEvent += (Position pos) =>
             {
-                if (PositionOpeningSuccesEvent != null)
+                if (PositionOpeningSuccesEvent != null && EventsIsOn)
                 {
                     PositionOpeningSuccesEvent(pos, tab);
                 }
             };
             tab.PositionNetVolumeChangeEvent += (Position pos) =>
             {
-                if (PositionNetVolumeChangeEvent != null)
+                if (PositionNetVolumeChangeEvent != null && EventsIsOn)
                 {
                     PositionNetVolumeChangeEvent(pos, tab);
                 }
             };
             tab.PositionOpeningFailEvent += (Position pos) =>
             {
-                if (PositionOpeningFailEvent != null)
+                if (PositionOpeningFailEvent != null && EventsIsOn)
                 {
                     PositionOpeningFailEvent(pos, tab);
                 }
             };
             tab.PositionClosingFailEvent += (Position pos) =>
             {
-                if (PositionClosingFailEvent != null)
+                if (PositionClosingFailEvent != null && EventsIsOn)
                 {
                     PositionClosingFailEvent(pos, tab);
                 }
             };
             tab.PositionStopActivateEvent += (Position pos) =>
             {
-                if (PositionStopActivateEvent != null)
+                if (PositionStopActivateEvent != null && EventsIsOn)
                 {
                     PositionStopActivateEvent(pos, tab);
                 }
             };
             tab.PositionProfitActivateEvent += (Position pos) =>
             {
-                if (PositionProfitActivateEvent != null)
+                if (PositionProfitActivateEvent != null && EventsIsOn)
                 {
                     PositionProfitActivateEvent(pos, tab);
                 }
             };
             tab.PositionBuyAtStopActivateEvent += (Position pos) =>
             {
-                if (PositionBuyAtStopActivateEvent != null)
+                if (PositionBuyAtStopActivateEvent != null && EventsIsOn)
                 {
                     PositionBuyAtStopActivateEvent(pos, tab);
                 }
             };
             tab.PositionSellAtStopActivateEvent += (Position pos) =>
             {
-                if (PositionSellAtStopActivateEvent != null)
+                if (PositionSellAtStopActivateEvent != null && EventsIsOn)
                 {
                     PositionSellAtStopActivateEvent(pos, tab);
                 }
