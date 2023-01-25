@@ -213,7 +213,7 @@ namespace OsEngine.OsTrader
         /// type of program that requested class creation
         /// какая программа запустила класс
         /// </summary>
-        private StartProgram _startProgram;
+        public StartProgram _startProgram;
 
         /// <summary>
         /// bots array

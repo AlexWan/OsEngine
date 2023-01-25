@@ -20,7 +20,7 @@ namespace OsEngine.OsTrader.Gui
             _master = master;
             _host = host;
 
-            CreateTable();
+            CreateTable(master._startProgram);
             RePaintTable(); 
             _master.BotCreateEvent += _master_NewBotCreateEvent;
             _master.BotDeleteEvent += _master_BotDeleteEvent;
@@ -45,7 +45,7 @@ namespace OsEngine.OsTrader.Gui
 
         DataGridView _grid;
 
-        private void CreateTable()
+        private void CreateTable(StartProgram startProgram)
         {
             DataGridView newGrid =
              DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
@@ -105,6 +105,12 @@ namespace OsEngine.OsTrader.Gui
             column07.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             column07.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             newGrid.Columns.Add(column07);
+
+            if(startProgram != StartProgram.IsOsTrader)
+            {
+                column06.ReadOnly = true;
+                column07.ReadOnly = true;
+            }
 
             DataGridViewButtonColumn colum08 = new DataGridViewButtonColumn();
             //colum06.CellTemplate = cell0;
