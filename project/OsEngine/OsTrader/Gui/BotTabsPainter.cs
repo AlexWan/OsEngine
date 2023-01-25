@@ -108,7 +108,6 @@ namespace OsEngine.OsTrader.Gui
 
             if(startProgram != StartProgram.IsOsTrader)
             {
-                column06.ReadOnly = true;
                 column07.ReadOnly = true;
             }
 

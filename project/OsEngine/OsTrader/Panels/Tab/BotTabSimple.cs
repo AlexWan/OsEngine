@@ -313,7 +313,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-
         /// <summary>
         /// whether the connector is connected to download data / 
         /// подключен ли коннектор на скачивание данных
@@ -1255,6 +1254,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             return false;
         }
+
         private bool IsMarketStopOrderSupport()
         {
             if (_connector.ServerType == ServerType.BinanceFutures)
@@ -1487,6 +1487,24 @@ namespace OsEngine.OsTrader.Panels.Tab
                 PositionOpenerToStop positionOpener = 
                     new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars,TimeServerCurrent);
                 positionOpener.Volume = volume;
+
+                if(StartProgram == StartProgram.IsTester ||
+                    StartProgram == StartProgram.IsOsOptimizer)
+                {
+                    if (activateType == StopActivateType.HigherOrEqual && 
+                        priceRedLine > PriceBestAsk)
+                    {
+                        priceRedLine = PriceBestAsk;
+                    }
+                    else if(activateType == StopActivateType.LowerOrEqyal &&
+                        priceRedLine < PriceBestBid)
+                    {
+                        priceRedLine = PriceBestBid;
+                    }
+
+                    priceLimit = priceRedLine;
+                }
+
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
                 positionOpener.ActivateType = activateType;
@@ -1969,6 +1987,24 @@ namespace OsEngine.OsTrader.Panels.Tab
                     new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars, TimeServerCurrent);
 
                 positionOpener.Volume = volume;
+
+                if (StartProgram == StartProgram.IsTester ||
+                    StartProgram == StartProgram.IsOsOptimizer)
+                {
+                    if (activateType == StopActivateType.HigherOrEqual &&
+                        priceRedLine > PriceBestAsk)
+                    {
+                        priceRedLine = PriceBestAsk;
+                    }
+                    else if (activateType == StopActivateType.LowerOrEqyal &&
+                        priceRedLine < PriceBestBid)
+                    {
+                        priceRedLine = PriceBestBid;
+                    }
+
+                    priceLimit = priceRedLine;
+                }
+
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
                 positionOpener.ActivateType = activateType;
@@ -3110,6 +3146,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                             //    , LogMessageType.Error);
                         }
                     }
+
+                    priceOrder = priceActivate;
                 }
 
                 position.StopOrderIsActiv = false;
@@ -3199,6 +3237,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                             //   , LogMessageType.Error);
                         }
                     }
+
+                    priceOrder = priceActivate;
                 }
 
 
