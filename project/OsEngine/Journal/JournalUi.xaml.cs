@@ -103,7 +103,7 @@ namespace OsEngine.Journal
                 return;
             }
 
-            if (TabControlLeft.Dispatcher.CheckAccess())
+            if (TabControlLeft.Dispatcher.CheckAccess() == false)
             {
                 TabControlLeft.Dispatcher.Invoke(new Action<List<BotPanelJournal>>(CreatePositionsLists),_botsJournals);
                 return;

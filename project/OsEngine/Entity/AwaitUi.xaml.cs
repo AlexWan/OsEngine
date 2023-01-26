@@ -19,11 +19,11 @@ namespace OsEngine.Entity
     /// </summary>
     public partial class AwaitUi : Window
     {
-        public AwaitUi()
+        public AwaitUi(string label)
         {
             InitializeComponent();
 
-
+            LabelAwaitString.Content = label;
 
         }
     }
