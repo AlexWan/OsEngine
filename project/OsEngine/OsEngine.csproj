@@ -369,6 +369,9 @@
     <Compile Include="Entity\AcceptDialogUi.xaml.cs">
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Entity\AwaitUi.xaml.cs">
+      <DependentUpon>AwaitUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\DataGridFactory.cs" />
     <Compile Include="Entity\DateTimeSelectionDialog.xaml.cs">
@@ -1235,6 +1238,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Entity\AcceptDialogUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\AwaitUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

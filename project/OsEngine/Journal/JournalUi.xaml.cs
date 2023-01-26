@@ -98,8 +98,15 @@ namespace OsEngine.Journal
 
         private void CreatePositionsLists(List<BotPanelJournal> _botsJournals)
         {
-            if (TabControlLeft.SelectedItem == null)
+            if (TabControlLeft == null ||
+                TabControlLeft.SelectedItem == null)
             {
+                return;
+            }
+
+            if (TabControlLeft.Dispatcher.CheckAccess())
+            {
+                TabControlLeft.Dispatcher.Invoke(new Action<List<BotPanelJournal>>(CreatePositionsLists),_botsJournals);
                 return;
             }
 
@@ -379,53 +386,61 @@ namespace OsEngine.Journal
         /// </summary>
         public void RePaint()
         {
-            CreatePositionsLists(_botsJournals);
-
+ 
             if (!TabControlLeft.CheckAccess())
             {
                 TabControlLeft.Dispatcher.Invoke(RePaint);
                 return;
             }
 
-            if(IsErase == true)
+            try
             {
-                return;
+                CreatePositionsLists(_botsJournals);
+
+                if (IsErase == true)
+                {
+                    return;
+                }
+
+                if (_allPositions == null)
+                {
+                    return;
+                }
+
+                lock (_paintLocker)
+                {
+
+                    if (TabControlPrime.SelectedIndex == 0)
+                    {
+                        PaintProfitOnChart(_allPositions);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 1)
+                    {
+                        bool neadShowTickState = !(_botsJournals.Count > 1);
+
+                        PaintStatTable(_allPositions, _longPositions, _shortPositions, neadShowTickState);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 2)
+                    {
+                        PaintDrowDown(_allPositions);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 3)
+                    {
+                        PaintVolumeOnChart(_allPositions);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 4)
+                    {
+                        PaintOpenPositionGrid(_allPositions);
+                    }
+                    else if (TabControlPrime.SelectedIndex == 5)
+                    {
+                        PaintClosePositionGrid(_allPositions);
+                    }
+                }
             }
-
-            if(_allPositions == null)
+            catch (Exception error)
             {
-                return;
-            }
-
-            lock (_paintLocker)
-            {
-
-                if (TabControlPrime.SelectedIndex == 0)
-                {
-                    PaintProfitOnChart(_allPositions);
-                }
-                else if (TabControlPrime.SelectedIndex == 1)
-                {
-                    bool neadShowTickState = !(_botsJournals.Count > 1);
-
-                    PaintStatTable(_allPositions, _longPositions, _shortPositions, neadShowTickState);
-                }
-                else if (TabControlPrime.SelectedIndex == 2)
-                {
-                    PaintDrowDown(_allPositions);
-                }
-                else if (TabControlPrime.SelectedIndex == 3)
-                {
-                    PaintVolumeOnChart(_allPositions);
-                }
-                else if (TabControlPrime.SelectedIndex == 4)
-                {
-                    PaintOpenPositionGrid(_allPositions);
-                }
-                else if (TabControlPrime.SelectedIndex == 5)
-                {
-                    PaintClosePositionGrid(_allPositions);
-                }
+                System.Windows.MessageBox.Show(error.ToString());
             }
         }
 

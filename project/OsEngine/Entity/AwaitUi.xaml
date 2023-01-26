@@ -1,0 +1,15 @@
+﻿<Window x:Class="OsEngine.Entity.AwaitUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Entity"
+        mc:Ignorable="d"
+        Title="AwaitUi" Height="111.067" Width="358.4" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize">
+    <Grid>
+        <ProgressBar Name="ProgressBarAwait" Height="30" Margin="10,10,35.8,0" VerticalAlignment="Top"/>
+        <Label Name="LabelAwaitString" Content="Await label" Margin="10,45,10.4,0" VerticalAlignment="Top"/>
+        <Label Name="LabelExecutionPercent" Content="22%" HorizontalAlignment="Right" Margin="0,10,3.4,0" VerticalAlignment="Top" Height="30"/>
+
+    </Grid>
+</Window>
