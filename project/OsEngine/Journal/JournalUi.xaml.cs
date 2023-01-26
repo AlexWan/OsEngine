@@ -98,8 +98,7 @@ namespace OsEngine.Journal
 
         private void CreatePositionsLists(List<BotPanelJournal> _botsJournals)
         {
-            if (TabControlLeft == null ||
-                TabControlLeft.SelectedItem == null)
+            if (TabControlLeft == null)
             {
                 return;
             }
@@ -107,6 +106,11 @@ namespace OsEngine.Journal
             if (TabControlLeft.Dispatcher.CheckAccess())
             {
                 TabControlLeft.Dispatcher.Invoke(new Action<List<BotPanelJournal>>(CreatePositionsLists),_botsJournals);
+                return;
+            }
+
+            if (TabControlLeft.SelectedItem == null)
+            {
                 return;
             }
 
