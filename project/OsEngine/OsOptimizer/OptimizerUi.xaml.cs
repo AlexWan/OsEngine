@@ -533,6 +533,15 @@ namespace OsEngine.OsOptimizer
             }
             else if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label32)
             {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label51);
+
+                ui.ShowDialog();
+
+                if (!ui.UserAcceptActioin)
+                {
+                    return;
+                }
+
                 _master.Stop();
                 ButtonGo.Content = OsLocalization.Optimizer.Label9;
             }

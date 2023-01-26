@@ -378,5 +378,9 @@ namespace OsEngine.Language
         public string Label50 => OsLocalization.ConvertToLocString(
           "Eng:In one of the optimization stages, less than one day. It is not possible to form an optimization sequence! Change the settings!_" +
           "Ru:В одном из этапов оптимизации менее одного дня. Сформировать последовательность оптимизации не получается! Измените настройки! _");
+
+        public string Label51 => OsLocalization.ConvertToLocString(
+          "Eng:Are you sure you want to interrupt the optimizer?_" +
+          "Ru:Вы уверены в том что хотите прервать работу оптимизатора?_");
     }
 }
