@@ -19,12 +19,31 @@ namespace OsEngine.Entity
     /// </summary>
     public partial class AwaitUi : Window
     {
-        public AwaitUi(string label)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="label">подпись на окне</param>
+        /// <param name="externalManagement">true - нужно управлять бегунком снаружи. false - неизвестно сколько осталось время до конца</param>
+        public AwaitUi(string label, bool externalManagement)
         {
             InitializeComponent();
 
             LabelAwaitString.Content = label;
 
+
         }
+
+        public int maxValue;
+
+        public int curValue;
+
+        private void PaintThreadArea()
+        {
+
+
+
+        }
+
+
     }
 }

@@ -3007,8 +3007,7 @@ namespace OsEngine.Journal
             }
 
             SaveGroups();
-            _neadToRapaintBotsGrid = true;
-            CreatePositionsLists();
+            RePaint();
         }
 
         private void ChangeGroup(DataGridViewCellEventArgs e)
