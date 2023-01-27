@@ -17,7 +17,7 @@ namespace OsEngine.Entity
         public DateTimeSelectionDialog(DateTime initTime)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             Time = initTime;
 
             DateTimePicker.SelectedDate = Time;

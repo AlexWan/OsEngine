@@ -38,7 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AwesomeOscillatorUi(AwesomeOscillator awesomeOscillator)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _awesomeOscillatoro = awesomeOscillator;
 
             TextBoxLenghtLong.Text = _awesomeOscillatoro.LenghtLong.ToString();

@@ -25,7 +25,7 @@ namespace OsEngine.Market.Servers.Tester
         public GoToUi(DateTime timeStart, DateTime timeEnd, DateTime timeNow)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
 
             if ((timeEnd - timeStart).TotalDays <= 0)
             {

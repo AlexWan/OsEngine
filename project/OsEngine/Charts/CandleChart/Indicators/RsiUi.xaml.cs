@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public RsiUi(Rsi rsi)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _rsi = rsi;
 
             TextBoxLenght.Text = _rsi.Lenght.ToString();

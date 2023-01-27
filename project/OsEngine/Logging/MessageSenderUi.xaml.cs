@@ -24,7 +24,7 @@ namespace OsEngine.Logging
         {
             _sender = sender;
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             LoadDateOnForm();
 
             Title = OsLocalization.Logging.TitleMessageSenderUi;

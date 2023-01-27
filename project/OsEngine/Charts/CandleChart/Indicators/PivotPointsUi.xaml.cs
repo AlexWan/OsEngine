@@ -27,7 +27,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public PivotPointsUi(PivotPoints pivotPoints)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _pivotPoints = pivotPoints;
 
             CheckBoxPaintOnOff.IsChecked = _pivotPoints.PaintOn;

@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AcUi(Ac ac)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _ac = ac;
 
             TextBoxLenght.Text = _ac.LenghtLong.ToString();

@@ -38,7 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public StandardDeviationUi(StandardDeviation mA)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _mA = mA;
 
             TextBoxLenght.Text = _mA.Lenght.ToString();

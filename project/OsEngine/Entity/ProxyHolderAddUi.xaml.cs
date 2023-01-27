@@ -17,7 +17,7 @@ namespace OsEngine.Entity
         public ProxyHolderAddUi()
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             this.Activate();
             this.Focus();
         }

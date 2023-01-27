@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public BearsPowerUi(BearsPower bp)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _bp = bp;
 
             TextBoxLenght.Text = _bp.Period.ToString();

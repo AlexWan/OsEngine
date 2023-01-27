@@ -25,7 +25,7 @@ namespace OsEngine.Market.Servers
         public AServerParameterUi(AServer server)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _server = server;
 
             _server.Log.StartPaint(HostLog);
