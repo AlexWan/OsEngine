@@ -32,7 +32,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public DonchianChannelUi(DonchianChannel donchian)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _donchian = donchian;
 
             TextBoxLenght.Text = _donchian.Lenght.ToString();

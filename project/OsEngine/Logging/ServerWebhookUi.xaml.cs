@@ -18,7 +18,7 @@ namespace OsEngine.Logging
          public ServerWebhookDeliveryUi() // constructor / конструктор
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
 
             ServerWebhook serverWebhook = ServerWebhook.GetServer();
 

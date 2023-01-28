@@ -18,7 +18,7 @@ namespace OsEngine.Robots.MarketMaker
          public PairTraderSpreadSmaUi(PairTraderSpreadSma strategy)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _strategy = strategy;
 
             CultureInfo culture = new CultureInfo("ru-RU");

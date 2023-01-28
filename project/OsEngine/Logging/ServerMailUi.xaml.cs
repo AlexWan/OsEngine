@@ -17,7 +17,7 @@ namespace OsEngine.Logging
          public ServerMailDeliveryUi() // constructor / конструктор
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
 
             ServerMail serverMail = ServerMail.GetServer();
 

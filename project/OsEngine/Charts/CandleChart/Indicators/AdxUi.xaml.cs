@@ -38,7 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AdxUi(Adx adx) 
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _adx = adx;
 
             TextBoxLenght.Text = _adx.Lenght.ToString();

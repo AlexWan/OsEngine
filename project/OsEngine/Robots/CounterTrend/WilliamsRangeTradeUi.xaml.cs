@@ -18,7 +18,7 @@ namespace OsEngine.Robots.CounterTrend
         public WilliamsRangeTradeUi(WilliamsRangeTrade strategy)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _strategy = strategy;
 
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();

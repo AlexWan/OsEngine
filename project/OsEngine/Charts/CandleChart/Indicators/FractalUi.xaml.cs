@@ -35,7 +35,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public FractalUi(Fractal fractail) 
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _fractail = fractail;
 
             HostColorUp.Child = new TextBox();

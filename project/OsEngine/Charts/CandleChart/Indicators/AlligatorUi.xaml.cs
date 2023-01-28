@@ -38,7 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AlligatorUi(Alligator alligator)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _alligator = alligator;
 
             TextBoxLenghtBase.Text = _alligator.LenghtBase.ToString();

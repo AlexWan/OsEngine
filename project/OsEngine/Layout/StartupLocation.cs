@@ -34,7 +34,7 @@ namespace OsEngine.Layout
             double xPosByWin32 = MouseCoordinates.XmousePos(ui);
             double yPosByWin32 = MouseCoordinates.YmousePos(ui);
 
-            ui.Left = xPosByWin32;
+            ui.Left = xPosByWin32 - ui.ActualWidth;
             ui.Top = yPosByWin32;
 
             ui.Activated -= Ui_Start_MouseInCentre_ContentActivated;
@@ -64,7 +64,7 @@ namespace OsEngine.Layout
             double xPosByWin32 = MouseCoordinates.XmousePos(ui);
             double yPosByWin32 = MouseCoordinates.YmousePos(ui);
 
-            double leftPos = xPosByWin32 - ui.Width / 2;
+            double leftPos = xPosByWin32 - ui.Width;
             double topPos = yPosByWin32 - ui.Height / 2;
 
             if(leftPos < 0)

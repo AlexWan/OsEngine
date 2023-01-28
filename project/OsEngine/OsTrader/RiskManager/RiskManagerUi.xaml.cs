@@ -27,7 +27,7 @@ namespace OsEngine.OsTrader.RiskManager
             {
                 _riskManager = riskManager;
                 InitializeComponent();
-                OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+                OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
                 LoadDateOnForm();
             }
             catch (Exception error)

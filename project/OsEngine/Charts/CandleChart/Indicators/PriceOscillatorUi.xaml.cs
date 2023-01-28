@@ -36,7 +36,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public PriceOscillatorUi(PriceOscillator pO)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _pO = pO;
 
             HostColorBase.Child = new TextBox();

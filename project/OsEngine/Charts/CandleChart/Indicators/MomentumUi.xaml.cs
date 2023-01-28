@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public MomentumUi(Momentum momentum)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _momentum = momentum;
 
             TextBoxLenght.Text = _momentum.Nperiod.ToString();

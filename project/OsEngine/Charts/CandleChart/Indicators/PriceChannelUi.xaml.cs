@@ -38,7 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public PriceChannelUi(PriceChannel bollinger)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _bollinger = bollinger;
 
             TextBoxLenghtUp.Text = _bollinger.LenghtUpLine.ToString();

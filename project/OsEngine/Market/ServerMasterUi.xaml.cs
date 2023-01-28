@@ -24,7 +24,7 @@ namespace OsEngine.Market
         public ServerMasterUi(bool isTester)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
 
             List<IServer> servers = ServerMaster.GetServers();
 

@@ -38,7 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public BollingerUi(Bollinger bollinger)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _bollinger = bollinger;
 
             TextBoxDeviation.Text = _bollinger.Deviation.ToString();

@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public RocUi(Roc roc)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _roc = roc;
 
             TextBoxLenght.Text = _roc.Period.ToString();

@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public EnvelopsUi(Envelops envelops)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             _envelops = envelops;
 
             HostColorUp.Child = new TextBox();

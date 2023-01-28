@@ -35,7 +35,7 @@ namespace OsEngine.Entity
             _startProgramm = startProgram;
             _position = position;
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
             CreateMainTable();
             CreateOrdersTable();
             CreateTradeTable();
