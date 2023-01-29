@@ -2285,6 +2285,7 @@ namespace OsEngine.Market.Servers
 
         private void ThisSessionOrdersManagment()
         {
+            return;
             for(int i = 0;i < _myExecuteOrdersThisSession.Count;i++)
             {
                 Order order = _myExecuteOrdersThisSession[i];
@@ -2305,6 +2306,7 @@ namespace OsEngine.Market.Servers
 
         private void AllSessionOrdersManagment()
         {
+            return;
 
             if (LastStartServerTime.AddSeconds(30) < DateTime.Now
                 && LastStartServerTime.AddSeconds(120) > DateTime.Now)
@@ -2449,6 +2451,7 @@ namespace OsEngine.Market.Servers
 
         private void CheckOrderStatesOnStartProgramm()
         {
+            return;
             if(_myExecuteOrdersAllSessions.Count != 0)
             {
                 _serverRealization.GetOrdersState(_myExecuteOrdersAllSessions);
