@@ -1488,7 +1488,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars,TimeServerCurrent);
                 positionOpener.Volume = volume;
 
-                if(StartProgram == StartProgram.IsTester ||
+               /* if(StartProgram == StartProgram.IsTester ||
                     StartProgram == StartProgram.IsOsOptimizer)
                 {
                     if (activateType == StopActivateType.HigherOrEqual && 
@@ -1503,7 +1503,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     priceLimit = priceRedLine;
-                }
+                }*/
 
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
@@ -1988,7 +1988,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 positionOpener.Volume = volume;
 
-                if (StartProgram == StartProgram.IsTester ||
+                /*if (StartProgram == StartProgram.IsTester ||
                     StartProgram == StartProgram.IsOsOptimizer)
                 {
                     if (activateType == StopActivateType.HigherOrEqual &&
@@ -2003,7 +2003,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     priceLimit = priceRedLine;
-                }
+                }*/
 
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
@@ -3132,7 +3132,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if(position.Direction == Side.Buy &&
                             priceActivate > lastAsk)
                         {
-                            priceActivate = lastAsk;
+                            //priceActivate = lastAsk;
                             //SetNewLogMessage(
                             //    OsLocalization.Trader.Label180
                             //    , LogMessageType.Error);
@@ -3140,7 +3140,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (position.Direction == Side.Sell &&
                             priceActivate < lastBid)
                         {
-                            priceActivate = lastBid;
+                           // priceActivate = lastBid;
                             //SetNewLogMessage(
                             //    OsLocalization.Trader.Label180
                             //    , LogMessageType.Error);
@@ -3223,15 +3223,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (position.Direction == Side.Buy &&
                             priceActivate < lastBid)
                         {
-                            priceActivate = lastBid;
-                           // SetNewLogMessage(
+                            // priceActivate = lastBid;
+                            // SetNewLogMessage(
                             //    OsLocalization.Trader.Label181
                             //    , LogMessageType.Error);
                         }
                         if (position.Direction == Side.Sell &&
                             priceActivate > lastAsk)
                         {
-                            priceActivate = lastAsk;
+                            // priceActivate = lastAsk;
                             //SetNewLogMessage(
                             //   OsLocalization.Trader.Label181
                             //   , LogMessageType.Error);

@@ -154,25 +154,6 @@ namespace OsEngine.OsTrader.Gui
             int coluIndex = _grid.SelectedCells[0].ColumnIndex;
 
             int rowIndex = _grid.SelectedCells[0].RowIndex;
-			
-			
-			for (int i = 0; i < _grid.RowCount; i++)
-            {
-                if (i == rowIndex)
-                {
-                    for (int y = 0; y < _grid.ColumnCount; y++)
-                    {
-                        _grid.Rows[rowIndex].Cells[y].Style.ForeColor = System.Drawing.Color.Cyan;
-                    }
-                }
-                else
-                {
-                    for (int y = 0; y < _grid.ColumnCount; y++)
-                    {
-                        _grid.Rows[i].Cells[y].Style.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-                    }
-                }
-            }
 
             /*
 colum0.HeaderText = "Num";
