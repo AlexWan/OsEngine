@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public StochasticOscillatorUi(StochasticOscillator so)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _so = so;
 
             TextBoxLenght.Text = _so.P1.ToString();

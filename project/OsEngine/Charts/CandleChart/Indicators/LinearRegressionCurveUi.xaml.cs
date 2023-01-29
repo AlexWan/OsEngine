@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public LinearRegressionCurveUi(LinearRegressionCurve linregc)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _lrc = linregc;
 
             TextBoxLenght.Text = _lrc.Lenght.ToString();

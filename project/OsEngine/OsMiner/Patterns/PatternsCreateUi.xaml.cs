@@ -13,7 +13,7 @@ namespace OsEngine.OsMiner.Patterns
         public PatternsCreateUi(int patternNum)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             TextBoxPatternName.Text = OsLocalization.Miner.Label25 + patternNum;
             Title = OsLocalization.Miner.Label26;

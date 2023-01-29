@@ -26,7 +26,7 @@ namespace OsEngine.Entity
         public SecuritiesUi(IServer server)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             CreateTable();
             PaintSecurities(server.Securities);
             server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;

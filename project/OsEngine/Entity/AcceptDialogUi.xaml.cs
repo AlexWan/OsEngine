@@ -31,7 +31,7 @@ namespace OsEngine.Entity
         public AcceptDialogUi(string text)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             LabelText.Content = text;
 
             _numMessage++;

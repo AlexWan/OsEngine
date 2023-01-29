@@ -35,7 +35,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public MacdLineUi(MacdLine macd)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _macd = macd;
 
             HostColorUp.Child = new TextBox();

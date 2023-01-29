@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public CmoUi(Cmo cmo)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _cmo = cmo;
             TextBoxLenght.Text = _cmo.Period.ToString();
 

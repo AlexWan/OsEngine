@@ -18,7 +18,7 @@ namespace OsEngine.OsMiner.Patterns
         public AutoTestResultsUi(List<TestResult> testResults)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _testResults = testResults;
             _grid = new DataGridView();
             CreateGridPatternsGrid(_grid, Host);

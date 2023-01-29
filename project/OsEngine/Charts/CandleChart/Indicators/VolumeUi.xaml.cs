@@ -20,7 +20,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
       public VolumeUi(Volume fractail) // constructor//конструктор
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _volume = fractail;
             ShowSettingsOnForm();
 

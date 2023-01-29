@@ -36,7 +36,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public OnBalanceVolumeUi(OnBalanceVolume obv)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _obv = obv;
 
             HostColorBase.Child = new TextBox();

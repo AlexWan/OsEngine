@@ -64,7 +64,7 @@ namespace OsEngine.Layout
             double xPosByWin32 = MouseCoordinates.XmousePos(ui);
             double yPosByWin32 = MouseCoordinates.YmousePos(ui);
 
-            double leftPos = xPosByWin32 - ui.Width;
+            double leftPos = xPosByWin32 - ui.Width/2;
             double topPos = yPosByWin32 - ui.Height / 2;
 
             if(leftPos < 0)

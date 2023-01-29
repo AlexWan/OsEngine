@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public ForceIndexUi(ForceIndex forceindex)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _forceindex = forceindex;
 
             TextBoxLenght.Text = _forceindex.Period.ToString();

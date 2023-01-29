@@ -37,7 +37,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public UltimateOscillatorUi(UltimateOscillator indicator)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _indicator = indicator;
 
             TextBoxLenght.Text = _indicator.Period1.ToString();

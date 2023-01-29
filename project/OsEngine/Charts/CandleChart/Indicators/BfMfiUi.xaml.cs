@@ -20,7 +20,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public BfMfiUi(BfMfi mfi) //constructor/конструктор
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _mfi = mfi;
             ShowSettingsOnForm();
 

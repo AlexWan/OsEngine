@@ -38,7 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public SimpleVWAPUi(SimpleVWAP vwap)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _vwap = vwap;
 
             HostColor.Child = new TextBox();

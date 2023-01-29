@@ -17,7 +17,7 @@ namespace OsEngine.Logging
         public ServerSmsUi() // constructor / конструктор
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             ServerSms serverSms = ServerSms.GetSmsServer();
 
             TextBoxMyLogin.Text = serverSms.SmscLogin;

@@ -38,7 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public RviUi(Rvi rvi)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _rvi = rvi;
 
             TextBoxLenght.Text = _rvi.Period.ToString();

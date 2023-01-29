@@ -21,7 +21,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         public AstsServerUi(AstsBridgeServer server, Log log)
         {
             InitializeComponent();
-            OsEngine.Layout.StartupLocation.Start_MouseInCorner(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
 
             TextBoxServerAdress.Text = _server.ServerAdress;
