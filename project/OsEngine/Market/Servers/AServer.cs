@@ -761,6 +761,8 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void ReserchOrdersToDone()
         {
+            return;
+
             while (true)
             {
                 Thread.Sleep(60000);

@@ -153,7 +153,7 @@ namespace OsEngine.OsTrader.Gui
             }
             int coluIndex = _grid.SelectedCells[0].ColumnIndex;
 
-            int rowIndex = _grid.SelectedCells[0].RowIndex
+            int rowIndex = _grid.SelectedCells[0].RowIndex;
 			
 			
 			for (int i = 0; i < _grid.RowCount; i++)
