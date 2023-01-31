@@ -1066,6 +1066,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             newGrid.Click += NewGrid_Click;
         }
 
+		private int prevActiveRow;
+
         /// <summary>
         /// клик по таблице
         /// </summary>
@@ -1093,6 +1095,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ShowChart(tabRow);
                 }
+				
+                SecuritiesDataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+                prevActiveRow = tabRow;		
             }
         }
         

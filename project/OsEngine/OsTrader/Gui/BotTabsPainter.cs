@@ -145,6 +145,8 @@ namespace OsEngine.OsTrader.Gui
             _grid.ClearSelection();
         }
 
+		private int prevActiveRow;
+
         private void _grid_Click(object sender, EventArgs e)
         {
             if(_grid.SelectedCells.Count == 0)
@@ -209,6 +211,10 @@ colum10.HeaderText = "Action";
             { // вызываем добавление нового бота
                 _master.CreateNewBot();
             }
+						
+            _grid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+            _grid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+            prevActiveRow = rowIndex;
         }
 
         #region работа с чек-боксами включений и отключений
