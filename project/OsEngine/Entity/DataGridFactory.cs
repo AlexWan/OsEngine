@@ -18,7 +18,7 @@ namespace OsEngine.Entity
     {
         public static DataGridView GetDataGridView(DataGridViewSelectionMode selectionMode, DataGridViewAutoSizeRowsMode rowsSizeMode, bool createSaveMenu = false)
         {
-            DataGridView grid = new DataGridView();
+            DataGridView grid = new DoubleBufferedDataGridView();
 
             grid.AllowUserToOrderColumns = true;
             grid.AllowUserToResizeRows = true;
@@ -66,6 +66,11 @@ namespace OsEngine.Entity
             }
 
             return grid;
+        }
+
+        class DoubleBufferedDataGridView : DataGridView
+        {
+            protected override bool DoubleBuffered { get => true; }
         }
 
         private static void GridMouseWheelEvent(object sender, MouseEventArgs args)
