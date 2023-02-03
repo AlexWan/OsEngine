@@ -775,37 +775,40 @@ namespace OsEngine.Market
         /// </summary>
         private void OrdersCloseAll_Click(object sender, EventArgs e)
         {
-            try
+            new Task(()=>
             {
-                if (_orders != null)
+                try
                 {
-                    for (int i = 0; i < _orders.Count; i++)
+                    if (_orders != null)
                     {
-                        if (_orders[i].State == OrderStateType.Activ &&
-                            !string.IsNullOrEmpty(_orders[i].PortfolioNumber))
+                        for (int i = 0; i < _orders.Count; i++)
                         {
-                            IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == _orders[i].ServerType);
-                            if (server != null)
+                            if (_orders[i].State == OrderStateType.Activ &&
+                                !string.IsNullOrEmpty(_orders[i].PortfolioNumber))
                             {
-                                server.CancelOrder(_orders[i]);
+                                IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == _orders[i].ServerType);
+                                if (server != null)
+                                {
+                                    server.CancelOrder(_orders[i]);
+                                }
                             }
                         }
                     }
+
+                    List<IServer> servers = ServerMaster.GetServers();
+
+                    for (int i = 0; servers != null && i < servers.Count; i++)
+                    {
+                        IServer server = servers[i];
+                        server.CancelAllOrders();
+                    }
+
                 }
-
-                List<IServer> servers = ServerMaster.GetServers();
-
-                for(int i = 0; servers != null && i < servers.Count;i++)
+                catch (Exception error)
                 {
-                    IServer server = servers[i];
-                    server.CancelAllOrders();
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 }
-
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
+            }).Start();
         }
 
         /// <summary>
@@ -814,30 +817,34 @@ namespace OsEngine.Market
         /// </summary>
         private void PositionCloseForNumber_Click(object sender, EventArgs e)
         {
-            try
+            new Task(()=>
             {
-                if (_orders == null || _orders.Count == 0)
+                try
                 {
-                    return;
-                }
-
-                Order order = _orders[(_orders.Count - 1 - _gridOrders.CurrentCell.RowIndex)];
-
-                if ((order.State == OrderStateType.Activ || order.State == OrderStateType.Pending)
-                    &&
-                        !string.IsNullOrEmpty(order.PortfolioNumber))
-                {
-                    IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == order.ServerType);
-                    if (server != null)
+                    if (_orders == null || _orders.Count == 0)
                     {
-                        server.CancelOrder(order);
+                        return;
+                    }
+
+                    Order order = _orders[(_orders.Count - 1 - _gridOrders.CurrentCell.RowIndex)];
+
+                    if ((order.State == OrderStateType.Activ || order.State == OrderStateType.Pending)
+                        &&
+                            !string.IsNullOrEmpty(order.PortfolioNumber))
+                    {
+                        IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == order.ServerType);
+                        if (server != null)
+                        {
+                            server.CancelOrder(order);
+                        }
                     }
                 }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }).Start();
+           
         }
 
 // log message
