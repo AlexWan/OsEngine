@@ -238,7 +238,7 @@ namespace OsEngine.Entity
                     _server.ServerType != ServerType.Optimizer &&
                     _server.ServerType != ServerType.Miner)
                 {
-                    series.СandleUpdeteEvent += series_СandleUpdeteEvent; 
+                    series.СandleUpdeteEvent += series_СandleUpdeteEvent;
                 }
 
                 series.TypeTesterData = _typeTesterData;
@@ -254,7 +254,11 @@ namespace OsEngine.Entity
                     _activSeriesBasedOnMd = new List<CandleSeries>();
                 }
 
-                if (_startProgram == StartProgram.IsOsOptimizer)
+                if (_startProgram == StartProgram.IsOsTrader)
+                {
+                    _candleSeriesNeadToStart.Enqueue(series);
+                }
+                else
                 {
                     if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
                     {
@@ -265,10 +269,6 @@ namespace OsEngine.Entity
                         _activSeriesBasedOnTrades.Add(series);
                     }
                     series.IsStarted = true;
-                }
-               else
-                {
-                    _candleSeriesNeadToStart.Enqueue(series);
                 }
             }
             catch (Exception error)
@@ -1048,6 +1048,26 @@ namespace OsEngine.Entity
                 }
             }
             
+        }
+
+        public int ActiveSeriesCount
+        {
+            get
+            {
+                int result = 0;
+
+                if (_activSeriesBasedOnTrades != null)
+                {
+                    result += _activSeriesBasedOnTrades.Count;
+                }
+
+                if (_activSeriesBasedOnMd != null)
+                {
+                    result += _activSeriesBasedOnMd.Count;
+                }
+
+                return result;
+            }
         }
 
         /// <summary>
