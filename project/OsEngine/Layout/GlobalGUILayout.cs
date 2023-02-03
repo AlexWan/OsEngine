@@ -142,6 +142,15 @@ namespace OsEngine.Layout
             {
                 windowLayout.Layout.Top = Convert.ToDecimal(ui.Top);
             }
+
+            if (ui.WindowState == System.Windows.WindowState.Maximized)
+            {
+                windowLayout.Layout.IsExpand = true;
+            }
+            else
+            {
+                windowLayout.Layout.IsExpand = false;
+            }			
         }
 
         private static void SetLayoutInWindow(System.Windows.Window ui, OpenWindowLayout layout)
@@ -153,12 +162,16 @@ namespace OsEngine.Layout
             {
                 return;
             }
-
-            if (layout.Height < 0 ||
-                 layout.Widht < 0 ||
-                 layout.Left < 0 ||
-                 layout.Top < 0)
+           
+            if (layout.Height < 0 || layout.Widht < 0)
             {
+                return;
+            }           
+
+            if (layout.IsExpand == true)
+            {
+                ui.Left = Convert.ToDouble(layout.Left);
+                ui.Top = Convert.ToDouble(layout.Top);
                 return;
             }
 
@@ -209,16 +222,12 @@ namespace OsEngine.Layout
                         {
                             continue;
                         }
-
-                        if (UiOpenWindows[i].Layout.Height < 0 ||
-                             UiOpenWindows[i].Layout.Widht < 0 ||
-                             UiOpenWindows[i].Layout.Left < 0 ||
-                             UiOpenWindows[i].Layout.Top < 0)
+                                             
+                        if (UiOpenWindows[i].Layout.Height < 0 || UiOpenWindows[i].Layout.Widht < 0)
                         {
                             continue;
                         }
-
-
+                        
                         writer.WriteLine(UiOpenWindows[i].GetSaveString());
                     }
 
@@ -345,7 +354,7 @@ namespace OsEngine.Layout
             string res = "";
 
             res += Name + "#";
-            res += Layout.Height + "$" + Layout.Left + "$" + Layout.Top + "$" + Layout.Widht;
+            res += Layout.Height + "$" + Layout.Left + "$" + Layout.Top + "$" + Layout.Widht + "$" + Layout.IsExpand;
 
             return res;
         }
@@ -363,7 +372,7 @@ namespace OsEngine.Layout
             Layout.Left = strLayout[1].ToDecimal();
             Layout.Top = strLayout[2].ToDecimal();
             Layout.Widht = strLayout[3].ToDecimal();
-
+            Layout.IsExpand = Convert.ToBoolean(strLayout[4]);
         }
     }
 
@@ -376,5 +385,7 @@ namespace OsEngine.Layout
         public decimal Widht;
 
         public decimal Height;
+		
+        public bool IsExpand;    // является ли окно развернутым		
     }
 }
