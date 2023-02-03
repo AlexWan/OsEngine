@@ -135,6 +135,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.SecurityClass = security.SecurityClass;
             connector.TimeFrame = creator.TimeFrame;
             connector.EmulatorIsOn = creator.EmulatorIsOn;
+            connector.NeadToLoadServerData = false;
             connector.CandleCreateMethodType = creator.CandleCreateMethodType;
             connector.CandleMarketDataType = creator.CandleMarketDataType;
             connector.SetForeign = creator.SetForeign;
@@ -149,6 +150,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.ComissionType = creator.ComissionType;
             connector.ComissionValue = creator.ComissionValue;
             connector.SaveTradesInCandles = creator.SaveTradesInCandles;
+            
 
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
@@ -304,6 +306,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         ConnectorCandles newConnector = new ConnectorCandles(save2[i], _startProgram);
                         newConnector.SaveTradesInCandles = false;
+
+                        if(newConnector.CandleMarketDataType != CandleMarketDataType.MarketDepth)
+                        {
+                            newConnector.NeadToLoadServerData = false;
+                        }
 
                         Tabs.Add(newConnector);
                         Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;

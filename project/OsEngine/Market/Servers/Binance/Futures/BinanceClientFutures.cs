@@ -77,60 +77,44 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private string _listenKey = "";
 
-        private WebSocket _spotSocketClient;
+        private WebSocket _socketClient;
 
         private void CreateDataStreams()
-        {
-            _spotSocketClient = CreateUserDataStream();
-            _wsStreams.Add("userDataStream", _spotSocketClient);
-            _spotSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
-            {
-                UserDataMessageHandler(sender, args);
-            };
-
-            Thread keepalive = new Thread(KeepaliveUserDataStream);
-            keepalive.CurrentCulture = new CultureInfo("ru-RU");
-            keepalive.IsBackground = true;
-            keepalive.Start();
-
-            Thread converter = new Thread(Converter);
-            converter.CurrentCulture = new CultureInfo("ru-RU");
-            converter.IsBackground = true;
-            converter.Start();
-
-            Thread converterUserData = new Thread(ConverterUserData);
-            converterUserData.CurrentCulture = new CultureInfo("ru-RU");
-            converterUserData.IsBackground = true;
-            converterUserData.Start();
-        }
-
-        /// <summary>
-        /// create user data thread
-        /// создать поток пользовательских данных
-        /// </summary>
-        /// <returns></returns>
-        private WebSocket CreateUserDataStream()
         {
             try
             {
                 _listenKey = CreateListenKey();
-
                 string urlStr = wss_point + "/ws/" + _listenKey;
 
-                WebSocket client = new WebSocket(urlStr); //create a web socket / создаем вебсокет
+                _socketClient = new WebSocket(urlStr);
+                _socketClient.Opened += Connect;
+                _socketClient.Closed += Disconnect;
+                _socketClient.Error += WsError;
+                _socketClient.MessageReceived += UserDataMessageHandler;
+                _socketClient.Open();
 
-                client.Opened += Connect;
-                client.Closed += Disconnect;
-                client.Error += WsError;
-                client.Open();
+                _wsStreams.Add("userDataStream", _socketClient);
 
-                return client;
+                Thread keepalive = new Thread(KeepaliveUserDataStream);
+                keepalive.CurrentCulture = new CultureInfo("ru-RU");
+                keepalive.IsBackground = true;
+                keepalive.Start();
+
+                Thread converter = new Thread(Converter);
+                converter.CurrentCulture = new CultureInfo("ru-RU");
+                converter.IsBackground = true;
+                converter.Start();
+
+                Thread converterUserData = new Thread(ConverterUserData);
+                converterUserData.CurrentCulture = new CultureInfo("ru-RU");
+                converterUserData.IsBackground = true;
+                converterUserData.Start();
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.Message, LogMessageType.Connect);
-                return null;
             }
+
         }
 
         /// <summary>
@@ -177,6 +161,24 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     ws.Value.Close();
                     ws.Value.Dispose();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                if(_socketClient != null)
+                {
+                    _socketClient.Opened -= Connect;
+                    _socketClient.Closed -= Disconnect;
+                    _socketClient.Error -= WsError;
+                    _socketClient.MessageReceived -= UserDataMessageHandler;
+                    _socketClient.Close();
+                    //_socketClient.Dispose();
+                    _socketClient = null;
                 }
             }
             catch
@@ -1540,6 +1542,17 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 IsConnected = false;
 
+                foreach (var ws in _wsStreams)
+                {
+                    ws.Value.Opened -= new EventHandler(Connect);
+                    ws.Value.Closed -= new EventHandler(Disconnect);
+                    ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
+                    ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(GetRes);
+
+                    ws.Value.Close();
+                    ws.Value.Dispose();
+                }
+
                 _wsStreams.Clear();
 
                 if (Disconnected != null)
@@ -1590,17 +1603,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _wsClient = new WebSocket(urlStr); // create web-socket / создаем вебсоке
 
                 _wsClient.Opened += new EventHandler(Connect);
-
                 _wsClient.Closed += new EventHandler(Disconnect);
-
                 _wsClient.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
-
                 _wsClient.MessageReceived += new EventHandler<MessageReceivedEventArgs>(GetRes);
-
-                
 
                 if (_wsStreams.ContainsKey(security.Name))
                 {
+                    _wsStreams[security.Name].Opened -= new EventHandler(Connect);
+                    _wsStreams[security.Name].Closed -= new EventHandler(Disconnect);
+                    _wsStreams[security.Name].Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
+                    _wsStreams[security.Name].MessageReceived -= new EventHandler<MessageReceivedEventArgs>(GetRes);
                     _wsStreams[security.Name].Close();
                     _wsStreams.Remove(security.Name);
                 }

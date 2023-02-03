@@ -1713,11 +1713,6 @@ position => position.State != PositionStateType.OpeningFail
             }
             set
             {
-                if (StartProgram != StartProgram.IsOsTrader)
-                {
-                    return;
-                }
-
                 for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
                 {
                     _tabSimple[i].Connector.EventsIsOn = value;
