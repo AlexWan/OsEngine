@@ -1082,6 +1082,11 @@ namespace OsEngine.Market.Servers.Tinkoff
                         continue;
                     }
 
+                    if (_accountsResponse.accounts[i].name.Equals("ИИС"))
+                    {
+                        continue;
+                    }
+
                     string portUrl = _url + "OperationsService/GetPortfolio";
 
                     Dictionary<string, string> param = new Dictionary<string, string>();
