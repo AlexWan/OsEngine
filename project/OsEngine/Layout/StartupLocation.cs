@@ -31,8 +31,8 @@ namespace OsEngine.Layout
         {
             System.Windows.Window ui = (System.Windows.Window)sender;
 
-            double xPosByWin32 = MouseCoordinates.XmousePos(ui);
-            double yPosByWin32 = MouseCoordinates.YmousePos(ui);
+            double xPosByWin32 = DesktopCoordinates.XmousePos(ui);
+            double yPosByWin32 = DesktopCoordinates.YmousePos(ui);
 
             ui.Left = xPosByWin32 - ui.ActualWidth;
             ui.Top = yPosByWin32;
@@ -59,15 +59,19 @@ namespace OsEngine.Layout
 
         private static void Ui_Start_MouseInCentre_ContentActivated(object sender, EventArgs e)
         {
+            // рассчитываем стандартное размещение
+
             System.Windows.Window ui = (System.Windows.Window)sender;
 
-            double xPosByWin32 = MouseCoordinates.XmousePos(ui);
-            double yPosByWin32 = MouseCoordinates.YmousePos(ui);
+            double xPosByWin32 = DesktopCoordinates.XmousePos(ui);
+            double yPosByWin32 = DesktopCoordinates.YmousePos(ui);
 
             double leftPos = xPosByWin32 - ui.Width/2;
             double topPos = yPosByWin32 - ui.Height / 2;
 
-            if(leftPos < 0)
+            // проверка разворачивания окна за экраном слева и сверху
+
+            if (leftPos < 0)
             {
                 leftPos = 0;
             }
@@ -76,6 +80,26 @@ namespace OsEngine.Layout
             {
                 topPos = 0;
             }
+
+            // проверка разворачивания окна за экраном вправо и вниз
+
+            double xPosMouseOld = DesktopCoordinates.XmousePosOldVersion();
+            double yPosMouseOld = DesktopCoordinates.YmousePosOldVersion();
+
+            double screenWidth = DesktopCoordinates.CurrentScreenWidth();
+            double screenHeight = DesktopCoordinates.CurrentScreenHeight();
+
+            if(xPosMouseOld + ui.Width / 2 > screenWidth)
+            {
+                leftPos = xPosByWin32 - ui.Width;
+            }
+
+            if (yPosMouseOld + ui.Height / 2 > screenHeight)
+            {
+                topPos = yPosByWin32 - ui.Height;
+            }
+
+            // устанавливаем окончательные значения
 
             ui.Left = leftPos;
             ui.Top = topPos;

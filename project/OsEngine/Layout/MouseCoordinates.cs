@@ -8,7 +8,7 @@ using System.Windows;
 
 namespace OsEngine.Layout
 {
-    public class MouseCoordinates
+    public class DesktopCoordinates
     {
 
         public static double YmousePos(System.Windows.Window ui)
@@ -31,6 +31,30 @@ namespace OsEngine.Layout
             var mouse = transform.Transform(newPoint);
 
             return mouse.X;
+        }
+
+        public static double YmousePosOldVersion()
+        {
+            var point = System.Windows.Forms.Control.MousePosition;
+            return point.Y;
+        }
+
+        public static double XmousePosOldVersion()
+        {
+            var point = System.Windows.Forms.Control.MousePosition;
+            return point.X;
+        }
+
+        public static double CurrentScreenWidth()
+        {
+            int width = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size.Width;
+            return width;
+        }
+
+        public static double CurrentScreenHeight()
+        {
+            int height = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size.Height;
+            return height;
         }
 
     }
