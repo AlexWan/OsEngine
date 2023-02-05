@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using OsEngine.Entity;
@@ -787,9 +786,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     decimal minQty = sec.filters[1].minQty.ToDecimal();
                     string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
-                    if (qtyInStr.Split('.').Length > 1)
+                    if (qtyInStr.Replace(",", ".").Split('.').Length > 1)
                     {
-                        security.DecimalsVolume = qtyInStr.Split('.')[1].Length;
+                        security.DecimalsVolume = qtyInStr.Replace(",",".").Split('.')[1].Length;
                     }
                 }
 
