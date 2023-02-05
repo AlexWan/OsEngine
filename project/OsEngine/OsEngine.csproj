@@ -378,7 +378,6 @@
       <DependentUpon>DateTimeSelectionDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\Extensions.cs" />
-    <Compile Include="Entity\GuiLockationMaster.cs" />
     <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />

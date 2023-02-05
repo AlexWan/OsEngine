@@ -55,7 +55,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// таймфрейм
         /// </summary>
-        public TimeFrame TimeFrame = TimeFrame.Min30;
+        public TimeFrame TimeFrame = TimeFrame.Min1;
 
         /// <summary>
         /// тип сервера
@@ -85,17 +85,17 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// кол-во трейдов в свече
         /// </summary>
-        public int CountTradeInCandle;
+        public int CountTradeInCandle = 100;
 
         /// <summary>
         /// объём для закрытия свечи
         /// </summary>
-        public decimal VolumeToCloseCandleInVolumeType;
+        public decimal VolumeToCloseCandleInVolumeType = 1000;
 
         /// <summary>
         /// движение для закрытия свечи в свечах типа Renco
         /// </summary>
-        public decimal RencoPunktsToCloseCandleInRencoType;
+        public decimal RencoPunktsToCloseCandleInRencoType = 100;
 
         /// <summary>
         /// сторим ли тени в свечках типа Renco
@@ -105,7 +105,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// период дельты
         /// </summary>
-        public decimal DeltaPeriods;
+        public decimal DeltaPeriods = 1000;
 
         /// <summary>
         /// пункты для свечек Range
