@@ -120,8 +120,7 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         private void Load()
         {
-            if (_startProgram == StartProgram.IsOsOptimizer ||
-                _startProgram == StartProgram.IsOsMiner)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -156,6 +155,11 @@ namespace OsEngine.Journal.Internal
                 }
 
                 if (deals.Count == 0)
+                {
+                    return;
+                }
+
+                if (_startProgram == StartProgram.IsTester)
                 {
                     return;
                 }
@@ -336,8 +340,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if(_startProgram == StartProgram.IsOsOptimizer
-                || _startProgram == StartProgram.IsTester)
+            if(_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -347,6 +350,7 @@ namespace OsEngine.Journal.Internal
             try
             {
                 string positionsString = PositionsToString();
+
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealController.txt", false))
                 {
                     writer.Write(positionsString);
@@ -365,7 +369,8 @@ namespace OsEngine.Journal.Internal
             result.Append(_comissionType + "\r\n");
             result.Append(_comissionValue + "\r\n");
 
-            if (_startProgram == StartProgram.IsOsTrader)
+            if (_startProgram == StartProgram.IsOsTrader ||
+                _startProgram == StartProgram.IsOsMiner)
             {
                 List<Position> deals = _deals;
 
