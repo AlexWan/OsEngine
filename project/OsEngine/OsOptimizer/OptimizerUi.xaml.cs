@@ -20,6 +20,7 @@ using ProgressBar = System.Windows.Controls.ProgressBar;
 using OsEngine.OsOptimizer.OptEntity;
 using System.Threading;
 using OsEngine.Layout;
+using System.IO;
 
 namespace OsEngine.OsOptimizer
 {
@@ -178,13 +179,12 @@ namespace OsEngine.OsOptimizer
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
 
             this.Closing += Ui_Closing;
-
-            Task.Run(new Action(StrategyLoader));
-
             this.Activate();
             this.Focus();
 
             GlobalGUILayout.Listen(this, "optimizerUi");
+
+            Task.Run(new Action(StrategyLoader));
         }
 
         void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -631,6 +631,8 @@ namespace OsEngine.OsOptimizer
             PaintTableParametrs();
             PaintTableTabsIndex();
             PaintCountBotsInOptimization();
+
+            LoadTableTabsSimpleSecuritiesSettings();
         }
 
         void TextBoxStartPortfolio_TextChanged(object sender, TextChangedEventArgs e)
@@ -886,7 +888,6 @@ namespace OsEngine.OsOptimizer
         /// пользователь поменял что-то в таблице обычных вкладок робота
         /// </summary>
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-
         {
             for (int i = 0; i < _gridTableTabsSimple.Rows.Count; i++)
             {
@@ -911,6 +912,115 @@ namespace OsEngine.OsOptimizer
             }
 
             _master.TabsSimpleNamesAndTimeFrames = _tabs;
+
+            SaveTableTabsSimpleSecuritiesSettings();
+        }
+
+        private void SaveTableTabsSimpleSecuritiesSettings()
+        {
+            string savePath = @"Engine\" + "OptimizerSettinsTabsSimpleSecurities_" + _master.StrategyName + ".txt";
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(savePath, false)
+                    )
+                {
+                    List<TabSimpleEndTimeFrame> _tabs = _master.TabsSimpleNamesAndTimeFrames;
+
+                    for (int i = 0; i < _tabs.Count; i++)
+                    {
+                        writer.WriteLine(_tabs[i].GetSaveString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void LoadTableTabsSimpleSecuritiesSettings()
+        {
+            if (_gridTableTabsSimple.InvokeRequired)
+            {
+                _gridTableTabsSimple.Invoke(new Action(LoadTableTabsSimpleSecuritiesSettings));
+                return;
+            }
+
+            string loadPath = @"Engine\" + "OptimizerSettinsTabsSimpleSecurities_" + _master.StrategyName + ".txt";
+
+            if (!File.Exists(loadPath))
+            {
+                return;
+            }
+
+            _gridTableTabsSimple.CellValueChanged -= _grid_CellValueChanged;
+
+            try
+            {
+
+                List<TabSimpleEndTimeFrame> _tabs = new List<TabSimpleEndTimeFrame>();
+
+                using (StreamReader reader = new StreamReader(loadPath))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string saveStr = reader.ReadLine();
+
+                        TabSimpleEndTimeFrame newTab = new TabSimpleEndTimeFrame();
+                        newTab.SetFromString(saveStr);
+                        _tabs.Add(newTab);
+
+                        int rowIndx = _tabs.Count - 1;
+
+                        DataGridViewComboBoxCell nameCell = (DataGridViewComboBoxCell)_gridTableTabsSimple.Rows[rowIndx].Cells[1];
+
+                        for (int i = 0; nameCell.Items != null && i < nameCell.Items.Count; i++)
+                        {
+                            if (nameCell.Items[i] == null)
+                            {
+                                continue;
+                            }
+                            if (nameCell.Items[i].ToString() == newTab.NameSecurity)
+                            {
+                                nameCell.Value = newTab.NameSecurity;
+                                break;
+                            }
+                        }
+
+                        DataGridViewComboBoxCell timeFrameCell = (DataGridViewComboBoxCell)_gridTableTabsSimple.Rows[rowIndx].Cells[2];
+
+                        for (int i = 0; timeFrameCell.Items != null && i < timeFrameCell.Items.Count; i++)
+                        {
+                            if (timeFrameCell.Items[i] == null)
+                            {
+                                continue;
+                            }
+                            if (timeFrameCell.Items[i].ToString() == newTab.TimeFrame.ToString())
+                            {
+                                timeFrameCell.Value = newTab.TimeFrame.ToString();
+                                break;
+                            }
+                        }
+                    }
+
+                    reader.Close();
+                }
+                if (_tabs != null)
+                {
+                    _master.TabsSimpleNamesAndTimeFrames = _tabs;
+                }
+
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
+
+            _gridTableTabsSimple.CellValueChanged += _grid_CellValueChanged;
+
         }
 
         // table of papers and time frames for indexes таблица Бумаг и таймФреймов для индексов
@@ -2348,6 +2458,8 @@ namespace OsEngine.OsOptimizer
 
         private void StrategyLoader()
         {
+            Thread.Sleep(500);
+
             _master.SendLogMessage(OsLocalization.Optimizer.Message11, LogMessageType.System);
 
             List<string> strategies = BotFactory.GetNamesStrategyWithParametersSync();

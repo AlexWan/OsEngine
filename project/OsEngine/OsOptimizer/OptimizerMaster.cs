@@ -1454,6 +1454,25 @@ namespace OsEngine.OsOptimizer
         /// таймфрейм
         /// </summary>
         public TimeFrame TimeFrame;
+
+        public string GetSaveString()
+        {
+            string result = "";
+            result += NumberOfTab + "%";
+            result += NameSecurity + "%";
+            result += TimeFrame;
+
+            return result;
+        }
+
+        public void SetFromString(string saveStr)
+        {
+            string[] str = saveStr.Split('%');
+
+            NumberOfTab = Convert.ToInt32(str[0]);
+            NameSecurity = str[1];
+            Enum.TryParse(str[2], out TimeFrame);
+        }
     }
 
     /// <summary>
