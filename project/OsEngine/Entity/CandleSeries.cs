@@ -221,7 +221,7 @@ namespace OsEngine.Entity
 
             if (
                 (
-                    (lastCandle.TimeStart.Add(TimeFrameSpan) < time)
+                    (lastCandle.TimeStart.Add(TimeFrameSpan) < time.AddSeconds(-5))
                     ||
                     (TimeFrame == TimeFrame.Day 
                      && lastCandle.TimeStart.Date < time.Date)
@@ -237,13 +237,6 @@ namespace OsEngine.Entity
         }
 
         // сбор свечек из тиков
-
-        /// <summary>
-        /// индекс тика на последней итерации
-        /// </summary>
-        private int _lastTradeIndex;
-
-        private DateTime _lastTradeTime;
 
         /// <summary>
         /// добавить в серию новые тики
@@ -277,7 +270,7 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (_lastTradeTime >= lastTrade.Time)
+                if (_lastTradeTime > lastTrade.Time)
                 {
                     return;
                 }
@@ -287,8 +280,72 @@ namespace OsEngine.Entity
                 return;
             }
 
-            List<Trade> newTrades = new List<Trade>();
+            List<Trade> newTrades = GetActualTrades(trades);
 
+            if(newTrades == null)
+            {
+                return;
+            }
+
+            // обновилось неизвесное кол-во тиков
+            for (int i = 0; i < newTrades.Count; i++)
+            {
+                Trade trade = newTrades[i];
+
+                if (trade == null)
+                {
+                    continue;
+                }
+
+                if (CandlesAll != null &&
+                   CandlesAll[CandlesAll.Count - 1].TimeStart > trade.Time)
+                {
+                    continue;
+                }
+
+                if(TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+                { // при классической сборке свечек. Когда мы точно знаем когда у свечи закрытие
+                    bool saveInNextCandle = true;
+
+                    if (TimeFrameBuilder.SaveTradesInCandles &&
+                        CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan) > trade.Time)
+                    {
+                        CandlesAll[CandlesAll.Count - 1].Trades.Add(trade);
+                        saveInNextCandle = false;
+                    }
+
+                    UpDateCandle(trade.Time, trade.Price, trade.Volume, true, trade.Side);
+
+                    if (TimeFrameBuilder.SaveTradesInCandles
+                        && saveInNextCandle)
+                    {
+                        CandlesAll[CandlesAll.Count - 1].Trades.Add(trade);
+                    }
+                }
+                else
+                { // при любым другом виде свечек
+
+                    UpDateCandle(trade.Time, trade.Price, trade.Volume, true, trade.Side);
+
+                    if (TimeFrameBuilder.SaveTradesInCandles)
+                    {
+                        CandlesAll[CandlesAll.Count - 1].Trades.Add(trade);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// индекс тика на последней итерации
+        /// </summary>
+        private int _lastTradeIndex;
+
+        private DateTime _lastTradeTime;
+
+        private List<Trade> GetActualTrades(List<Trade> trades)
+        {
+
+            List<Trade> newTrades = new List<Trade>();
 
             if (trades.Count > 1000)
             { // если удаление трейдов из системы выключено
@@ -297,7 +354,7 @@ namespace OsEngine.Entity
 
                 if (newTradesCount <= 0)
                 {
-                    return;
+                    return null;
                 }
 
                 newTrades = trades.GetRange(_lastTradeIndex, newTradesCount);
@@ -318,10 +375,13 @@ namespace OsEngine.Entity
                             {
                                 continue;
                             }
-                            if (trades[i].Time <= _lastTradeTime)
+                            if (trades[i].Time < _lastTradeTime)
                             {
                                 continue;
                             }
+
+                            
+
                             newTrades.Add(trades[i]);
                         }
                         catch
@@ -332,10 +392,7 @@ namespace OsEngine.Entity
                 }
             }
 
-            if(newTrades.Count == 0)
-            {
-                return;
-            }
+            _lastTradeIndex = trades.Count;
 
             for (int i2 = 0; i2 < newTrades.Count; i2++)
             {
@@ -343,47 +400,17 @@ namespace OsEngine.Entity
                 {
                     newTrades.RemoveAt(i2);
                     i2--;
-                    continue;
                 }
             }
 
-            if (newTrades != null && newTrades.Count > 0)
+            if (newTrades.Count == 0)
             {
-                _lastTradeTime = newTrades[newTrades.Count - 1].Time;
+                return null;
             }
 
-            // обновилось неизвесное кол-во тиков
-            for (int i = 0; i < newTrades.Count; i++)
-            {
-                Trade trade = newTrades[i];
-
-                if (trade == null)
-                {
-                    continue;
-                }
-
-                if (CandlesAll != null &&
-                   CandlesAll[CandlesAll.Count - 1].TimeStart > trade.Time)
-                {
-                    continue;
-                }
-
-                UpDateCandle(trade.Time, trade.Price, trade.Volume, true, trade.Side);
-
-                if (_startProgram == StartProgram.IsOsData)
-                {
-                    continue;
-                }
-
-                if (TimeFrameBuilder.SaveTradesInCandles)
-                {
-                    List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
-                    tradesInCandle.Add(trade);
-                    CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
-                }
-            }
-
-            _lastTradeIndex = trades.Count;
+            _lastTradeTime = newTrades[newTrades.Count - 1].Time;
+            
+            return newTrades;
         }
 
         /// <summary>
@@ -920,12 +947,10 @@ namespace OsEngine.Entity
         /// </summary>
         private void UpDateSimpleTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
-            //if (From > trade.Time)
-            //{
-            //     return;
-            // }
-
-            if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
+            if (CandlesAll != null 
+                && CandlesAll.Count > 0 
+                && CandlesAll[CandlesAll.Count - 1] != null 
+                &&
                 CandlesAll[CandlesAll.Count - 1].TimeStart > time)
             {
                 // если пришли старые данные

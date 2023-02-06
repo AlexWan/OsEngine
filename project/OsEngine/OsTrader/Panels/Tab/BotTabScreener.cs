@@ -551,7 +551,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// таймфрейм
         /// </summary>
-        public TimeFrame TimeFrame = TimeFrame.Min30;
+        public TimeFrame TimeFrame = TimeFrame.Min1;
 
         /// <summary>
         /// тип сервера
