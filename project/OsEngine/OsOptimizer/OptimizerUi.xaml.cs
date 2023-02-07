@@ -500,7 +500,6 @@ namespace OsEngine.OsOptimizer
             // Проверка параметра Regime (наличие/состояние) / конец
         }
 
-
         // processing controls by clicking on them by the user/обработка контролов по нажатию их пользователем
 
         /// <summary>
@@ -633,6 +632,7 @@ namespace OsEngine.OsOptimizer
             PaintCountBotsInOptimization();
 
             LoadTableTabsSimpleSecuritiesSettings();
+            LoadTableTabsIndexSecuritiesSettings();
         }
 
         void TextBoxStartPortfolio_TextChanged(object sender, TextChangedEventArgs e)
@@ -1141,7 +1141,78 @@ namespace OsEngine.OsOptimizer
                 if (ui.NeadToSave)
                 {
                     _master.TabsIndexNamesAndTimeFrames[e.RowIndex] = ui.Index;
+                    SaveTableTabsIndexSecuritiesSettings();
                 }
+            }
+        }
+
+        private void SaveTableTabsIndexSecuritiesSettings()
+        {
+            string savePath = @"Engine\" + "OptimizerSettinsTabsIndexSecurities_" + _master.StrategyName + ".txt";
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(savePath, false)
+                    )
+                {
+                    List<TabIndexEndTimeFrame> _tabs = _master.TabsIndexNamesAndTimeFrames;
+
+                    for (int i = 0; i < _tabs.Count; i++)
+                    {
+                        writer.WriteLine(_tabs[i].GetSaveString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void LoadTableTabsIndexSecuritiesSettings()
+        {
+            if (_gridTableTabsSimple.InvokeRequired)
+            {
+                _gridTableTabsSimple.Invoke(new Action(LoadTableTabsIndexSecuritiesSettings));
+                return;
+            }
+
+            string loadPath = @"Engine\" + "OptimizerSettinsTabsIndexSecurities_" + _master.StrategyName + ".txt";
+
+            if (!File.Exists(loadPath))
+            {
+                return;
+            }
+
+            try
+            {
+
+                List<TabIndexEndTimeFrame> _tabs = new List<TabIndexEndTimeFrame>();
+
+                using (StreamReader reader = new StreamReader(loadPath))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string saveStr = reader.ReadLine();
+
+                        TabIndexEndTimeFrame newTab = new TabIndexEndTimeFrame();
+                        newTab.SetFromString(saveStr);
+                        _tabs.Add(newTab);
+                    }
+
+                    reader.Close();
+                }
+                if (_tabs != null)
+                {
+                    _master.TabsIndexNamesAndTimeFrames = _tabs;
+                }
+
+            }
+            catch (Exception)
+            {
+                //ignore
             }
         }
 

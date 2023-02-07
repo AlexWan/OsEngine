@@ -1491,7 +1491,7 @@ namespace OsEngine.OsOptimizer
         /// list of papers at the tab
         /// список бумаг у вкладки
         /// </summary>
-        public List<string> NamesSecurity;
+        public List<string> NamesSecurity = new List<string>();
 
         /// <summary>
         /// tab timeframe
@@ -1504,6 +1504,47 @@ namespace OsEngine.OsOptimizer
         /// формула для рассчёта индекса
         /// </summary>
         public string Formula;
+
+        public string GetSaveString()
+        {
+            string result = "";
+            result += NumberOfTab + "%";
+            result += TimeFrame + "%";
+            result += Formula + "%";
+
+            for (int i = 0;i < NamesSecurity.Count;i++)
+            {
+                result += NamesSecurity[i];
+
+                if (i + 1 != NamesSecurity.Count)
+                {
+                    result += "^";
+                }
+            }
+
+            return result;
+        }
+
+        public void SetFromString(string saveStr)
+        {
+            string[] str = saveStr.Split('%');
+
+            NumberOfTab = Convert.ToInt32(str[0]);
+            Enum.TryParse(str[1], out TimeFrame);
+            Formula = str[2];
+
+            if (str.Length > 2)
+            {
+                string[] secs = str[3].Split('^');
+
+                for (int i = 0; i < secs.Length; i++)
+                {
+                    string sec = secs[i];
+                    NamesSecurity.Add(sec);
+                }
+            }
+        }
+
     }
 
 
