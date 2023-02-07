@@ -2810,10 +2810,13 @@ namespace OsEngine.Journal
                 return;
             }
 
-            startTime = _allPositions[0].TimeOpen;
-            endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
-            minTime = startTime;
-            maxTime = endTime;
+            if (IsSlide == false)
+            {
+                startTime = _allPositions[0].TimeOpen;
+                endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
+                minTime = startTime;
+                maxTime = endTime;
+            }
         }
 
         private void LoadGroups()
@@ -3098,6 +3101,8 @@ namespace OsEngine.Journal
         DateTime endTime;
         DateTime maxTime;
 
+        private bool IsSlide;      // двигались ли слайдеры установки периода
+
         private void CreateSlidersShowPositions()
         {
             SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
@@ -3147,6 +3152,7 @@ namespace OsEngine.Journal
                 SliderFrom.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value;
             }
             TextBoxTo.TextChanged += TextBoxTo_TextChanged;
+            IsSlide = true;  			
         }
 
         void SliderFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -3163,6 +3169,7 @@ namespace OsEngine.Journal
             }
 
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
+            IsSlide = true;  			
         }
 
         void TextBoxTo_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
