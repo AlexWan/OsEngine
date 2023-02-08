@@ -693,6 +693,11 @@ namespace OsEngine.OsOptimizer
 
             BotPanel bot = _master.TestBot(fazeReport, fazeReport.Reports[e.RowIndex]);
 
+            if(bot == null)
+            {
+                return;
+            }
+
             bot.ShowChartDialog();
         }
 

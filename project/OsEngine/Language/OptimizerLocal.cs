@@ -382,5 +382,9 @@ namespace OsEngine.Language
         public string Label51 => OsLocalization.ConvertToLocString(
           "Eng:Are you sure you want to interrupt the optimizer?_" +
           "Ru:Вы уверены в том что хотите прервать работу оптимизатора?_");
+
+        public string Label52 => OsLocalization.ConvertToLocString(
+             "Eng:The robot is being tested_" +
+             "Ru:Робот тестируется_");
     }
 }

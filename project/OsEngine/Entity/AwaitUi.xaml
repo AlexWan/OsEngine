@@ -7,9 +7,8 @@
         mc:Ignorable="d"
         Title="AwaitUi" Height="111.067" Width="358.4" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize">
     <Grid>
-        <ProgressBar Name="ProgressBarAwait" Height="30" Margin="10,10,35.8,0" VerticalAlignment="Top"/>
+        <ProgressBar Name="ProgressBarAwait" Height="30" Margin="10,10,9.8,0" VerticalAlignment="Top"/>
         <Label Name="LabelAwaitString" Content="Await label" Margin="10,45,10.4,0" VerticalAlignment="Top"/>
-        <Label Name="LabelExecutionPercent" Content="22%" HorizontalAlignment="Right" Margin="0,10,3.4,0" VerticalAlignment="Top" Height="30"/>
 
     </Grid>
 </Window>

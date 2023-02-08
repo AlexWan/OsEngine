@@ -414,5 +414,9 @@ namespace OsEngine.Language
         public string TimeChangeDialogLabel5 => OsLocalization.ConvertToLocString(
             "Eng:Second_" +
             "Ru:Секунда_");
+
+        public string AwaitUiLabel1 => OsLocalization.ConvertToLocString(
+             "Eng:Work in progress_" +
+             "Ru:Работа идёт..._");
     }
 }
