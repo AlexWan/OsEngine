@@ -721,6 +721,35 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
+        /// <summary>
+        /// the number of all positions at the tabs of the robot / 
+        /// количество всех позиций у вкладок робота
+        /// </summary>
+        public int AllPositionsCount
+        {
+            get
+            {
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null || journals.Count == 0)
+                {
+                    return 0;
+                }
+
+                List<Position> pos = new List<Position>();
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i].AllPosition == null || journals[i].AllPosition.Count == 0)
+                    {
+                        continue;
+                    }
+                    pos.AddRange(journals[i].AllPosition);
+                }
+                return pos.Count;
+            }
+        }
+
         // working with strategy parameters / работа с параметрами стратегии
 
         /// <summary>
