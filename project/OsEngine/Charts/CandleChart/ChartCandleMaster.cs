@@ -835,7 +835,7 @@ namespace OsEngine.Charts.CandleChart
         {
             get { return _indicators; }
         }
-        private List<IIndicator> _indicators;
+        private List<IIndicator> _indicators = new List<IIndicator>();
 
         /// <summary>
         /// to create a new indicator. If there is already one with this name, the existing one returned
