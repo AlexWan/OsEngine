@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -89,10 +90,9 @@ namespace OsEngine.Journal.Internal
 
             Activate();
 
-            ControllersToCheck.Add(this);
-
             if(_startProgram != StartProgram.IsOsOptimizer)
             {
+                ControllersToCheck.Add(this);
                 Load();
             }
   
@@ -103,7 +103,6 @@ namespace OsEngine.Journal.Internal
                     position => position.State != PositionStateType.Done
                                 && position.State != PositionStateType.OpeningFail);
             }
-
         }
 
         private StartProgram _startProgram;
@@ -228,21 +227,23 @@ namespace OsEngine.Journal.Internal
                     }
                 }
 
-                for (int i = 0; i < ControllersToCheck.Count; i++)
+                if (_startProgram != StartProgram.IsOsOptimizer)
                 {
-                    if (ControllersToCheck[i] == null)
+                    for (int i = 0; i < ControllersToCheck.Count; i++)
                     {
-                        ControllersToCheck.RemoveAt(i);
-                        i--;
-                        continue;
-                    }
-                    if (ControllersToCheck[i]._name == _name)
-                    {
-                        ControllersToCheck.RemoveAt(i);
-                        return;
+                        if (ControllersToCheck[i] == null)
+                        {
+                            ControllersToCheck.RemoveAt(i);
+                            i--;
+                            continue;
+                        }
+                        if (ControllersToCheck[i]._name == _name)
+                        {
+                            ControllersToCheck.RemoveAt(i);
+                            return;
+                        }
                     }
                 }
-
             }
             catch (Exception error)
             {
