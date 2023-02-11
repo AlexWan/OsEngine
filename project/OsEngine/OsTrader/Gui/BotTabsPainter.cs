@@ -87,7 +87,7 @@ namespace OsEngine.OsTrader.Gui
 
             DataGridViewColumn colum05 = new DataGridViewColumn();
             colum05.CellTemplate = cell0;
-            colum05.HeaderText = OsLocalization.Trader.Label20;//"Position";
+            colum05.HeaderText = OsLocalization.Trader.Label186;//"Position";
             colum05.ReadOnly = true;
             colum05.Width = 120;
             newGrid.Columns.Add(colum05);
@@ -404,7 +404,7 @@ colum10.HeaderText = "Action";
             }
 
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[4].Value = bot.PositionsCount;
+            row.Cells[4].Value = bot.PositionsCount.ToString() + "/" + bot.AllPositionsCount.ToString();
 
             row.Cells.Add(new DataGridViewCheckBoxCell());
             row.Cells[5].Value = bot.OnOffEventsInTabs;
@@ -546,11 +546,9 @@ colum9.HeaderText = "Journal";
                         }
                     }
 
-                    if(row.Cells[4].Value == null ||
-                        (row.Cells[4].Value != null 
-                        && row.Cells[4].Value.ToString() != bot.PositionsCount.ToString()))
+                    if (row.Cells[4].Value == null || (row.Cells[4].Value != null && row.Cells[4].Value.ToString() != bot.PositionsCount.ToString() + "/" + bot.AllPositionsCount.ToString()))
                     {
-                        row.Cells[4].Value = bot.PositionsCount;
+                        row.Cells[4].Value = bot.PositionsCount.ToString() + "/" + bot.AllPositionsCount.ToString();
                     }
 
                     if (row.Cells[5].Value == null ||

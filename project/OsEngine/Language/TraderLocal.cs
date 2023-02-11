@@ -752,5 +752,9 @@ namespace OsEngine.Language
         public string Label185 => OsLocalization.ConvertToLocString(
               "Eng: Emulator on/off_" +
               "Ru: Эмулятор вкл/выкл_");
+
+        public string Label186 => OsLocalization.ConvertToLocString(
+              "Eng:Pos. (curr/total)_" +
+              "Ru:Поз. (откр/всего)_");			  
     }
 }
