@@ -127,7 +127,30 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            ConnectorCandles connector = new ConnectorCandles(TabName + Tabs.Count, _startProgram);
+            int num = Tabs.Count;
+
+            while(true)
+            {
+                bool isNotInArray = true;
+
+                for(int i = 0;i < Tabs.Count;i++)
+                {
+                    if(Tabs[i].UniqName == TabName + num)
+                    {
+                        num++;
+                        isNotInArray = false;
+                        break;
+                    }
+                }
+
+                if(isNotInArray == true)
+                {
+                    break;
+                }
+            }
+
+
+            ConnectorCandles connector = new ConnectorCandles(TabName + num, _startProgram);
             connector.SaveTradesInCandles = false;
 
             connector.ServerType = creator.ServerType;
