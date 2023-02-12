@@ -413,6 +413,11 @@ namespace OsEngine.OsMiner
                 return;
             }
 
+            if(ActivSetNum == activPattern)
+            {
+                return;
+            }
+
             Sets[ActivSetNum].StopPaint();
             ActivSetNum = activPattern;
             PaintActivSet();
@@ -464,7 +469,7 @@ namespace OsEngine.OsMiner
                 _activSetNumber = value;
             }
         }
-        private int _activSetNumber;
+        private int _activSetNumber = -1;
 
         /// <summary>
         /// host for drawing patterns in the set
@@ -496,6 +501,11 @@ namespace OsEngine.OsMiner
             }
 
             if (ActivSetNum >= Sets.Count)
+            {
+                ActivSetNum = 0;
+            }
+
+            if (ActivSetNum < 0)
             {
                 ActivSetNum = 0;
             }

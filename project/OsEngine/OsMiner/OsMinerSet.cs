@@ -287,7 +287,7 @@ namespace OsEngine.OsMiner
         public void Paint(WindowsFormsHost hostSet, WindowsFormsHost hostChart, System.Windows.Shapes.Rectangle rectChart)
         {
             _hostPatternsInSet = hostSet;
-
+            _activPatternNum = -1;
             _hostPatternsInSet.Child = _gridPatternsInSet;
             _hostChart = hostChart;
             _rectChart = rectChart;
@@ -446,6 +446,17 @@ namespace OsEngine.OsMiner
             if (activPattern >= Patterns.Count)
             {
                 return;
+            }
+
+            if(_activPatternNum == activPattern)
+            {
+                return;
+            }
+
+
+            if (_activPatternNum < 0)
+            {
+                _activPatternNum = 0;
             }
 
             Patterns[_activPatternNum].StopPaint();

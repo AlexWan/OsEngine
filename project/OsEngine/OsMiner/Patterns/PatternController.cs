@@ -100,12 +100,19 @@ namespace OsEngine.OsMiner.Patterns
             if (_ui == null)
             {
                 _ui = new PatternControllerUi(this);
+                _ui.Closed += _ui_Closed;
                 _ui.Show();
             }
             else
             {
                 _ui.Focus();
             }
+        }
+
+        private void _ui_Closed(object sender, EventArgs e)
+        {
+            _ui.Closed -= _ui_Closed;
+            _ui = null;
         }
 
         /// <summary>
@@ -940,6 +947,7 @@ namespace OsEngine.OsMiner.Patterns
         {
             Order newOrder = new Order();
             newOrder.SecurityNameCode = security.Name;
+            newOrder.SecurityClassCode = "";
             newOrder.Price = price;
             newOrder.NumberUser = index;
             newOrder.Volume = 1;
@@ -947,6 +955,7 @@ namespace OsEngine.OsMiner.Patterns
             newOrder.Side = SideInter;
             newOrder.TimeCallBack = time;
             newOrder.TimeCreate = time;
+            newOrder.PortfolioNumber = "MinerFackePortfolio";
 
             Position newPosition = new Position();
             newPosition.Direction = SideInter;
@@ -962,6 +971,7 @@ namespace OsEngine.OsMiner.Patterns
             trade.Price = price;
             trade.NumberTrade = index + 1.ToString();
             trade.Time = time;
+            trade.SecurityNameCode = newOrder.SecurityNameCode;
             newPosition.SetTrade(trade);
 
             return newPosition;
@@ -975,10 +985,13 @@ namespace OsEngine.OsMiner.Patterns
         {
             Order newOrder = new Order();
             newOrder.SecurityNameCode = position.SecurityName;
+            newOrder.SecurityClassCode = "";
             newOrder.Price = price;
             newOrder.NumberUser = index;
             newOrder.Volume = 1;
             newOrder.NumberMarket = index.ToString();
+            newOrder.PortfolioNumber = "MinerFackePortfolio";
+
 
             if (SideInter == Side.Buy)
             {
@@ -996,6 +1009,7 @@ namespace OsEngine.OsMiner.Patterns
 
             MyTrade trade = new MyTrade();
             trade.Volume = 1;
+            trade.SecurityNameCode = newOrder.SecurityNameCode;
             trade.Side = newOrder.Side;
             trade.NumberOrderParent = index.ToString();
             trade.Price = price;
