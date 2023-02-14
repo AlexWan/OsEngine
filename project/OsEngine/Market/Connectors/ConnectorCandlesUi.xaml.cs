@@ -486,6 +486,12 @@ namespace OsEngine.Market.Connectors
 
             ComboBoxTimeFrame.Items.Clear();
 
+            if (securities == null ||
+                securities.Count == 0)
+            {
+                return;
+            }
+
             for (int i = 0; i < securities.Count; i++)
             {
                 if (name == securities[i].Security.Name)
