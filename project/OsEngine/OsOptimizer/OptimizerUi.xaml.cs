@@ -33,6 +33,7 @@ namespace OsEngine.OsOptimizer
         public OptimizerUi()
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             Thread.Sleep(200);
 
             _master = new OptimizerMaster();

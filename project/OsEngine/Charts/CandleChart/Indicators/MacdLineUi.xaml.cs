@@ -35,6 +35,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public MacdLineUi(MacdLine macd)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _macd = macd;
 

@@ -18,6 +18,7 @@ namespace OsEngine.Robots.MarketMaker
         public MarketMakerBotUi(MarketMakerBot strategy)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 

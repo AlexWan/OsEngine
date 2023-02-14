@@ -39,6 +39,7 @@ namespace OsEngine.OsData
         public OsDataSetUi(OsDataSet set)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _set = set;
 

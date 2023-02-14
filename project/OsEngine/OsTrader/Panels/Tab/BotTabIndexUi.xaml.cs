@@ -17,6 +17,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public BotTabIndexUi(BotTabIndex spread)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             CreateTable();
             _spread = spread;

@@ -28,6 +28,7 @@ namespace OsEngine.Entity
         public AwaitUi(AwaitObject master)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             _master = master;

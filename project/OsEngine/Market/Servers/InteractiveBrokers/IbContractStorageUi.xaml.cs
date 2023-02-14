@@ -28,6 +28,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         public IbContractStorageUi(List<SecurityIb> secToSubscrible, InteractiveBrokersServerRealization server)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             SecToSubscrible = secToSubscrible;
             _server = server;

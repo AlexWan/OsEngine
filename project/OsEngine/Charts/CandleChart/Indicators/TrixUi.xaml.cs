@@ -38,6 +38,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public TrixUi(Trix trix)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _trix = trix;
 

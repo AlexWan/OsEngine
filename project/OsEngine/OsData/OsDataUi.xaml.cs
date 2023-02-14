@@ -21,6 +21,7 @@ namespace OsEngine.OsData
         {
             
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             _osDataMaster = new OsDataMaster(ChartHostPanel, HostLog, HostSource,
                 HostSet, ComboBoxSecurity,ComboBoxTimeFrame,RectChart, GreedChartPanel);
             CheckBoxPaintOnOff.IsChecked = _osDataMaster.IsPaintEnabled;

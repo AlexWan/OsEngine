@@ -13,6 +13,7 @@ namespace OsEngine.OsMiner
         public OsMinerUi()
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             _miner = new OsMinerMaster(HostLog, HostSets, HostPatternSets, HostChart,RectChart);
 
             Label5.Header = OsLocalization.Miner.Label5;

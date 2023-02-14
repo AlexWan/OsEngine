@@ -31,6 +31,7 @@ namespace OsEngine.Alerts
         public AlertToChartCreateUi(AlertToChart alert, AlertMaster keeper) 
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _waitOne = false;
             _waitTwo = false;

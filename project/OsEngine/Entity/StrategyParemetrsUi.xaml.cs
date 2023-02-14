@@ -24,6 +24,7 @@ namespace OsEngine.Entity
         public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             Height = (double)settings.Height;

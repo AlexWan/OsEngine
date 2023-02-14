@@ -18,6 +18,7 @@ namespace OsEngine.Alerts
         public AlertMessageFullUi(DataGridView grid)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             HostAlerts.Child = grid;
             HostAlerts.Child.Show();
             Title = OsLocalization.Alerts.TitleAlertMessageFullUi;

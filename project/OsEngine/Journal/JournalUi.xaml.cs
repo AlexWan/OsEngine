@@ -58,6 +58,7 @@ namespace OsEngine.Journal
             _startProgram = startProgram;
             _botsJournals = botsJournals;
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             _currentCulture = CultureInfo.CurrentCulture;
 
             TabBots.SizeChanged += TabBotsSizeChanged;

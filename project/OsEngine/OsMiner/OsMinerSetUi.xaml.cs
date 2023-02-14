@@ -12,6 +12,7 @@ namespace OsEngine.OsMiner
         public OsMinerSetUi(int numSet, OsMinerSet set)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _set = set;
 

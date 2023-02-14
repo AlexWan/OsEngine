@@ -26,6 +26,7 @@ namespace OsEngine.OsTrader.Gui
         public RobotUi()
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
             _strategyKeeper = new OsTraderMaster(GridChart, ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition, HostAllPosition,
                                          HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,TabControlBotTab,TextBoxPrice,GridChartControlPanel, StartProgram.IsOsTrader);

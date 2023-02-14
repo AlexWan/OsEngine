@@ -17,6 +17,7 @@ namespace OsEngine.PrimeSettings
         public PrimeSettingsMasterUi()
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             List<OsLocalization.OsLocalType> localizations = OsLocalization.GetExistLocalizationTypes();

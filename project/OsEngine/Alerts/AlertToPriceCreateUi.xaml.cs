@@ -20,6 +20,7 @@ namespace OsEngine.Alerts
         public AlertToPriceCreateUi(AlertToPrice alert)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             MyAlert = alert;
 

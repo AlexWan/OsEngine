@@ -25,6 +25,7 @@ namespace OsEngine.OsOptimizer
         public OptimizerReportUi(OptimizerMaster master)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             _master = master;
 
             _resultsCharting = new OptimizerReportCharting(

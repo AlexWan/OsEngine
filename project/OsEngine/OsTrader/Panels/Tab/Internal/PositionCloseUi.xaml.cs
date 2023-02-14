@@ -17,6 +17,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
 
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             TextBoxPrice.Text = lastSecurityPrice.ToStringWithNoEndZero();

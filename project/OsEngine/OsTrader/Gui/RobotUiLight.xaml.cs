@@ -20,6 +20,7 @@ namespace OsEngine.OsTrader.Gui
         public RobotUiLight()
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
             ServerMaster.GetServers();
 

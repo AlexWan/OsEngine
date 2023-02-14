@@ -51,7 +51,8 @@ namespace OsEngine.Journal
         /// </summary>
         public JournalUi2(List<BotPanelJournal> botsJournals, StartProgram startProgram)
         {
-            InitializeComponent(); 
+            InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             _startProgram = startProgram;
             _botsJournals = botsJournals;
             LoadGroups();

@@ -26,6 +26,7 @@ namespace OsEngine.OsTrader.Panels
         public BotPanelChartUi(BotPanel panel)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             _panel = panel;
             StartPaint();
             Local();

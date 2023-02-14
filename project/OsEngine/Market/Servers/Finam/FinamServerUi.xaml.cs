@@ -20,6 +20,7 @@ namespace OsEngine.Market.Servers.Finam
         public FinamServerUi(FinamServer server, Log log)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
 

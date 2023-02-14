@@ -19,6 +19,7 @@ namespace OsEngine.OsTrader.Gui
         public TesterUi()
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
             ServerMaster.CreateServer(ServerType.Tester,false);
             ServerMaster.GetServers();

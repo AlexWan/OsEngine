@@ -108,6 +108,5 @@ namespace OsEngine.Layout
             ui.Closed -= Ui_Start_MouseInCentre_ContentActivatedClosed;
         }
 
-
     }
 }

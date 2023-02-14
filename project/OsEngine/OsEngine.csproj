@@ -422,8 +422,9 @@
     <Compile Include="Language\OsLocalization.cs" />
     <Compile Include="Language\PrimeSettingsMasterUiLocal.cs" />
     <Compile Include="Language\TraderLocal.cs" />
-    <Compile Include="Layout\MouseCoordinates.cs" />
+    <Compile Include="Layout\DesktopCoordinates.cs" />
     <Compile Include="Layout\StartupLocation.cs" />
+    <Compile Include="Layout\StickyBorders.cs" />
     <Compile Include="Logging\LogErrorUi.xaml.cs">
       <DependentUpon>LogErrorUi.xaml</DependentUpon>
     </Compile>

@@ -17,6 +17,7 @@ namespace OsEngine.Entity
         public DateTimeSelectionDialog(DateTime initTime)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             Time = initTime;
 

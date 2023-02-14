@@ -17,6 +17,7 @@ namespace OsEngine.Robots.Patterns
         public PinBarTradeUi(PinBarTrade strategy)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 

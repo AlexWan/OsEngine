@@ -18,6 +18,7 @@ namespace OsEngine.Market.Servers.SmartCom
         public SmartComServerUi(SmartComServer server, Log log)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
 

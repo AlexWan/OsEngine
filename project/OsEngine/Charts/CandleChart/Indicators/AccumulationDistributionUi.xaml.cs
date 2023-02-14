@@ -33,6 +33,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AccumulationDistributionUi(AccumulationDistribution ad)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _ad = ad;
 

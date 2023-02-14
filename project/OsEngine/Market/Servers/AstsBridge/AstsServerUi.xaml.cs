@@ -21,6 +21,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         public AstsServerUi(AstsBridgeServer server, Log log)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
 

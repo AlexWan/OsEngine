@@ -40,6 +40,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public IshimokuUi(Ichimoku ishimoku)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _ishimoku = ishimoku;
 

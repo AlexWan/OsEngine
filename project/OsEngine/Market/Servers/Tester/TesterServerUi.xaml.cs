@@ -33,6 +33,7 @@ namespace OsEngine.Market.Servers.Tester
         public TesterServerUi(TesterServer server, Log log)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             _server = server;
             _log = log;
 

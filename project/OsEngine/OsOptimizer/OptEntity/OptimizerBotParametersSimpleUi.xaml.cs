@@ -14,6 +14,7 @@ namespace OsEngine.OsOptimizer.OptEntity
         public OptimizerBotParametersSimpleUi(OptimizerReport report, OptimazerFazeReport faze, string botType)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _report = report;
             _faze = faze;

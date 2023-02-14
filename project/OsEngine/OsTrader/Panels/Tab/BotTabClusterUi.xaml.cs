@@ -19,6 +19,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public BotTabClusterUi(BotTabCluster tab)
         {
             InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _tab = tab;
 
