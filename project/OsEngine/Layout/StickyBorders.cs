@@ -95,6 +95,11 @@ namespace OsEngine.Layout
 
                 window.UpdatePosition();
 
+                if (window.IsReady() == false)
+                {
+                    return;
+                }
+
                 lock (_windowsArrayLoker)
                 {
                     for (int i = 0; i < _windows.Count; i++)
@@ -135,10 +140,15 @@ namespace OsEngine.Layout
                     return;
                 }
 
+                if(window.IsReady() == false)
+                {
+                    return;
+                }
+
                 window.CheckFreezeStateX();
                 window.CheckFreezeStateY();
 
-                TryToGlueWindows(window);
+                TryToGlueWindowOnMove(window);
 
             }
             catch (Exception error)
@@ -149,7 +159,7 @@ namespace OsEngine.Layout
 
         // логика слепления окон
 
-        private static void TryToGlueWindows(MoveWindow windowActive)
+        private static void TryToGlueWindowOnMove(MoveWindow windowActive)
         {
 
             windowActive.UpdatePosition();
@@ -298,6 +308,30 @@ namespace OsEngine.Layout
     /// </summary>
     public class MoveWindow
     {
+        public bool IsReady()
+        {
+            if (Ui.IsVisible == false)
+            {
+                return false;
+            }
+            if (Ui.IsInitialized == false)
+            {
+                return false;
+            }
+
+            if (Ui.Width == 0)
+            {
+                return false;
+            }
+
+            if (Ui.Height == 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public void UpdatePosition()
         {
             _rightPrev = Right;
