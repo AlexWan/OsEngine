@@ -213,6 +213,23 @@ namespace OsEngine
             MessageBox.Show(message);
         }
 
+        /// <summary>
+        /// restarting the program with a critical error
+        /// перезагрузка приложения при критической ошибке
+        /// </summary>
+        private void ReloadApp()
+        {
+            if (!CheckAccess())
+            {
+                Dispatcher.Invoke(ReloadApp);
+                return;
+            }
+
+            App.app.Shutdown();
+            System.Windows.Forms.Application.Restart();
+        }
+
+
         private void ButtonTesterCandleOne_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -280,6 +297,8 @@ namespace OsEngine
             }
             catch (Exception error)
             {
+                ReloadApp();
+                // сообщение об ошибке в месседж боксе будет закрыто при перезагрузке (Добавить в PrimeSettings автозагрузку лайта, по чекбоксу)
                 MessageBox.Show(error.ToString());
             }
             Process.GetCurrentProcess().Kill();

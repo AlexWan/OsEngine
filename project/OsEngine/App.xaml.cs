@@ -11,6 +11,16 @@ namespace OsEngine
     /// </summary>
     public partial class App
     {
+
+        public static App app;
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            app = this;
+
+            base.OnActivated(e);
+        }
+
         void IconMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount > 1)
