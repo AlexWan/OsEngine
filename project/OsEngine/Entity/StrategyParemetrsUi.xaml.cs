@@ -338,6 +338,16 @@ namespace OsEngine.Entity
 
                     
                 }
+                else if (_parameters[i].Type == StrategyParameterType.CheckBox)
+                {
+                    DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
+                    StrategyParameterCheckBox param = (StrategyParameterCheckBox)_parameters[i];
+
+                    row.Cells[0].Value = _parameters[i].Name; 
+                    cell.Value = param.CheckState;
+
+                    row.Cells.Add(cell);
+                }
 
                 _grid.Rows.Add(row);
             }
@@ -420,6 +430,19 @@ namespace OsEngine.Entity
                     {
                         string[] array = new[] { "", _grid.Rows[i].Cells[1].EditedFormattedValue.ToString() };
                         ((StrategyParameterTimeOfDay)_parameters[i]).LoadParamFromString(array);
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.CheckBox)
+                    {
+                        bool value = Convert.ToBoolean(_grid.Rows[i].Cells[1].Value);
+
+                        if (value == true)
+                        {
+                            ((StrategyParameterCheckBox) _parameters[i]).CheckState = CheckState.Checked;
+                        }
+                        else
+                        {
+                            ((StrategyParameterCheckBox)_parameters[i]).CheckState = CheckState.Unchecked;
+                        }
                     }
                 }
                 catch

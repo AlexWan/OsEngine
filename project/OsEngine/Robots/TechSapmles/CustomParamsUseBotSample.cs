@@ -19,6 +19,8 @@ namespace OsEngine.Robots.TechSapmles
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
+            IsOn = CreateParameterCheckBox("On/Off", true, "Base");
+
             Regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" }, "Base");
 
             //делаем простотую надпись, которая будет разделять параметры в таблице
@@ -199,6 +201,8 @@ namespace OsEngine.Robots.TechSapmles
 
         BotTabSimple _tab;
 
+        StrategyParameterCheckBox IsOn;
+
         StrategyParameterString Regime;
 
         StrategyParameterDecimal AtrCountToInter;
@@ -236,6 +240,11 @@ namespace OsEngine.Robots.TechSapmles
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             PaintTable(candles);
+
+            if (IsOn.CheckState == CheckState.Unchecked)
+            {
+                return;
+            }
 
             if (Regime.ValueString =="Off")
             {
