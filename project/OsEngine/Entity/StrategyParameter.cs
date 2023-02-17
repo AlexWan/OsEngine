@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace OsEngine.Entity
 {
@@ -1086,6 +1087,139 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
+    /// A strategy parameter to button click
+    /// параметр стратегии типа CheckBox
+    /// </summary>
+    public class StrategyParameterCheckBox : IIStrategyParameter
+    {
+        public StrategyParameterCheckBox(string checkBoxLabel, bool isChecked, string tabName = null)
+        {
+
+            if (checkBoxLabel.HaveExcessInString())
+            {
+                throw new Exception("название параметра у робота содержит спец-символ. Это вызовет ошибки. Уберите его");
+            }
+            _name = checkBoxLabel;
+            _type = StrategyParameterType.CheckBox;
+
+            if (isChecked == true)
+            {
+                _checkState = CheckState.Checked;
+            }
+            else
+            {
+                _checkState = CheckState.Unchecked;
+            }
+            
+            TabName = tabName;
+        }
+
+        public string TabName { get; set; }
+
+        /// <summary>
+        /// blank. it is impossible to create a variable of StrategyParameter type with an empty constructor
+        /// заглушка. нельзя создать переменную типа StrategyParameter с пустым конструктором
+        /// </summary>
+        private StrategyParameterCheckBox()
+        {
+
+        }
+
+        /// <summary>
+        /// to take a line to save
+        /// взять строку для сохранения
+        /// </summary>
+        public string GetStringToSave()
+        {
+            string save = _name + "#";
+
+            if (_checkState == CheckState.Checked)
+            {
+                save += "true" + "#";
+            }
+            else
+            {
+                save += "false" + "#"; 
+            }
+
+            return save;
+        }
+
+        /// <summary>
+        ///  download settings from the save file
+        /// загрузить настройки из файла сохранения
+        /// </summary>
+        /// <param name="save"></param>
+        public void LoadParamFromString(string[] save)
+        {
+            _name = save[0];
+
+            try
+            {
+                if (save[1] == "true")
+                {
+                    _checkState = CheckState.Checked;
+                }
+                else
+                {
+                    _checkState = CheckState.Unchecked;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        /// <summary>
+        /// Parameter name. Used to identify a parameter in the settings windows
+        /// Название параметра. Используется для идентификации параметра в окнах настроек
+        /// </summary>
+        public string Name
+        {
+            get { return _name; }
+        }
+        private string _name;
+
+        /// <summary>
+        /// parameter state
+        /// состояние параметра
+        /// </summary>
+        public CheckState CheckState
+        {
+            get
+            {
+                return _checkState;
+            }
+            set
+            {
+                if (_checkState == value)
+                {
+                    return;
+                }
+                _checkState = value;
+                if (ValueChange != null)
+                {
+                    ValueChange();
+                }
+            }
+        }
+
+        private CheckState _checkState;
+
+        /// <summary>
+        /// parameter type
+        /// тип параметра
+        /// </summary>
+        public StrategyParameterType Type
+        {
+            get { return _type; }
+        }
+        private StrategyParameterType _type;
+
+        public event Action ValueChange;
+    }
+    /// <summary>
     /// parameter type
     /// тип параметра
     /// </summary>
@@ -1128,7 +1262,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// надпись в окне параметров 
         /// </summary>
-        Label
+        Label,
+
+        /// <summary>
+        /// чекбокс в окне параметров 
+        /// </summary>
+        CheckBox
     }
 
 }

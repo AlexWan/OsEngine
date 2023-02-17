@@ -935,6 +935,22 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterButton)LoadParameterValues(newParameter);
         }
 
+        /// <summary>
+        /// create button type parameter / 
+        /// создать параметр типа CheckBox
+        /// </summary>
+        public StrategyParameterCheckBox CreateParameterCheckBox(string checkBoxLabel, bool isChecked, string tabControlName = null)
+        {
+            StrategyParameterCheckBox newParameter = new StrategyParameterCheckBox(checkBoxLabel, isChecked, tabControlName);
+
+            if (_parameters.Find(p => p.Name == checkBoxLabel) != null)
+            {
+                throw new Exception(OsLocalization.Trader.Label52);
+            }
+
+            return (StrategyParameterCheckBox)LoadParameterValues(newParameter);
+        }
+
         public StrategyParameterLabel CreateParameterLabel(string name, string label, string value, int rowHeight,  int textHeight, System.Drawing.Color color, string tabControlName = null)
         {
             StrategyParameterLabel newParameter = new StrategyParameterLabel(name, label, value, rowHeight, textHeight, color, tabControlName);
