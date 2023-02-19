@@ -55,6 +55,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Radchenko);
             ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Adaptive);
             ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.VolumeWeighted);
+            ComboBoxMovingType.Items.Add(MovingAverageTypeCalculation.Hull);
 
             ComboBoxMovingType.SelectionChanged += ComboBoxMovingType_SelectionChanged;
 

@@ -59,7 +59,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// Smoothed Moving Average (SSMA) 
         /// Сглаженное скользящее среднее
         /// </summary>
-        Smoofed
+        Smoofed,
+
+        /// <summary>
+        /// Hull Moving Average (HMA) 
+        /// Скользящее среднее Халла
+        /// </summary>
+        Hull
     }
 
     /// <summary>
@@ -456,6 +462,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 Values.Add(GetValueSmma(candles, candles.Count - 1));
             }
+            if (TypeCalculationAverage == MovingAverageTypeCalculation.Hull)
+            {
+                Values.Add(GetValueHull(candles, candles.Count - 1));
+            }
         }
 
         /// <summary>
@@ -500,6 +510,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     Values.Add(GetValueSmma(candles, i));
                 }
+                if (TypeCalculationAverage == MovingAverageTypeCalculation.Hull)
+                {
+                    Values.Add(GetValueHull(candles, i));
+                }
             }
         }
 
@@ -540,6 +554,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (TypeCalculationAverage == MovingAverageTypeCalculation.Smoofed)
             {
                 Values[Values.Count - 1] = GetValueSmma(candles, candles.Count - 1);
+            }
+            if (TypeCalculationAverage == MovingAverageTypeCalculation.Hull)
+            {
+                Values[Values.Count - 1] = GetValueHull(candles, candles.Count - 1);
             }
         }
 
@@ -668,6 +686,72 @@ namespace OsEngine.Charts.CandleChart.Indicators
             return Math.Round(average, 8);
 
         }
+
+        
+        /// <summary>
+        /// weighted (help func)
+        /// взвешенная (вспомогательная функция)
+        /// </summary>
+        private decimal GetValueWeighted(List<Candle> candles, int index, int lenght)
+        {
+            if (index + 1 - lenght < 0)
+            {
+                return 0;
+            }
+            decimal average = 0;
+
+            int weights = 0;
+
+            for (int i = index, weight = lenght; i > index - lenght; i--, weight--)
+            {
+                average += GetPoint(candles, i) * weight;
+                weights += weight;
+            }
+            if (weights == 0)
+            {
+                return 0;
+            }
+            average /= weights;
+
+            return average;
+        }
+
+
+        /// <summary>
+        /// hull
+        /// халл
+        /// </summary>
+        private decimal GetValueHull(List<Candle> candles, int index)
+        {
+            if (index - Lenght <= 0)
+            {
+                return 0;
+            }
+
+            int half_lenght = (int)(Lenght / 2);
+            int sqrt_lenght = (int)Math.Sqrt(Lenght);
+
+            decimal wmaf = 0;
+            decimal wmas = 0;
+            List<decimal> wmad = new List<decimal>(sqrt_lenght);
+            for (int i = index; i > index - sqrt_lenght; i--)
+            {
+                wmaf = GetValueWeighted(candles, i, half_lenght);
+                wmas = GetValueWeighted(candles, i, Lenght);
+                wmad.Add(2 * wmaf - wmas);
+            }
+            if (wmad.Count == 0)
+            {
+                return 0;
+            }
+            wmad.Reverse();
+            decimal hma = GetValueWeighted(wmad, sqrt_lenght - 1, sqrt_lenght);
+
+            return Math.Round(hma, 8);
+
+        }
+
+
 
         /// <summary>
         /// radchenko
@@ -844,6 +928,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 Values.Add(GetValueKaufmanAdaptive(values, values.Count - 1));
             }
+            if (TypeCalculationAverage == MovingAverageTypeCalculation.Hull)
+            {
+                Values.Add(GetValueHull(values, values.Count - 1));
+            }
         }
 
         /// <summary>
@@ -881,6 +969,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     Values.Add(GetValueKaufmanAdaptive(values, i));
                 }
+                
+                if (TypeCalculationAverage == MovingAverageTypeCalculation.Hull)
+                {
+                    Values.Add(GetValueHull(values, i));
+                }
             }
         }
 
@@ -913,6 +1006,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (TypeCalculationAverage == MovingAverageTypeCalculation.Adaptive)
             {
                 Values.Add(GetValueKaufmanAdaptive(values, values.Count - 1));
+            }
+            if (TypeCalculationAverage == MovingAverageTypeCalculation.Hull)
+            {
+                Values.Add(GetValueHull(values, values.Count - 1));
             }
         }
 
@@ -1007,6 +1104,71 @@ namespace OsEngine.Charts.CandleChart.Indicators
             return Math.Round(average,8);
 
         }
+
+
+        /// <summary>
+        /// weighted (help func)
+        /// взвешенная (вспомогательная функция)
+        /// </summary>
+        private decimal GetValueWeighted(List<decimal> values, int index, int lenght)
+        {
+            if (index + 1 - lenght < 0)
+            {
+                return 0;
+            }
+            decimal average = 0;
+
+            int weights = 0;
+
+            for (int i = index, weight = lenght; i > index - lenght; i--, weight--)
+            {
+                average += values[i] * weight;
+                weights += weight;
+            }
+            if (weights == 0)
+            {
+                return 0;
+            }
+            average /= weights;
+
+            return average;
+        }
+
+
+        /// <summary>
+        /// hull
+        /// халл
+        /// </summary>
+        private decimal GetValueHull(List<decimal> values, int index)
+        {
+            if (index - Lenght <= 0)
+            {
+                return 0;
+            }
+            int half_lenght = (int)(Lenght / 2);
+            int sqrt_lenght = (int)Math.Sqrt(Lenght);
+
+            decimal wmaf = 0;
+            decimal wmas = 0;
+            List<decimal> wmad = new List<decimal>(sqrt_lenght);
+            for (int i = index; i > index - sqrt_lenght; i--)
+            {
+                wmaf = GetValueWeighted(values, i, half_lenght);
+                wmas = GetValueWeighted(values, i, Lenght);
+                wmad.Add(2 * wmaf - wmas);
+            }
+            if (wmad.Count == 0)
+            {
+                return 0;
+            }
+            wmad.Reverse();
+            decimal hma = GetValueWeighted(wmad, sqrt_lenght - 1, sqrt_lenght);
+
+            return Math.Round(hma, 8);
+
+        }
+
+
 
         /// <summary>
         /// radchenko
