@@ -69,34 +69,31 @@ namespace OsEngine.Layout
             double leftPos = xPosByWin32 - ui.Width/2;
             double topPos = yPosByWin32 - ui.Height / 2;
 
+            System.Drawing.Rectangle actualArea = new System.Drawing.Rectangle();     
+            actualArea = System.Windows.Forms.Screen.GetBounds(System.Windows.Forms.Control.MousePosition);   
+
             // проверка разворачивания окна за экраном слева и сверху
 
-            if (leftPos < 0)
+            if (leftPos < actualArea.X)    
             {
-                leftPos = 0;
+                leftPos = actualArea.X;
             }
 
-            if(topPos < 0)
+            if (topPos < actualArea.Y)           
             {
-                topPos = 0;
+                topPos = actualArea.Y;
             }
 
             // проверка разворачивания окна за экраном вправо и вниз
 
-            double xPosMouseOld = DesktopCoordinates.XmousePosOldVersion();
-            double yPosMouseOld = DesktopCoordinates.YmousePosOldVersion();
-
-            double screenWidth = DesktopCoordinates.CurrentScreenWidth();
-            double screenHeight = DesktopCoordinates.CurrentScreenHeight();
-
-            if(xPosMouseOld + ui.Width / 2 > screenWidth)
+            if(leftPos + ui.Width > actualArea.X + actualArea.Width)   
             {
-                leftPos = xPosByWin32 - ui.Width;
+                leftPos = actualArea.X + actualArea.Width - ui.Width;
             }
 
-            if (yPosMouseOld + ui.Height / 2 > screenHeight)
+            if (topPos + ui.Height > actualArea.Y + actualArea.Height)         
             {
-                topPos = yPosByWin32 - ui.Height;
+                topPos = actualArea.Y + actualArea.Height - ui.Height;
             }
 
             // устанавливаем окончательные значения
