@@ -785,6 +785,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     sec.filters[1].minQty != null)
                 {
                     decimal minQty = sec.filters[1].minQty.ToDecimal();
+                    security.MinTradeAmount = minQty;
                     string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
                     if (qtyInStr.Replace(",", ".").Split('.').Length > 1)
                     {
