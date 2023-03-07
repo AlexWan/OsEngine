@@ -14,7 +14,7 @@ namespace OsEngine.Language
 
         public string BlockDataLabel => OsLocalization.ConvertToLocString(
             "Eng:Work with data_"+
-            "Ru:Работа с данными_");
+            "Ru:Данные_");
 
         public string BlockTestingLabel => OsLocalization.ConvertToLocString(
             "Eng:Testing_"+

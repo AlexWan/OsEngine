@@ -257,6 +257,109 @@ namespace OsEngine.Entity
             return newCandles;
         }
 
+        public static List<Trade> Merge(this List<Trade> oldTrades, List<Trade> tradesToMerge)
+        {
+            if (tradesToMerge == null ||
+                tradesToMerge.Count == 0)
+            {
+                return oldTrades;
+            }
+
+            if (oldTrades.Count == 0)
+            {
+                oldTrades.AddRange(tradesToMerge);
+                return oldTrades;
+            }
+
+            if (tradesToMerge[0].Time < oldTrades[0].Time &&
+                tradesToMerge[tradesToMerge.Count - 1].Time >= oldTrades[oldTrades.Count - 1].Time)
+            {
+                // начало массива в новых свечках раньше. Конец позже. Перезаписываем полностью 
+                oldTrades.Clear();
+                oldTrades.AddRange(tradesToMerge);
+                return oldTrades;
+            }
+
+            // смотрим более ранние свечи в новой серии
+
+            List<Trade> newTrades = new List<Trade>();
+
+            int indexLastInsertCandle = 0;
+
+            for (int i = 0; i < tradesToMerge.Count; i++)
+            {
+                if (tradesToMerge[i].Time < oldTrades[0].Time)
+                {
+                    newTrades.Add(tradesToMerge[i]);
+                }
+                else
+                {
+                    indexLastInsertCandle = i;
+                    break;
+                }
+            }
+
+            newTrades.AddRange(oldTrades);
+
+            // обновляем последнюю свечку в старых данных
+
+            if (newTrades.Count != 0)
+            {
+                Trade lastTrade = tradesToMerge.Find(c => c.Time == newTrades[newTrades.Count - 1].Time);
+
+                if (lastTrade != null)
+                {
+                    newTrades[newTrades.Count - 1] = lastTrade;
+                }
+            }
+
+            // вставляем новые свечи в середину объединённого массива. Смотрим последние 500 свечек, не более
+
+            int indxStart = newTrades.Count - 500;
+
+            if (indxStart < 0)
+            {
+                indxStart = 0;
+            }
+
+            for (int i = indexLastInsertCandle; i < tradesToMerge.Count; i++)
+            {
+                Trade trade = tradesToMerge[i];
+
+                bool tradesInsertInOldArray = false;
+
+                for (int i2 = indxStart; i2 < newTrades.Count - 2; i2++)
+                {
+                    if (trade.Time > newTrades[i2].Time &&
+                        trade.Time < newTrades[i2 + 1].Time)
+                    {
+                        newTrades.Insert(i2 + 1, trade);
+                        tradesInsertInOldArray = true;
+                        break;
+                    }
+                }
+
+                if (tradesInsertInOldArray == false)
+                {
+                    i += 10;
+                }
+            }
+
+            // вставляем новые свечи в конец объединённого массива
+
+            for (int i = 0; i < tradesToMerge.Count; i++)
+            {
+                Trade candle = tradesToMerge[i];
+
+                if (candle.Time > newTrades[newTrades.Count - 1].Time)
+                {
+                    newTrades.Add(candle);
+                }
+            }
+
+            return newTrades;
+        }
+
         public static Candle Merge(this Candle oldCandle, Candle candleToMerge)
         {
             Candle res = new Candle();

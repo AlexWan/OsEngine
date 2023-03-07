@@ -36,8 +36,6 @@
         <Label Name="Label20" Content="Regime" HorizontalAlignment="Left" Margin="305,253,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonAddSecurity" Content="+"  Margin="0,13,62,0" FontWeight="Bold" FontSize="15" FontFamily="Stencil" Click="ButtonAddSecurity_Click" HorizontalAlignment="Right" Width="30" Height="28" VerticalAlignment="Top"/>
         <Button Name="ButtonDelSecurity" Content="-"  Margin="0,13,10,0" VerticalAlignment="Top" Height="28" FontSize="15" FontWeight="Bold" FontFamily="Stencil" Click="ButtonDelSecurity_Click" HorizontalAlignment="Right" Width="30"/>
-        <ComboBox x:Name="ComboBoxCandleCreateType" HorizontalAlignment="Left" Margin="138,76,0,0" VerticalAlignment="Top" Width="133"/>
-        <Label Name="Label15" Content="Candle points" HorizontalAlignment="Left" Margin="25,76,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxMarketDepthDepth" HorizontalAlignment="Left" Margin="270,215,0,0" VerticalAlignment="Top" Width="83" Height="20"/>
         <Label Name="Label17" Content="Depth" HorizontalAlignment="Left" Margin="216,212,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxNeadToUpDate" Content="Auto update" Margin="305,298,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />

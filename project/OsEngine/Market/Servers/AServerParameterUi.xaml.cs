@@ -84,6 +84,12 @@ namespace OsEngine.Market.Servers
                     LabelStatus.Dispatcher.Invoke(new Action<string>(Server_ConnectStatusChangeEvent), s);
                     return;
                 }
+
+                if(_server == null)
+                {
+                    return;
+                }
+
                 LabelStatus.Content = _server.ServerStatus;
             }
             catch

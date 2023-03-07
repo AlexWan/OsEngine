@@ -1349,20 +1349,20 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// start uploading data for instrument
         /// Начать выгрузку данных по инструменту
         /// </summary>
-        public CandleSeries GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
+        public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
-            return StartThisSecurity(securityName, timeFrameBuilder, securityClass);
+            return null;
         }
 
         /// <summary>
 		/// take tick data on the instrument for a certain period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
-        public bool GetTickDataToSecurity(string securityName, string securityClass, 
+        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, 
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
-            return true;
+            return null;
         }
 
         /// <summary>
