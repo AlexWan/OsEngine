@@ -41,6 +41,8 @@ namespace OsEngine.OsTrader.Gui
             this.Focus();
 
             GlobalGUILayout.Listen(this, "botStationLightUi");
+
+            IsRobotUiLightStart = true;
         }
 
         ServerMasterPainter _painterServer;
@@ -75,5 +77,6 @@ namespace OsEngine.OsTrader.Gui
 
         private OsTraderMaster _strategyKeeper;
 
+        public static bool IsRobotUiLightStart = false;
     }
 }

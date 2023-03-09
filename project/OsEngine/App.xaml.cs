@@ -11,7 +11,6 @@ namespace OsEngine
     /// </summary>
     public partial class App
     {
-
         public static App app;
 
         protected override void OnStartup(StartupEventArgs e)
@@ -53,12 +52,12 @@ namespace OsEngine
                 // Make sure window doesn't overlap with the taskbar.
                 var screen = System.Windows.Forms.Screen.FromHandle(handle);
 
-                    containerBorder.Padding = new Thickness(
-                        SystemParameters.WorkArea.Left + 7,
-                        SystemParameters.WorkArea.Top + 7,
-                        (SystemParameters.PrimaryScreenWidth - SystemParameters.WorkArea.Right) + 7,
-                        (SystemParameters.PrimaryScreenHeight - SystemParameters.WorkArea.Bottom) + 5);
-                
+                containerBorder.Padding = new Thickness(
+                    SystemParameters.WorkArea.Left + 7,
+                    SystemParameters.WorkArea.Top + 7,
+                    (SystemParameters.PrimaryScreenWidth - SystemParameters.WorkArea.Right) + 7,
+                    (SystemParameters.PrimaryScreenHeight - SystemParameters.WorkArea.Bottom) + 5);
+
             }
             else
             {
@@ -73,7 +72,8 @@ namespace OsEngine
 
         void MinButtonClick(object sender, RoutedEventArgs e)
         {
-            sender.ForWindowFromTemplate(w => w.WindowState = WindowState.Minimized);
+
+            sender.ForWindowFromTemplate(w => SystemCommands.MinimizeWindow(w));
         }
 
         void MaxButtonClick(object sender, RoutedEventArgs e)

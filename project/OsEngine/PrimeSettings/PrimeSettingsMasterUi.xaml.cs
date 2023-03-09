@@ -47,6 +47,7 @@ namespace OsEngine.PrimeSettings
             TextBoxPort.Text = PrimeSettingsMaster.Port;
             AutoStartChb.IsChecked = PrimeSettingsMaster.AutoStartApi;
             TextBoxBotHeader.Text = PrimeSettingsMaster.LabelInHeaderBotStation;
+            CheckBoxRebootTradeUiLigth.IsChecked = PrimeSettingsMaster.RebootTradeUiLigth;
 
             CheckBoxExtraLogWindow.Click += CheckBoxExtraLogWindow_Click;
             CheckBoxExtraLogSound.Click += CheckBoxExtraLogSound_Click;
@@ -54,6 +55,7 @@ namespace OsEngine.PrimeSettings
             CheckBoxServerTestingIsActive.Click += CheckBoxServerTestingIsActive_Click;
             AutoStartChb.Click += AutoStartChb_Click;
             TextBoxBotHeader.TextChanged += TextBoxBotHeader_TextChanged;
+            CheckBoxRebootTradeUiLigth.Click += RebootTradeUiLigth_Click;
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
@@ -82,6 +84,8 @@ namespace OsEngine.PrimeSettings
 
             LabelConfirm.Content = OsLocalization.PrimeSettings.LblAdminPanel;
             LabelHeader.Content = OsLocalization.PrimeSettings.LabelBotHeader;
+            LabelRebootTradeUiLigth.Content = OsLocalization.PrimeSettings.LabelLightReboot;
+
         }
 
 
@@ -118,6 +122,13 @@ namespace OsEngine.PrimeSettings
         {
             if (AutoStartChb.IsChecked != null)
                 PrimeSettingsMaster.AutoStartApi = AutoStartChb.IsChecked.Value;
+        }
+
+
+        private void RebootTradeUiLigth_Click(object sender, RoutedEventArgs e)
+        {
+            if (CheckBoxRebootTradeUiLigth.IsChecked != null)
+                PrimeSettingsMaster.RebootTradeUiLigth = CheckBoxRebootTradeUiLigth.IsChecked.Value;
         }
 
         private void BtnGenerateToken_OnClick(object sender, RoutedEventArgs e)
