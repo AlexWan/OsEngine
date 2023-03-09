@@ -33,7 +33,7 @@ namespace OsEngine
     /// </summary>
     public partial class MainWindow
     {
-        
+
         private static MainWindow _window;
 
         public static Dispatcher GetDispatcher
@@ -92,7 +92,7 @@ namespace OsEngine
 
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
-            
+
             CommandLineInterfaceProcess();
 
             Task.Run(ClearOptimizerWorkResults);
@@ -210,7 +210,36 @@ namespace OsEngine
         {
             string message = OsLocalization.MainWindow.Message5 + e.ExceptionObject;
 
-            MessageBox.Show(message);
+            if (PrimeSettingsMaster.RebootTradeUiLigth == true &&
+                RobotUiLight.IsRobotUiLightStart)
+            {
+                Reboot(message);
+            }
+            else
+            {
+                MessageBox.Show(message);
+            }
+        }
+
+        private void Reboot(string message)
+        {
+
+            if (!CheckAccess())
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Reboot(message);
+                });
+                return;
+            }
+
+            App.app.Shutdown();
+            Process process = new Process();
+            process.StartInfo.FileName = Directory.GetCurrentDirectory() + "\\OsEngine.exe";
+            process.StartInfo.Arguments = " -error " + message;
+            process.Start();
+
+            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonTesterCandleOne_Click(object sender, RoutedEventArgs e)
@@ -389,7 +418,7 @@ namespace OsEngine
                 return;
             }
 
-            ImageGear.RenderTransform = new RotateTransform(angle,12,12);
+            ImageGear.RenderTransform = new RotateTransform(angle, 12, 12);
 
         }
 
@@ -426,7 +455,7 @@ namespace OsEngine
             }
             Process.GetCurrentProcess().Kill();
         }
-        
+
         private void CommandLineInterfaceProcess()
         {
             string[] args = Environment.GetCommandLineArgs();
@@ -440,6 +469,24 @@ namespace OsEngine
             }
             else if (Array.Exists(args, a => a.Equals("-robotslight")))
             {
+                ButtonRobotLight_Click(this, default);
+            }
+            else if (Array.Exists(args, a => a.Equals("-error")))
+            {
+
+                new Task(() =>
+                {
+                    string messageError = String.Empty;
+
+                    for (int i = 0; i < args.Length; i++)
+                    {
+                        messageError += args[i];
+                    }
+
+                    MessageBox.Show(messageError);
+
+                }).Start();
+
                 ButtonRobotLight_Click(this, default);
             }
         }

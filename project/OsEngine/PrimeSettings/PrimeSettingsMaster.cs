@@ -66,6 +66,28 @@ namespace OsEngine.PrimeSettings
 
         private static bool _transactionBeepIsActiv;
 
+
+
+        public static bool RebootTradeUiLigth
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _rebootTradeUiLigth;
+            }
+            set
+            {
+                _rebootTradeUiLigth = value;
+                Save();
+            }
+        }
+
+        private static bool _rebootTradeUiLigth;
+
+
         public static bool ServerTestingIsActive
         {
             get
@@ -199,6 +221,7 @@ namespace OsEngine.PrimeSettings
                     writer.WriteLine(_ip);
                     writer.WriteLine(_port);
                     writer.WriteLine(_labelInHeaderBotStation);
+                    writer.WriteLine(_rebootTradeUiLigth);
 
                     writer.Close();
                 }
@@ -235,6 +258,7 @@ namespace OsEngine.PrimeSettings
                     _ip = reader.ReadLine();
                     _port = reader.ReadLine();
                     _labelInHeaderBotStation = reader.ReadLine();
+                    _rebootTradeUiLigth = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }

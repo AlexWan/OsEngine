@@ -782,7 +782,24 @@ namespace OsEngine.Market.Servers.Bybit
 
             foreach (var depth in new_md_list)
             {
+                SortAsksMarketDepth(depth);
                 OnMarketDepthEvent(depth);
+            }
+        }
+
+        private void SortAsksMarketDepth(MarketDepth depths)
+        {
+            for (int i = depths.Asks.Count - 1; i >= 0; i--)
+            {
+                for (int j = 0; j < i; j++)
+                {
+                    if (depths.Asks[j].Price > depths.Asks[j + 1].Price)
+                    {
+                        var tmp = depths.Asks[j + 1];
+                        depths.Asks[j + 1] = depths.Asks[j];
+                        depths.Asks[j] = tmp;
+                    }
+                }
             }
         }
 

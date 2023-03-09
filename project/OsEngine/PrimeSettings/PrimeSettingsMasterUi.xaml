@@ -23,6 +23,8 @@
                     <CheckBox x:Name="CheckBoxServerTestingIsActive" Margin="0,169,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
                     <Label x:Name="LabelServerTestingIsActive" Content="Server Testing Is Active" HorizontalAlignment="Left" Margin="86,169,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxBotHeader" HorizontalAlignment="Left" Margin="190,57,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="127"/>
+                    <Label x:Name="LabelRebootTradeUiLigth" Content="Reboot Ligth on error" HorizontalAlignment="Left" Margin="86,195,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxRebootTradeUiLigth" Margin="0,195,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
                 </Grid>
             </TabItem>
             <TabItem Name="AdminItem" Header="Admin panel access" Width="150">

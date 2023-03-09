@@ -77,6 +77,10 @@ namespace OsEngine.Language
              "Eng:Bot header_" +
             "Ru:Текст шапки_");
 
-        
+        public string LabelLightReboot => OsLocalization.ConvertToLocString(
+            "Eng:Reboot Ligth on error_" +
+            "Ru:Перезагрузка лайта при ошибке_");
+
+
     }
 }
