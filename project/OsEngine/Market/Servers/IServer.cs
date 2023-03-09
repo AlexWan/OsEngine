@@ -153,14 +153,14 @@ namespace OsEngine.Market.Servers
         /// start data downloading on the instrument
         /// Начать выгрузку данных по инструменту
         /// </summary>
-        CandleSeries GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
+        List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate);
 
         /// <summary>
         /// take ticks instrument data for a certain period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
-        bool GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime,
+        List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime,
             bool neadToUpdete);
 
 // candles

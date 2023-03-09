@@ -3271,19 +3271,19 @@ namespace OsEngine.Market.Servers.Tester
 		/// start data downloading on instrument 
         /// Начать выгрузку данных по инструменту
         /// </summary>
-        public CandleSeries GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
+        public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
-            return StartThisSecurity(securityName, timeFrameBuilder,securityClass);
+            return null;
         }
 
         /// <summary>
 		/// take ticks data on instrument for period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
-        public bool GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
+        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
-            return true;
+            return null;
         }
 
         private TimeSpan GetTimeFremeInSpan(TimeFrame frame)

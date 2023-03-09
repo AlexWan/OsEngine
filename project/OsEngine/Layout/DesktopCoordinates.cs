@@ -45,18 +45,6 @@ namespace OsEngine.Layout
             return point.X;
         }
 
-        public static double CurrentScreenWidth()
-        {
-            int width = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size.Width;
-            return width;
-        }
-
-        public static double CurrentScreenHeight()
-        {
-            int height = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size.Height;
-            return height;
-        }
-
     }
     public struct POINT
     {

@@ -620,7 +620,17 @@ namespace OsEngine.Entity
         /// day
         /// день
         /// </summary>
-        Day
+        Day,
+        /// <summary>
+        /// trade
+        /// лента сделок
+        /// </summary>
+        Tick,
+        /// <summary>
+        /// market depth
+        /// стакан
+        /// </summary>
+        MarketDepth
     }
 
 }

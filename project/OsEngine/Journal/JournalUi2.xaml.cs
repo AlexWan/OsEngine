@@ -2775,16 +2775,23 @@ namespace OsEngine.Journal
 
             for (int i = 0; i < positionsAll.Count; i++)
             {
-                DateTime timeCreate = positionsAll[i].TimeCreate;
+                Position pose = positionsAll[i];
+
+                if (pose.State == PositionStateType.OpeningFail)
+                {
+                    continue;
+                }
+
+                DateTime timeCreate = pose.TimeCreate;
 
                 if (newPositionsAll.Count == 0 ||
                     newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= timeCreate)
                 {
-                    newPositionsAll.Add(positionsAll[i]);
+                    newPositionsAll.Add(pose);
                 }
                 else if (newPositionsAll[0].TimeCreate >= timeCreate)
                 {
-                    newPositionsAll.Insert(0, positionsAll[i]);
+                    newPositionsAll.Insert(0, pose);
                 }
                 else
                 {
@@ -2793,7 +2800,7 @@ namespace OsEngine.Journal
                         if (newPositionsAll[i2].TimeCreate <= timeCreate &&
                             newPositionsAll[i2 + 1].TimeCreate >= timeCreate)
                         {
-                            newPositionsAll.Insert(i2 + 1, positionsAll[i]);
+                            newPositionsAll.Insert(i2 + 1, pose);
                             break;
                         }
                     }

@@ -743,6 +743,11 @@ namespace OsEngine.Entity
 
                 decimal entryPrice = EntryPrice;
 
+                if(entryPrice == 0)
+                {
+                    return;
+                }
+
                 if (Direction == Side.Buy)
                 {
                     ProfitOperationPersent = ask / entryPrice * 100 - 100;

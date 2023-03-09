@@ -95,6 +95,12 @@ namespace OsEngine.OsOptimizer.OptEntity
 
         private static void PaintLines(List<OptimizerFaze> fazes, Chart _chart)
         {
+            if (fazes == null
+                || fazes.Count == 0)
+            {
+                return;
+            }
+
             ChartMasterColorKeeper _colorKeeper = new ChartMasterColorKeeper("walkForward");
 
             Series candleSeries = FindSeriesByNameSafe("SeriesCluster",_chart);

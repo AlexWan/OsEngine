@@ -51,6 +51,11 @@ namespace OsEngine.Entity
         public string NameId;
 
         /// <summary>
+        /// Биржа на которой торгуется инструмент
+        /// </summary>
+        public string Exchange;
+
+        /// <summary>
         /// the trading status of this instrument on the stock exchange
         /// состояние торгов этим инструментом на бирже
         /// </summary>

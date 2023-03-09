@@ -73,8 +73,7 @@ namespace OsEngine
 
         void MinButtonClick(object sender, RoutedEventArgs e)
         {
-            
-            sender.ForWindowFromTemplate(w => SystemCommands.MinimizeWindow(w));
+            sender.ForWindowFromTemplate(w => w.WindowState = WindowState.Minimized);
         }
 
         void MaxButtonClick(object sender, RoutedEventArgs e)

@@ -94,12 +94,12 @@ namespace OsEngine.Language
             "Ru:Глубина_");
 
         public string Label18 => OsLocalization.ConvertToLocString(
-            "Eng:Start_" +
-            "Ru:Начало_");
+            "Eng:Start: _" +
+            "Ru:Начало: _");
 
         public string Label19 => OsLocalization.ConvertToLocString(
-            "Eng:End_" +
-            "Ru:Конец_");
+            "Eng:End: _" +
+            "Ru:Конец: _");
 
         public string Label20 => OsLocalization.ConvertToLocString(
             "Eng:Regime_" +
@@ -144,5 +144,62 @@ namespace OsEngine.Language
         public string Label30 => OsLocalization.ConvertToLocString(
             "Eng:Add new data set_" +
             "Ru:Создать сет данных_");
+
+        public string Label31 => OsLocalization.ConvertToLocString(
+           "Eng:Set Name:_" +
+           "Ru:Название:_");
+
+        public string Label32 => OsLocalization.ConvertToLocString(
+           "Eng:Load %_" +
+           "Ru:% загрузки_");
+
+        public string Label33 => OsLocalization.ConvertToLocString(
+              "Eng:Status_" +
+              "Ru:Статус_");
+
+        public string Label34 => OsLocalization.ConvertToLocString(
+              "Eng:Load %_" +
+              "Ru:Загрузка %_");
+
+        public string Label35 => OsLocalization.ConvertToLocString(
+              "Eng:Num_" +
+              "Ru:Номер_");
+
+        public string Label36 => OsLocalization.ConvertToLocString(
+             "Eng:Security_" +
+             "Ru:Бумага_");
+
+        public string Label37 => OsLocalization.ConvertToLocString(
+             "Eng:Time frame_" +
+             "Ru:Тайм фрейм_");
+
+        public string Label38 => OsLocalization.ConvertToLocString(
+             "Eng:On/Off_" +
+             "Ru:Вкл/Выкл_");
+
+        public string Label39 => OsLocalization.ConvertToLocString(
+             "Eng:Class_" +
+             "Ru:Класс_");
+
+        public string Label40 => OsLocalization.ConvertToLocString(
+             "Eng:Exchange_" +
+             "Ru:Биржа_");
+
+        public string Label41 => OsLocalization.ConvertToLocString(
+             "Eng:Delete_" +
+             "Ru:Удалить_");
+
+        public string Label42 => OsLocalization.ConvertToLocString(
+             "Eng:are you sure you want to remove the security?_" +
+             "Ru:Вы уверены что хотите удалить бумагу?_");
+
+        public string Label43 => OsLocalization.ConvertToLocString(
+             "Eng:Chart_" +
+             "Ru:Чарт_");
+
+
+        public string Label44 => OsLocalization.ConvertToLocString(
+            "Eng:Saving aborted. The data source is not selected_" +
+            "Ru:Сохранение прервано. Источник данных не выбран_");
     }
 }

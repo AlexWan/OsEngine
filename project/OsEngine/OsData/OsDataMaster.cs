@@ -41,22 +41,30 @@ namespace OsEngine.OsData
         /// <param name="comboBoxTimeFrame">time frame selection menu/меню выбора таймфрейма</param>
         /// <param name="rectangle">square for substrate/квадрат для подложки</param>
         public OsDataMaster(WindowsFormsHost hostChart, WindowsFormsHost hostLog,
-            WindowsFormsHost hostSource, WindowsFormsHost hostSets, System.Windows.Controls.ComboBox comboBoxSecurity,
-            System.Windows.Controls.ComboBox comboBoxTimeFrame, System.Windows.Shapes.Rectangle rectangle, Grid greedChartPanel)
+            WindowsFormsHost hostSource, 
+            WindowsFormsHost hostSets, 
+            System.Windows.Shapes.Rectangle rectangle, 
+            Grid greedChartPanel,
+            System.Windows.Controls.Label setName,
+            System.Windows.Controls.Label labelTimeStart,
+            System.Windows.Controls.Label labelTimeEnd,
+            System.Windows.Controls.ProgressBar bar)
         {
             _hostChart = hostChart;
             _hostSource = hostSource;
             _hostSets = hostSets;
-            _comboBoxSecurity = comboBoxSecurity;
-            _comboBoxTimeFrame = comboBoxTimeFrame;
             _rectangle = rectangle;
             _greedChartPanel = greedChartPanel;
+            _setName = setName;
+            _labelTimeStart = labelTimeStart;
+            _labelTimeEnd = labelTimeEnd;
+            _bar = bar;
+
             _log = new Log("OsDataMaster", StartProgram.IsOsData);
             _log.StartPaint(hostLog);
             _log.Listen(this);
 
             Load();
-            LoadSettings();
 
             CreateSetGrid();
             RePaintSetGrid();
@@ -89,7 +97,6 @@ namespace OsEngine.OsData
 
         public void StopPaint()
         {
-			_isPaintEnabled = false;
             if (_selectSet != null)
             {
                 _selectSet.StopPaint();
@@ -99,10 +106,9 @@ namespace OsEngine.OsData
 
         public void StartPaint()
         {
-			_isPaintEnabled = true;
             if (_selectSet != null)
             {
-                _selectSet.StartPaint(_hostChart, _rectangle, _greedChartPanel);
+                _selectSet.StartPaint(_hostChart, _setName, _labelTimeStart, _labelTimeEnd, _bar);
             }
             
         }
@@ -111,6 +117,14 @@ namespace OsEngine.OsData
         {
             SendNewLogMessage(message, type);
         }
+
+        System.Windows.Controls.Label _setName;
+
+        System.Windows.Controls.Label _labelTimeStart;
+
+        System.Windows.Controls.Label _labelTimeEnd;
+
+        System.Windows.Controls.ProgressBar _bar;
 
         /// <summary>
         /// chart host/хост для чарта
@@ -136,16 +150,6 @@ namespace OsEngine.OsData
         /// rectangle for the substrate/прямоугольник для подложки
         /// </summary>
         private System.Windows.Shapes.Rectangle _rectangle;
-
-        /// <summary>
-        /// tool selection menu/меню выбора инструмента
-        /// </summary>
-        private System.Windows.Controls.ComboBox _comboBoxSecurity;
-
-        /// <summary>
-        /// time frame selection menu/меню выбора таймфрейма
-        /// </summary>
-        private System.Windows.Controls.ComboBox _comboBoxTimeFrame;
 
         /// <summary>
         /// load settings from file/загрузить настройки из файла
@@ -180,7 +184,7 @@ namespace OsEngine.OsData
             {
                 if (nameFolders[i].Split('_')[0] == "Set")
                 {
-                    _sets.Add(new OsDataSet(nameFolders[i],_comboBoxSecurity,_comboBoxTimeFrame));
+                    _sets.Add(new OsDataSet(nameFolders[i]));
                     _sets[_sets.Count-1].NewLogMessageEvent += SendNewLogMessage;
 
                 }
@@ -412,9 +416,9 @@ namespace OsEngine.OsData
                     nRow.Cells[0].Value = _sets[i].SetName;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[1].Value = _sets[i].Regime;
+                    nRow.Cells[1].Value = _sets[i].BaseSettings.Regime;
 
-                    if (_sets[i].Regime == DataSetState.On)
+                    if (_sets[i].BaseSettings.Regime == DataSetState.On)
                     {
                         DataGridViewCellStyle style = new DataGridViewCellStyle();
                         style.BackColor = Color.MediumSeaGreen;
@@ -544,15 +548,6 @@ namespace OsEngine.OsData
         private OsDataSet _selectSet;
 
         /// <summary>
-        /// Is drawing graphics enabled/Включена ли прорисовка графика
-        /// </summary>
-        private bool _isPaintEnabled = true;
-        public bool IsPaintEnabled
-        {
-            get { return _isPaintEnabled; }
-        }
-
-        /// <summary>
         /// change active set/сменить активный сет
         /// </summary>
         /// <param name="index">new index/индекс нового</param>
@@ -581,12 +576,9 @@ namespace OsEngine.OsData
                 _selectSet.StopPaint();
             }
            
-
             _selectSet = currentSet;
-            if (_isPaintEnabled)
-            {
-                currentSet.StartPaint(_hostChart, _rectangle, _greedChartPanel);
-            }
+
+             currentSet.StartPaint(_hostChart, _setName, _labelTimeStart, _labelTimeEnd, _bar);
         }
 
         private void SortSets()
@@ -601,7 +593,7 @@ namespace OsEngine.OsData
             
             for(int i = 0;i < _sets.Count;i++)
             {
-                if(_sets[i].Regime == DataSetState.On)
+                if(_sets[i].BaseSettings.Regime == DataSetState.On)
                 {
                     sortSets.Add(_sets[i]);
                 }
@@ -609,7 +601,7 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < _sets.Count; i++)
             {
-                if (_sets[i].Regime == DataSetState.Off)
+                if (_sets[i].BaseSettings.Regime == DataSetState.Off)
                 {
                     sortSets.Add(_sets[i]);
                 }
@@ -628,19 +620,19 @@ namespace OsEngine.OsData
             {
                 _sets = new List<OsDataSet>();
             }
-            OsDataSet set = new OsDataSet("Set_",_comboBoxSecurity,_comboBoxTimeFrame);
+            OsDataSet set = new OsDataSet("Set_");
             set.NewLogMessageEvent += SendNewLogMessage;
 
             if (!set.ShowDialog())
             { // the user did not press the accept button in the form/пользователь не нажал на кнопку принять в форме
-                set.Regime = DataSetState.Off;
+                set.BaseSettings.Regime = DataSetState.Off;
                 set.Delete();
                 return;
             }
 
             if (set.SetName == "Set_")
             {
-                set.Regime = DataSetState.Off;
+                set.BaseSettings.Regime = DataSetState.Off;
                 set.Delete();
                 MessageBox.Show(OsLocalization.Data.Label10);
                 return;
@@ -649,7 +641,7 @@ namespace OsEngine.OsData
             if (_sets.Find(dataSet => dataSet.SetName == set.SetName) != null)
             {
                 MessageBox.Show(OsLocalization.Data.Label11);
-                set.Regime = DataSetState.Off;
+                set.BaseSettings.Regime = DataSetState.Off;
                 set.Delete();
                 return;
             }
@@ -675,7 +667,7 @@ namespace OsEngine.OsData
                 return;
             }
             _sets[num].Delete();
-            _sets[num].Regime =  DataSetState.Off;
+            _sets[num].BaseSettings.Regime =  DataSetState.Off;
             _sets.RemoveAt(num);
             RePaintSetGrid();
         }
@@ -700,52 +692,6 @@ namespace OsEngine.OsData
                 _sets[num].Save();
             }
         }
-        /// <summary>
-        /// save settings/сохранить настройки
-        /// </summary>
-        public void SaveSettings()
-        {
-            try
-            {
-                if (!Directory.Exists("Data\\"))
-                {
-                    Directory.CreateDirectory("Data\\");
-                }
-                using (StreamWriter writer = new StreamWriter("Data\\Settings.txt", false))
-                {
-                    writer.WriteLine(_isPaintEnabled);
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
 
-        /// <summary>
-        /// load settings/загрузить настройки
-        /// </summary>
-        private void LoadSettings()
-        {
-            if (!File.Exists("Data\\Settings.txt"))
-            {
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader("Data\\Settings.txt"))
-                {
-                    _isPaintEnabled = Convert.ToBoolean(reader.ReadLine());
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
     }
 }
