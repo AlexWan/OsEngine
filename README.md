@@ -54,7 +54,7 @@
 10) Gate IO
 11) HitBtc
 12) ByBit
-
+13) OKX
 
 *В комплекте с OsEngine идёт более 30ти встроенных роботов*
 
@@ -123,7 +123,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 10) Gate IO
 11) HitBtc
 12) ByBit
-
+13) OKX
 
 *Included with OsEngine is more than 30 built-in robots*
 
