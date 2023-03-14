@@ -471,8 +471,12 @@ namespace OsEngine
             {
                 ButtonRobotLight_Click(this, default);
             }
-            else if (Array.Exists(args, a => a.Equals("-error")))
+            else if (Array.Exists(args, a => a.Equals("-error")) && PrimeSettingsMaster.RebootTradeUiLigth)
             {
+
+                CriticalErrorHandler.ErrorInStartUp = true;
+
+                Array.ForEach(args, (a) => { CriticalErrorHandler.ErrorMessage += a; });
 
                 new Task(() =>
                 {
@@ -524,4 +528,12 @@ namespace OsEngine
             }
         }
     }
+
+    public static class CriticalErrorHandler
+    {
+        public static string ErrorMessage = String.Empty;
+
+        public static bool ErrorInStartUp = false;
+    }
+
 }
