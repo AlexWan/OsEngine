@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
@@ -82,7 +83,25 @@ namespace OsEngine.OsTrader.Panels
 
             ParamGuiSettings = new ParamGuiSettings();
             ParamGuiSettings.LogMessageEvent += SendNewLogMessage;
+
+            OsTraderMaster.CriticalErrorEvent += OsTraderMaster_CriticalErrorEvent;
         }
+
+        /// <summary>
+        /// critical error and system restart event /
+        /// событие критической ошибки и перезапуск системы
+        /// </summary>
+        private void OsTraderMaster_CriticalErrorEvent()
+        {
+            new Thread(()=>
+            {
+                Thread.Sleep(20000);
+                CriticalErrorEvent(CriticalErrorHandler.ErrorMessage);
+            }).Start();
+            
+        }
+
+        protected event Action<string> CriticalErrorEvent;
 
         /// <summary>
         /// unique robot name / 

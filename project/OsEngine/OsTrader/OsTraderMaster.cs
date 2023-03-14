@@ -143,7 +143,22 @@ namespace OsEngine.OsTrader
             {
                 ApiMaster = new AdminApiMaster(Master);
             }
+
+            if (CriticalErrorHandler.ErrorInStartUp && CriticalErrorEvent != null)
+            {
+                try
+                {
+                    CriticalErrorEvent();
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+                }
+            }
+
         }
+
+        public static event System.Action CriticalErrorEvent;
 
         public OsTraderMaster(StartProgram startProgram, WindowsFormsHost hostLogPrime)
         {
