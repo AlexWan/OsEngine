@@ -48,7 +48,7 @@
 4) Bitstamp
 5) Bitfinex
 6) Kraken
-7) BitMax
+7) AscendEx (BitMax)
 8) ExMo
 9) ZB
 10) Gate IO
@@ -117,7 +117,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 4) Bitstamp
 5) Bitfinex
 6) Kraken
-7) BitMax
+7) AscendEx (BitMax)
 8) ExMo
 9) ZB
 10) Gate IO
