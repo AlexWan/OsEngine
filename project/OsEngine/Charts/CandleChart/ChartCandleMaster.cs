@@ -44,7 +44,6 @@ namespace OsEngine.Charts.CandleChart
 
             if(_startProgram != StartProgram.IsOsOptimizer)
             {
-                UpDateChartPainter();
                 Load();
             }
            
@@ -61,13 +60,21 @@ namespace OsEngine.Charts.CandleChart
                 ChartCandle.ClickToIndexEvent -= _chartCandle_ClickToIndexEvent;
                 ChartCandle.SizeAxisXChangeEvent -= ChartCandle_SizeAxisXChangeEvent;
             }
-
             ChartCandle = new WinFormsChartPainter(_name, _startProgram);
-
             ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
             ChartCandle.SizeAxisXChangeEvent += ChartCandle_SizeAxisXChangeEvent;
+
+            if (_indicators != null)
+            {
+                for(int i = 0;i < _indicators.Count;i++)
+                {
+                    LoadIndicatorOnChart(_indicators[i]);
+                }
+            }
+
+           
         }
 
         /// <summary>
@@ -554,6 +561,12 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
                 }
+
+                if(ChartCandle == null)
+                {
+                    UpDateChartPainter();
+                }
+
 
                 if (ChartCandle.AreaIsCreate("TradeArea") == true)
                 {
@@ -1379,7 +1392,11 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
             _myPosition = position;
-            ChartCandle.ProcessPositions(position);
+
+            if(ChartCandle != null)
+            {
+                ChartCandle.ProcessPositions(position);
+            }
         }
 
         // management управление
@@ -1394,7 +1411,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 if(ChartCandle == null)
                 {
-                    return;
+                    UpDateChartPainter();
                 }
                 ChartCandle.StartPaintPrimeChart(gridChart, host, rectangle);
                 ChartCandle.ProcessCandles(_myCandles);
@@ -1586,10 +1603,11 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="serverType">server type/тип сервера</param>
         public void SetNewSecurity(string security, TimeFrameBuilder timeFrameBuilder, string portfolioName, ServerType serverType)
         {
-            if (ChartCandle == null)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
+
             if (_securityOnThisChart == security &&
                 _timeFrameSecurity == timeFrameBuilder.TimeFrame &&
                 serverType == _serverType &&

@@ -1183,7 +1183,12 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (SecurityName != glass.SecurityNameCode)
+                if (_securityName == null)
+                {
+                    return;
+                }
+
+                if (_securityName != glass.SecurityNameCode)
                 {
                     return;
                 }
@@ -1221,7 +1226,8 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (SecurityName == null || tradesList == null || tradesList.Count == 0)
+
+                if (_securityName == null || tradesList == null || tradesList.Count == 0)
                 {
                     return;
                 }
@@ -1229,7 +1235,7 @@ namespace OsEngine.Market.Connectors
                 {
                     int count = tradesList.Count;
                     if (tradesList[count - 1] == null ||
-                        tradesList[count - 1].SecurityNameCode != SecurityName)
+                        tradesList[count - 1].SecurityNameCode != _securityName)
                     {
                         return;
                     }
