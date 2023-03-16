@@ -197,9 +197,13 @@ namespace OsEngine.Language
              "Eng:Chart_" +
              "Ru:Чарт_");
 
-
         public string Label44 => OsLocalization.ConvertToLocString(
             "Eng:Saving aborted. The data source is not selected_" +
             "Ru:Сохранение прервано. Источник данных не выбран_");
+
+        public string Label45 => OsLocalization.ConvertToLocString(
+            "Eng:Enter a name!!!_" +
+            "Ru:Введите название!!!_");
+        
     }
 }

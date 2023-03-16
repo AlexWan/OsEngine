@@ -85,6 +85,17 @@ namespace OsEngine.OsData
         public void Delete()
         {
             DeletePainterFromArray(this);
+
+            StopPaint();
+
+            if (_dataGrid != null)
+            {
+                _dataGrid.DataError -= _dataGrid_DataError;
+                _dataGrid.Click -= _dataGrid_Click;
+                _dataGrid.Rows.Clear();
+                DataGridFactory.ClearLinks(_dataGrid);
+                _dataGrid = null;
+            }
         }
 
         public long UID;
@@ -138,18 +149,37 @@ namespace OsEngine.OsData
                 return;
             }
 
-            _labelSetName.Content = "";
-            _labelTimeStart.Content = "";
-            _labelTimeEnd.Content = "";
+            if (_labelSetName != null)
+            {
+                _labelSetName.Content = "";
+            }
 
-            _host.Child = null;
+            if (_labelTimeStart != null)
+            {
+                _labelTimeStart.Content = "";
+            }
+
+            if (_labelTimeEnd != null)
+            {
+                _labelTimeEnd.Content = "";
+            }
+
+            if (_host != null)
+            {
+                _host.Child = null;
+            }
 
             _host = null;
             _labelSetName = null;
             _labelTimeStart = null;
             _labelTimeEnd = null;
-            _bar.Maximum = 100;
-            _bar.Value = 0;
+
+            if (_bar != null)
+            {
+                _bar.Maximum = 100;
+                _bar.Value = 0;
+            }
+
             _bar = null;
         }
 
@@ -257,6 +287,8 @@ namespace OsEngine.OsData
             _grid.MouseLeave += _grid_MouseLeave;*/
         }
 
+        private int prevActiveRow;
+
         private void _dataGrid_Click(object sender, EventArgs e)
         {
             if (_dataGrid.SelectedCells.Count == 0)
@@ -267,7 +299,11 @@ namespace OsEngine.OsData
             int coluIndex = _dataGrid.SelectedCells[0].ColumnIndex;
             int rowIndex = _dataGrid.SelectedCells[0].RowIndex;
 
-             if (coluIndex == 9)
+            _dataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+            _dataGrid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+            prevActiveRow = rowIndex;
+
+            if (coluIndex == 9)
             { // chart or раскрыть/скрыть бумаги внутри
 
                 bool isClickOnShowChartBtn = false;

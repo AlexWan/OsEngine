@@ -131,14 +131,21 @@ namespace OsEngine.OsData
         /// </summary>
         public void Delete()
         {
+            _isDeleted = true;
+
             StopPaint();
 
-            _painter.Delete();
-
+            if(_painter != null)
+            {
+                _painter.NewLogMessageEvent -= SendNewLogMessage;
+                _painter.Delete();
+            }
+            
             if (File.Exists("Data\\" + SetName + @"\\Settings.txt"))
             {
                 File.Delete("Data\\" + SetName + @"\\Settings.txt");
             }
+
             if (Directory.Exists("Data\\" + SetName))
             {
                 try
@@ -151,7 +158,20 @@ namespace OsEngine.OsData
                     // ignore
                 }
             }
+
+            for(int i = 0; SecuritiesLoad != null && i < SecuritiesLoad.Count;i++)
+            {
+                SecuritiesLoad[i].Delete();
+                SecuritiesLoad[i].NewLogMessageEvent -= NewLogMessageEvent;
+            }
+
+            if(SecuritiesLoad != null)
+            {
+                SecuritiesLoad.Clear();
+            }
         }
+
+        private bool _isDeleted = false;
 
         /// <summary>
         /// show settings window/показать окно настроек
@@ -268,7 +288,7 @@ namespace OsEngine.OsData
             }
 
             SecuritiesLoad[index].Delete();
-            SecuritiesLoad[index].NewLogMessageEvent += NewLogMessageEvent;
+            SecuritiesLoad[index].NewLogMessageEvent -= NewLogMessageEvent;
             SecuritiesLoad.RemoveAt(index);
 
             Save();
@@ -410,6 +430,11 @@ namespace OsEngine.OsData
                 {
                     await Task.Delay(5000);
 
+                    if(_isDeleted)
+                    {
+                        return;
+                    }
+
                     if (BaseSettings.Regime == DataSetState.Off)
                     {
                         // completely off/полностью выключены
@@ -454,6 +479,10 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < SecuritiesLoad.Count; i++)
             {
+                if (_isDeleted)
+                {
+                    return;
+                }
                 SecuritiesLoad[i].Process(_myServer);
             }
 
@@ -547,6 +576,12 @@ namespace OsEngine.OsData
             if (Directory.Exists(pathSecurityFolder))
             {
                 Directory.Delete(pathSecurityFolder,true);
+            }
+
+            for(int i = 0;i < SecLoaders.Count;i++)
+            {
+                SecLoaders[i].Delete();
+                SecLoaders[i].NewLogMessageEvent -= SendNewLogMessage;
             }
         }
 
@@ -840,9 +875,9 @@ namespace OsEngine.OsData
 
         public void Process(IServer server)
         {
-           for(int i = 0;i < SecLoaders.Count;i++)
+            for(int i = 0;i < SecLoaders.Count;i++)
             {
-                SecLoaders[i].Process(server);
+                SecLoaders[i].Process(server,SettingsToLoadSecurities);
             }
         }
 
@@ -898,6 +933,7 @@ namespace OsEngine.OsData
 
         private void CreatePaths()
         {
+
             if (!Directory.Exists("Data"))
             {
                 Directory.CreateDirectory("Data");
@@ -944,6 +980,8 @@ namespace OsEngine.OsData
 
         public void Delete()
         {
+            _isDeleted = true;
+
             try
             {
                 if (Directory.Exists(_pathMyTfFolder))
@@ -955,7 +993,18 @@ namespace OsEngine.OsData
             {
                 // ignore
             }
+
+            for(int i = 0;i < DataPies.Count;i++)
+            {
+                DataPies[i].Delete();
+            }
+            if(DataPies != null)
+            {
+                DataPies.Clear();
+            }
         }
+
+        private bool _isDeleted = false;
 
         private string _setName;
 
@@ -991,6 +1040,10 @@ namespace OsEngine.OsData
 
         public void CheckTimeInSets()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
             DateTime start = DateTime.MaxValue;
             DateTime end = DateTime.MinValue;
 
@@ -1028,6 +1081,10 @@ namespace OsEngine.OsData
 
         public decimal PercentLoad()
         {
+            if (_isDeleted)
+            {
+                return 0;
+            }
             decimal max = 0;
             decimal loaded = 0;
 
@@ -1078,19 +1135,26 @@ namespace OsEngine.OsData
 
         // загрузка данных 
 
-        public void Process(IServer server)
+        public void Process(IServer server, SettingsToLoadSecurity param)
         {
-            if (TimeFrame == TimeFrame.Tick)
+            try
             {
-                ProcessTrades(server);
+                if (TimeFrame == TimeFrame.Tick)
+                {
+                    ProcessTrades(server, param);
+                }
+                //else if (TimeFrame == TimeFrame.MarketDepth)
+                // {
+                //      ProcessMarketDepth(server);
+                //  }
+                else
+                {
+                    ProcessCandles(server, param);
+                }
             }
-            //else if (TimeFrame == TimeFrame.MarketDepth)
-           // {
-          //      ProcessMarketDepth(server);
-          //  }
-            else
+            catch(Exception error)
             {
-                ProcessCandles(server);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1098,6 +1162,10 @@ namespace OsEngine.OsData
 
         public void CreateDataPies()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
             if (TimeFrame == TimeFrame.MarketDepth)
             {
                 Status = SecurityLoadStatus.Loading;
@@ -1197,8 +1265,13 @@ namespace OsEngine.OsData
 
         #region СВЕЧКИ
 
-        private void ProcessCandles(IServer server)
+        private void ProcessCandles(IServer server, SettingsToLoadSecurity param)
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             // пропуем создавать куски данных нужные для выгрузки
             if (DataPies == null
                 || DataPies.Count == 0)
@@ -1219,36 +1292,43 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < DataPies.Count; i++)
             {
-                if (DataPies[i].Status == DataPieStatus.Load)
+                if (_isDeleted){return;}
+
+                if (DataPies[i].Status == DataPieStatus.Load &&
+                   i + 1 != DataPies.Count)
                 {
                     continue;
                 }
+
+                if (DataPies[i].Status == DataPieStatus.Load &&
+                    i + 1 == DataPies.Count &&
+                   param.NeadToUpdate == false)
+                {
+                    continue;
+                }
+
+                if (DataPies[i].CountTriesToLoadSet > 4 &&
+                    i + 1 != DataPies.Count)
+                {
+                    continue;
+                }
+
+                if (DataPies[i].CountTriesToLoadSet > 4 &&
+                   i + 1 == DataPies.Count &&
+                   param.NeadToUpdate == false)
+                {
+                    continue;
+                }
+
+                DataPies[i].CountTriesToLoadSet++;
+
                 LoadCandleDataPieFromServer(DataPies[i], server);
+
+                if (_isDeleted) { return; }
+
                 if (DataPies[i].Status == DataPieStatus.Load)
                 {
                     SaveCandleDataPieInTempFile(DataPies[i]);
-                    CheckTimeInSets();
-                }
-            }
-
-            List<DataPie> dontLoadDataPies = new List<DataPie>();
-
-
-            for (int i = 0; i < DataPies.Count; i++)
-            {
-                if (DataPies[i].Status != DataPieStatus.Load)
-                {
-                    dontLoadDataPies.Add(DataPies[i]);
-                }
-            }
-
-            for (int i = 0; i < dontLoadDataPies.Count; i++)
-            {
-                LoadCandleDataPieFromServer(dontLoadDataPies[i], server);
-
-                if (dontLoadDataPies[i].Status == DataPieStatus.Load)
-                {
-                    SaveCandleDataPieInTempFile(dontLoadDataPies[i]);
                     CheckTimeInSets();
                 }
             }
@@ -1262,6 +1342,8 @@ namespace OsEngine.OsData
 
         private void LoadCandleDataPieFromServer(DataPie pie, IServer server)
         {
+            if (_isDeleted) { return; }
+
             TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
             timeFrameBuilder.TimeFrame = TimeFrame;
 
@@ -1304,6 +1386,8 @@ namespace OsEngine.OsData
 
         private void LoadCandleDataPieInTempFile(DataPie pie)
         {
+            if (_isDeleted) { return; }
+
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + pie.Start.ToString("yyyyMMdd") + "_" + pie.End.ToString("yyyyMMdd") + ".txt";
 
             if(File.Exists(pathToTempFile) == false)
@@ -1341,6 +1425,8 @@ namespace OsEngine.OsData
 
         private void SaveCandleDataPieInTempFile(DataPie pie)
         {
+            if (_isDeleted) { return; }
+
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + pie.Start.ToString("yyyyMMdd") + "_" + pie.End.ToString("yyyyMMdd") + ".txt";
 
             List<Candle> candles = pie.Candles;
@@ -1367,13 +1453,16 @@ namespace OsEngine.OsData
             }
             catch (Exception error)
             {
+                if (_isDeleted) { return; }
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
         public List<Candle> GetCandlesAllHistory()
         {
-            if(DataPies == null)
+            if (_isDeleted) { return null; }
+
+            if (DataPies == null)
             {
                 return null;
             }
@@ -1403,6 +1492,8 @@ namespace OsEngine.OsData
 
         private void SaveCandleDataExitFile(List<DataPie> candleDataPies)
         {
+            if (_isDeleted) { return; }
+
             string curSaveStrCandleCount = "";
 
             for(int i = 0;i < candleDataPies.Count;i++)
@@ -1445,6 +1536,7 @@ namespace OsEngine.OsData
             }
             catch (Exception error)
             {
+                if (_isDeleted) { return; }
                 if (NewLogMessageEvent != null)
                 {
                     NewLogMessageEvent(error.ToString(), LogMessageType.Error);
@@ -1457,8 +1549,10 @@ namespace OsEngine.OsData
 
         #region ТРЕЙДЫ
 
-        private void ProcessTrades(IServer server)
+        private void ProcessTrades(IServer server, SettingsToLoadSecurity param)
         {
+            if (_isDeleted) { return; }
+
             // пропуем создавать куски данных нужные для выгрузки
             if (DataPies == null
                 || DataPies.Count == 0)
@@ -1479,36 +1573,41 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < DataPies.Count; i++)
             {
-                if (DataPies[i].Status == DataPieStatus.Load)
+                if (_isDeleted) { return; }
+
+                if (DataPies[i].Status == DataPieStatus.Load &&
+                   i + 1 != DataPies.Count)
                 {
                     continue;
                 }
+
+                if (DataPies[i].Status == DataPieStatus.Load &&
+                    i + 1 == DataPies.Count &&
+                   param.NeadToUpdate == false)
+                {
+                    continue;
+                }
+
+                if (DataPies[i].CountTriesToLoadSet > 4 &&
+                    i + 1 != DataPies.Count)
+                {
+                    continue;
+                }
+
+                if (DataPies[i].CountTriesToLoadSet > 4 &&
+                   i + 1 == DataPies.Count &&
+                   param.NeadToUpdate == false)
+                {
+                    continue;
+                }
+
                 LoadTradeDataPieFromServer(DataPies[i], server);
+
+                if (_isDeleted) { return; }
+
                 if (DataPies[i].Status == DataPieStatus.Load)
                 {
                     SaveTradeDataPieInTempFile(DataPies[i]);
-                    CheckTimeInSets();
-                }
-            }
-
-            List<DataPie> dontLoadDataPies = new List<DataPie>();
-
-
-            for (int i = 0; i < DataPies.Count; i++)
-            {
-                if (DataPies[i].Status != DataPieStatus.Load)
-                {
-                    dontLoadDataPies.Add(DataPies[i]);
-                }
-            }
-
-            for (int i = 0; i < dontLoadDataPies.Count; i++)
-            {
-                LoadTradeDataPieFromServer(dontLoadDataPies[i], server);
-
-                if (dontLoadDataPies[i].Status == DataPieStatus.Load)
-                {
-                    SaveTradeDataPieInTempFile(dontLoadDataPies[i]);
                     CheckTimeInSets();
                 }
             }
@@ -1522,6 +1621,8 @@ namespace OsEngine.OsData
 
         private void LoadTradeDataPieFromServer(DataPie pie, IServer server)
         {
+            if (_isDeleted) { return; }
+
             TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
             timeFrameBuilder.TimeFrame = TimeFrame;
 
@@ -1570,6 +1671,8 @@ namespace OsEngine.OsData
 
         private void LoadTradeDataPieInTempFile(DataPie pie)
         {
+            if (_isDeleted) { return; }
+
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + pie.Start.ToString("yyyyMMdd") + "_" + pie.End.ToString("yyyyMMdd") + ".txt";
 
             if (File.Exists(pathToTempFile) == false)
@@ -1607,6 +1710,8 @@ namespace OsEngine.OsData
 
         private void SaveTradeDataPieInTempFile(DataPie pie)
         {
+            if (_isDeleted) { return; }
+
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + pie.Start.ToString("yyyyMMdd") + "_" + pie.End.ToString("yyyyMMdd") + ".txt";
 
             List<Trade> trades = pie.Trades;
@@ -1633,12 +1738,15 @@ namespace OsEngine.OsData
             }
             catch (Exception error)
             {
+                if (_isDeleted) { return; }
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
         private List<Trade> GetTradexAllHistory()
         {
+            if (_isDeleted) { return null; }
+
             if (DataPies == null)
             {
                 return null;
@@ -1669,6 +1777,8 @@ namespace OsEngine.OsData
 
         private void SaveTradeDataExitFile(List<DataPie> dataPies)
         {
+            if (_isDeleted) { return; }
+
             string curSaveStrObjectsCount = "";
 
             for (int i = 0; i < DataPies.Count; i++)
@@ -1711,6 +1821,7 @@ namespace OsEngine.OsData
             }
             catch (Exception error)
             {
+                if (_isDeleted) { return; }
                 if (NewLogMessageEvent != null)
                 {
                     NewLogMessageEvent(error.ToString(), LogMessageType.Error);
@@ -1723,6 +1834,8 @@ namespace OsEngine.OsData
 
         private void SendNewLogMessage(string message, LogMessageType type)
         {
+            if (_isDeleted) { return; }
+
             if (NewLogMessageEvent != null)
             {
                 NewLogMessageEvent(message, type);
@@ -1859,6 +1972,21 @@ namespace OsEngine.OsData
 
     public class DataPie
     {
+        public int CountTriesToLoadSet;
+
+        public void Delete()
+        {
+            if(Candles != null)
+            {
+                Candles.Clear();
+            }
+         
+            if(Trades != null)
+            {
+                Trades.Clear();
+            }
+        }
+
         public DateTime Start;
 
         public DateTime StartActualTime()

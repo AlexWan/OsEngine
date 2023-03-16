@@ -48,15 +48,17 @@ namespace OsEngine.OsData
                 TextBoxFolderName.IsEnabled = false;              
             }
 
-            if(_set.BaseSettings.Source == ServerType.None 
-                && (set.SetName == null || set.SetName == "Set_"))
-            {
-                ComboBoxSource.Visibility = System.Windows.Visibility.Hidden;
-                TextBoxFolderName.TextChanged += TextBoxFolderName_TextChanged;
-            }
-            
             TextBoxFolderName.Text = set.SetName.Split('_')[1];
 
+            if (_set.BaseSettings.Source == ServerType.None 
+                && (set.SetName == null || set.SetName == "Set_"))
+            {
+                TextBoxFolderName.Text = OsLocalization.Data.Label45;
+                ComboBoxSource.Visibility = System.Windows.Visibility.Hidden;
+                TextBoxFolderName.TextChanged += TextBoxFolderName_TextChanged;
+                TextBoxFolderName.MouseEnter += TextBoxFolderName_MouseEnter;
+            }
+            
             ComboBoxRegime.Items.Add(DataSetState.Off);
             ComboBoxRegime.Items.Add(DataSetState.On);
             ComboBoxRegime.SelectedItem = _set.BaseSettings.Regime;
@@ -135,6 +137,16 @@ namespace OsEngine.OsData
 
             this.Activate();
             this.Focus();
+
+        }
+
+        private void TextBoxFolderName_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if(TextBoxFolderName.Text == OsLocalization.Data.Label45)
+            {
+                TextBoxFolderName.Text = "";
+                TextBoxFolderName.MouseEnter -= TextBoxFolderName_MouseEnter;
+            }
         }
 
         private void TextBoxFolderName_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
