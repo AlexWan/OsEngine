@@ -215,14 +215,15 @@ namespace OsEngine.Layout
                 {
                     for(int i = 0;i < UiOpenWindows.Count;i++)
                     {
-                        if (UiOpenWindows[i].Layout.Height == 0 ||
-                            UiOpenWindows[i].Layout.Widht == 0 ||
-                            UiOpenWindows[i].Layout.Left == 0 ||
-                            UiOpenWindows[i].Layout.Top == 0)
+                        if (UiOpenWindows[i].Layout.Height <= 0 ||
+                            UiOpenWindows[i].Layout.Widht <= 0 ||
+                            UiOpenWindows[i].Layout.Left <= 0 ||
+                            UiOpenWindows[i].Layout.Top <= 0)
                         {
                             continue;
                         }
-                                             
+
+
                         if (UiOpenWindows[i].Layout.Height < 0 || UiOpenWindows[i].Layout.Widht < 0)
                         {
                             continue;
