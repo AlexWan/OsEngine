@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -99,7 +102,7 @@ namespace OsEngine.Market.Servers.BitMax
             _client.Connect();
         }
 
-        
+
 
         /// <summary>
         /// release API
@@ -265,7 +268,7 @@ namespace OsEngine.Market.Servers.BitMax
             {
                 needCoupler.OrderCancelId = needId;
             }
-            
+
             _client.CancelOrder(order, needId);
         }
 
@@ -454,8 +457,126 @@ namespace OsEngine.Market.Servers.BitMax
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
-            return null;
+
+            if (endTime > DateTime.UtcNow)
+            {
+                endTime = DateTime.UtcNow;
+            }
+
+            int CountToLoadBar = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+
+
+            string baseUrl = "https://ascendex.com/api/pro/v1/barhist?";
+            string symbol = $"symbol={security.Name}";
+            string interval = GetIntervalDataBar(timeFrameBuilder);
+            string to = $"to={TimeManager.GetTimeStampMilliSecondsToDateTime(endTime)}";
+
+            ResponseCandlesArray candlesResponce = new ResponseCandlesArray() { data = new List<ResponseCandleObject>() };
+
+            do
+            {
+                int limit = CountToLoadBar;
+                if (CountToLoadBar > 500)
+                {
+                    limit = 500;
+                }
+
+                if (candlesResponce.data.Count != 0)
+                {
+                    to = $"to={candlesResponce.data[candlesResponce.data.Count - 1].data.ts}";
+                }
+
+
+                string url = baseUrl + symbol + "&" + interval + "&" + to + "&" + $"n={limit}";
+
+                HttpClient httpClient = new HttpClient();
+                var responce = httpClient.GetAsync(url).Result;
+                var json = responce.Content.ReadAsStringAsync().Result;
+                candlesResponce.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new ResponseCandlesArray()).data);
+
+                if (responce.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage(json, LogMessageType.Error);
+                }
+
+                CountToLoadBar -= limit;
+
+
+            } while (CountToLoadBar > 0);
+
+
+
+            return ConvertToCandlesOsengine(candlesResponce);
         }
+
+
+        private List<Candle> ConvertToCandlesOsengine(ResponseCandlesArray candlesResponce)
+        {
+            List<Candle> candles = new List<Candle>();
+
+
+            for (int i = 0; i < candlesResponce.data.Count; i++)
+            {
+                try
+                {
+                    candles.Add(new Candle()
+                    {
+
+                        Close = Convert.ToDecimal(candlesResponce.data[i].data.c.Replace(".", ",")),
+                        High = Convert.ToDecimal(candlesResponce.data[i].data.h.Replace(".", ",")),
+                        Low = Convert.ToDecimal(candlesResponce.data[i].data.l.Replace(".", ",")),
+                        Open = Convert.ToDecimal(candlesResponce.data[i].data.o.Replace(".", ",")),
+                        Volume = Convert.ToDecimal(candlesResponce.data[i].data.v.Replace(".", ",")),
+                        TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(candlesResponce.data[i].data.ts))
+                    });
+                }
+                catch (Exception error)
+                {
+                    //ignore
+                }
+
+            }
+
+
+            return candles;
+        }
+
+        private int GetCountCandlesFromTimeInterval(DateTime startTime, DateTime endTime, TimeSpan timeFrameSpan)
+        {
+            TimeSpan timeSpanInterval = endTime - startTime;
+
+            if (timeFrameSpan.Hours != 0)
+            {
+                return Convert.ToInt32(timeSpanInterval.TotalHours / timeFrameSpan.Hours);
+            }
+            else if (timeFrameSpan.Days != 0)
+            {
+                return Convert.ToInt32(timeSpanInterval.TotalDays / timeFrameSpan.Days);
+            }
+            else
+            {
+                return Convert.ToInt32(timeSpanInterval.TotalMinutes / timeFrameSpan.Minutes);
+            }
+        }
+
+        private string GetIntervalDataBar(TimeFrameBuilder timeFrameBuilder)
+        {
+            string timeFrame = timeFrameBuilder.TimeFrame.ToString();
+
+            if (timeFrame.Contains("Hour"))
+            {
+                string minutes = (Convert.ToInt32(timeFrame.Replace("Hour", "")) * 60).ToString();
+                return $"interval={minutes}";
+            }
+            if (timeFrame.Contains("Min"))
+            {
+                string minutes = timeFrame.Replace("Min", "");
+                return $"interval={minutes}";
+            }
+
+            return String.Empty;
+        }
+
 
         /// <summary>
         /// take ticks data on instrument for period
@@ -802,5 +923,29 @@ namespace OsEngine.Market.Servers.BitMax
             public string OrderCancelId;
             public decimal CurrentVolume = 0;
         }
+    }
+
+    public class ResponseCandlesArray
+    {
+        public string code;
+        public List<ResponseCandleObject> data;
+    }
+
+    public class ResponseCandleObject
+    {
+        public string m;
+        public string s;
+        public CandleDetails data;
+    }
+
+    public class CandleDetails
+    {
+        public string i;
+        public string ts;
+        public string o;
+        public string c;
+        public string h;
+        public string l;
+        public string v;
     }
 }
