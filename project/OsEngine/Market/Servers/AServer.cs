@@ -63,6 +63,9 @@ namespace OsEngine.Market.Servers
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam9, false);
                 _needToRemoveCandlesFromMemory = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+               
+                CreateParameterBoolean(OsLocalization.Market.ServerParam10, true);
+                _needToUseFullMarketDepth = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
 
                 _serverRealization.ServerParameters = ServerParameters;
 
@@ -244,6 +247,8 @@ namespace OsEngine.Market.Servers
 
         public ServerParameterBool _needToRemoveCandlesFromMemory;
 
+        public ServerParameterBool _needToUseFullMarketDepth;
+
         public bool NeedToHideParams = false;
 
         /// <summary>
@@ -265,7 +270,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterString)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
             }
             else
             {
@@ -288,7 +293,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterInt)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
             }
             else
             {
@@ -308,7 +313,7 @@ namespace OsEngine.Market.Servers
 
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
             }
             else
             {
@@ -331,7 +336,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterDecimal)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
             }
             else
             {
@@ -354,7 +359,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterBool)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
             }
             else
             {
@@ -378,7 +383,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPassword)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
             }
             else
             {
@@ -400,7 +405,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPath)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
             }
             else
             {
@@ -422,7 +427,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterButton)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 7, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
             }
             else
             {
@@ -1052,15 +1057,14 @@ namespace OsEngine.Market.Servers
 
             private set
             {
-                if (value < _serverTime)
+                if (value <= _serverTime)
                 {
                     return;
                 }
 
-                DateTime lastTime = _serverTime;
                 _serverTime = value;
 
-                if (_serverTime != lastTime)
+                if (_newServerTime.IsEmpty == true)
                 {
                     _newServerTime.Enqueue(_serverTime);
                 }
@@ -1657,27 +1661,32 @@ namespace OsEngine.Market.Servers
 
                 if (NewMarketDepthEvent != null)
                 {
-                    _marketDepthsToSend.Enqueue(myDepth);
-
-                    if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
+                    if (_needToUseFullMarketDepth.Value == true)
                     {
-                        decimal besBid = myDepth.Bids[0].Price;
-                        decimal bestAsk = myDepth.Asks[0].Price;
-
-                        if (_currentBestBid != besBid || _currentBestAsk != bestAsk)
+                        _marketDepthsToSend.Enqueue(myDepth);
+                    }
+                    else
+                    {
+                        if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
                         {
-                            Security sec = GetSecurityForName(myDepth.SecurityNameCode,"");
-                            if (sec != null)
+                            decimal besBid = myDepth.Bids[0].Price;
+                            decimal bestAsk = myDepth.Asks[0].Price;
+
+                            if (_currentBestBid != besBid || _currentBestAsk != bestAsk)
                             {
-                                _currentBestBid = besBid;
-                                _currentBestAsk = bestAsk;
-                            
-                                _bidAskToSend.Enqueue(new BidAskSender
+                                Security sec = GetSecurityForName(myDepth.SecurityNameCode, "");
+                                if (sec != null)
                                 {
-                                    Bid = besBid,
-                                    Ask = bestAsk,
-                                    Security = sec
-                                });
+                                    _currentBestBid = besBid;
+                                    _currentBestAsk = bestAsk;
+
+                                    _bidAskToSend.Enqueue(new BidAskSender
+                                    {
+                                        Bid = besBid,
+                                        Ask = bestAsk,
+                                        Security = sec
+                                    });
+                                }
                             }
                         }
                     }

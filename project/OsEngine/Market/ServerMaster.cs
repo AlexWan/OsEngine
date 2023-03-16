@@ -133,6 +133,11 @@ namespace OsEngine.Market
                         continue;
                     }
 
+                    if (popularity[i].ServerType == ServerType.Finam)
+                    {
+                        continue;
+                    }
+
                     bool isInArray = false;
 
                     for (int i2 = 0; i2 < serverTypes.Count; i2++)
