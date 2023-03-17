@@ -457,56 +457,67 @@ namespace OsEngine.Market.Servers.BitMax
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
-
-            if (endTime > DateTime.UtcNow)
+            try
             {
-                endTime = DateTime.UtcNow;
+                if (endTime > DateTime.UtcNow)
+                {
+                    endTime = DateTime.UtcNow;
+                }
+
+                int CountToLoadBar = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+
+
+                string baseUrl = "https://ascendex.com/api/pro/v1/barhist?";
+                string symbol = $"symbol={security.Name}";
+                string interval = GetIntervalDataBar(timeFrameBuilder);
+                string to = $"to={TimeManager.GetTimeStampMilliSecondsToDateTime(endTime)}";
+
+                ResponseCandlesArray candlesResponce = new ResponseCandlesArray() { data = new List<ResponseCandleObject>() };
+
+                do
+                {
+                    int limit = CountToLoadBar;
+                    if (CountToLoadBar > 500)
+                    {
+                        limit = 500;
+                    }
+
+                    if (candlesResponce.data.Count != 0)
+                    {
+                        to = $"to={candlesResponce.data[candlesResponce.data.Count - 1].data.ts}";
+                    }
+
+
+                    string url = baseUrl + symbol + "&" + interval + "&" + to + "&" + $"n={limit}";
+
+                    HttpClient httpClient = new HttpClient();
+                    var responce = httpClient.GetAsync(url).Result;
+                    var json = responce.Content.ReadAsStringAsync().Result;
+                    var serialiseObject = JsonConvert.DeserializeAnonymousType(json, new ResponseCandlesArray()).data;
+                    serialiseObject.Reverse();
+                    candlesResponce.data.AddRange(serialiseObject);
+
+
+                    if (responce.StatusCode != HttpStatusCode.OK)
+                    {
+                        SendLogMessage(json, LogMessageType.Error);
+                    }
+
+                    CountToLoadBar -= limit;
+
+
+                } while (CountToLoadBar > 0);
+
+
+
+                return ConvertToCandlesOsengine(candlesResponce);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.Message, LogMessageType.Error);
+                return null;
             }
 
-            int CountToLoadBar = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
-
-
-            string baseUrl = "https://ascendex.com/api/pro/v1/barhist?";
-            string symbol = $"symbol={security.Name}";
-            string interval = GetIntervalDataBar(timeFrameBuilder);
-            string to = $"to={TimeManager.GetTimeStampMilliSecondsToDateTime(endTime)}";
-
-            ResponseCandlesArray candlesResponce = new ResponseCandlesArray() { data = new List<ResponseCandleObject>() };
-
-            do
-            {
-                int limit = CountToLoadBar;
-                if (CountToLoadBar > 500)
-                {
-                    limit = 500;
-                }
-
-                if (candlesResponce.data.Count != 0)
-                {
-                    to = $"to={candlesResponce.data[candlesResponce.data.Count - 1].data.ts}";
-                }
-
-
-                string url = baseUrl + symbol + "&" + interval + "&" + to + "&" + $"n={limit}";
-
-                HttpClient httpClient = new HttpClient();
-                var responce = httpClient.GetAsync(url).Result;
-                var json = responce.Content.ReadAsStringAsync().Result;
-                candlesResponce.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new ResponseCandlesArray()).data);
-
-                if (responce.StatusCode != HttpStatusCode.OK)
-                {
-                    SendLogMessage(json, LogMessageType.Error);
-                }
-
-                CountToLoadBar -= limit;
-
-
-            } while (CountToLoadBar > 0);
-
-
-
-            return ConvertToCandlesOsengine(candlesResponce);
         }
 
 
@@ -537,7 +548,7 @@ namespace OsEngine.Market.Servers.BitMax
 
             }
 
-
+            candles.Reverse();
             return candles;
         }
 
