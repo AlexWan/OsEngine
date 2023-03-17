@@ -659,6 +659,19 @@ namespace OsEngine.Market
             IServerPermission serverPermission = null;
 
 
+            if (type == ServerType.AscendEx_BitMax)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new BitmaxServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+
             if (type == ServerType.OKX)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);

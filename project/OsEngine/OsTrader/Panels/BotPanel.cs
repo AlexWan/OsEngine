@@ -96,7 +96,18 @@ namespace OsEngine.OsTrader.Panels
             new Thread(()=>
             {
                 Thread.Sleep(20000);
-                CriticalErrorEvent(CriticalErrorHandler.ErrorMessage);
+                try
+                {
+                    if (CriticalErrorEvent != null)
+                    {
+                        CriticalErrorEvent(CriticalErrorHandler.ErrorMessage);
+                    }
+                    
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.Message, LogMessageType.Error);
+                }
             }).Start();
             
         }
