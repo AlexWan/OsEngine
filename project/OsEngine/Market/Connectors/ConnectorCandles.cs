@@ -943,7 +943,7 @@ namespace OsEngine.Market.Connectors
 
                             if(StartProgram == StartProgram.IsOsTrader)
                             {
-                                await Task.Delay(100);
+                                await Task.Delay(1000);
                             }
                             else
                             {

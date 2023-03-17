@@ -531,33 +531,32 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         if (i != 0)
                         {
                             string upd = res2[i].Substring(2);
-                            var param = upd.Split(new char[] { ',' });
+                            upd = upd.Replace("\"", "");
+                            string[] param = upd.Split(',');
 
                             newCandle = new Candle();
                             newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(param[0]));
-                            newCandle.Low = Convert.ToDecimal(param[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-                            newCandle.High = Convert.ToDecimal(param[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-                            newCandle.Open = Convert.ToDecimal(param[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-                            newCandle.Close = Convert.ToDecimal(param[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-                            newCandle.Volume = Convert.ToDecimal(param[5].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-
+                            newCandle.Low = param[3].ToDecimal();
+                            newCandle.High = param[2].ToDecimal();
+                            newCandle.Open = param[1].ToDecimal();
+                            newCandle.Close = param[4].ToDecimal();
+                            newCandle.Volume = param[5].ToDecimal();
                             _candles.Add(newCandle);
                         }
                         else
                         {
-                            var param = res2[i].Split(new char[] { ',' });
+                            string[] param = res2[i].Replace("\"", "").Split(',');
 
                             newCandle = new Candle();
                             newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(param[0]));
-                            newCandle.Low = Convert.ToDecimal(param[3].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-                            newCandle.High = Convert.ToDecimal(param[2].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-                            newCandle.Open = Convert.ToDecimal(param[1].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-                            newCandle.Close = Convert.ToDecimal(param[4].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
-                            newCandle.Volume = Convert.ToDecimal(param[5].Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator).Trim(new char[] { '"', '"' }), CultureInfo.InvariantCulture);
+                            newCandle.Low = param[3].ToDecimal();
+                            newCandle.High = param[2].ToDecimal();
+                            newCandle.Open = param[1].ToDecimal();
+                            newCandle.Close = param[4].ToDecimal();
+                            newCandle.Volume = param[5].ToDecimal();
 
                             _candles.Add(newCandle);
                         }
-
                     }
 
                     return _candles;
