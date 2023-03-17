@@ -1665,33 +1665,30 @@ namespace OsEngine.Market.Servers
                     {
                         _marketDepthsToSend.Enqueue(myDepth);
                     }
-                    else
+
+                    if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
                     {
-                        if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
+                        decimal besBid = myDepth.Bids[0].Price;
+                        decimal bestAsk = myDepth.Asks[0].Price;
+
+                        if (_currentBestBid != besBid || _currentBestAsk != bestAsk)
                         {
-                            decimal besBid = myDepth.Bids[0].Price;
-                            decimal bestAsk = myDepth.Asks[0].Price;
-
-                            if (_currentBestBid != besBid || _currentBestAsk != bestAsk)
+                            Security sec = GetSecurityForName(myDepth.SecurityNameCode, "");
+                            if (sec != null)
                             {
-                                Security sec = GetSecurityForName(myDepth.SecurityNameCode, "");
-                                if (sec != null)
-                                {
-                                    _currentBestBid = besBid;
-                                    _currentBestAsk = bestAsk;
+                                _currentBestBid = besBid;
+                                _currentBestAsk = bestAsk;
 
-                                    _bidAskToSend.Enqueue(new BidAskSender
-                                    {
-                                        Bid = besBid,
-                                        Ask = bestAsk,
-                                        Security = sec
-                                    });
-                                }
+                                _bidAskToSend.Enqueue(new BidAskSender
+                                {
+                                    Bid = besBid,
+                                    Ask = bestAsk,
+                                    Security = sec
+                                });
                             }
                         }
                     }
                 }
-
             }
             catch (Exception error)
             {
