@@ -483,6 +483,12 @@ namespace OsEngine.OsData
                 {
                     return;
                 }
+
+                if(BaseSettings.Regime == DataSetState.Off)
+                {
+                    break;
+                }
+
                 SecuritiesLoad[i].Process(_myServer);
             }
 
@@ -877,6 +883,11 @@ namespace OsEngine.OsData
         {
             for(int i = 0;i < SecLoaders.Count;i++)
             {
+                if(SettingsToLoadSecurities.Regime == DataSetState.Off)
+                {
+                    return;
+                }
+
                 SecLoaders[i].Process(server,SettingsToLoadSecurities);
             }
         }
@@ -1320,6 +1331,11 @@ namespace OsEngine.OsData
                     continue;
                 }
 
+                if (param.Regime == DataSetState.Off)
+                {
+                    return;
+                }
+
                 DataPies[i].CountTriesToLoadSet++;
 
                 LoadCandleDataPieFromServer(DataPies[i], server);
@@ -1599,6 +1615,11 @@ namespace OsEngine.OsData
                    param.NeadToUpdate == false)
                 {
                     continue;
+                }
+
+                if (param.Regime == DataSetState.Off)
+                {
+                    return;
                 }
 
                 LoadTradeDataPieFromServer(DataPies[i], server);

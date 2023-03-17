@@ -273,7 +273,7 @@ namespace OsEngine.OsData
                     // UpdComboBoxToPermission(CheckBoxTf20SecondIsOn,permission.DataFeedTf20SecondCanLoad);
                     //UpdComboBoxToPermission(CheckBoxTf30SecondIsOn, permission.DataFeedTf30SecondCanLoad);
 
-                    //UpdComboBoxToPermission(CheckBoxTfMarketDepthIsOn,permission.DataFeedTfMarketDepthCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTfMarketDepthIsOn,permission.DataFeedTfMarketDepthCanLoad);
                     UpdComboBoxToPermission(CheckBoxTfTickIsOn,permission.DataFeedTfTickCanLoad);
                 }
             }

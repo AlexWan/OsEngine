@@ -337,7 +337,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         #endregion
 
-
         /// <summary>
         /// get realtime Mark Price and Funding Rate
         /// получать среднюю цену инструмента (на всех биржах) и ставку фандирования в реальном времени
