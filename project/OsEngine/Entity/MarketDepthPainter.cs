@@ -384,6 +384,7 @@ namespace OsEngine.Entity
 
                     _glassBox.SelectionChanged -= _glassBox_SelectionChanged;
                     _glassBox.Rows.Clear();
+                    DataGridFactory.ClearLinks(_glassBox);
                     _glassBox = null;
                 }
             }

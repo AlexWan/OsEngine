@@ -353,7 +353,7 @@ namespace OsEngine.Charts.CandleChart
 
             if (_chart.InvokeRequired)
             {
-                _chart.Invoke(new Action(Delete));
+                _chart.Invoke(new Action(ClearDelete));
                 return;
             }
 
@@ -377,6 +377,7 @@ namespace OsEngine.Charts.CandleChart
 
                 _chart.Series.Clear();
                 _chart.ChartAreas.Clear();
+                _chart.Dispose();
                 _chart = null;
             }
 
@@ -388,12 +389,20 @@ namespace OsEngine.Charts.CandleChart
                 _colorKeeper = null;
             }
 
+            if(_areaPositions != null)
+            {
+                _areaPositions.Clear();
+                _areaPositions = null;
+            }
+
+            if (_areaSizes != null)
+            {
+                _areaSizes.Clear();
+                _areaSizes = null;
+            }
 
             _myCandles = null;
-            _areaPositions = null;
-            _areaSizes = null;
             _chartElements = null;
-
             _labelSeries = null;
             _timePoints = null;
             _candlesToPaint = null;
@@ -1007,6 +1016,11 @@ namespace OsEngine.Charts.CandleChart
                 if (_isDeleted)
                 {
                     ClearDelete();
+
+                    await Task.Delay(1000);
+
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
                     return;
                 }
 

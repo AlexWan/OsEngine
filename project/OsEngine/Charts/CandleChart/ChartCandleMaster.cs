@@ -1451,7 +1451,12 @@ namespace OsEngine.Charts.CandleChart
         {
             if (ChartCandle != null)
             {
-                ChartCandle.StopPaint();
+                IChartPainter painter = ChartCandle;
+
+                ChartCandle = null;
+
+                painter.StopPaint();
+                painter.Delete();
             }
            
             if (_grid != null)
