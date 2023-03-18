@@ -3,23 +3,20 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
+using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Finam;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Forms.Integration;
-using System.Windows.Shapes;
 using System.Text;
+
 
 namespace OsEngine.OsData
 {
@@ -135,12 +132,12 @@ namespace OsEngine.OsData
 
             StopPaint();
 
-            if(_painter != null)
+            if (_painter != null)
             {
                 _painter.NewLogMessageEvent -= SendNewLogMessage;
                 _painter.Delete();
             }
-            
+
             if (File.Exists("Data\\" + SetName + @"\\Settings.txt"))
             {
                 File.Delete("Data\\" + SetName + @"\\Settings.txt");
@@ -159,13 +156,13 @@ namespace OsEngine.OsData
                 }
             }
 
-            for(int i = 0; SecuritiesLoad != null && i < SecuritiesLoad.Count;i++)
+            for (int i = 0; SecuritiesLoad != null && i < SecuritiesLoad.Count; i++)
             {
                 SecuritiesLoad[i].Delete();
                 SecuritiesLoad[i].NewLogMessageEvent -= NewLogMessageEvent;
             }
 
-            if(SecuritiesLoad != null)
+            if (SecuritiesLoad != null)
             {
                 SecuritiesLoad.Clear();
             }
@@ -315,7 +312,7 @@ namespace OsEngine.OsData
             decimal max = 0;
             decimal loaded = 0;
 
-            for(int i = 0; SecuritiesLoad != null && i < SecuritiesLoad.Count;i++)
+            for (int i = 0; SecuritiesLoad != null && i < SecuritiesLoad.Count; i++)
             {
                 SecurityToLoad sec = SecuritiesLoad[i];
 
@@ -323,12 +320,12 @@ namespace OsEngine.OsData
                 loaded += sec.LoadedPieces();
             }
 
-            if(max == 0)
+            if (max == 0)
             {
                 return 0;
             }
 
-            if(loaded == 0)
+            if (loaded == 0)
             {
                 return 0;
             }
@@ -430,7 +427,7 @@ namespace OsEngine.OsData
                 {
                     await Task.Delay(5000);
 
-                    if(_isDeleted)
+                    if (_isDeleted)
                     {
                         return;
                     }
@@ -484,7 +481,7 @@ namespace OsEngine.OsData
                     return;
                 }
 
-                if(BaseSettings.Regime == DataSetState.Off)
+                if (BaseSettings.Regime == DataSetState.Off)
                 {
                     break;
                 }
@@ -581,10 +578,10 @@ namespace OsEngine.OsData
 
             if (Directory.Exists(pathSecurityFolder))
             {
-                Directory.Delete(pathSecurityFolder,true);
+                Directory.Delete(pathSecurityFolder, true);
             }
 
-            for(int i = 0;i < SecLoaders.Count;i++)
+            for (int i = 0; i < SecLoaders.Count; i++)
             {
                 SecLoaders[i].Delete();
                 SecLoaders[i].NewLogMessageEvent -= SendNewLogMessage;
@@ -593,7 +590,7 @@ namespace OsEngine.OsData
 
         public void Load(string saveStr)
         {
-            string [] saveArray = saveStr.Split('~');
+            string[] saveArray = saveStr.Split('~');
 
             SecName = saveArray[0];
             SecId = saveArray[1];
@@ -607,7 +604,7 @@ namespace OsEngine.OsData
 
         public string GetSaveStr()
         {
-            string result = SecName+ "~";
+            string result = SecName + "~";
             result += SecId + "~";
             result += SecClass + "~";
             result += IsCollapced + "~";
@@ -622,7 +619,7 @@ namespace OsEngine.OsData
         {
             int result = 0;
 
-            for(int i = 0;i < SecLoaders.Count;i++)
+            for (int i = 0; i < SecLoaders.Count; i++)
             {
                 result += SecLoaders[i].DataPies.Count;
             }
@@ -638,9 +635,9 @@ namespace OsEngine.OsData
             {
                 List<DataPie> pieses = SecLoaders[i].DataPies;
 
-                for(int i2 = 0;i2< pieses.Count;i2++)
+                for (int i2 = 0; i2 < pieses.Count; i2++)
                 {
-                    if(pieses[i2].Status == DataPieStatus.Load)
+                    if (pieses[i2].Status == DataPieStatus.Load)
                     {
                         result += 1;
                     }
@@ -836,19 +833,19 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < SecLoaders.Count; i++)
             {
-                if(SecLoaders[i].TimeFrame == frame)
+                if (SecLoaders[i].TimeFrame == frame)
                 {
                     isInArray = true;
                     break;
                 }
             }
 
-            if(isInArray == true)
+            if (isInArray == true)
             {
                 return;
             }
 
-            if(string.IsNullOrEmpty(SetName)
+            if (string.IsNullOrEmpty(SetName)
                 || SetName == "Set_")
             {
                 return;
@@ -881,14 +878,14 @@ namespace OsEngine.OsData
 
         public void Process(IServer server)
         {
-            for(int i = 0;i < SecLoaders.Count;i++)
+            for (int i = 0; i < SecLoaders.Count; i++)
             {
-                if(SettingsToLoadSecurities.Regime == DataSetState.Off)
+                if (SettingsToLoadSecurities.Regime == DataSetState.Off)
                 {
                     return;
                 }
 
-                SecLoaders[i].Process(server,SettingsToLoadSecurities);
+                SecLoaders[i].Process(server, SettingsToLoadSecurities);
             }
         }
 
@@ -925,8 +922,8 @@ namespace OsEngine.OsData
 
         }
 
-        public SecurityTfLoader(string setName, 
-            string securityName, 
+        public SecurityTfLoader(string setName,
+            string securityName,
             TimeFrame frame,
             string secClass,
             string secId,
@@ -997,7 +994,7 @@ namespace OsEngine.OsData
             {
                 if (Directory.Exists(_pathMyTfFolder))
                 {
-                    Directory.Delete(_pathMyTfFolder,true);
+                    Directory.Delete(_pathMyTfFolder, true);
                 }
             }
             catch
@@ -1005,13 +1002,25 @@ namespace OsEngine.OsData
                 // ignore
             }
 
-            for(int i = 0;i < DataPies.Count;i++)
+            for (int i = 0; DataPies != null &&i < DataPies.Count; i++)
             {
                 DataPies[i].Delete();
             }
-            if(DataPies != null)
+
+            if (DataPies != null)
             {
                 DataPies.Clear();
+            }
+
+            for(int i = 0;i < MdSourses.Count;i++)
+            {
+                MdSourses[i].Delete();
+                MdSourses[i].NewLogMessageEvent -= SendNewLogMessage;
+            }
+
+            if(MdSourses != null)
+            {
+                MdSourses = null;
             }
         }
 
@@ -1065,20 +1074,20 @@ namespace OsEngine.OsData
                 DateTime curStart = curPie.StartActualTime();
                 DateTime curEnd = curPie.EndActualTime();
 
-                if(curStart != DateTime.MinValue &&
+                if (curStart != DateTime.MinValue &&
                     curStart < start)
                 {
                     start = curStart;
                 }
-               
-                if(curEnd != DateTime.MinValue && 
+
+                if (curEnd != DateTime.MinValue &&
                     curEnd > end)
                 {
                     end = curEnd;
                 }
             }
 
-            if(start == DateTime.MaxValue ||
+            if (start == DateTime.MaxValue ||
                 end == DateTime.MinValue)
             {
                 return;
@@ -1101,7 +1110,7 @@ namespace OsEngine.OsData
 
             max += PiecesToLoad();
             loaded += LoadedPieces();
-            
+
 
             if (max == 0)
             {
@@ -1154,16 +1163,16 @@ namespace OsEngine.OsData
                 {
                     ProcessTrades(server, param);
                 }
-                //else if (TimeFrame == TimeFrame.MarketDepth)
-                // {
-                //      ProcessMarketDepth(server);
-                //  }
+                else if (TimeFrame == TimeFrame.MarketDepth)
+                {
+                    ProcessMarketDepth(server, param);
+                }
                 else
                 {
                     ProcessCandles(server, param);
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -1227,11 +1236,11 @@ namespace OsEngine.OsData
                 newPie.Start = timeStart;
                 newPie.End = timeNow;
 
-                if(TimeFrame == TimeFrame.Tick)
+                if (TimeFrame == TimeFrame.Tick)
                 {
                     LoadTradeDataPieInTempFile(newPie);
                 }
-                else if(TimeFrame == TimeFrame.MarketDepth)
+                else if (TimeFrame == TimeFrame.MarketDepth)
                 {
                     // делаем ничего
                 }
@@ -1303,7 +1312,7 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < DataPies.Count; i++)
             {
-                if (_isDeleted){return;}
+                if (_isDeleted) { return; }
 
                 if (DataPies[i].Status == DataPieStatus.Load &&
                    i + 1 != DataPies.Count)
@@ -1363,28 +1372,28 @@ namespace OsEngine.OsData
             TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
             timeFrameBuilder.TimeFrame = TimeFrame;
 
-            if(pie.Status == DataPieStatus.Load)
+            if (pie.Status == DataPieStatus.Load)
             {
                 return;
             }
 
             string id = SecId;
 
-            if (id == null 
+            if (id == null
                 || id == "")
             {
                 id = SecName;
             }
 
-            SendNewLogMessage("Try load sec: " + id + " , tf: " + TimeFrame + 
+            SendNewLogMessage("Try load sec: " + id + " , tf: " + TimeFrame +
                 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
 
-            List<Candle> candles = 
+            List<Candle> candles =
                 server.GetCandleDataToSecurity(
-                    id, SecClass, timeFrameBuilder, 
-                    pie.Start,pie.End, pie.Start, false);
+                    id, SecClass, timeFrameBuilder,
+                    pie.Start, pie.End, pie.Start, false);
 
-            if(candles == null ||
+            if (candles == null ||
                 candles.Count == 0)
             {
                 SendNewLogMessage("Error. No candles. sec: " + id + " , tf: " + TimeFrame +
@@ -1406,7 +1415,7 @@ namespace OsEngine.OsData
 
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + pie.Start.ToString("yyyyMMdd") + "_" + pie.End.ToString("yyyyMMdd") + ".txt";
 
-            if(File.Exists(pathToTempFile) == false)
+            if (File.Exists(pathToTempFile) == false)
             {
                 return;
             }
@@ -1417,7 +1426,7 @@ namespace OsEngine.OsData
             {
                 using (StreamReader reader = new StreamReader(pathToTempFile))
                 {
-                    while(reader.EndOfStream == false)
+                    while (reader.EndOfStream == false)
                     {
                         string str = reader.ReadLine();
 
@@ -1449,7 +1458,7 @@ namespace OsEngine.OsData
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(pathToTempFile,false))
+                using (StreamWriter writer = new StreamWriter(pathToTempFile, false))
                 {
                     for (int i = 0; i < candles.Count; i++)
                     {
@@ -1512,12 +1521,12 @@ namespace OsEngine.OsData
 
             string curSaveStrCandleCount = "";
 
-            for(int i = 0;i < candleDataPies.Count;i++)
+            for (int i = 0; i < candleDataPies.Count; i++)
             {
                 curSaveStrCandleCount += candleDataPies[i].ObjectCount;
             }
 
-            if(curSaveStrCandleCount == _saveStrCandleCount)
+            if (curSaveStrCandleCount == _saveStrCandleCount)
             {
                 return;
             }
@@ -1533,11 +1542,11 @@ namespace OsEngine.OsData
 
             StringBuilder builder = new StringBuilder();
 
-            for (int i = 0;i < extCandles.Count;i++)
+            for (int i = 0; i < extCandles.Count; i++)
             {
-                builder.Append(extCandles[i].StringToSave );
+                builder.Append(extCandles[i].StringToSave);
 
-                if(i+1 != extCandles.Count)
+                if (i + 1 != extCandles.Count)
                 {
                     builder.Append("\n");
                 }
@@ -1545,7 +1554,7 @@ namespace OsEngine.OsData
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(_pathMyTxtFile,false))
+                using (StreamWriter writer = new StreamWriter(_pathMyTxtFile, false))
                 {
                     writer.WriteLine(builder.ToString());
                 }
@@ -1665,13 +1674,13 @@ namespace OsEngine.OsData
 
             List<Trade> trades =
                 server.GetTickDataToSecurity(
-                    id, SecClass,pie.Start, pie.End, pie.Start, false);
+                    id, SecClass, pie.Start, pie.End, pie.Start, false);
 
-          /*  tradesIsLoad =
-    _myServer.GetTickDataToSecurity(loadSec.Id, loadSec.Class,
-    TimeStart, TimeEnd,
-    GetActualTimeToTrade("Data\\" + SetName + "\\" + loadSec.Name.RemoveExcessFromSecurityName() + "\\Tick"), NeadToUpdate);
-            */
+            /*  tradesIsLoad =
+      _myServer.GetTickDataToSecurity(loadSec.Id, loadSec.Class,
+      TimeStart, TimeEnd,
+      GetActualTimeToTrade("Data\\" + SetName + "\\" + loadSec.Name.RemoveExcessFromSecurityName() + "\\Tick"), NeadToUpdate);
+              */
 
 
             if (trades == null ||
@@ -1853,6 +1862,91 @@ namespace OsEngine.OsData
 
         #endregion
 
+        #region СТАКАНЫ
+
+        List<MarketDepthLoader> MdSourses = new List<MarketDepthLoader>();
+
+        private void ProcessMarketDepth(IServer server, SettingsToLoadSecurity param)
+        {
+            if (_isDeleted)
+            {
+                return;
+            }
+
+            if (param.Regime == DataSetState.Off)
+            {
+                return;
+            }
+
+            MarketDepthLoader loader = null;
+
+            for(int i = 0;i < MdSourses.Count;i++)
+            {
+                if(MdSourses[i].SecName == SecName 
+                    && MdSourses[i].SecClass == SecClass
+                    && MdSourses[i].Depth == param.MarketDepthDepth)
+                {
+                    loader = MdSourses[i];
+                    break;
+                }
+            }
+
+            if(loader == null)
+            {
+                loader = new MarketDepthLoader(SecName, SecClass, param.Source, param.MarketDepthDepth);
+                loader.NewLogMessageEvent += SendNewLogMessage;
+                MdSourses.Add(loader);
+            }
+
+            TrySaveMd(loader);
+        }
+
+        private void TrySaveMd(MarketDepthLoader source)
+        {
+            if (_isDeleted) { return; }
+
+            StringBuilder builder = new StringBuilder();
+
+            if(source.SaveStrings == null)
+            {
+                return;
+            }
+
+            while (source.SaveStrings.IsEmpty == false)
+            {
+                string str = null;
+
+                if(source.SaveStrings.TryDequeue(out str))
+                {
+                    builder.Append(str + "\r");
+                }
+            }
+
+            if(builder.Length == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(_pathMyTxtFile, true))
+                {
+                    writer.WriteLine(builder.ToString());
+                }
+            }
+            catch (Exception error)
+            {
+                if (_isDeleted) { return; }
+
+                if (NewLogMessageEvent != null)
+                {
+                    NewLogMessageEvent(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        #endregion
+
         private void SendNewLogMessage(string message, LogMessageType type)
         {
             if (_isDeleted) { return; }
@@ -1869,6 +1963,103 @@ namespace OsEngine.OsData
 
         public event Action<string, LogMessageType> NewLogMessageEvent;
 
+    }
+
+    public class MarketDepthLoader
+    {
+        public MarketDepthLoader(string secName, string secClass, ServerType serverType, int depth)
+        {
+            _secName = secName;
+            _secClass = secClass;
+            _serverType = serverType;
+            _depth = depth;
+
+            CreateSource();
+        }
+
+        public void Delete()
+        {
+            _isDeleted = true;
+
+            if(MarketDepthSource != null)
+            {
+                MarketDepthSource.Clear();
+                MarketDepthSource.Delete();
+                MarketDepthSource.MarketDepthUpdateEvent -= MarketDepthSource_MarketDepthUpdateEvent;
+                MarketDepthSource.LogMessageEvent -= SendNewLogMessage;
+                MarketDepthSource = null;
+            }
+        }
+
+        private bool _isDeleted;
+
+        public string SecName
+        {
+            get { return _secName; }
+        }
+        private string _secName;
+
+        public string SecClass
+        {
+            get { return _secClass; }
+        }
+        private string _secClass;
+
+        private ServerType _serverType;
+
+        public int Depth
+        {
+            get { return _depth; }
+        }
+        private int _depth;
+
+        private void CreateSource()
+        {
+            string nameTab = "osDataMdSource_"
+                + _serverType + "_"
+                + _secName + "_"
+                + _secClass + "_"
+                + _depth;
+
+            MarketDepthSource = new BotTabSimple(nameTab, StartProgram.IsOsData);
+            MarketDepthSource.Connector.SecurityName = _secName;
+            MarketDepthSource.Connector.SecurityClass = _secClass;
+            MarketDepthSource.Connector.ServerType = _serverType;
+            MarketDepthSource.TimeFrameBuilder.TimeFrame = TimeFrame.Hour1;
+            MarketDepthSource.MarketDepthUpdateEvent += MarketDepthSource_MarketDepthUpdateEvent;
+            MarketDepthSource.LogMessageEvent += SendNewLogMessage;
+        }
+
+        private void MarketDepthSource_MarketDepthUpdateEvent(MarketDepth md)
+        {
+            if(_isDeleted == true)
+            {
+                return;
+            }
+
+            string saveStr = md.GetSaveStringToAllDepfh(_depth);
+            SaveStrings.Enqueue(saveStr);
+        }
+
+        public BotTabSimple MarketDepthSource;
+
+        public ConcurrentQueue<string> SaveStrings = new ConcurrentQueue<string>();
+
+        private void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (_isDeleted) { return; }
+
+            if (NewLogMessageEvent != null)
+            {
+                NewLogMessageEvent(message, type);
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(message);
+            }
+        }
+
+        public event Action<string, LogMessageType> NewLogMessageEvent;
     }
 
     public class SettingsToLoadSecurity
