@@ -59,10 +59,14 @@ namespace OsEngine.Journal
             _botsJournals = botsJournals;
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            _currentCulture = CultureInfo.CurrentCulture;
 
             TabBots.SizeChanged += TabBotsSizeChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
+
+            ComboBoxChartType.Items.Add("Absolute");
+            ComboBoxChartType.Items.Add("Persent");
+            ComboBoxChartType.SelectedItem = "Persent";
+            ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
 
             Task task = new Task(ThreadWorkerPlace);
             task.Start();
@@ -78,6 +82,8 @@ namespace OsEngine.Journal
             TabItem4.Header = OsLocalization.Journal.TabItem4;
             TabItem5.Header = OsLocalization.Journal.TabItem5;
             TabItem6.Header = OsLocalization.Journal.TabItem6;
+
+            LabelEqutyCharteType.Content = OsLocalization.Journal.Label8;
 
             CreatePositionsLists(botsJournals);
             TabControlCreateNameBots();
@@ -384,6 +390,11 @@ namespace OsEngine.Journal
         private object _paintLocker = new object();
 
         private StartProgram _startProgram;
+
+        private void ComboBoxChartType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            RePaint();
+        }
 
         /// <summary>
         /// main method of repainting report tables
@@ -927,36 +938,46 @@ namespace OsEngine.Journal
 
             try
             {
-                /*
-
-                */
 
                 decimal profitSum = 0;
                 decimal profitSumLong = 0;
                 decimal profitSumShort = 0;
                 decimal maxYVal = 0;
                 decimal minYval = decimal.MaxValue;
-                //Side d = new Side();
+                decimal curProfit = 0;
+
+                string chartType = ComboBoxChartType.SelectedItem.ToString();
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
-                    profitSum += positionsAll[i].ProfitPortfolioPunkt;
+
+                    if (chartType == "Absolute")
+                    {
+                        curProfit = positionsAll[i].ProfitPortfolioPunkt;
+                    }
+                    else if (chartType == "Persent")
+                    {
+                        curProfit = positionsAll[i].ProfitOperationPersent;
+                    }
+
+                    profitSum += curProfit;
+
                     profit.Points.AddXY(i, profitSum);
 
 
                     profit.Points[profit.Points.Count - 1].AxisLabel =
                         positionsAll[i].TimeCreate.ToString(_currentCulture);
 
-                    profitBar.Points.AddXY(i, positionsAll[i].ProfitPortfolioPunkt);
+                    profitBar.Points.AddXY(i, curProfit);
 
                     if (positionsAll[i].Direction == Side.Buy)
                     {
-                        profitSumLong += positionsAll[i].ProfitPortfolioPunkt;
+                        profitSumLong += curProfit;
                     }
 
                     if (positionsAll[i].Direction == Side.Sell)
                     {
-                        profitSumShort += positionsAll[i].ProfitPortfolioPunkt;
+                        profitSumShort += curProfit;
                     }
 
                     if (profitSum > maxYVal)
@@ -988,7 +1009,7 @@ namespace OsEngine.Journal
                     profitLong.Points.AddXY(i, profitSumLong);
                     profitShort.Points.AddXY(i, profitSumShort);
 
-                    if (positionsAll[i].ProfitPortfolioPunkt > 0)
+                    if (curProfit > 0)
                     {
                         profitBar.Points[profitBar.Points.Count - 1].Color = Color.Gainsboro;
                     }

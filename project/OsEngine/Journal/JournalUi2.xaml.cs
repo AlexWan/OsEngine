@@ -59,7 +59,7 @@ namespace OsEngine.Journal
 
             ComboBoxChartType.Items.Add("Absolute");
             ComboBoxChartType.Items.Add("Persent");
-            ComboBoxChartType.SelectedItem = "Absolute";
+            ComboBoxChartType.SelectedItem = "Persent";
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
 
             _currentCulture = CultureInfo.CurrentCulture;
@@ -868,14 +868,8 @@ namespace OsEngine.Journal
             nullLine.ChartArea = "ChartAreaProfit";
             nullLine.ShadowOffset = 0;
 
-
-
             try
             {
-                /*
-
-                */
-
                 decimal profitSum = 0;
                 decimal profitSumLong = 0;
                 decimal profitSumShort = 0;
