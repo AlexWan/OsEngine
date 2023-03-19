@@ -39,7 +39,6 @@
         <ComboBox x:Name="ComboBoxMarketDepthDepth" HorizontalAlignment="Left" Margin="270,215,0,0" VerticalAlignment="Top" Width="83" Height="20"/>
         <Label Name="Label17" Content="Depth" HorizontalAlignment="Left" Margin="216,212,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxNeadToUpDate" Content="Auto update" Margin="305,298,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-        <CheckBox x:Name="CheckBoxNeadToLoadDataInServers" Content="Add data to trade servers" HorizontalAlignment="Left" Margin="305,278,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,29" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
         <CheckBox x:Name="CheckBoxTf4HourIsOn" Content="4 hour" HorizontalAlignment="Left" Margin="270,163,0,0" VerticalAlignment="Top" />
     </Grid>

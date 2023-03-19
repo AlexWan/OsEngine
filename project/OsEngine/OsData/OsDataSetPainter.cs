@@ -377,7 +377,22 @@ namespace OsEngine.OsData
                         return;
                     }
 
-                    List<Candle> candles = loader.GetCandlesAllHistory();
+                    List<Candle> candles = null;
+
+                    if(loader.TimeFrame == TimeFrame.Sec1
+                    || loader.TimeFrame == TimeFrame.Sec2
+                    || loader.TimeFrame == TimeFrame.Sec5
+                    || loader.TimeFrame == TimeFrame.Sec10
+                    || loader.TimeFrame == TimeFrame.Sec15
+                    || loader.TimeFrame == TimeFrame.Sec20
+                    || loader.TimeFrame == TimeFrame.Sec30)
+                    {
+                        candles = loader.GetExtCandlesFromTrades();
+                    }
+                    else
+                    {
+                        candles = loader.GetCandlesAllHistory();
+                    }
 
                     if(candles == null ||
                         candles.Count == 0)

@@ -83,8 +83,6 @@ namespace OsEngine.OsData
             CheckBoxTfTickIsOn.IsChecked = set.BaseSettings.TfTickIsOn;
             CheckBoxTfMarketDepthIsOn.IsChecked = set.BaseSettings.TfMarketDepthIsOn;
 
-            CheckBoxNeadToLoadDataInServers.IsChecked = set.BaseSettings.NeadToLoadDataInServers;
-
             List < ServerType > serverTypes = ServerMaster.ActiveServersTypes;
 
             ComboBoxSource.Items.Add(ServerType.None);
@@ -132,7 +130,6 @@ namespace OsEngine.OsData
             Label19.Content = OsLocalization.Data.Label19;
             Label20.Content = OsLocalization.Data.Label20;
             ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
-            CheckBoxNeadToLoadDataInServers.Content = OsLocalization.Data.Label21;
             CheckBoxNeadToUpDate.Content = OsLocalization.Data.Label22;
 
             this.Activate();
@@ -265,13 +262,13 @@ namespace OsEngine.OsData
                     UpdComboBoxToPermission(CheckBoxTf2HourIsOn,permission.DataFeedTf2HourCanLoad);
                     UpdComboBoxToPermission(CheckBoxTf4HourIsOn,permission.DataFeedTf4HourCanLoad);
 
-                    //UpdComboBoxToPermission(CheckBoxTf1SecondIsOn,permission.DataFeedTf1SecondCanLoad);
-                    //UpdComboBoxToPermission(CheckBoxTf2SecondIsOn,permission.DataFeedTf2SecondCanLoad);
-                    //UpdComboBoxToPermission(CheckBoxTf5SecondIsOn,permission.DataFeedTf5SecondCanLoad);
-                    //UpdComboBoxToPermission(CheckBoxTf10SecondIsOn,permission.DataFeedTf10SecondCanLoad);
-                    //UpdComboBoxToPermission(CheckBoxTf15SecondIsOn,permission.DataFeedTf15SecondCanLoad);
-                    // UpdComboBoxToPermission(CheckBoxTf20SecondIsOn,permission.DataFeedTf20SecondCanLoad);
-                    //UpdComboBoxToPermission(CheckBoxTf30SecondIsOn, permission.DataFeedTf30SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf1SecondIsOn,permission.DataFeedTf1SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf2SecondIsOn,permission.DataFeedTf2SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf5SecondIsOn,permission.DataFeedTf5SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf10SecondIsOn,permission.DataFeedTf10SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf15SecondIsOn,permission.DataFeedTf15SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf20SecondIsOn,permission.DataFeedTf20SecondCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTf30SecondIsOn, permission.DataFeedTf30SecondCanLoad);
 
                     UpdComboBoxToPermission(CheckBoxTfMarketDepthIsOn,permission.DataFeedTfMarketDepthCanLoad);
                     UpdComboBoxToPermission(CheckBoxTfTickIsOn,permission.DataFeedTfTickCanLoad);
@@ -319,7 +316,6 @@ namespace OsEngine.OsData
             ButtonAddSecurity.IsEnabled = Enabled;
             ButtonDelSecurity.IsEnabled = Enabled;
             ComboBoxMarketDepthDepth.IsEnabled = Enabled;
-            CheckBoxNeadToLoadDataInServers.IsEnabled = Enabled;
         }
 
         /// <summary>
@@ -367,8 +363,6 @@ namespace OsEngine.OsData
             _set.BaseSettings.TimeEnd = DatePickerTimeEnd.SelectedDate.Value;
 
             _set.BaseSettings.NeadToUpdate = CheckBoxNeadToUpDate.IsChecked.Value;
-
-            _set.BaseSettings.NeadToLoadDataInServers =  CheckBoxNeadToLoadDataInServers.IsChecked.Value;
 
             if(_set.SecuritiesLoad != null)
             {

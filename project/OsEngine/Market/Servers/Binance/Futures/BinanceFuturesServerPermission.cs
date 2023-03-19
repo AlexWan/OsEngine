@@ -17,31 +17,31 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public bool DataFeedTf1SecondCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTf2SecondCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTf5SecondCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTf10SecondCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTf15SecondCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTf20SecondCanLoad
         {
-            get { return false; ; }
+            get { return true; }
         }
         public bool DataFeedTf30SecondCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTf1MinuteCanLoad
         {
