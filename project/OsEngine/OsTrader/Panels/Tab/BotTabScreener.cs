@@ -321,6 +321,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             if (!ServerMaster.HasActiveServers())
             {
+                if (ServerType != ServerType.None)  //AVP чтоб срабатывала функция автозапуска сервера
+                {
+                    ServerMaster.SetNeedServer(ServerType); //AVP
+                }
                 return;
             }
 
