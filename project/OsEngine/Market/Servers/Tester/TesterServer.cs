@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -29,6 +30,8 @@ namespace OsEngine.Market.Servers.Tester
     {
 
         private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
+
+        private readonly object _securitiesTesterSync = new object();
 
         /// <summary>
 		/// constructor
@@ -985,7 +988,6 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void WorkThreadArea()
         {
-            Thread.Sleep(2000);
             while (true)
             {
                 try
@@ -1091,10 +1093,7 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
-                for (int i = 0; i < directories.Length; i++)
-                {
-                    LoadSeciruty(directories[i]);
-                }
+                Parallel.ForEach(directories, LoadSecurity);
 
                 _dataIsReady = true;
             }
@@ -1120,7 +1119,7 @@ namespace OsEngine.Market.Servers.Tester
         /// выгрузить один инструмент из папки
         /// </summary>
         /// <param name="path">folder path to instrument / путь к папке с инструментом</param>
-        private void LoadSeciruty(string path)
+        private void LoadSecurity(string path)
         {
             string[] directories = Directory.GetDirectories(path);
 
@@ -1135,21 +1134,21 @@ namespace OsEngine.Market.Servers.Tester
             TimeStart = DateTime.MinValue;
             TimeNow = DateTime.MinValue;
 
-            for (int i = 0; i < directories.Length; i++)
+            foreach (string directory in directories)
             {
-                string name = directories[i].Split('\\')[3];
+                string name = Path.GetFileName(directory);
 
-                if (name == "MarketDepth")
+                switch (name)
                 {
-                    LoadMarketDepthFromFolder(directories[i]);
-                }
-                else if (name == "Tick")
-                {
-                    LoadTickFromFolder(directories[i]);
-                }
-                else
-                {
-                    LoadCandleFromFolder(directories[i]);
+                    case "MarketDepth":
+                        LoadMarketDepthFromFolder(directory);
+                        break;
+                    case "Tick":
+                        LoadTickFromFolder(directory);
+                        break;
+                    default:
+                        LoadCandleFromFolder(directory);
+                        break;
                 }
             }
         }
@@ -1165,312 +1164,171 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             List<SecurityTester> security = new List<SecurityTester>();
+            object sync = new object();
 
-            for (int i = 0; i < files.Length; i++)
+            Parallel.ForEach(files, file =>
             {
-                security.Add(new SecurityTester());
-                security[security.Count - 1].FileAdress = files[i];
-                security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
-                security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
-                security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
-                security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
-
-                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
-
-                security[security.Count - 1].Security = new Security();
-                security[security.Count - 1].Security.Name = name;
-                security[security.Count - 1].Security.Lot = 1;
-                security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.Go = 1;
-                security[security.Count - 1].Security.PriceStepCost = 1;
-                security[security.Count - 1].Security.PriceStep = 1;
+                SecurityTester sec = new SecurityTester
+                {
+                    FileAdress = file,
+                    Security = new Security
+                    {
+                        Name = Path.GetFileName(file),
+                        Lot = 1,
+                        NameClass = "TestClass",
+                        Go = 1,
+                        PriceStepCost = 1,
+                        PriceStep = 1
+                    }
+                };
+                sec.NewCandleEvent += TesterServer_NewCandleEvent;
+                sec.NewTradesEvent += TesterServer_NewTradesEvent;
+                sec.NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
+                sec.LogMessageEvent += TesterServer_LogMessageEvent;
                 // timeframe / тф
                 // price step / шаг цены
                 // begin / начало
                 // end / конец
 
-                StreamReader reader = new StreamReader(files[i]);
-
-                // candles / свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
-                // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
-                // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
-
-                string str = reader.ReadLine();
-
                 try
                 {
-                    // check whether candles are in the file / смотрим свечи ли в файле
-                    Candle candle = new Candle();
-                    candle.SetCandleFromString(str);
-                    // candles are in the file. We look at which ones / в файле свечи. Смотрим какие именно
-
-                    security[security.Count - 1].TimeStart = candle.TimeStart;
-
-                    Candle candle2 = new Candle();
-                    candle2.SetCandleFromString(reader.ReadLine());
-
-                    security[security.Count - 1].DataType = SecurityTesterDataType.Candle;
-                    security[security.Count - 1].TimeFrameSpan = GetTimeSpan(reader);
-                    security[security.Count - 1].TimeFrame = GetTimeFrame(security[security.Count - 1].TimeFrameSpan);
-                    // step price / шаг цены
-
-                    decimal minPriceStep = decimal.MaxValue;
-                    int countFive = 0;
-
-                    CultureInfo culture = CultureInfo;
-
-                    for (int i2 = 0; i2 < 20; i2++)
+                    // candles / свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
+                    // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
+                    // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
+                    using (StreamReader reader = new StreamReader(file))
                     {
-                        if (reader.EndOfStream == true)
+                        // check whether candles are in the file / смотрим свечи ли в файле
+                        Candle candle = new Candle();
+                        candle.SetCandleFromString(reader.ReadLine());
+
+                        // candles are in the file. We look at which ones / в файле свечи. Смотрим какие именно
+                        sec.TimeStart = candle.TimeStart;
+
+                        Candle candle2 = new Candle();
+                        candle2.SetCandleFromString(reader.ReadLine());
+
+                        sec.DataType = SecurityTesterDataType.Candle;
+                        sec.TimeFrameSpan = GetTimeSpan(reader);
+                        sec.TimeFrame = GetTimeFrame(sec.TimeFrameSpan);
+
+                        // step price / шаг цены
+                        decimal minPriceStep = decimal.MaxValue;
+                        int countFive = 0;
+
+                        for (int i = 0; i < 20; i++)
                         {
-                            reader.Close();
-                            reader = new StreamReader(files[i]);
-
-                            if (reader.EndOfStream == true)
+                            if (reader.EndOfStream)
                             {
-                                break;
+                                reader.DiscardBufferedData();
+                                reader.BaseStream.Seek(0, SeekOrigin.Begin);
+                                if (reader.EndOfStream) break;
+                                continue;
                             }
 
-                            continue;
-                        }
+                            Candle candleN = new Candle();
+                            candleN.SetCandleFromString(reader.ReadLine());
 
-                        Candle candleN = new Candle();
-                        candleN.SetCandleFromString(reader.ReadLine());
+                            decimal[] values = {candleN.Open, candleN.High, candleN.Low, candleN.Close};
+                            int maxDecimalPlaces = values.Max(v => BitConverter.GetBytes(decimal.GetBits(v)[3])[2]);
 
-                        decimal openD = (decimal) Convert.ToDouble(candleN.Open);
-                        decimal highD = (decimal) Convert.ToDouble(candleN.High);
-                        decimal lowD = (decimal) Convert.ToDouble(candleN.Low);
-                        decimal closeD = (decimal) Convert.ToDouble(candleN.Close);
-
-                        string open = openD.ToString().Replace(".", ",");
-                        string high = highD.ToString().Replace(".", ",");
-                        string low = lowD.ToString().Replace(".", ",");
-                        string close = closeD.ToString().Replace(".", ",");
-
-                        if (open.Split(',').Length > 1 ||
-                            high.Split(',').Length > 1 ||
-                            low.Split(',').Length > 1 ||
-                            close.Split(',').Length > 1)
-                        {
-                            // if the real part takes place / если имеет место вещественная часть
-                            int lenght = 1;
-
-                            if (open.Split(',').Length > 1 &&
-                                open.Split(',')[1].Length > lenght)
-                            {
-                                lenght = open.Split(',')[1].Length;
-                            }
-
-                            if (high.Split(',').Length > 1 &&
-                                high.Split(',')[1].Length > lenght)
-                            {
-                                lenght = high.Split(',')[1].Length;
-                            }
-
-                            if (low.Split(',').Length > 1 &&
-                                low.Split(',')[1].Length > lenght)
-                            {
-                                lenght = low.Split(',')[1].Length;
-                            }
-
-                            if (close.Split(',').Length > 1 &&
-                                close.Split(',')[1].Length > lenght)
-                            {
-                                lenght = close.Split(',')[1].Length;
-                            }
-
-                            if (lenght == 1 && minPriceStep > 0.1m)
-                            {
-                                minPriceStep = 0.1m;
-                            }
-                            if (lenght == 2 && minPriceStep > 0.01m)
-                            {
-                                minPriceStep = 0.01m;
-                            }
-                            if (lenght == 3 && minPriceStep > 0.001m)
-                            {
-                                minPriceStep = 0.001m;
-                            }
-                            if (lenght == 4 && minPriceStep > 0.0001m)
-                            {
-                                minPriceStep = 0.0001m;
-                            }
-                            if (lenght == 5 && minPriceStep > 0.00001m)
-                            {
-                                minPriceStep = 0.00001m;
-                            }
-                            if (lenght == 6 && minPriceStep > 0.000001m)
-                            {
-                                minPriceStep = 0.000001m;
-                            }
-                            if (lenght == 7 && minPriceStep > 0.0000001m)
-                            {
-                                minPriceStep = 0.0000001m;
-                            }
-                            if (lenght == 8 && minPriceStep > 0.00000001m)
-                            {
-                                minPriceStep = 0.00000001m;
-                            }
-                            if (lenght == 9 && minPriceStep > 0.000000001m)
-                            {
-                                minPriceStep = 0.000000001m;
-                            }
-                        }
-                        else
-                        {
-                            // if the real part doesn't take place / если вещественной части нет
-                            int lenght = 1;
-
-                            for (int i3 = open.Length - 1; open.ToString(culture)[i3] == '0'; i3--)
-                            {
-                                lenght = lenght*10;
-                            }
-
-                            int lengthLow = 1;
-
-                            for (int i3 = low.Length - 1; low[i3] == '0'; i3--)
-                            {
-                                lengthLow = lengthLow*10;
-
-                                if (lenght > lengthLow)
-                                {
-                                    lenght = lengthLow;
-                                }
-                            }
-
-                            int lengthHigh = 1;
-
-                            for (int i3 = high.Length - 1; high[i3] == '0'; i3--)
-                            {
-                                lengthHigh = lengthHigh*10;
-
-                                if (lenght > lengthHigh)
-                                {
-                                    lenght = lengthHigh;
-                                }
-                            }
-
-                            int lengthClose = 1;
-
-                            for (int i3 = close.Length - 1; close[i3] == '0'; i3--)
-                            {
-                                lengthClose = lengthClose*10;
-
-                                if (lenght > lengthClose)
-                                {
-                                    lenght = lengthClose;
-                                }
-                            }
-                            if (minPriceStep > lenght)
-                            {
-                                minPriceStep = lenght;
-                            }
-
-                            if (minPriceStep == 1 &&
-                                openD%5 == 0 && highD%5 == 0 &&
-                                closeD%5 == 0 && lowD%5 == 0)
+                            if (maxDecimalPlaces == 1 && minPriceStep > 0.1m) minPriceStep = 0.1m;
+                            else if (maxDecimalPlaces == 2 && minPriceStep > 0.01m) minPriceStep = 0.01m;
+                            else if (maxDecimalPlaces == 3 && minPriceStep > 0.001m) minPriceStep = 0.001m;
+                            else if (maxDecimalPlaces == 4 && minPriceStep > 0.0001m) minPriceStep = 0.0001m;
+                            else if (maxDecimalPlaces == 5 && minPriceStep > 0.00001m) minPriceStep = 0.00001m;
+                            else if (maxDecimalPlaces == 6 && minPriceStep > 0.000001m) minPriceStep = 0.000001m;
+                            else if (maxDecimalPlaces == 7 && minPriceStep > 0.0000001m) minPriceStep = 0.0000001m;
+                            else if (maxDecimalPlaces == 8 && minPriceStep > 0.00000001m) minPriceStep = 0.00000001m;
+                            else if (maxDecimalPlaces == 9 && minPriceStep > 0.000000001m) minPriceStep = 0.000000001m;
+                            if (values.All(v => v % 1 == 0 && v % 5 == 0))
                             {
                                 countFive++;
                             }
                         }
+
+                        if (minPriceStep == 1 && countFive == 20)
+                        {
+                            minPriceStep = 5;
+                        }
+
+                        sec.Security.PriceStep = minPriceStep;
+                        sec.Security.PriceStepCost = minPriceStep;
+
+                        // last data / последняя дата
+                        string lastString = null;
+
+                        while (!reader.EndOfStream)
+                        {
+                            lastString = reader.ReadLine();
+                        }
+
+                        Candle candle3 = new Candle();
+                        candle3.SetCandleFromString(lastString);
+                        sec.TimeEnd = candle3.TimeStart;
                     }
 
-
-                    if (minPriceStep == 1 &&
-                        countFive == 20)
+                    lock (sync)
                     {
-                        minPriceStep = 5;
+                        security.Add(sec);
                     }
-
-
-                    security[security.Count - 1].Security.PriceStep = minPriceStep;
-                    security[security.Count - 1].Security.PriceStepCost = minPriceStep;
-
-
-                    // last data / последняя дата
-                    string lastString = null;
-
-                    while (!reader.EndOfStream)
-                    {
-                        lastString = reader.ReadLine();
-                    }
-
-
-                    Candle candle3 = new Candle();
-                    candle3.SetCandleFromString(lastString);
-                    security[security.Count - 1].TimeEnd = candle3.TimeStart;
-                    continue;
                 }
                 catch (Exception)
                 {
-                    security.Remove(security[security.Count - 1]);
+                    // Handle exception if necessary
                 }
-                finally
-                {
-                    reader.Close();
-                }
-            }
- 
- // save securities 
- // сохраняем бумаги
+            });
 
-            if (security == null || 
-                security.Count == 0)
+            if (security.Count == 0)
             {
                 return;
             }
 
-            if (_securities == null)
-            {
-                _securities = new List<Security>();
-            }
+            _securities ??= new List<Security>();
+            SecuritiesTester ??= new List<SecurityTester>();
 
-            if (SecuritiesTester == null)
+            foreach (var sec in security)
             {
-                SecuritiesTester = new List<SecurityTester>();
-            }
-
-            for (int i = 0; i < security.Count; i++)
-            {
-                if (_securities.Find(security1 => security1.Name == security[i].Security.Name) == null)
+                if (_securities.Find(s => s.Name == sec.Security.Name) == null)
                 {
-                    _securities.Add(security[i].Security);
+                    _securities.Add(sec.Security);
                 }
-                
-                SecuritiesTester.Add(security[i]);
-            }
 
-// count the time
-// считаем время
+                // save securities 
+                // сохраняем бумаги
+                AddToSecuritiesTester(sec);
+            }
 
             if (SecuritiesTester.Count != 0)
             {
-                for (int i = 0; i < SecuritiesTester.Count; i++)
-                {
-                    if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) ||
-                        (SecuritiesTester[i].TimeStart != DateTime.MinValue &&SecuritiesTester[i].TimeStart < TimeMin))
-                    {
-                        TimeMin = SecuritiesTester[i].TimeStart;
-                        TimeStart = SecuritiesTester[i].TimeStart;
-                        TimeNow = SecuritiesTester[i].TimeStart;
-                    }
-                    if (SecuritiesTester[i].TimeEnd != DateTime.MinValue &&
-                        SecuritiesTester[i].TimeEnd > TimeMax)
-                    {
-                        TimeMax = SecuritiesTester[i].TimeEnd;
-                        TimeEnd = SecuritiesTester[i].TimeEnd;
-                    }
-                }
+                // count the time
+                // считаем время
+                CalculateTimeMinAndTimeMax();
+                TimeStart = TimeMin;
+                TimeNow = TimeMin;
+                TimeEnd = TimeMax;
             }
 
             // check in tester file data on the presence of multipliers and GO for securities
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
-
             SetToSecuritiesDopSettings();
 
-            if (TestingNewSecurityEvent != null)
+            TestingNewSecurityEvent?.Invoke();
+        }
+
+        private void AddToSecuritiesTester(SecurityTester securityTester)
+        {
+            lock (_securitiesTesterSync)
             {
-                TestingNewSecurityEvent();
+                SecuritiesTester.Add(securityTester);
+            }
+        }
+
+        private void CalculateTimeMinAndTimeMax()
+        {
+            lock (_securitiesTesterSync)
+            {
+                TimeMin = SecuritiesTester.Where(s => s.TimeStart != DateTime.MinValue).Min(s => s.TimeStart);
+                TimeMax = SecuritiesTester.Where(s => s.TimeEnd != DateTime.MinValue).Max(s => s.TimeEnd);
             }
         }
 
