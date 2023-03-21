@@ -553,6 +553,78 @@
             </Setter>
         </Style>
 
+        <!-- RepeatButton -->
+        <Style TargetType="RepeatButton">
+
+            <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}" />
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormal}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusLine}"/>
+            <Setter Property="BorderThickness" Value="{StaticResource BorderThicknessButton}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
+            <Setter Property="Padding" Value="{StaticResource MarginContentButton}"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Template">
+
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Grid x:Name="Root">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualStateGroup.Transitions>
+                                        <VisualTransition GeneratedDuration="0:0:0.2" />
+                                        <VisualTransition To="Pressed" />
+                                        <VisualTransition From="Pressed" />
+                                    </VisualStateGroup.Transitions>
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="MouseOver">
+                                        <Storyboard>
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="PressedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="MouseOverElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="NormalElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="PressedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="MouseOverElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="BorderVisual" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
+
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <Storyboard>
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="NormalElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="DisabledElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="HighlightElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0.5" />
+                                            <DoubleAnimation Duration="0" Storyboard.TargetName="ContentHost" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="0.75" />
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                                <VisualStateGroup x:Name="FocusStates">
+                                    <VisualState x:Name="Focused"/>
+                                    <VisualState x:Name="Unfocused" />
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Border x:Name="DisabledElement" Background="{StaticResource DisabledBrush}" CornerRadius="15" Opacity="0">
+                                <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1,1,1,1" CornerRadius="15" />
+                            </Border>
+                            <Border x:Name="BorderVisual" Background="Transparent" CornerRadius="15" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="{StaticResource ThicknessButtonVisual}" />
+                            <Border x:Name="BorderPressed" Background="Transparent" CornerRadius="15" BorderBrush="{StaticResource ControlActiveBorderBrush}" BorderThickness="{StaticResource ThicknessButtonVisual}" Opacity="0" />
+                            <Border x:Name="NormalElement" Background="{TemplateBinding Background}" BorderBrush="{StaticResource ControlBorderBrush}" CornerRadius="15" 
+                                BorderThickness="{TemplateBinding BorderThickness}" Margin="{StaticResource MarginBorderButton}"/>
+                            <Border x:Name="MouseOverElement" BorderBrush="{StaticResource ControlActiveBorderBrush}"  Background="{StaticResource ControlBackgroundOver}" CornerRadius="15" Opacity="0" 
+                                BorderThickness="{TemplateBinding BorderThickness}" Margin="{StaticResource MarginBorderButtonOver}"/>
+                            <Border x:Name="PressedElement" Background="{StaticResource ControlBackgroundPressed}" CornerRadius="15" Opacity="0" 
+                                BorderBrush="{StaticResource ControlActiveBorderBrush}" Margin="{StaticResource MarginBorderButton}"/>
+                            <Border x:Name="HighlightElement" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="{StaticResource BorderThicknessButtonOutline}" CornerRadius="15" />
+                            <ContentPresenter x:Name="ContentHost" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            </ContentPresenter>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- TextBox -->
         <Style TargetType="{x:Type TextBox}" BasedOn="{x:Null}">
             <Setter Property="Background" Value="{StaticResource ControlBackgroundNormal}" />
