@@ -1070,41 +1070,55 @@ namespace OsEngine.Market.Servers.Tinkoff
 
                 for (int i = 0; i < _accountsResponse.accounts.Count; i++)
                 {
-                    Account account = _accountsResponse.accounts[i];
-
-                    if (string.IsNullOrEmpty(account.id))
+                    try
                     {
-                        continue;
+                        Account account = _accountsResponse.accounts[i];
+
+                        if (string.IsNullOrEmpty(account.id))
+                        {
+                            continue;
+                        }
+
+                        if (_accountsResponse.accounts[i].accessLevel.Equals("ACCOUNT_ACCESS_LEVEL_FULL_ACCESS") == false)
+                        {
+                            continue;
+                        }
+
+                        if (_accountsResponse.accounts[i].type.Equals("ACCOUNT_TYPE_INVEST_BOX") == true)
+                        {
+                            continue;
+                        }
+
+
+                        if (_accountsResponse.accounts[i].name.Equals("ИИС"))
+                        {
+                            continue;
+                        }
+
+                        string portUrl = _url + "OperationsService/GetPortfolio";
+
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+
+                        param.Add("accountId", account.id);
+
+                        var resPort = CreatePrivatePostQuery(portUrl, param);
+
+                        if (resPort == null)
+                        {
+                            continue;
+                        }
+
+                        PortfoliosResponse portfoliosResponse = JsonConvert.DeserializeAnonymousType(resPort, new PortfoliosResponse());
+
+                        List<PositionOnBoard> byPower = GetPortfolioByPower(portfoliosResponse, account.id);
+
+                        UpdatePositionsInPortfolio(portfoliosResponse, portfoliosResponse.positions, account.id, byPower);
+                    }
+                    catch (Exception)
+                    {
+                        // ignore
                     }
 
-                    if (_accountsResponse.accounts[i].accessLevel.Equals("ACCOUNT_ACCESS_LEVEL_FULL_ACCESS") == false)
-                    {
-                        continue;
-                    }
-
-                    if (_accountsResponse.accounts[i].name.Equals("ИИС"))
-                    {
-                        continue;
-                    }
-
-                    string portUrl = _url + "OperationsService/GetPortfolio";
-
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-
-                    param.Add("accountId", account.id);
-
-                    var resPort = CreatePrivatePostQuery(portUrl, param);
-
-                    if (resPort == null)
-                    {
-                        continue;
-                    }
-
-                    PortfoliosResponse portfoliosResponse = JsonConvert.DeserializeAnonymousType(resPort, new PortfoliosResponse());
-
-                    List<PositionOnBoard> byPower = GetPortfolioByPower(portfoliosResponse, account.id);
-
-                    UpdatePositionsInPortfolio(portfoliosResponse, portfoliosResponse.positions, account.id, byPower);
                 }
 
                 if (UpdatePortfolio != null)
