@@ -379,8 +379,21 @@ namespace OsEngine.Entity
                             {
                                 continue;
                             }
-
-                            
+                            if (trades[i].Time == _lastTradeTime)
+                            {
+                                if(string.IsNullOrEmpty(trades[i].Id))
+                                {
+                                    // если IDшников нет - просто игнорируем трейды с идентичным временем
+                                    continue;
+                                }
+                                else
+                                {
+                                    if(IsInArrayTradeIds(trades[i].Id))
+                                    {// если IDшник в последних 100 трейдах
+                                        continue;
+                                    }
+                                }
+                            }
 
                             newTrades.Add(trades[i]);
                         }
@@ -401,6 +414,10 @@ namespace OsEngine.Entity
                     newTrades.RemoveAt(i2);
                     i2--;
                 }
+                if (string.IsNullOrEmpty(newTrades[i2].Id) == false)
+                {
+                    AddInListTradeIds(newTrades[i2].Id);
+                } 
             }
 
             if (newTrades.Count == 0)
@@ -411,6 +428,33 @@ namespace OsEngine.Entity
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
             
             return newTrades;
+        }
+
+        List<string> _lastTradeIds = new List<string>();
+
+        private void AddInListTradeIds(string id)
+        {
+            _lastTradeIds.Add(id);
+
+            if(_lastTradeIds.Count > 200)
+            {
+                _lastTradeIds.RemoveAt(0);
+            }
+        }
+
+        private bool IsInArrayTradeIds(string id)
+        {
+            bool isInArray = false;
+
+            for(int i = 0;i < _lastTradeIds.Count;i++)
+            {
+                if(_lastTradeIds[i].Equals(id))
+                {
+                    return true;
+                }
+            }
+
+            return isInArray;
         }
 
         /// <summary>

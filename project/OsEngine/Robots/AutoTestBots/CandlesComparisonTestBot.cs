@@ -30,8 +30,12 @@ namespace OsEngine.Robots.AutoTestBots
                 return;
             }
 
-            StrategyParameterButton button = CreateParameterButton("Compare candles");
+            StrategyParameterButton button = CreateParameterButton("Compare candles OHLC");
             button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
+
+            StrategyParameterButton button2 = CreateParameterButton("Compare candles Volume");
+            button2.UserClickOnButtonEvent += ButtonVolume_UserClickOnButtonEvent;
+
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
         }
@@ -52,7 +56,14 @@ namespace OsEngine.Robots.AutoTestBots
 
         private void Button_UserClickOnButtonEvent()
         {
-            if(_lastClickTime.AddSeconds(10)> DateTime.Now)
+            if (_uiOsEngineCandles != null ||
+                _uiOsServerCandles != null)
+            {
+                _tab.SetNewLogMessage("Предыдущее окно ещё не закрыто!!!", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (_lastClickTime.AddSeconds(10)> DateTime.Now)
             {
                 return;
             }
@@ -183,5 +194,132 @@ namespace OsEngine.Robots.AutoTestBots
         CandleChartUi _uiOsEngineCandles;
 
         CandleChartUi _uiOsServerCandles;
+
+
+
+
+        private void ButtonVolume_UserClickOnButtonEvent()
+        {
+            if(_uiOsEngineCandles != null ||
+                _uiOsServerCandles != null)
+            {
+                _tab.SetNewLogMessage("Предыдущее окно ещё не закрыто!!!", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (_lastClickTime.AddSeconds(10) > DateTime.Now)
+            {
+                return;
+            }
+            _lastClickTime = DateTime.Now;
+
+            // 1 запрашиваем свечи
+
+            List<Candle> candlesFromOsEngine = _tab.CandlesAll;
+
+            if (candlesFromOsEngine == null
+                || candlesFromOsEngine.Count < 10)
+            {
+                return;
+            }
+
+            IServer server = _tab.Connector.MyServer;
+
+            List<Candle> candlesFromServer
+                = server.GetCandleDataToSecurity(
+                    _tab.Securiti.Name,
+                    _tab.Securiti.NameClass,
+                    _tab.TimeFrameBuilder,
+                    DateTime.Now.AddDays(-2),
+                    DateTime.Now.AddDays(1),
+                    DateTime.Now.AddDays(-2),
+                    false
+                    );
+
+            if (candlesFromServer == null
+                || candlesFromServer.Count < 10)
+            {
+                return;
+            }
+
+            // 2 создаём отдельные чарты для свечных графиков
+
+            if (_uiOsEngineCandles == null)
+            {
+                _uiOsEngineCandles = new CandleChartUi("myCandlesTestBot", this.StartProgram);
+                _uiOsEngineCandles.Show();
+                _uiOsEngineCandles.ChangeTitle("Candles from OsEngine");
+                _uiOsEngineCandles.Closed += _uiOsEngineCandles_Closed;
+            }
+            else
+            {
+                _uiOsEngineCandles.Activate();
+            }
+
+            _uiOsEngineCandles.ProcessCandles(candlesFromOsEngine);
+
+            if (_uiOsServerCandles == null)
+            {
+                _uiOsServerCandles = new CandleChartUi("serverCandlesTestBot", this.StartProgram);
+                _uiOsServerCandles.Show();
+                _uiOsServerCandles.ChangeTitle("Candles from Server");
+                _uiOsServerCandles.Closed += _uiOsServerCandles_Closed;
+            }
+            else
+            {
+                _uiOsServerCandles.Activate();
+            }
+
+            _uiOsServerCandles.ProcessCandles(candlesFromServer);
+
+            _osCandles = candlesFromOsEngine;
+            _servCandles = candlesFromServer;
+
+            Thread worker = new Thread(RePaintDiffVolume);
+            worker.Start();
+
+
+        }
+
+        private void RePaintDiffVolume()
+        {
+            Thread.Sleep(5000);
+
+            // 3 раскрашиваем не совпадающие свечи
+
+            for (int indexMyC = 0, indexServC = 0; indexMyC < _osCandles.Count && indexServC < _servCandles.Count;)
+            {
+                Candle osCandle = _osCandles[indexMyC];
+                Candle servCandle = _servCandles[indexServC];
+
+                if (indexMyC + 1 == _osCandles.Count)
+                {
+
+                }
+
+                if (osCandle.TimeStart < servCandle.TimeStart)
+                {
+                    indexMyC++;
+                    continue;
+                }
+
+                if (servCandle.TimeStart < osCandle.TimeStart)
+                {
+                    indexServC++;
+                    continue;
+                }
+
+                if (osCandle.Volume != servCandle.Volume)
+                {
+                    _uiOsEngineCandles.SetColorToCandle(indexMyC, System.Drawing.Color.White);
+                    _uiOsServerCandles.SetColorToCandle(indexServC, System.Drawing.Color.White);
+                }
+
+                indexMyC++;
+                indexServC++;
+            }
+        }
+
+
     }
 }
