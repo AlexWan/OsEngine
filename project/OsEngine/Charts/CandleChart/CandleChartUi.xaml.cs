@@ -11,6 +11,7 @@ using OsEngine.Language;
 using OsEngine.Market;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using OsEngine.Layout;
+using System.Drawing;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -38,6 +39,18 @@ namespace OsEngine.Charts.CandleChart
         public void ProcessCandles(List<Candle> candles)
         {
             _chart.SetCandles(candles);
+        }
+
+        public void ChangeTitle(string newTitle)
+        {
+            this.Title = newTitle;
+        }
+
+        public void SetColorToCandle(int indexCandle, Color newColor)
+        {
+             IChartPainter painter = _chart.ChartCandle;
+
+             painter.PaintInDifColor(indexCandle, indexCandle+1, "SeriesCandle");
         }
     }
 }
