@@ -376,7 +376,7 @@ namespace OsEngine.Logging
         List<BotPanel> _botPanels = new List<BotPanel>();
         List<OptimizerDataStorage> _optimizerDataStoreges = new List<OptimizerDataStorage>();
         List<OsMinerMaster> _osMinerMasters = new List<OsMinerMaster>();
-        List<OsDataMaster> _osDataMasters = new List<OsDataMaster>();
+        List<OsDataMasterPainter> _osDataMasters = new List<OsDataMasterPainter>();
         List<OptimizerMaster> _optimizers = new List<OptimizerMaster>();
         List<OsMinerServer> _miners = new List<OsMinerServer>();
         List<IServer> _serversToListen = new List<IServer>();
@@ -418,7 +418,7 @@ namespace OsEngine.Logging
         /// начать прослушку OsData
         /// </summary>
         /// <param name="master"></param>
-        public void Listen(OsDataMaster master)
+        public void Listen(OsDataMasterPainter master)
         {
             master.NewLogMessageEvent += ProcessMessage;
             _osDataMasters.Add(master);

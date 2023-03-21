@@ -28,15 +28,12 @@ namespace OsEngine.OsData
 
         private static void AddPainterInArray(OsDataSetPainter painter)
         {
-            lock(_locker)
-            {
-                _painters.Add(painter);
+            _painters.Add(painter);
 
-                if(_worker == null)
-                {
-                    _worker = new Thread(PainterThreadArea);
-                    _worker.Start();
-                }
+            if (_worker == null)
+            {
+                _worker = new Thread(PainterThreadArea);
+                _worker.Start();
             }
         }
 
@@ -99,6 +96,14 @@ namespace OsEngine.OsData
         }
 
         public long UID;
+
+        public string NameSet
+        {
+            get
+            {
+                return _set.SetName;
+            }
+        }
 
         OsDataSet _set;
 

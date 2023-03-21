@@ -760,6 +760,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             List<Candle> newCandles = new List<Candle>();
 
+            if(oldCandles == null)
+            {
+                return null;
+            }
+
             int index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);
 
             int count = needTf / oldTf;

@@ -809,6 +809,7 @@
     <Compile Include="OsConverter\OsCandleConverterUi.xaml.cs">
       <DependentUpon>OsCandleConverterUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsData\OsDataMaster.cs" />
     <Compile Include="OsData\OsDataSetPainter.cs" />
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
@@ -882,7 +883,7 @@
     <Compile Include="OsData\NewSecurityUi.xaml.cs">
       <DependentUpon>NewSecurityUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsData\OsDataMaster.cs" />
+    <Compile Include="OsData\OsDataMasterPainter.cs" />
     <Compile Include="OsData\OsDataSet.cs" />
     <Compile Include="OsData\OsDataSetUi.xaml.cs">
       <DependentUpon>OsDataSetUi.xaml</DependentUpon>

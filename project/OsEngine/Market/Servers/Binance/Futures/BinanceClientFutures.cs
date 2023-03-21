@@ -875,6 +875,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         /// <returns></returns>
         private List<Candle> BuildCandles(List<Candle> oldCandles, int needTf, int oldTf)
         {
+            if(oldCandles == null)
+            {
+                return null;
+            }
+
             List<Candle> newCandles = new List<Candle>();
 
             int index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);

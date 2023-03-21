@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
-using System.Windows.Forms.Integration;
 using System.Text;
 
 
@@ -45,9 +44,6 @@ namespace OsEngine.OsData
 
             Task task = new Task(WorkerArea);
             task.Start();
-
-            _painter = new OsDataSetPainter(this);
-            _painter.NewLogMessageEvent += SendNewLogMessage;
         }
 
         /// <summary>
@@ -130,14 +126,6 @@ namespace OsEngine.OsData
         {
             _isDeleted = true;
 
-            StopPaint();
-
-            if (_painter != null)
-            {
-                _painter.NewLogMessageEvent -= SendNewLogMessage;
-                _painter.Delete();
-            }
-
             if (File.Exists("Data\\" + SetName + @"\\Settings.txt"))
             {
                 File.Delete("Data\\" + SetName + @"\\Settings.txt");
@@ -169,22 +157,6 @@ namespace OsEngine.OsData
         }
 
         private bool _isDeleted = false;
-
-        /// <summary>
-        /// show settings window/показать окно настроек
-        /// </summary>
-        public bool ShowDialog()
-        {
-            OsDataSetUi ui = new OsDataSetUi(this);
-            ui.ShowDialog();
-
-            if (ui.IsSaved)
-            {
-                _painter.RePaintInterface();
-            }
-
-            return ui.IsSaved;
-        }
 
         // control/управление
 
@@ -335,58 +307,6 @@ namespace OsEngine.OsData
             decimal result = loaded / onePerc;
 
             return Math.Round(result, 2);
-        }
-
-        // прорисовка
-
-        /// <summary>
-        /// chart drawing master/мастер прорисовки чарта
-        /// </summary>
-        private OsDataSetPainter _painter;
-
-        /// <summary>
-        /// is the current set selected for drawing/выбран ли текущий сет для прорисовки
-        /// </summary>
-        private bool _isSelected;
-
-        /// <summary>
-        /// enable drawing of this set/включить прорисовку этого сета
-        /// </summary>
-        public void StartPaint(
-            WindowsFormsHost hostChart,
-            System.Windows.Controls.Label setName,
-            System.Windows.Controls.Label labelTimeStart,
-            System.Windows.Controls.Label labelTimeEnd,
-            System.Windows.Controls.ProgressBar bar)
-        {
-            try
-            {
-                if (_isSelected == true)
-                {
-                    return;
-                }
-
-                _painter.StartPaint(hostChart, setName, labelTimeStart, labelTimeEnd, bar);
-                _isSelected = true;
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// stop drawing this set/остановить прорисовку этого сета
-        /// </summary>
-        public void StopPaint()
-        {
-            if (_isSelected == false)
-            {
-                return;
-            }
-
-            _painter.StopPaint();
-            _isSelected = false;
         }
 
         // сообщения в лог 
