@@ -140,7 +140,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             IndexOrSourcesChanged = true;
         }
 
-        private void ButtonDeleteSecurity_Click(object sender, RoutedEventArgs e)
+        private void RepeatButtonDeleteSecurity_Click(object sender, RoutedEventArgs e)
         {
             if (_sourcesGrid.CurrentCell == null)
             {
