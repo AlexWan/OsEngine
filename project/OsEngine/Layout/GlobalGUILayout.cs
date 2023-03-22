@@ -162,7 +162,13 @@ namespace OsEngine.Layout
             {
                 return;
             }
-           
+
+            if (layout.Left == -32000 ||
+               layout.Top == -32000)
+            {
+                return;
+            }
+
             if (layout.Height < 0 || layout.Widht < 0)
             {
                 return;
