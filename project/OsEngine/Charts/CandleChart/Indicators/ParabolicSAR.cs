@@ -603,7 +603,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
 
 
-            dop[0] = Math.Round(lineP, 4);
+            dop[0] = Math.Round(lineP, 8);
             dop[1] = trendP;
             dop[2] = hpP;
             dop[3] = lpP;
