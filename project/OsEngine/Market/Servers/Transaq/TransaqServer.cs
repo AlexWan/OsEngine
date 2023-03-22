@@ -267,6 +267,13 @@ namespace OsEngine.Market.Servers.Transaq
 
         public void ChangePassword(string oldPassword, string newPassword, ChangeTransaqPassword window)
         {
+
+            if (_client == null)
+            {
+                window.TextInfo.Text = "Отсутствует подключение к бирже.";
+                return;
+            }
+
             string cmd = $"<command id=\"change_pass\" oldpass=\"{oldPassword}\" newpass=\"{newPassword}\"/>";
 
             // sending command / отправка команды
