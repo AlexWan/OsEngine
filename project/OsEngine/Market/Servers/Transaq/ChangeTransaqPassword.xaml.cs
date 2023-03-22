@@ -23,6 +23,17 @@ namespace OsEngine.Market.Servers.Transaq
             this.Focus();
         }
 
+        public ChangeTransaqPassword(TransaqServerRealization server)
+        {
+            InitializeComponent();
+            OsEngine.Layout.StickyBorders.Listen(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            _server = server;
+
+            this.Activate();
+            this.Focus();
+        }
+
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(NewPassword.Text) || NewPassword.Text.Length > 19)
@@ -31,8 +42,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             else
             {
-                _server.ChangePassword(OldPassword.Text, NewPassword.Text);
-                Close();
+                _server.ChangePassword(OldPassword.Text, NewPassword.Text, this);
             }            
         }
     }

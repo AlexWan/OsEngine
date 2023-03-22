@@ -832,5 +832,9 @@ namespace OsEngine.Language
         public string UseSecInfoUpdates => OsLocalization.ConvertToLocString(
             "Eng:Use sec info updates_" +
             "Ru:Включить обновления инструментов_");
+
+        public string ButtonNameChangePassword => OsLocalization.ConvertToLocString(
+            "Eng:Change password_" +
+            "Ru:Изменить пароль_");
     }
 }
