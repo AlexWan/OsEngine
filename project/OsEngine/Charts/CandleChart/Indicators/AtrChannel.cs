@@ -401,12 +401,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <returns>index value/значение индикатора по индексу</returns>
         private decimal GetValue(List<Candle> candles,int index)
         {
-            decimal currentCandleClose = candles[index].Close;
+            if(index < 3)
+            {
+               return candles[index].Close;
+            }
+            decimal currentCandleClose = candles[index - 1].Close;
+            decimal currentHigh = candles[index - 1].High;
+            decimal currentLow = candles[index - 1].Low;
 
             if (Values == null || Values.Count < Lenght)
             {
-                HPrice = currentCandleClose;
-                LPrice = currentCandleClose;
+                HPrice = currentHigh;
+                LPrice = currentLow;
                 return currentCandleClose;
             }
             decimal previousValue = Values[Math.Max(0, index - 1)];
@@ -421,11 +427,12 @@ namespace OsEngine.Charts.CandleChart.Indicators
             
             if (currentSide != Side.Buy)
             {
-                if (currentCandleClose < LPrice)
+                if (currentLow < LPrice)
                 {
-                    LPrice = currentCandleClose;
+                    LPrice = currentLow;
                 }
                 reverse = LPrice + Multiplier * wAtr;
+
                 if (currentCandleClose >= reverse)
                 {
                     currentSide = Side.Buy;
@@ -433,9 +440,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
             } else if (currentSide != Side.Sell)
             {
-                if (currentCandleClose > HPrice)
+                if (currentHigh > HPrice)
                 {
-                    HPrice = currentCandleClose;
+                    HPrice = currentHigh;
                 }
                 reverse = HPrice - Multiplier * wAtr;
                 if (currentCandleClose < reverse)
@@ -448,7 +455,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 currentSide = Side.None;
                 reverse = previousValue;
             }
-           
+            
 
             return reverse;
         }

@@ -1212,6 +1212,11 @@ namespace OsEngine.OsData
                     break;
                 }
 
+                if (timeStart.Date > DateTime.Now.Date)
+                {
+                    break;
+                }
+
                 if (timeStart == timeNow)
                 {
                     break;

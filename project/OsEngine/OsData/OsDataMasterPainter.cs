@@ -73,6 +73,10 @@ namespace OsEngine.OsData
 
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
             master.NewLogMessageEvent += SendNewLogMessage;
+
+            Log myLog = new Log("OsDataLog", StartProgram.IsOsData);
+            myLog.StartPaint(hostLog);
+            myLog.Listen(this);
         }
 
         void ServerMaster_ServerCreateEvent(IServer server)

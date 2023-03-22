@@ -811,6 +811,9 @@
     </Compile>
     <Compile Include="OsData\OsDataMaster.cs" />
     <Compile Include="OsData\OsDataSetPainter.cs" />
+    <Compile Include="OsData\OsDataUi.xaml.cs">
+      <DependentUpon>OsDataUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsMiner\OsMinerMaster.cs" />
     <Compile Include="OsMiner\OsMinerSet.cs" />
     <Compile Include="OsMiner\OsMinerSetUi.xaml.cs">
@@ -887,9 +890,6 @@
     <Compile Include="OsData\OsDataSet.cs" />
     <Compile Include="OsData\OsDataSetUi.xaml.cs">
       <DependentUpon>OsDataSetUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsData\OsDataUi.xaml.cs">
-      <DependentUpon>OsDataUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Gui\BotTabsPainter.cs" />
     <Compile Include="OsTrader\Gui\RobotUiLight.xaml.cs">
@@ -1394,6 +1394,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="OsData\OsDataUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OsMiner\OsMinerSetUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1423,10 +1427,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsData\OsDataSetUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsData\OsDataUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

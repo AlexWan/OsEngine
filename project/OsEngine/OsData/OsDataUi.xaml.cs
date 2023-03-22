@@ -15,22 +15,21 @@ namespace OsEngine.OsData
     /// </summary>
     public partial class OsDataUi
     {
-        OsDataMaster _dataMaster;
-
-        OsDataMasterPainter _osDataMasterPainter;
+        OsDataMasterPainter _osDataMaster;
 
         public OsDataUi()
         {
             InitializeComponent();
-            LabelTimeEndValue.Content = ""; 
+            LabelTimeEndValue.Content = "";
             LabelSetNameValue.Content = "";
             LabelTimeStartValue.Content = "";
             OsEngine.Layout.StickyBorders.Listen(this);
 
-            _dataMaster = new OsDataMaster();
+            OsDataMaster master = new OsDataMaster();
 
-            _osDataMasterPainter = new OsDataMasterPainter(_dataMaster, ChartHostPanel, HostLog, HostSource,
-                HostSet, RectChart, GreedChartPanel, 
+            _osDataMaster = new OsDataMasterPainter(master, 
+                ChartHostPanel, HostLog, HostSource,
+                HostSet, RectChart, GreedChartPanel,
                 LabelSetNameValue, LabelTimeStartValue, LabelTimeEndValue, ProgressBarLoadProgress);
 
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
@@ -60,7 +59,7 @@ namespace OsEngine.OsData
 
         private void NewDataSetButton_Click(object sender, RoutedEventArgs e)
         {
-            _osDataMasterPainter.CreateNewSetDialog();
+            _osDataMaster.CreateNewSetDialog();
         }
     }
 }
