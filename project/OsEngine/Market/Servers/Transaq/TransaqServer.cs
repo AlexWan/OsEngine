@@ -44,6 +44,7 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterBoolean(OsLocalization.Market.UseSecInfoUpdates, false);
+            CreateParameterButton(OsLocalization.Market.ButtonNameChangePassword);
 
         }
 
@@ -191,6 +192,8 @@ namespace OsEngine.Market.Servers.Transaq
             _useOptions = ((ServerParameterBool)ServerParameters[7]).Value;
             _useOther = ((ServerParameterBool)ServerParameters[8]).Value;
             var useSecUpdates = ((ServerParameterBool)ServerParameters[9]).Value;
+            var btn = ((ServerParameterButton)ServerParameters[10]);
+            btn.UserClickButton += () => { ButtonClickChangePasswordWindowShow(); };
 
             _client.Connected += _client_Connected;
             _client.Disconnected += _client_Disconnected;
@@ -216,6 +219,12 @@ namespace OsEngine.Market.Servers.Transaq
             _cancellationToken = _cancellationTokenSource.Token;
 
             Task.Run(new Action(SessionTimeHandler), _cancellationToken);
+        }
+
+        private void ButtonClickChangePasswordWindowShow()
+        {
+            ChangeTransaqPassword changeTransaqPassword = new ChangeTransaqPassword(this);
+            changeTransaqPassword.ShowDialog();
         }
 
         private void _client_NewTicks(List<Tick> ticks)
@@ -251,6 +260,26 @@ namespace OsEngine.Market.Servers.Transaq
             if (res == "<result success=\"true\"/>")
             {
                 ((ServerParameterPassword)ServerParameters[1]).Value = newPassword;
+            }
+
+            Dispose();
+        }
+
+        public void ChangePassword(string oldPassword, string newPassword, ChangeTransaqPassword window)
+        {
+            string cmd = $"<command id=\"change_pass\" oldpass=\"{oldPassword}\" newpass=\"{newPassword}\"/>";
+
+            // sending command / отправка команды
+            string res = _client.ConnectorSendCommand(cmd);
+
+            if (res == "<result success=\"true\"/>")
+            {
+                ((ServerParameterPassword)ServerParameters[1]).Value = newPassword;
+                window.TextInfo.Text = "Пароль успешно изменен.";
+            }
+            else
+            {
+                window.TextInfo.Text = res;
             }
 
             Dispose();
