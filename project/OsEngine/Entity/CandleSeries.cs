@@ -436,7 +436,7 @@ namespace OsEngine.Entity
         {
             _lastTradeIds.Add(id);
 
-            if(_lastTradeIds.Count > 200)
+            if(_lastTradeIds.Count > 50)
             {
                 _lastTradeIds.RemoveAt(0);
             }
