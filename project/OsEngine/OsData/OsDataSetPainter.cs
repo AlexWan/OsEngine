@@ -304,8 +304,13 @@ namespace OsEngine.OsData
             int coluIndex = _dataGrid.SelectedCells[0].ColumnIndex;
             int rowIndex = _dataGrid.SelectedCells[0].RowIndex;
 
-            _dataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+            if(prevActiveRow < _dataGrid.Rows.Count)
+            {
+                _dataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+            }
+           
             _dataGrid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+
             prevActiveRow = rowIndex;
 
             if (coluIndex == 9)
