@@ -150,7 +150,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
 
-            ConnectorCandles connector = new ConnectorCandles(TabName + num, _startProgram);
+            ConnectorCandles connector = new ConnectorCandles(TabName + num, _startProgram,false);
             connector.SaveTradesInCandles = false;
 
             connector.ServerType = creator.ServerType;
@@ -172,9 +172,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.ReversCandlesPunktsBackMove = creator.ReversCandlesPunktsBackMove;
             connector.ComissionType = creator.ComissionType;
             connector.ComissionValue = creator.ComissionValue;
-            connector.SaveTradesInCandles = creator.SaveTradesInCandles;
             
-
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
 
@@ -186,7 +184,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void CreateNewSecurityConnector()
         {
-            ConnectorCandles connector = new ConnectorCandles(TabName + Tabs.Count, _startProgram);
+            ConnectorCandles connector = new ConnectorCandles(TabName + Tabs.Count, _startProgram,false);
             connector.SaveTradesInCandles = false;
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
@@ -327,8 +325,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     string[] save2 = reader.ReadLine().Split('#');
                     for (int i = 0; i < save2.Length - 1; i++)
                     {
-                        ConnectorCandles newConnector = new ConnectorCandles(save2[i], _startProgram);
+                        ConnectorCandles newConnector = new ConnectorCandles(save2[i], _startProgram,false);
                         newConnector.SaveTradesInCandles = false;
+                        
 
                         if(newConnector.CandleMarketDataType != CandleMarketDataType.MarketDepth)
                         {
@@ -417,6 +416,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             for (int i = 0; i < Tabs.Count; i++)
             {
                 List<Candle> myCandles = Tabs[i].Candles(true);
+
                 if (myCandles == null || myCandles.Count < 10)
                 {
                     return;

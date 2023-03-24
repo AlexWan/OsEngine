@@ -45,7 +45,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
-                _connector = new ConnectorCandles(TabName, startProgram);
+                _connector = new ConnectorCandles(TabName, startProgram, true);
                 _connector.OrderChangeEvent += _connector_OrderChangeEvent;
                 _connector.MyTradeEvent += _connector_MyTradeEvent;
                 _connector.BestBidAskChangeEvent += _connector_BestBidAskChangeEvent;

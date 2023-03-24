@@ -37,7 +37,7 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         /// <param name="name"> bot name / имя робота </param>
         /// <param name="startProgram"> program that created the bot which created this connection / программа создавшая робота который создал это подключение </param>
-        public ConnectorCandles(string name, StartProgram startProgram)
+        public ConnectorCandles(string name, StartProgram startProgram, bool createEmulator)
         {
             _name = name;
             StartProgram = startProgram;
@@ -50,6 +50,10 @@ namespace OsEngine.Market.Connectors
             {
                 _canSave = true;
                 Load();
+            }
+
+            if (createEmulator == true)
+            {
                 _emulator = new OrderExecutionEmulator();
                 _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
                 _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
@@ -1159,7 +1163,10 @@ namespace OsEngine.Market.Connectors
 
                 if (EmulatorIsOn || ServerType == ServerType.Finam)
                 {
-                    _emulator.ProcessBidAsc(_bestBid, _bestAsk, MarketTime);
+                    if (_emulator != null)
+                    {
+                        _emulator.ProcessBidAsc(_bestBid, _bestAsk, MarketTime);
+                    }
                 }
 
                 if (BestBidAskChangeEvent != null && EventsIsOn == true)
@@ -1209,7 +1216,10 @@ namespace OsEngine.Market.Connectors
 
                 if (EmulatorIsOn)
                 {
-                    _emulator.ProcessBidAsc(_bestAsk, _bestBid, MarketTime);
+                    if(_emulator != null)
+                    {
+                        _emulator.ProcessBidAsc(_bestAsk, _bestBid, MarketTime);
+                    }
                 }
             }
             catch (Exception error)
@@ -1280,22 +1290,7 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        // stored data
-        // хранящиеся данные
 
-        /// <summary>
-        /// best price of buyer 
-        /// лучшая цена покупателя
-        /// </summary>
-        private decimal _bestBid;
-
-        /// <summary>
-        /// best price of seller
-        ///  лучшая цена продавца
-        /// </summary>
-        private decimal _bestAsk;
-
-        // external data access interface
         // внешний интерфейс доступа к данным
 
         /// <summary>
@@ -1304,7 +1299,6 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public List<Trade> Trades
         {
-
             get
             {
                 try
@@ -1366,6 +1360,11 @@ namespace OsEngine.Market.Connectors
                 return _bestAsk;
             }
         }
+        /// <summary>
+        /// best price of seller
+        ///  лучшая цена продавца
+        /// </summary>
+        private decimal _bestAsk;
 
         /// <summary>
         /// take the best price of buyer in the depth
@@ -1378,6 +1377,11 @@ namespace OsEngine.Market.Connectors
                 return _bestBid;
             }
         }
+        /// <summary>
+        /// best price of buyer 
+        /// лучшая цена покупателя
+        /// </summary>
+        private decimal _bestBid;
 
         /// <summary>
         /// take server time
@@ -1435,7 +1439,10 @@ namespace OsEngine.Market.Connectors
                     StartProgram != StartProgram.IsOsOptimizer &&
                     (EmulatorIsOn || _myServer.ServerType == ServerType.Finam))
                 {
-                    _emulator.OrderExecute(order);
+                    if(_emulator != null)
+                    {
+                        _emulator.OrderExecute(order);
+                    }
                 }
                 else
                 {
@@ -1465,7 +1472,10 @@ namespace OsEngine.Market.Connectors
 
                 if (EmulatorIsOn || _myServer.ServerType == ServerType.Finam)
                 {
-                    _emulator.OrderCancel(order);
+                    if(_emulator != null)
+                    {
+                        _emulator.OrderCancel(order);
+                    }
                 }
                 else
                 {

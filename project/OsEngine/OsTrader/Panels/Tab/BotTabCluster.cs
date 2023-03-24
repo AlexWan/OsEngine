@@ -33,7 +33,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             TabName = name;
             _startProgram = startProgram;
 
-            CandleConnector = new ConnectorCandles(name, _startProgram);
+            CandleConnector = new ConnectorCandles(name, _startProgram, false);
             CandleConnector.SaveTradesInCandles = true;
             CandleConnector.LastCandlesChangeEvent += Tab_LastCandlesChangeEvent;
             CandleConnector.SecuritySubscribeEvent += CandleConnector_SecuritySubscribeEvent;
