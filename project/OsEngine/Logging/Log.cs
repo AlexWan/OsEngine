@@ -524,6 +524,11 @@ namespace OsEngine.Logging
                 return;
             }
 
+            if (!MainWindow.ProccesIsWorked)
+            {
+                return;
+            }
+
             if (_startProgram != StartProgram.IsOsOptimizer)
             {
                 LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
