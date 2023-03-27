@@ -506,7 +506,7 @@ namespace OsEngine.Journal
                 column0.CellTemplate = cell0;
                 column0.HeaderText = @"";
                 column0.ReadOnly = true;
-                column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                column0.Width = 200;
 
                 _gridStatistics.Columns.Add(column0);
 

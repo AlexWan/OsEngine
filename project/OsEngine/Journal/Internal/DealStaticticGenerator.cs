@@ -45,8 +45,8 @@ namespace OsEngine.Journal.Internal
                  Количество сделок
                  Среднее время удержания
 
-                 Сред. П\У по сделке
-                 Сред. П\У % по сделке
+                 Сред. П\У по движению
+                 Сред. П\У % по движению
                  Сред. П\У на капитал
                  Сред. П\У % на капитал
 
@@ -318,26 +318,6 @@ namespace OsEngine.Journal.Internal
         }
 
         /// <summary>
-        /// Take the average profit from the transaction as a percentage of the deposit
-        /// взять средний профит со сделки в процентах к депозиту
-        /// </summary>
-        private static decimal GetMidleProfitInPersentToDepozit(Position[] deals)
-        {
-            if (deals.Length == 0)
-            {
-                return 0;
-            }
-            decimal profit = 0;
-
-            for (int i = 0; i < deals.Length; i++)
-            {
-                profit += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
-            }
-
-            return Math.Round(profit / deals.Length, 6);
-        }
-
-        /// <summary>
         /// to take the average profit from the deal to the deposit
         /// взять средний профит со сделки к депозиту
         /// </summary>
@@ -352,6 +332,26 @@ namespace OsEngine.Journal.Internal
             for (int i = 0; i < deals.Length; i++)
             {
                 profit += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
+            }
+
+            return Math.Round(profit / deals.Length, 6);
+        }
+
+        /// <summary>
+        /// Take the average profit from the transaction as a percentage of the deposit
+        /// взять средний профит со сделки в процентах к депозиту
+        /// </summary>
+        private static decimal GetMidleProfitInPersentToDepozit(Position[] deals)
+        {
+            if (deals.Length == 0)
+            {
+                return 0;
+            }
+            decimal profit = 0;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                profit += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
             }
 
             return Math.Round(profit / deals.Length, 6);

@@ -1070,6 +1070,7 @@ namespace OsEngine.Entity
                 }
             }
         }
+
         private bool IsLotServer()
         {
             if (OpenOrders != null && OpenOrders.Count > 0)

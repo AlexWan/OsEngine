@@ -62,8 +62,6 @@ namespace OsEngine.Layout
             SubscribeEvents(ui, name);           
         }
 
-
-
         private static string _lockerArrayWithWindows = "openUiLocker";
 
         private static void SubscribeEvents(System.Windows.Window ui, string name)
@@ -165,6 +163,14 @@ namespace OsEngine.Layout
 
             if (layout.Left == -32000 ||
                layout.Top == -32000)
+            {
+                return;
+            }
+
+            if (layout.Left < -50 ||
+              layout.Top < -50 ||
+              layout.Height < 0 ||
+              layout.Widht < 0)
             {
                 return;
             }
