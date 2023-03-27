@@ -136,6 +136,24 @@ namespace OsEngine.Charts.CandleChart.Elements
         public Color Color;
 
         /// <summary>
+        /// label back color
+        /// цвет фона на котором текст
+        /// </summary>
+        public Color LabelBackColor;
+
+        /// <summary>
+        /// label text color
+        /// цвет текста лейбла
+        /// </summary>
+        public Color LabelTextColor;
+
+        /// <summary>
+        /// label font and text size 
+        /// шрифт и размер текста лейбла
+        /// </summary>
+        public Font Font;
+
+        /// <summary>
         /// Point Y on chart for point
         /// точка игрик на графике для точки
         /// </summary>
