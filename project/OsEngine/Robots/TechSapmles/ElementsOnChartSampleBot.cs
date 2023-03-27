@@ -107,6 +107,9 @@ namespace OsEngine.Robots.TechSapmles
             point.Y = candles[candles.Count - 2].Close;
             point.TimePoint = candles[candles.Count - 2].TimeStart;
             point.Label = "Some label";
+            point.Font = new Font("Arial", 10);
+            point.LabelTextColor = Color.White;
+            point.LabelBackColor = Color.Blue;
             point.Color = Color.Red;
             point.Style = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Star4;
             point.Size = 12;
@@ -141,6 +144,10 @@ namespace OsEngine.Robots.TechSapmles
             line.LineWidth = 3; // Толщина линии
 
             line.Label = "Some label on Line";
+            line.Font = new Font("Arial", 10);
+            line.LabelTextColor = Color.White;
+            line.LabelBackColor = Color.Green;
+
             _tab.SetChartElement(line);
 
             _lineOnPrimeChart = line;
@@ -170,7 +177,7 @@ namespace OsEngine.Robots.TechSapmles
             line.LineWidth = 1; // Толщина линии
 
             line.Label = "Some label on segment";
-
+           
             _tab.SetChartElement(line);
         }
 
