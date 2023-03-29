@@ -227,6 +227,10 @@ namespace OsEngine.Language
             "Eng:Average trade time_" +
             "Ru:Среднее время удержания_");
 
+        public string GridRow18 => OsLocalization.ConvertToLocString(
+            "Eng:Sharp ratio_" +
+            "Ru:Sharp ratio_");
+
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to save!_" +
             "Ru:Необходимо выбрать файл для сохранения!_");
@@ -246,5 +250,6 @@ namespace OsEngine.Language
         public string Message5 => OsLocalization.ConvertToLocString(
              "Eng:Are you sure you want to close all positions at market?_" +
              "Ru:Вы уверены что хотите закрыть все позиции по маркету?_");
+
     }
 }

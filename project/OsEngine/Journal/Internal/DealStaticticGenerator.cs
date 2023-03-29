@@ -44,6 +44,7 @@ namespace OsEngine.Journal.Internal
                  Чистый П\У %
                  Количество сделок
                  Среднее время удержания
+                 Шарп
 
                  Сред. П\У по движению
                  Сред. П\У % по движению
@@ -69,41 +70,14 @@ namespace OsEngine.Journal.Internal
                  Макс просадка %
                  Размер комиссии
             */
-            /*Net Profit/Loss
-                Net Profit/Loss
-                Number of transactions
-
-                Average. Profit/Loss on the deal
-                Average. Profit/Loss % of the transaction
-                Average. Profit/Loss for capital
-                Average. Profit/Loss % for capital
-
-                Profitable deals
-                Profitable %
-                Average. Profit/Loss on the deal
-                Average. Profit/Loss % of the transaction
-                Average. Profit/Loss for capital
-                Average. Profit/Loss % for capital
-                At most in a row.
-
-                Loss transactions
-                Losses.
-                Average. Profit/Loss on the deal
-                Average. Profit/Loss % of the transaction
-                Average. Profit/Loss for capital
-                Average. Profit/Loss % for capital
-                At most in a row.
-
-                Max drawdown %
-                Comission amount
-            */
 
 
             report.Add(Convert.ToDouble(GetAllProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //Net profit
             report.Add(Math.Round(GetAllProfitPersent(deals), 6).ToString(new CultureInfo("ru-RU")));//Net profti %
             report.Add(deals.Length.ToString(new CultureInfo("ru-RU")));// Number of transactions
             report.Add(GetAverageTimeOnPoses(deals));
-
+            report.Add(GetSharpRatio(deals,0).ToString());
+            
             report.Add(Math.Round(GetProfitFactor(deals), 6).ToString(new CultureInfo("ru-RU")));   //Profit Factor
             report.Add(Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")));   // Recovery
             report.Add("");
@@ -140,6 +114,8 @@ namespace OsEngine.Journal.Internal
             */
             return report;
         }
+
+        // время
 
         public static string GetAverageTimeOnPoses(Position[] deals)
         {
@@ -180,6 +156,10 @@ namespace OsEngine.Journal.Internal
             
             return result;
         }
+
+
+
+        // профиты
 
         /// <summary>
         /// to take profits in points to deposit
@@ -357,7 +337,118 @@ namespace OsEngine.Journal.Internal
             return Math.Round(profit / deals.Length, 6);
         }
 
-        // Profits
+        private static decimal GetSharpRatio(Position[] deals, decimal riskFreeProfitInYear)
+        {
+            /*
+
+            Sharpe Ratio = (AHPR - (1+RFR)) / SD
+
+            AHPR - усреднённая прибыль в % к портфелю со всех сделок за всё время 
+            RFR - безрисковая ставка, рассчитанная за всё время которое мог получить инвестор от открытия первой сделки до открытия последней
+            SD - стандартное отклонение массива прибылей всех сделок в отдельности
+
+            */
+
+            if(deals == null ||
+                deals.Length == 0)
+            {
+                return 0;
+            }
+
+            // 1 берём AHRP - прибыль в % к портфелю со всех сделок за всё время 
+
+            decimal ahpr = GetAllProfitPersent(deals);
+
+            if(ahpr == 0)
+            {
+                return 0;
+            }
+
+            // берём RFR - безрисковая ставка, рассчитанная за всё время которое мог получить инвестор от открытия первой сделки до открытия последней
+
+            DateTime timeFirstDeal = DateTime.MaxValue;
+            DateTime timeEndDeal = DateTime.MinValue;
+
+            for(int i = 0;i < deals.Length;i++)
+            {
+                if(deals[i].TimeOpen < timeFirstDeal)
+                {
+                    timeFirstDeal = deals[i].TimeOpen;
+                }
+
+                if(deals[i].TimeOpen > timeEndDeal)
+                {
+                    timeEndDeal = deals[i].TimeOpen;
+                }
+
+                if (deals[i].TimeClose > timeEndDeal)
+                {
+                    timeEndDeal = deals[i].TimeClose;
+                }
+            }
+
+            decimal rfr = 0;
+
+            if (timeFirstDeal != DateTime.MaxValue &&
+                timeEndDeal != DateTime.MinValue &&
+                riskFreeProfitInYear != 0)
+            {
+                int daysCountInPoses = Convert.ToInt32((timeEndDeal - timeFirstDeal).TotalDays);
+                decimal riskFreeProfitInDay = riskFreeProfitInYear / 365;
+                rfr = daysCountInPoses * riskFreeProfitInDay;
+            }
+
+            // берём SD - стандартное отклонение массива прибылей всех сделок в отдельности
+
+            List<decimal> profitArray = new List<decimal>();
+
+            for(int i = 0;i < deals.Length;i++)
+            {
+                profitArray.Add(deals[i].ProfitPortfolioPersent);
+            }
+
+            decimal sd = GetValueStandardDeviation(profitArray);
+
+            // Sharpe Ratio = (AHPR - (1+RFR)) / SD
+
+            if(sd == 0)
+            {
+                return 0;
+            }
+
+            decimal sharp = (ahpr - (1 + rfr)) / sd;
+
+            return Math.Round(sharp,4);
+        }
+
+        private static decimal GetValueStandardDeviation(List<decimal> candles)
+        {
+            int lenght = candles.Count-1;
+
+            decimal sd = 0;
+
+            decimal sum = 0;
+
+            for (int j = lenght; j > -1; j--)
+            {
+                sum += candles[j];
+            }
+
+            var m = sum / lenght;
+
+            for (int i = lenght; i > -1; i--)
+            {
+                decimal x = candles[i] - m;  //Difference between values for period and average/разница между значениями за период и средней
+                double g = Math.Pow((double)x, 2.0);   // difference square/ квадрат зницы
+                sd += (decimal)g;   //square footage/ сумма квадратов
+            }
+
+            sd = (decimal)Math.Sqrt((double)sd / lenght);  //find the root of sum/period // находим корень из суммы/период 
+
+            return Math.Round(sd, 5);
+
+        }
+
         // профиты
 
         /// <summary>
@@ -539,7 +630,7 @@ namespace OsEngine.Journal.Internal
 
             return maxSeries;
         }
-        //Losses
+
         // лоси
 
         /// <summary>
