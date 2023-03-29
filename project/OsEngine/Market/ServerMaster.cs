@@ -45,6 +45,7 @@ using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
+using OsEngine.Market.Servers.BitMaxFutures;
 
 namespace OsEngine.Market
 {
@@ -101,6 +102,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
+                serverTypes.Add(ServerType.Bitmax_AscendexFutures);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -293,6 +295,10 @@ namespace OsEngine.Market
                 SaveMostPopularServers(type);
 
                 IServer newServer = null;
+                if (type == ServerType.Bitmax_AscendexFutures)
+                {
+                    newServer = new BitMaxFuturesServer();
+                }
                 if (type == ServerType.OKX)
                 {
                     newServer = new OkxServer();
@@ -1343,7 +1349,11 @@ namespace OsEngine.Market
         /// <summary>
         /// OKX exchange
         /// </summary>
-        OKX
+        OKX,
 
+        /// <summary>
+        /// Ascendex exchange
+        /// </summary>
+        Bitmax_AscendexFutures
     }
 }
