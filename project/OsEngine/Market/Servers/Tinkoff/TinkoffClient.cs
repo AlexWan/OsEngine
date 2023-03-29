@@ -179,7 +179,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             securities.AddRange(stocks);
 
             List<Security> futures = GetSecurities(_url + "InstrumentsService/Futures", SecurityType.Futures);
-            securities.AddRange(stocks);
+            securities.AddRange(futures);
 
             List<Security> etfs = GetSecurities(_url + "InstrumentsService/Etfs", SecurityType.Stock);
             securities.AddRange(etfs);
