@@ -515,6 +515,7 @@
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitPortfolioCreator.cs" />
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitSecurityCreator.cs" />
     <Compile Include="Market\Servers\Bybit\EntityCreators\BybitTradesCreator.cs" />
+    <Compile Include="Market\Servers\Bybit\EntityCreators\PositionModeResponse.cs" />
     <Compile Include="Market\Servers\Bybit\Utilities\BybitSigner.cs" />
     <Compile Include="Market\Servers\Bybit\Utilities\BybitWsRequestBuilder.cs" />
     <Compile Include="Market\Servers\Bybit\Utilities\Signer.cs" />
