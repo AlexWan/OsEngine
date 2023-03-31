@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace OsEngine.Market.Servers.Bybit
 {
@@ -31,6 +32,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
             CreateParameterEnum("Futures Type", "USDT Perpetual", new List<string> { "USDT Perpetual", "Inverse Perpetual" });
             CreateParameterEnum("Net Type", "MainNet", new List<string> { "MainNet", "TestNet" });
+            CreateParameterEnum("Position Mode", "Merged Single", new List<string> { "Merged Single", "Both Side" });
         }
 
         /// <summary>
@@ -62,6 +64,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private string futures_type = "USDT Perpetual";
         private string net_type = "MainNet";
+        private string hedge_mode = "Merged Single";
 
         private readonly Dictionary<int, string> supported_intervals;
         public List<Portfolio> Portfolios;
@@ -120,6 +123,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             futures_type = ((ServerParameterEnum)ServerParameters[2]).Value;
             net_type = ((ServerParameterEnum)ServerParameters[3]).Value;
+            hedge_mode = ((ServerParameterEnum)ServerParameters[4]).Value;
 
             if (futures_type != "Inverse Perpetual" && net_type != "TestNet")
             {
@@ -344,6 +348,40 @@ namespace OsEngine.Market.Servers.Bybit
 
 
         #region Запросы Rest
+
+        private void SetPositionMode(Security security)
+        {
+            try
+            {
+                int mode = hedge_mode.Equals("Merged Single") ? 0 : 3;
+                Dictionary<string, string> parameters = new Dictionary<string, string>();
+                parameters.Add("mode", $"{mode}");
+                parameters.Add("symbol", security.Name);
+                parameters.Add("coin", null);
+                parameters.Add("api_key", client.ApiKey);
+                DateTime time = GetServerTime();
+
+                var res = CreatePrivatePostQuery(client, "/contract/v3/private/position/switch-mode", parameters, time);
+
+                string json = res.ToString();
+
+                PositionModeResponse posMode = JsonConvert.DeserializeObject<PositionModeResponse>(json);
+
+
+                if (posMode.retCode.Equals("140025") || posMode.retCode.Equals("0"))
+                {
+                    return;
+                }
+                else
+                {
+                    throw new Exception(posMode.retMsg);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.Message, LogMessageType.Error);
+            }
+        }
 
         private async void PortfolioRequester(CancellationToken token)
         {
@@ -685,6 +723,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         public override void Subscrible(Security security)
         {
+            SetPositionMode(security);
+
             for (int i = 0; i < _alreadySubSec.Count; i++)
             {
                 if (_alreadySubSec[i] == security.Name)
