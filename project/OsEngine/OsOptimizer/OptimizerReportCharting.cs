@@ -33,6 +33,7 @@ namespace OsEngine.OsOptimizer
             boxTypeSort.Items.Add(SortBotsType.ProfitFactor.ToString());
             boxTypeSort.Items.Add(SortBotsType.PayOffRatio.ToString());
             boxTypeSort.Items.Add(SortBotsType.Recovery.ToString());
+            boxTypeSort.Items.Add(SortBotsType.SharpRatio.ToString());
 
             boxTypeSort.SelectedItem = SortBotsType.TotalProfit.ToString();
             boxTypeSort.SelectionChanged += _gridResults_SelectionChanged;
@@ -88,6 +89,10 @@ namespace OsEngine.OsOptimizer
             else if (columnSelect == 7)
             {
                 _sortBotsType = SortBotsType.Recovery;
+            }
+            else if (columnSelect == 8)
+            {
+                _sortBotsType = SortBotsType.SharpRatio;
             }
             else
             {
@@ -186,6 +191,11 @@ namespace OsEngine.OsOptimizer
             {
                 return true;
             }
+             else if (sortType == SortBotsType.SharpRatio &&
+                     rep1.SharpRatio < rep2.SharpRatio)
+            {
+                return true;
+            }
 
             return false;
         } 
@@ -276,6 +286,13 @@ namespace OsEngine.OsOptimizer
             column7.ReadOnly = false;
             column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridDep.Columns.Add(column7);
+
+            DataGridViewColumn column8 = new DataGridViewColumn();
+            column8.CellTemplate = cell0;
+            column8.HeaderText = "Sharp ratio";
+            column8.ReadOnly = false;
+            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridDep.Columns.Add(column8);
 
             _gridDep.Rows.Add(null, null);
 
@@ -401,6 +418,10 @@ namespace OsEngine.OsOptimizer
                 DataGridViewTextBoxCell cell9 = new DataGridViewTextBoxCell();
                 cell9.Value = reportToPaint.PositionsCount.ToString();
                 row.Cells.Add(cell9);
+
+                DataGridViewTextBoxCell cell10 = new DataGridViewTextBoxCell();
+                cell10.Value = reportToPaint.SharpRatio.ToString();
+                row.Cells.Add(cell10);
 
                 _gridDep.Rows.Add(row);
             }

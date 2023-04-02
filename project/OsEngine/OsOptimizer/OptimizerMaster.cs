@@ -64,6 +64,11 @@ namespace OsEngine.OsOptimizer
 
         public int GetMaxBotsCount()
         {
+            if(_parameters == null ||
+                _paramOn == null )
+            {
+                return 0;
+            }
             return _optimizerExecutor.BotCountOneFaze(_parameters, _paramOn) * IterationCount * 2;
         }
 

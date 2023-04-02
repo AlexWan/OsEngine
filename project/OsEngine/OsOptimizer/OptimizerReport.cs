@@ -203,9 +203,8 @@ namespace OsEngine.OsOptimizer
                 tab.ProfitFactor = PositionStaticticGenerator.GetProfitFactor(posesArray);
                 tab.Recovery = PositionStaticticGenerator.GetRecovery(posesArray);
                 tab.PayOffRatio = PositionStaticticGenerator.GetPayOffRatio(posesArray);
+                tab.SharpRatio = PositionStaticticGenerator.GetSharpRatio(posesArray,7);
                 tab.TabType = bot.TabsSimple[i].GetType().Name;
-
-                
             }
 
             if (TabsReports.Count == 0)
@@ -227,6 +226,7 @@ namespace OsEngine.OsOptimizer
                 ProfitFactor = TabsReports[0].ProfitFactor;
                 Recovery = TabsReports[0].Recovery;
                 PayOffRatio = TabsReports[0].PayOffRatio;
+                SharpRatio = TabsReports[0].SharpRatio;
             }
             else
             {
@@ -243,6 +243,7 @@ namespace OsEngine.OsOptimizer
                 ProfitFactor = PositionStaticticGenerator.GetProfitFactor(posesArray);
                 Recovery = PositionStaticticGenerator.GetRecovery(posesArray);
                 PayOffRatio = PositionStaticticGenerator.GetPayOffRatio(posesArray);
+                SharpRatio = PositionStaticticGenerator.GetSharpRatio(posesArray, 7);
             }
         }
 
@@ -264,6 +265,8 @@ namespace OsEngine.OsOptimizer
 
         public decimal Recovery;
 
+        public decimal SharpRatio;
+
         public string GetSaveString()
         {
             string result = "";
@@ -279,6 +282,7 @@ namespace OsEngine.OsOptimizer
             result += PayOffRatio + "@";
             result += Recovery + "@";
             result += TotalProfitPersent + "@";
+            result += SharpRatio + "@";
 
             // сохраняем параметры в строковом представлении
             string param = "";
@@ -317,15 +321,16 @@ namespace OsEngine.OsOptimizer
             PayOffRatio = Convert.ToDecimal(str[7]);
             Recovery = Convert.ToDecimal(str[8]);
             TotalProfitPersent = Convert.ToDecimal(str[9]);
+            SharpRatio = Convert.ToDecimal(str[10]);
 
-            string [] param = str[10].Split('&');
+            string [] param = str[11].Split('&');
 
             for(int i = 0;i < param.Length-1;i++)
             {
                 StrategyParameters.Add(param[i]);
             }
 
-            string [] reportTabs = str[11].Split('&');
+            string [] reportTabs = str[12].Split('&');
 
             for(int i = 0;i < reportTabs.Length-1;i++)
             {
@@ -360,6 +365,8 @@ namespace OsEngine.OsOptimizer
 
         public decimal Recovery;
 
+        public decimal SharpRatio;
+
         public string GetSaveString()
         {
             string result = "";
@@ -375,6 +382,7 @@ namespace OsEngine.OsOptimizer
             result += PayOffRatio + "*";
             result += Recovery + "*";
             result += TotalProfitPersent + "*";
+            result += SharpRatio + "*";
 
             return result;
         }
@@ -394,6 +402,13 @@ namespace OsEngine.OsOptimizer
             PayOffRatio = save[8].ToDecimal();
             Recovery = save[9].ToDecimal();
             TotalProfitPersent = save[10].ToDecimal();
+
+            if(save.Length == 11)
+            {
+                return;
+            }
+
+            SharpRatio = save[11].ToDecimal();
         }
     }
 }

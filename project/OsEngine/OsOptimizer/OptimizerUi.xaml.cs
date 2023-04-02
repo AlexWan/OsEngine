@@ -2036,6 +2036,13 @@ namespace OsEngine.OsOptimizer
             column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridResults.Columns.Add(column8);
 
+            DataGridViewColumn column9 = new DataGridViewColumn();
+            column9.CellTemplate = cell0;
+            column9.HeaderText = "Sharp Ratio";
+            column9.ReadOnly = false;
+            column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridResults.Columns.Add(column9);
+
             DataGridViewButtonColumn column11 = new DataGridViewButtonColumn();
             column11.CellTemplate = new DataGridViewButtonCell();
             column11.HeaderText = OsLocalization.Optimizer.Message40;
@@ -2114,6 +2121,13 @@ namespace OsEngine.OsOptimizer
             {
                 _gridResults.Columns[9].HeaderText += " vvv";
             }
+
+            _gridResults.Columns[10].HeaderText = "Sharp Ratio";
+            if (_sortBotsType == SortBotsType.SharpRatio)
+            {
+                _gridResults.Columns[10].HeaderText += " vvv";
+            }
+
         }
 
         /// <summary>
@@ -2222,14 +2236,17 @@ namespace OsEngine.OsOptimizer
                 cell10.Value = report.Recovery;
                 row.Cells.Add(cell10);
 
-
-                DataGridViewButtonCell cell11 = new DataGridViewButtonCell();
-                cell11.Value = OsLocalization.Optimizer.Message40;
+                DataGridViewTextBoxCell cell11 = new DataGridViewTextBoxCell();
+                cell11.Value = report.SharpRatio;
                 row.Cells.Add(cell11);
 
                 DataGridViewButtonCell cell12 = new DataGridViewButtonCell();
-                cell12.Value = OsLocalization.Optimizer.Message42;
+                cell12.Value = OsLocalization.Optimizer.Message40;
                 row.Cells.Add(cell12);
+
+                DataGridViewButtonCell cell13 = new DataGridViewButtonCell();
+                cell13.Value = OsLocalization.Optimizer.Message42;
+                row.Cells.Add(cell13);
 
                 _gridResults.Rows.Add(row);
 
@@ -2303,6 +2320,11 @@ namespace OsEngine.OsOptimizer
             {
                 return true;
             }
+            else if (sortType == SortBotsType.SharpRatio &&
+                     rep1.SharpRatio < rep2.SharpRatio)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -2350,6 +2372,10 @@ namespace OsEngine.OsOptimizer
             cell10.Value = report.Recovery;
             row.Cells.Add(cell10);
 
+            DataGridViewTextBoxCell cell11 = new DataGridViewTextBoxCell();
+            cell11.Value = report.SharpRatio;
+            row.Cells.Add(cell11);
+
             try
             {
                 row.Cells.Add(null);
@@ -2375,12 +2401,12 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            if (e.ColumnIndex == 10)
+            if (e.ColumnIndex == 11)
             {
                 ShowBotChartDialog(e);
             }
 
-            if (e.ColumnIndex == 11)
+            if (e.ColumnIndex == 12)
             {
                 ShowParamsDialog(e);
             }
@@ -2492,6 +2518,10 @@ namespace OsEngine.OsOptimizer
             {
                 _sortBotsType = SortBotsType.Recovery;
             }
+            else if (columnSelect == 10)
+            {
+                _sortBotsType = SortBotsType.SharpRatio;
+            }
             else
             {
                 return;
@@ -2574,5 +2604,7 @@ namespace OsEngine.OsOptimizer
         PayOffRatio,
 
         Recovery,
+
+        SharpRatio
     }
 }
