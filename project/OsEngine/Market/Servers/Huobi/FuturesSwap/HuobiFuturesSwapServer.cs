@@ -846,54 +846,38 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         {
             lock (_locker)
             {
-                var needIntervalForQuery =
-                    CandlesCreator.DetermineAppropriateIntervalForRequest(oldInterval, _supportedIntervals,
-                        out var needInterval);
+                int candleToLoad = ((ServerParameterInt)ServerParameters.Find(param => param.Name.Equals("Candles to load"))).Value;
 
-                var clientId = "";
+                string interval = CreatePeriodTimeFrame(oldInterval);
 
-                string topic = $"market.{security}.kline.{needIntervalForQuery}";
+                string endPoint = $"https://api.hbdm.com/swap-ex/market/history/kline?period={interval}&size={candleToLoad}&contract_code={security}";
 
-                var from = TimeManager.GetTimeStampSecondsToDateTime(startTime);
-                var to = TimeManager.GetTimeStampSecondsToDateTime(endTime);
+                HttpClient client = new HttpClient();
+                System.Net.Http.HttpResponseMessage response = client.GetAsync(endPoint).Result;
+                string json = response.Content.ReadAsStringAsync().Result;
 
-                _marketDataSource.SendMessage(
-                    $"{{ \"req\": \"{topic}\",\"id\": \"{clientId}\", \"from\":{from}, \"to\":{to} }}");
+                CandleResponseMessage candlesResponse = JsonConvert.DeserializeObject<CandleResponseMessage>(json);
 
-                var startLoadingTime = DateTime.Now;
+                List<Candle> candles = CreateCandlesFromJson(candlesResponse);
 
-                while (startLoadingTime.AddSeconds(40) > DateTime.Now)
-                {
-                    var candles = _allCandleSeries.Find(s =>
-                        s.security == security && s.GetTimeFrame() == needIntervalForQuery);
+                return candles;
 
-                    if (candles != null)
-                    {
-                        _allCandleSeries.Remove(candles);
-
-                        var oldCandles = CreateCandlesFromJson(candles);
-
-                        if (oldInterval == needInterval)
-                        {
-                            return oldCandles;
-                        }
-
-                        var newCandles =
-                            CandlesCreator.CreateCandlesRequiredInterval(needInterval, oldInterval, oldCandles);
-
-                        return newCandles;
-                    }
-
-                    Thread.Sleep(500);
-                }
-
-                SendLogMessage(OsLocalization.Market.Message95 + security, LogMessageType.Error);
-
-                return null;
             }
         }
 
-        private List<Candle> CreateCandlesFromJson(GetCandlestickResponse rawCandles)
+        private string CreatePeriodTimeFrame(int oldInterval)
+        {
+            if (oldInterval > 60)
+            {
+                return $"{oldInterval / 60}hour";
+            }
+            else
+            {
+                return $"{oldInterval}min";
+            }
+        }
+
+        private List<Candle> CreateCandlesFromJson(CandleResponseMessage rawCandles)
         {
             var candles = new List<Candle>();
 
@@ -901,12 +885,12 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             {
                 var candle = new Candle();
 
-                candle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(jtCandle.id);
-                candle.Open = jtCandle.open;
-                candle.High = jtCandle.high;
-                candle.Low = jtCandle.low;
-                candle.Close = jtCandle.close;
-                candle.Volume = jtCandle.vol;
+                candle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(jtCandle.id));
+                candle.Open = Convert.ToDecimal(jtCandle.open.Replace(".", ","));
+                candle.High = Convert.ToDecimal(jtCandle.high.Replace(".", ","));
+                candle.Low = Convert.ToDecimal(jtCandle.low.Replace(".", ","));
+                candle.Close = Convert.ToDecimal(jtCandle.close.Replace(".", ","));
+                candle.Volume = Convert.ToDecimal(jtCandle.vol.Replace(".", ","));
 
                 candles.Add(candle);
             }
@@ -960,5 +944,25 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         {
             return JsonConvert.SerializeObject(this);
         }
+    }
+
+    public class CandleResponseMessage
+    {
+        public string ch;
+        public List<CandleResponseMessageDetail> data;
+        public string status;
+        public string ts;
+    }
+
+    public class CandleResponseMessageDetail
+    {
+        public string amount;
+        public string close;
+        public string count;
+        public string high;
+        public string id;
+        public string low;
+        public string open;
+        public string vol;
     }
 }
