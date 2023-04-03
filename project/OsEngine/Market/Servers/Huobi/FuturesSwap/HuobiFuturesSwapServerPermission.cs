@@ -10,7 +10,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
     {
         public ServerType ServerType
         {
-            get { return ServerType.HuobiFutures; }
+            get { return ServerType.HuobiFuturesSwap; }
         }
 
         #region DataFeedPermissions
@@ -108,24 +108,24 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = true,
-                TimeFrameSec2IsOn = true,
-                TimeFrameSec5IsOn = true,
-                TimeFrameSec10IsOn = true,
-                TimeFrameSec15IsOn = true,
-                TimeFrameSec20IsOn = true,
-                TimeFrameSec30IsOn = true,
+                TimeFrameSec1IsOn = false,
+                TimeFrameSec2IsOn = false,
+                TimeFrameSec5IsOn = false,
+                TimeFrameSec10IsOn = false,
+                TimeFrameSec15IsOn = false,
+                TimeFrameSec20IsOn = false,
+                TimeFrameSec30IsOn = false,
                 TimeFrameMin1IsOn = true,
-                TimeFrameMin2IsOn = true,
-                TimeFrameMin3IsOn = true,
+                TimeFrameMin2IsOn = false,
+                TimeFrameMin3IsOn = false,
                 TimeFrameMin5IsOn = true,
-                TimeFrameMin10IsOn = true,
+                TimeFrameMin10IsOn = false,
                 TimeFrameMin15IsOn = true,
-                TimeFrameMin20IsOn = true,
+                TimeFrameMin20IsOn = false,
                 TimeFrameMin30IsOn = true,
-                TimeFrameMin45IsOn = true,
+                TimeFrameMin45IsOn = false,
                 TimeFrameHour1IsOn = true,
-                TimeFrameHour2IsOn = true,
+                TimeFrameHour2IsOn = false,
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = true
             };
