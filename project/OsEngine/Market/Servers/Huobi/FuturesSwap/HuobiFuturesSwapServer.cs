@@ -680,6 +680,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
             jsonContent.Add("lever_rate", "10");
             jsonContent.Add("order_price_type", "limit");
+            jsonContent.Add("channel_code", "AAe2ccbd47");
 
             string url = _privateUriBuilder.Build("POST", pathSwapRest + "/v1/swap_order");
 

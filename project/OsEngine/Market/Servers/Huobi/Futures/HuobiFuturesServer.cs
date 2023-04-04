@@ -719,6 +719,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
             jsonContent.Add("lever_rate", "10");
             jsonContent.Add("order_price_type", "limit");
+            jsonContent.Add("channel_code", "AAe2ccbd47");
 
             string url = _privateUriBuilder.Build("POST", "/api/v1/contract_order");
 
