@@ -94,7 +94,10 @@ namespace OsEngine.Market.Services
 
         public void SendMessage(string message)
         {
-            _wsClient.Send(message);
+            if (_wsClient.State == WebSocketState.Open)
+            {
+                _wsClient.Send(message);
+            }
         }
 
         public event Action<WsMessageType, string> MessageEvent;

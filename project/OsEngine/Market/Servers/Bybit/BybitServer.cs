@@ -145,6 +145,7 @@ namespace OsEngine.Market.Servers.Bybit
                 client = new Client(public_key, secret_key, true, false);
             }
 
+            last_time_update_socket = DateTime.Now;
             cancel_token_source = new CancellationTokenSource();
             market_mepth_creator = new BybitMarketDepthCreator();
 
