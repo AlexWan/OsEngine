@@ -26,12 +26,13 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         {
             HuobiFuturesSwapServerRealization realization = new HuobiFuturesSwapServerRealization(ServerType.HuobiFuturesSwap,
                 "api.hbdm.com",
-                "/swap-notification");
+                "/swap-notification"); //linear-swap-notification swap-notification
 
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterEnum("USDT/COIN", "USDT", new List<string>() { "COIN", "USDT" });
         }
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
     public class HuobiFuturesSwapServerRealization : AServerRealization
     {
         private readonly string _host;
-        private readonly string _path;
+        private string _path;
 
         /// <summary>
         /// словарь таймфреймов, поддерживаемых этой биржей
@@ -93,6 +94,8 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
         private string _publicKey;
         private string _secretKey;
+        public string pathSwapWs = "/linear-swap-ws";
+        public string pathSwapRest = "/linear-swap-api";
 
         private PublicUrlBuilder _urlBuilder;
 
@@ -114,6 +117,9 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         {
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            pathSwapWs = "USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value) ? "/linear-swap-ws" : "/swap-ws";
+            pathSwapRest = "USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value) ? "/linear-swap-api" : "/swap-api";
+            _path = "USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value) ? "/linear-swap-notification" : "/swap-notification"; ;
 
             _urlBuilder = new PublicUrlBuilder(_host);
             _privateUriBuilder = new PrivateUrlBuilder(_publicKey, _secretKey, _host);
@@ -131,7 +137,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             _wsSource.ByteDataEvent += WsSourceOnByteDataEvent;
             _wsSource.Start();
 
-            _marketDataSource = new WsSource("wss://" + _host + "/swap-ws");
+            _marketDataSource = new WsSource("wss://" + _host + pathSwapWs);
             _marketDataSource.ByteDataEvent += MarketDataSourceOnMessageEvent;
             _marketDataSource.Start();
 
@@ -517,7 +523,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
         public override void GetSecurities()
         {
-            string url = _urlBuilder.Build("/swap-api/v1/swap_contract_info");
+            string url = _urlBuilder.Build(pathSwapRest + "/v1/swap_contract_info");
 
             var httpClient = new HttpClient();
 
@@ -611,7 +617,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             }
             foreach (var portfolio in Portfolios)
             {
-                string url = _privateUriBuilder.Build("POST", "/swap-api/v1/swap_account_info");
+                string url = _privateUriBuilder.Build("POST", pathSwapRest + "/v1/swap_account_info");
 
                 StringContent httpContent = new StringContent(new JsonObject().ToString(), Encoding.UTF8, "application/json");
 
@@ -675,7 +681,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             jsonContent.Add("lever_rate", "10");
             jsonContent.Add("order_price_type", "limit");
 
-            string url = _privateUriBuilder.Build("POST", "/swap-api/v1/swap_order");
+            string url = _privateUriBuilder.Build("POST", pathSwapRest + "/v1/swap_order");
 
             StringContent httpContent = new StringContent(jsonContent.ToString(), Encoding.UTF8, "application/json");
 
@@ -713,7 +719,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             jsonContent.Add("client_order_id", order.NumberUser);
             jsonContent.Add("contract_code", order.SecurityNameCode);
 
-            string url = _privateUriBuilder.Build("POST", "/swap-api/v1/swap_cancel");
+            string url = _privateUriBuilder.Build("POST", pathSwapRest + "/v1/swap_cancel");
 
             StringContent httpContent = new StringContent(jsonContent.ToString(), Encoding.UTF8, "application/json");
 
@@ -850,7 +856,9 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
                 string interval = CreatePeriodTimeFrame(oldInterval);
 
-                string endPoint = $"https://api.hbdm.com/swap-ex/market/history/kline?period={interval}&size={candleToLoad}&contract_code={security}";
+                string pathSwap = "USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value) ? "linear-swap-ex" : "swap-ex";
+
+                string endPoint = $"https://api.hbdm.com/{pathSwap}/market/history/kline?period={interval}&size={candleToLoad}&contract_code={security}";
 
                 HttpClient client = new HttpClient();
                 System.Net.Http.HttpResponseMessage response = client.GetAsync(endPoint).Result;
