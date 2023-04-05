@@ -1058,10 +1058,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
         private string GetNonce()
         {
             var resTime = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/time", null, false);
-            var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
 
-            if (result != null)
+            if (!string.IsNullOrEmpty(resTime))
             {
+                var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
                 return (result.serverTime + 500).ToString();
             }
             else
