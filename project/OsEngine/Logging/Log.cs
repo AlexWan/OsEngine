@@ -662,7 +662,7 @@ namespace OsEngine.Logging
 
                         if (_messagesesToSaveInFile.TryDequeue(out message))
                         {
-                            writer.Write(message.Message);
+                            writer.WriteLine($"[{message.Time.ToLocalTime():yyyy-MM-dd HH:mm:ss}] {message.Message}");
                         }
                     }
                 }
