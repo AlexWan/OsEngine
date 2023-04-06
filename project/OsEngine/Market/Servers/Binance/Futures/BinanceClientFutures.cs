@@ -1388,7 +1388,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newOrder.TypeOrder = oldOpenOrders[i].TypeOrder;
                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
                     newOrder.TimeCancel = newOrder.TimeCallBack;
-                    newOrder.ServerType = ServerType.Binance;
+                    newOrder.ServerType = ServerType.BinanceFutures;
                     newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
 
 
@@ -1411,7 +1411,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newOrder.TypeOrder = oldOpenOrders[i].TypeOrder;
                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
                     newOrder.TimeCancel = newOrder.TimeCallBack;
-                    newOrder.ServerType = ServerType.Binance;
+                    newOrder.ServerType = ServerType.BinanceFutures;
                     newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
 
                     if (MyOrderEvent != null)
@@ -1476,7 +1476,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             newOrder.TypeOrder = oldOrder.TypeOrder;
             newOrder.TimeCallBack = oldOrder.TimeCallBack;
             newOrder.TimeCancel = newOrder.TimeCallBack;
-            newOrder.ServerType = ServerType.Binance;
+            newOrder.ServerType = ServerType.BinanceFutures;
             newOrder.PortfolioNumber = oldOrder.PortfolioNumber;
 
             if (orderOnBoard.status == "NEW" ||
@@ -1703,7 +1703,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     newOrder.State = OrderStateType.Activ;
                                     newOrder.Volume = order.q.ToDecimal();
                                     newOrder.Price = order.p.ToDecimal();
-                                    newOrder.ServerType = ServerType.Binance;
+                                    newOrder.ServerType = ServerType.BinanceFutures;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
                                     if (MyOrderEvent != null)
@@ -1723,7 +1723,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     newOrder.State = OrderStateType.Cancel;
                                     newOrder.Volume = order.q.ToDecimal();
                                     newOrder.Price = order.p.ToDecimal();
-                                    newOrder.ServerType = ServerType.Binance;
+                                    newOrder.ServerType = ServerType.BinanceFutures;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
                                     if (MyOrderEvent != null)
@@ -1742,7 +1742,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     newOrder.State = OrderStateType.Fail;
                                     newOrder.Volume = order.q.ToDecimal();
                                     newOrder.Price = order.p.ToDecimal();
-                                    newOrder.ServerType = ServerType.Binance;
+                                    newOrder.ServerType = ServerType.BinanceFutures;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
                                     if (MyOrderEvent != null)
@@ -1779,7 +1779,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                     newOrder.State = OrderStateType.Cancel;
                                     newOrder.Volume = order.q.ToDecimal();
                                     newOrder.Price = order.p.ToDecimal();
-                                    newOrder.ServerType = ServerType.Binance;
+                                    newOrder.ServerType = ServerType.BinanceFutures;
                                     newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
                                     if (MyOrderEvent != null)
