@@ -1849,6 +1849,7 @@ position => position.State != PositionStateType.OpeningFail
                 for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
                 {
                     _tabSimple[i].Connector.EmulatorIsOn = value;
+                    _tabSimple[i].Connector.Save();
                 }
 
                 for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
@@ -1866,6 +1867,7 @@ position => position.State != PositionStateType.OpeningFail
                         try
                         {
                             bot.Tabs[i2].Connector.EmulatorIsOn = value;
+                            bot.Tabs[i2].Connector.Save();
                         }
                         catch
                         {
