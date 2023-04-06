@@ -241,8 +241,12 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
+        private RateGate _rateGateGenerateToTrate = new RateGate(1, TimeSpan.FromMilliseconds(300));
+
         private List<MyTrade> GenerateTradesToOrder(Order order, int SeriasCalls)
         {
+            _rateGateGenerateToTrate.WaitToProceed();
+
             List<MyTrade> myTrades = new List<MyTrade>();
 
             if (SeriasCalls >= 4)
@@ -558,7 +562,7 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     PositionOnBoard newPortf = new PositionOnBoard();
                     newPortf.SecurityNameCode = portfs.data[0].details[i].ccy;
-                    newPortf.ValueBegin = portfs.data[0].details[i].availEq.ToDecimal();
+                    newPortf.ValueBegin = portfs.data[0].details[i].cashBal.ToDecimal();
                     newPortf.ValueCurrent = portfs.data[0].details[i].availEq.ToDecimal();
                     newPortf.ValueBlocked = portfs.data[0].details[i].frozenBal.ToDecimal();
 
