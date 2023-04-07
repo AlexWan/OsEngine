@@ -556,7 +556,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                     securities.Add(security);
                 }
-                catch(Exception error)
+                catch (Exception error)
                 {
                     throw new Exception("Security creation error \n" + error.ToString());
                 }
@@ -631,7 +631,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             }
             foreach (var portfolio in Portfolios)
             {
-                string url = _privateUriBuilder.Build("POST", "/api/v1/contract_account_info");
+                string url = _privateUriBuilder.Build("POST", "/v3/unified_account_info");
 
                 StringContent httpContent = new StringContent(new JsonObject().ToString(), Encoding.UTF8, "application/json");
 
@@ -643,7 +643,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                 if (result.Contains("Incorrect Access key"))
                 {
-                    SendLogMessage("Huobi: Incorrect Access API key",LogMessageType.Error);
+                    SendLogMessage("Huobi: Incorrect Access API key", LogMessageType.Error);
                     return;
                 }
 
@@ -656,10 +656,10 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                     var currentData = accountInfo.data[i];
 
                     PositionOnBoard pos = new PositionOnBoard();
-                    pos.SecurityNameCode = currentData.symbol;
-                    pos.ValueBegin = currentData.margin_available;
-                    pos.ValueCurrent = currentData.margin_available;
-                    pos.ValueBlocked = currentData.margin_frozen;
+                    pos.SecurityNameCode = currentData.margin_asset;
+                    pos.ValueBegin = currentData.margin_static.ToDecimal();
+                    pos.ValueCurrent = currentData.margin_static.ToDecimal();
+                    pos.ValueBlocked = currentData.margin_static.ToDecimal();
 
                     portfolio.SetNewPosition(pos);
                 }
@@ -678,7 +678,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
             Security mySec = null;
 
-            for(int i = 0;i < _securities.Count;i++)
+            for (int i = 0; i < _securities.Count; i++)
             {
                 if (_securities[i].Name == order.SecurityNameCode)
                 {
@@ -813,7 +813,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
         public override void GetOrdersState(List<Order> orders)
         {
-            
+
         }
 
         private readonly List<GetCandlestickResponse> _allCandleSeries = new List<GetCandlestickResponse>();
@@ -840,12 +840,12 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
                 string name = security.NameId;
 
-                if(security.NameId.Contains("CW") ||
+                if (security.NameId.Contains("CW") ||
                         security.NameId.Contains("NW") ||
                         security.NameId.Contains("CQ") ||
                         security.NameId.Contains("NQ"))
                 {
-                    name =  security.Name;
+                    name = security.Name;
                 }
 
                 List<Candle> newCandles = GetCandlesByRest(oldInterval, name, actualTime, midTime);
@@ -924,7 +924,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
             var response = JsonConvert.DeserializeObject<GetCandlestickResponse>(resp);
 
-            if(response.status == "error")
+            if (response.status == "error")
             {
                 return null;
             }
