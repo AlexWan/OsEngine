@@ -319,7 +319,8 @@ namespace OsEngine.Market.Servers.OKX
                 ordType = order.TypeOrder.ToString().ToLower(),
                 sz = order.Volume.ToString().Replace(",", "."),
                 px = order.Price.ToString().Replace(",", "."),
-                clOrdId = order.NumberUser.ToString()
+                clOrdId = order.NumberUser.ToString(),
+                tag = "52450928"
 
             });
 
@@ -354,7 +355,8 @@ namespace OsEngine.Market.Servers.OKX
                 sz = Convert.ToInt32(order.Volume).ToString(),
                 px = order.Price.ToString().Replace(",", "."),
                 clOrdId = order.NumberUser.ToString(),
-                reduceOnly = order.PositionConditionType == OrderPositionConditionType.Close ? true : false
+                reduceOnly = order.PositionConditionType == OrderPositionConditionType.Close ? true : false,
+                tag = "52450928"
             });
 
             string json = JsonConvert.SerializeObject(orderRequest);
