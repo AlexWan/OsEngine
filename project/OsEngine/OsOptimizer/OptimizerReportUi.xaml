@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsOptimizer"
         mc:Ignorable="d"
-         Title="Optimizer Report" Height="685.801"  Width="1000" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="500" Icon="/Images/OsLogo.ico">
+         Title="Optimizer Report" MinWidth="900" MinHeight="600" Height="700"  Width="1100" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid/>
         <Grid Grid.Row="1">
@@ -27,10 +27,12 @@
                                     <WindowsFormsHost x:Name="WindowsFormsHostDependences"  Foreground="Black" Margin="0,37,349.6,222.4"/>
                                     <ComboBox Name="ComboBoxSortDependencesResults" HorizontalAlignment="Left" Margin="182,10,0,0" VerticalAlignment="Top" Width="214" Height="22"/>
                                     <Label Name="LabelSortBy" Content="Sort by" HorizontalAlignment="Left" Margin="28,10,0,0" VerticalAlignment="Top"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostColumnsResults"  Foreground="Black" Margin="0,0,588,10" Height="207" VerticalAlignment="Bottom"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostColumnsResults"  Foreground="Black" Margin="0,0,587.6,10.4" Height="177" VerticalAlignment="Bottom"/>
                                     <WindowsFormsHost x:Name="WindowsFormsHostPieResults"  Foreground="Black" Margin="0,0,0,10" Height="207" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="583"/>
                                     <WindowsFormsHost x:Name="WindowsFormsHostOutOfSampleEquity"  Foreground="Black" Margin="0,37,-0.4,222.4" HorizontalAlignment="Right" Width="345"/>
                                     <Label x:Name="LabelTotalProfitInOutOfSample" Content="Profit In OutOfSample %" HorizontalAlignment="Right" Margin="0,9,192,0" VerticalAlignment="Top"/>
+                                    <Label x:Name="LabelRobustnessMetric" Content="Robustness metric: " HorizontalAlignment="Left" Margin="10,0,0,194.8" VerticalAlignment="Bottom" Width="219"/>
+                                    <Label x:Name="LabelRobustnessMetricValue" Content="value" HorizontalAlignment="Left" Margin="234,0,0,194.8" VerticalAlignment="Bottom" Width="71"/>
                                 </Grid>
                             </TabItem>
                         </TabControl>

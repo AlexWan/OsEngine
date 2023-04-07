@@ -386,5 +386,9 @@ namespace OsEngine.Language
         public string Label52 => OsLocalization.ConvertToLocString(
              "Eng:The robot is being tested_" +
              "Ru:Робот тестируется_");
+
+        public string Label53 => OsLocalization.ConvertToLocString(
+             "Eng:Robustness metric: _" +
+             "Ru:Показатель робастности: _");
     }
 }

@@ -14,7 +14,8 @@ namespace OsEngine.OsOptimizer
     {
         public OptimizerReportCharting(WindowsFormsHost hostDataGrid, WindowsFormsHost hostColumnsResult,
             WindowsFormsHost hostPieChartResult, System.Windows.Controls.ComboBox boxTypeSort, 
-            WindowsFormsHost hostOutOfSampleEquity, System.Windows.Controls.Label outOfSampleLabel)
+            WindowsFormsHost hostOutOfSampleEquity, System.Windows.Controls.Label outOfSampleLabel, 
+            System.Windows.Controls.Label robustnessMetrica)
         {
             _sortBotsType = SortBotsType.TotalProfit;
 
@@ -24,6 +25,7 @@ namespace OsEngine.OsOptimizer
 
             _windowsFormsHostOutOfSampleEquity = hostOutOfSampleEquity;
             _outOfSampleLabel = outOfSampleLabel;
+            _robustnessMetrica = robustnessMetrica;
 
             boxTypeSort.Items.Add(SortBotsType.PositionCount.ToString());
             boxTypeSort.Items.Add(SortBotsType.TotalProfit.ToString());
@@ -47,6 +49,8 @@ namespace OsEngine.OsOptimizer
         }
 
         private System.Windows.Controls.ComboBox _boxTypeSort;
+
+        System.Windows.Controls.Label _robustnessMetrica;
 
         void _gridResults_SelectionChanged(object sender, EventArgs e)
         {
@@ -470,6 +474,7 @@ namespace OsEngine.OsOptimizer
                 _gridDep.Invoke(new Action(UpdateColumns));
                 return;
             }
+            _robustnessMetrica.Content = "";
 
             int countBestTwenty = 0;
             int count20_40 = 0;
@@ -556,6 +561,29 @@ namespace OsEngine.OsOptimizer
              int count40_60 = 0;
              int count60_80 = 0;
              int countWorst20 = 0;*/
+
+
+            decimal allCount = 0;
+
+            allCount += countBestTwenty;
+            allCount += countWorst20;
+            allCount += count20_40;
+            allCount += count40_60;
+            allCount += count60_80;
+
+            if(allCount != 0)
+            {
+                decimal oneBestPieW = 100 / allCount;
+                decimal robustness = 0;
+
+                robustness += countBestTwenty * oneBestPieW;     // лучшие 20 считаются по полной
+                robustness += count20_40 * oneBestPieW * 0.75m;  // результат попал в от 20 до 40 % - засчитываем 3 четверти
+                robustness += count40_60 * oneBestPieW * 0.5m;   // результат попал в от 40 до 60 % - засчитываем половину 
+                robustness += count60_80 * oneBestPieW * 0.25m;  // результат попал в от 60 до 80 % - засчитываем одну четверть
+                //robustness += countWorst20 * oneBestPieW * 0;  // результат попал в от 60 до 80 % - засчитываем одну четверть
+
+                _robustnessMetrica.Content = Math.Round(robustness, 2).ToString() + " %";
+            }
 
             _chart.Series[0].Points.Clear();
 

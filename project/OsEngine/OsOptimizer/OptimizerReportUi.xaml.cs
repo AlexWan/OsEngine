@@ -31,7 +31,7 @@ namespace OsEngine.OsOptimizer
             _resultsCharting = new OptimizerReportCharting(
             WindowsFormsHostDependences, WindowsFormsHostColumnsResults,
             WindowsFormsHostPieResults, ComboBoxSortDependencesResults,
-            WindowsFormsHostOutOfSampleEquity, LabelTotalProfitInOutOfSample);
+            WindowsFormsHostOutOfSampleEquity, LabelTotalProfitInOutOfSample, LabelRobustnessMetricValue);
 
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
             CreateTableFazes();
@@ -46,6 +46,7 @@ namespace OsEngine.OsOptimizer
             LabelTotalProfitInOutOfSample.Content = OsLocalization.Optimizer.Label43;
             ButtonSaveInFile.Content = OsLocalization.Optimizer.Label45;
             ButtonLoadFromFile.Content = OsLocalization.Optimizer.Label46;
+            LabelRobustnessMetric.Content = OsLocalization.Optimizer.Label53; 
 
             Title += "   " + master.StrategyName;
             

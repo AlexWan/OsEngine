@@ -173,10 +173,11 @@ namespace OsEngine.OsOptimizer
             LabelIteartionCount.Content = OsLocalization.Optimizer.Label47;
             ButtonStrategyReload.Content = OsLocalization.Optimizer.Label48;
             ButtonResults.Content = OsLocalization.Optimizer.Label49;
+            LabelRobustnessMetric.Content = OsLocalization.Optimizer.Label53;
 
             _resultsCharting = new OptimizerReportCharting(
                 WindowsFormsHostDependences, WindowsFormsHostColumnsResults,
-                WindowsFormsHostPieResults, ComboBoxSortDependencesResults, null, null);
+                WindowsFormsHostPieResults, ComboBoxSortDependencesResults, null, null, LabelRobustnessMetric);
             _resultsCharting.LogMessageEvent += _master.SendLogMessage;
 
             this.Closing += Ui_Closing;
@@ -1228,7 +1229,8 @@ namespace OsEngine.OsOptimizer
             _master.ReloadFazes();
             PaintTableOptimizeFazes();
 
-            if(_master.Fazes.Count == 0)
+            if(_master.Fazes == null ||
+                _master.Fazes.Count == 0)
             {
                 return;
             }

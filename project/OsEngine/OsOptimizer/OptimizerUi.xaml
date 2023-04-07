@@ -98,8 +98,10 @@
                                     <WindowsFormsHost x:Name="WindowsFormsHostDependences"  Foreground="Black" Margin="0,37,0,222"/>
                                     <ComboBox Name="ComboBoxSortDependencesResults" HorizontalAlignment="Left" Margin="182,10,0,0" VerticalAlignment="Top" Width="214" Height="22"/>
                                     <Label Name="LabelSortBy" Content="Sort by" HorizontalAlignment="Left" Margin="26,9,0,0" VerticalAlignment="Top"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostColumnsResults"  Foreground="Black" Margin="0,0,588,10" Height="207" VerticalAlignment="Bottom"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostColumnsResults"  Foreground="Black" Margin="0,0,587.6,10" Height="183" VerticalAlignment="Bottom"/>
                                     <WindowsFormsHost x:Name="WindowsFormsHostPieResults"  Foreground="Black" Margin="0,0,0,10" Height="207" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="583"/>
+                                    <Label x:Name="LabelRobustnessMetric" Content="Robustness metric: " HorizontalAlignment="Left" Margin="0,0,0,194" VerticalAlignment="Bottom" Width="209"/>
+                                    <Label x:Name="LabelRobustnessMetricValue" Content="value" HorizontalAlignment="Left" Margin="214,0,0,194" VerticalAlignment="Bottom" Width="81"/>
 
                                 </Grid>
                             </TabItem>
