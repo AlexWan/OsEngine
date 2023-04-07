@@ -24,6 +24,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string px;
         public string clOrdId;
         public bool reduceOnly;
+        public string tag;
     }
 
     public class OrderRequestArgsSpot
