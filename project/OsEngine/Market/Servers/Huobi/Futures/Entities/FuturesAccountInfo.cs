@@ -8,26 +8,33 @@ namespace OsEngine.Market.Servers.Huobi.Futures.Entities
 {
     public class AccountData
     {
-        public string symbol { get; set; }
-        public decimal margin_balance { get; set; }
-        public decimal margin_position { get; set; }
-        public decimal margin_frozen { get; set; }
-        public decimal margin_available { get; set; }
-        public decimal profit_real { get; set; }
-        public decimal profit_unreal { get; set; }
-        public object risk_rate { get; set; }
-        public decimal withdraw_available { get; set; }
-        public object liquidation_price { get; set; }
-        public int lever_rate { get; set; }
-        public decimal adjust_factor { get; set; }
-        public decimal margin_static { get; set; }
-        public int is_debit { get; set; }
+        public string userid;
+
+        public string margin_asset;
+
+        public string margin_static;
+
+        public string cross_margin_static;
+
+        public string margin_frozen;
+
+        public string withdraw_available;
+
+        public string cross_risk_rate;
+
+        public object[] cross_swap;
+
+        public object[] cross_future;
+
+        public object[] isolated_swap;
     }
 
     public class FuturesAccountInfo
     {
-        public string status { get; set; }
-        public IList<AccountData> data { get; set; }
-        public long ts { get; set; }
+        public string status;
+
+        public List<AccountData> data;
+
+        public long ts;
     }
 }

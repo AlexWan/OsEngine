@@ -228,7 +228,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
                                 var order = new Order();
 
-                                order.SecurityNameCode = orderNotify.symbol;
+                                order.SecurityNameCode = orderNotify.contract_code;
                                 order.Side = orderNotify.direction == "buy" ? Side.Buy : Side.Sell;
                                 order.NumberMarket = orderNotify.order_id.ToString();
                                 order.NumberUser = orderNotify.client_order_id ?? 0;
@@ -246,7 +246,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
                                 foreach (var tradeNotify in orderNotify.trade)
                                 {
-                                    var security = orderNotify.symbol;
+                                    var security = orderNotify.contract_code;
                                     var myTrade = CreateMyTrade(security, orderNotify.order_id.ToString(),
                                         orderNotify.direction, tradeNotify);
 
@@ -617,7 +617,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             }
             foreach (var portfolio in Portfolios)
             {
-                string url = _privateUriBuilder.Build("POST", pathSwapRest + "/v1/swap_account_info");
+                string url = _privateUriBuilder.Build("POST", pathSwapRest + "/v3/unified_account_info");
 
                 StringContent httpContent = new StringContent(new JsonObject().ToString(), Encoding.UTF8, "application/json");
 
@@ -642,10 +642,10 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
                     var currentData = accountInfo.data[i];
 
                     PositionOnBoard pos = new PositionOnBoard();
-                    pos.SecurityNameCode = currentData.symbol;
-                    pos.ValueBegin = currentData.margin_available;
-                    pos.ValueCurrent = currentData.margin_available;
-                    pos.ValueBlocked = currentData.margin_frozen;
+                    pos.SecurityNameCode = currentData.margin_asset;
+                    pos.ValueBegin = currentData.margin_static.ToDecimal();
+                    pos.ValueCurrent = currentData.margin_static.ToDecimal();
+                    pos.ValueBlocked = currentData.margin_static.ToDecimal();
 
                     portfolio.SetNewPosition(pos);
                 }
