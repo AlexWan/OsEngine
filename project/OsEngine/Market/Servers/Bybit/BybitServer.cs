@@ -408,89 +408,108 @@ namespace OsEngine.Market.Servers.Bybit
 
         private void GetPositions()
         {
-            // https://api-testnet.bybit.com/private/linear/position/list?api_key={api_key}&symbol=BTCUSDT&timestamp={timestamp}&sign={sign}"
-
-            // /private/linear/position/list
-
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters.Add("api_key", client.ApiKey);
-            parameters.Add("recv_window", "90000000");
-
-            JToken account_response = CreatePrivateGetQuery(client, "/private/linear/position/list", parameters);
-
-            if (account_response == null)
+            try
             {
-                return;
-            }
+                // https://api-testnet.bybit.com/private/linear/position/list?api_key={api_key}&symbol=BTCUSDT&timestamp={timestamp}&sign={sign}"
 
-            if (_portfolios == null ||
-                 _portfolios.Count == 0)
-            {
-                return;
-            }
+                // /private/linear/position/list
 
-            Portfolio myPortf = null;
+                Dictionary<string, string> parameters = new Dictionary<string, string>();
+                parameters.Add("api_key", client.ApiKey);
+                parameters.Add("recv_window", "90000000");
 
-            for (int i = 0; i < _portfolios.Count; i++)
-            {
-                if (_portfolios[i].Number == "BybitPortfolio")
+                JToken account_response = CreatePrivateGetQuery(client, "/private/linear/position/list", parameters);
+
+                if (account_response == null)
                 {
-                    myPortf = _portfolios[i];
+                    return;
                 }
-            }
 
-            if (myPortf == null)
+                if (_portfolios == null ||
+                     _portfolios.Count == 0)
+                {
+                    return;
+                }
+
+                Portfolio myPortf = null;
+
+                for (int i = 0; i < _portfolios.Count; i++)
+                {
+                    if (_portfolios[i].Number == null)
+                    {
+                        return;
+                    }
+                    if (_portfolios[i].Number == "BybitPortfolio")
+                    {
+                        myPortf = _portfolios[i];
+                    }
+                }
+
+                if (myPortf == null)
+                {
+                    return;
+                }
+
+                List<PositionOnBoard> poses = BybitPortfolioCreator.CreatePosOnBoard(account_response.SelectToken("result"));
+
+                if (poses == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < poses.Count; i++)
+                {
+                    myPortf.SetNewPosition(poses[i]);
+                }
+
+                OnPortfolioEvent(_portfolios);
+            }
+            catch (Exception)
             {
-                return;
+                //ignore
             }
-
-            List<PositionOnBoard> poses = BybitPortfolioCreator.CreatePosOnBoard(account_response.SelectToken("result"));
-
-            if (poses == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < poses.Count; i++)
-            {
-                myPortf.SetNewPosition(poses[i]);
-            }
-
-            OnPortfolioEvent(_portfolios);
         }
 
         public override void GetPortfolios()
         {
-            List<Portfolio> portfolios = new List<Portfolio>();
-
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-
-            parameters.Add("api_key", client.ApiKey);
-            parameters.Add("recv_window", "90000000");
-
-            JToken account_response = CreatePrivateGetQuery(client, "/v2/private/wallet/balance", parameters);
-
-            if (account_response == null)
+            try
             {
-                return;
+                List<Portfolio> portfolios = new List<Portfolio>();
+
+                Dictionary<string, string> parameters = new Dictionary<string, string>();
+
+                parameters.Add("api_key", client.ApiKey);
+                parameters.Add("recv_window", "90000000");
+
+                JToken account_response = CreatePrivateGetQuery(client, "/v2/private/wallet/balance", parameters);
+
+                if (account_response == null)
+                {
+                    return;
+                }
+
+                string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
+
+                if (isSuccessfull == "OK")
+                {
+                    portfolios.Add(BybitPortfolioCreator.Create(account_response.SelectToken("result"), "BybitPortfolio"));
+                }
+                else
+                {
+                    SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
+                    SendLogMessage($"You should set the time on the PC as UTC time.", LogMessageType.Error);
+
+                    portfolios.Add(BybitPortfolioCreator.Create("undefined"));
+                }
+
+                OnPortfolioEvent(portfolios);
+                _portfolios = portfolios;
             }
-
-            string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
-
-            if (isSuccessfull == "OK")
+            catch (Exception)
             {
-                portfolios.Add(BybitPortfolioCreator.Create(account_response.SelectToken("result"), "BybitPortfolio"));
+                //ignore
             }
-            else
-            {
-                SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
-                SendLogMessage($"You should set the time on the PC as UTC time.", LogMessageType.Error);
-
-                portfolios.Add(BybitPortfolioCreator.Create("undefined"));
-            }
-
-            OnPortfolioEvent(portfolios);
-            _portfolios = portfolios;
+            
         } // both futures
 
         List<Portfolio> _portfolios;
