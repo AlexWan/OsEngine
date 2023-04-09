@@ -204,6 +204,9 @@ namespace OsEngine.Language
         public string Label45 => OsLocalization.ConvertToLocString(
             "Eng:Enter a name!!!_" +
             "Ru:Введите название!!!_");
-        
+
+        public string Label46 => OsLocalization.ConvertToLocString(
+            "Eng:Checking data errors. It's better to wait..._" +
+            "Ru:Идёт сверка данных. Лучше подождать..._");
     }
 }

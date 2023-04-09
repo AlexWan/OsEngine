@@ -9,6 +9,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using System.Threading;
 
 namespace OsEngine.OsData
 {
@@ -16,7 +17,12 @@ namespace OsEngine.OsData
     {
         public OsDataMaster()
         {
-            Load();
+            _awaitUiMasterAloneTest = new AwaitObject(OsLocalization.Data.Label46, 100, 0, true);
+            AwaitUi ui = new AwaitUi(_awaitUiMasterAloneTest);
+
+            Task.Run(Load);
+            ui.ShowDialog();
+            Thread.Sleep(500);
         }
 
         public List<OsDataSet> Sets = new List<OsDataSet>();
@@ -56,6 +62,8 @@ namespace OsEngine.OsData
             Sets = sortSets;
         }
 
+        AwaitObject _awaitUiMasterAloneTest;
+
         /// <summary>
         /// load settings from file/загрузить настройки из файла
         /// </summary>
@@ -94,6 +102,13 @@ namespace OsEngine.OsData
 
                 }
             }
+
+            _awaitUiMasterAloneTest.Dispose();
+
+            if(NeadUpDateTableEvent != null)
+            {
+                NeadUpDateTableEvent();
+            }
         }
 
         /// <summary>
@@ -111,5 +126,7 @@ namespace OsEngine.OsData
         /// new message event to log/событие нового сообщения в лог
         /// </summary>
         public event Action<string, LogMessageType> NewLogMessageEvent;
+
+        public event Action NeadUpDateTableEvent;
     }
 }

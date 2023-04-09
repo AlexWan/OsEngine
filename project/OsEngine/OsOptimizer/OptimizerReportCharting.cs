@@ -580,7 +580,7 @@ namespace OsEngine.OsOptimizer
                 robustness += count20_40 * oneBestPieW * 0.75m;  // результат попал в от 20 до 40 % - засчитываем 3 четверти
                 robustness += count40_60 * oneBestPieW * 0.5m;   // результат попал в от 40 до 60 % - засчитываем половину 
                 robustness += count60_80 * oneBestPieW * 0.25m;  // результат попал в от 60 до 80 % - засчитываем одну четверть
-                //robustness += countWorst20 * oneBestPieW * 0;  // результат попал в от 60 до 80 % - засчитываем одну четверть
+                //robustness += countWorst20 * oneBestPieW * 0;  // результат попал в худшие. Ничего не засчитываем
 
                 _robustnessMetrica.Content = Math.Round(robustness, 2).ToString() + " %";
             }

@@ -1168,7 +1168,7 @@ namespace OsEngine.OsData
 
             while (true)
             {
-                DataPie newPie = new DataPie();
+                DataPie newPie = new DataPie(_pathMyTempPieInTfFolder);
                 newPie.Start = timeStart;
                 newPie.End = timeNow;
 
@@ -1189,7 +1189,7 @@ namespace OsEngine.OsData
                 }
                 else
                 {
-                    LoadCandleDataPieInTempFile(newPie);
+                   // LoadCandleDataPieInTempFile(newPie);
                 }
 
                 newCandleDataPies.Add(newPie);
@@ -1301,7 +1301,6 @@ namespace OsEngine.OsData
 
                 if (DataPies[i].Status == DataPieStatus.Load)
                 {
-                    SaveCandleDataPieInTempFile(DataPies[i]);
                     CheckTimeInSets();
                 }
             }
@@ -1350,85 +1349,11 @@ namespace OsEngine.OsData
                 return;
             }
 
-            pie.Candles = candles;
+            pie.SetNewCandlesInPie(candles);
 
             SendNewLogMessage("Candles Load Successfully. sec: " + id + " , tf: " + TimeFrame +
 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToString(), LogMessageType.System);
             pie.Status = DataPieStatus.Load;
-        }
-
-        private void LoadCandleDataPieInTempFile(DataPie pie)
-        {
-            if (_isDeleted) { return; }
-
-            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + pie.Start.ToString("yyyyMMdd") + "_" + pie.End.ToString("yyyyMMdd") + ".txt";
-
-            if (File.Exists(pathToTempFile) == false)
-            {
-                return;
-            }
-
-            List<Candle> candles = new List<Candle>();
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(pathToTempFile))
-                {
-                    while (reader.EndOfStream == false)
-                    {
-                        string str = reader.ReadLine();
-
-                        Candle newCandle = new Candle();
-                        newCandle.SetCandleFromString(str);
-                        candles.Add(newCandle);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-
-            if (candles.Count != 0)
-            {
-                pie.Candles = candles;
-                pie.Status = DataPieStatus.Load;
-            }
-        }
-
-        private void SaveCandleDataPieInTempFile(DataPie pie)
-        {
-            if (_isDeleted) { return; }
-
-            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + pie.Start.ToString("yyyyMMdd") + "_" + pie.End.ToString("yyyyMMdd") + ".txt";
-
-            List<Candle> candles = pie.Candles;
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(pathToTempFile, false))
-                {
-                    for (int i = 0; i < candles.Count; i++)
-                    {
-                        if (candles[i].TimeStart < TimeStart)
-                        {
-                            continue;
-                        }
-
-                        if (candles[i].TimeStart > TimeEnd)
-                        {
-                            break;
-                        }
-
-                        writer.WriteLine(candles[i].StringToSave);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                if (_isDeleted) { return; }
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
         }
 
         public List<Candle> GetCandlesAllHistory()
@@ -1444,19 +1369,22 @@ namespace OsEngine.OsData
 
             for (int i = 0; i < DataPies.Count; i++)
             {
-                if (DataPies[i].Candles == null ||
-                    DataPies[i].Candles.Count == 0)
+                List<Candle> curCandle = DataPies[i].LoadCandleDataPieInTempFile();
+
+
+                if (curCandle == null ||
+                    curCandle.Count == 0)
                 {
                     continue;
                 }
 
                 if (extCandles.Count == 0)
                 {
-                    extCandles.AddRange(DataPies[i].Candles);
+                    extCandles.AddRange(curCandle);
                 }
                 else
                 {
-                    extCandles = extCandles.Merge(DataPies[i].Candles);
+                    extCandles = extCandles.Merge(curCandle);
                 }
             }
 
@@ -2228,15 +2156,17 @@ namespace OsEngine.OsData
 
     public class DataPie
     {
+        public DataPie(string tempFileDirectory)
+        {
+            _pathMyTempPieInTfFolder = tempFileDirectory;
+        }
+
+        public string _pathMyTempPieInTfFolder;
+
         public int CountTriesToLoadSet;
 
         public void Delete()
         {
-            if(Candles != null)
-            {
-                Candles.Clear();
-            }
-         
             if(Trades != null)
             {
                 Trades.Clear();
@@ -2247,6 +2177,8 @@ namespace OsEngine.OsData
 
         public DateTime StartActualTime()
         {
+            List<Candle> Candles = LoadCandleDataPieInTempFile();
+
             DateTime start = DateTime.MinValue;
 
             if (Candles != null && Candles.Count != 0)
@@ -2266,6 +2198,8 @@ namespace OsEngine.OsData
 
         public DateTime EndActualTime()
         {
+            List<Candle> Candles = LoadCandleDataPieInTempFile();
+
             DateTime end = DateTime.MinValue;
 
             if (Candles != null && Candles.Count > 0)
@@ -2283,15 +2217,15 @@ namespace OsEngine.OsData
 
         public DataPieStatus Status;
 
-        public List<Candle> Candles;
-
         public List<Trade> Trades;
 
         public int ObjectCount
         {
             get
             {
-                if(Candles == null &&
+                List<Candle> Candles = LoadCandleDataPieInTempFile();
+
+                if (Candles == null &&
                     Trades == null)
                 {
                     return 0;
@@ -2308,6 +2242,80 @@ namespace OsEngine.OsData
                 }
 
                 return 0;
+            }
+        }
+
+        public void SetNewCandlesInPie(List<Candle> candles)
+        {
+            SaveCandleDataPieInTempFile(candles);
+            // сохраняем в файл
+        }
+
+        public List<Candle> LoadCandleDataPieInTempFile()
+        {
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+
+            if (File.Exists(pathToTempFile) == false)
+            {
+                return null;
+            }
+
+            List<Candle> candles = new List<Candle>();
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(pathToTempFile))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string str = reader.ReadLine();
+
+                        Candle newCandle = new Candle();
+                        newCandle.SetCandleFromString(str);
+                        candles.Add(newCandle);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            if (candles.Count != 0)
+            {
+                Status = DataPieStatus.Load;
+            }
+
+            return candles;
+        }
+
+        private void SaveCandleDataPieInTempFile(List<Candle> candles)
+        {
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(pathToTempFile, false))
+                {
+                    for (int i = 0; i < candles.Count; i++)
+                    {
+                        if (candles[i].TimeStart < Start)
+                        {
+                            continue;
+                        }
+
+                        if (candles[i].TimeStart > End)
+                        {
+                            break;
+                        }
+
+                        writer.WriteLine(candles[i].StringToSave);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
     }

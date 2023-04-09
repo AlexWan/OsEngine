@@ -73,10 +73,16 @@ namespace OsEngine.OsData
 
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
             master.NewLogMessageEvent += SendNewLogMessage;
+            master.NeadUpDateTableEvent += Master_NeadUpDateTableEvent;
 
             Log myLog = new Log("OsDataLog", StartProgram.IsOsData);
             myLog.StartPaint(hostLog);
             myLog.Listen(this);
+        }
+
+        private void Master_NeadUpDateTableEvent()
+        {
+            RePaintSetGrid();
         }
 
         void ServerMaster_ServerCreateEvent(IServer server)
