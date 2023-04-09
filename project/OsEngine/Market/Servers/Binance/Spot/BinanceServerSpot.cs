@@ -266,7 +266,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     {
                         firstTrades = _client.GetTickHistoryToSecurity(security.Name, startOver, startOver.AddSeconds(60), 0);
                         startOver.AddSeconds(60);
-                        Thread.Sleep(60);
                     }
                     while (firstTrades == null || firstTrades.Count == 0);
 
@@ -298,11 +297,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 if (markerDateTime != startOver.ToShortDateString())
                 {
+                    if (startOver >= endTime)
+                    {
+                        break;
+                    }
                     markerDateTime = startOver.ToShortDateString();
                     SendLogMessage(security.Name + " Binance Spot start loading: " + markerDateTime, LogMessageType.System);
                 }
-
-                Thread.Sleep(10);
             }
 
             if (trades.Count == 0)

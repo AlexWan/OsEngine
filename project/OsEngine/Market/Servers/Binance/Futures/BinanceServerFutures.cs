@@ -263,7 +263,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
         {
             endTime = endTime.AddDays(1);
-
             string markerDateTime = "";
 
             List<Trade> trades = new List<Trade>();
@@ -295,11 +294,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 if (markerDateTime != startOver.ToShortDateString())
                 {
+                    if (startOver >= endTime)
+                    {
+                        break;
+                    }
                     markerDateTime = startOver.ToShortDateString();
                     SendLogMessage(security.Name + " Binance Futures start loading: " + markerDateTime, LogMessageType.System);
                 }
-
-                Thread.Sleep(300);
             }
 
             if (trades.Count == 0)
