@@ -320,7 +320,7 @@ namespace OsEngine.Market.Servers.OKX
                 sz = order.Volume.ToString().Replace(",", "."),
                 px = order.Price.ToString().Replace(",", "."),
                 clOrdId = order.NumberUser.ToString(),
-                tag = "52450928"
+                tag = "5faf8b0e85c1BCDE"
 
             });
 
@@ -356,7 +356,7 @@ namespace OsEngine.Market.Servers.OKX
                 px = order.Price.ToString().Replace(",", "."),
                 clOrdId = order.NumberUser.ToString(),
                 reduceOnly = order.PositionConditionType == OrderPositionConditionType.Close ? true : false,
-                tag = "52450928"
+                tag = "5faf8b0e85c1BCDE"
             });
 
             string json = JsonConvert.SerializeObject(orderRequest);

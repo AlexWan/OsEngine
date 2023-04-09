@@ -1743,6 +1743,12 @@ namespace OsEngine.Journal.Internal
                 int number;
                 try
                 {
+                    if (_gridOpenDeal.Rows == null ||
+                        _gridOpenDeal.Rows.Count == 0 ||
+                        _gridOpenDeal.CurrentCell == null)
+                    {
+                        return;
+                    }
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)

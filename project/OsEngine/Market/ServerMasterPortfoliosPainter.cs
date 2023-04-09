@@ -826,6 +826,13 @@ namespace OsEngine.Market
                         return;
                     }
 
+                    if (_gridOrders.Rows == null ||
+                        _gridOrders.Rows.Count == 0 ||
+                        _gridOrders.CurrentCell == null)
+                    {
+                        return;
+                    }
+
                     Order order = _orders[(_orders.Count - 1 - _gridOrders.CurrentCell.RowIndex)];
 
                     if ((order.State == OrderStateType.Activ || order.State == OrderStateType.Pending)
