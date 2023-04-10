@@ -564,6 +564,7 @@
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfTick.cs" />
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfTrade.cs" />
     <Compile Include="Market\Servers\GateIo\Futures\Response\GfTrades.cs" />
+    <Compile Include="Market\Servers\GateIo\Futures\Response\PositionResponceSwap.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoServer.cs" />
     <Compile Include="Market\Servers\Hitbtc\HitbtcClient.cs" />
     <Compile Include="Market\Servers\Hitbtc\HitbtcEntity.cs" />
