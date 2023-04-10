@@ -13,7 +13,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -31,9 +34,10 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
-            CreateParameterEnum("Base Wallet", "USDT", new List<string> { "USDT", "BTC" });
-            CreateParameterEnum("Trade Mode", "TestNet", new List<string> { "Real", "TestNet" });
             CreateParameterString("User ID", "");
+            CreateParameterEnum("Base Wallet", "USDT", new List<string> { "USDT", "BTC" });
+            CreateParameterEnum("Position Mode", "Single", new List<string> { "Single", "Double" });
+            
         }
 
         /// <summary>
@@ -58,13 +62,14 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         private readonly GfMarketDepthCreator _mDepthCreator;
         private readonly GfOrderCreator _orderCreator;
         private DateTime _lastTimeUpdateSocket;
+        
 
         private string _host = "https://fx-api-testnet.gateio.ws";
         private string _path = "/api/v4/futures";
         private string _wallet = "/usdt";
         private string _baseUrlWss = "wss://fx-ws-testnet.gateio.ws/v4/ws";
+        private string _postionMode = "Double";
         private string _userId = "";
-        private string _tradeMode = "";
         private string _baseWallet = "";
         private const string PortfolioNumber = "GateIoFutures";
 
@@ -112,16 +117,14 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         {
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _userId = ((ServerParameterString)ServerParameters[2]).Value;
+            _baseWallet = ((ServerParameterEnum)ServerParameters[3]).Value;
+            _postionMode = ((ServerParameterEnum)ServerParameters[4]).Value;
+            
 
-            _baseWallet = ((ServerParameterEnum)ServerParameters[2]).Value;
-            _tradeMode = ((ServerParameterEnum)ServerParameters[3]).Value;
-            _userId = ((ServerParameterString)ServerParameters[4]).Value;
+            _host = "https://fx-api.gateio.ws";
+            _baseUrlWss = "wss://fx-ws.gateio.ws/v4/ws";
 
-            if (_tradeMode == "Real")
-            {
-                _host = "https://fx-api.gateio.ws";
-                _baseUrlWss = "wss://fx-ws.gateio.ws/v4/ws";
-            }
             if (_baseWallet == "BTC")
                 _wallet = "/btc";
 
@@ -132,6 +135,8 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             StartMessageReader();
 
             _signer = new Signer(_secretKey);
+
+            SetDualMode();
 
             _wsSource = new WsSource(_baseUrlWss + _wallet);
             _wsSource.MessageEvent += WsSourceOnMessageEvent;
@@ -225,6 +230,42 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             }
         }
         #endregion
+
+
+        private void SetDualMode()
+        {
+            string mode = _postionMode.Equals("Single") ? "false" : "true";
+
+            string apiKey = _publicKey;
+            string apiSecret = _secretKey;
+            string host = "https://api.gateio.ws";
+            string prefix = "/api/v4";
+            string method = "POST";
+            string url = "/futures/usdt/dual_mode";
+            string queryParam = $"dual_mode={mode}";
+            string bodyParam = "";
+            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+
+            byte[] bodyBytes = Encoding.UTF8.GetBytes(bodyParam);
+            string bodyHash = BitConverter.ToString(SHA512.Create().ComputeHash(bodyBytes)).Replace("-", "").ToLower();
+
+            string signString = $"{method}\n{prefix}{url}\n{queryParam}\n{bodyHash}\n{timestamp}";
+            byte[] secretBytes = Encoding.UTF8.GetBytes(apiSecret);
+            byte[] signBytes = new HMACSHA512(secretBytes).ComputeHash(Encoding.UTF8.GetBytes(signString));
+            string sign = BitConverter.ToString(signBytes).Replace("-", "").ToLower();
+
+            string fullUrl = $"{host}{prefix}{url}?{queryParam}";
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("Timestamp", timestamp);
+                client.DefaultRequestHeaders.Add("KEY", apiKey);
+                client.DefaultRequestHeaders.Add("SIGN", sign);
+
+                var response = client.PostAsync(fullUrl, null).Result;
+                var responseBody = response.Content.ReadAsStringAsync().Result;
+            }
+        }
 
         private async void MessageReader(CancellationToken token)
         {
@@ -484,11 +525,15 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
             var result = _requestREST.SendGetQuery("GET", _host + _path + _wallet, "/accounts", headers);
 
+            string jsonPosition = GetPositionSwap(timeStamp);
+
             if (result.Contains("failed"))
             {
                 SendLogMessage("GateIFutures: Cant get porfolios", LogMessageType.Error);
                 return;
             }
+
+            List<PositionResponceSwap> accountPosition = JsonConvert.DeserializeObject<List<PositionResponceSwap>>(jsonPosition);
 
             GfAccount accountInfo = JsonConvert.DeserializeObject<GfAccount>(result);
 
@@ -504,7 +549,30 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
             portfolio.SetNewPosition(pos);
 
+
+            foreach (var item in accountPosition)
+            {
+                string SellBuy = item.size.ToDecimal() < 0 ? "_Sell" : "_Buy";
+                PositionOnBoard position = new PositionOnBoard();
+                position.PortfolioName = "GateIoFutures";
+                position.SecurityNameCode = item.contract + SellBuy;
+                position.ValueBegin = Math.Abs(Converter.StringToDecimal(item.size));
+                position.ValueCurrent = Math.Abs(Converter.StringToDecimal(item.size));
+                portfolio.SetNewPosition(position);
+            }
+
             OnPortfolioEvent(Portfolios);
+        }
+
+        private string GetPositionSwap(string timeStamp)
+        {
+            HttpClient httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Timestamp", timeStamp);
+            httpClient.DefaultRequestHeaders.Add("KEY", _publicKey);
+            httpClient.DefaultRequestHeaders.Add("SIGN", _signer.GetSignStringRest("GET", "/api/v4" + "/futures/usdt/positions", "", "", timeStamp));
+            var responce = httpClient.GetAsync("https://api.gateio.ws/api/v4/futures/usdt/positions").Result;
+            var json = responce.Content.ReadAsStringAsync().Result;
+            return json;
         }
 
         public override void SendOrder(Order order)
@@ -513,17 +581,45 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             if (order.Side == Side.Sell)
                 outputVolume = -1 * order.Volume;
 
-            CreateOrderRequst jOrder = new CreateOrderRequst()
+            string bodyContent = String.Empty;
+            if (_postionMode.Equals("Double") &&
+                order.PositionConditionType == OrderPositionConditionType.Close)
             {
-                Contract = order.SecurityNameCode,
-                Iceberg = 0,
-                Price = order.Price.ToString(CultureInfo.InvariantCulture),
-                Size = Convert.ToInt64(outputVolume),
-                Tif = "gtc",
-                Text = $"t-{order.NumberUser}"
-            };
+                string close = null;
+                close = order.Side == Side.Sell ? "close_long" : "close_short";
 
-            string bodyContent = JsonConvert.SerializeObject(jOrder).Replace(" ", "").Replace(Environment.NewLine, "");
+                CreateOrderRequstDoubleModeClose jOrder = new CreateOrderRequstDoubleModeClose()
+                {
+                    Contract = order.SecurityNameCode,
+                    Iceberg = 0,
+                    Price = order.Price.ToString(CultureInfo.InvariantCulture),
+                    Size = Convert.ToInt64(outputVolume),
+                    Tif = "gtc",
+                    Text = $"t-{order.NumberUser}",
+                    //AutoSize = close,
+                    Close = false,
+                    Reduce_only = true
+                };
+
+                bodyContent = JsonConvert.SerializeObject(jOrder).Replace(" ", "").Replace(Environment.NewLine, "");
+            }
+            else
+            {
+                CreateOrderRequst jOrder = new CreateOrderRequst()
+                {
+                    Contract = order.SecurityNameCode,
+                    Iceberg = 0,
+                    Price = order.Price.ToString(CultureInfo.InvariantCulture),
+                    Size = Convert.ToInt64(outputVolume),
+                    Tif = "gtc",
+                    Text = $"t-{order.NumberUser}",
+                };
+
+                bodyContent = JsonConvert.SerializeObject(jOrder).Replace(" ", "").Replace(Environment.NewLine, "");
+            }
+
+
+            
 
 
             string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
@@ -533,31 +629,46 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             headers.Add("KEY", _publicKey);
             headers.Add("SIGN", _signer.GetSignStringRest("POST", _path + _wallet + "/orders", "", bodyContent, timeStamp));
 
-            var result = _requestREST.SendPostQuery("POST", _host + _path + _wallet, "/orders", Encoding.UTF8.GetBytes(bodyContent), headers);
-
-
-
-            CreateOrderResponse orderResponse = JsonConvert.DeserializeObject<CreateOrderResponse>(result);
-
-            if (orderResponse.Status == "finished")
+            try
             {
-                SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
+                var result = _requestREST.SendPostQuery("POST", _host + _path + _wallet, "/orders", Encoding.UTF8.GetBytes(bodyContent), headers);
+
+
+
+                CreateOrderResponse orderResponse = JsonConvert.DeserializeObject<CreateOrderResponse>(result);
+
+                if (orderResponse.Status == "finished")
+                {
+                    SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
+                }
+                else if (orderResponse.Status == "open")
+                {
+                    SendLogMessage($"Order num {order.NumberUser} wait to execution on exchange.", LogMessageType.Trade);
+                }
+                else
+                {
+                    //err_msg
+                    dynamic errorData = JToken.Parse(result);
+                    string errorMsg = errorData.err_msg;
+
+                    SendLogMessage($"Order exchange error num {order.NumberUser} : {errorMsg}", LogMessageType.Error);
+
+                    order.State = OrderStateType.Fail;
+
+                    OnOrderEvent(order);
+                }
             }
-            else if (orderResponse.Status == "open")
+            catch (WebException ex)
             {
-                SendLogMessage($"Order num {order.NumberUser} wait to execution on exchange.", LogMessageType.Trade);
-            }
-            else
-            {
-                //err_msg
-                dynamic errorData = JToken.Parse(result);
-                string errorMsg = errorData.err_msg;
-
-                SendLogMessage($"Order exchange error num {order.NumberUser} : {errorMsg}", LogMessageType.Error);
-
-                order.State = OrderStateType.Fail;
-
-                OnOrderEvent(order);
+                HttpWebResponse httpResponse = (HttpWebResponse)ex.Response;
+                if (ex.Response != null)
+                {
+                    using (Stream stream = ex.Response.GetResponseStream())
+                    {
+                        StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+                        var q = reader.ReadToEnd();
+                    }
+                }
             }
         }
 
@@ -574,7 +685,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
             CancelOrderResponse cancelResponse = JsonConvert.DeserializeObject<CancelOrderResponse>(result);
 
-            if (cancelResponse.FinishAs == "canceled")
+            if (cancelResponse.FinishAs == "cancelled")
             {
                 SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
                 order.State = OrderStateType.Cancel;

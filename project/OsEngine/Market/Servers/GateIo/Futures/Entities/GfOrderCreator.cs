@@ -37,8 +37,8 @@ namespace OsEngine.Market.Servers.GateIo.Futures.Entities
                 }
 
                 var order = new Order();
-
                 order.NumberUser = Convert.ToInt32(gfOrder.Text.Split('-')[1]);
+                order.State = GetStateOrder(gfOrder.Status);
                 order.NumberMarket = gfOrder.Id.ToString();
                 order.SecurityNameCode = gfOrder.Contract;
                 order.Price = gfOrder.Price;
@@ -52,6 +52,21 @@ namespace OsEngine.Market.Servers.GateIo.Futures.Entities
             }
 
             return orders;
+        }
+
+        private OrderStateType GetStateOrder(string stateStringResponce)
+        {
+            switch (stateStringResponce)
+            {
+                case ("open"):
+                    return OrderStateType.Activ;
+
+                case ("finished"):
+                    return OrderStateType.Done;
+
+                default:
+                    return OrderStateType.None;
+            }       
         }
 
         public List<MyTrade> CreateMyTrades(string data)
