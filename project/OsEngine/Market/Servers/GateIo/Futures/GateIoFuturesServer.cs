@@ -593,10 +593,10 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                     Contract = order.SecurityNameCode,
                     Iceberg = 0,
                     Price = order.Price.ToString(CultureInfo.InvariantCulture),
-                    Size = 0,
+                    Size = Convert.ToInt64(outputVolume),
                     Tif = "gtc",
                     Text = $"t-{order.NumberUser}",
-                    AutoSize = close,
+                    //AutoSize = close,
                     Close = false,
                     Reduce_only = true
                 };

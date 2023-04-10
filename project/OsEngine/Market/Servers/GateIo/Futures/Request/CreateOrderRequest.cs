@@ -51,8 +51,8 @@ namespace OsEngine.Market.Servers.GateIo.Futures.Request
         [JsonProperty("text")]
         public string Text { get; set; }
 
-        [JsonProperty("auto_size")]
-        public string AutoSize { get; set; }
+        //[JsonProperty("auto_size")]
+        //public string AutoSize { get; set; }
 
         [JsonProperty("close")]
         public bool Close { get; set; }
