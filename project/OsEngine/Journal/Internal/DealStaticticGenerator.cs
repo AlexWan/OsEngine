@@ -423,6 +423,11 @@ namespace OsEngine.Journal.Internal
         {
             int lenght = candles.Count-1;
 
+            if(lenght < 2)
+            {
+                return 0;
+            }
+
             decimal sd = 0;
 
             decimal sum = 0;
