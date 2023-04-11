@@ -628,6 +628,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             headers.Add("Timestamp", timeStamp);
             headers.Add("KEY", _publicKey);
             headers.Add("SIGN", _signer.GetSignStringRest("POST", _path + _wallet + "/orders", "", bodyContent, timeStamp));
+            headers.Add("X-Gate-Channel-Id", "osa");
 
             try
             {
