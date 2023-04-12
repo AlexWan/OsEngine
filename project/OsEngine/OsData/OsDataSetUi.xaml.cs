@@ -291,13 +291,13 @@ namespace OsEngine.OsData
         /// </summary>
         private void EnableControls(bool Enabled=true)
         {
-            //CheckBoxTf1SecondIsOn.IsEnabled = Enabled;
-            //CheckBoxTf2SecondIsOn.IsEnabled = Enabled;
-            //CheckBoxTf5SecondIsOn.IsEnabled = Enabled;
-            //CheckBoxTf10SecondIsOn.IsEnabled = Enabled;
-            //CheckBoxTf15SecondIsOn.IsEnabled = Enabled;
-            //CheckBoxTf20SecondIsOn.IsEnabled = Enabled;
-            //CheckBoxTf30SecondIsOn.IsEnabled = Enabled;
+            CheckBoxTf1SecondIsOn.IsEnabled = Enabled;
+            CheckBoxTf2SecondIsOn.IsEnabled = Enabled;
+            CheckBoxTf5SecondIsOn.IsEnabled = Enabled;
+            CheckBoxTf10SecondIsOn.IsEnabled = Enabled;
+            CheckBoxTf15SecondIsOn.IsEnabled = Enabled;
+            CheckBoxTf20SecondIsOn.IsEnabled = Enabled;
+            CheckBoxTf30SecondIsOn.IsEnabled = Enabled;
             CheckBoxTf1MinuteIsOn.IsEnabled = Enabled;
             CheckBoxTf2MinuteIsOn.IsEnabled = Enabled;
             CheckBoxTf5MinuteIsOn.IsEnabled = Enabled;
