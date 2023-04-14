@@ -126,7 +126,6 @@ namespace OsEngine.Language
             "Eng:ToolTip Text_" +
             "Ru:Текст подписи_");
 
-
         public string Label13 => OsLocalization.ConvertToLocString(
             "Eng:ToolTip Color_" +
             "Ru:Цвет подписи_");
@@ -151,5 +150,12 @@ namespace OsEngine.Language
             "Eng:Activation_" +
             "Ru:Активация_");
 
+        public string Label19 => OsLocalization.ConvertToLocString(
+            "Eng:Slippage type_" +
+            "Ru:Тип проскальз._");
+
+        public string Label20 => OsLocalization.ConvertToLocString(
+            "Eng:Activation price_" +
+            "Ru:Цена активации_");
     }
 }

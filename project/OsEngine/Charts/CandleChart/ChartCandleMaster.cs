@@ -1449,15 +1449,7 @@ namespace OsEngine.Charts.CandleChart
                     ChartCandle.ProcessElem(_chartElements[i]);
                 }
 
-                ChartCandle.ClearAlerts(_alertArray);
-
-                for (int i = 0; _alertArray != null && i < _alertArray.Count; i++)
-                {
-                    if (_alertArray[i].TypeAlert == AlertType.ChartAlert)
-                    {
-                        ChartCandle.PaintAlert((AlertToChart)_alertArray[i]);
-                    }
-                }
+                PaintAlerts(_alertArray);
             }
             catch (Exception error)
             {
@@ -1508,6 +1500,11 @@ namespace OsEngine.Charts.CandleChart
             for (int i = 0; _indicators != null && i < _indicators.Count; i++)
             {
                 _indicators[i].Clear();
+            }
+
+            if(_alertArray != null)
+            {
+                _alertArray = null;
             }
         }
 

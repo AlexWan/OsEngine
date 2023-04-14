@@ -15,6 +15,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
+using OsEngine.OsTrader.Panels.Tab;
 using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
@@ -226,7 +227,6 @@ namespace OsEngine.Alerts
                         _alertArray[i].Name = _alertArray[i].TypeAlert + "$" + _name + i;
                         _alertArray[i].Save();
                         writer.WriteLine(_alertArray[i].Name);
-
                     }
 
                     writer.Close();
@@ -357,7 +357,7 @@ namespace OsEngine.Alerts
             try
             {
                 if (_alertArray == null ||
-                number > _alertArray.Count
+                number >= _alertArray.Count
                 || _alertArray.Count == 0)
                 {
                     return;
@@ -366,10 +366,7 @@ namespace OsEngine.Alerts
                 IIAlert activAlert = _alertArray[number];
 
                 activAlert.Delete();
-                // 2 delete
-                // 2 удаляем
-
-                _alertArray.Remove(activAlert);
+                _alertArray.RemoveAt(number);
 
                 Save();
 
@@ -398,7 +395,14 @@ namespace OsEngine.Alerts
 
                 alert.Delete();
 
-                _alertArray.Remove(alert);
+                for(int i = 0;i < _alertArray.Count;i++)
+                {
+                    if (_alertArray[i].Name == alert.Name)
+                    {
+                        _alertArray.RemoveAt(i);
+                        break;
+                    }
+                }
 
                 Save();
 
@@ -423,8 +427,6 @@ namespace OsEngine.Alerts
                 {
                     return;
                 }
-
-                //DeleteAll();
 
                 if (_alertArray == null)
                 {
@@ -525,12 +527,15 @@ namespace OsEngine.Alerts
                 if (_alertArray[number].TypeAlert == AlertType.PriceAlert)
                 {
                    ((AlertToPrice)_alertArray[number]).ShowDialog();
+                    Save();
                 }
             }
             catch (Exception error)
             {
                 SendNewMessage(error.ToString(), LogMessageType.Error);
             }
+
+            Paint();
         }
 
         /// <summary>
@@ -578,13 +583,20 @@ namespace OsEngine.Alerts
 
                 List<Candle> candles = _connector.Candles(false);
 
+                Security sec = _connector.Security;
+
+                if(sec == null)
+                {
+                    return null;
+                }
+
                 for (int i = 0; i < _alertArray.Count; i++)
                 {
                     if(_alertArray[i].IsOn == false)
                     {
                         continue;
                     }
-                    AlertSignal signal = _alertArray[i].CheckSignal(candles);
+                    AlertSignal signal = _alertArray[i].CheckSignal(candles, sec);
 
                     if (signal != null)
                     {
@@ -917,25 +929,6 @@ namespace OsEngine.Alerts
             }
             _chartMaster.PaintAlerts(_alertArray);
         }
-    }
-
-    /// <summary>
-    /// alert type
-    /// тип алерта
-    /// </summary>
-    public enum AlertType
-    {
-        /// <summary>
-        /// alert for charts
-        /// алерт для чарта
-        /// </summary>
-        ChartAlert,
-
-        /// <summary>
-        /// alert price
-        /// алерт достижения цены
-        /// </summary>
-        PriceAlert
     }
 
     /// <summary>

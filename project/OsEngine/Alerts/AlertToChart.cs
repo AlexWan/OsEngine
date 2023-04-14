@@ -3,7 +3,6 @@
  *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -24,7 +23,6 @@ namespace OsEngine.Alerts
     /// </summary>
     public class AlertToChart:IIAlert
     {
-
         /// <summary>
         /// constructor
         /// конструктор
@@ -96,7 +94,8 @@ namespace OsEngine.Alerts
                     Slippage = reader.ReadLine().ToDecimal();
                     NumberClosePosition = Convert.ToInt32(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(),true,out OrderPriceType);
-
+                    Enum.TryParse(reader.ReadLine(), true, out SlippageType);
+                   
                     reader.Close();
                 }
             }
@@ -141,6 +140,8 @@ namespace OsEngine.Alerts
                     writer.WriteLine(Slippage);
                     writer.WriteLine(NumberClosePosition);
                     writer.WriteLine(OrderPriceType);
+                    writer.WriteLine(SlippageType);
+
                     writer.Close();
                 }
             }
@@ -243,6 +244,12 @@ namespace OsEngine.Alerts
         public decimal Slippage;
 
         /// <summary>
+        /// slippage type
+        /// тип проскальзывания для реакции алерта
+        /// </summary>
+        public AlertSlippageType SlippageType;
+
+        /// <summary>
         /// position number that will be closed
         /// номер позиции которая будет закрыта
         /// </summary>
@@ -282,7 +289,7 @@ namespace OsEngine.Alerts
         /// check alert for triggering
         /// проверить алерт на срабатывание
         /// </summary>
-        public AlertSignal CheckSignal(List<Candle> candles)
+        public AlertSignal CheckSignal(List<Candle> candles, Security sec)
         {
             if (IsOn == false || candles == null)
             {
@@ -393,8 +400,31 @@ namespace OsEngine.Alerts
 
             if (isAlarm)
             {
+                decimal realSlippage = 0;
+
+                if(SlippageType == AlertSlippageType.Absolute)
+                {
+                    realSlippage = Slippage;
+                }
+                else if(SlippageType == AlertSlippageType.PriceStep)
+                {
+                    realSlippage = Slippage * sec.PriceStep;
+                }
+                else if (SlippageType == AlertSlippageType.Persent)
+                {
+                    realSlippage = (candles[candles.Count - 1].Close/100) * Slippage;
+                }
+
                 IsOn = false;
-                return new AlertSignal { SignalType = SignalType, Volume = VolumeReaction,NumberClosingPosition =  NumberClosePosition,PriceType = OrderPriceType,Slipage =  Slippage};
+
+                return new AlertSignal
+                {
+                    SignalType = SignalType,
+                    Volume = VolumeReaction,
+                    NumberClosingPosition = NumberClosePosition,
+                    PriceType = OrderPriceType,
+                    Slipage = realSlippage
+                };
             }
 
             return null;
@@ -436,6 +466,11 @@ namespace OsEngine.Alerts
         /// </summary>
         private void SetMessage()
         {
+            if(_gridView == null)
+            {
+                return;
+            }
+
             if (!_gridView.Dispatcher.CheckAccess())
             {
                 _gridView.Dispatcher.Invoke((SetMessage));

@@ -3549,6 +3549,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     else
                     {
                         decimal price;
+
                         if (position.Direction == Side.Buy)
                         {
                             price = _connector.BestBid - signal.Slipage;

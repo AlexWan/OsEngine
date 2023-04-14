@@ -23,6 +23,48 @@ namespace OsEngine.Alerts
 
         AlertType TypeAlert { get; set; }
 
-        AlertSignal CheckSignal(List<Candle> candles);
+        AlertSignal CheckSignal(List<Candle> candles, Security sec);
+    }
+
+    /// <summary>
+    /// alert type
+    /// тип алерта
+    /// </summary>
+    public enum AlertType
+    {
+
+        /// <summary>
+        /// alert for charts
+        /// алерт для чарта
+        /// </summary>
+        ChartAlert,
+
+        /// <summary>
+        /// alert price
+        /// алерт достижения цены
+        /// </summary>
+        PriceAlert
+    }
+
+    /// <summary>
+    /// alert slippage type
+    /// тип алерта
+    /// </summary>
+    public enum AlertSlippageType
+    {
+        /// <summary>
+        /// процент
+        /// </summary>
+        Persent,
+        
+        /// <summary>
+        /// абсолютные значения
+        /// </summary>
+        Absolute,
+
+        /// <summary>
+        /// кол-во шагов цены
+        /// </summary>
+        PriceStep
     }
 }

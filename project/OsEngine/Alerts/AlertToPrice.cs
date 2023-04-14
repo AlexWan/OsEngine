@@ -21,6 +21,7 @@ namespace OsEngine.Alerts
             MusicType = AlertMusic.Duck;
 
             Name = name;
+            Load();
         }
 
         public void Save()
@@ -42,6 +43,7 @@ namespace OsEngine.Alerts
 
                     writer.WriteLine(TypeActivation);
                     writer.WriteLine(PriceActivation);
+                    writer.WriteLine(SlippageType);
                     writer.Close();
                 }
             }
@@ -74,6 +76,8 @@ namespace OsEngine.Alerts
 
                     Enum.TryParse(reader.ReadLine(), true, out TypeActivation);
                     PriceActivation = reader.ReadLine().ToDecimal();
+                    Enum.TryParse(reader.ReadLine(), true, out SlippageType);
+                    
                     reader.Close();
                 }
             }
@@ -103,7 +107,7 @@ namespace OsEngine.Alerts
 
         public AlertType TypeAlert { get; set; }
 
-        public AlertSignal CheckSignal(List<Candle> candles)
+        public AlertSignal CheckSignal(List<Candle> candles, Security sec)
         {
             if (IsOn == false || candles == null)
             {
@@ -136,7 +140,29 @@ namespace OsEngine.Alerts
                 }
                 if (SignalType != SignalType.None)
                 {
-                    return new AlertSignal { SignalType = SignalType, Volume = VolumeReaction, NumberClosingPosition = NumberClosePosition, PriceType = OrderPriceType, Slipage = Slippage };
+                    decimal realSlippage = 0;
+
+                    if (SlippageType == AlertSlippageType.Absolute)
+                    {
+                        realSlippage = Slippage;
+                    }
+                    else if (SlippageType == AlertSlippageType.PriceStep)
+                    {
+                        realSlippage = Slippage * sec.PriceStep;
+                    }
+                    else if (SlippageType == AlertSlippageType.Persent)
+                    {
+                        realSlippage = (candles[candles.Count - 1].Close / 100) * Slippage;
+                    }
+
+                    return new AlertSignal
+                    {
+                        SignalType = SignalType,
+                        Volume = VolumeReaction,
+                        NumberClosingPosition = NumberClosePosition,
+                        PriceType = OrderPriceType,
+                        Slipage = realSlippage
+                    };
                 }
                 if (SignalType == SignalType.None)
                 {
@@ -166,6 +192,8 @@ namespace OsEngine.Alerts
         /// проскальзывание
         /// </summary>
         public decimal Slippage;
+
+        public AlertSlippageType SlippageType;
 
         /// <summary>
         /// position number that will be closed

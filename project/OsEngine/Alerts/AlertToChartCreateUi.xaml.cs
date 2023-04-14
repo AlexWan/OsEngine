@@ -59,13 +59,13 @@ namespace OsEngine.Alerts
             ComboBoxFatLine.Text = "2";
             TextBoxLabelAlert.Text = "";
 
-            System.Drawing.Color red = System.Drawing.Color.DarkRed;
+            System.Drawing.Color color = System.Drawing.Color.DodgerBlue;
 
             ButtonColorLabel.Background =
-                new SolidColorBrush(Color.FromArgb(red.A,red.R,red.G,red.B));
+                new SolidColorBrush(Color.FromArgb(color.A, color.R,color.G, color.B));
 
             ButtonColorLine.Background =
-                new SolidColorBrush(Color.FromArgb(red.A, red.R, red.G, red.B));
+                new SolidColorBrush(Color.FromArgb(color.A, color.R,color.G, color.B));
 
             CheckBoxWindow.IsChecked = false;
             TextBoxAlertMessage.Text = OsLocalization.Alerts.Message2;
@@ -93,12 +93,18 @@ namespace OsEngine.Alerts
             ComboBoxMusicType.Items.Add(AlertMusic.Wolf);
             ComboBoxMusicType.SelectedItem = AlertMusic.Bird;
 
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.Persent);
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.PriceStep);
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.Absolute);
+            ComboBoxSlippageType.SelectedItem = AlertSlippageType.Persent;
+
             if (alert != null)
             {
                 MyAlert = alert;
                 LoadFromAlert();
                 ComboBoxType.IsEnabled = false;
                 NeadToSave = true;
+                ComboBoxSlippageType.SelectedItem = alert.SlippageType;
             }
             
             CheckBoxOnOff.Click += CheckBoxOnOff_Click;
@@ -116,7 +122,6 @@ namespace OsEngine.Alerts
             ChangeText();
             OsLocalization.LocalizationTypeChangeEvent += ChangeText;
 
-
             LabelOsa.MouseDown += LabelOsa_MouseDown;
 
             this.Activate();
@@ -133,9 +138,10 @@ namespace OsEngine.Alerts
             LabelOrderType.Content = OsLocalization.Alerts.Label5;
             LabelVolume.Content = OsLocalization.Alerts.Label6;
             LabelSlippage.Content = OsLocalization.Alerts.Label7;
+            LabelSlippageType.Content = OsLocalization.Alerts.Label19;
+
             LabelNumClosedPos.Content = OsLocalization.Alerts.Label8;
             LabelFireworks.Content = OsLocalization.Alerts.Label9;
-
 
             CheckBoxMusicAlert.Content = OsLocalization.Alerts.Label10;
             LabelLineWidth.Content = OsLocalization.Alerts.Label11;
@@ -146,7 +152,6 @@ namespace OsEngine.Alerts
             ButtonColorLine.Content = OsLocalization.Alerts.Label15;
             CheckBoxWindow.Content = OsLocalization.Alerts.Label16;
             ButtonSave.Content = OsLocalization.Alerts.Label17;
-
         }
 
         void LabelOsa_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -264,6 +269,7 @@ namespace OsEngine.Alerts
             TextBoxVolumeReaction.Text = MyAlert.VolumeReaction.ToString();
 
             TextBoxSlippage.Text = MyAlert.Slippage.ToString(new CultureInfo("ru-RU"));
+            ComboBoxSlippageType.SelectedItem = MyAlert.SlippageType;
             TextBoxClosePosition.Text = MyAlert.NumberClosePosition.ToString();
             TextBoxVolumeReaction.Text = MyAlert.VolumeReaction.ToString();
             ComboBoxOrderType.SelectedItem = MyAlert.OrderPriceType;
@@ -562,6 +568,8 @@ namespace OsEngine.Alerts
             MyAlert.VolumeReaction = TextBoxVolumeReaction.Text.ToDecimal();
 
             MyAlert.Slippage = TextBoxSlippage.Text.ToDecimal();
+            Enum.TryParse(ComboBoxSlippageType.SelectedItem.ToString(), true, out MyAlert.SlippageType);
+
             MyAlert.NumberClosePosition = Convert.ToInt32(TextBoxClosePosition.Text);
             Enum.TryParse(ComboBoxOrderType.Text, true, out MyAlert.OrderPriceType);
 
@@ -592,6 +600,8 @@ namespace OsEngine.Alerts
             // create new alert
             // создаём новый алерт
             AlertToChart alert = new AlertToChart(_keeper.HostAllert);
+            alert.ColorLine = System.Drawing.Color.DodgerBlue;
+            alert.ColorLabel = System.Drawing.Color.DodgerBlue;
             alert.Name = null;
             alert.Lines = GetAlertLines(candles);
 

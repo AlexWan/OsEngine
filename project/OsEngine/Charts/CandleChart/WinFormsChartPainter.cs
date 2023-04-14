@@ -832,7 +832,27 @@ namespace OsEngine.Charts.CandleChart
         public int GetCursorSelectCandleNumber()
         {
             ChartArea candleArea = GetChartArea("Prime");
-            return Convert.ToInt32(candleArea.CursorX.Position);
+
+            if(candleArea.CursorX == null)
+            {
+                return 0;
+            }
+
+            if(double.IsNaN(candleArea.CursorX.Position) ||
+               double.IsInfinity(candleArea.CursorX.Position) ||
+               double.IsPositiveInfinity(candleArea.CursorX.Position))
+            {
+                return 0;
+            }
+
+            try
+            {
+                return Convert.ToInt32(candleArea.CursorX.Position);
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         public decimal GetCursorSelectPrice()
