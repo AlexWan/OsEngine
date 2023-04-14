@@ -61,6 +61,11 @@ namespace OsEngine.Journal
             try
             {
                 _positionController.Delete();
+                _positionController.PositionStateChangeEvent -= _positionController_DealStateChangeEvent;
+                _positionController.PositionNetVolumeChangeEvent -= _positionController_PositionNetVolumeChangeEvent;
+                _positionController.UserSelectActionEvent -= _positionController_UserSelectActionEvent;
+                _positionController.LogMessageEvent -= SendNewLogMessage;
+                _positionController = null;
             }
             catch (Exception error)
             {

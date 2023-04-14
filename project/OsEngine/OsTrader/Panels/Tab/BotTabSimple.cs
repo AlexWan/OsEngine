@@ -294,6 +294,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _marketDepthPainter = null;
                 }
 
+                if(_stopsOpener != null)
+                {
+                    _stopsOpener.Clear();
+                    _stopsOpener = null;
+                }
+
+                if(_dealCreator != null)
+                {
+                    _dealCreator = null;
+                }
+
                 if(StartProgram != StartProgram.IsOsOptimizer)
                 {
                     if (File.Exists(@"Engine\" + TabName + @"SettingsBot.txt"))
@@ -424,7 +435,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<IIndicator> Indicators
         {
-            get { return _chartMaster.Indicators; }
+            get
+            {
+                if (_chartMaster == null)
+                {
+                    return null;
+                }
+                return _chartMaster.Indicators;
+            }
         }
 
         // drawing elements / рисование элементов
@@ -491,7 +509,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public TimeFrameBuilder TimeFrameBuilder
         {
-            get { return _connector.TimeFrameBuilder; }
+            get
+            {
+                if (_connector == null)
+                {
+                    return null;
+                }
+                return _connector.TimeFrameBuilder;
+            }
         }
 
         /// <summary>
@@ -571,6 +596,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
+                if(_connector == null)
+                {
+                    return null;
+                }
                 if (_security == null ||
                     _security.Name != _connector.SecurityName)
                 {
@@ -588,7 +617,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public TimeSpan TimeFrame
         {
-            get { return _connector.TimeFrameTimeSpan; }
+            get { 
+                if(_connector == null)
+                {
+                    return TimeSpan.Zero;
+                }
+                return _connector.TimeFrameTimeSpan; }
         }
 
         /// <summary>
@@ -599,10 +633,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
+                if(_connector == null)
+                {
+                    return null;
+                }
+
                 if (_portfolio == null)
                 {
                     _portfolio = _connector.Portfolio;
                 }
+
                 return _portfolio;
             }
             set { _portfolio = value; }
@@ -614,7 +654,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public ComissionType ComissionType
         {
-            get { return _journal.ComissionType; }
+            get
+            {
+                if (_journal == null)
+                {
+                    return ComissionType.None;
+                }
+                return _journal.ComissionType;
+            }
             set { _journal.ComissionType = value; }
         }
 
@@ -623,7 +670,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public decimal ComissionValue
         {
-            get { return _journal.ComissionValue; }
+            get
+            {
+                if (_journal == null)
+                {
+                    return 0;
+                }
+
+                return _journal.ComissionValue;
+            }
             set { _journal.ComissionValue = value; }
         }
 
@@ -633,7 +688,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<Position> PositionsAll
         {
-            get { return _journal.AllPosition; }
+            get
+            {
+                if (_journal == null)
+                {
+                    return null;
+                }
+                return _journal.AllPosition; }
         }
 
         /// <summary>
@@ -642,7 +703,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<Position> PositionsOpenAll
         {
-            get { return _journal.OpenPositions; }
+            get
+            {
+                if(_journal == null)
+                {
+                    return null;
+                }
+                return _journal.OpenPositions;
+            }
         }
 
         /// <summary>
@@ -660,7 +728,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<Position> PositionsCloseAll
         {
-            get { return _journal.CloseAllPositions; }
+            get
+            {
+                if (_journal == null)
+                {
+                    return null;
+                }
+                return _journal.CloseAllPositions;
+            }
         }
 
         /// <summary>
@@ -669,7 +744,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public Position PositionsLast
         {
-            get { return _journal.LastPosition; }
+            get
+            {
+                if (_journal == null)
+                {
+                    return null;
+                }
+                return _journal.LastPosition;
+            }
         }
 
         /// <summary>
@@ -678,7 +760,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<Position> PositionOpenShort
         {
-            get { return _journal.OpenAllShortPositions; }
+            get
+            {
+                if (_journal == null)
+                {
+                    return null;
+                }
+                return _journal.OpenAllShortPositions;
+            }
         }
 
         /// <summary>
@@ -687,7 +776,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<Position> PositionOpenLong
         {
-            get { return _journal.OpenAllLongPositions; }
+            get
+            {
+                if (_journal == null)
+                {
+                    return null;
+                }
+                return _journal.OpenAllLongPositions;
+            }
         }
 
         /// <summary>
@@ -700,7 +796,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 try
                 {
-                    if (Portfolio == null || Securiti == null)
+                    if (Portfolio == null 
+                        || Securiti == null)
                     {
                         return null;
                     }
@@ -733,6 +830,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 try
                 {
                     List<Position> openPos = PositionsOpenAll;
+
+                    if(openPos == null)
+                    {
+                        return 0;
+                    }
 
                     decimal volume = 0;
 
@@ -797,6 +899,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
+                if(_connector == null)
+                {
+                    return null;
+                }
                 return _connector.Candles(false);
             }
         }
@@ -807,7 +913,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<Candle> CandlesFinishedOnly
         {
-            get { return _connector.Candles(true); }
+            get
+            {
+                if (_connector == null)
+                {
+                    return null;
+                }
+                return _connector.Candles(true);
+            }
         }
 
         /// <summary>
@@ -816,7 +929,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<Trade> Trades
         {
-            get { return _connector.Trades; }
+            get
+            {
+                if (_connector == null)
+                {
+                    return null;
+                }
+                return _connector.Trades;
+            }
         }
 
         /// <summary>
@@ -825,7 +945,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public DateTime TimeServerCurrent
         {
-            get { return _connector.MarketTime; }
+            get
+            {
+                if (_connector == null)
+                {
+                    return DateTime.MinValue;
+                }
+                return _connector.MarketTime;
+            }
         }
 
         /// <summary>
@@ -840,7 +967,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public decimal PriceBestAsk
         {
-            get { return _connector.BestAsk; }
+            get
+            {
+                if (_connector == null)
+                {
+                    return 0;
+                }
+                return _connector.BestAsk;
+            }
         }
 
         /// <summary>
@@ -849,7 +983,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public decimal PriceBestBid
         {
-            get { return _connector.BestBid; }
+            get
+            {
+                if (_connector == null)
+                {
+                    return 0;
+                }
+                return _connector.BestBid;
+            }
         }
 
         /// <summary>
@@ -860,6 +1001,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
+                if (_connector == null)
+                {
+                    return 0;
+                }
                 return (_connector.BestAsk + _connector.BestBid) / 2;
             }
         }
@@ -4332,6 +4477,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
+                    if (openPositions[i].StopOrderIsActiv == false &&
+                        openPositions[i].ProfitOrderIsActiv == false)
+                    {
+                        continue;
+                    }
+
                     for (int i2 = 0; i < openPositions.Count && i2 < newTrades.Count; i2++)
                     {
                         if (CheckStop(openPositions[i], newTrades[i2].Price))
@@ -4346,21 +4497,25 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            for (int i2 = 0; i2 < newTrades.Count; i2++)
+            if(_stopsOpener != null && 
+                _stopsOpener.Count != 0)
             {
-                CheckStopOpener(newTrades[i2].Price);
-
-                if (NewTickEvent != null)
+                for (int i2 = 0; i2 < newTrades.Count; i2++)
                 {
-                    try
-                    {
-                        NewTickEvent(newTrades[i2]);
-                    }
-                    catch (Exception error)
-                    {
-                        SetNewLogMessage(error.ToString(), LogMessageType.Error);
-                    }
+                    CheckStopOpener(newTrades[i2].Price);
 
+                    if (NewTickEvent != null)
+                    {
+                        try
+                        {
+                            NewTickEvent(newTrades[i2]);
+                        }
+                        catch (Exception error)
+                        {
+                            SetNewLogMessage(error.ToString(), LogMessageType.Error);
+                        }
+
+                    }
                 }
             }
 

@@ -45,9 +45,8 @@ namespace OsEngine.Charts.CandleChart
             if(_startProgram != StartProgram.IsOsOptimizer)
             {
                 Load();
+                _canSave = true;
             }
-           
-            _canSave = true;
         }
 
         private void UpDateChartPainter()
@@ -441,11 +440,7 @@ namespace OsEngine.Charts.CandleChart
                     {
                         _indicators[i].NeadToReloadEvent -= indicator_NeadToReloadEvent;
                         _indicators[i].Clear();
-
-                        if (_startProgram != StartProgram.IsOsOptimizer)
-                        {
-                            _indicators[i].Delete();
-                        }
+                        _indicators[i].Delete();
                     }
 
                     _indicators.Clear();

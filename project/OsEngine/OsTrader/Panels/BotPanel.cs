@@ -422,6 +422,8 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
+                OsTraderMaster.CriticalErrorEvent -= OsTraderMaster_CriticalErrorEvent;
+
                 if (_riskManager != null)
                 {
                     _riskManager.RiskManagerAlarmEvent -= _riskManager_RiskManagerAlarmEvent;
@@ -434,11 +436,30 @@ namespace OsEngine.OsTrader.Panels
                     for (int i = 0; i < _botTabs.Count; i++)
                     {
                         _botTabs[i].StopPaint();
+                        _botTabs[i].Clear();
                         _botTabs[i].Delete();
                         _botTabs[i].LogMessageEvent -= SendNewLogMessage;
                     }
                     _botTabs.Clear();
                     _botTabs = null;
+                }
+
+                if(_tabSimple != null)
+                {
+                    _tabSimple.Clear();
+                    _tabSimple = null;
+                }
+
+                if(_tabsCluster != null)
+                {
+                    _tabsCluster.Clear();
+                    _tabsCluster = null;
+                }
+
+                if(_tabsScreener != null)
+                {
+                    _tabsScreener.Clear();
+                    _tabsScreener = null;
                 }
 
                 if(ParamGuiSettings != null)

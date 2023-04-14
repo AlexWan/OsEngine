@@ -227,6 +227,18 @@ namespace OsEngine.Journal.Internal
                     }
                 }
 
+                if(_gridOpenDeal != null)
+                {
+                    _gridOpenDeal.Click -= _gridOpenDeal_Click;
+                    _gridOpenDeal = null;
+
+                }
+                if(_gridCloseDeal != null)
+                {
+                    _gridCloseDeal.Click -= _gridCloseDeal_Click;
+                    _gridCloseDeal = null;
+                }
+               
                 if (_startProgram != StartProgram.IsOsOptimizer)
                 {
                     for (int i = 0; i < ControllersToCheck.Count; i++)
@@ -716,6 +728,7 @@ namespace OsEngine.Journal.Internal
                     }
 
                     ProcesPosition(position);
+                    break;
                 }
             }
             _neadToSave = true;
@@ -1252,7 +1265,7 @@ namespace OsEngine.Journal.Internal
                 _hostOpenDeal = null;
                 _hostCloseDeal = null;
             }
-            _positionsToPaint = null;
+            _positionsToPaint.Clear();
         }
 
         /// <summary>

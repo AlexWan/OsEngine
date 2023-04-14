@@ -666,8 +666,11 @@ namespace OsEngine.OsOptimizer
             OptimizerServer server = ServerMaster.CreateNextOptimizerServer(_master.Storage, _serverNum,
                 _master.StartDepozit);
 
-            _serverNum++;
-            _servers.Add(server);
+            lock(_serverRemoveLocker)
+            {
+                _serverNum++;
+                _servers.Add(server);
+            }
 
             if(neadToDelete)
             {

@@ -32,6 +32,93 @@ namespace OsEngine.Indicators
 
         public abstract void OnProcess(List<Candle> source, int index);
 
+        public void Clear()
+        {
+            _myCandles = new List<Candle>();
+
+            if (DataSeries != null)
+            {
+                for (int i = 0; i < DataSeries.Count; i++)
+                {
+                    DataSeries[i].Values.Clear();
+                }
+            }
+
+            if (IncludeIndicators != null)
+            {
+                for (int i = 0; i < IncludeIndicators.Count; i++)
+                {
+                    IncludeIndicators[i].Clear();
+                }
+            }
+        }
+
+        private bool _isDeleted;
+
+        public void Delete()
+        {
+            _isDeleted = true;
+
+            if (StartProgram != StartProgram.IsOsOptimizer)
+            {
+                if (File.Exists(@"Engine\" + Name + @"Values.txt"))
+                {
+                    File.Delete(@"Engine\" + Name + @"Values.txt");
+                }
+
+                if (File.Exists(@"Engine\" + Name + @"Parametrs.txt"))
+                {
+                    File.Delete(@"Engine\" + Name + @"Parametrs.txt");
+                }
+
+                if (File.Exists(@"Engine\" + Name + @"Base.txt"))
+                {
+                    File.Delete(@"Engine\" + Name + @"Base.txt");
+                }
+            }
+
+            if(IncludeIndicators != null)
+            {
+                for (int i = 0; i < IncludeIndicators.Count; i++)
+                {
+                    IncludeIndicators[i].Clear();
+                    IncludeIndicators[i].Delete();
+                }
+                IncludeIndicators.Clear();
+                IncludeIndicators = null;
+            }
+
+            if(_parameters != null)
+            {
+                for (int i = 0; i < _parameters.Count; i++)
+                {
+                    _parameters[i].ValueChange -= Parameter_ValueChange;
+                }
+                _parameters.Clear();
+                _parameters = null;
+            }
+
+            if(ParametersDigit != null)
+            {
+                ParametersDigit.Clear();
+                ParametersDigit = null;
+            }
+
+            if(DataSeries != null)
+            {
+                for (int i = 0; i < DataSeries.Count; i++)
+                {
+                    DataSeries[i].Clear();
+                    DataSeries[i].Delete();
+                }
+                DataSeries.Clear();
+               
+                DataSeries = null;
+            }
+
+            _myCandles = null;
+        }
+
         #region параметры
 
         // working with strategy parameters / работа с параметрами стратегии
@@ -273,35 +360,6 @@ namespace OsEngine.Indicators
 
         #endregion
 
-        public void Delete()
-        {
-            if (File.Exists(@"Engine\" + Name + @"Values.txt"))
-            {
-                File.Delete(@"Engine\" + Name + @"Values.txt");
-            }
-            if (File.Exists(@"Engine\" + Name + @"Parametrs.txt"))
-            {
-                File.Delete(@"Engine\" + Name + @"Parametrs.txt");
-            }
-            if (File.Exists(@"Engine\" + Name + @"Base.txt"))
-            {
-                File.Delete(@"Engine\" + Name + @"Base.txt");
-            }
-
-            for (int i = 0; IncludeIndicators != null && i < IncludeIndicators.Count; i++)
-            {
-                IncludeIndicators[i].Delete();
-            }
-
-            for (int i = 0; DataSeries != null &&
-                            i < DataSeries.Count; i++)
-            {
-                DataSeries[i].Clear();
-            }
-
-            DataSeries = new List<IndicatorDataSeries>();
-        }
-
         public void Load()
         {
             if (Name == "")
@@ -501,19 +559,6 @@ namespace OsEngine.Indicators
         //private string _indicatorUpdateLocker = "indLocker";
 
         public event Action<IIndicator> NeadToReloadEvent;
-
-        public void Clear()
-        {
-            _myCandles = new List<Candle>();
-
-            //lock(_indicatorUpdateLocker)
-            //{
-                for (int i = 0; i < DataSeries.Count; i++)
-                {
-                    DataSeries[i].Values.Clear();
-                }
-            //}
-        }
 
         private List<Candle> _myCandles = new List<Candle>();
 
@@ -881,6 +926,12 @@ namespace OsEngine.Indicators
         public void Clear()
         {
             Values.Clear();
+        }
+
+        public void Delete()
+        {
+            Values.Clear();
+            Values = null;
         }
     }
 

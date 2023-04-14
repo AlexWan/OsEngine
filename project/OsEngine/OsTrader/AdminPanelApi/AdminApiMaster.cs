@@ -26,6 +26,11 @@ namespace OsEngine.OsTrader.AdminPanelApi
         
         public AdminApiMaster(OsTraderMaster traderMaster)
         {
+            if(traderMaster._startProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
             _traderMaster = traderMaster;
             PrimeSettingsMaster.ApiState = ApiState.Off;
             ServerMaster.ServerCreateEvent += ServerMasterOnServerCreateEvent; 

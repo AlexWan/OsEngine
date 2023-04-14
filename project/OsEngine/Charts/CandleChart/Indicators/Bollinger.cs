@@ -234,6 +234,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 File.Delete(@"Engine\" + Name + @".txt");
             }
+
+            ValuesUp = null;
+            ValuesDown = null;
         }
 
         /// <summary>
