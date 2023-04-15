@@ -364,13 +364,7 @@ namespace OsEngine.Alerts
                 }
 
                 IIAlert activAlert = _alertArray[number];
-
-                activAlert.Delete();
-                _alertArray.RemoveAt(number);
-
-                Save();
-
-                Paint();
+                Delete(activAlert);
             }
             catch (Exception error)
             {
@@ -387,15 +381,18 @@ namespace OsEngine.Alerts
         {
             try
             {
-                if (_alertArray == null ||
-                alert == null || _alertArray.Count == 0)
+                if (_alertArray == null
+                     || alert == null 
+                     || _alertArray.Count == 0)
                 {
                     return;
                 }
 
-                alert.Delete();
+                _chartMaster.DeleteAlert(alert);
 
-                for(int i = 0;i < _alertArray.Count;i++)
+                alert.Delete();
+               
+                for (int i = 0;i < _alertArray.Count;i++)
                 {
                     if (_alertArray[i].Name == alert.Name)
                     {
@@ -927,7 +924,7 @@ namespace OsEngine.Alerts
             {
                 return;
             }
-            _chartMaster.PaintAlerts(_alertArray);
+            _chartMaster.PaintAlerts(_alertArray, false);
         }
     }
 

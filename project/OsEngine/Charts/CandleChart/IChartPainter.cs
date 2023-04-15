@@ -181,9 +181,11 @@ namespace OsEngine.Charts.CandleChart
 
         // Alerts АЛЕРТЫ
 
-        void ClearAlerts(List<IIAlert> alertArray);
+        void RemoveAlert(AlertToChart alertToChart);
 
-        void PaintAlert(AlertToChart alert);
+        bool HaveAlertOnChart(AlertToChart alertToChart);
+
+        void ProcessAlert(AlertToChart alert, bool neadToWait);
 
         /// <summary>
         /// draw a line on a series

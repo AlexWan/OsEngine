@@ -31,7 +31,7 @@
         <Button Name="ButtonColorLabel" Content="Settings" HorizontalAlignment="Right" Margin="0,262,97,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLabel_Click"/>
         <Label Name="LabelReactionType" Content="Reaction" HorizontalAlignment="Left" Margin="38,101,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxSignalType" HorizontalAlignment="Left" Margin="124,101,0,0" VerticalAlignment="Top" Width="103"/>
-        <Slider x:Name="Slider" Margin="0,22,26,18" Maximum="200" SmallChange="1" Orientation="Vertical" Value="100" ValueChanged="Slider_ValueChanged" HorizontalAlignment="Right" Width="22"/>
+        <Slider x:Name="Slider" Margin="0,22,26,18" Maximum="200" SmallChange="1" Orientation="Vertical" Value="100" HorizontalAlignment="Right" Width="22"/>
         <TextBox x:Name="TextBoxVolumeReaction" HorizontalAlignment="Right" Height="23" Margin="0,97,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
         <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Right" Margin="0,97,195,0" VerticalAlignment="Top" />
         <ComboBox x:Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="124,129,0,0" VerticalAlignment="Top" Width="103" />

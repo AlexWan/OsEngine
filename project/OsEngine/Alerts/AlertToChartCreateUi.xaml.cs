@@ -42,6 +42,9 @@ namespace OsEngine.Alerts
             _candleTwoValue = 0;
             _keeper = keeper;
 
+            Slider.ValueChanged += Slider_ValueChanged;
+            Slider.MouseLeave += Slider_MouseLeave;
+
             ComboBoxType.Items.Add(ChartAlertType.Line);
             ComboBoxType.Items.Add(ChartAlertType.FibonacciChannel);
             ComboBoxType.Items.Add(ChartAlertType.FibonacciSpeedLine);
@@ -322,8 +325,8 @@ namespace OsEngine.Alerts
         {
             SaveAlert();
         }
-        // slider work
-        //работа со слайдером
+
+        #region slider work
 
         /// <summary>
         /// slider's position has changed.
@@ -340,9 +343,18 @@ namespace OsEngine.Alerts
             }
 
             SetReadyLineAlert(_arrayCandles);
-
         }
 
+        private void Slider_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Slider.ValueChanged -= Slider_ValueChanged;
+
+            Slider.Value = 100;
+
+            Slider.ValueChanged += Slider_ValueChanged;
+        }
+
+        #endregion
         /// <summary>
         /// latest incoming data
         ///  последние входящие данные 
