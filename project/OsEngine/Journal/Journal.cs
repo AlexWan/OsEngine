@@ -139,6 +139,10 @@ namespace OsEngine.Journal
             {
                 try
                 {
+                    if(_positionController == null)
+                    {
+                        return null;
+                    }
                     return _positionController.OpenPositions;
                 }
                 catch (Exception error)
