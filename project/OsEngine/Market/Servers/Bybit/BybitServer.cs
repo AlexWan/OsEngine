@@ -285,7 +285,7 @@ namespace OsEngine.Market.Servers.Bybit
                                     continue;
 
 
-                                SendLogMessage("Broken response success marker " + type, LogMessageType.Error);
+                                SendLogMessage("Broken response success marker " + mes, LogMessageType.Error);
                             }
                         }
 
@@ -305,7 +305,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                         else
                         {
-                            SendLogMessage("Broken response topic marker " + response.First.Path, LogMessageType.Error);
+                            SendLogMessage("Broken response topic marker " + mes, LogMessageType.Error);
                         }
                     }
                     else
