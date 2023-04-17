@@ -180,12 +180,12 @@ namespace OsEngine.Language
             "Ru:Recovery_");
 
         public string GridRow6 => OsLocalization.ConvertToLocString(
-            "Eng:Average P\\L chart move_" +
-            "Ru:Сред. П\\У   движение_");
+            "Eng:Average P\\L 1 contract_" +
+            "Ru:Сред. П\\У 1 контракт_");
 
         public string GridRow7 => OsLocalization.ConvertToLocString(
-            "Eng:Average P\\L chart move %_" +
-            "Ru:Сред. П\\У движение %_");
+            "Eng:Average P\\L 1 contract %_" +
+            "Ru:Сред. П\\У 1 контракт %_");
 
         public string GridRow8 => OsLocalization.ConvertToLocString(
             "Eng:Average P\\L classic_" +
