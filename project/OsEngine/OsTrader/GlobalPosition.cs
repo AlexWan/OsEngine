@@ -315,13 +315,13 @@ namespace OsEngine.OsTrader
         private void TryRePaint(Position position, DataGridViewRow nRow)
         {
             if (nRow.Cells[1].Value == null
-                || nRow.Cells[1].Value.ToString() != position.TimeCreate.ToString() == false)
+                || nRow.Cells[1].Value.ToString() != position.TimeCreate.ToString())// == false) //AVP убрал, потому что  во вкладке все позиции, дату позиции не обновляло
             {
                 nRow.Cells[1].Value = position.TimeCreate.ToString();
             }
 
             if (nRow.Cells[2].Value == null
-                || nRow.Cells[2].Value.ToString() != position.TimeClose.ToString() == false)
+                || nRow.Cells[2].Value.ToString() != position.TimeClose.ToString())// == false) //AVP убрал потому что во вкладке все позиции, дату позиции не обновляло
             {
                 nRow.Cells[2].Value = position.TimeClose.ToString();
             }
