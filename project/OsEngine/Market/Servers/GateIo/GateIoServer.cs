@@ -1,14 +1,16 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.GateIo.EntityCreators;
 using OsEngine.Market.Services;
-using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -40,13 +42,9 @@ namespace OsEngine.Market.Servers.GateIo
         private string _publicKey;
         private string _secretKey;
 
-        private RestChannel _restChannel;
         private WsSource _wsSource;
-        
-        private const string WsUri = "wss://ws.gate.io/v3/";
 
-        private const string PublicRestUri = "https://data.gateio.co/api2/1/";
-        private const string PrivateRestUri = "https://api.gateio.co/api2/1/private/";
+        private const string WsUri = "wss://api.gateio.ws/ws/v4/";
 
         private readonly ConcurrentQueue<string> _queueMessagesReceivedFromExchange = new ConcurrentQueue<string>();
 
@@ -59,31 +57,15 @@ namespace OsEngine.Market.Servers.GateIo
 
         public override ServerType ServerType { get { return ServerType.GateIo; } }
 
-        private readonly GateSecurityCreator _securitiesCreator;
-        private readonly GatePortfolioCreator _portfolioCreator;
-        private readonly GateTradesCreator _tradesCreator;
-        private readonly GateMarketDepthCreator _marketDepthCreator;
-        private readonly GateOrderCreator _orderCreator;
-
-        private JsonArray _securitiesForSubscribeMarketDepth;
-        private JsonArray _securitiesForSubscribe;
-
-        private const string PortfolioNumber = "GateIoWallet";
-
         public GateIoServerRealization()
         {
-            _securitiesCreator = new GateSecurityCreator();
-            _portfolioCreator = new GatePortfolioCreator(PortfolioNumber);
-            _tradesCreator = new GateTradesCreator();
-            _marketDepthCreator = new GateMarketDepthCreator();
-            _orderCreator = new GateOrderCreator(PortfolioNumber);
+            //_securitiesCreator = new GateSecurityCreator();
+            //_portfolioCreator = new GatePortfolioCreator(PortfolioNumber);
+            //_tradesCreator = new GateTradesCreator();
+            //_marketDepthCreator = new GateMarketDepthCreator();
+            //_orderCreator = new GateOrderCreator(PortfolioNumber);
 
             _supportedIntervals = CreateIntervalDictionary();
-        }
-
-        private void OrderCreatorOnNewMyTrade(MyTrade myTrade)
-        {
-            OnMyTradeEvent(myTrade);
         }
 
         private Dictionary<int, string> CreateIntervalDictionary()
@@ -119,10 +101,6 @@ namespace OsEngine.Market.Servers.GateIo
 
         private void Initialize()
         {
-            _securitiesForSubscribeMarketDepth = new JsonArray();
-            _securitiesForSubscribe = new JsonArray();
-
-            _orderCreator.NewMyTrade += OrderCreatorOnNewMyTrade;
 
             _cancelTokenSource = new CancellationTokenSource();
 
@@ -135,8 +113,6 @@ namespace OsEngine.Market.Servers.GateIo
             }
 
             StartMessageReader();
-
-            _restChannel = new RestChannel();
 
             _wsSource = new WsSource(WsUri);
             _wsSource.MessageEvent += WsSourceOnMessageEvent;
@@ -160,33 +136,139 @@ namespace OsEngine.Market.Servers.GateIo
 
                         if (_queueMessagesReceivedFromExchange.TryDequeue(out mes))
                         {
-                            if (mes.StartsWith("{\"error"))
+                            ResponceWebsocketMessage<object> responceWebsocketMessage = JsonConvert.DeserializeAnonymousType(mes, new ResponceWebsocketMessage<object>());
+
+
+                            if (responceWebsocketMessage.channel.Equals("spot.usertrades") &&
+                                responceWebsocketMessage.Event.Equals("update"))
                             {
+                                ResponceWebsocketMessage<MessageUserTrade> responceDepths = JsonConvert.DeserializeAnonymousType(mes, new ResponceWebsocketMessage<MessageUserTrade>());
+
+                                var security = responceDepths.result.currence_pair;
+
+                                var time = Convert.ToInt64(responceDepths.result.create_time);
+
+                                var newTrade = new Trade();
+
+                                newTrade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(time);
+                                newTrade.SecurityNameCode = security;
+                                newTrade.Price = responceDepths.result.price.ToDecimal();
+                                newTrade.Id = responceDepths.result.id;
+                                newTrade.Side = responceDepths.result.side.Equals("sell") ? Side.Sell : Side.Buy;
+                                newTrade.Volume = responceDepths.result.amount.ToDecimal();
+                                OnTradeEvent(newTrade);
                                 continue;
                             }
-
-                            var jt = JToken.Parse(mes);
-
-                            var channel = jt.SelectToken("method").ToString();
-
-                            if (channel == "trades.update")
+                            else if (responceWebsocketMessage.channel.Equals("spot.order_book") &&
+                                responceWebsocketMessage.Event.Equals("update"))
                             {
-                                foreach (var trade in _tradesCreator.Create(mes))
+                                ResponceWebsocketMessage<MessageDepths> responceDepths = JsonConvert.DeserializeAnonymousType(mes, new ResponceWebsocketMessage<MessageDepths>());
+
+
+                                try
                                 {
-                                    OnTradeEvent(trade);
+                                    MarketDepth _depths = new MarketDepth();
+                                    _depths.SecurityNameCode = responceDepths.result.s;
+
+                                    List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                                    List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                                    for (int i = 0; i < responceDepths.result.asks.Count; i++)
+                                    {
+                                        ascs.Add(new MarketDepthLevel()
+                                        {
+                                            Ask = responceDepths.result.asks[i][1].ToDecimal(),
+                                            Price = responceDepths.result.asks[i][0].ToDecimal()
+                                        });
+                                    }
+
+                                    for (int i = 0; i < responceDepths.result.bids.Count; i++)
+                                    {
+                                        bids.Add(new MarketDepthLevel()
+                                        {
+                                            Bid = responceDepths.result.bids[i][1].ToDecimal(),
+                                            Price = responceDepths.result.bids[i][0].ToDecimal()
+                                        });
+                                    }
+
+                                    _depths.Asks = ascs;
+                                    _depths.Bids = bids;
+
+                                    _depths.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceDepths.result.t));
+
+                                    OnMarketDepthEvent(_depths);
+                                    continue;
                                 }
+                                catch (Exception error)
+                                {
+                                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
+                                }
+
                             }
-                            else if (channel == "depth.update")
+                            else if (responceWebsocketMessage.channel.Equals("spot.trades") &&
+                                responceWebsocketMessage.Event.Equals("update"))
                             {
-                                OnMarketDepthEvent(_marketDepthCreator.Create(mes));
+
+                                ResponceWebsocketMessage<MessagePublicTrades> responceTrades = JsonConvert.DeserializeAnonymousType(mes, new ResponceWebsocketMessage<MessagePublicTrades>());
+
+                                Trade trade = new Trade();
+                                trade.SecurityNameCode = responceTrades.result.currency_pair;
+
+                                trade.Price = Convert.ToDecimal(responceTrades.result.price.Replace('.', ','));
+                                trade.Id = responceTrades.result.id;
+                                trade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(responceTrades.result.create_time));
+                                trade.Volume = Convert.ToDecimal(responceTrades.result.amount.Replace('.', ','));
+                                trade.Side = responceTrades.result.side.Equals("sell") ? Side.Sell : Side.Buy;
+
+                                OnTradeEvent(trade);
+
+                                continue;
+
                             }
-                            else if (channel == "balance.update")
+                            else if (responceWebsocketMessage.channel.Equals("spot.orders") &&
+                                responceWebsocketMessage.Event.Equals("update"))
                             {
-                                OnPortfolioEvent(_portfolioCreator.UpdatePortfolio(mes));
-                            }
-                            else if (channel == "order.update")
-                            {
-                                OnOrderEvent(_orderCreator.Create(mes));
+
+                                ResponceWebsocketMessage<List<MessageUserOrder>> responceDepths = JsonConvert.DeserializeAnonymousType(mes, new ResponceWebsocketMessage<List<MessageUserOrder>>());
+
+                                for (int i = 0; i < responceDepths.result.Count; i++)
+                                {
+                                    Order newOrder = new Order();
+                                    newOrder.SecurityNameCode = responceDepths.result[i].currency_pair;
+                                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(responceDepths.result[i].create_time));
+
+                                    OrderStateType orderState = OrderStateType.None;
+
+                                    if (responceDepths.result[i].Event.Equals("put"))
+                                    {
+                                        orderState = OrderStateType.Activ;
+                                    }
+                                    else if (responceDepths.result[i].Event.Equals("update"))
+                                    {
+                                        orderState = OrderStateType.Patrial;
+                                    }
+                                    else
+                                    {
+                                        if (responceDepths.result[i].finish_as.Equals("cancelled"))
+                                        {
+                                            orderState = OrderStateType.Cancel;
+                                        }
+                                        else
+                                        {
+                                            orderState = OrderStateType.Done;
+                                        }
+                                    }
+                                    newOrder.NumberUser = Convert.ToInt32(responceDepths.result[i].text.Replace("t-", ""));
+                                    newOrder.NumberMarket = responceDepths.result[i].id.ToString();
+                                    newOrder.Side = responceDepths.result[i].side.Equals("long") ? Side.Buy : Side.Sell;
+                                    newOrder.State = orderState;
+                                    newOrder.Volume = responceDepths.result[i].amount.Replace('.', ',').ToDecimal();
+                                    newOrder.Price = responceDepths.result[i].price.Replace('.', ',').ToDecimal();
+                                    newOrder.ServerType = ServerType.GateIo;
+                                    newOrder.PortfolioNumber = "GateIoWallet";
+
+                                    OnOrderEvent(newOrder);
+                                }
                             }
                         }
                     }
@@ -212,8 +294,6 @@ namespace OsEngine.Market.Servers.GateIo
             {
                 case WsMessageType.Opened:
                     OnConnectEvent();
-                    SendWsSignMessage();
-                    StartPingSender();
                     break;
                 case WsMessageType.Closed:
                     OnDisconnectEvent();
@@ -227,64 +307,6 @@ namespace OsEngine.Market.Servers.GateIo
                 default:
                     throw new NotSupportedException(data);
             }
-        }
-
-        private void SendWsSignMessage()
-        {
-            JsonObject jsonContent = new JsonObject();
-
-            jsonContent.Add("id", 777126565235);
-            jsonContent.Add("method", "server.sign");
-
-            var nonce = TimeManager.GetUnixTimeStampMilliseconds();
-
-            var sing = SingData(_secretKey, nonce.ToString());
-
-            jsonContent.Add("params", new JsonArray{_publicKey, sing, nonce});
-
-            _wsSource?.SendMessage(jsonContent.ToString());
-        }
-
-        private void StartPingSender()
-        {
-            Task.Run(() => PingSender(_cancelTokenSource.Token), _cancelTokenSource.Token);
-        }
-
-        private async void PingSender(CancellationToken token)
-        {
-            //server.ping
-            while (!token.IsCancellationRequested)
-            {
-                try
-                {
-                    await Task.Delay(50000, token);
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        continue;
-                    }
-                    SendPing();
-                }
-                catch (TaskCanceledException)
-                {
-                    return;
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("MessageReader error: " + exception, LogMessageType.Error);
-                }
-            }
-        }
-
-        private void SendPing()
-        {
-            JsonObject jsonContent = new JsonObject();
-
-            jsonContent.Add("id", TimeManager.GetUnixTimeStampSeconds());
-            jsonContent.Add("method", "server.ping");
-            jsonContent.Add("params", new JsonArray());
-
-            _wsSource?.SendMessage(jsonContent.ToString());
         }
 
         public override void Dispose()
@@ -309,10 +331,6 @@ namespace OsEngine.Market.Servers.GateIo
 
         private void UnInitialize()
         {
-            _orderCreator.NewMyTrade -= OrderCreatorOnNewMyTrade;
-
-            _restChannel = null;
-
             _wsSource.Dispose();
             _wsSource.MessageEvent -= WsSourceOnMessageEvent;
             _wsSource = null;
@@ -320,33 +338,134 @@ namespace OsEngine.Market.Servers.GateIo
 
         public override void GetPortfolios()
         {
-            JsonObject jsonContent = new JsonObject();
+            try
+            {
+                string key = _publicKey;
+                string secret = _secretKey;
+                string host = "https://api.gateio.ws";
+                string prefix = "/api/v4";
+                string method = "GET";
+                string url = "/spot/accounts";
+                string query_param = "";
+                string body_param = "";
+                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-            jsonContent.Add("id", TimeManager.GetUnixTimeStampSeconds());
-            jsonContent.Add("method", "balance.subscribe");
-            jsonContent.Add("params", new JsonArray());
-            
-            _wsSource.SendMessage(jsonContent.ToString());
-
-            var headers = new Dictionary<string, string>();
-
-            headers.Add("Key", _publicKey);
-            headers.Add("Sign", SingRestData(_secretKey, ""));
-
-            var result = _restChannel.SendPostQuery(PrivateRestUri, "fundingbalances", new byte[0], headers);
-            if( result.Contains("code\":5"))
+                using (var sha512 = SHA512.Create())
                 {
-                SendLogMessage("Gate io connect error: " + JToken.Parse(result)["message"].Value<string>(), LogMessageType.Error);
-                return;
+                    byte[] body_bytes = Encoding.UTF8.GetBytes(body_param);
+                    byte[] body_hash = sha512.ComputeHash(body_bytes);
+                    string body_hash_string = BitConverter.ToString(body_hash).Replace("-", "").ToLowerInvariant();
+
+                    string sign_string = $"{method}\n{prefix}{url}\n{query_param}\n{body_hash_string}\n{timestamp}";
+
+                    using (var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(secret)))
+                    {
+                        byte[] sign_bytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(sign_string));
+                        string sign = BitConverter.ToString(sign_bytes).Replace("-", "").ToLowerInvariant();
+
+                        string full_url = $"{host}{prefix}{url}";
+
+                        using (var client = new HttpClient())
+                        {
+                            client.DefaultRequestHeaders.TryAddWithoutValidation("Timestamp", timestamp.ToString());
+                            client.DefaultRequestHeaders.TryAddWithoutValidation("KEY", key);
+                            client.DefaultRequestHeaders.TryAddWithoutValidation("SIGN", sign);
+
+                            HttpResponseMessage response = client.GetAsync(full_url).Result;
+                            string response_content = response.Content.ReadAsStringAsync().Result;
+
+                            List<GetCurrencyVolumeResponce> getCurrencyVolumeResponce = JsonConvert.DeserializeAnonymousType<List<GetCurrencyVolumeResponce>>(response_content, new List<GetCurrencyVolumeResponce>());
+
+                            UpdatePotfolio(getCurrencyVolumeResponce);
+
+                        }
+                    }
                 }
-            OnPortfolioEvent(_portfolioCreator.CreatePortfolio(result));
+            }
+            catch (WebException ex)
+            {
+                //HttpWebResponse httpResponse = (HttpWebResponse)ex.Response;
+                if (ex.Response != null)
+                {
+                    using (Stream stream = ex.Response.GetResponseStream())
+                    {
+                        StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+                        var error = reader.ReadToEnd();
+                    }
+                }
+            }
+
+        }
+
+        private void UpdatePotfolio(List<GetCurrencyVolumeResponce> getCurrencyVolumeResponce)
+        {
+            try
+            {
+                Portfolio myPortfolio = null;
+
+
+                if (myPortfolio == null)
+                {
+                    Portfolio newPortf = new Portfolio();
+                    newPortf.Number = "GateIO";
+                    newPortf.ValueBegin = 1;
+                    newPortf.ValueCurrent = 1;
+                    myPortfolio = newPortf;
+                }
+
+                if (getCurrencyVolumeResponce.Count == 0 ||
+                    getCurrencyVolumeResponce == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < getCurrencyVolumeResponce.Count; i++)
+                {
+                    PositionOnBoard newPortf = new PositionOnBoard();
+                    newPortf.SecurityNameCode = getCurrencyVolumeResponce[i].currency;
+                    newPortf.ValueBegin = getCurrencyVolumeResponce[i].available.Replace(".", ",").ToDecimal();
+                    newPortf.ValueCurrent = getCurrencyVolumeResponce[i].available.Replace(".", ",").ToDecimal();
+                    newPortf.ValueBlocked = getCurrencyVolumeResponce[i].locked.Replace(".", ",").ToDecimal();
+                    myPortfolio.SetNewPosition(newPortf);
+                }
+
+                OnPortfolioEvent(new List<Portfolio> { myPortfolio });
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
+            }
         }
 
         public override void GetSecurities()
         {
-            var securitiesJson = _restChannel.SendGetQuery(PublicRestUri, "marketinfo");
+            HttpClient httpClient = new HttpClient();
+            var responce = httpClient.GetAsync("https://api.gateio.ws/api/v4/spot/currency_pairs").Result;
+            string json = responce.Content.ReadAsStringAsync().Result;
 
-            OnSecurityEvent(_securitiesCreator.Create(securitiesJson));
+            var currencyPairs = JsonConvert.DeserializeAnonymousType<List<CurrencyPair>>(json, new List<CurrencyPair>());
+
+            List<Security> securities = new List<Security>();
+
+            for (int i = 0; i < currencyPairs.Count; i++)
+            {
+                Security security = new Security();
+                security.Name = currencyPairs[i].id;
+                security.NameFull = currencyPairs[i].id;
+                security.NameClass = currencyPairs[i].quote;
+                security.NameId = currencyPairs[i].id;
+                security.SecurityType = SecurityType.CurrencyPair;
+                security.Lot = 1;
+                security.PriceStep = currencyPairs[i].min_base_amount.ToDecimal();
+                security.Decimals = Convert.ToInt32(currencyPairs[i].precision);
+                security.DecimalsVolume = Convert.ToInt32(currencyPairs[i].amount_precision);
+                security.PriceStepCost = security.PriceStep;
+                securities.Add(security);
+            }
+
+
+            OnSecurityEvent(securities);
         }
 
         public override void Subscrible(Security security)
@@ -354,127 +473,231 @@ namespace OsEngine.Market.Servers.GateIo
             SubscribeMarketDepth(security.Name);
             SubscribeTrades(security.Name);
             SubscribeOrders(security.Name);
+            SubscribeUserTrades(security.Name);
         }
 
         private void SubscribeMarketDepth(string security)
         {
-            _securitiesForSubscribeMarketDepth.Add(new JsonArray { security, 30, "0.00000001" });
+            var message = new
+            {
+                time = TimeManager.GetUnixTimeStampSeconds(),
+                channel = "spot.order_book",
+                @event = "subscribe",
+                payload = new string[] { security, "20", "100ms" }
+            };
 
-            JsonObject jsonContent = new JsonObject();
-
-            jsonContent.Add("id", TimeManager.GetUnixTimeStampSeconds());
-            jsonContent.Add("method", "depth.subscribe");
-            jsonContent.Add("params", _securitiesForSubscribeMarketDepth);
-
-            _wsSource?.SendMessage(jsonContent.ToString());
+            _wsSource?.SendMessage(JsonConvert.SerializeObject(message));
         }
 
         private void SubscribeTrades(string security)
         {
-            _securitiesForSubscribe.Add(security);
+            var message = new
+            {
+                time = TimeManager.GetUnixTimeStampSeconds(),
+                channel = "spot.trades",
+                @event = "subscribe",
+                payload = new string[] { security }
+            };
 
-            JsonObject jsonContent = new JsonObject();
-
-            jsonContent.Add("id", TimeManager.GetUnixTimeStampSeconds());
-            jsonContent.Add("method", "trades.subscribe");
-            jsonContent.Add("params", _securitiesForSubscribe);
-
-            _wsSource?.SendMessage(jsonContent.ToString());
+            _wsSource?.SendMessage(JsonConvert.SerializeObject(message));
         }
 
         private void SubscribeOrders(string security)
         {
-            _securitiesForSubscribe.Add(security);
+            string channel = "spot.orders";
+            string eventName = "subscribe";
+            long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
-            JsonObject jsonContent = new JsonObject();
+            // GateAPIv4 key pair
+            string apiKey = _publicKey;
+            string apiSecret = _secretKey;
 
-            jsonContent.Add("id", TimeManager.GetUnixTimeStampSeconds());
-            jsonContent.Add("method", "order.subscribe");
-            jsonContent.Add("params", new JsonArray());
+            string s = string.Format("channel={0}&event={1}&time={2}", channel, eventName, timestamp);
+            byte[] keyBytes = Encoding.UTF8.GetBytes(apiSecret);
+            byte[] messageBytes = Encoding.UTF8.GetBytes(s);
+            byte[] hashBytes;
 
-            _wsSource?.SendMessage(jsonContent.ToString());
+            using (var hash = new HMACSHA512(keyBytes))
+            {
+                hashBytes = hash.ComputeHash(messageBytes);
+            }
+
+            string sign = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+
+            JObject authObject = new JObject {
+            { "method", "api_key" },
+            { "KEY", apiKey },
+            { "SIGN", sign }
+        };
+
+            JObject payloadObject = new JObject {
+            { "id", timestamp * 1000000 },
+            { "time", timestamp },
+            { "channel", channel },
+            { "event", eventName },
+            { "payload", new JArray { security } },
+            { "auth", authObject }
+        };
+
+            string jsonRequest = JsonConvert.SerializeObject(payloadObject);
+            //Console.WriteLine(jsonRequest);
+
+
+            _wsSource?.SendMessage(jsonRequest);
+        }
+
+        private void SubscribeUserTrades(string security)
+        {
+            string channel = "spot.usertrades";
+            string eventName = "subscribe";
+            long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+
+            // GateAPIv4 key pair
+            string apiKey = _publicKey;
+            string apiSecret = _secretKey;
+
+            string s = string.Format("channel={0}&event={1}&time={2}", channel, eventName, timestamp);
+            byte[] keyBytes = Encoding.UTF8.GetBytes(apiSecret);
+            byte[] messageBytes = Encoding.UTF8.GetBytes(s);
+            byte[] hashBytes;
+
+            using (var hash = new HMACSHA512(keyBytes))
+            {
+                hashBytes = hash.ComputeHash(messageBytes);
+            }
+
+            string sign = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+
+            JObject authObject = new JObject {
+            { "method", "api_key" },
+            { "KEY", apiKey },
+            { "SIGN", sign }
+        };
+
+            JObject payloadObject = new JObject {
+            { "id", timestamp * 1000000 },
+            { "time", timestamp },
+            { "channel", channel },
+            { "event", eventName },
+            { "payload", new JArray { security } },
+            { "auth", authObject }
+        };
+
+            string jsonRequest = JsonConvert.SerializeObject(payloadObject);
+            //Console.WriteLine(jsonRequest);
+
+
+            _wsSource?.SendMessage(jsonRequest);
         }
 
         public override void SendOrder(Order order)
         {
-            StringBuilder builder = new StringBuilder();
 
-            builder.AppendFormat("{0}={1}", "currencyPair", order.SecurityNameCode.ToLower());
-            builder.Append("&");
-            builder.AppendFormat("{0}={1}", "rate", order.Price);
-            builder.Append("&");
-            builder.AppendFormat("{0}={1}", "amount", order.Volume);
-            builder.Append("&");
-            builder.AppendFormat("{0}={1}", "text", "t-" + order.NumberUser);
+            string side = order.Side == Side.Buy ? "buy" : "sell";
+            string secName = order.SecurityNameCode;
+            string price = order.Price.ToString().Replace(",", ".");
+            string volume = order.Volume.ToString().Replace(",", ".");
 
-            var headers = new Dictionary<string, string>();
+            string key = _publicKey;
+            string secret = _secretKey;
+            string host = "https://api.gateio.ws";
+            string prefix = "/api/v4";
+            string method = "POST";
+            string url = "/spot/orders";
+            string query_param = "";
+            string body_param = $"{{\"text\":\"t-{order.NumberUser}\",\"currency_pair\":\"{secName}\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"{side}\",\"iceberg\":\"0\",\"amount\":\"{volume}\",\"price\":\"{price}\",\"time_in_force\":\"gtc\"}}";
 
-            headers.Add("Key", _publicKey);
-            headers.Add("Sign", SingRestData(_secretKey, builder.ToString()));
+            string timestamp = DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
+            byte[] bodyBytes = Encoding.UTF8.GetBytes(body_param);
+            byte[] hashBytes;
 
-            var data = Encoding.UTF8.GetBytes(builder.ToString());
-
-            var endPoint = order.Side == Side.Buy ? "buy" : "sell";
-
-            var result = _restChannel.SendPostQuery(PrivateRestUri, endPoint, data, headers);
-
-            var jt = JToken.Parse(result);
-            var responseData = jt["result"].ToString();
-
-            if (responseData == "false")
+            using (var sha512 = SHA512.Create())
             {
-                order.State = OrderStateType.Fail;
-                OnOrderEvent(order);
-                SendLogMessage("Error placing order: you have insufficient funds", LogMessageType.Trade);
+                hashBytes = sha512.ComputeHash(bodyBytes);
+            }
+
+            string body_hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+
+            string sign_string = $"{method}\n{prefix}{url}\n{query_param}\n{body_hash}\n{timestamp}";
+            string sign;
+
+            using (var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(secret)))
+            {
+                byte[] signBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(sign_string));
+                sign = BitConverter.ToString(signBytes).Replace("-", "").ToLower();
+            }
+
+            string full_url = $"{host}{prefix}{url}";
+            var client = new HttpClient();
+            var content = new StringContent(body_param, Encoding.UTF8, "application/json");
+
+            client.DefaultRequestHeaders.Add("KEY", key);
+            client.DefaultRequestHeaders.Add("SIGN", sign);
+            client.DefaultRequestHeaders.Add("Timestamp", timestamp);
+
+            var response = client.PostAsync(full_url, content).Result;
+            var responseString = response.Content.ReadAsStringAsync().Result;
+
+            if (response.StatusCode != HttpStatusCode.Created)
+            {
+                SendLogMessage(responseString, LogMessageType.Error);
             }
         }
 
         public override void CancelOrder(Order order)
         {
-            StringBuilder builder = new StringBuilder();
+            string key = _publicKey;
+            string secret = _secretKey;
+            string host = "https://api.gateio.ws";
+            string prefix = "/api/v4";
+            string method = "DELETE";
+            string url = $"/spot/orders/{order.NumberMarket}";
+            string queryParam = $"currency_pair={order.SecurityNameCode}";
+            string bodyParam = "";
+            long timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            string bodyHash = GetHash(bodyParam);
+            string signString = $"{method}\n{prefix}{url}\n{queryParam}\n{bodyHash}\n{timestamp}";
+            string sign = GetHashHMAC(signString, secret);
+            string fullUrl = $"{host}{prefix}{url}?{queryParam}";
 
-            builder.AppendFormat("{0}={1}", "orderNumber", order.NumberMarket);
-            builder.Append("&");
-            builder.AppendFormat("{0}={1}", "currencyPair", order.SecurityNameCode.ToLower());
-            builder.Append("&");
-            builder.AppendFormat("{0}={1}", "text", "t-" + order.NumberUser);
-
-            var headers = new Dictionary<string, string>();
-
-            headers.Add("Key", _publicKey);
-            headers.Add("Sign", SingRestData(_secretKey, builder.ToString()));
-
-            var data = Encoding.UTF8.GetBytes(builder.ToString());
-
-            var endPoint = "cancelOrder";
-
-            var result = _restChannel.SendPostQuery(PrivateRestUri, endPoint, data, headers);
-
-            var jt = JToken.Parse(result);
-            var responseData = jt["result"].ToString();
-
-            if (responseData == "false")
+            using (var httpClient = new HttpClient())
             {
-                SendLogMessage(jt["message"].ToString(), LogMessageType.Error);
+                httpClient.DefaultRequestHeaders.Add("Timestamp", timestamp.ToString());
+                httpClient.DefaultRequestHeaders.Add("KEY", key);
+                httpClient.DefaultRequestHeaders.Add("SIGN", sign);
+
+                HttpResponseMessage response = httpClient.DeleteAsync(fullUrl).Result;
+                string responseBody = response.Content.ReadAsStringAsync().Result;
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage(responseBody, LogMessageType.Error);
+                }
             }
         }
 
-        private string SingData(string secretKey, string data)
+        private string GetHash(string input)
         {
-            byte[] keyInBytes = Encoding.UTF8.GetBytes(secretKey);
-            byte[] dataInBytes = Encoding.UTF8.GetBytes(data);
-
-            byte[] computedHash;
-
-            using (var hash = new HMACSHA512(keyInBytes))
+            using (var sha512 = SHA512.Create())
             {
-                computedHash = hash.ComputeHash(dataInBytes);
+                var inputBytes = Encoding.ASCII.GetBytes(input);
+                var hashBytes = sha512.ComputeHash(inputBytes);
+                var hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                return hash;
             }
-            
-            var result = Convert.ToBase64String(computedHash);
-
-            return result;
         }
+
+        private string GetHashHMAC(string input, string key)
+        {
+            using (var hmacsha512 = new HMACSHA512(Encoding.ASCII.GetBytes(key)))
+            {
+                var inputBytes = Encoding.ASCII.GetBytes(input);
+                var hashBytes = hmacsha512.ComputeHash(inputBytes);
+                var hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                return hash;
+            }
+        }
+
         public static string SingRestData(string secretKey, string signatureString)
         {
             var enc = Encoding.UTF8;
@@ -494,7 +717,9 @@ namespace OsEngine.Market.Servers.GateIo
             var needIntervalForQuery =
                 CandlesCreator.DetermineAppropriateIntervalForRequest(oldInterval, _supportedIntervals, out var needInterval);
 
-            var jsonCandles = RequestCandlesFromExchange(needIntervalForQuery, security);
+            string intervalstr = CreateIntervalString(interval);
+
+            var jsonCandles = RequestCandlesFromExchange(intervalstr, security);
 
             var oldCandles = CreateCandlesFromJson(jsonCandles);
 
@@ -508,43 +733,166 @@ namespace OsEngine.Market.Servers.GateIo
             return newCandles;
         }
 
+        private string CreateIntervalString(TimeSpan interval)
+        {
+            if (interval.Seconds > 0)
+            {
+                return $"{interval.Seconds}s";
+            }
+            if (interval.Minutes > 0)
+            {
+                return $"{interval.Minutes}m";
+            }
+            if (interval.Hours > 0)
+            {
+                return $"{interval.Hours}h";
+            }
+            if (interval.Days > 0)
+            {
+                return $"{interval.Days}d";
+            }
+
+            return "1m";
+        }
+
         private string RequestCandlesFromExchange(string needIntervalForQuery, string security)
         {
-            //https://data.gateio.co/api2/1/candlestick2/eth_usdt?group_sec=300&range_hour=1000
-
-            var endPoint = "candlestick2/" + security.ToLower() + "?group_sec=" + needIntervalForQuery + "&range_hour=1000";
-
-            var jsonCandles = _restChannel.SendGetQuery(PublicRestUri, endPoint);
-            
-            return jsonCandles;
+            var endPoint = $"https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair={security}&interval={needIntervalForQuery}";
+            HttpClient httpClient = new HttpClient();
+            var q = httpClient.GetAsync(endPoint).Result;
+            var json = q.Content.ReadAsStringAsync().Result;
+            return json;
         }
 
         private List<Candle> CreateCandlesFromJson(string jsonCandles)
         {
-            //{"elapsed":"11ms","result":"true","data":[["1569432300000","0","8379.11","8379.11","8379.11","8379.11"],
-            //["1569432360000","0.467191","8375.87","8375.87","8375.19","8375.19"]]}
-
             var candles = new List<Candle>();
 
-            var js = JToken.Parse(jsonCandles);
+            List<string[]> js = JsonConvert.DeserializeAnonymousType<List<string[]>>(jsonCandles, new List<string[]>());
 
-            foreach (var jtCandle in js["data"])
+            for (int i = 0; i < js.Count; i++)
             {
                 var candle = new Candle();
 
-                candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(jtCandle[0].Value<long>());
-                candle.Open = jtCandle[5].Value<decimal>();
-                candle.High = jtCandle[3].Value<decimal>();
-                candle.Low = jtCandle[4].Value<decimal>();
-                candle.Close = jtCandle[2].Value<decimal>();
-                candle.Volume = jtCandle[1].Value<decimal>();
+                candle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(js[i][0]));
+                candle.Open = Convert.ToDecimal(js[i][5].Replace(".", ","));
+                candle.High = Convert.ToDecimal(js[i][3].Replace(".", ","));
+                candle.Low = Convert.ToDecimal(js[i][4].Replace(".", ","));
+                candle.Close = Convert.ToDecimal(js[i][2].Replace(".", ","));
+                candle.Volume = Convert.ToDecimal(js[i][1].Replace(".", ","));
 
                 candles.Add(candle);
             }
 
+
+
             return candles;
         }
 
+    }
 
+    public class CurrencyPair
+    {
+        public string id;
+        public string Base;
+        public string quote;
+        public string fee;
+        public string min_base_amount;
+        public string min_quote_amount;
+        public string amount_precision;
+        public string precision;
+        public string trade_status;
+        public string sell_start;
+        public string buy_start;
+    }
+
+    public class GetCurrencyVolumeResponce
+    {
+        public string currency;
+        public string available;
+        public string locked;
+    }
+
+    public class ResponceWebsocketMessage<T>
+    {
+        public string time;
+        public string time_ms;
+        public string channel;
+        public string Event;
+        public T result;
+    }
+
+    public class MessageDepths
+    {
+        public long t;
+        public long lastUpdateId;
+        public string s;
+        public List<string[]> bids;
+        public List<string[]> asks;
+    }
+
+    public class MessagePublicTrades
+    {
+        public string id;
+        public string create_time;
+        public string create_time_ms;
+        public string side;
+        public string currency_pair;
+        public string amount;
+        public string price;
+    }
+
+    public class MessageUserTrade
+    {
+        public string id;
+        public string user_id;
+        public string order_id;
+        public string currence_pair;
+        public string create_time;
+        public string create_time_ms;
+        public string side;
+        public string amount;
+        public string role;
+        public string price;
+        public string fee;
+        public string fee_currency;
+        public string point_fee;
+        public string gt_fee;
+        public string text;
+        public string amend_text;
+        public string biz_info;
+    }
+
+    public class MessageUserOrder
+    {
+        public string id;
+        public string text;
+        public string create_time;
+        public string update_time;
+        public string currency_pair;
+        public string type;
+        public string account;
+        public string side;
+        public string amount;
+        public string price;
+        public string time_in_force;
+        public string left;
+        public string filled_total;
+        public string avg_deal_price;
+        public string fee;
+        public string fee_currency;
+        public string point_fee;
+        public string gt_fee;
+        public string rebated_fee;
+        public string rebated_fee_currency;
+        public string create_time_ms;
+        public string update_time_ms;
+        public string user;
+        public string Event;
+        public string stp_id;
+        public string stp_act;
+        public string finish_as;
+        public string biz_info;
+        public string amend_text;
     }
 }
