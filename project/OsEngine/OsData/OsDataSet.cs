@@ -1199,7 +1199,7 @@ namespace OsEngine.OsData
 
                 newCandleDataPies.Add(newPie);
 
-                timeStart = timeNow.AddDays(1);
+                timeStart = timeNow;
                 timeNow = timeStart.Add(interval);
 
                 if (timeNow > TimeEnd)
