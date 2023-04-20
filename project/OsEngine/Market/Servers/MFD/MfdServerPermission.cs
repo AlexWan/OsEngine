@@ -91,6 +91,10 @@ namespace OsEngine.Market.Servers.MFD
 
         #region Trade permission
 
+        public bool MarketOrdersIsSupport
+        {
+            get { return false; }
+        }
         public bool IsTradeServer
         {
             get { return false; }

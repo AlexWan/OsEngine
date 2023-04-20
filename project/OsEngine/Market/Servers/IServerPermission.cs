@@ -46,6 +46,8 @@
 
         #region Trade Permissions
 
+        bool MarketOrdersIsSupport { get; }
+
         bool IsTradeServer { get; }
 
         TimeFramePermission TradeTimeFramePermission { get; }
