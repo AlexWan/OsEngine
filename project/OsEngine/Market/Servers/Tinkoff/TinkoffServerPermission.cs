@@ -92,6 +92,10 @@ namespace OsEngine.Market.Servers.Tinkoff
 
         #region Trade permission
 
+        public bool MarketOrdersIsSupport
+        {
+            get { return false; }
+        }
         public bool IsTradeServer
         {
             get { return true; }

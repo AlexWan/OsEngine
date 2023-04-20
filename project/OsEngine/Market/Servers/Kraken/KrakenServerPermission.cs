@@ -90,6 +90,11 @@ namespace OsEngine.Market.Servers.Kraken
 
         #endregion
 
+        public bool MarketOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsTradeServer
         {
             get { return true; }

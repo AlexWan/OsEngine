@@ -87,7 +87,10 @@ namespace OsEngine.Market.Servers.OKX
             get { return false; }
         }
 
-
+        public bool MarketOrdersIsSupport
+        {
+            get { return false; }
+        }
         public bool IsTradeServer
         {
             get { return false; }

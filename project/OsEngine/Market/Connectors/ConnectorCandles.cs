@@ -379,6 +379,39 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        public bool MarketOrdersIsSupport
+        {
+            get
+            {
+                /* _connector.ServerType == ServerType.InteractiveBrokers ||
+                 _connector.ServerType == ServerType.Lmax ||
+                 _connector.ServerType == ServerType.AscendEx_BitMax ||
+                 _connector.ServerType == ServerType.BinanceFutures ||
+                 _connector.ServerType == ServerType.Transaq ||
+                 _connector.ServerType == ServerType.Tester ||
+                 _connector.ServerType == ServerType.BitMex ||
+                 _connector.ServerType == ServerType.Bybit ||
+                 _connector.ServerType == ServerType.Binance*/
+
+
+                if (ServerType == ServerType.None)
+                {
+                    return false;
+                }
+
+                IServerPermission serverPermision = ServerMaster.GetServerPermission(ServerType);
+
+                if (serverPermision == null)
+                {
+                    return false;
+                }
+
+
+                return serverPermision.MarketOrdersIsSupport;
+            }
+        }
+
+
         /// <summary>
         /// object preserving settings for building candles
         /// объект сохраняющий в себе настройки для построения свечек

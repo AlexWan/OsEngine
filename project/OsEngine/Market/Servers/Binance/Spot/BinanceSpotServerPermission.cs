@@ -86,7 +86,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
         #endregion
 
         #region Trade permission
-
+        public bool MarketOrdersIsSupport
+        {
+            get { return true; }
+        }
         public bool IsTradeServer
         {
             get { return true; }

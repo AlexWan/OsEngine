@@ -978,12 +978,17 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         return;
                     }
 
+                    string TypeOrder = order.TypeOrder == OrderPriceType.Market ? "MARKET" : "LIMIT";
+
                     Dictionary<string, string> param = new Dictionary<string, string>();
 
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
-                    param.Add("&type=", "LIMIT");
-                    param.Add("&timeInForce=", "GTC");
+                    param.Add("&type=", TypeOrder);
+                    if (TypeOrder.Equals("LIMIT"))
+                    {
+                        param.Add("&timeInForce=", "GTC");
+                    }
                     param.Add("&newClientOrderId=", "x-RKXTQ2AK" + order.NumberUser.ToString());
 
                     if (order.PositionConditionType == OrderPositionConditionType.Open)
@@ -998,9 +1003,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
-                    param.Add("&price=",
+                    if (TypeOrder.Equals("LIMIT"))
+                    {
+                        param.Add("&price=",
                         order.Price.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                    }
 
                     var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.POST, "/sapi/v1/margin/order", param, true);
 
@@ -1038,17 +1046,26 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     Dictionary<string, string> param = new Dictionary<string, string>();
 
+                    string TypeOrder = order.TypeOrder == OrderPriceType.Market ? "MARKET" : "LIMIT";
+
                     param.Add("symbol=", order.SecurityNameCode.ToUpper());
                     param.Add("&side=", order.Side == Side.Buy ? "BUY" : "SELL");
-                    param.Add("&type=", "LIMIT");
-                    param.Add("&timeInForce=", "GTC");
+                    param.Add("&type=", TypeOrder);
+                    if (TypeOrder.Equals("LIMIT"))
+                    {
+                        param.Add("&timeInForce=", "GTC");
+                    }
                     param.Add("&newClientOrderId=", "x-RKXTQ2AK" + order.NumberUser.ToString());
                     param.Add("&quantity=",
                         order.Volume.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
-                    param.Add("&price=",
-                        order.Price.ToString(CultureInfo.InvariantCulture)
-                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                    if (TypeOrder.Equals("LIMIT"))
+                    {
+                        param.Add("&price=",
+                      order.Price.ToString(CultureInfo.InvariantCulture)
+                          .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                    }
+                  
 
                     var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.POST, "api/v3/order", param, true);
 
