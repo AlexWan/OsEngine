@@ -94,7 +94,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
         public bool IsTradeServer
         {
