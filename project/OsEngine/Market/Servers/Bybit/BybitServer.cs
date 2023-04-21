@@ -145,7 +145,7 @@ namespace OsEngine.Market.Servers.Bybit
                 client = new Client(public_key, secret_key, true, false);
             }
 
-            last_time_update_socket = DateTime.Now;
+            last_time_update_socket = DateTime.UtcNow;
             cancel_token_source = new CancellationTokenSource();
             market_mepth_creator = new BybitMarketDepthCreator();
 
@@ -204,7 +204,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception e)
             {
-                SendLogMessage("Bybit dispose error: " + e, LogMessageType.Error);
+                SendLogMessage("Bybit dispose error: " + e.Message + " " + e.StackTrace, LogMessageType.Error);
             }
         }
 
@@ -286,6 +286,10 @@ namespace OsEngine.Market.Servers.Bybit
 
 
                                 SendLogMessage("Broken response success marker " + mes, LogMessageType.Error);
+                                if (mes.Contains("\"auth\"") && mes.Contains("error"))
+                                {
+                                    Dispose();
+                                }
                             }
                         }
 
@@ -338,7 +342,7 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     continue;
                 }
-                if (last_time_update_socket.AddSeconds(60) < DateTime.Now)
+                if (last_time_update_socket.AddSeconds(60) < DateTime.UtcNow)
                 {
                     SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
                     OnDisconnectEvent();
@@ -362,7 +366,9 @@ namespace OsEngine.Market.Servers.Bybit
                 parameters.Add("api_key", client.ApiKey);
                 DateTime time = GetServerTime();
 
-                var res = CreatePrivatePostQuery(client, "/contract/v3/private/position/switch-mode", parameters, time);
+                TimeZoneInfo localZone = TimeZoneInfo.Local;
+
+                var res = CreatePrivatePostQuery(client, "/contract/v3/private/position/switch-mode", parameters, time.AddHours(localZone.BaseUtcOffset.Hours));
 
                 string json = res.ToString();
 
@@ -497,7 +503,7 @@ namespace OsEngine.Market.Servers.Bybit
                 else
                 {
                     SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
-                    SendLogMessage($"You should set the time on the PC as UTC time.", LogMessageType.Error);
+                    SendLogMessage(isSuccessfull, LogMessageType.Error);
 
                     portfolios.Add(BybitPortfolioCreator.Create("undefined"));
                 }
@@ -719,7 +725,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             if (t == null)
             {
-                return DateTime.Now;
+                return DateTime.UtcNow;
             }
 
             JToken tt = t.Root.SelectToken("time_now");
@@ -816,7 +822,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private void HandlePingMessage(JToken response)
         {
-            last_time_update_socket = DateTime.Now;
+            last_time_update_socket = DateTime.UtcNow;
         }
 
         private void HandleSubscribeMessage(JToken response)
