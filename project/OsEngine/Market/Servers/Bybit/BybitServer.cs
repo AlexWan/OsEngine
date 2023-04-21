@@ -286,6 +286,11 @@ namespace OsEngine.Market.Servers.Bybit
 
 
                                 SendLogMessage("Broken response success marker " + mes, LogMessageType.Error);
+                                if (mes.Contains("\"auth\"") && mes.Contains("error"))
+                                {
+                                    Dispose();
+                                   // this.OnDisconnectEvent();
+                                }
                             }
                         }
 
