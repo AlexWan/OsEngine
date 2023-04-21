@@ -366,7 +366,9 @@ namespace OsEngine.Market.Servers.Bybit
                 parameters.Add("api_key", client.ApiKey);
                 DateTime time = GetServerTime();
 
-                var res = CreatePrivatePostQuery(client, "/contract/v3/private/position/switch-mode", parameters, time.AddHours(3));
+                TimeZoneInfo localZone = TimeZoneInfo.Local;
+
+                var res = CreatePrivatePostQuery(client, "/contract/v3/private/position/switch-mode", parameters, time.AddHours(localZone.BaseUtcOffset.Hours));
 
                 string json = res.ToString();
 
