@@ -501,7 +501,7 @@ namespace OsEngine.Market.Servers.Bybit
                 else
                 {
                     SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
-                    SendLogMessage($"You should set the time on the PC as UTC time.", LogMessageType.Error);
+                    SendLogMessage(isSuccessfull, LogMessageType.Error);
 
                     portfolios.Add(BybitPortfolioCreator.Create("undefined"));
                 }
