@@ -32,7 +32,7 @@
                                     <WindowsFormsHost x:Name="WindowsFormsHostOutOfSampleEquity"  Foreground="Black" Margin="0,37,-0.4,222.4" HorizontalAlignment="Right" Width="345"/>
                                     <Label x:Name="LabelTotalProfitInOutOfSample" Content="Profit In OutOfSample %" HorizontalAlignment="Right" Margin="0,9,192,0" VerticalAlignment="Top"/>
                                     <Label x:Name="LabelRobustnessMetric" Content="Robustness metric: " HorizontalAlignment="Left" Margin="10,0,0,194.8" VerticalAlignment="Bottom" Width="219"/>
-                                    <Label x:Name="LabelRobustnessMetricValue" Content="value" HorizontalAlignment="Left" Margin="234,0,0,194.8" VerticalAlignment="Bottom" Width="71"/>
+                                    <Label x:Name="LabelRobustnessMetricValue" Content="value" HorizontalAlignment="Left" Margin="234,0,0,195" VerticalAlignment="Bottom" Width="87"/>
                                 </Grid>
                             </TabItem>
                         </TabControl>

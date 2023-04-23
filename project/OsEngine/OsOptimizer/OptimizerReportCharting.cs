@@ -573,14 +573,13 @@ namespace OsEngine.OsOptimizer
 
             if(allCount != 0)
             {
-                decimal oneBestPieW = 100 / allCount;
+                decimal oneBestP = 100 / allCount;
                 decimal robustness = 0;
 
-                robustness += countBestTwenty * oneBestPieW;     // лучшие 20 считаются по полной
-                robustness += count20_40 * oneBestPieW * 0.75m;  // результат попал в от 20 до 40 % - засчитываем 3 четверти
-                robustness += count40_60 * oneBestPieW * 0.5m;   // результат попал в от 40 до 60 % - засчитываем половину 
-                robustness += count60_80 * oneBestPieW * 0.25m;  // результат попал в от 60 до 80 % - засчитываем одну четверть
-                //robustness += countWorst20 * oneBestPieW * 0;  // результат попал в худшие. Ничего не засчитываем
+                robustness += countBestTwenty * oneBestP;
+                robustness += count20_40 * oneBestP * 0.75m;
+                robustness += count40_60 * oneBestP * 0.5m;
+                robustness += count60_80 * oneBestP * 0.25m;
 
                 _robustnessMetrica.Content = Math.Round(robustness, 2).ToString() + " %";
             }
