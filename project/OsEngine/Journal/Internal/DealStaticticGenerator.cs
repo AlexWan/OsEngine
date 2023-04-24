@@ -930,24 +930,36 @@ namespace OsEngine.Journal.Internal
 
         public static decimal GetPayOffRatio(Position[] deals)
         {
-            decimal avProfit = 0;
-            decimal avLoss = 0;
+            decimal allProfit = 0;
+            decimal allLoss = 0;
+
+            int profitPos = 0;
+            int lossPos = 0;
 
             for (int i = 0; i < deals.Length; i++)
             {
                 if (deals[i].ProfitOperationPunkt > 0)
                 {
-                    avProfit += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    allProfit += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    profitPos++;
                 }
                 else
                 {
-                    avLoss += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    allLoss += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    lossPos++;
                 }
             }
 
-            if (avLoss != 0)
+            if (profitPos == 0 
+                || lossPos == 0)
             {
-                return avProfit / avLoss;
+                return 0;
+            }
+
+            // средняя прибыль разделить на средний убыток)
+            if (allLoss != 0)
+            {
+                return Math.Abs(allProfit/profitPos) / Math.Abs(allLoss/lossPos);
             }
 
             return 0;
