@@ -364,11 +364,10 @@ namespace OsEngine.Market.Servers.Bybit
                 parameters.Add("symbol", security.Name);
                 parameters.Add("coin", null);
                 parameters.Add("api_key", client.ApiKey);
+                parameters.Add("recv_window", "90000000");
                 DateTime time = GetServerTime();
 
-                TimeZoneInfo localZone = TimeZoneInfo.Local;
-
-                var res = CreatePrivatePostQuery(client, "/contract/v3/private/position/switch-mode", parameters, time.AddHours(localZone.BaseUtcOffset.Hours));
+                var res = CreatePrivatePostQuery(client, "/contract/v3/private/position/switch-mode", parameters, time);
 
                 string json = res.ToString();
 
