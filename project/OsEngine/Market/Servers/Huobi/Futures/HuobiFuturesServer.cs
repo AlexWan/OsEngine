@@ -543,7 +543,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                 {
                     var security = new Security();
 
-                    security.Name = symbol.ContractCode;
+                    security.Name = JoinSecurityName(symbol.Symbol, symbol.ContractType);
                     security.NameFull = symbol.Symbol;
                     security.NameClass = symbol.ContractType;
                     security.NameId = JoinSecurityName(symbol.Symbol, symbol.ContractType);
@@ -631,7 +631,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             }
             foreach (var portfolio in Portfolios)
             {
-                string url = _privateUriBuilder.Build("POST", "/v3/unified_account_info");
+                string url = _privateUriBuilder.Build("POST", "/api/v1/contract_account_info");
 
                 StringContent httpContent = new StringContent(new JsonObject().ToString(), Encoding.UTF8, "application/json");
 

@@ -658,13 +658,19 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
         public override void SendOrder(Order order)
         {
+
+            
+
             _portfolioCurrent = order.PortfolioNumber;
 
             JsonObject jsonContent = new JsonObject();
 
             jsonContent.Add("contract_code", order.SecurityNameCode);
             jsonContent.Add("client_order_id", order.NumberUser);
-            jsonContent.Add("price", order.Price);
+            if (order.TypeOrder != OrderPriceType.Market)
+            {
+                jsonContent.Add("price", order.Price);
+            }
             jsonContent.Add("volume", order.Volume);
             jsonContent.Add("direction", order.Side == Side.Buy ? "buy" : "sell");
 
@@ -678,8 +684,10 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
                 jsonContent.Add("offset", "open");
             }
 
+            string typeOrder = order.TypeOrder == OrderPriceType.Market ? "opponent" : "limit";
+
             jsonContent.Add("lever_rate", "10");
-            jsonContent.Add("order_price_type", "limit");
+            jsonContent.Add("order_price_type", typeOrder);
             jsonContent.Add("channel_code", "AAe2ccbd47");
 
             string url = _privateUriBuilder.Build("POST", pathSwapRest + "/v1/swap_order");

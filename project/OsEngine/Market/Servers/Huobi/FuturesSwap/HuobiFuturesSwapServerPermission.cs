@@ -92,7 +92,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
         public bool IsTradeServer
         {
