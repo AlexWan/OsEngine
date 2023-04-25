@@ -90,7 +90,8 @@ namespace OsEngine.Journal.Internal
 
             Activate();
 
-            if(_startProgram != StartProgram.IsOsOptimizer)
+            if(_startProgram != StartProgram.IsOsOptimizer
+                && _startProgram != StartProgram.IsOsMiner)
             {
                 ControllersToCheck.Add(this);
                 Load();
@@ -353,7 +354,8 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if(_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer
+                || _startProgram == StartProgram.IsOsMiner)
             {
                 return;
             }

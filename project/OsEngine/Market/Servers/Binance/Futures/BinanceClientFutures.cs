@@ -685,6 +685,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 try
                 {
+                    Thread.Sleep(1000); // не убирать RateGate не помогает в CreateQuery
+
                     long from = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
 
                     string timeStamp = TimeManager.GetUnixTimeStampMilliseconds().ToString();

@@ -534,6 +534,7 @@ namespace OsEngine.OsMiner.Patterns
         public void ShowJournal()
         {
             Journal.Journal journal = new Journal.Journal("",StartProgram.IsOsMiner);
+
             for (int i = 0; i < PositionsInTrades.Count; i++)
             {
                 journal.SetNewDeal(PositionsInTrades[i]);
