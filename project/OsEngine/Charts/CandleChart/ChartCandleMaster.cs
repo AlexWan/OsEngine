@@ -174,7 +174,7 @@ namespace OsEngine.Charts.CandleChart
                         {
                             CreateIndicator(new VolumeOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "ParabolicSAR")
+                        if (indicator[0] == "ParabolicSaR")
                         {
                             CreateIndicator(new ParabolicSaR(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
