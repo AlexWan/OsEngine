@@ -45,6 +45,11 @@ namespace OsEngine.Entity
             Title = OsLocalization.Entity.AwaitUiLabel1;
         }
 
+        public void Dispose()
+        {
+            _master.Dispose();
+        }
+
         AwaitObject _master;
 
         private void _master_DisposedEvent()

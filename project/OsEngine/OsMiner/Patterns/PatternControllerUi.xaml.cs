@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -117,7 +118,6 @@ namespace OsEngine.OsMiner.Patterns
         }
 
 
-// Auto pattern search
 // Авто поиск паттернов
 
         private void InitializeMiningTab()
@@ -186,7 +186,6 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.ShowTestResults();
         }
 
-// pattern search tab
 // вкладка поиска паттернов
 
         void InitializeTabPatternsSearch()
@@ -296,7 +295,6 @@ namespace OsEngine.OsMiner.Patterns
             PaintGridPatternsToClose();
         }
 
-// individual tabs patterns
 // индивидуальные вкладки паттернов
 
         void TabControlTypePatternsToFind_MouseUp(object sender, MouseButtonEventArgs e)
@@ -1014,6 +1012,10 @@ namespace OsEngine.OsMiner.Patterns
         {
             _dataServer.SetNewSet(ComboBoxSets.SelectedItem.ToString());
             PaintGridDataSeries();
+
+            Thread.Sleep(3000);
+
+            _pattern.PaintPrimeChart();
         }
 
         /// <summary>

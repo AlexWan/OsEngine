@@ -353,5 +353,9 @@ namespace OsEngine.Language
         public string Label74 => OsLocalization.ConvertToLocString(
             "Eng:Type_" +
             "Ru:Тип_");
+
+        public string Label75 => OsLocalization.ConvertToLocString(
+            "Eng:Launching the data set_" +
+            "Ru:Запускаем сет данных_");
     }
 }
