@@ -658,7 +658,6 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                     Size = Convert.ToInt64(outputVolume),
                     Tif = "gtc",
                     Text = $"t-{order.NumberUser}",
-                    //AutoSize = close,
                     Close = false,
                     Reduce_only = true
                 };
