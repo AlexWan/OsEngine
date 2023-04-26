@@ -665,11 +665,16 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                 source = "super-margin-api";
             }
 
+            string typeOrder = order.TypeOrder == OrderPriceType.Market ? "market" : "limit";
+
             jsonContent.Add("account-id", accountData[1]);
             jsonContent.Add("symbol", order.SecurityNameCode);
-            jsonContent.Add("type", order.Side == Side.Buy ? "buy-limit" : "sell-limit");
+            jsonContent.Add("type", order.Side == Side.Buy ? $"buy-{typeOrder}" : $"sell-{typeOrder}");
             jsonContent.Add("amount", order.Volume);
-            jsonContent.Add("price", order.Price);
+            if (order.TypeOrder != OrderPriceType.Market)
+            {
+                jsonContent.Add("price", order.Price);
+            }
             jsonContent.Add("source", source);
             jsonContent.Add("client-order-id", order.NumberUser);
 
