@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.Gui"
         mc:Ignorable="d"
-        Title="Bot Trader Light" Height="700" Width="1200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
+        Title="Bot Trader Light" Height="719" Width="1200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="466*"/>
             <RowDefinition Height="190"/>
         </Grid.RowDefinitions>
 
-        <Grid x:Name="GreedPozitonLogHost" Margin="25,0,10,10" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
+        <Grid x:Name="GreedPozitonLogHost" Margin="25,13,10,10" Grid.Row="1">
             <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0"   >
                 <TabItem Name="TabItemAllPos" Header="All positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
@@ -65,9 +65,19 @@
                 </TransformGroup>
             </Label.RenderTransform>
         </Label>
-        <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,0,0,10">
-            <WindowsFormsHost x:Name="BotsHost" Margin="0,0,0,0"/>
-        </Grid>
+        <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,0,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="10"/>
+            </Grid.RowDefinitions>
 
+            <Grid Grid.Row="0"  Margin="0,0,0,0">
+                <WindowsFormsHost x:Name="BotsHost" Margin="0,0,0,0"/>
+            </Grid>
+
+            <Grid Grid.Row="1"  Margin="0,0,0,0">
+                <Rectangle Name="rectToMove" Fill="#FCEE21" Margin="722,0,0,0" RadiusX="0" RadiusY="0"/>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

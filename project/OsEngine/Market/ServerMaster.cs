@@ -1060,7 +1060,6 @@ namespace OsEngine.Market
             }
         }
 
-// access to the portfolio and its drawing
 // доступ к портфелю и его прорисовка
 
         /// <summary>
@@ -1105,7 +1104,6 @@ namespace OsEngine.Market
             _painter.SetHostTable(hostPortfolio, hostOrders);
         }
 
-// log messages
 // сообщения в лог
 
         public static void ActivateLogging()

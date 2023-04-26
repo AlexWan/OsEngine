@@ -43,6 +43,11 @@ namespace OsEngine.OsTrader.Gui
             GlobalGUILayout.Listen(this, "botStationLightUi");
 
             IsRobotUiLightStart = true;
+
+
+            rectToMove.MouseEnter += GreedChartPanel_MouseEnter;
+            rectToMove.MouseLeave += GreedChartPanel_MouseLeave;
+            rectToMove.MouseDown += GreedChartPanel_MouseDown;
         }
 
         ServerMasterPainter _painterServer;
@@ -78,5 +83,37 @@ namespace OsEngine.OsTrader.Gui
         private OsTraderMaster _strategyKeeper;
 
         public static bool IsRobotUiLightStart = false;
+
+
+        // смещение областей
+
+        private void GreedChartPanel_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (GreedChartPanel.Cursor == System.Windows.Input.Cursors.ScrollN)
+            {
+                GridPrime.RowDefinitions[1].Height = new GridLength(500, GridUnitType.Pixel);
+            }
+            else if (GreedChartPanel.Cursor == System.Windows.Input.Cursors.ScrollS)
+            {
+                GridPrime.RowDefinitions[1].Height = new GridLength(190, GridUnitType.Pixel);
+            }
+        }
+
+        private void GreedChartPanel_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            GreedChartPanel.Cursor = System.Windows.Input.Cursors.Arrow;
+        }
+
+        private void GreedChartPanel_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (GridPrime.RowDefinitions[1].Height.Value == 190)
+            {
+                GreedChartPanel.Cursor = System.Windows.Input.Cursors.ScrollN;
+            }
+            if (GridPrime.RowDefinitions[1].Height.Value == 500)
+            {
+                GreedChartPanel.Cursor = System.Windows.Input.Cursors.ScrollS;
+            }
+        }
     }
 }
