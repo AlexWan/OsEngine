@@ -142,21 +142,26 @@ namespace OsEngine.Market.Servers.GateIo
                             if (responceWebsocketMessage.channel.Equals("spot.usertrades") &&
                                 responceWebsocketMessage.Event.Equals("update"))
                             {
-                                ResponceWebsocketMessage<MessageUserTrade> responceDepths = JsonConvert.DeserializeAnonymousType(mes, new ResponceWebsocketMessage<MessageUserTrade>());
 
-                                var security = responceDepths.result.currence_pair;
+                                ResponceWebsocketMessage<List<MessageUserTrade>> responceDepths = JsonConvert.DeserializeAnonymousType(mes, new ResponceWebsocketMessage<List<MessageUserTrade>>());
 
-                                var time = Convert.ToInt64(responceDepths.result.create_time);
+                                for (int i = 0; i < responceDepths.result.Count; i++)
+                                {
+                                    var security = responceDepths.result[i].currency_pair;
 
-                                var newTrade = new Trade();
+                                    var time = Convert.ToInt64(responceDepths.result[i].create_time);
 
-                                newTrade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(time);
-                                newTrade.SecurityNameCode = security;
-                                newTrade.Price = responceDepths.result.price.ToDecimal();
-                                newTrade.Id = responceDepths.result.id;
-                                newTrade.Side = responceDepths.result.side.Equals("sell") ? Side.Sell : Side.Buy;
-                                newTrade.Volume = responceDepths.result.amount.ToDecimal();
-                                OnTradeEvent(newTrade);
+                                    var newTrade = new MyTrade();
+
+                                    newTrade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(time);
+                                    newTrade.SecurityNameCode = security;
+                                    newTrade.NumberOrderParent = responceDepths.result[i].order_id;
+                                    newTrade.Price = responceDepths.result[i].price.ToDecimal();
+                                    newTrade.NumberTrade = responceDepths.result[i].id;
+                                    newTrade.Side = responceDepths.result[i].side.Equals("sell") ? Side.Sell : Side.Buy;
+                                    newTrade.Volume = responceDepths.result[i].amount.ToDecimal();
+                                    OnMyTradeEvent(newTrade);
+                                }
                                 continue;
                             }
                             else if (responceWebsocketMessage.channel.Equals("spot.order_book") &&
@@ -605,7 +610,16 @@ namespace OsEngine.Market.Servers.GateIo
             string method = "POST";
             string url = "/spot/orders";
             string query_param = "";
-            string body_param = $"{{\"text\":\"t-{order.NumberUser}\",\"currency_pair\":\"{secName}\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"{side}\",\"iceberg\":\"0\",\"amount\":\"{volume}\",\"price\":\"{price}\",\"time_in_force\":\"gtc\"}}";
+            string body_param;
+            if (order.TypeOrder == OrderPriceType.Market)
+            {
+                body_param = $"{{\"text\":\"t-{order.NumberUser}\",\"currency_pair\":\"{secName}\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"{side}\",\"iceberg\":\"0\",\"amount\":\"{volume}\",\"time_in_force\":\"fok\"}}";
+            }
+            else
+            {
+                body_param = $"{{\"text\":\"t-{order.NumberUser}\",\"currency_pair\":\"{secName}\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"{side}\",\"iceberg\":\"0\",\"amount\":\"{volume}\",\"price\":\"{price}\",\"time_in_force\":\"gtc\"}}";
+            }
+            
 
             string timestamp = DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
             byte[] bodyBytes = Encoding.UTF8.GetBytes(body_param);
@@ -847,7 +861,7 @@ namespace OsEngine.Market.Servers.GateIo
         public string id;
         public string user_id;
         public string order_id;
-        public string currence_pair;
+        public string currency_pair;
         public string create_time;
         public string create_time_ms;
         public string side;
