@@ -8,7 +8,6 @@ using OsEngine.Market.Servers.GateIo.Futures.Entities;
 using OsEngine.Market.Servers.GateIo.Futures.Request;
 using OsEngine.Market.Servers.GateIo.Futures.Response;
 using OsEngine.Market.Services;
-using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

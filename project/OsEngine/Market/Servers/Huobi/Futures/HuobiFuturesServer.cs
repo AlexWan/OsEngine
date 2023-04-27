@@ -19,7 +19,7 @@ using OsEngine.Market.Servers.Huobi.Request;
 using OsEngine.Market.Servers.Huobi.Response;
 using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Services;
-using RestSharp;
+
 
 namespace OsEngine.Market.Servers.Huobi.Futures
 {
@@ -633,7 +633,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             {
                 string url = _privateUriBuilder.Build("POST", "/api/v1/contract_account_info");
 
-                StringContent httpContent = new StringContent(new JsonObject().ToString(), Encoding.UTF8, "application/json");
+                StringContent httpContent = new StringContent("", Encoding.UTF8, "application/json");
 
                 var httpClient = new HttpClient();
 
@@ -674,7 +674,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
         {
             _portfolioCurrent = order.PortfolioNumber;
 
-            JsonObject jsonContent = new JsonObject();
+            Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
 
             Security mySec = null;
 
@@ -704,7 +704,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             jsonContent.Add("contract_type", contractType);
             jsonContent.Add("client_order_id", order.NumberUser);
             jsonContent.Add("price", order.Price);
-            jsonContent.Add("volume", order.Volume);
+            jsonContent.Add("volume", order.Volume.ToString().Replace(",", "."));
             jsonContent.Add("direction", order.Side == Side.Buy ? "buy" : "sell");
 
             // если ордер открывающий позицию - тут "open", если закрывающий - "close"
@@ -723,7 +723,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
             string url = _privateUriBuilder.Build("POST", "/api/v1/contract_order");
 
-            StringContent httpContent = new StringContent(jsonContent.ToString(), Encoding.UTF8, "application/json");
+            StringContent httpContent = new StringContent(JsonConvert.SerializeObject(jsonContent), Encoding.UTF8, "application/json");
 
             var httpClient = new HttpClient();
 
@@ -753,7 +753,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
         public override void CancelOrder(Order order)
         {
-            JsonObject jsonContent = new JsonObject();
+            Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
 
             var contractData = order.SecurityNameCode.Split('_');
 
@@ -763,7 +763,7 @@ namespace OsEngine.Market.Servers.Huobi.Futures
 
             string url = _privateUriBuilder.Build("POST", "/api/v1/contract_cancel");
 
-            StringContent httpContent = new StringContent(jsonContent.ToString(), Encoding.UTF8, "application/json");
+            StringContent httpContent = new StringContent(JsonConvert.SerializeObject(jsonContent), Encoding.UTF8, "application/json");
 
             var httpClient = new HttpClient();
 
@@ -800,10 +800,6 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             topic = $"orders.{security.NameFull}";
 
             _wsSource.SendMessage($"{{\"op\":\"sub\", \"topic\":\"{topic}\", \"cid\": \"{clientId}\" }}");
-
-            //topic = $"trade.clearing#{security.NameFull}";
-
-            //_wsSource.SendMessage($"{{\"action\":\"sub\", \"cid\": \"{clientId}\", \"ch\":\"{topic}\" }}");
         }
 
         public override List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
