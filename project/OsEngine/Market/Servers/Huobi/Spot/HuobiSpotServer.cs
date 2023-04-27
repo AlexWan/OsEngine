@@ -15,7 +15,6 @@ using OsEngine.Market.Servers.Huobi.Entities;
 using OsEngine.Market.Servers.Huobi.Request;
 using OsEngine.Market.Servers.Huobi.Response;
 using OsEngine.Market.Services;
-using RestSharp;
 
 namespace OsEngine.Market.Servers.Huobi.Spot
 {
@@ -650,7 +649,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
         {
             _portfolioCurrent = order.PortfolioNumber;
 
-            JsonObject jsonContent = new JsonObject();
+            Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
 
             var accountData = order.PortfolioNumber.Split('_');
 
@@ -680,7 +679,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
 
             string url = _privateUriBuilder.Build("POST", "/v1/order/orders/place");
 
-            StringContent httpContent = new StringContent(jsonContent.ToString(), Encoding.UTF8, "application/json");
+            StringContent httpContent = new StringContent(JsonConvert.SerializeObject(jsonContent), Encoding.UTF8, "application/json");
 
             var httpClient = new HttpClient();
 
