@@ -103,6 +103,7 @@ namespace OsEngine.Market.Servers
         public void CreateParamDataGrid()
         {
             _paramsGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.None);
+            _paramsGrid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _paramsGrid.DefaultCellStyle;
@@ -111,7 +112,7 @@ namespace OsEngine.Market.Servers
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Market.GridColumn1;
             colum0.ReadOnly = true;
-            colum0.Width = 200;
+            colum0.Width = 300;
             _paramsGrid.Columns.Add(colum0);
 
             DataGridViewColumn colu = new DataGridViewColumn();
