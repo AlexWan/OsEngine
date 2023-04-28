@@ -64,7 +64,7 @@ namespace OsEngine.OsTrader
         /// <param name="gridChartControlPanel">grid for chart control panel / грид для панели управления чартом</param>
         /// <param name="startProgram">type of program that requested class creation / тип программы который запросил создание класса</param>
         public OsTraderMaster(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost hostGlass, WindowsFormsHost hostOpenDeals,
-            WindowsFormsHost hostCloseDeals, WindowsFormsHost hostAllDeals, WindowsFormsHost hostLogBot, WindowsFormsHost hostLogPrime, Rectangle rectangleAroundChart,
+            WindowsFormsHost hostCloseDeals, WindowsFormsHost hostLogBot, WindowsFormsHost hostLogPrime, Rectangle rectangleAroundChart,
             WindowsFormsHost hostAlerts,
             TabControl tabPanel, TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, StartProgram startProgram)
         {
@@ -100,7 +100,6 @@ namespace OsEngine.OsTrader
             _hostGlass = hostGlass;
             _hostOpenDeals = hostOpenDeals;
             _hostCloseDeals = hostCloseDeals;
-            _hostAllDeals = hostAllDeals;
             _hostboxLog = hostLogBot;
             _rectangleAroundChart = rectangleAroundChart;
             _hostAlerts = hostAlerts;
@@ -116,9 +115,6 @@ namespace OsEngine.OsTrader
             _riskManager = new RiskManager.RiskManager("GlobalRiskManager", _startProgram);
             _riskManager.RiskManagerAlarmEvent += _riskManager_RiskManagerAlarmEvent;
             _riskManager.LogMessageEvent += SendNewLogMessage;
-            _globalController = new GlobalPosition(_hostAllDeals, _startProgram);
-            _globalController.LogMessageEvent += SendNewLogMessage;
-            _globalController.UserSelectActionEvent += _globalController_UserSelectActionEvent;
 
             _log = new Log("Prime", _startProgram);
             _log.StartPaint(hostLogPrime);
@@ -135,7 +131,6 @@ namespace OsEngine.OsTrader
             }
             
             ReloadRiskJournals();
-            _globalController.StartPaint();
 
             Master = this;
 
@@ -184,9 +179,6 @@ namespace OsEngine.OsTrader
             _riskManager = new RiskManager.RiskManager("GlobalRiskManager", _startProgram);
             _riskManager.RiskManagerAlarmEvent += _riskManager_RiskManagerAlarmEvent;
             _riskManager.LogMessageEvent += SendNewLogMessage;
-            _globalController = new GlobalPosition(_hostAllDeals, _startProgram);
-            _globalController.LogMessageEvent += SendNewLogMessage;
-            _globalController.UserSelectActionEvent += _globalController_UserSelectActionEvent;
 
             _log = new Log("Prime", _startProgram);
             _log.StartPaint(hostLogPrime);
@@ -198,7 +190,7 @@ namespace OsEngine.OsTrader
             Load();
             _tabBotNames.SelectionChanged += _tabBotControl_SelectionChanged;
             ReloadRiskJournals();
-            _globalController.StartPaint();
+            
 
             Master = this;
 
@@ -208,13 +200,40 @@ namespace OsEngine.OsTrader
             }
         }
 
+        public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses)
+        {
+            _globalPositionViewer = new GlobalPosition(hostActivePoses, null, _startProgram);
+            _globalPositionViewer.LogMessageEvent += SendNewLogMessage;
+            _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
+            _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
+            _globalPositionViewer.StartPaint();
+        }
+
+        public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses, WindowsFormsHost hostHistoricalPoses)
+        {
+            _globalPositionViewer = new GlobalPosition(hostActivePoses, hostHistoricalPoses, _startProgram);
+            _globalPositionViewer.LogMessageEvent += SendNewLogMessage;
+            _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
+            _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
+            _globalPositionViewer.StartPaint();
+        }
+
+        private void _globalPositionViewer_UserClickOnPositionShowBotInTableEvent(string botTabName)
+        {
+            if (UserClickOnPositionShowBotInTableEvent != null)
+            {
+                UserClickOnPositionShowBotInTableEvent(botTabName);
+            }
+        }
+
+        public event Action<string> UserClickOnPositionShowBotInTableEvent;
+
         private WindowsFormsHost _hostLogPrime;
         private WindowsFormsHost _hostChart;
         private Grid _gridChart;
         private WindowsFormsHost _hostGlass;
         private WindowsFormsHost _hostOpenDeals;
         private WindowsFormsHost _hostCloseDeals;
-        private WindowsFormsHost _hostAllDeals;
         private WindowsFormsHost _hostboxLog;
         private Rectangle _rectangleAroundChart;
         private WindowsFormsHost _hostAlerts;
@@ -545,7 +564,11 @@ namespace OsEngine.OsTrader
                         for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
                         {
                             _riskManager.SetNewJournal(journals[i2]);
-                            _globalController.SetJournal(journals[i2]);
+
+                            if(_globalPositionViewer != null)
+                            {
+                                _globalPositionViewer.SetJournal(journals[i2]);
+                            }
                         }
                     }
                 }
@@ -554,7 +577,6 @@ namespace OsEngine.OsTrader
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         /// <summary>
@@ -626,7 +648,7 @@ namespace OsEngine.OsTrader
         /// general robot position manager
         /// менеджер общей позиции роботов
         /// </summary>
-        private GlobalPosition _globalController;
+        private GlobalPosition _globalPositionViewer;
 
         private JournalUi2 _journalUi2;
 
@@ -876,7 +898,11 @@ namespace OsEngine.OsTrader
 
                 _fastRegimeOn = true;
                 ServerMaster.StopPaint();
-                _globalController.StopPaint();
+
+                if (_globalPositionViewer != null)
+                {
+                    _globalPositionViewer.StopPaint();
+                }
 
                 if(_tabBotNames != null)
                 {
@@ -925,7 +951,11 @@ namespace OsEngine.OsTrader
 
                 if (_fastRegimeOn)
                 {
-                    _globalController.StartPaint();
+                    if(_globalPositionViewer != null)
+                    {
+                        _globalPositionViewer.StartPaint();
+                    }
+                    
                     _fastRegimeOn = false;
                     ServerMaster.StartPaint();
                     _log.StartPaint(_hostLogPrime);

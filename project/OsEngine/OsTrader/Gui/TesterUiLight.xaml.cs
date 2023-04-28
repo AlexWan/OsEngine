@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-
 using System.Windows;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -26,9 +25,12 @@ namespace OsEngine.OsTrader.Gui
             ServerMaster.GetServers();
 
             _strategyKeeper = new OsTraderMaster(null,
-                null, null, null, null, HostAllPosition,
+                null, null, null, null,
                 null, HostBotLogPrime, null, null, null, null, null,
                 null, StartProgram.IsTester);
+
+            _strategyKeeper.CreateGlobalPositionController(HostActivePoses, HostHistoricalPoses);
+
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
             Closing += TesterUi_Closing;
@@ -56,6 +58,8 @@ namespace OsEngine.OsTrader.Gui
             TextBoxPositionAllOrders.Header = OsLocalization.Trader.Label22;
             TabItemLogPrime.Header = OsLocalization.Trader.Label24;
             TabItemControl.Header = OsLocalization.Trader.Label37;
+            TabActivePos.Header =  OsLocalization.Trader.Label187;
+            TabHistoricalPos.Header =  OsLocalization.Trader.Label188;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

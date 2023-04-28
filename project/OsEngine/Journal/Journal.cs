@@ -81,6 +81,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return;
+                }
                 _positionController.Clear();
             }
             catch (Exception error)
@@ -95,6 +99,10 @@ namespace OsEngine.Journal
         /// </summary>
         public void Save()
         {
+            if (_positionController == null)
+            {
+                return;
+            }
             _positionController.Save();
         }
 
@@ -103,8 +111,22 @@ namespace OsEngine.Journal
         /// </summary>
         public ComissionType ComissionType
         {
-            get {return _positionController.ComissionType; }
-            set { _positionController.ComissionType = value; }
+            get
+            {
+                if (_positionController == null)
+                {
+                    return ComissionType.None;
+                }
+                return _positionController.ComissionType;
+            }
+            set
+            {
+                if (_positionController == null)
+                {
+                    return;
+                }
+                _positionController.ComissionType = value;
+            }
         }
 
         /// <summary>
@@ -112,8 +134,22 @@ namespace OsEngine.Journal
         /// </summary>
         public decimal ComissionValue
         {
-            get { return _positionController.ComissionValue; }
-            set { _positionController.ComissionValue = value; }
+            get
+            {
+                if (_positionController == null)
+                {
+                    return 0;
+                }
+                return _positionController.ComissionValue;
+            }
+            set
+            {
+                if (_positionController == null)
+                {
+                    return;
+                }
+                _positionController.ComissionValue = value;
+            }
         }
 
         // access to transactions доступ к сделкам
@@ -126,6 +162,10 @@ namespace OsEngine.Journal
 
         public void NeadToUpdateStatePositions()
         {
+            if (_positionController == null)
+            {
+                return;
+            }
             _positionController.NeadToUpdateStatePositions();
         }
 
@@ -139,9 +179,9 @@ namespace OsEngine.Journal
             {
                 try
                 {
-                    if(_positionController == null)
+                    if (_positionController == null)
                     {
-                        return null;
+                        return new List<Position>();
                     }
                     return _positionController.OpenPositions;
                 }
@@ -163,6 +203,10 @@ namespace OsEngine.Journal
             {
                 try
                 {
+                    if (_positionController == null)
+                    {
+                        return new List<Position>();
+                    }
                     return _positionController.AllPositions;
                 }
                 catch (Exception error)
@@ -183,6 +227,11 @@ namespace OsEngine.Journal
             {
                 try
                 {
+                    if(_positionController == null)
+                    {
+                        return new List<Position>();
+                    }
+
                     return _positionController.ClosePositions;
                 }
                 catch (Exception error)
@@ -203,6 +252,10 @@ namespace OsEngine.Journal
             {
                 try
                 {
+                    if (_positionController == null)
+                    {
+                        return new List<Position>();
+                    }
                     return _positionController.OpenShortPosition;
                 }
                 catch (Exception error)
@@ -223,6 +276,10 @@ namespace OsEngine.Journal
             {
                 try
                 {
+                    if (_positionController == null)
+                    {
+                        return new List<Position>();
+                    }
                     return _positionController.OpenLongPosition;
                 }
                 catch (Exception error)
@@ -243,6 +300,10 @@ namespace OsEngine.Journal
             {
                 try
                 {
+                    if (_positionController == null)
+                    {
+                        return new List<Position>();
+                    }
                     return _positionController.CloseShortPosition;
                 }
                 catch (Exception error)
@@ -263,6 +324,10 @@ namespace OsEngine.Journal
             {
                 try
                 {
+                    if (_positionController == null)
+                    {
+                        return new List<Position>();
+                    }
                     return _positionController.CloseLongPosition;
                 }
                 catch (Exception error)
@@ -283,6 +348,10 @@ namespace OsEngine.Journal
             {
                 try
                 {
+                    if (_positionController == null)
+                    {
+                        return null;
+                    }
                     return _positionController.LastPosition;
                 }
                 catch (Exception error)
@@ -301,6 +370,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return null;
+                }
                 return _positionController.GetPositionForNumber(number);
             }
             catch (Exception error)
@@ -319,6 +392,11 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return 0;
+                }
+
                 List<Position> deals = _positionController.AllPositions;
 
                 if (deals == null)
@@ -442,6 +520,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if(_positionController == null)
+                {
+                    return;
+                }
                 _positionController.SetUpdateOrderInPositions(newOrder);
             }
             catch (Exception error)
@@ -458,6 +540,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return;
+                }
                 _positionController.SetNewPosition(position);
                 if (PositionStateChangeEvent != null)
                 {
@@ -478,6 +564,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return;
+                }
                 position.State = PositionStateType.Deleted;
 
                 _positionController.DeletePosition(position);
@@ -501,6 +591,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return;
+                }
                 _positionController.SetNewTrade(trade);
             }
             catch (Exception error)
@@ -517,6 +611,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return;
+                }
                 _positionController.SetBidAsk(bid, ask);
             }
             catch (Exception error)
@@ -536,6 +634,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return;
+                }
                 _positionController.StartPaint(dataGridOpenDeal, dataGridCloseDeal);
             }
             catch (Exception error)
@@ -552,6 +654,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return;
+                }
                 _positionController.StopPaint();
             }
             catch (Exception error)
@@ -568,6 +674,10 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_positionController == null)
+                {
+                    return;
+                }
                 _positionController.ProcesPosition(position);
             }
             catch (Exception error)

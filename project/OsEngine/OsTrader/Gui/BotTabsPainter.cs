@@ -24,7 +24,7 @@ namespace OsEngine.OsTrader.Gui
             RePaintTable(); 
             _master.BotCreateEvent += _master_NewBotCreateEvent;
             _master.BotDeleteEvent += _master_BotDeleteEvent;
-
+            _master.UserClickOnPositionShowBotInTableEvent += _master_UserClickOnPositionShowBotInTableEvent;
             Thread painterThread = new Thread(UpdaterThreadArea);
             painterThread.Start();
         }
@@ -572,5 +572,81 @@ colum9.HeaderText = "Journal";
                 _master.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        #region подсветка робота по клику по позиции
+
+        private void _master_UserClickOnPositionShowBotInTableEvent(string botTabName)
+        {
+            if(_rowToPaintInOpenPoses != -1)
+            {
+                return;
+            }
+
+            int botNum = 0;
+
+            bool findTheBot = false;
+
+            for(int i = 0;i < _master.PanelsArray.Count;i++)
+            {
+                for(int i2 = 0;i2 < _master.PanelsArray[i].TabsSimple.Count; i2++)
+                {
+                    if (_master.PanelsArray[i].TabsSimple[i2].TabName == botTabName)
+                    {
+                        botNum = i;
+                        findTheBot = true;
+                        break;
+                    }
+                }
+
+                if(findTheBot)
+                {
+                    break;
+                }
+            }
+
+            if(findTheBot)
+            {
+                _rowToPaintInOpenPoses = botNum;
+               Task.Run(PaintPos);
+            }
+        }
+
+        int _rowToPaintInOpenPoses = -1;
+
+        System.Drawing.Color _lastBackColor;
+
+        private async void PaintPos()
+        {
+            await Task.Delay(200);
+            ColoredRow(System.Drawing.Color.LightSlateGray);
+            await Task.Delay(600);
+            ColoredRow(_lastBackColor);
+            _rowToPaintInOpenPoses = -1;
+        }
+
+        private void ColoredRow(System.Drawing.Color color)
+        {
+            if (_grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action<System.Drawing.Color>(ColoredRow), color);
+                return;
+            }
+            try
+            {
+                _lastBackColor = _grid.Rows[_rowToPaintInOpenPoses].Cells[0].Style.BackColor;
+
+                for(int i =0;i < 7;i++)
+                {
+                    _grid.Rows[_rowToPaintInOpenPoses].Cells[i].Style.BackColor = color;
+                }
+            }
+            catch
+            {
+                return;
+            }
+        }
+
+        #endregion
+
     }
 }

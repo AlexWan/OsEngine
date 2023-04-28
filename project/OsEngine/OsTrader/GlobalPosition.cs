@@ -30,24 +30,34 @@ namespace OsEngine.OsTrader
         /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="allPositionHost">the host on which we will draw the date grid / хост на который будем рисовать дата грид</param>
+        /// <param name="openPositionHost">the host on which we will draw the date grid / хост на который будем рисовать дата грид</param>
         /// <param name="startProgram">program running class / программа запустившая класс</param>
-        public GlobalPosition(WindowsFormsHost allPositionHost, StartProgram startProgram)
+        public GlobalPosition(WindowsFormsHost openPositionHost, WindowsFormsHost closePositionHost, StartProgram startProgram)
         {
             _startProgram = startProgram;
 
-            _host = allPositionHost;
+            if(openPositionHost != null)
+            {
+                _hostOpenPoses = openPositionHost;
+                _gridOpenPoses = CreateNewTable();
+                _hostOpenPoses.Child = _gridOpenPoses;
+                _hostOpenPoses.Child.Show();
+                _gridOpenPoses.Click += _gridAllPositions_Click;
+                _gridOpenPoses.DoubleClick += _gridOpenPoses_DoubleClick;
+            }
 
-            _gridOpenDeal = CreateNewTable();
+            if(closePositionHost != null)
+            {
+                _hostClosePoses = closePositionHost;
+                _gridClosePoses = CreateNewTable();
+                _hostClosePoses.Child = _gridClosePoses;
+                _hostClosePoses.Child.Show();
+                _gridClosePoses.DoubleClick += _gridClosePoses_DoubleClick;
 
-            _host.Child = _gridOpenDeal;
-            _host.Child.Show();
-
-            _gridOpenDeal.Click += _gridAllPositions_Click;
+            }
 
             Task task = new Task(WatcherHome);
             task.Start();
-
         }
 
         /// <summary>
@@ -106,14 +116,14 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_gridOpenDeal.InvokeRequired)
+                if (_gridOpenPoses.InvokeRequired)
                 {
-                    _gridOpenDeal.Invoke(new Action(ClearJournals));
+                    _gridOpenPoses.Invoke(new Action(ClearJournals));
                     return;
                 }
 
                 _journals = null;
-                _gridOpenDeal.Rows.Clear();
+                _gridOpenPoses.Rows.Clear();
             }
             catch (Exception error)
             {
@@ -125,18 +135,15 @@ namespace OsEngine.OsTrader
         /// journals we follow
         /// журналы за которыми мы следим
         /// </summary>
-        private List<Journal.Journal> _journals;
+        private List<Journal.Journal> _journals; 
 
-        /// <summary>
-        /// the host on which the table is displayed
-        /// хост на котором отображаем таблицу
-        /// </summary>
-        private WindowsFormsHost _host;
+        private WindowsFormsHost _hostOpenPoses;
 
-        /// <summary>
-        /// таблица для прорисовки позиций
-        /// </summary>
-        private DataGridView _gridOpenDeal;
+        private DataGridView _gridOpenPoses;
+
+        private WindowsFormsHost _hostClosePoses;
+
+        private DataGridView _gridClosePoses;
 
         /// <summary>
         /// table for drawing positions
@@ -154,12 +161,19 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (!_host.CheckAccess())
+                if (!_hostOpenPoses.CheckAccess())
                 {
-                    _host.Dispatcher.Invoke(StopPaint);
+                    _hostOpenPoses.Dispatcher.Invoke(StopPaint);
                     return;
                 }
-                _host.Child = null;
+
+                _hostOpenPoses.Child = null;
+
+                if(_hostClosePoses != null)
+                {
+                    _hostClosePoses.Child = null;
+                }
+               
             }
             catch (Exception error)
             {
@@ -175,12 +189,17 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (!_host.CheckAccess())
+                if (!_hostOpenPoses.CheckAccess())
                 {
-                    _host.Dispatcher.Invoke(StartPaint);
+                    _hostOpenPoses.Dispatcher.Invoke(StartPaint);
                     return;
                 }
-                _host.Child = _gridOpenDeal;
+                _hostOpenPoses.Child = _gridOpenPoses;
+
+                if (_hostClosePoses != null)
+                {
+                    _hostClosePoses.Child = _gridClosePoses;
+                }
             }
             catch (Exception error)
             {
@@ -197,6 +216,7 @@ namespace OsEngine.OsTrader
             try
             {
                 DataGridView newGrid = DataGridFactory.GetDataGridPosition();
+                newGrid.ScrollBars = ScrollBars.Vertical;
 
                 return newGrid;
             }
@@ -431,7 +451,46 @@ namespace OsEngine.OsTrader
             {
                 await Task.Delay(5000);
 
-                CheckPosition();
+
+                List<Position> openPositions = new List<Position>();
+                List<Position> closePositions = new List<Position>();
+
+                for (int i = 0; _journals != null && i < _journals.Count; i++)
+                {
+                    if (_journals[i].OpenPositions != null && _journals[i].OpenPositions.Count != 0)
+                    {
+                        openPositions.AddRange(_journals[i].OpenPositions);
+                    }
+                    if (_journals[i].CloseAllPositions != null)
+                    {
+                        for(int i2 = _journals[i].CloseAllPositions.Count-1;i2 > -1 && i2 > _journals[i].CloseAllPositions.Count - 30;i2--)
+                        {
+                            closePositions.Add(_journals[i].CloseAllPositions[i2]);
+                        }
+                    }
+                }
+
+                for(int i = 0;i < closePositions.Count;i++)
+                {
+                    for(int i2 = 1;i2 < closePositions.Count;i2++)
+                    {// УЛЬТИМАТ. Сортировка пузыриком!
+                        if (closePositions[i2].Number > closePositions[i2-1].Number)
+                        {
+                            Position pos = closePositions[i2];
+                            closePositions[i2] = closePositions[i2 - 1];
+                            closePositions[i2 - 1] = pos;
+                        }
+                    }
+                }
+
+
+                CheckPosition(_gridOpenPoses, openPositions);
+
+                if(_gridClosePoses!= null)
+                {
+                    CheckPosition(_gridClosePoses, closePositions);
+                }
+                
 
                 if (!MainWindow.ProccesIsWorked)
                 {
@@ -445,36 +504,25 @@ namespace OsEngine.OsTrader
         /// проверить позиции на правильность прорисовки
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
-        private void CheckPosition()
+        private void CheckPosition(DataGridView grid, List<Position> positions)
         {
-            if (_gridOpenDeal.InvokeRequired)
+            if (grid.InvokeRequired)
             {
-                _gridOpenDeal.Invoke(new Action(CheckPosition));
+                grid.Invoke(new Action<DataGridView, List<Position>>(CheckPosition),grid, positions);
                 return;
             }
             try
             {
-                List<Position> openPositions = new List<Position>();
-
-                for (int i = 0; _journals != null && i < _journals.Count; i++)
+                for (int i1 = 0; i1 < positions.Count; i1++)
                 {
-                    if (_journals[i].OpenPositions != null && _journals[i].OpenPositions.Count != 0)
-                    {
-                        openPositions.AddRange(_journals[i].OpenPositions);
-                    }
-                }
-
-                for (int i1 = 0; i1 < openPositions.Count; i1++)
-                {
-                    Position position = openPositions[i1];
-                    
+                    Position position = positions[i1];
                     bool isIn = false;
-                    for (int i = 0; i < _gridOpenDeal.Rows.Count; i++)
+                    for (int i = 0; i < grid.Rows.Count; i++)
                     {
-                        if (_gridOpenDeal.Rows[i].Cells[0].Value != null &&
-                            _gridOpenDeal.Rows[i].Cells[0].Value.ToString() == position.Number.ToString())
+                        if (grid.Rows[i].Cells[0].Value != null &&
+                            grid.Rows[i].Cells[0].Value.ToString() == position.Number.ToString())
                         {
-                            TryRePaint(position, _gridOpenDeal.Rows[i]);
+                            TryRePaint(position, grid.Rows[i]);
                             isIn = true;
                             break;
                         }
@@ -486,16 +534,16 @@ namespace OsEngine.OsTrader
 
                         if(row != null)
                         {
-                            _gridOpenDeal.Rows.Add(row);
+                            grid.Rows.Add(row);
                         }
                     }
                 }
 
-                for (int i = 0; i < _gridOpenDeal.Rows.Count; i++)
+                for (int i = 0; i < grid.Rows.Count; i++)
                 {
-                    if (openPositions.Find(pos => pos.Number == (int)_gridOpenDeal.Rows[i].Cells[0].Value) == null)
+                    if (positions.Find(pos => pos.Number == (int)grid.Rows[i].Cells[0].Value) == null)
                     {
-                        _gridOpenDeal.Rows.Remove(_gridOpenDeal.Rows[i]);
+                        grid.Rows.Remove(grid.Rows[i]);
                     }
                 }
 
@@ -506,11 +554,26 @@ namespace OsEngine.OsTrader
             }
         }
 
-        // вызов закрытия всех позиций у всех роботов
+        #region Активные позиции
+
+        private void _gridClosePoses_DoubleClick(object sender, EventArgs e)
+        {
+            PaintPos(_gridClosePoses);
+        }
+
+        #endregion
+
+        #region Активные позиции
+
+        private void _gridOpenPoses_DoubleClick(object sender, EventArgs e)
+        {
+            PaintPos(_gridOpenPoses);
+        }
 
         private void _gridAllPositions_Click(object sender, EventArgs e)
         {
             MouseEventArgs mouse = (MouseEventArgs)e;
+
             if (mouse.Button != MouseButtons.Right)
             {
                 return;
@@ -540,14 +603,13 @@ namespace OsEngine.OsTrader
 
                 ContextMenu menu = new ContextMenu(items);
 
-                _gridOpenDeal.ContextMenu = menu;
-                _gridOpenDeal.ContextMenu.Show(_gridOpenDeal, new Point(mouse.X, mouse.Y));
+                _gridOpenPoses.ContextMenu = menu;
+                _gridOpenPoses.ContextMenu.Show(_gridOpenPoses, new Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         /// <summary>
@@ -588,11 +650,11 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
-                    if(_gridOpenDeal.CurrentCell == null)
+                    if(_gridOpenPoses.CurrentCell == null)
                     {
                         return;
                     }
-                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                    number = Convert.ToInt32(_gridOpenPoses.Rows[_gridOpenPoses.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
                 {
@@ -622,11 +684,11 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
-                    if(_gridOpenDeal.CurrentCell == null)
+                    if(_gridOpenPoses.CurrentCell == null)
                     {
                         return;
                     }
-                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                    number = Convert.ToInt32(_gridOpenPoses.Rows[_gridOpenPoses.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
                 {
@@ -656,11 +718,11 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
-                    if(_gridOpenDeal.CurrentCell == null)
+                    if(_gridOpenPoses.CurrentCell == null)
                     {
                         return;
                     }
-                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                    number = Convert.ToInt32(_gridOpenPoses.Rows[_gridOpenPoses.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
                 {
@@ -689,11 +751,11 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
-                    if(_gridOpenDeal.CurrentCell == null)
+                    if(_gridOpenPoses.CurrentCell == null)
                     {
                         return;
                     }
-                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                    number = Convert.ToInt32(_gridOpenPoses.Rows[_gridOpenPoses.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
                 {
@@ -730,11 +792,11 @@ namespace OsEngine.OsTrader
                 int number;
                 try
                 {
-                    if(_gridOpenDeal.CurrentCell == null)
+                    if(_gridOpenPoses.CurrentCell == null)
                     {
                         return;
                     }
-                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
+                    number = Convert.ToInt32(_gridOpenPoses.Rows[_gridOpenPoses.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
                 {
@@ -751,6 +813,71 @@ namespace OsEngine.OsTrader
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private void PaintPos(DataGridView grid)
+        {
+            string botTabName;
+            int numberRow;
+
+            try
+            {
+                if (grid.CurrentCell == null)
+                {
+                    return;
+                }
+
+                numberRow = grid.CurrentCell.RowIndex;
+
+                botTabName = grid.Rows[grid.CurrentCell.RowIndex].Cells[3].Value.ToString();
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            if(UserClickOnPositionShowBotInTableEvent != null)
+            {
+                UserClickOnPositionShowBotInTableEvent(botTabName);
+            }
+
+            _rowToPaintInOpenPoses = numberRow;
+            _lastClickGrid = grid;
+
+            Task.Run(PaintPos);
+        }
+
+        DataGridView _lastClickGrid;
+
+        int _rowToPaintInOpenPoses;
+
+        private async void PaintPos()
+        {
+            await Task.Delay(200);
+            ColoredRow(Color.LightSlateGray);
+            await Task.Delay(600);
+            ColoredRow(Color.FromArgb(17, 18, 23));
+        }
+
+        private void ColoredRow(Color color)
+        {
+            if(_lastClickGrid.InvokeRequired)
+            {
+                _lastClickGrid.Invoke(new Action<Color>(ColoredRow),color);
+                return;
+            }
+            try
+            {
+                _lastClickGrid.Rows[_rowToPaintInOpenPoses].DefaultCellStyle.SelectionBackColor = color;
+            }
+            catch
+            {
+                return;
+            }
+        }
+
+        #endregion
+
+        public event Action<string> UserClickOnPositionShowBotInTableEvent;
 
         public event Action<Position, SignalType> UserSelectActionEvent;
 

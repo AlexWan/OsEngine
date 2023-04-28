@@ -90,8 +90,8 @@ namespace OsEngine.Language
             "Ru:Позиции закрытые_");
 
         public string Label20 => OsLocalization.ConvertToLocString(
-            "Eng:All positions_" +
-            "Ru:Все позиции_");
+            "Eng:Positions_" +
+            "Ru:Позиции_");
 
         public string Label21 => OsLocalization.ConvertToLocString(
             "Eng:Portfolio_" +
@@ -755,6 +755,14 @@ namespace OsEngine.Language
 
         public string Label186 => OsLocalization.ConvertToLocString(
               "Eng:Pos. (curr/total)_" +
-              "Ru:Поз. (откр/всего)_");			  
+              "Ru:Поз. (откр/всего)_");
+
+        public string Label187 => OsLocalization.ConvertToLocString(
+              "Eng:Pos. Active_" +
+              "Ru:Поз. Активные_");
+
+        public string Label188 => OsLocalization.ConvertToLocString(
+              "Eng:Pos. Historical_" +
+              "Ru:Поз. Завершённые_");
     }
 }

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:OsEngine.OsTrader.Gui"
         mc:Ignorable="d"
         Title="Bot Tester Light" Height="800" Width="1200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="800" MinHeight="700" Icon="/Images/OsLogo.ico">
-    <Grid Name="GridPrime"> 
+    <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="466*"/>
             <RowDefinition Height="190"/>
@@ -14,9 +14,20 @@
 
         <Grid x:Name="GreedPozitonLogHost" Margin="25,13,10,10" Grid.Row="1">
             <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0" >
-                <TabItem Name="TabItemAllPos" Header="All positions" Width="140"  >
+                <TabItem Name="TabItemAllPos" Header="Positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostAllPosition" Foreground="Black" />
+                        <TabControl>
+                            <TabItem Name="TabActivePos" Header="Active" Width="280" Height="12">
+                                <Grid Margin="-5,-5,-5,-5">
+                                    <WindowsFormsHost Name="HostActivePoses" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Name="TabHistoricalPos" Header="Historical" Width="280" Height="12">
+                                <Grid Margin="-5,-5,-5,-5" >
+                                    <WindowsFormsHost Name="HostHistoricalPoses" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TextBoxPositionBord" Header="Portfolio" Width="140">
