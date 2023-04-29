@@ -1446,18 +1446,19 @@ namespace OsEngine.Market.Connectors
 
         private void ServerMaster_RevokeOrderToEmulatorEvent(Order order)
         {
-            if(IsConnected == false 
-                || IsReadyToTrade == false)
-            {
-                SendNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
-                return;
-            }
-
             if (order.SecurityNameCode != SecurityName + " TestPaper" 
                 && order.SecurityNameCode != SecurityName)
             {
                 return;
             }
+
+            if (IsConnected == false
+               || IsReadyToTrade == false)
+            {
+                SendNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                return;
+            }
+
             OrderCancel(order);
         }
 

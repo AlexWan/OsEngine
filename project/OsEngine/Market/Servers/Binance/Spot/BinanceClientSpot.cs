@@ -1600,7 +1600,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.Volume = order.q.ToDecimal();
                                     newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
-                                    newOrder.PortfolioNumber = newOrder.SecurityNameCode;
+                                    newOrder.PortfolioNumber = "Binance";
 
                                     if (MyOrderEvent != null)
                                     {
@@ -1620,7 +1620,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.Volume = order.q.ToDecimal();
                                     newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
-                                    newOrder.PortfolioNumber = newOrder.SecurityNameCode;
+                                    newOrder.PortfolioNumber = "Binance";
 
                                     if (MyOrderEvent != null)
                                     {
@@ -1639,7 +1639,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.Volume = order.q.ToDecimal();
                                     newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
-                                    newOrder.PortfolioNumber = newOrder.SecurityNameCode;
+                                    newOrder.PortfolioNumber = "Binance";
 
                                     if (MyOrderEvent != null)
                                     {
@@ -1676,7 +1676,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.Volume = order.q.ToDecimal();
                                     newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
-                                    newOrder.PortfolioNumber = newOrder.SecurityNameCode;
+                                    newOrder.PortfolioNumber = "Binance";
 
                                     if (MyOrderEvent != null)
                                     {
