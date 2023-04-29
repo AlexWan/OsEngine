@@ -474,7 +474,7 @@ namespace OsEngine.OsTrader
                 {
                     for(int i2 = 1;i2 < closePositions.Count;i2++)
                     {// УЛЬТИМАТ. Сортировка пузыриком!
-                        if (closePositions[i2].Number > closePositions[i2-1].Number)
+                        if (closePositions[i2].Number < closePositions[i2-1].Number)
                         {
                             Position pos = closePositions[i2];
                             closePositions[i2] = closePositions[i2 - 1];
@@ -534,7 +534,7 @@ namespace OsEngine.OsTrader
 
                         if(row != null)
                         {
-                            grid.Rows.Add(row);
+                            grid.Rows.Insert(0,row);
                         }
                     }
                 }

@@ -20,7 +20,9 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
+
+            ServerMaster.SetHostTable(HostPositionOnBoard, HostActiveOrders, HostHistoricalOrders);
+
             ServerMaster.CreateServer(ServerType.Tester, false);
             ServerMaster.GetServers();
 
@@ -54,12 +56,14 @@ namespace OsEngine.OsTrader.Gui
         private void Local()
         {
             TabItemAllPos.Header = OsLocalization.Trader.Label20;
-            TextBoxPositionBord.Header = OsLocalization.Trader.Label21;
-            TextBoxPositionAllOrders.Header = OsLocalization.Trader.Label22;
+            TabPortfolios.Header = OsLocalization.Trader.Label21;
+            TabOrders.Header = OsLocalization.Trader.Label22;
             TabItemLogPrime.Header = OsLocalization.Trader.Label24;
             TabItemControl.Header = OsLocalization.Trader.Label37;
             TabActivePos.Header =  OsLocalization.Trader.Label187;
             TabHistoricalPos.Header =  OsLocalization.Trader.Label188;
+            TabActiveOrders.Header = OsLocalization.Trader.Label189;
+            TabHistoricalOrders.Header = OsLocalization.Trader.Label190;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

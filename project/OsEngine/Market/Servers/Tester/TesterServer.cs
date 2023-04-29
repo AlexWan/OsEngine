@@ -3764,6 +3764,7 @@ namespace OsEngine.Market.Servers.Tester
             orderOnBoard.SecurityNameCode = order.SecurityNameCode;
             orderOnBoard.Side = order.Side;
             orderOnBoard.State = OrderStateType.Activ;
+            orderOnBoard.ServerType = order.ServerType;
             orderOnBoard.TimeCallBack = ServerTime;
             orderOnBoard.TimeCreate = ServerTime;
             orderOnBoard.TypeOrder = order.TypeOrder;
@@ -3910,6 +3911,7 @@ namespace OsEngine.Market.Servers.Tester
             orderOnBoard.TypeOrder = order.TypeOrder;
             orderOnBoard.Volume = order.Volume;
             orderOnBoard.Comment = order.Comment;
+            orderOnBoard.ServerType = order.ServerType;
 
             if (NewOrderIncomeEvent != null)
             {

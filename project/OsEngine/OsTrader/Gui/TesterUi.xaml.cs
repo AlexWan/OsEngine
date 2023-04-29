@@ -20,7 +20,7 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
+            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard,null);
             ServerMaster.CreateServer(ServerType.Tester,false);
             ServerMaster.GetServers();
 

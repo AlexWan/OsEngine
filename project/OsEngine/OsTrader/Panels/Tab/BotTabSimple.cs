@@ -96,6 +96,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _acebergMaker = new AcebergMaker();
                 _acebergMaker.NewOrderNeadToExecute += _acebergMaker_NewOrderNeadToExecute;
                 _acebergMaker.NewOrderNeadToCansel += _acebergMaker_NewOrderNeadToCansel;
+
+                if(startProgram == StartProgram.IsOsTrader)
+                {// грузим последние ордера по роботам в общее хранилище в ServerMaster
+
+                    List<Order> oldOrders = _journal.GetLastOrdersToPositions(50);
+
+                    for(int i = 0;i< oldOrders.Count;i++)
+                    {
+                        _connector.LoadOrderInOrderStorage(oldOrders[i]);
+                    }
+                }
+
             }
             catch (Exception error)
             {
@@ -564,6 +576,31 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         // properties / свойства 
 
+        public bool EmulatorIsOn
+        {
+            get
+            {
+                if (_connector == null)
+                {
+                    return false;
+                }
+
+                return _connector.EmulatorIsOn;
+            }
+            set
+            {
+                List<Position> openPoses = _journal.OpenPositions;
+
+                if(openPoses.Count > 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label192 + this.TabName, LogMessageType.Error);
+                    return;
+                }
+
+                _connector.EmulatorIsOn = value;
+            }
+        }
+
         /// <summary>
         ///  the status of the server to which the tab is connected /
         /// статус сервера к которому подключена вкладка
@@ -793,7 +830,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// exchange position for security
         /// позиция на бирже по инструменту
         /// </summary>
-        public PositionOnBoard PositionsOnBoard
+        public List<PositionOnBoard> PositionsOnBoard
         {
             get
             {
@@ -807,11 +844,22 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     List<PositionOnBoard> positionsOnBoard = Portfolio.GetPositionOnBoard();
 
-                    if (positionsOnBoard != null && positionsOnBoard.Count != 0 &&
-                        positionsOnBoard.Find(pose => pose.PortfolioName == Portfolio.Number && pose.SecurityNameCode == Securiti.Name) != null)
+                    List<PositionOnBoard> posesWithMySecurity = new List<PositionOnBoard>();
+
+                    for(int i = 0; positionsOnBoard != null && i < positionsOnBoard.Count;i++)
                     {
-                        return positionsOnBoard.Find(pose => pose.SecurityNameCode == Securiti.Name);
+                        if (positionsOnBoard[i] == null)
+                        {
+                            continue;
+                        }
+
+                        if (positionsOnBoard[i].SecurityNameCode.Contains(Securiti.Name))
+                        {
+                            posesWithMySecurity.Add(positionsOnBoard[i]);
+                        }
                     }
+
+                    return posesWithMySecurity;
                 }
                 catch (Exception error)
                 {
@@ -1402,6 +1450,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
                 decimal price = _connector.BestAsk;
 
                 if (price == 0)
@@ -1466,6 +1520,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
+
                 return LongCreate(priceLimit, volume, OrderPriceType.Limit, ManualPositionSupport.SecondToOpen, false);
             }
             catch (Exception error)
@@ -1505,6 +1566,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
+
                 if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
                 {
                     return BuyAtLimit(volume, price);
@@ -1615,6 +1683,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
                 PositionOpenerToStop positionOpener =
                     new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars, TimeServerCurrent);
                 positionOpener.Volume = volume;
@@ -1703,6 +1778,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
                 if (position.Direction == Side.Sell)
                 {
                     SetNewLogMessage(TabName + OsLocalization.Trader.Label65, LogMessageType.Error);
@@ -1727,6 +1809,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
                 if (position.Direction == Side.Sell)
                 {
                     SetNewLogMessage(TabName + OsLocalization.Trader.Label65, LogMessageType.Error);
@@ -1799,6 +1888,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
                 if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
                 {
                     if (position.Direction == Side.Sell)
@@ -1906,6 +2002,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
+
                 decimal price = _connector.BestBid;
 
                 if (price == 0)
@@ -1967,6 +2070,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
+
                 return ShortCreate(priceLimit, volume, OrderPriceType.Limit, ManualPositionSupport.SecondToOpen, false);
             }
             catch (Exception error)
@@ -2006,6 +2116,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
+
                 if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
                 {
                     return SellAtLimit(volume, price);
@@ -2093,6 +2210,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">open position signal name / название сигнала для входа. Будет записано в свойство позиции: SignalTypeOpen</param>
         public Position SellAtAceberg(decimal volume, decimal price, int orderCount, string signalType)
         {
+            if (_connector.IsConnected == false
+                || _connector.IsReadyToTrade == false)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                return null;
+            }
+
             Position position = SellAtAceberg(volume, price, orderCount);
 
             if (position != null)
@@ -2117,6 +2241,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
                 PositionOpenerToStop positionOpener =
                     new PositionOpenerToStop(CandlesFinishedOnly.Count, expiresBars, TimeServerCurrent);
 
@@ -2205,6 +2336,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
                 if (position.Direction == Side.Buy)
                 {
                     SetNewLogMessage(TabName + OsLocalization.Trader.Label66, LogMessageType.Error);
@@ -2230,6 +2367,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
                 if (position.Direction == Side.Buy)
                 {
                     SetNewLogMessage(TabName + OsLocalization.Trader.Label66, LogMessageType.Error);
@@ -2289,6 +2433,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
                 if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
                 {
                     if (position.Direction == Side.Buy)
@@ -2445,6 +2596,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(_connector.IsConnected == false 
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
                 if (volume <= 0 || position.OpenVolume <= 0)
                 {
                     return;
@@ -2871,6 +3029,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _journal.SetNewDeal(newDeal);
 
                 _connector.OrderExecute(newDeal.OpenOrders[0]);
+
                 return newDeal;
             }
             catch (Exception error)
@@ -2935,7 +3094,15 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 SetNewLogMessage(Securiti.Name + " модификация позиции шорт", LogMessageType.Trade);
 
-                _connector.OrderExecute(newOrder);
+                if (position.OpenOrders[0].SecurityNameCode.EndsWith(" TestPaper"))
+                {
+                    _connector.OrderExecute(newOrder, true);
+                }
+                else
+                {
+                    _connector.OrderExecute(newOrder);
+                }
+                
             }
             catch (Exception error)
             {
@@ -3055,7 +3222,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 position.AddNewOpenOrder(newOrder);
 
-                _connector.OrderExecute(newOrder);
+                if (position.OpenOrders[0].SecurityNameCode.EndsWith(" TestPaper"))
+                {
+                    _connector.OrderExecute(newOrder, true);
+                }
+                else
+                {
+                    _connector.OrderExecute(newOrder);
+                }
             }
             catch (Exception error)
             {
@@ -3141,7 +3315,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     closeOrder.IsStopOrProfit = true;
                 }
                 position.AddNewCloseOrder(closeOrder);
-                _connector.OrderExecute(closeOrder);
+
+                if (position.OpenOrders[0].SecurityNameCode.EndsWith(" TestPaper"))
+                {
+                    _connector.OrderExecute(closeOrder, true);
+                }
+                else
+                {
+                    _connector.OrderExecute(closeOrder);
+                }
             }
             catch (Exception error)
             {
@@ -3219,7 +3401,15 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 closeOrder.Volume = volume;
                 position.AddNewCloseOrder(closeOrder);
-                _connector.OrderExecute(closeOrder);
+
+                if (position.OpenOrders[0].SecurityNameCode.EndsWith(" TestPaper"))
+                {
+                    _connector.OrderExecute(closeOrder, true);
+                }
+                else
+                {
+                    _connector.OrderExecute(closeOrder);
+                }
             }
             catch (Exception error)
             {

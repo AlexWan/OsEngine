@@ -758,11 +758,27 @@ namespace OsEngine.Language
               "Ru:Поз. (откр/всего)_");
 
         public string Label187 => OsLocalization.ConvertToLocString(
-              "Eng:Pos. Active_" +
-              "Ru:Поз. Активные_");
+              "Eng:Active positions_" +
+              "Ru:Активные позиции_");
 
         public string Label188 => OsLocalization.ConvertToLocString(
-              "Eng:Pos. Historical_" +
-              "Ru:Поз. Завершённые_");
+              "Eng:Historical positions_" +
+              "Ru:Завершённые позиции_");
+
+        public string Label189 => OsLocalization.ConvertToLocString(
+              "Eng:Active orders_" +
+              "Ru:Активные ордера_");
+
+        public string Label190 => OsLocalization.ConvertToLocString(
+              "Eng:Historical orders_" +
+              "Ru:Завершённые ордера_");
+
+        public string Label191 => OsLocalization.ConvertToLocString(
+              "Eng:Operation is not possible. No connection to the trading floor_" +
+              "Ru:Операция не возможна. Подключение к торговой площадке отсутсвует_");
+
+        public string Label192 => OsLocalization.ConvertToLocString(
+             "Eng:You cannot switch emulator mode while there are open positions. Source   _" +
+             "Ru:Нельзя переключить режим эмулятора пока есть открытые позиции. Источник    _");
     }
 }

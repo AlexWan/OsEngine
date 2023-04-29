@@ -50,6 +50,7 @@ namespace OsEngine.Market.Connectors
             {
                 _canSave = true;
                 Load();
+                ServerMaster.RevokeOrderToEmulatorEvent += ServerMaster_RevokeOrderToEmulatorEvent;
             }
 
             if (createEmulator == true)
@@ -167,7 +168,7 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public void Delete()
         {
-          if(StartProgram != StartProgram.IsOsOptimizer)
+            if(StartProgram != StartProgram.IsOsOptimizer)
             {
                 TimeFrameBuilder.Delete();
 
@@ -175,6 +176,8 @@ namespace OsEngine.Market.Connectors
                 {
                     File.Delete(@"Engine\" + _name + @"ConnectorPrime.txt");
                 }
+
+                ServerMaster.RevokeOrderToEmulatorEvent -= ServerMaster_RevokeOrderToEmulatorEvent;
             }
 
             if (_mySeries != null)
@@ -407,7 +410,6 @@ namespace OsEngine.Market.Connectors
                 return serverPermision.MarketOrdersIsSupport;
             }
         }
-
 
         /// <summary>
         /// object preserving settings for building candles
@@ -775,7 +777,7 @@ namespace OsEngine.Market.Connectors
                     return true;
                 }
 
-                if (_myServer.LastStartServerTime.AddSeconds(60) > DateTime.Now)
+                if (_myServer.LastStartServerTime.AddSeconds(5) > DateTime.Now)
                 {
                     return false;
                 }
@@ -1144,6 +1146,8 @@ namespace OsEngine.Market.Connectors
                 {
                     OrderChangeEvent(order);
                 }
+
+                ServerMaster.InsertOrder(order);
             }
             catch (Exception error)
             {
@@ -1407,6 +1411,7 @@ namespace OsEngine.Market.Connectors
                 return _bestBid;
             }
         }
+
         /// <summary>
         /// best price of buyer 
         /// лучшая цена покупателя
@@ -1437,14 +1442,37 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        // forward orders
         // Пересылка ордеров
+
+        private void ServerMaster_RevokeOrderToEmulatorEvent(Order order)
+        {
+            if(IsConnected == false 
+                || IsReadyToTrade == false)
+            {
+                SendNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                return;
+            }
+
+            if (order.SecurityNameCode != SecurityName + " TestPaper" 
+                && order.SecurityNameCode != SecurityName)
+            {
+                return;
+            }
+            OrderCancel(order);
+        }
+
+        public void LoadOrderInOrderStorage(Order order)
+        {
+            ServerMaster.InsertOrder(order);
+        }
+
+        // Исполнение ордеров
 
         /// <summary>
         /// execute order
         /// исполнить ордер
         /// </summary>
-        public void OrderExecute(Order order)
+        public void OrderExecute(Order order, bool isEmulator = false)
         {
             try
             {
@@ -1467,7 +1495,9 @@ namespace OsEngine.Market.Connectors
 
                 if (StartProgram != StartProgram.IsTester &&
                     StartProgram != StartProgram.IsOsOptimizer &&
-                    (EmulatorIsOn || _myServer.ServerType == ServerType.Finam))
+                    (EmulatorIsOn 
+                    || _myServer.ServerType == ServerType.Finam
+                    || isEmulator))
                 {
                     if(_emulator != null)
                     {
@@ -1497,10 +1527,19 @@ namespace OsEngine.Market.Connectors
                 {
                     return;
                 }
-                order.SecurityNameCode = SecurityName;
-                order.PortfolioNumber = PortfolioName;
-
-                if (EmulatorIsOn || _myServer.ServerType == ServerType.Finam)
+                if(string.IsNullOrEmpty(order.SecurityNameCode))
+                {
+                    order.SecurityNameCode = SecurityName;
+                }
+              
+                if(string.IsNullOrEmpty(order.PortfolioNumber))
+                {
+                    order.PortfolioNumber = PortfolioName;
+                }
+                
+                if (EmulatorIsOn 
+                    || _myServer.ServerType == ServerType.Finam
+                    || order.SecurityNameCode == SecurityName + " TestPaper")
                 {
                     if(_emulator != null)
                     {

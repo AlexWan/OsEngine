@@ -30,16 +30,28 @@
                         </TabControl>
                     </Grid>
                 </TabItem>
-                <TabItem Name="TextBoxPositionBord" Header="Portfolio" Width="140">
+                <TabItem Name="TabAllOrders" Header="Orders" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostPositionOnBoard" Foreground="Black" />
+                        <TabControl>
+                            <TabItem Name="TabActiveOrders" Header="Active orders" Width="280" Height="12">
+                                <Grid Margin="-5,-5,-5,-5">
+                                    <WindowsFormsHost Name="HostActiveOrders" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Name="TabHistoricalOrders" Header="Historical orders" Width="280" Height="12">
+                                <Grid Margin="-5,-5,-5,-5" >
+                                    <WindowsFormsHost Name="HostHistoricalOrders" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
                     </Grid>
                 </TabItem>
-                <TabItem Name="TextBoxPositionAllOrders" Header="Orders" Width="140">
+                <TabItem Name="TabPortfolios" Header="Portfolio" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostOrdersOnBoard"  Foreground="Black"/>
+                        <WindowsFormsHost x:Name="HostPortfolios" Foreground="Black" />
                     </Grid>
                 </TabItem>
+
                 <TabItem x:Name="TabItemLogPrime"  Header="Prime Log" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost Name ="HostBotLogPrime" Foreground="Black" />

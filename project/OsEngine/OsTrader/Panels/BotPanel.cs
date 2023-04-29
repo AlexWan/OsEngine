@@ -1837,7 +1837,7 @@ position => position.State != PositionStateType.OpeningFail
             {
                 for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
                 {
-                    return _tabSimple[i].Connector.EmulatorIsOn;
+                    return _tabSimple[i].EmulatorIsOn;
                 }
 
                 for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
@@ -1848,7 +1848,7 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         try
                         {
-                            return bot.Tabs[i2].Connector.EmulatorIsOn;
+                            return bot.Tabs[i2].EmulatorIsOn;
                         }
                         catch
                         {
@@ -1869,7 +1869,7 @@ position => position.State != PositionStateType.OpeningFail
 
                 for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
                 {
-                    _tabSimple[i].Connector.EmulatorIsOn = value;
+                    _tabSimple[i].EmulatorIsOn = value;
                     _tabSimple[i].Connector.Save();
                 }
 
@@ -1887,7 +1887,7 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         try
                         {
-                            bot.Tabs[i2].Connector.EmulatorIsOn = value;
+                            bot.Tabs[i2].EmulatorIsOn = value;
                             bot.Tabs[i2].Connector.Save();
                         }
                         catch

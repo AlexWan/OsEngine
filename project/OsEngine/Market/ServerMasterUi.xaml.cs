@@ -51,7 +51,7 @@ namespace OsEngine.Market
             TabItem2.Header = OsLocalization.Market.TabItem2;
             CheckBoxServerAutoOpen.Content = OsLocalization.Market.Label20;
 
-            ServerMasterPainter painter = new ServerMasterPainter(HostSource, HostLog, CheckBoxServerAutoOpen);
+            ServerMasterSourcesPainter painter = new ServerMasterSourcesPainter(HostSource, HostLog, CheckBoxServerAutoOpen);
 
             Closing += delegate (object sender, CancelEventArgs args)
             {

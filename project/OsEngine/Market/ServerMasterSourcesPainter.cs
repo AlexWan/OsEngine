@@ -14,9 +14,9 @@ using System.Windows.Forms.Integration;
 
 namespace OsEngine.Market
 {
-    public class ServerMasterPainter
+    public class ServerMasterSourcesPainter
     {
-        public ServerMasterPainter(WindowsFormsHost hostServers, 
+        public ServerMasterSourcesPainter(WindowsFormsHost hostServers, 
             WindowsFormsHost hostLog, 
             System.Windows.Controls.CheckBox boxCreateServerАutomatically)
         {

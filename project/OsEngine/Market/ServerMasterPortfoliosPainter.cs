@@ -57,12 +57,8 @@ namespace OsEngine.Market
                         continue;
                     }
                     servers[i].PortfoliosChangeEvent -= _server_PortfoliosChangeEvent;
-                    servers[i].NewOrderIncomeEvent -= _server_NewOrderIncomeEvent;
-                    servers[i].NewMyTradeEvent -= serv_NewMyTradeEvent;
-
                     servers[i].PortfoliosChangeEvent += _server_PortfoliosChangeEvent;
-                    servers[i].NewOrderIncomeEvent += _server_NewOrderIncomeEvent;
-                    servers[i].NewMyTradeEvent += serv_NewMyTradeEvent;
+
                 }
                 catch
                 {
@@ -87,7 +83,6 @@ namespace OsEngine.Market
             try
             {
                 _positionHost.Child = _gridPosition;
-                _ordersHost.Child = _gridOrders;
             }
             catch (Exception error)
             {
@@ -95,21 +90,13 @@ namespace OsEngine.Market
             }
         }
 
-        /// <summary>
-        /// stop drawing class control
-        /// остановить прорисовку контролов класса 
-        /// </summary>
         public void StopPaint()
         {
             _positionHost.Child = null;
-            _ordersHost.Child = null;
         }
 
-        /// <summary>
-        /// add items for drawing portfolios and orders
-        /// добавить элементы, на котором будут прорисовываться портфели и ордера
-        /// </summary>
-        public void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostOrders)
+      
+        public void SetHostTable(WindowsFormsHost hostPortfolio)
         {
             try
             {
@@ -119,11 +106,6 @@ namespace OsEngine.Market
                 _positionHost.Child = _gridPosition;
                 _positionHost.Child.Show();
                 _positionHost.Child.Refresh();
-
-                _gridOrders = DataGridFactory.GetDataGridOrder();
-                _ordersHost = hostOrders;
-                _ordersHost.Child = _gridOrders;
-                _gridOrders.Click += _gridOrders_Click;
             }
             catch (Exception error)
             {
@@ -184,8 +166,7 @@ namespace OsEngine.Market
             _neadToPaintPortfolio = true;
         }
 
-// work of thread that draws portfolios and orders
-// работа потока прорисовывающего портфели и ордера
+        #region работа потока прорисовывающего портфели и ордера
 
         private async void PainterThreadArea()
         {
@@ -196,12 +177,6 @@ namespace OsEngine.Market
                 if (MainWindow.ProccesIsWorked == false)
                 {
                     return;
-                }
-
-                if (_needToPaintOrders)
-                {
-                    _needToPaintOrders = false;
-                    PaintOrders();
                 }
 
                 if (_neadToPaintPortfolio)
@@ -218,14 +193,9 @@ namespace OsEngine.Market
         /// </summary>
         private bool _neadToPaintPortfolio;
 
-        /// <summary>
-        /// shows whether orders have changed on the exchange and you need to redraw
-        /// флаг, означающий что ордера на бирже изменились и нужно их перерисовать
-        /// </summary>
-        private bool _needToPaintOrders;
+        #endregion
 
-// portfolio drawing
-// прорисовка портфеля
+        #region прорисовка портфеля
 
         /// <summary>
         /// table for drawing portfolios
@@ -493,369 +463,11 @@ namespace OsEngine.Market
         /// </summary>
         private List<Portfolio> _portfolios;
 
-// orders
-// ордера
+        #endregion
 
-        /// <summary>
-        /// table for drawing orders
-        /// таблица для прорисовки ордеров
-        /// </summary>
-        private DataGridView _gridOrders;
 
-        /// <summary>
-        /// area for drawing orders
-        /// область для прорисовки ордеров
-        /// </summary>
-        private WindowsFormsHost _ordersHost;
-
-        private object _lockerOrders = new Object();
-
-        /// <summary>
-        /// new order on the server
-        /// новый ордер в сервере
-        /// </summary>
-        private void _server_NewOrderIncomeEvent(Order order)
-        {
-            if (order.ServerType == ServerType.Tester ||
-                order.ServerType == ServerType.Optimizer ||
-                order.ServerType == ServerType.Miner)
-            {
-                return;
-            }
-
-            try
-            {
-                if (_orders == null)
-                {
-                    _orders = new List<Order>();
-                }
-
-                lock (_lockerOrders)
-                {
-                    Order myOrder = _orders.Find(order1 => order1.NumberUser == order.NumberUser);
-
-                    if (myOrder == null)
-                    {
-                        _orders.Add(order);
-                    }
-                    else
-                    {
-                        if (!string.IsNullOrWhiteSpace(order.NumberMarket))
-                        {
-                            myOrder.NumberMarket = order.NumberMarket;
-                        }
-
-                        if (order.Price != 0)
-                        {
-                            myOrder.Price = order.Price;
-                        }
-
-                        if (order.Side != Side.None)
-                        {
-                            myOrder.Side = order.Side;
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(order.PortfolioNumber))
-                        {
-                            myOrder.PortfolioNumber = order.PortfolioNumber;
-                        }
-
-                        if (order.Volume != 0)
-                        {
-                            myOrder.Volume = order.Volume;
-                        }
-
-                        if (order.VolumeExecute != 0)
-                        {
-                            myOrder.VolumeExecute = order.VolumeExecute;
-                        }
-
-                        if (order.State != OrderStateType.None)
-                        {
-                            myOrder.State = order.State;
-                        }
-
-                        if (string.IsNullOrWhiteSpace(myOrder.SecurityNameCode))
-                        {
-                            myOrder.SecurityNameCode = order.SecurityNameCode;
-                        }
-                        if (myOrder.TimeCallBack == DateTime.MinValue)
-                        {
-                            myOrder.TimeCallBack = order.TimeCallBack;
-                        }
-                    }
-                    if (_orders.Count > 1000)
-                    {
-                        _orders.RemoveAt(0);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                _orders.Clear();
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            _needToPaintOrders = true;
-        }
-
-        private object _lockerTrades = new Object();
-
-        /// <summary>
-        /// my new trade on the server
-        /// новый мой трейд в сервере
-        /// </summary>
-        /// <param name="trade"></param>
-        private void serv_NewMyTradeEvent(MyTrade trade)
-        {
-            if (_orders == null || _orders.Count == 0)
-            {
-                return;
-            }
-
-            lock (_lockerTrades)
-            {
-                Order myOrder = _orders.Find(order1 => order1.NumberMarket == trade.NumberOrderParent);
-
-                if (myOrder == null)
-                {
-                    return;
-                }
-
-                if (myOrder.ServerType == ServerType.Tester ||
-                    myOrder.ServerType == ServerType.Optimizer ||
-                    myOrder.ServerType == ServerType.Miner)
-                {
-                    return;
-                }
-
-                _orders.Remove(myOrder);
-                _needToPaintOrders = true;
-            }
-        }
-
-        /// <summary>
-        /// all orders
-        /// все ордера
-        /// </summary>
-        private List<Order> _orders;
-
-        /// <summary>
-        /// draw orders
-        /// прорисовать ордера
-        /// </summary>
-        private void PaintOrders()
-        {
-            try
-            {
-                if (_positionHost.Child == null)
-                {
-                    return;
-                }
-
-                if (!_positionHost.CheckAccess())
-                {
-                    _positionHost.Dispatcher.Invoke((PaintOrders));
-                    return;
-                }
-                _gridOrders.Rows.Clear();
-
-                if (_orders == null)
-                {
-                    return;
-                }
-
-                for (int i = _orders.Count - 1; _orders != null && _orders.Count != 0 && i > -1; i--)
-                {
-                    if ((_orders[i].State != OrderStateType.Activ &&
-                        _orders[i].State != OrderStateType.Pending)
-                      || _orders[i].Side == Side.None)
-                    {
-                        continue;
-                    }
-
-                    DataGridViewRow nRow = new DataGridViewRow();
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[0].Value = _orders[i].NumberUser;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[1].Value = _orders[i].NumberMarket;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[2].Value = _orders[i].TimeCreate;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[3].Value = _orders[i].SecurityNameCode;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[4].Value = _orders[i].PortfolioNumber;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[5].Value = _orders[i].Side;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[6].Value = _orders[i].State;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[7].Value = _orders[i].Price.ToStringWithNoEndZero();
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[8].Value = _orders[i].PriceReal.ToStringWithNoEndZero();
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[9].Value = _orders[i].Volume.ToStringWithNoEndZero();
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[10].Value = _orders[i].TypeOrder;
-
-                    nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[11].Value = _orders[i].TimeRoundTrip;
-
-                    _gridOrders.Rows.Add(nRow);
-                }
-            }
-            catch
-            {
-                // ignore. Let us sometimes face with null-value, when deleting the original order or modification, but don't break work of mail thread
-                // игнорим. Пусть иногда натыкаемся на налл, при удалении исходного ордера или модификации
-                // зато не мешаем основному потоку работать
-                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-// user clicks the popup menu       
-// пользователь кликает по всплывающему меню
-
-        /// <summary>
-        /// user clicked the table with all orders
-        /// пользователь кликнул на таблицу всех ордеров
-        /// </summary>
-        private void _gridOrders_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                MouseEventArgs mouse = (MouseEventArgs)e;
-                if (mouse.Button != MouseButtons.Right)
-                {
-                    return;
-                }
-
-                MenuItem[] items = new MenuItem[2];
-
-                items[0] = new MenuItem { Text = OsLocalization.Market.Message4 };
-
-                items[0].Click += OrdersCloseAll_Click;
-
-                items[1] = new MenuItem { Text = OsLocalization.Market.Message5 };
-                items[1].Click += PositionCloseForNumber_Click;
-
-                ContextMenu menu = new ContextMenu(items);
-
-                _gridOrders.ContextMenu = menu;
-                _gridOrders.ContextMenu.Show(_gridOrders, new Point(mouse.X, mouse.Y));
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// clear order list
-        /// очистить список ордеров
-        /// </summary>
-        public void ClearOrders()
-        {
-            _orders = new List<Order>();
-        }
-
-        /// <summary>
-        /// user requested closing all orders
-        /// пользователь запросил закрытие всех ордеров
-        /// </summary>
-        private void OrdersCloseAll_Click(object sender, EventArgs e)
-        {
-            new Task(()=>
-            {
-                try
-                {
-                    if (_orders != null)
-                    {
-                        for (int i = 0; i < _orders.Count; i++)
-                        {
-                            if (_orders[i].State == OrderStateType.Activ &&
-                                !string.IsNullOrEmpty(_orders[i].PortfolioNumber))
-                            {
-                                IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == _orders[i].ServerType);
-                                if (server != null)
-                                {
-                                    server.CancelOrder(_orders[i]);
-                                }
-                            }
-                        }
-                    }
-
-                    List<IServer> servers = ServerMaster.GetServers();
-
-                    for (int i = 0; servers != null && i < servers.Count; i++)
-                    {
-                        IServer server = servers[i];
-                        server.CancelAllOrders();
-                    }
-
-                }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-            }).Start();
-        }
-
-        /// <summary>
-        /// user requested closing order by number
-        /// пользователь запросил закрытие ордера по номеру
-        /// </summary>
-        private void PositionCloseForNumber_Click(object sender, EventArgs e)
-        {
-            new Task(()=>
-            {
-                try
-                {
-                    if (_orders == null || _orders.Count == 0)
-                    {
-                        return;
-                    }
-
-                    if (_gridOrders.Rows == null ||
-                        _gridOrders.Rows.Count == 0 ||
-                        _gridOrders.CurrentCell == null)
-                    {
-                        return;
-                    }
-
-                    Order order = _orders[(_orders.Count - 1 - _gridOrders.CurrentCell.RowIndex)];
-
-                    if ((order.State == OrderStateType.Activ || order.State == OrderStateType.Pending)
-                        &&
-                            !string.IsNullOrEmpty(order.PortfolioNumber))
-                    {
-                        IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == order.ServerType);
-                        if (server != null)
-                        {
-                            server.CancelOrder(order);
-                        }
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-            }).Start();
-           
-        }
-
-// log message
-// сообщения в лог
+        // log message
+        // сообщения в лог
 
         /// <summary>
         /// send a new message to up

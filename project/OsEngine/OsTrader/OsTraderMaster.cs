@@ -207,6 +207,7 @@ namespace OsEngine.OsTrader
             _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
             _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
             _globalPositionViewer.StartPaint();
+            ReloadRiskJournals();
         }
 
         public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses, WindowsFormsHost hostHistoricalPoses)
@@ -216,6 +217,7 @@ namespace OsEngine.OsTrader
             _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
             _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
             _globalPositionViewer.StartPaint();
+            ReloadRiskJournals();
         }
 
         private void _globalPositionViewer_UserClickOnPositionShowBotInTableEvent(string botTabName)
@@ -545,7 +547,7 @@ namespace OsEngine.OsTrader
         /// reload risk manager logs
         /// перезагрузить риск менеджеру журналы
         /// </summary>
-        private void ReloadRiskJournals()
+        public void ReloadRiskJournals()
         {
             if(_startProgram == StartProgram.IsOsOptimizer)
             {

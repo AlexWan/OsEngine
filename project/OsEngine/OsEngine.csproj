@@ -442,7 +442,8 @@
       <DependentUpon>MassSourcesCreateUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Connectors\MassSourcesCreator.cs" />
-    <Compile Include="Market\ServerMasterPainter.cs" />
+    <Compile Include="Market\ServerMasterOrdersPainter.cs" />
+    <Compile Include="Market\ServerMasterSourcesPainter.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>

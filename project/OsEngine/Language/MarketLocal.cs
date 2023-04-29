@@ -300,6 +300,13 @@ namespace OsEngine.Language
             "Eng:Securities_" +
             "Ru:Инструменты_");
 
+        public string Label67 => OsLocalization.ConvertToLocString(
+            "Eng:Are you sure you want to revoke ALL orders?_" +
+            "Ru:Вы уверены что хотите отозвать ВСЕ ордера?_");
+
+        public string Label68 => OsLocalization.ConvertToLocString(
+           "Eng:Are you sure you want to call off this order?_" +
+           "Ru:Вы точно хотите отозовать этот ордер?_");
 
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +

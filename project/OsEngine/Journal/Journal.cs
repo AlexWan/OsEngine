@@ -384,6 +384,59 @@ namespace OsEngine.Journal
         }
 
         /// <summary>
+        /// take the latest orders for positions from the log _
+        /// взять последние ордера по позициям из журнала
+        /// </summary>
+        /// <param name="count">кол-во ордеров</param>
+        /// <returns></returns>
+        public List<Order> GetLastOrdersToPositions(int count)
+        {
+            List<Order> orders = new List<Order>();
+
+            List<Position> position = AllPosition;
+
+            for (int i = position.Count - 1; i > -1; i--)
+            {
+                List<Order> openOrders = position[i].OpenOrders;
+                List<Order> closeOrders = position[i].CloseOrders;
+
+                if(openOrders != null && openOrders.Count != 0)
+                {
+                    orders.AddRange(openOrders);
+                }
+
+                if (closeOrders != null && closeOrders.Count != 0)
+                {
+                    orders.AddRange(closeOrders);
+                }
+
+                if(orders.Count > count)
+                {
+                    break;
+                }
+            }
+
+            if(orders.Count > 1)
+            { // Ура, пузырик!
+
+                for(int i = 0; i < orders.Count; i++)
+                {
+                    for(int i2 = 1; i2 < orders.Count;i2++)
+                    {
+                        if (orders[i2].NumberUser < orders[i2-1].NumberUser)
+                        {
+                            Order order = orders[i2];
+                            orders[i2] = orders[i2-1];
+                            orders[i2-1] = order;
+                        }
+                    }
+                }
+            }
+
+            return orders;
+        }
+
+        /// <summary>
         /// to take the profit for today.
         /// взять профит за сегодня
         /// </summary>
@@ -622,7 +675,7 @@ namespace OsEngine.Journal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // Drawing the textBox for a bot
+
         // прорисовка текстБокса для бота
 
         /// <summary>

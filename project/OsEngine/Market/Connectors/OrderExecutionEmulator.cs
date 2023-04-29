@@ -78,7 +78,7 @@ namespace OsEngine.Market.Connectors
                 order.SecurityNameCode = "TestPaper";
             }
 
-            order.PortfolioNumber = "TestPortfolio";
+            order.PortfolioNumber = "Emulator";
 
             ActivateSimple(order);
 
@@ -109,6 +109,8 @@ namespace OsEngine.Market.Connectors
             }
 
             Order newOrder = new Order();
+            newOrder.PortfolioNumber = "Emulator";
+            newOrder.ServerType = order.ServerType;
             newOrder.NumberMarket = order.NumberMarket;
             newOrder.NumberUser = order.NumberUser;
             newOrder.State = OrderStateType.Cancel;
@@ -116,7 +118,26 @@ namespace OsEngine.Market.Connectors
             newOrder.VolumeExecute = order.VolumeExecute;
             newOrder.Price = order.Price;
             newOrder.TypeOrder = order.TypeOrder;
-            newOrder.TimeCallBack = _serverTime;
+            newOrder.TimeCreate = order.TimeCreate;
+
+            if(string.IsNullOrEmpty(order.SecurityNameCode) == false 
+                && order.SecurityNameCode.EndsWith(" TestPaper") == false)
+            {
+                newOrder.SecurityNameCode = order.SecurityNameCode + " TestPaper";
+            }
+            else
+            {
+                newOrder.SecurityNameCode = order.SecurityNameCode;
+            }
+
+            if (_serverTime > newOrder.TimeCreate)
+            {
+                newOrder.TimeCallBack = _serverTime;
+            }
+            else
+            {
+                newOrder.TimeCallBack = newOrder.TimeCreate;
+            }
 
             _ordersToSend.Enqueue(newOrder);
         }
@@ -308,15 +329,37 @@ namespace OsEngine.Market.Connectors
             newOrder.Volume = order.Volume;
             newOrder.VolumeExecute = order.Volume;
             newOrder.Price = order.Price;
-            newOrder.TimeCallBack = _serverTime;
+            newOrder.TimeCreate = order.TimeCreate;
+            newOrder.TypeOrder = order.TypeOrder;
+
+            if (_serverTime > newOrder.TimeCreate)
+            {
+                newOrder.TimeCallBack = _serverTime;
+            }
+            else
+            {
+                newOrder.TimeCallBack = newOrder.TimeCreate;
+            }
+
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
+            newOrder.PortfolioNumber = "Emulator";
+            newOrder.ServerType = order.ServerType;
 
             _ordersToSend.Enqueue(newOrder);
 
             MyTrade trade = new MyTrade();
             trade.Volume = order.Volume;
-            trade.Time = _serverTime;
+
+            if (_serverTime > trade.Time)
+            {
+                trade.Time = _serverTime;
+            }
+            else
+            {
+                trade.Time = newOrder.TimeCreate;
+            }
+
             trade.Price = price;
             trade.SecurityNameCode = order.SecurityNameCode;
             trade.NumberTrade = "emu" + order.NumberMarket;
@@ -342,9 +385,22 @@ namespace OsEngine.Market.Connectors
             newOrder.Volume = order.Volume;
             newOrder.VolumeExecute = 0;
             newOrder.Price = order.Price;
-            newOrder.TimeCallBack = _serverTime;
+            newOrder.TimeCreate = order.TimeCreate;
+            newOrder.TypeOrder = order.TypeOrder;
+
+            if (_serverTime > newOrder.TimeCreate)
+            {
+                newOrder.TimeCallBack = _serverTime;
+            }
+            else
+            {
+                newOrder.TimeCallBack = newOrder.TimeCreate;
+            }
+
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
+            newOrder.PortfolioNumber = "Emulator";
+            newOrder.ServerType = order.ServerType;
 
             if (OrderChangeEvent != null)
             {

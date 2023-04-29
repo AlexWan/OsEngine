@@ -47,7 +47,6 @@ namespace OsEngine.Entity
         /// </summary>
         public string SecurityNameCode;
 
-
         public string SecurityClassCode;
 
         /// <summary>
@@ -76,6 +75,14 @@ namespace OsEngine.Entity
         {
             get
             {
+                if((State == OrderStateType.None 
+                    || State == OrderStateType.Activ
+                    || State == OrderStateType.Cancel)
+                    && _trades == null)
+                {
+                    return 0;
+                }
+
                 return GetMidlePrice();
             }
         }

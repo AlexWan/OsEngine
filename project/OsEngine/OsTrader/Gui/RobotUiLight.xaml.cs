@@ -21,7 +21,7 @@ namespace OsEngine.OsTrader.Gui
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
-            ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard);
+            ServerMaster.SetHostTable(HostPortfolios, HostActiveOrders, HostHistoricalOrders);
             ServerMaster.GetServers();
 
             _strategyKeeper = new OsTraderMaster(null,
@@ -38,7 +38,7 @@ namespace OsEngine.OsTrader.Gui
 
             _painter = new BotTabsPainter(_strategyKeeper, BotsHost);
 
-            _painterServer = new ServerMasterPainter(HostServers, HostServerLog, CheckBoxServerAutoOpen);
+            _painterServer = new ServerMasterSourcesPainter(HostServers, HostServerLog, CheckBoxServerAutoOpen);
 
             this.Activate();
             this.Focus();
@@ -47,13 +47,12 @@ namespace OsEngine.OsTrader.Gui
 
             IsRobotUiLightStart = true;
 
-
             rectToMove.MouseEnter += GreedChartPanel_MouseEnter;
             rectToMove.MouseLeave += GreedChartPanel_MouseLeave;
             rectToMove.MouseDown += GreedChartPanel_MouseDown;
         }
 
-        ServerMasterPainter _painterServer;
+        ServerMasterSourcesPainter _painterServer;
 
         BotTabsPainter _painter;
 
@@ -61,13 +60,15 @@ namespace OsEngine.OsTrader.Gui
         {
             Title = Title + " " + OsEngine.PrimeSettings.PrimeSettingsMaster.LabelInHeaderBotStation;
             TabItemAllPos.Header = OsLocalization.Trader.Label20 ;
-            TextBoxPositionBord.Header = OsLocalization.Trader.Label21;
-            TextBoxPositionAllOrders.Header = OsLocalization.Trader.Label22;
+            TabPortfolios.Header = OsLocalization.Trader.Label21;
+            TabAllOrders.Header = OsLocalization.Trader.Label22;
             TabItemLogPrime.Header = OsLocalization.Trader.Label24;
             TabItemControl.Header = OsLocalization.Trader.Label37;
             CheckBoxServerAutoOpen.Content = OsLocalization.Market.Label20;
             TabActivePos.Header = OsLocalization.Trader.Label187;
             TabHistoricalPos.Header = OsLocalization.Trader.Label188;
+            TabActiveOrders.Header = OsLocalization.Trader.Label189;
+            TabHistoricalOrders.Header = OsLocalization.Trader.Label190;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

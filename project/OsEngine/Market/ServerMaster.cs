@@ -881,7 +881,9 @@ namespace OsEngine.Market
             task.Start();
         }
 
-        private static ServerMasterPortfoliosPainter _painter;
+        private static ServerMasterPortfoliosPainter _painterPortfolios;
+
+        private static ServerMasterOrdersPainter _ordersStorage;
 
         /// <summary>
         /// save settings
@@ -1060,7 +1062,7 @@ namespace OsEngine.Market
             }
         }
 
-// доступ к портфелю и его прорисовка
+// доступ к портфелю, ордерам и его прорисовка
 
         /// <summary>
         /// start to draw class controls
@@ -1068,7 +1070,8 @@ namespace OsEngine.Market
         /// </summary>
         public static void StartPaint()
         {
-             _painter.StartPaint();
+             _painterPortfolios.StartPaint();
+            _ordersStorage.StartPaint();
         }
 
         /// <summary>
@@ -1077,7 +1080,8 @@ namespace OsEngine.Market
         /// </summary>
         public static void StopPaint()
         {
-            _painter.StopPaint();
+            _painterPortfolios.StopPaint();
+            _ordersStorage.StopPaint();
         }
 
         /// <summary>
@@ -1086,25 +1090,48 @@ namespace OsEngine.Market
         /// </summary>
         public static void ClearOrders()
         {
-            if (_painter == null)
+            if (_painterPortfolios == null)
             {
                 return;
             }
-            _painter.ClearOrders();
+            _ordersStorage.ClearOrders();
         }
 
         /// <summary>
         /// add items on which portfolios and orders will be drawn
         /// добавить элементы, на котором будут прорисовываться портфели и ордера
         /// </summary>
-        public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostOrders)
+        public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostActiveOrders, WindowsFormsHost hostHistoricalOrders)
         {
-            _painter = new ServerMasterPortfoliosPainter();
-            _painter.LogMessageEvent += SendNewLogMessage;
-            _painter.SetHostTable(hostPortfolio, hostOrders);
+            _painterPortfolios = new ServerMasterPortfoliosPainter();
+            _painterPortfolios.LogMessageEvent += SendNewLogMessage;
+            _painterPortfolios.SetHostTable(hostPortfolio);
+
+            _ordersStorage = new ServerMasterOrdersPainter();
+            _ordersStorage.LogMessageEvent += SendNewLogMessage;
+            _ordersStorage.SetHostTable(hostActiveOrders, hostHistoricalOrders);
+            _ordersStorage.RevokeOrderToEmulatorEvent += _ordersStorage_RevokeOrderToEmulatorEvent;
         }
 
-// сообщения в лог
+        private static void _ordersStorage_RevokeOrderToEmulatorEvent(Order order)
+        {
+            if(RevokeOrderToEmulatorEvent != null)
+            {
+                RevokeOrderToEmulatorEvent(order);
+            }
+        }
+
+        public static void InsertOrder(Order order)
+        {
+            if (_ordersStorage != null)
+            {
+                _ordersStorage.InsertOrder(order);
+            }
+        }
+
+        public static event Action<Order> RevokeOrderToEmulatorEvent;
+
+        // сообщения в лог
 
         public static void ActivateLogging()
         {

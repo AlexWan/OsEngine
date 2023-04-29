@@ -17,12 +17,12 @@
                 <TabItem Name="TabItemAllPos" Header="Positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
                         <TabControl>
-                            <TabItem Name="TabActivePos" Header="Active" Width="280" Height="12">
+                            <TabItem Name="TabActivePos" Header="Active positions" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5">
                                     <WindowsFormsHost Name="HostActivePoses" Margin="0,0,0,0"/>
                                 </Grid>
                             </TabItem>
-                            <TabItem Name="TabHistoricalPos" Header="Historical" Width="280" Height="12">
+                            <TabItem Name="TabHistoricalPos" Header="Historical positions" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5" >
                                     <WindowsFormsHost Name="HostHistoricalPoses" Margin="0,0,0,0"/>
                                 </Grid>
@@ -30,14 +30,25 @@
                         </TabControl>
                     </Grid>
                 </TabItem>
-                <TabItem Name="TextBoxPositionBord" Header="Portfolio" Width="140">
+                <TabItem Name="TabOrders" Header="Orders" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostPositionOnBoard" Foreground="Black" />
+                        <TabControl>
+                            <TabItem Name="TabActiveOrders" Header="Active orders" Width="280" Height="12">
+                                <Grid Margin="-5,-5,-5,-5">
+                                    <WindowsFormsHost Name="HostActiveOrders" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Name="TabHistoricalOrders" Header="Historical orders" Width="280" Height="12">
+                                <Grid Margin="-5,-5,-5,-5" >
+                                    <WindowsFormsHost Name="HostHistoricalOrders" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
                     </Grid>
                 </TabItem>
-                <TabItem Name="TextBoxPositionAllOrders" Header="Orders" Width="140">
+                <TabItem Name="TabPortfolios" Header="Portfolio" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostOrdersOnBoard"  Foreground="Black"/>
+                        <WindowsFormsHost x:Name="HostPositionOnBoard" Foreground="Black" />
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="TabItemLogPrime"  Header="Prime Log" Width="140">
