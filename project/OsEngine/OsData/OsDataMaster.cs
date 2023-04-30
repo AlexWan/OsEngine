@@ -78,28 +78,26 @@ namespace OsEngine.OsData
 
             string[] folders = Directory.GetDirectories("Data");
 
-            if (folders == null ||
-                folders.Length == 0)
+            if (folders != null 
+                && folders.Length > 0)
             {
-                return;
-            }
+                string[] nameFolders = new string[folders.Length];
 
-            string[] nameFolders = new string[folders.Length];
-
-            for (int i = 0; i < folders.Length; i++)
-            {
-                nameFolders[i] = folders[i].Split('\\')[1];
-            }
-
-            Sets = new List<OsDataSet>();
-
-            for (int i = 0; i < nameFolders.Length; i++)
-            {
-                if (nameFolders[i].Split('_')[0] == "Set")
+                for (int i = 0; i < folders.Length; i++)
                 {
-                    Sets.Add(new OsDataSet(nameFolders[i]));
-                    Sets[Sets.Count - 1].NewLogMessageEvent += SendNewLogMessage;
+                    nameFolders[i] = folders[i].Split('\\')[1];
+                }
 
+                Sets.Clear();
+
+                for (int i = 0; i < nameFolders.Length; i++)
+                {
+                    if (nameFolders[i].Split('_')[0] == "Set")
+                    {
+                        Sets.Add(new OsDataSet(nameFolders[i]));
+                        Sets[Sets.Count - 1].NewLogMessageEvent += SendNewLogMessage;
+
+                    }
                 }
             }
 
