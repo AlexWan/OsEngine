@@ -1130,6 +1130,12 @@ namespace OsEngine.Market.Servers.BitMex
                             }
                             else // (quotes.data[i].side == "Buy")
                             {
+                             if (depth.Bids.Find(asc => asc.Id == quotes.data[i].id) != null)
+                                {
+                                    depth.Bids.Find(asc => asc.Id == quotes.data[i].id).Bid = quotes.data[i].size;
+                                }
+                                else
+                                {
                                 if (quotes.data[i].price == null || 
                                     quotes.data[i].price == "0")
                                 {
@@ -1174,6 +1180,7 @@ namespace OsEngine.Market.Servers.BitMex
                                         depth.Asks.RemoveAt(0);
                                     }
                                 }
+                            }
                             }
                         }
 
