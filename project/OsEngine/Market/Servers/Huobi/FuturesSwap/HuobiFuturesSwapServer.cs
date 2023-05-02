@@ -22,8 +22,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
     {
         public HuobiFuturesSwapServer()
         {
-            HuobiFuturesSwapServerRealization realization = new HuobiFuturesSwapServerRealization(ServerType.HuobiFuturesSwap,
-                "api.hbdm.com",
+            HuobiFuturesSwapServerRealization realization = new HuobiFuturesSwapServerRealization("api.hbdm.com",
                 "/swap-notification"); //linear-swap-notification swap-notification
 
             ServerRealization = realization;
@@ -43,7 +42,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         }
     }
 
-    public class HuobiFuturesSwapServerRealization : AServerRealization
+    public class HuobiFuturesSwapServerRealization : IServerRealization
     {
         private readonly string _host;
         private string _path;
@@ -53,13 +52,11 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         /// </summary>
         private readonly Dictionary<int, string> _supportedIntervals;
 
-        public HuobiFuturesSwapServerRealization(ServerType type,
-            string host,
+        public HuobiFuturesSwapServerRealization(string host,
             string path)
         {
             _supportedIntervals = CreateIntervalDictionary();
 
-            ServerType = type;
             ServerStatus = ServerConnectStatus.Disconnect;
 
             _host = host;
@@ -88,7 +85,10 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         /// server type
         /// тип сервера
         /// </summary>
-        public override ServerType ServerType { get; }
+        public ServerType ServerType => ServerType.HuobiFuturesSwap;
+        public ServerConnectStatus ServerStatus { get; set; }
+        public List<IServerParameter> ServerParameters { get; set; }
+        public DateTime ServerTime { get; set; }
 
         private string _publicKey;
         private string _secretKey;
@@ -111,7 +111,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
         private readonly ConcurrentQueue<string> _queueMarketDataReceivedFromExchange = new ConcurrentQueue<string>();
 
-        public override void Connect()
+        public void Connect()
         {
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
@@ -138,6 +138,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             _marketDataSource = new WsSource("wss://" + _host + pathSwapWs);
             _marketDataSource.ByteDataEvent += MarketDataSourceOnMessageEvent;
             _marketDataSource.Start();
+            ServerStatus = ServerConnectStatus.Connect;
 
         }
 
@@ -147,11 +148,11 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             {
                 case WsMessageType.Opened:
                     Sign();
-                    OnConnectEvent();
+                    ConnectEvent();
                     StartPortfolioRequester();
                     break;
                 case WsMessageType.Closed:
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     break;
                 case WsMessageType.StringData:
                     _queueMessagesReceivedFromExchange.Enqueue(message);
@@ -239,7 +240,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
                                 if (order.NumberUser != 0)
                                 {
-                                    OnOrderEvent(order);
+                                    MyOrderEvent(order);
                                 }
 
                                 foreach (var tradeNotify in orderNotify.trade)
@@ -248,7 +249,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
                                     var myTrade = CreateMyTrade(security, orderNotify.order_id.ToString(),
                                         orderNotify.direction, tradeNotify);
 
-                                    OnMyTradeEvent(myTrade);
+                                    MyTradeEvent(myTrade);
                                 }
                             }
                             else
@@ -305,7 +306,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
                 {
                     SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
                     Dispose();
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     return;
                 }
             }
@@ -318,7 +319,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
                 case WsMessageType.Opened:
                     break;
                 case WsMessageType.Closed:
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     break;
                 case WsMessageType.ByteData:
                     string message = GZipDecompresser.Decompress(data);
@@ -369,14 +370,14 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
                                         var response = JsonConvert.DeserializeObject<TradeInfo>(mes);
                                         foreach (var trade in CreateTrades(security, response))
                                         {
-                                            OnTradeEvent(trade);
+                                            NewTradesEvent(trade);
                                         }
                                     }
                                     else if (channel == "depth")
                                     {
                                         _lastTimeUpdateSocket = DateTime.Now;
                                         var response = JsonConvert.DeserializeObject<SubscribeDepthResponse>(mes);
-                                        OnMarketDepthEvent(CreateMarketDepth(security, response));
+                                        MarketDepthEvent(CreateMarketDepth(security, response));
                                     }
                                 }
                                 else if (mes.StartsWith("{\"id\":\"\",\"rep\":\"market."))
@@ -483,7 +484,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
         #endregion
 
-        public override void Dispose()
+        public void Dispose()
         {
             try
             {
@@ -503,6 +504,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             {
                 SendLogMessage("Huobi dispose error: " + e, LogMessageType.Error);
             }
+            ServerStatus = ServerConnectStatus.Disconnect;
         }
 
         private void UnInitialize()
@@ -519,7 +521,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
         #region Запросы
 
-        public override void GetSecurities()
+        public void GetSecurities()
         {
             string url = _urlBuilder.Build(pathSwapRest + "/v1/swap_contract_info");
 
@@ -527,7 +529,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
             string response = httpClient.GetStringAsync(url).Result;
 
-            OnSecurityEvent(CreateSecurities(response));
+            SecurityEvent(CreateSecurities(response));
         }
 
         private List<Security> CreateSecurities(string data)
@@ -585,7 +587,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
                 Portfolios.Add(portfolio);
 
-                OnPortfolioEvent(Portfolios);
+                PortfolioEvent(Portfolios);
             }
 
             while (!token.IsCancellationRequested)
@@ -607,7 +609,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             }
         }
 
-        public override void GetPortfolios()
+        public void GetPortfolios()
         {
             if (Portfolios == null)
             {
@@ -649,12 +651,12 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
                 }
             }
 
-            OnPortfolioEvent(Portfolios);
+            PortfolioEvent(Portfolios);
         }
 
         private string _portfolioCurrent;
 
-        public override void SendOrder(Order order)
+        public void SendOrder(Order order)
         {
             _portfolioCurrent = order.PortfolioNumber;
 
@@ -713,11 +715,11 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
                 order.State = OrderStateType.Fail;
 
-                OnOrderEvent(order);
+                MyOrderEvent(order);
             }
         }
 
-        public override void CancelOrder(Order order)
+        public void CancelOrder(Order order)
         {
             Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
 
@@ -741,7 +743,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             {
                 SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
                 order.State = OrderStateType.Cancel;
-                OnOrderEvent(order);
+                MyOrderEvent(order);
             }
             else
             {
@@ -749,7 +751,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             }
         }
 
-        public override void Subscrible(Security security)
+        public void Subscrible(Security security)
         {
             string topic = $"market.{security.Name}.trade.detail";
 
@@ -766,19 +768,19 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             _wsSource.SendMessage($"{{\"op\":\"sub\", \"topic\":\"{topic}\", \"cid\": \"{clientId}\" }}");
         }
 
-        public override List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
         }
 
-        public override void GetOrdersState(List<Order> orders)
+        public void GetOrdersState(List<Order> orders)
         {
 
         }
 
         private readonly List<GetCandlestickResponse> _allCandleSeries = new List<GetCandlestickResponse>();
 
-        public override List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
             List<Candle> candles = new List<Candle>();
@@ -849,7 +851,6 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         }
 
         private object _locker = new object();
-
         private List<Candle> GetCandles(int oldInterval, string security, DateTime startTime, DateTime endTime)
         {
             lock (_locker)
@@ -937,6 +938,32 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
             return auth.ToJson();
         }
+
+        public void CancelAllOrders()
+        {
+            
+        }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+            
+        }
+
+        private void SendLogMessage(string message, LogMessageType logMessageType)
+        {
+            LogMessageEvent(message, logMessageType);
+        }
+
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<List<Security>> SecurityEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+        public event Action<string, LogMessageType> LogMessageEvent;
+
     }
 
     public class WebSocketAuthenticationRequestFutures

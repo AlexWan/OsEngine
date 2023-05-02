@@ -37,7 +37,7 @@ namespace OsEngine.Market.Servers.ZB
         }
     }
 
-    public sealed class ZbServerRealization : AServerRealization
+    public sealed class ZbServerRealization : IServerRealization
     {
         private string _publicKey;
         private string _secretKey;
@@ -58,7 +58,10 @@ namespace OsEngine.Market.Servers.ZB
 
         private CancellationTokenSource _cancelTokenSource;
 
-        public override ServerType ServerType { get { return ServerType.Zb; } }
+        public ServerType ServerType { get { return ServerType.Zb; } }
+        public ServerConnectStatus ServerStatus { get; set; }
+        public List<IServerParameter> ServerParameters { get; set; }
+        public DateTime ServerTime { get; set; }
 
         /// <summary>
         /// словарь таймфреймов, поддерживаемых этой биржей
@@ -66,9 +69,10 @@ namespace OsEngine.Market.Servers.ZB
         private readonly Dictionary<int, string> _supportedIntervals;
 
         private const string UriForCandles = "http://api.zb.plus/data/v1/kline?";
-
         public ZbServerRealization()
         {
+            ServerStatus = ServerConnectStatus.Disconnect;
+
             _securitiesCreator = new ZbSecurityCreator();
             _portfoliosCreator = new ZbPortfolioCreator("Zb Wallet");
             _marketDepthCreator = new ZbMarketDepthCreator();
@@ -99,11 +103,12 @@ namespace OsEngine.Market.Servers.ZB
             return dictionary;
         }
 
-        public override void Connect()
+        public void Connect()
         {
             try
             {
                 Initialize();
+                ServerStatus = ServerConnectStatus.Connect;
             }
             catch (Exception e)
             {
@@ -146,7 +151,7 @@ namespace OsEngine.Market.Servers.ZB
 
         private void OrderCreatorOnNewMyTrade(MyTrade myTrade)
         {
-            OnMyTradeEvent(myTrade);
+            MyTradeEvent(myTrade);
         }
 
         private void WsSourceOnMessageEvent(WsMessageType msgType, string data)
@@ -154,13 +159,13 @@ namespace OsEngine.Market.Servers.ZB
             switch (msgType)
             {
                 case WsMessageType.Opened:
-                    OnConnectEvent();
+                    ConnectEvent();
                     GetSecuritiesInfo();
                     StartOrderSender();
                     StartPortfolioRequester();
                     break;
                 case WsMessageType.Closed:
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     break;
                 case WsMessageType.StringData:
                     _queueMessagesReceivedFromExchange.Enqueue(data);
@@ -286,28 +291,28 @@ namespace OsEngine.Market.Servers.ZB
 
                             if (channel == "getaccountinfo")
                             {
-                                OnPortfolioEvent(_portfoliosCreator.Create(mes));
+                                PortfolioEvent(_portfoliosCreator.Create(mes));
                             }
                             else if (channel == "markets")
                             {
-                                OnSecurityEvent(_securitiesCreator.Create(mes));
+                                SecurityEvent(_securitiesCreator.Create(mes));
                             }
                             else if (channel.EndsWith("_depth"))
                             {
-                                OnMarketDepthEvent(_marketDepthCreator.Create(mes));
+                                MarketDepthEvent(_marketDepthCreator.Create(mes));
                             }
                             else if (channel.EndsWith("_trades"))
                             {
                                 foreach (var trade in _tradesCreator.Create(mes))
                                 {
-                                    OnTradeEvent(trade);
+                                    NewTradesEvent(trade);
                                 }
                             }
                             else if (channel.EndsWith("_order") || channel.EndsWith("_getorder"))
                             {
                                 var order = _orderCreator.Create(mes);
 
-                                if (order != null) { OnOrderEvent(order); }
+                                if (order != null) { MyOrderEvent(order); }
                             }
                         }
                     }
@@ -327,7 +332,7 @@ namespace OsEngine.Market.Servers.ZB
             }
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             try
             {
@@ -345,6 +350,7 @@ namespace OsEngine.Market.Servers.ZB
             {
                 SendLogMessage("Zb dispose error: " + e, LogMessageType.Error);
             }
+            ServerStatus = ServerConnectStatus.Disconnect;
         }
 
         private void UnInitialize()
@@ -358,7 +364,7 @@ namespace OsEngine.Market.Servers.ZB
             _wsSource = null;
         }
 
-        public override void GetPortfolios()
+        public void GetPortfolios()
         {
             JsonObject jsonContent = new JsonObject();
 
@@ -374,9 +380,9 @@ namespace OsEngine.Market.Servers.ZB
             _wsSource.SendMessage(jsonContent.ToString());
         }
 
-        public override void GetSecurities() { }
+        public void GetSecurities() { }
 
-        public override void Subscrible(Security security)
+        public void Subscrible(Security security)
         {
             SubscribeMarketDepth(security.Name);
             SubscribeTrades(security.Name);
@@ -398,7 +404,7 @@ namespace OsEngine.Market.Servers.ZB
             _wsSource?.SendMessage(jsonContent.ToString());
         }
 
-        public override void SendOrder(Order order)
+        public void SendOrder(Order order)
         {
             JsonObject jsonContent = new JsonObject();
 
@@ -420,7 +426,7 @@ namespace OsEngine.Market.Servers.ZB
             _wsSource?.SendMessage(jsonContent.ToString());
         }
 
-        public override void CancelOrder(Order order)
+        public void CancelOrder(Order order)
         {
             JsonObject jsonContent = new JsonObject();
 
@@ -538,6 +544,47 @@ namespace OsEngine.Market.Servers.ZB
             }
 
             return candles;
+        }
+
+
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<List<Security>> SecurityEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        private void SendLogMessage(string message, LogMessageType logMessageType)
+        {
+            LogMessageEvent(message, logMessageType);
+        }
+
+        public void CancelAllOrders()
+        {
+           
+        }
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        public void GetOrdersState(List<Order> orders)
+        {
+           
+        }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+            
         }
     }
 }

@@ -37,7 +37,7 @@ namespace OsEngine.Market.Servers.GateIo
         }
     }
 
-    public sealed class GateIoServerRealization : AServerRealization
+    public sealed class GateIoServerRealization : IServerRealization
     {
         private string _publicKey;
         private string _secretKey;
@@ -55,10 +55,18 @@ namespace OsEngine.Market.Servers.GateIo
         /// </summary>
         private readonly Dictionary<int, string> _supportedIntervals;
 
-        public override ServerType ServerType { get { return ServerType.GateIo; } }
+        public ServerType ServerType
+        {
+            get { return ServerType.GateIo; }
+        }
+
+        public ServerConnectStatus ServerStatus { get; set; }
+        public List<IServerParameter> ServerParameters { get; set; }
+        public DateTime ServerTime { get; set; }
 
         public GateIoServerRealization()
         {
+            ServerStatus = ServerConnectStatus.Disconnect;
             //_securitiesCreator = new GateSecurityCreator();
             //_portfolioCreator = new GatePortfolioCreator(PortfolioNumber);
             //_tradesCreator = new GateTradesCreator();
@@ -87,7 +95,7 @@ namespace OsEngine.Market.Servers.GateIo
             return dictionary;
         }
 
-        public override void Connect()
+        public void Connect()
         {
             try
             {
@@ -117,6 +125,9 @@ namespace OsEngine.Market.Servers.GateIo
             _wsSource = new WsSource(WsUri);
             _wsSource.MessageEvent += WsSourceOnMessageEvent;
             _wsSource.Start();
+
+
+            ServerStatus = ServerConnectStatus.Connect;
         }
 
         private void StartMessageReader()
@@ -160,7 +171,7 @@ namespace OsEngine.Market.Servers.GateIo
                                     newTrade.NumberTrade = responceDepths.result[i].id;
                                     newTrade.Side = responceDepths.result[i].side.Equals("sell") ? Side.Sell : Side.Buy;
                                     newTrade.Volume = responceDepths.result[i].amount.ToDecimal();
-                                    OnMyTradeEvent(newTrade);
+                                    MyTradeEvent(newTrade);
                                 }
                                 continue;
                             }
@@ -201,7 +212,7 @@ namespace OsEngine.Market.Servers.GateIo
 
                                     _depths.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceDepths.result.t));
 
-                                    OnMarketDepthEvent(_depths);
+                                    MarketDepthEvent(_depths);
                                     continue;
                                 }
                                 catch (Exception error)
@@ -225,7 +236,7 @@ namespace OsEngine.Market.Servers.GateIo
                                 trade.Volume = Convert.ToDecimal(responceTrades.result.amount.Replace('.', ','));
                                 trade.Side = responceTrades.result.side.Equals("sell") ? Side.Sell : Side.Buy;
 
-                                OnTradeEvent(trade);
+                                NewTradesEvent(trade);
 
                                 continue;
 
@@ -272,7 +283,7 @@ namespace OsEngine.Market.Servers.GateIo
                                     newOrder.ServerType = ServerType.GateIo;
                                     newOrder.PortfolioNumber = "GateIoWallet";
 
-                                    OnOrderEvent(newOrder);
+                                    MyOrderEvent(newOrder);
                                 }
                             }
                         }
@@ -298,10 +309,10 @@ namespace OsEngine.Market.Servers.GateIo
             switch (msgType)
             {
                 case WsMessageType.Opened:
-                    OnConnectEvent();
+                    ConnectEvent();
                     break;
                 case WsMessageType.Closed:
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     break;
                 case WsMessageType.StringData:
                     _queueMessagesReceivedFromExchange.Enqueue(data);
@@ -314,7 +325,7 @@ namespace OsEngine.Market.Servers.GateIo
             }
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             try
             {
@@ -341,7 +352,7 @@ namespace OsEngine.Market.Servers.GateIo
             _wsSource = null;
         }
 
-        public override void GetPortfolios()
+        public void GetPortfolios()
         {
             try
             {
@@ -434,7 +445,7 @@ namespace OsEngine.Market.Servers.GateIo
                     myPortfolio.SetNewPosition(newPortf);
                 }
 
-                OnPortfolioEvent(new List<Portfolio> { myPortfolio });
+                PortfolioEvent(new List<Portfolio> { myPortfolio });
 
             }
             catch (Exception error)
@@ -443,7 +454,7 @@ namespace OsEngine.Market.Servers.GateIo
             }
         }
 
-        public override void GetSecurities()
+        public void GetSecurities()
         {
             HttpClient httpClient = new HttpClient();
             var responce = httpClient.GetAsync("https://api.gateio.ws/api/v4/spot/currency_pairs").Result;
@@ -470,10 +481,10 @@ namespace OsEngine.Market.Servers.GateIo
             }
 
 
-            OnSecurityEvent(securities);
+            SecurityEvent(securities);
         }
 
-        public override void Subscrible(Security security)
+        public void Subscrible(Security security)
         {
             SubscribeMarketDepth(security.Name);
             SubscribeTrades(security.Name);
@@ -595,7 +606,7 @@ namespace OsEngine.Market.Servers.GateIo
             _wsSource?.SendMessage(jsonRequest);
         }
 
-        public override void SendOrder(Order order)
+        public void SendOrder(Order order)
         {
 
             string side = order.Side == Side.Buy ? "buy" : "sell";
@@ -658,7 +669,7 @@ namespace OsEngine.Market.Servers.GateIo
             }
         }
 
-        public override void CancelOrder(Order order)
+        public void CancelOrder(Order order)
         {
             string key = _publicKey;
             string secret = _secretKey;
@@ -803,6 +814,46 @@ namespace OsEngine.Market.Servers.GateIo
             return candles;
         }
 
+
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<List<Security>> SecurityEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        private void SendLogMessage(string message, LogMessageType logMessageType)
+        {
+            LogMessageEvent(message, logMessageType);
+        }
+
+        public void CancelAllOrders()
+        {
+            
+        }
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        public void GetOrdersState(List<Order> orders)
+        {
+            
+        }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+            
+        }
     }
 
     public class CurrencyPair
