@@ -66,6 +66,7 @@ namespace OsEngine.Market.Servers.GateIo
 
         public GateIoServerRealization()
         {
+            ServerStatus = ServerConnectStatus.Disconnect;
             //_securitiesCreator = new GateSecurityCreator();
             //_portfolioCreator = new GatePortfolioCreator(PortfolioNumber);
             //_tradesCreator = new GateTradesCreator();
