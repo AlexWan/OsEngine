@@ -22,9 +22,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
     {
         public HuobiSpotServer()
         {
-            HuobiServerRealization realization = new HuobiServerRealization(ServerType.HuobiSpot,
-                "api.huobi.pro",
-                "/ws/v2");
+            HuobiServerRealization realization = new HuobiServerRealization("api.huobi.pro", "/ws/v2");
 
             ServerRealization = realization;
 
@@ -42,7 +40,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
         }
     }
 
-    public class HuobiServerRealization : AServerRealization
+    public class HuobiServerRealization : IServerRealization
     {
         private readonly string _host;
         private readonly string _path;
@@ -54,13 +52,11 @@ namespace OsEngine.Market.Servers.Huobi.Spot
         /// </summary>
         private readonly Dictionary<int, string> _supportedIntervals;
 
-        public HuobiServerRealization(ServerType type,
-            string host,
+        public HuobiServerRealization(string host,
             string path)
         {
             _supportedIntervals = CreateIntervalDictionary();
 
-            ServerType = type;
             ServerStatus = ServerConnectStatus.Disconnect;
 
             _host = host;
@@ -91,7 +87,10 @@ namespace OsEngine.Market.Servers.Huobi.Spot
         /// server type
         /// тип сервера
         /// </summary>
-        public override ServerType ServerType { get; }
+        public ServerType ServerType => ServerType.HuobiSpot;
+        public ServerConnectStatus ServerStatus { get; set; }
+        public List<IServerParameter> ServerParameters { get; set; }
+        public DateTime ServerTime { get; set; }
 
         private string _publicKey;
         private string _secretKey;
@@ -113,7 +112,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
         private readonly ConcurrentQueue<string> _queueMarketDataReceivedFromExchange = new ConcurrentQueue<string>();
 
 
-        public override void Connect()
+        public void Connect()
         {
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
@@ -137,6 +136,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             _marketDataSource.ByteDataEvent += MarketDataSourceOnMessageEvent;
             _marketDataSource.Start();
 
+            ServerStatus = ServerConnectStatus.Connect;
         }
 
         private void WsSourceOnMessageEvent(WsMessageType msgType, string data)
@@ -145,11 +145,11 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             {
                 case WsMessageType.Opened:
                     Sign();
-                    OnConnectEvent();
+                    ConnectEvent();
                     StartPortfolioRequester();
                     break;
                 case WsMessageType.Closed:
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     break;
                 case WsMessageType.StringData:
                     _queueMessagesReceivedFromExchange.Enqueue(data);
@@ -180,7 +180,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                 {
                     SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
                     Dispose();
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     return;
                 }
             }
@@ -193,7 +193,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                 case WsMessageType.Opened:
                     break;
                 case WsMessageType.Closed:
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     break;
                 case WsMessageType.ByteData:
                     string message = GZipDecompresser.Decompress(data);
@@ -245,7 +245,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
 
                                         foreach (var trade in CreateTrades(security, response))
                                         {
-                                            OnTradeEvent(trade);
+                                            NewTradesEvent(trade);
                                         }
                                     }
                                     else if (channel == "depth")
@@ -253,7 +253,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                                         _lastTimeUpdateSocket = DateTime.Now;
                                         var response = JsonConvert.DeserializeObject<SubscribeDepthResponse>(mes);
 
-                                        OnMarketDepthEvent(CreateMarketDepth(security, response));
+                                        MarketDepthEvent(CreateMarketDepth(security, response));
                                     }
                                 }
                                 else if (mes.StartsWith("{\"id\":\"\",\"rep\":\"market."))
@@ -448,12 +448,12 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                                         order.Volume = data.orderSize;
                                         order.State = OrderStateType.Activ;
                                         order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp((long)data.orderCreateTime);
-                                        OnOrderEvent(order);
+                                        MyOrderEvent(order);
                                     }
                                 }
                                 else if (ch.StartsWith("trade"))
                                 {
-                                    OnMyTradeEvent(CreateMyTrade(security, data));
+                                    MyTradeEvent(CreateMyTrade(security, data));
                                 }
                             }
                             else
@@ -492,7 +492,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             return trade;
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             try
             {
@@ -512,6 +512,8 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             {
                 SendLogMessage("Huobi dispose error: " + e, LogMessageType.Error);
             }
+
+            ServerStatus = ServerConnectStatus.Connect;
         }
 
         private void UnInitialize()
@@ -527,7 +529,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
 
         #region Запросы
 
-        public override void GetSecurities()
+        public void GetSecurities()
         {
             string url = _urlBuilder.Build("/v1/common/symbols");
 
@@ -535,7 +537,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
 
             string response = httpClient.GetStringAsync(url).Result;
 
-            OnSecurityEvent(_securityCreator.Create(response));
+            SecurityEvent(_securityCreator.Create(response));
         }
 
         private void StartPortfolioRequester()
@@ -570,7 +572,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                     Portfolios.Add(portfolio);
                 }
 
-                OnPortfolioEvent(Portfolios);
+                PortfolioEvent(Portfolios);
 
                 while (!token.IsCancellationRequested)
                 {
@@ -596,7 +598,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             }
         }
 
-        public override void GetPortfolios()
+        public void GetPortfolios()
         {
             if (Portfolios == null)
             {
@@ -640,12 +642,12 @@ namespace OsEngine.Market.Servers.Huobi.Spot
                 }
             }
 
-            OnPortfolioEvent(Portfolios);
+            PortfolioEvent(Portfolios);
         }
 
         private string _portfolioCurrent;
 
-        public override void SendOrder(Order order)
+        public void SendOrder(Order order)
         {
             _portfolioCurrent = order.PortfolioNumber;
 
@@ -699,11 +701,11 @@ namespace OsEngine.Market.Servers.Huobi.Spot
 
                 order.State = OrderStateType.Fail;
 
-                OnOrderEvent(order);
+                MyOrderEvent(order);
             }
         }
 
-        public override void CancelOrder(Order order)
+        public void CancelOrder(Order order)
         {
             string url = _privateUriBuilder.Build("POST", "/v1/order/orders/submitCancelClientOrder");
 
@@ -723,7 +725,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             {
                 SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
                 order.State = OrderStateType.Cancel;
-                OnOrderEvent(order);
+                MyOrderEvent(order);
             }
             else
             {
@@ -731,7 +733,7 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             }
         }
 
-        public override void Subscrible(Security security)
+        public void Subscrible(Security security)
         {
             string topic = $"market.{security.Name}.trade.detail";
 
@@ -752,19 +754,19 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             _wsSource.SendMessage($"{{\"action\":\"sub\", \"cid\": \"{clientId}\", \"ch\":\"{topic}\" }}");
         }
 
-        public override List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
         }
 
-        public override void GetOrdersState(List<Order> orders)
+        public void GetOrdersState(List<Order> orders)
         {
             
         }
         
         private readonly List<GetCandlestickResponse> _allCandleSeries = new List<GetCandlestickResponse>();
 
-        public override List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
             List<Candle> candles = new List<Candle>();
@@ -931,6 +933,31 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             };
 
             return auth.ToJson();
+        }
+
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<List<Security>> SecurityEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        private void SendLogMessage(string message, LogMessageType logMessageType)
+        {
+            LogMessageEvent(message, logMessageType);
+        }
+
+        public void CancelAllOrders()
+        {
+            
+        }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+           
         }
     }
 
