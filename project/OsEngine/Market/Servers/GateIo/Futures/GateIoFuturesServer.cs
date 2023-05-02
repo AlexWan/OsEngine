@@ -49,7 +49,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         }
     }
 
-    public class GateIoFuturesServerRealization : AServerRealization
+    public class GateIoFuturesServerRealization : IServerRealization
     {
         private string _publicKey;
         private string _secretKey;
@@ -106,13 +106,20 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         /// server type
         /// тип сервера
         /// </summary>
-        public override ServerType ServerType { get { return ServerType.GateIoFutures; } }
+        public ServerType ServerType
+        {
+            get { return ServerType.GateIoFutures; }
+        }
+
+        public ServerConnectStatus ServerStatus { get; set; }
+        public List<IServerParameter> ServerParameters { get; set; }
+        public DateTime ServerTime { get; set; }
 
         private CancellationTokenSource _cancelTokenSource;
 
         private readonly ConcurrentQueue<string> _queueMessagesReceivedFromExchange = new ConcurrentQueue<string>();
 
-        public override void Connect()
+        public  void Connect()
         {
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
@@ -140,6 +147,8 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             _wsSource = new WsSource(_baseUrlWss + _wallet);
             _wsSource.MessageEvent += WsSourceOnMessageEvent;
             _wsSource.Start();
+
+            ServerStatus = ServerConnectStatus.Connect;
         }
 
         private void WsSourceOnMessageEvent(WsMessageType msgType, string message)
@@ -147,12 +156,12 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             switch (msgType)
             {
                 case WsMessageType.Opened:
-                    OnConnectEvent();
+                    ConnectEvent();
                     StartPingAliveLogic();
                     StartPortfolioRequester();
                     break;
                 case WsMessageType.Closed:
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     break;
                 case WsMessageType.StringData:
                     _queueMessagesReceivedFromExchange.Enqueue(message);
@@ -223,7 +232,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                 {
                     SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
                     Dispose();
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     return;
                 }
             }
@@ -302,7 +311,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
                                 foreach (var depth in marketDepths)
                                 {
-                                    OnMarketDepthEvent(depth);
+                                    MarketDepthEvent(depth);
                                 }
                             }
                             else if (channel == "futures.orders")
@@ -311,14 +320,14 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
                                 foreach (var order in orders)
                                 {
-                                    OnOrderEvent(order);
+                                    MyOrderEvent(order);
                                 }
                             }
                             else if (channel == "futures.trades")
                             {
                                 foreach (var trade in _orderCreator.TradesCreate(mes))
                                 {
-                                    OnTradeEvent(trade);
+                                    NewTradesEvent(trade);
                                 }
                             }
                             else if (channel == "futures.usertrades")
@@ -327,7 +336,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
                                 foreach (var myTrade in myTrades)
                                 {
-                                    OnMyTradeEvent(myTrade);
+                                    MyTradeEvent(myTrade);
                                 }
                             }
                             else
@@ -359,7 +368,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             _wsSource = null;
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             try
             {
@@ -377,6 +386,8 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             {
                 SendLogMessage("GateIo dispose error: " + e, LogMessageType.Error);
             }
+
+            ServerStatus = ServerConnectStatus.Disconnect;
         }
 
 
@@ -430,7 +441,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         #endregion 
 
         #region Запросы
-        public override void GetSecurities()
+        public void GetSecurities()
         {
             try
             {
@@ -471,7 +482,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                     }
                 }
 
-                OnSecurityEvent(_securities);
+                SecurityEvent(_securities);
             }
             catch (Exception exception)
             {
@@ -513,7 +524,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
                 Portfolios.Add(portfolioInitial);
 
-                OnPortfolioEvent(Portfolios);
+                PortfolioEvent(Portfolios);
             }
 
             while (!token.IsCancellationRequested)
@@ -553,7 +564,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             }
         }
 
-        public override void GetPortfolios()
+        public void GetPortfolios()
         {
             try
             {
@@ -602,7 +613,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                     portfolio.SetNewPosition(position);
                 }
 
-                OnPortfolioEvent(Portfolios);
+                PortfolioEvent(Portfolios);
             }
             catch (Exception exception)
             {
@@ -636,7 +647,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             return json;
         }
 
-        public override void SendOrder(Order order)
+        public void SendOrder(Order order)
         {
             decimal outputVolume = order.Volume;
             if (order.Side == Side.Sell)
@@ -716,7 +727,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
                     order.State = OrderStateType.Fail;
 
-                    OnOrderEvent(order);
+                    MyOrderEvent(order);
                 }
             }
             catch (Exception exception)
@@ -740,7 +751,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             }
         }
 
-        public override void CancelOrder(Order order)
+        public void CancelOrder(Order order)
         {
             try
             {
@@ -759,7 +770,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                 {
                     SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
                     order.State = OrderStateType.Cancel;
-                    OnOrderEvent(order);
+                    MyOrderEvent(order);
                 }
                 else
                 {
@@ -790,7 +801,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         #endregion
 
         #region Подписка на данные
-        public override void Subscrible(Security security)
+        public void Subscrible(Security security)
         {
             SubscribeMarketDepth(security.Name);
             SubscribeTrades(security.Name);
@@ -850,7 +861,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             _wsSource?.SendMessage(message);
         }
 
-        public override void GetOrdersState(List<Order> orders)
+        public void GetOrdersState(List<Order> orders)
         {
 
         }
@@ -858,7 +869,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
         #region Работа со свечами
 
-        public override List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             List<Candle> candles = new List<Candle>();
 
@@ -977,7 +988,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             return candles;
         }
 
-        public override List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             List<Trade> trades = new List<Trade>();
 
@@ -1091,6 +1102,31 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
             return trades;
         }
+
+        public void CancelAllOrders()
+        {
+            
+        }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+            
+        }
+
+        private void SendLogMessage(string messgae, LogMessageType logMessageType)
+        {
+            LogMessageEvent(messgae, logMessageType);
+        }
+
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<List<Security>> SecurityEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
     }
