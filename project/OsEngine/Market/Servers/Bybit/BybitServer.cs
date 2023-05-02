@@ -45,10 +45,14 @@ namespace OsEngine.Market.Servers.Bybit
         }
     }
 
-    public class BybitServerRealization : AServerRealization
+    public class BybitServerRealization : IServerRealization
     {
         #region Properties
-        public override ServerType ServerType => ServerType.Bybit;
+        public ServerType ServerType => ServerType.Bybit;
+
+        public ServerConnectStatus ServerStatus { get; set; }
+        public List<IServerParameter> ServerParameters { get; set; }
+        public DateTime ServerTime { get; set; }
         #endregion
 
         #region Fields
@@ -71,7 +75,6 @@ namespace OsEngine.Market.Servers.Bybit
         private CancellationTokenSource cancel_token_source;
         private readonly ConcurrentQueue<string> queue_messages_received_from_fxchange;
         private readonly Dictionary<string, Action<JToken>> response_handlers;
-        private object locker = new object();
         private object locker_candles = new object();
         private BybitMarketDepthCreator market_mepth_creator;
         #endregion
@@ -116,7 +119,7 @@ namespace OsEngine.Market.Servers.Bybit
         }
         #endregion
 
-        public override void Connect()
+        public void Connect()
         {
             public_key = ((ServerParameterString)ServerParameters[0]).Value;
             secret_key = ((ServerParameterPassword)ServerParameters[1]).Value;
@@ -162,10 +165,10 @@ namespace OsEngine.Market.Servers.Bybit
             ws_source_public = new WsSource(client.WsPublicUrl);
             ws_source_public.MessageEvent += WsSourceOnMessageEvent;
             ws_source_public.Start();
-
+            ServerStatus = ServerConnectStatus.Connect;
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             try
             {
@@ -200,12 +203,13 @@ namespace OsEngine.Market.Servers.Bybit
                 _alreadySubscribleOrders = false;
                 _alreadySubscribleTrades = false;
 
-                OnDisconnectEvent();
+                DisconnectEvent();
             }
             catch (Exception e)
             {
                 SendLogMessage("Bybit dispose error: " + e.Message + " " + e.StackTrace, LogMessageType.Error);
             }
+            ServerStatus = ServerConnectStatus.Disconnect;
         }
 
         private void WsSourceOnMessageEvent(WsMessageType message_type, string message)
@@ -213,12 +217,12 @@ namespace OsEngine.Market.Servers.Bybit
             if (message_type == WsMessageType.Opened)
             {
                 SendLoginMessage();
-                OnConnectEvent();
+                ConnectEvent();
                 StartPortfolioRequester();
             }
             else if (message_type == WsMessageType.Closed)
             {
-                OnDisconnectEvent();
+                DisconnectEvent();
                 Dispose();
             }
             else if (message_type == WsMessageType.StringData)
@@ -229,7 +233,7 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 if (message.Contains("no address was supplied"))
                 {
-                    OnDisconnectEvent();
+                    DisconnectEvent();
                     Dispose();
                 }
 
@@ -345,7 +349,7 @@ namespace OsEngine.Market.Servers.Bybit
                 if (last_time_update_socket.AddSeconds(60) < DateTime.UtcNow)
                 {
                     SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
-                    OnDisconnectEvent();
+                    ConnectEvent();
                     return;
                 }
             }
@@ -467,7 +471,7 @@ namespace OsEngine.Market.Servers.Bybit
                     myPortf.SetNewPosition(poses[i]);
                 }
 
-                OnPortfolioEvent(_portfolios);
+                PortfolioEvent(_portfolios);
             }
             catch (Exception)
             {
@@ -475,7 +479,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        public override void GetPortfolios()
+        public void GetPortfolios()
         {
             try
             {
@@ -507,7 +511,7 @@ namespace OsEngine.Market.Servers.Bybit
                     portfolios.Add(BybitPortfolioCreator.Create("undefined"));
                 }
 
-                OnPortfolioEvent(portfolios);
+                PortfolioEvent(portfolios);
                 _portfolios = portfolios;
             }
             catch (Exception)
@@ -519,7 +523,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         List<Portfolio> _portfolios;
 
-        public override void GetSecurities() // both futures
+        public void GetSecurities() // both futures
         {
             JToken account_response = CreatePublicGetQuery(client, "/v2/public/symbols");
 
@@ -532,7 +536,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             if (isSuccessfull == "OK")
             {
-                OnSecurityEvent(BybitSecurityCreator.Create(account_response.SelectToken("result"), futures_type));
+                SecurityEvent(BybitSecurityCreator.Create(account_response.SelectToken("result"), futures_type));
             }
             else
             {
@@ -540,7 +544,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        public override void SendOrder(Order order)
+        public void SendOrder(Order order)
         {
             if (order.TypeOrder == OrderPriceType.Iceberg)
             {
@@ -592,7 +596,7 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 SendLogMessage($"Internet Error. Order exchange error num {order.NumberUser}", LogMessageType.Error);
                 order.State = OrderStateType.Fail;
-                OnOrderEvent(order);
+                MyOrderEvent(order);
                 return;
             }
 
@@ -607,18 +611,18 @@ namespace OsEngine.Market.Servers.Bybit
 
                 order.NumberMarket = ordChild.SelectToken("order_id").ToString();
 
-                OnOrderEvent(order);
+                MyOrderEvent(order);
             }
             else
             {
                 SendLogMessage($"Order exchange error num {order.NumberUser}" + isSuccessful, LogMessageType.Error);
                 order.State = OrderStateType.Fail;
 
-                OnOrderEvent(order);
+                MyOrderEvent(order);
             }
         } // both futures
 
-        public override void CancelOrder(Order order)
+        public void CancelOrder(Order order)
         {
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
@@ -640,7 +644,7 @@ namespace OsEngine.Market.Servers.Bybit
             if (isSuccessful == "OK")
             {
                 order.State = OrderStateType.Cancel;
-                OnOrderEvent(order);
+                MyOrderEvent(order);
             }
             else
             {
@@ -648,7 +652,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         } // both
 
-        public override void GetOrdersState(List<Order> orders)
+        public void GetOrdersState(List<Order> orders)
         {
             foreach (Order order in orders)
             {
@@ -746,7 +750,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         List<string> _alreadySubSec = new List<string>();
 
-        public override void Subscrible(Security security)
+        public void Subscrible(Security security)
         {
             SetPositionMode(security);
 
@@ -848,7 +852,7 @@ namespace OsEngine.Market.Servers.Bybit
             foreach (var depth in new_md_list)
             {
                 SortAsksMarketDepth(depth);
-                OnMarketDepthEvent(depth);
+                MarketDepthEvent(depth);
             }
         }
 
@@ -874,7 +878,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             foreach (var trade in new_trades)
             {
-                OnTradeEvent(trade);
+                NewTradesEvent(trade);
             }
         }
 
@@ -884,7 +888,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             foreach (var order in new_my_orders)
             {
-                OnOrderEvent(order);
+                MyOrderEvent(order);
             }
         }
 
@@ -894,7 +898,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             foreach (var trade in new_my_trades)
             {
-                OnMyTradeEvent(trade);
+                MyTradeEvent(trade);
             }
         }
 
@@ -909,7 +913,7 @@ namespace OsEngine.Market.Servers.Bybit
             return GetCandles((int)tf.TotalMinutes, nameSec, DateTime.UtcNow - diff, DateTime.UtcNow);
         }
 
-        public override List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder time_frame_builder, DateTime start_time, DateTime end_time, DateTime actual_time)
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder time_frame_builder, DateTime start_time, DateTime end_time, DateTime actual_time)
         {
             List<Candle> candles = new List<Candle>();
 
@@ -975,7 +979,7 @@ namespace OsEngine.Market.Servers.Bybit
         #endregion
 
         #region Работа с тиками
-        public override List<Trade> GetTickDataToSecurity(Security security, DateTime start_time, DateTime end_time, DateTime actual_time)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime start_time, DateTime end_time, DateTime actual_time)
         {
             List<Trade> trades = new List<Trade>();
 
@@ -1042,7 +1046,6 @@ namespace OsEngine.Market.Servers.Bybit
         #endregion
 
         RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
-
         public JToken CreatePrivateGetQuery(Client client, string end_point, Dictionary<string, string> parameters)
         {
             //int time_factor = 1;
@@ -1181,5 +1184,31 @@ namespace OsEngine.Market.Servers.Bybit
             return JToken.Parse(response_msg);
         }
 
+
+        public void SendLogMessage(string message, LogMessageType logMessageType)
+        {
+            LogMessageEvent(message, logMessageType);
+        }
+
+
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<List<Security>> SecurityEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        public void CancelAllOrders()
+        {
+            
+        }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+           
+        }
     }
 }
