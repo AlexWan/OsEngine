@@ -1,0 +1,60 @@
+﻿<Window x:Class="OsEngine.Robots.AutoTestBots.TestBotConnectionParams"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Robots.AutoTestBots"
+        mc:Ignorable="d"
+        Title="TestBotConnectionParams" Height="290" Width="600" Style="{StaticResource WindowStyleNoResize}" Icon="/Images/OsLogo.ico" MaxHeight="290" MinHeight="290" MaxWidth="600" MinWidth="600">
+    <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5*"/>
+            <RowDefinition  Height="5*"/>
+            <RowDefinition  Height="1*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Grid.Column="0">
+            <Label Content="Select Server"></Label>
+            <Label Content="Count Connect Tabs"></Label>
+            <Label Content="Count Reload"></Label>
+            <Label Content="Second To Reload"></Label>
+        </StackPanel>
+        <StackPanel Grid.Row="0" Grid.Column="1">
+            <ComboBox Name="ComboBoxConnectorEnum"/>
+            <TextBox Name="TextBoxCountTabsToConnectServer"></TextBox>
+            <TextBox Name="TextBoxCountToReLoadServer"></TextBox>
+            <TextBox Name="TextBoxSecondToReloadServer"></TextBox>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="5">
+            <Button Name="ButtonServerSettingsShow" Content="Server settings show"></Button>
+            <Button Name="ButtonStartTest" Content="Start Test"></Button>
+            <Button Name="ButtonStopTest" Content="Stop Test"></Button>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="0" Margin="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <Label Content="Connect"></Label>
+                    <Label Content="RAM start" Grid.Column="0"></Label>
+                    <Label Content="RAM end" Grid.Column="0"></Label>
+                    <Label Content="Test status"></Label>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <Rectangle Name="RectangleStatusConnect" Width="15" Height="15" Fill="Red" Stroke="Black"  Margin="2"></Rectangle>
+                    <Label Name="DrawingStartRam" HorizontalContentAlignment="Center"></Label>
+                    <Label Name="DrawingEndRam" HorizontalContentAlignment="Center"></Label>
+                    <Label Name="LabelStateTesting" HorizontalContentAlignment="Center"></Label>
+                </StackPanel>
+                
+            </Grid>
+            
+        </StackPanel>
+        <ProgressBar Name="ProgressBarTest" Grid.Row="2" Grid.ColumnSpan="2" Value="0" Margin="3"/>
+    </Grid>
+</Window>

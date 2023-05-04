@@ -911,6 +911,10 @@
       <DependentUpon>BotTabScreenerUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\AutoTestBots\TestBotCandlesComparison.cs" />
+    <Compile Include="Robots\AutoTestBots\TestBotConnection.cs" />
+    <Compile Include="Robots\AutoTestBots\TestBotConnectionParams.xaml.cs">
+      <DependentUpon>TestBotConnectionParams.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
     <Compile Include="Robots\OnScriptIndicators\GridSample.cs" />
@@ -1462,6 +1466,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\Tab\BotTabScreenerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Robots\AutoTestBots\TestBotConnectionParams.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
