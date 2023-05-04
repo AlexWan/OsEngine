@@ -47,10 +47,10 @@ namespace OsEngine.Alerts
             ComboBoxOrderType.Items.Add(OrderPriceType.Market);
             ComboBoxOrderType.SelectedItem = MyAlert.OrderPriceType;
 
-            ComboBoxSlippageType.Items.Add(AlertSlippageType.Persent);
-            ComboBoxSlippageType.Items.Add(AlertSlippageType.PriceStep);
-            ComboBoxSlippageType.Items.Add(AlertSlippageType.Absolute);
-            ComboBoxSlippageType.SelectedItem = AlertSlippageType.Persent;
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.Persent.ToString());
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.PriceStep.ToString());
+            ComboBoxSlippageType.Items.Add(AlertSlippageType.Absolute.ToString());
+            ComboBoxSlippageType.SelectedItem = MyAlert.SlippageType.ToString();
 
             TextBoxVolumeReaction.Text = MyAlert.VolumeReaction.ToString();
             TextBoxSlippage.Text = MyAlert.Slippage.ToString(new CultureInfo("RU-ru"));

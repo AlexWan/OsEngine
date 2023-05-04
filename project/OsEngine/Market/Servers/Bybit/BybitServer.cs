@@ -571,7 +571,7 @@ namespace OsEngine.Market.Servers.Bybit
             parameters.Add("api_key", client.ApiKey);
             parameters.Add("side", side);
             parameters.Add("order_type", type);
-            //parameters.Add("referer", "api.OsEngine");
+            //parameters.Add("referer", "OsEngine");
             parameters.Add("qty", order.Volume.ToString().Replace(",", "."));
             parameters.Add("time_in_force", "GoodTillCancel");
             parameters.Add("order_link_id", order.NumberUser.ToString());
@@ -1076,7 +1076,7 @@ namespace OsEngine.Market.Servers.Bybit
 
 
                 HttpClient httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("referer", "api.OsEngine");
+                httpClient.DefaultRequestHeaders.Add("referer", "OsEngine");
                 var res = httpClient.GetAsync(uri).Result;
                 string response_msg = res.Content.ReadAsStringAsync().Result;
 
@@ -1176,7 +1176,7 @@ namespace OsEngine.Market.Servers.Bybit
             HttpClient httpClient = new HttpClient();
 
             StringContent content = new StringContent(str_data, Encoding.UTF8, "application/json");
-            httpClient.DefaultRequestHeaders.Add("referer", "api.OsEngine");
+            httpClient.DefaultRequestHeaders.Add("referer", "OsEngine");
             var res = httpClient.PostAsync(url, content).Result;
             string response_msg = res.Content.ReadAsStringAsync().Result;
 
