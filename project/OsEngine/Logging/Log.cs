@@ -12,6 +12,7 @@ using System.IO;
 using System.Media;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -101,7 +102,7 @@ namespace OsEngine.Logging
                 }
                 catch (Exception error)
                 {
-                    MessageBox.Show(error.ToString());
+                    System.Windows.MessageBox.Show(error.ToString());
                 }
             }
         }
@@ -140,6 +141,7 @@ namespace OsEngine.Logging
             if (_startProgram == StartProgram.IsOsTrader)
             {
                 _messageSender = new MessageSender(uniqName, _startProgram);
+                TryLoadLog();
             }
         }
 
@@ -352,7 +354,7 @@ namespace OsEngine.Logging
             }
             catch (Exception error)
             {
-                MessageBox.Show(error.ToString());
+                System.Windows.MessageBox.Show(error.ToString());
             }
         }
 
@@ -592,8 +594,10 @@ namespace OsEngine.Logging
                     return;
                 }
 
-                _messagesesToSaveInFile.Enqueue(messageLog);
-
+                if(messageLog.Type != LogMessageType.OldSession)
+                {
+                    _messagesesToSaveInFile.Enqueue(messageLog);
+                }
 
                 if (_grid != null)
                 {
@@ -615,7 +619,7 @@ namespace OsEngine.Logging
             }
             catch (Exception error)
             {
-                MessageBox.Show(error.ToString());
+                System.Windows.MessageBox.Show(error.ToString());
             }
         }
 
@@ -662,17 +666,93 @@ namespace OsEngine.Logging
 
                         if (_messagesesToSaveInFile.TryDequeue(out message))
                         {
-                            writer.WriteLine($"[{message.Time.ToLocalTime():yyyy-MM-dd HH:mm:ss}] {message.Message}");
+                            string mess = message.Time.ToLocalTime() + ";";
+                            mess += message.Type + ";";
+                            mess += message.Message + ";";
+
+                            writer.WriteLine(mess);
                         }
                     }
                 }
-
             }
             catch (Exception error)
             {
-                MessageBox.Show(error.ToString());
+                System.Windows.MessageBox.Show(error.ToString());
+            }
+        }
+
+        private void TryLoadLog()
+        {
+            if (!Directory.Exists(@"Engine\Log\"))
+            {
+                return;
             }
 
+            try
+            {
+                string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
+                string path = @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt";
+
+                if (!File.Exists(path))
+                {
+                    return;
+                }
+
+                using (StreamReader reader = new StreamReader(
+                        path))
+                {
+                    
+                    List<string> messages = new List<string>();
+
+                    while(reader.EndOfStream == false)
+                    {
+                        messages.Add(reader.ReadLine());
+                    }
+
+                    if(messages.Count == 0)
+                    {
+                        return;
+                    }
+
+                    int startInd = messages.Count - 10;
+
+                    if(startInd< 0)
+                    {
+                        startInd = 0;
+                    }
+
+                    for (int i = startInd; i < messages.Count; i++)
+                    {
+                        string msg = messages[i];
+
+                        string[] msgArray = msg.Split(';');
+
+                        if(msgArray.Length != 4)
+                        {
+                            continue;
+                        }
+
+                        LogMessage message = new LogMessage();
+
+                        try
+                        {
+                            message.Time = Convert.ToDateTime(msgArray[0]);
+                            message.Type = LogMessageType.OldSession;
+                            message.Message = msgArray[1] + " " + msgArray[2];   
+
+                            _incomingMessages.Enqueue(message);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                System.Windows.MessageBox.Show(error.ToString());
+            }
         }
 
         // distribution
@@ -943,6 +1023,11 @@ namespace OsEngine.Logging
         /// user action recorded
         /// Зафиксировано действие пользователя
         /// </summary>
-        User
+        User,
+
+        /// <summary>
+        /// Запись в логе с прошлой сессии
+        /// </summary>
+        OldSession,
     }
 }
