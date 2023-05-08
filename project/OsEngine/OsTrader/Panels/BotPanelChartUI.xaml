@@ -18,7 +18,10 @@
                         <Button Name="ButtonBuyLimit" Content="Buy &#xD;&#xA;limit" HorizontalAlignment="Left" FontSize="11" Margin="10,0,0,46" VerticalAlignment="Bottom" Width="102" Click="ButtonBuyLimit_Click" Height="31"/>
                         <Button Name="ButtonSellLimit" Content="           Sell &#xA;           limit" HorizontalAlignment="Left" FontSize="11" Margin="162,0,0,46" VerticalAlignment="Bottom" Width="118"  Click="ButtonSellLimit_Click" Height="31"/>
                         <TextBox Name="TextBoxPrice" Style="{StaticResource TextBoxRectangular}" TextAlignment="Center" BorderThickness="1,0,1,1" Margin="100,0,100,46" TextWrapping="Wrap" VerticalAlignment="Bottom" Height="18"/>
-                        <Button Name="ButtonCloseLimit" Content="Revoke limits" Margin="10,0,10,10" VerticalAlignment="Bottom" Click="ButtonCloseLimit_Click" Height="31" />
+                        <Button Name="ButtonCloseLimit" Content="Revoke limits" Margin="10,0,100,10" VerticalAlignment="Bottom" Click="ButtonCloseLimit_Click" Height="31" />
+                        <Button Name="ButtonMoreOpenPositionDetail" Content="More" Margin="190,0,10,10" VerticalAlignment="Bottom" Height="31" Click="ButtonMoreOpenPositionDetail_Click" />
+
+
                         <TextBox Name="TextBoxVolumeInterText" Style="{StaticResource TextBoxRectangular}" Height="13" BorderThickness="1,1,1,0" HorizontalContentAlignment="Center" Margin="100,0,100,100" TextWrapping="Wrap" Text="Volume" IsReadOnly="True" FontSize="10" VerticalAlignment="Bottom"/>
                         <TextBox Name="TextBoxPriceText" Height="13" BorderThickness="1,1,1,0" Style="{StaticResource TextBoxRectangular}" Margin="100,0,100,64" TextWrapping="Wrap" Text="Price" HorizontalContentAlignment="Center" IsReadOnly="True" VerticalAlignment="Bottom" FontSize="10"/>
                     </Grid>

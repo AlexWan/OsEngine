@@ -10,10 +10,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market;
 using System.Drawing;
-using System.IO;
-using System.Text;
 using OsEngine.Language;
 using OsEngine.Alerts;
 
@@ -23,16 +20,9 @@ namespace OsEngine.OsTrader
     /// class responsible for drawing the global position of all robots in the main window
     /// класс отвечающий за прорисовку глобальной позиции всех роботов в главном окне
     /// </summary>
-    public class GlobalPosition
+    public class GlobalPositionViewer
     {
-
-        /// <summary>
-        /// constructor
-        /// конструктор
-        /// </summary>
-        /// <param name="openPositionHost">the host on which we will draw the date grid / хост на который будем рисовать дата грид</param>
-        /// <param name="startProgram">program running class / программа запустившая класс</param>
-        public GlobalPosition(WindowsFormsHost openPositionHost, WindowsFormsHost closePositionHost, StartProgram startProgram)
+        public GlobalPositionViewer(WindowsFormsHost openPositionHost, WindowsFormsHost closePositionHost, StartProgram startProgram)
         {
             _startProgram = startProgram;
 
@@ -56,7 +46,7 @@ namespace OsEngine.OsTrader
 
             }
 
-            Task task = new Task(WatcherHome);
+            Task task = new Task(WatcherThreadWorkArea);
             task.Start();
         }
 
@@ -435,11 +425,7 @@ namespace OsEngine.OsTrader
 
         }
 
-        /// <summary>
-        /// place of work that keeps logs
-        /// место работы потока который сохраняет логи
-        /// </summary>
-        private async void WatcherHome()
+        private async void WatcherThreadWorkArea()
         {
             if(_startProgram != StartProgram.IsTester &&
                 _startProgram != StartProgram.IsOsTrader)

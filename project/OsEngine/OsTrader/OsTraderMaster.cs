@@ -27,6 +27,8 @@ using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.PrimeSettings;
 using Grid = System.Windows.Controls.Grid;
+using OkonkwoOandaV20.TradeLibrary.DataTypes.Pricing;
+using OsEngine.Charts.CandleChart.Indicators;
 
 namespace OsEngine.OsTrader
 {
@@ -199,36 +201,6 @@ namespace OsEngine.OsTrader
                 ApiMaster = new AdminApiMaster(Master);
             }
         }
-
-        public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses)
-        {
-            _globalPositionViewer = new GlobalPosition(hostActivePoses, null, _startProgram);
-            _globalPositionViewer.LogMessageEvent += SendNewLogMessage;
-            _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
-            _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
-            _globalPositionViewer.StartPaint();
-            ReloadRiskJournals();
-        }
-
-        public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses, WindowsFormsHost hostHistoricalPoses)
-        {
-            _globalPositionViewer = new GlobalPosition(hostActivePoses, hostHistoricalPoses, _startProgram);
-            _globalPositionViewer.LogMessageEvent += SendNewLogMessage;
-            _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
-            _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
-            _globalPositionViewer.StartPaint();
-            ReloadRiskJournals();
-        }
-
-        private void _globalPositionViewer_UserClickOnPositionShowBotInTableEvent(string botTabName)
-        {
-            if (UserClickOnPositionShowBotInTableEvent != null)
-            {
-                UserClickOnPositionShowBotInTableEvent(botTabName);
-            }
-        }
-
-        public event Action<string> UserClickOnPositionShowBotInTableEvent;
 
         private WindowsFormsHost _hostLogPrime;
         private WindowsFormsHost _hostChart;
@@ -511,7 +483,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-        // Глобальный Риск Менеджер
+        #region Risk manager
 
         /// <summary>
         /// risk Manager
@@ -559,6 +531,8 @@ namespace OsEngine.OsTrader
 
                 if (PanelsArray != null)
                 {
+                    List<BotTabSimple> allTabs = new List<BotTabSimple>();
+
                     for (int i = 0; i < PanelsArray.Count; i++)
                     {
                         List<Journal.Journal> journals = PanelsArray[i].GetJournals();
@@ -567,11 +541,21 @@ namespace OsEngine.OsTrader
                         {
                             _riskManager.SetNewJournal(journals[i2]);
 
-                            if(_globalPositionViewer != null)
+                            if (_globalPositionViewer != null)
                             {
                                 _globalPositionViewer.SetJournal(journals[i2]);
                             }
                         }
+
+                        if (_buyAtStopPosViewer != null)
+                        {
+                            allTabs.AddRange(PanelsArray[i].TabsSimple);
+                        }
+                    }
+
+                    if (_buyAtStopPosViewer != null)
+                    {
+                        _buyAtStopPosViewer.LoadTabToWatch(allTabs);
                     }
                 }
             }
@@ -644,22 +628,14 @@ namespace OsEngine.OsTrader
             }
         }
 
-        // Common position on bots / Общая позиция по ботам
+        #endregion
 
-        /// <summary>
-        /// general robot position manager
-        /// менеджер общей позиции роботов
-        /// </summary>
-        private GlobalPosition _globalPositionViewer;
+        #region Journal
 
         private JournalUi2 _journalUi2;
 
         private JournalUi _journalUi1;
 
-        /// <summary>
-        /// show journal for all robots
-        /// показать журнал по всем роботам
-        /// </summary>
         public void ShowCommunityJournal(int journalVersion, double top, double left)
         {
             try
@@ -709,7 +685,7 @@ namespace OsEngine.OsTrader
                     panelsJournal.Add(botPanel);
                 }
 
-                if(journalVersion == 2)
+                if (journalVersion == 2)
                 {
                     _journalUi2 = new JournalUi2(panelsJournal, _startProgram);
                     _journalUi2.LogMessageEvent += SendNewLogMessage;
@@ -742,7 +718,7 @@ namespace OsEngine.OsTrader
                     {
                         _journalUi1.WindowStartupLocation = WindowStartupLocation.CenterScreen;
                     }
-                                
+
                     _journalUi1.Show();
                 }
             }
@@ -754,7 +730,7 @@ namespace OsEngine.OsTrader
 
         private void _journalUi_Closed(object sender, EventArgs e)
         {
-            if(_journalUi2 != null)
+            if (_journalUi2 != null)
             {
                 _journalUi2.LogMessageEvent -= SendNewLogMessage;
                 _journalUi2.Closed -= _journalUi_Closed;
@@ -774,15 +750,66 @@ namespace OsEngine.OsTrader
             GC.WaitForPendingFinalizers();
         }
 
+        #endregion
+
+        #region Global positions
+
+        private GlobalPositionViewer _globalPositionViewer;
+
+        public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses)
+        {
+            _globalPositionViewer = new GlobalPositionViewer(hostActivePoses, null, _startProgram);
+            _globalPositionViewer.LogMessageEvent += SendNewLogMessage;
+            _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
+            _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
+            _globalPositionViewer.StartPaint();
+            ReloadRiskJournals();
+        }
+
+        public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses, WindowsFormsHost hostHistoricalPoses)
+        {
+            _globalPositionViewer = new GlobalPositionViewer(hostActivePoses, hostHistoricalPoses, _startProgram);
+            _globalPositionViewer.LogMessageEvent += SendNewLogMessage;
+            _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
+            _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
+            _globalPositionViewer.StartPaint();
+            ReloadRiskJournals();
+        }
+
+        private void _globalPositionViewer_UserClickOnPositionShowBotInTableEvent(string botTabName)
+        {
+            if (UserClickOnPositionShowBotInTableEvent != null)
+            {
+                UserClickOnPositionShowBotInTableEvent(botTabName);
+            }
+        }
+
+        public event Action<string> UserClickOnPositionShowBotInTableEvent;
+
         private void _globalController_UserSelectActionEvent(Position pos, SignalType signal)
         {
-            for(int i = 0;i < PanelsArray.Count;i++)
+            for (int i = 0; i < PanelsArray.Count; i++)
             {
                 PanelsArray[i].UserSetPositionAction(pos, signal);
             }
         }
 
-        // log / логироавние
+        #endregion
+
+        #region контроль и прориосовка BuyAtStop / SellAtStop позиций
+
+        private BuyAtStopPositionsViewer _buyAtStopPosViewer;
+
+        public void CreateBuyAtStopPosViewer(WindowsFormsHost hostActivePoses)
+        {
+            _buyAtStopPosViewer = new BuyAtStopPositionsViewer(hostActivePoses, _startProgram);
+            _buyAtStopPosViewer.LogMessageEvent += SendNewLogMessage;
+            ReloadRiskJournals();
+        }
+
+        #endregion
+
+        #region log
 
         /// <summary>
         /// log
@@ -811,6 +838,8 @@ namespace OsEngine.OsTrader
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
 
         // events from the test server / события из тестового сервера
 
@@ -906,6 +935,11 @@ namespace OsEngine.OsTrader
                     _globalPositionViewer.StopPaint();
                 }
 
+                if(_buyAtStopPosViewer != null)
+                {
+                    _buyAtStopPosViewer.StopPaint();
+                }
+
                 if(_tabBotNames != null)
                 {
                     _tabBotNames.IsEnabled = false;
@@ -957,7 +991,12 @@ namespace OsEngine.OsTrader
                     {
                         _globalPositionViewer.StartPaint();
                     }
-                    
+
+                    if (_buyAtStopPosViewer != null)
+                    {
+                        _buyAtStopPosViewer.StartPaint();
+                    }
+
                     _fastRegimeOn = false;
                     ServerMaster.StartPaint();
                     _log.StartPaint(_hostLogPrime);

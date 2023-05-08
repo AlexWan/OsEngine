@@ -1694,7 +1694,6 @@ namespace OsEngine.Journal.Internal
 
 
         // work with context menu
-        // работа с контекстным меню
 
         /// <summary>
         /// the user has ordered the opening of a new position

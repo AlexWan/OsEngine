@@ -32,6 +32,7 @@ namespace OsEngine.OsTrader.Gui
                 null, StartProgram.IsTester);
 
             _strategyKeeper.CreateGlobalPositionController(HostActivePoses, HostHistoricalPoses);
+            _strategyKeeper.CreateBuyAtStopPosViewer(HostStopLimitPoses);
 
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
@@ -64,6 +65,7 @@ namespace OsEngine.OsTrader.Gui
             TabHistoricalPos.Header =  OsLocalization.Trader.Label188;
             TabActiveOrders.Header = OsLocalization.Trader.Label189;
             TabHistoricalOrders.Header = OsLocalization.Trader.Label190;
+            TabStopLimitPoses.Header = OsLocalization.Trader.Label193;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

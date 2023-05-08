@@ -18,6 +18,7 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Layout;
 using System.IO;
+using OsEngine.OsTrader.Panels.Tab.Internal;
 
 namespace OsEngine.OsTrader.Panels
 {
@@ -156,6 +157,8 @@ namespace OsEngine.OsTrader.Panels
             ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
             ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
             ButtonRedactTab.Content = OsLocalization.Trader.Label44;
+
+            ButtonMoreOpenPositionDetail.Content = OsLocalization.Trader.Label197;   
         }
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
@@ -198,7 +201,6 @@ namespace OsEngine.OsTrader.Panels
             ((BotTabSimple)_panel.ActivTab).SellAtMarket(volume);
         }
 
-        // manual control of the position
         // ручное управление позицией
 
         private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
@@ -289,9 +291,6 @@ namespace OsEngine.OsTrader.Panels
             ((BotTabSimple)_panel.ActivTab).CloseAllOrderInSystem();
         }
 
-        /// <summary>
-        /// journal window
-        /// </summary>
         private JournalUi _journalUi;
 
         private void ButtonJournalCommunity_Click(object sender, RoutedEventArgs e)
@@ -372,10 +371,6 @@ namespace OsEngine.OsTrader.Panels
             ((BotTabSimple)_panel.ActivTab).ShowManualControlDialog();
         }
 
-        /// <summary>
-        /// send a new message 
-        /// выслать новое сообщение на верх
-        /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -388,10 +383,6 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        /// <summary>
-        /// outgoing message for log
-        /// исходящее сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)
@@ -586,6 +577,75 @@ namespace OsEngine.OsTrader.Panels
             catch (Exception)
             {
                 // ignore
+            }
+        }
+
+        private List<PositionOpenUi2> _guisOpenPos = new List<PositionOpenUi2>();
+
+        private void ButtonMoreOpenPositionDetail_Click(object sender, RoutedEventArgs e)
+        {
+            BotTabSimple activTab = null;
+
+            try
+            {
+                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                {
+                    return;
+                }
+
+                activTab = (BotTabSimple)_panel.ActivTab;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
+
+            for (int i = 0;i < _guisOpenPos.Count;i++)
+            {
+                if (_guisOpenPos[i].Tab.TabName == activTab.TabName)
+                {
+                    _guisOpenPos[i].Activate();
+                    return;
+                }
+            }
+
+            /*if(activTab.Connector.ServerType == ServerType.None
+                || string.IsNullOrEmpty(activTab.Connector.SecurityName)
+                || activTab.IsConnected == false 
+                || activTab.IsReadyToTrade == false)
+            {
+                activTab.SetNewLogMessage(OsLocalization.Trader.Label195, LogMessageType.Error);
+                return;
+            }*/
+
+            PositionOpenUi2 ui = new PositionOpenUi2(activTab);
+            ui.Show();
+
+            _guisOpenPos.Add(ui);
+
+            ui.Closing += Ui_Closing;
+
+        }
+
+        private void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            try
+            {
+                PositionOpenUi2 myUi = (PositionOpenUi2)sender;
+
+                for (int i = 0; i < _guisOpenPos.Count; i++)
+                {
+                    if (_guisOpenPos[i].Tab.TabName == myUi.Tab.TabName)
+                    {
+                        _guisOpenPos.RemoveAt(i);
+                        return;
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
     }

@@ -40,6 +40,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.PriceStep = security.PriceStep;
             newDeal.PortfolioValueOnOpenPosition = portfolio.ValueCurrent;
 
+            newDeal.OpenOrders[0].PortfolioNumber = portfolio.Number;
+
             return newDeal;
         }
 

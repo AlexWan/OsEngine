@@ -4,6 +4,7 @@
 */
 
 using System;
+using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Entity
@@ -19,12 +20,11 @@ namespace OsEngine.Entity
             ExpiresBars = 0;
         }
 
-        public PositionOpenerToStop(int thisBarNumber, int expiresBars, DateTime serverTime)
-        {
-            OrderCreateBarNumber = thisBarNumber;
-            ExpiresBars = expiresBars;
-            TimeCreate = serverTime;
-        }
+        public string Security;
+
+        public string TabName;
+
+        public int Number;
 
         /// <summary>
         /// order price
@@ -67,7 +67,6 @@ namespace OsEngine.Entity
             get { return _expiresBars; }
             set { _expiresBars = value; }
         }
-
 
         /// <summary>
         /// The bar number at which the order was created

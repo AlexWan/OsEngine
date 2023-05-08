@@ -780,5 +780,81 @@ namespace OsEngine.Language
         public string Label192 => OsLocalization.ConvertToLocString(
              "Eng:You cannot switch emulator mode while there are open positions. Source   _" +
              "Ru:Нельзя переключить режим эмулятора пока есть открытые позиции. Источник    _");
+
+        public string Label193 => OsLocalization.ConvertToLocString(
+             "Eng:Stop Limit_" +
+             "Ru:Стоп Лимит_");
+
+        public string Label194 => OsLocalization.ConvertToLocString(
+              "Eng:Bot_" +
+              "Ru:Робот_");
+
+        public string Label195 => OsLocalization.ConvertToLocString(
+              "Eng:There is no connection. It is not possible to open a position_" +
+              "Ru:Отсутствует подключение. Открытие позиции не возможно_");
+
+        public string Label196 => OsLocalization.ConvertToLocString(
+              "Eng:Open position window_" +
+              "Ru:Окно открытия позиции_");
+
+        public string Label197 => OsLocalization.ConvertToLocString(
+              "Eng:More >>_" +
+              "Ru:Больше >>_");
+
+        public string Label198 => OsLocalization.ConvertToLocString(
+              "Eng:Buy_" +
+              "Ru:Купить_");
+
+        public string Label199 => OsLocalization.ConvertToLocString(
+              "Eng:Sell_" +
+              "Ru:Продать_");
+
+        public string Label200 => OsLocalization.ConvertToLocString(
+              "Eng:Limit_" +
+              "Ru:Лимит_");
+
+        public string Label201 => OsLocalization.ConvertToLocString(
+              "Eng:Market_" +
+              "Ru:Маркет_");
+
+        public string Label202 => OsLocalization.ConvertToLocString(
+             "Eng:Stop-Limit_" +
+             "Ru:Стоп-Лимит_");
+
+        public string Label203 => OsLocalization.ConvertToLocString(
+             "Eng:Fake_" +
+             "Ru:Фэйк_");
+
+        public string Label204 => OsLocalization.ConvertToLocString(
+             "Eng:Emulator on/off_" +
+             "Ru:Эмулятор вкл/выкл_");
+
+        public string Label205 => OsLocalization.ConvertToLocString(
+             "Eng:Order price_" +
+             "Ru:Цена ордера_");
+
+        public string Label206 => OsLocalization.ConvertToLocString(
+             "Eng:Activation price_" +
+             "Ru:Цена активации_");
+
+        public string Label207 => OsLocalization.ConvertToLocString(
+             "Eng:Activation type_" +
+             "Ru:Тип активации_");
+
+        public string Label208 => OsLocalization.ConvertToLocString(
+            "Eng:Lifetime candles_" +
+            "Ru:Время жизни свечей_");
+
+        public string Label209 => OsLocalization.ConvertToLocString(
+            "Eng:Open date_" +
+            "Ru:Дата открытия_");
+
+        public string Label210 => OsLocalization.ConvertToLocString(
+            "Eng:Open time_" +
+            "Ru:Время открытия_");
+
+        public string Label211 => OsLocalization.ConvertToLocString(
+           "Eng:Now_" +
+           "Ru:Сейчас_");
     }
 }

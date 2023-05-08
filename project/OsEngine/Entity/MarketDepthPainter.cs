@@ -154,7 +154,7 @@ namespace OsEngine.Entity
                 _glassBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                     DataGridViewAutoSizeRowsMode.None);
                 _glassBox.AllowUserToResizeRows = false;
-
+                _glassBox.ScrollBars = ScrollBars.Vertical;
                 _glassBox.SelectionChanged += _glassBox_SelectionChanged;
 
                 DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -302,7 +302,15 @@ namespace OsEngine.Entity
                 if (_hostGlass != null)
                 {
                     _lastSelectPrice = price;
-                    _textBoxLimitPrice.Text = Convert.ToDouble(_lastSelectPrice).ToString(new CultureInfo("RU-ru"));
+                    if(_textBoxLimitPrice != null)
+                    {
+                        _textBoxLimitPrice.Text = Convert.ToDouble(_lastSelectPrice).ToString(new CultureInfo("RU-ru"));
+                    }
+                    
+                    if(UserClickOnMDAndSelectPriceEvent != null)
+                    {
+                        UserClickOnMDAndSelectPriceEvent(_lastSelectPrice);
+                    }
                 }
             }
             catch (Exception error)
@@ -310,6 +318,8 @@ namespace OsEngine.Entity
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        public event Action<decimal> UserClickOnMDAndSelectPriceEvent;
 
         /// <summary>
         /// to start drawing the connector elements
@@ -331,15 +341,18 @@ namespace OsEngine.Entity
                     TryPaintMarketDepth();
                 }
                 
-                _textBoxLimitPrice = textBoxLimitPrice;
-                _textBoxLimitPrice.TextChanged += _textBoxLimitPrice_TextChanged;
+                if(textBoxLimitPrice != null)
+                {
+                    _textBoxLimitPrice = textBoxLimitPrice;
+                    _textBoxLimitPrice.TextChanged += _textBoxLimitPrice_TextChanged;
+                    _textBoxLimitPrice.Text = Convert.ToDouble(_lastSelectPrice).ToString(new CultureInfo("RU-ru"));
+                }
+
                 _hostGlass = glass;
 
                 ProcessBidAsk(_bid, _ask);
                 _hostGlass.Child = _glassBox;
                 _hostGlass.Child.Refresh();
-
-                _textBoxLimitPrice.Text = Convert.ToDouble(_lastSelectPrice).ToString(new CultureInfo("RU-ru"));
 
                 ProcessMarketDepth(_lastMarketDepth);
             }

@@ -17,12 +17,17 @@
                 <TabItem Name="TabItemAllPos" Header="Positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
                         <TabControl>
-                            <TabItem Name="TabActivePos" Header="Active positions" Width="280" Height="12">
+                            <TabItem Name="TabActivePos" Header="Active" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5">
                                     <WindowsFormsHost Name="HostActivePoses" Margin="0,0,0,0"/>
                                 </Grid>
                             </TabItem>
-                            <TabItem Name="TabHistoricalPos" Header="Historical positions" Width="280" Height="12">
+                            <TabItem Name="TabStopLimitPoses" Header="Stop Limit" Width="280" Height="12">
+                                <Grid Margin="-5,-5,-5,-5" >
+                                    <WindowsFormsHost Name="HostStopLimitPoses" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem>
+                            <TabItem Name="TabHistoricalPos" Header="Historical" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5" >
                                     <WindowsFormsHost Name="HostHistoricalPoses" Margin="0,0,0,0"/>
                                 </Grid>
@@ -33,12 +38,12 @@
                 <TabItem Name="TabOrders" Header="Orders" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
                         <TabControl>
-                            <TabItem Name="TabActiveOrders" Header="Active orders" Width="280" Height="12">
+                            <TabItem Name="TabActiveOrders" Header="Active" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5">
                                     <WindowsFormsHost Name="HostActiveOrders" Margin="0,0,0,0"/>
                                 </Grid>
                             </TabItem>
-                            <TabItem Name="TabHistoricalOrders" Header="Historical orders" Width="280" Height="12">
+                            <TabItem Name="TabHistoricalOrders" Header="Historical" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5" >
                                     <WindowsFormsHost Name="HostHistoricalOrders" Margin="0,0,0,0"/>
                                 </Grid>

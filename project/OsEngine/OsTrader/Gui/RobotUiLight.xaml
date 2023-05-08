@@ -22,6 +22,11 @@
                                     <WindowsFormsHost Name="HostActivePoses" Margin="0,0,0,0"/>
                                 </Grid>
                             </TabItem>
+                            <TabItem Name="TabStopLimitPoses" Header="Stop Limit" Width="280" Height="12">
+                                <Grid Margin="-5,-5,-5,-5" >
+                                    <WindowsFormsHost Name="HostStopLimitPoses" Margin="0,0,0,0"/>
+                                </Grid>
+                            </TabItem> 
                             <TabItem Name="TabHistoricalPos" Header="Historical" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5" >
                                     <WindowsFormsHost Name="HostHistoricalPoses" Margin="0,0,0,0"/>

@@ -418,5 +418,46 @@ namespace OsEngine.Language
         public string AwaitUiLabel1 => OsLocalization.ConvertToLocString(
              "Eng:Work in progress_" +
              "Ru:Работа идёт..._");
+
+        public string PositionBuyAtStopColumn1 => OsLocalization.ConvertToLocString(
+              "Eng:Number_" +
+              "Ru:Номер_");
+
+        public string PositionBuyAtStopColumn2 => OsLocalization.ConvertToLocString(
+              "Eng:Time create_" +
+              "Ru:Время создания_");
+
+        public string PositionBuyAtStopColumn3 => OsLocalization.ConvertToLocString(
+              "Eng:Tab name_" +
+              "Ru:Имя вкладки_");
+
+        public string PositionBuyAtStopColumn4 => OsLocalization.ConvertToLocString(
+             "Eng:Security_" +
+             "Ru:Бумага_");
+
+        public string PositionBuyAtStopColumn5 => OsLocalization.ConvertToLocString(
+             "Eng:Volume_" +
+             "Ru:Объём_");
+
+        public string PositionBuyAtStopColumn6 => OsLocalization.ConvertToLocString(
+             "Eng:Side_" +
+             "Ru:Сторона_");
+
+        public string PositionBuyAtStopColumn7 => OsLocalization.ConvertToLocString(
+             "Eng:Activate Type_" +
+             "Ru:Тип активации_");
+
+        public string PositionBuyAtStopColumn8 => OsLocalization.ConvertToLocString(
+             "Eng:Activate price_" +
+             "Ru:Цена активации_");
+
+        public string PositionBuyAtStopColumn9 => OsLocalization.ConvertToLocString(
+             "Eng:Order price_" +
+             "Ru:Цена ордера_");
+
+        public string PositionBuyAtStopColumn10 => OsLocalization.ConvertToLocString(
+             "Eng:Candles lifetime_" +
+             "Ru:Время жизни свечей_");
+
     }
 }
