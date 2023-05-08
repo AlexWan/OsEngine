@@ -307,7 +307,8 @@ namespace OsEngine.Entity
                 { // при классической сборке свечек. Когда мы точно знаем когда у свечи закрытие
                     bool saveInNextCandle = true;
 
-                    if (TimeFrameBuilder.SaveTradesInCandles &&
+                    if (CandlesAll != null &&
+                        TimeFrameBuilder.SaveTradesInCandles &&
                         CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan) > trade.Time)
                     {
                         CandlesAll[CandlesAll.Count - 1].Trades.Add(trade);

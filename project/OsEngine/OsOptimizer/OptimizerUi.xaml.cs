@@ -1521,7 +1521,8 @@ namespace OsEngine.OsOptimizer
                 }
 
                 if (_parameters[i].Type == StrategyParameterType.Bool ||
-                    _parameters[i].Type == StrategyParameterType.String)
+                    _parameters[i].Type == StrategyParameterType.String ||
+                    _parameters[i].Type == StrategyParameterType.CheckBox)
                 {
                     row.Cells[0].ReadOnly = true;
                 }
@@ -1541,6 +1542,23 @@ namespace OsEngine.OsOptimizer
                     cell.Items.Add("False");
                     cell.Items.Add("True");
                     cell.Value = ((StrategyParameterBool)_parameters[i]).ValueBool.ToString();
+                    row.Cells.Add(cell);
+                }
+                if (_parameters[i].Type == StrategyParameterType.CheckBox)
+                {
+                    DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
+                    cell.FlatStyle = FlatStyle.Standard;
+                    cell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                    if(((StrategyParameterCheckBox)_parameters[i]).CheckState == CheckState.Checked)
+                    {
+                        cell.Value = true;
+                    }
+                    else
+                    {
+                        cell.Value = false;
+                    }
+                    
                     row.Cells.Add(cell);
                 }
                 else if (_parameters[i].Type == StrategyParameterType.String)
@@ -1583,7 +1601,8 @@ namespace OsEngine.OsOptimizer
 
                 // starting value. For bool and String, the only one is manual! field
                 // стартовое значение. Для Булл и Стринг единственное настрамое вручную! поле
-                if (_parameters[i].Type == StrategyParameterType.Bool)
+                if (_parameters[i].Type == StrategyParameterType.Bool ||
+                    _parameters[i].Type == StrategyParameterType.CheckBox)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
                     row.Cells.Add(cell);
@@ -1622,7 +1641,8 @@ namespace OsEngine.OsOptimizer
                 // value for increment. For bool and String is not available
                 // значение для приращения. Для Булл и Стринг не доступно
 
-                if (_parameters[i].Type == StrategyParameterType.Bool)
+                if (_parameters[i].Type == StrategyParameterType.Bool
+                    || _parameters[i].Type == StrategyParameterType.CheckBox)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
                     row.Cells.Add(cell);
@@ -1650,7 +1670,8 @@ namespace OsEngine.OsOptimizer
                 // value for the final element of the collection. For bool and String is not available
                 // значение для завершающего элемента коллекции. Для Булл и Стринг не доступно
 
-                if (_parameters[i].Type == StrategyParameterType.Bool)
+                if (_parameters[i].Type == StrategyParameterType.Bool
+                    || _parameters[i].Type == StrategyParameterType.CheckBox)
                 {
                     DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
                     row.Cells.Add(cell);
@@ -1704,6 +1725,23 @@ namespace OsEngine.OsOptimizer
                     else if (_parameters[i].Type == StrategyParameterType.Bool)
                     {
                         ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_gridParametrs.Rows[i].Cells[3].Value.ToString());
+                        _parametrsActiv[i] = false;
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.CheckBox)
+                    {
+                        DataGridViewCheckBoxCell cell = (DataGridViewCheckBoxCell)_gridParametrs.Rows[i].Cells[3];
+
+                        bool isChecked = Convert.ToBoolean(cell.Value.ToString());
+
+                        if (isChecked)
+                        {
+                            ((StrategyParameterCheckBox)_parameters[i]).CheckState  = CheckState.Checked;
+                        }
+                        else
+                        {
+                            ((StrategyParameterCheckBox)_parameters[i]).CheckState = CheckState.Unchecked;
+                        }
+                       
                         _parametrsActiv[i] = false;
                     }
                     else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)

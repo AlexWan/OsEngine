@@ -1365,8 +1365,8 @@ namespace OsEngine.Charts.CandleChart
                     if (canReload)
                     {
                         _lastCandleIncome = DateTime.Now;
-                        ChartCandle.ProcessCandles(candles);
-                        ChartCandle.ProcessPositions(_myPosition);
+                        ChartCandle?.ProcessCandles(candles);
+                        ChartCandle?.ProcessPositions(_myPosition);
                     }
 
                     if (_indicators != null)
@@ -1377,7 +1377,7 @@ namespace OsEngine.Charts.CandleChart
 
                             if (canReload)
                             {
-                                ChartCandle.ProcessIndicator(_indicators[i]);
+                                ChartCandle?.ProcessIndicator(_indicators[i]);
                             }
                         }
                     }

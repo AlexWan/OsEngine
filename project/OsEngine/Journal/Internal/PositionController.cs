@@ -666,7 +666,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            for (int i = _deals.Count - 1; i > _deals.Count - 150 && i > -1; i--)
+            for (int i = _deals.Count - 1; i > -1; i--)
             {
                 Position position = _deals[i];
 
@@ -676,8 +676,9 @@ namespace OsEngine.Journal.Internal
                 {
                     for (int indexCloseOrd = 0; indexCloseOrd < position.CloseOrders.Count; indexCloseOrd++)
                     {
-                        if (position.CloseOrders[indexCloseOrd].NumberMarket == trade.NumberOrderParent ||
-                            position.CloseOrders[indexCloseOrd].NumberUser.ToString() == trade.NumberOrderParent)
+                        if (position.CloseOrders[indexCloseOrd].NumberMarket == trade.NumberOrderParent 
+                            //|| position.CloseOrders[indexCloseOrd].NumberUser.ToString() == trade.NumberOrderParent
+                            )
                         {
                             isCloseOrder = true;
                             break;
@@ -691,8 +692,9 @@ namespace OsEngine.Journal.Internal
                 {
                     for (int indOpenOrd = 0; indOpenOrd < position.OpenOrders.Count; indOpenOrd++)
                     {
-                        if (position.OpenOrders[indOpenOrd].NumberMarket == trade.NumberOrderParent ||
-                            position.OpenOrders[indOpenOrd].NumberUser.ToString() == trade.NumberOrderParent)
+                        if (position.OpenOrders[indOpenOrd].NumberMarket == trade.NumberOrderParent 
+                            //|| position.OpenOrders[indOpenOrd].NumberUser.ToString() == trade.NumberOrderParent
+                            )
                         {
                             isOpenOrder = true;
                             break;

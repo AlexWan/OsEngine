@@ -346,33 +346,41 @@ namespace OsEngine.Market.Servers.Tester
             SendLogMessage(OsLocalization.Market.Message35, LogMessageType.System);
 
 
-            if (_candleSeriesTesterActivate != null)
+            if(_isFirstStart == false)
             {
-                for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                if (_candleSeriesTesterActivate != null)
                 {
-                    _candleSeriesTesterActivate[i].Clear();
+                    for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                    {
+                        _candleSeriesTesterActivate[i].Clear();
+                    }
                 }
+
+                _candleSeriesTesterActivate = new List<SecurityTester>();
+
+                int countSeriesInLastTest = _candleManager.ActiveSeriesCount;
+
+                _candleManager.Clear();
+
+                if (NeadToReconnectEvent != null)
+                {
+                    NeadToReconnectEvent();
+                }
+
+                int timeToWaitConnect = 100 + countSeriesInLastTest * 40;
+
+                if (timeToWaitConnect > 10000)
+                {
+                    timeToWaitConnect = 10000;
+                }
+
+                if(timeToWaitConnect < 1000)
+                {
+                    timeToWaitConnect = 1000;
+                }
+
+                Thread.Sleep(timeToWaitConnect);
             }
-
-            _candleSeriesTesterActivate = new List<SecurityTester>();
-
-            int countSeriesInLastTest = _candleManager.ActiveSeriesCount;
-
-            _candleManager.Clear();
-
-            if (NeadToReconnectEvent != null)
-            {
-                NeadToReconnectEvent();
-            }
-
-            int timeToWaitConnect = 100 + countSeriesInLastTest * 40;
-
-            if(timeToWaitConnect > 10000)
-            {
-                timeToWaitConnect = 10000;
-            }
-
-            Thread.Sleep(timeToWaitConnect);
 
             _allTrades = null;
 
@@ -413,13 +421,18 @@ namespace OsEngine.Market.Servers.Tester
 
             OrdersActiv.Clear();
 
+            Thread.Sleep(2000);
+
             TesterRegime = TesterRegime.Play;
 
             if (TestingStartEvent != null)
             {
                 TestingStartEvent();
             }
+            _isFirstStart = false;
         }
+
+        private bool _isFirstStart = true;
 
         public bool IsAlreadyStarted;
 

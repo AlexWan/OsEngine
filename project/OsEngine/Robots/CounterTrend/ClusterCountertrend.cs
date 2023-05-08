@@ -96,6 +96,12 @@ namespace OsEngine.Robots.CounterTrend
 
             HorizontalVolumeCluster maxBuyCluster =
                 _tabCluster.FindMaxVolumeCluster(candles.Count - BackLook.ValueInt, candles.Count, ClusterType.BuyVolume);
+
+            if(maxBuyCluster == null)
+            {
+                return;
+            }
+
             if (candles[candles.Count - 1].Close > maxBuyCluster.MaxBuyVolumeLine.Price)
             { // sell and exit long positions
               // продаём и выходим из позиции лонг
@@ -118,6 +124,11 @@ namespace OsEngine.Robots.CounterTrend
 
             HorizontalVolumeCluster maxSellCluster =
                 _tabCluster.FindMaxVolumeCluster(candles.Count - BackLook.ValueInt, candles.Count, ClusterType.SellVolume);
+
+            if(maxSellCluster == null)
+            {
+                return;
+            }
 
             if (candles[candles.Count - 1].Close < maxSellCluster.MaxSellVolumeLine.Price)
             { // buy and exit short
