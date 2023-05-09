@@ -804,7 +804,51 @@ namespace OsEngine.OsTrader
         {
             _buyAtStopPosViewer = new BuyAtStopPositionsViewer(hostActivePoses, _startProgram);
             _buyAtStopPosViewer.LogMessageEvent += SendNewLogMessage;
+            _buyAtStopPosViewer.UserSelectActionEvent += _buyAtStopPosViewer_UserSelectActionEvent;
             ReloadRiskJournals();
+        }
+
+        private void _buyAtStopPosViewer_UserSelectActionEvent(int ordNum, SignalType signal)
+        {
+            try
+            {
+                if (PanelsArray != null)
+                {
+                    List<BotTabSimple> allTabs = new List<BotTabSimple>();
+
+                    for (int i = 0; i < PanelsArray.Count; i++)
+                    {
+                        if (_buyAtStopPosViewer != null)
+                        {
+                            allTabs.AddRange(PanelsArray[i].TabsSimple);
+                        }
+                    }
+
+                    for(int i = 0;i < allTabs.Count; i++)
+                    {
+                        if(signal == SignalType.DeleteAllPoses)
+                        {
+                            allTabs[i].BuyAtStopCancel();
+                            allTabs[i].SellAtStopCancel();
+                        }
+                        else
+                        {
+                           for(int i2 = 0;i2 < allTabs[i]._stopsOpener.Count;i2++)
+                            {
+                               if(allTabs[i]._stopsOpener[i2].Number == ordNum)
+                                {
+                                    allTabs[i]._stopsOpener.RemoveAt(i2);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion

@@ -9,8 +9,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.OsTrader.Panels.Tab;
+using System.Drawing;
+using OsEngine.Alerts;
 
 namespace OsEngine.OsTrader
 {
@@ -24,10 +27,113 @@ namespace OsEngine.OsTrader
             _grid = CreateNewTable();
             _positionHost.Child = _grid;
             _positionHost.Child.Show();
+            _grid.Click += _grid_Click;
 
             Task task = new Task(WatcherThreadWorkArea);
             task.Start();
         }
+
+        private void _grid_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
+            try
+            {
+                MenuItem[] items = new MenuItem[2];
+
+                items[0] = new MenuItem { Text = OsLocalization.Trader.Label213 };
+                items[0].Click += PositionCloseAll_Click;
+
+                items[1] = new MenuItem { Text = OsLocalization.Trader.Label214 };
+                items[1].Click += PositionCloseForNumber_Click;
+
+                ContextMenu menu = new ContextMenu(items);
+
+                _grid.ContextMenu = menu;
+                _grid.ContextMenu.Show(_grid, new Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// the user has ordered the closing of all positions
+        /// пользователь заказал закрытие всех позиций
+        /// </summary>
+        void PositionCloseAll_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label215);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(-1, SignalType.DeleteAllPoses);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// the user has ordered the closing of the transaction by number
+        /// пользователь заказал закрытие сделки по номеру
+        /// </summary>
+        void PositionCloseForNumber_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label216);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                int number;
+                try
+                {
+                    if (_grid.CurrentCell == null)
+                    {
+                        return;  
+                    }
+                    number = Convert.ToInt32(_grid.Rows[_grid.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(number, SignalType.DeletePos);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public event Action<string> UserClickOnPositionShowBotInTableEvent;
+
+        public event Action<int, SignalType> UserSelectActionEvent;
 
         public void LoadTabToWatch(List<BotTabSimple> tabs)
         {
@@ -123,7 +229,8 @@ namespace OsEngine.OsTrader
             _positionHost.Child = null;
             _positionHost = null;
 
-            DataGridFactory.ClearLinks(_grid); 
+            DataGridFactory.ClearLinks(_grid);
+            _grid.Click -= _grid_Click;
             _grid = null;
         }
 
@@ -332,6 +439,4 @@ positionOpener.LifeTimeType
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }
-
-
 }

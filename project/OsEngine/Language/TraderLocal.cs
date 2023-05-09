@@ -860,5 +860,22 @@ namespace OsEngine.Language
         public string Label212 => OsLocalization.ConvertToLocString(
            "Eng:Lifetime Type_" +
            "Ru:Тип жизни заявки_");
+
+        public string Label213 => OsLocalization.ConvertToLocString(
+           "Eng:Remove all_" +
+           "Ru:Удалить все_");
+
+        public string Label214 => OsLocalization.ConvertToLocString(
+           "Eng:Remove selected_" +
+           "Ru:Удалить выбранную_");
+
+        public string Label215 => OsLocalization.ConvertToLocString(
+           "Eng:Do you want to recall all the orders?_" +
+           "Ru:Вы хотите отозвать все ордера?_");
+
+        public string Label216 => OsLocalization.ConvertToLocString(
+           "Eng:Do you want to recall selected order?_" +
+           "Ru:Вы хотите отозвать выбранную заявку?_");
+
     }
 }

@@ -4,9 +4,7 @@
 */
 
 using System;
-using OsEngine.Market;
-using OsEngine.OsTrader.Panels.Tab;
-using OsEngine.OsTrader;
+
 
 namespace OsEngine.Entity
 {
