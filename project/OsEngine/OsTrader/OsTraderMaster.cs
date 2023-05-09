@@ -805,6 +805,7 @@ namespace OsEngine.OsTrader
             _buyAtStopPosViewer = new BuyAtStopPositionsViewer(hostActivePoses, _startProgram);
             _buyAtStopPosViewer.LogMessageEvent += SendNewLogMessage;
             _buyAtStopPosViewer.UserSelectActionEvent += _buyAtStopPosViewer_UserSelectActionEvent;
+            _buyAtStopPosViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
             ReloadRiskJournals();
         }
 

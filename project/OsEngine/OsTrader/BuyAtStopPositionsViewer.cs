@@ -28,112 +28,11 @@ namespace OsEngine.OsTrader
             _positionHost.Child = _grid;
             _positionHost.Child.Show();
             _grid.Click += _grid_Click;
+            _grid.DoubleClick += _gridOpenPoses_DoubleClick;
 
             Task task = new Task(WatcherThreadWorkArea);
             task.Start();
         }
-
-        private void _grid_Click(object sender, EventArgs e)
-        {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
-            try
-            {
-                MenuItem[] items = new MenuItem[2];
-
-                items[0] = new MenuItem { Text = OsLocalization.Trader.Label213 };
-                items[0].Click += PositionCloseAll_Click;
-
-                items[1] = new MenuItem { Text = OsLocalization.Trader.Label214 };
-                items[1].Click += PositionCloseForNumber_Click;
-
-                ContextMenu menu = new ContextMenu(items);
-
-                _grid.ContextMenu = menu;
-                _grid.ContextMenu.Show(_grid, new Point(mouse.X, mouse.Y));
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// the user has ordered the closing of all positions
-        /// пользователь заказал закрытие всех позиций
-        /// </summary>
-        void PositionCloseAll_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label215);
-                ui.ShowDialog();
-
-                if (ui.UserAcceptActioin == false)
-                {
-                    return;
-                }
-
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(-1, SignalType.DeleteAllPoses);
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// the user has ordered the closing of the transaction by number
-        /// пользователь заказал закрытие сделки по номеру
-        /// </summary>
-        void PositionCloseForNumber_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label216);
-                ui.ShowDialog();
-
-                if (ui.UserAcceptActioin == false)
-                {
-                    return;
-                }
-
-                int number;
-                try
-                {
-                    if (_grid.CurrentCell == null)
-                    {
-                        return;  
-                    }
-                    number = Convert.ToInt32(_grid.Rows[_grid.CurrentCell.RowIndex].Cells[0].Value);
-                }
-                catch (Exception)
-                {
-                    return;
-                }
-
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(number, SignalType.DeletePos);
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        public event Action<string> UserClickOnPositionShowBotInTableEvent;
-
-        public event Action<int, SignalType> UserSelectActionEvent;
 
         public void LoadTabToWatch(List<BotTabSimple> tabs)
         {
@@ -160,7 +59,7 @@ namespace OsEngine.OsTrader
 
         private void DeleteDontActiveTabs(List<BotTabSimple> actualTabs)
         {
-            if(actualTabs == null 
+            if (actualTabs == null
                 ||
                 actualTabs.Count == 0)
             {
@@ -168,9 +67,9 @@ namespace OsEngine.OsTrader
                 return;
             }
 
-            for(int i = 0;i < _tabsToWatch.Count;i++)
+            for (int i = 0; i < _tabsToWatch.Count; i++)
             {
-                if(actualTabs.Find(t => t.TabName == _tabsToWatch[i].TabName) == null)
+                if (actualTabs.Find(t => t.TabName == _tabsToWatch[i].TabName) == null)
                 {
                     _tabsToWatch.RemoveAt(i);
                     i--;
@@ -184,13 +83,13 @@ namespace OsEngine.OsTrader
         {
             try
             {
-               if(!_positionHost.CheckAccess())
+                if (!_positionHost.CheckAccess())
                 {
                     _positionHost.Dispatcher.Invoke(StopPaint);
                     return;
                 }
 
-                if(_positionHost != null)
+                if (_positionHost != null)
                 {
                     _positionHost.Child = null;
                 }
@@ -231,6 +130,7 @@ namespace OsEngine.OsTrader
 
             DataGridFactory.ClearLinks(_grid);
             _grid.Click -= _grid_Click;
+            _grid.DoubleClick -= _gridOpenPoses_DoubleClick;
             _grid = null;
         }
 
@@ -239,8 +139,6 @@ namespace OsEngine.OsTrader
         private DataGridView _grid;
 
         StartProgram _startProgram;
-
-        // создание таблицы
 
         private DataGridView CreateNewTable()
         {
@@ -256,6 +154,174 @@ namespace OsEngine.OsTrader
             }
             return null;
         }
+
+        #region прорисовка дважды нажатого ордера
+
+        private void _gridOpenPoses_DoubleClick(object sender, EventArgs e)
+        {
+            PaintPos(_grid);
+        }
+
+        private void PaintPos(DataGridView grid)
+        {
+            string botTabName;
+            int numberRow;
+
+            try
+            {
+                if (grid.CurrentCell == null)
+                {
+                    return;
+                }
+
+                numberRow = grid.CurrentCell.RowIndex;
+
+                botTabName = grid.Rows[grid.CurrentCell.RowIndex].Cells[2].Value.ToString();
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            if (UserClickOnPositionShowBotInTableEvent != null)
+            {
+                UserClickOnPositionShowBotInTableEvent(botTabName);
+            }
+
+            _rowToPaintInOpenPoses = numberRow;
+            _lastClickGrid = grid;
+
+            Task.Run(PaintPos);
+        }
+
+        DataGridView _lastClickGrid;
+
+        int _rowToPaintInOpenPoses;
+
+        private async void PaintPos()
+        {
+            await Task.Delay(200);
+            ColoredRow(Color.LightSlateGray);
+            await Task.Delay(600);
+            ColoredRow(Color.FromArgb(17, 18, 23));
+        }
+
+        private void ColoredRow(Color color)
+        {
+            if (_lastClickGrid.InvokeRequired)
+            {
+                _lastClickGrid.Invoke(new Action<Color>(ColoredRow), color);
+                return;
+            }
+            try
+            {
+                _lastClickGrid.Rows[_rowToPaintInOpenPoses].DefaultCellStyle.SelectionBackColor = color;
+            }
+            catch
+            {
+                return;
+            }
+        }
+
+        public event Action<string> UserClickOnPositionShowBotInTableEvent;
+
+        #endregion
+
+        #region клики по таблице
+
+        private void _grid_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
+            try
+            {
+                MenuItem[] items = new MenuItem[2];
+
+                items[0] = new MenuItem { Text = OsLocalization.Trader.Label213 };
+                items[0].Click += PositionCloseAll_Click;
+
+                items[1] = new MenuItem { Text = OsLocalization.Trader.Label214 };
+                items[1].Click += PositionCloseForNumber_Click;
+
+                ContextMenu menu = new ContextMenu(items);
+
+                _grid.ContextMenu = menu;
+                _grid.ContextMenu.Show(_grid, new Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        void PositionCloseAll_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label215);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(-1, SignalType.DeleteAllPoses);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        void PositionCloseForNumber_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label216);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                int number;
+                try
+                {
+                    if (_grid.CurrentCell == null)
+                    {
+                        return;  
+                    }
+                    number = Convert.ToInt32(_grid.Rows[_grid.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(number, SignalType.DeletePos);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public event Action<int, SignalType> UserSelectActionEvent;
+
+        #endregion
 
         // прорисовка
 
