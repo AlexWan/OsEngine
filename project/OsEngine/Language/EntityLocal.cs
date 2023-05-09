@@ -459,5 +459,8 @@ namespace OsEngine.Language
              "Eng:Candles lifetime_" +
              "Ru:Время жизни свечей_");
 
+        public string PositionBuyAtStopColumn11 => OsLocalization.ConvertToLocString(
+             "Eng:Lifetime type_" +
+             "Ru:Тип жизни заявки_");
     }
 }

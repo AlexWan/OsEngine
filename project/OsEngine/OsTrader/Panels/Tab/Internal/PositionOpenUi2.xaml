@@ -37,20 +37,23 @@
             <TabItem Header="Stop-Limit" Name ="TabItemStopLimit" Width="100">
                 <Grid>
 
-                    <TextBox Name="TextBoxStopActivationPrice" HorizontalAlignment="Left" Margin="149,78,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelStopActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopActivationPrice" HorizontalAlignment="Left" Margin="148,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Width="199"/>
+                    <Label Name="LabelStopActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="9,0,0,0" VerticalAlignment="Center"/>
 
-                    <TextBox Name="TextBoxStopPrice" HorizontalAlignment="Left" Margin="149,106,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelStopPrice" Content="Price" HorizontalAlignment="Left" Margin="10,106,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopPrice" HorizontalAlignment="Left" Margin="148,122,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopPrice" Content="Price" HorizontalAlignment="Left" Margin="9,122,0,0" VerticalAlignment="Top"/>
 
-                    <TextBox Name="TextBoxStopVolume" HorizontalAlignment="Left" Margin="149,134,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelStopVolume" Content="Volume" HorizontalAlignment="Left" Margin="10,134,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopVolume" HorizontalAlignment="Left" Margin="148,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopVolume" Content="Volume" HorizontalAlignment="Left" Margin="9,150,0,0" VerticalAlignment="Top"/>
 
-                    <ComboBox x:Name="ComboBoxStopLimitType" HorizontalAlignment="Left" Margin="149,22,0,0" VerticalAlignment="Top" Width="199"/>
-                    <Label x:Name="LabelStopActivationType" Content="Activation Type" HorizontalAlignment="Left" Margin="10,22,0,0" VerticalAlignment="Top"/>
+                    <ComboBox x:Name="ComboBoxStopLimitType" HorizontalAlignment="Left" Margin="148,10,0,0" VerticalAlignment="Top" Width="199"/>
+                    <Label x:Name="LabelStopActivationType" Content="Activation Type" HorizontalAlignment="Left" Margin="9,10,0,0" VerticalAlignment="Top"/>
 
-                    <TextBox x:Name="TextBoxStopLifeTime" HorizontalAlignment="Left" Margin="149,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label x:Name="LabelStopLifeTime" Content="Lifetime candles" HorizontalAlignment="Left" Margin="10,50,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="TextBoxStopLifeTime" HorizontalAlignment="Left" Margin="148,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label x:Name="LabelStopLifeTime" Content="Lifetime candles" HorizontalAlignment="Left" Margin="9,66,0,0" VerticalAlignment="Top"/>
+                    
+                    <ComboBox x:Name="ComboBoxStopLifetimeType" HorizontalAlignment="Left" Margin="148,38,0,0" VerticalAlignment="Top" Width="199"/>
+                    <Label x:Name="LabelStopLifeTimeType" Content="Lifetime Type" HorizontalAlignment="Left" Margin="9,38,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
 

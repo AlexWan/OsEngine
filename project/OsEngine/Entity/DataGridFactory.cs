@@ -212,6 +212,7 @@ positionOpener.ActivateType
 positionOpener.PriceRedLine
 positionOpener.PriceOrder
 positionOpener.ExpiresBars
+positionOpener.LifeTimeType
 
 */
 
@@ -284,6 +285,13 @@ positionOpener.ExpiresBars
             colum09.ReadOnly = true;
             colum09.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum09);
+
+            DataGridViewColumn colum10 = new DataGridViewColumn();
+            colum10.CellTemplate = cell0;
+            colum10.HeaderText = OsLocalization.Entity.PositionBuyAtStopColumn11; // ExpiresBars
+            colum10.ReadOnly = true;
+            colum10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum10);
 
             return newGrid;
         }

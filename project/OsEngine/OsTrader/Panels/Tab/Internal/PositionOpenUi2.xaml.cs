@@ -58,6 +58,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ComboBoxStopLimitType.SelectedItem = StopActivateType.HigherOrEqual.ToString();
 
             LabelStopLifeTime.Content = OsLocalization.Trader.Label208;
+            LabelStopLifeTimeType.Content = OsLocalization.Trader.Label212;
+
+            ComboBoxStopLifetimeType.Items.Add(PositionOpenerToStopLifeTimeType.CandlesCount.ToString());
+            ComboBoxStopLifetimeType.Items.Add(PositionOpenerToStopLifeTimeType.NoLifeTime.ToString());
+            ComboBoxStopLifetimeType.SelectedItem = PositionOpenerToStopLifeTimeType.CandlesCount.ToString();
 
             LabelLimitVolume.Content = OsLocalization.Trader.Label30;
             LabelMarketVolume.Content = OsLocalization.Trader.Label30;
@@ -331,6 +336,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             decimal priceOrder = 0;
             decimal priceActivation = 0;
             StopActivateType stopActivateType;
+            PositionOpenerToStopLifeTimeType lifeTimeType;
             int lifeTime = 0;
 
             try
@@ -340,6 +346,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 priceOrder = TextBoxStopPrice.Text.ToDecimal();
                 lifeTime = Convert.ToInt32(TextBoxStopLifeTime.Text);
                 Enum.TryParse(ComboBoxStopLimitType.SelectedItem.ToString(), out stopActivateType);
+                Enum.TryParse(ComboBoxStopLifetimeType.SelectedItem.ToString(), out lifeTimeType);
             }
             catch (Exception ex)
             {
@@ -352,7 +359,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            Tab.BuyAtStop(volume, priceOrder, priceActivation, stopActivateType, lifeTime);
+            Tab.BuyAtStop(volume, priceOrder, priceActivation, stopActivateType, lifeTime,"userSendBuyAtStopFromUi", lifeTimeType);
         }
 
         private void SellAtStop()
@@ -361,6 +368,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             decimal priceOrder = 0;
             decimal priceActivation = 0;
             StopActivateType stopActivateType;
+            PositionOpenerToStopLifeTimeType lifeTimeType;
             int lifeTime = 0;
 
             try
@@ -368,8 +376,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 volume = TextBoxStopVolume.Text.ToDecimal();
                 priceActivation = TextBoxStopActivationPrice.Text.ToDecimal();
                 priceOrder = TextBoxStopPrice.Text.ToDecimal();
-                Enum.TryParse(ComboBoxStopLimitType.SelectedItem.ToString(), out stopActivateType);
                 lifeTime = Convert.ToInt32(TextBoxStopLifeTime.Text);
+                Enum.TryParse(ComboBoxStopLimitType.SelectedItem.ToString(), out stopActivateType);
+                Enum.TryParse(ComboBoxStopLifetimeType.SelectedItem.ToString(), out lifeTimeType);
             }
             catch (Exception ex)
             {
@@ -382,7 +391,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            Tab.SellAtStop(volume, priceOrder, priceActivation, stopActivateType, lifeTime);
+            Tab.SellAtStop(volume, priceOrder, priceActivation, stopActivateType, lifeTime, "userSendSellAtStopFromUi", lifeTimeType);
         }
 
         // Fake

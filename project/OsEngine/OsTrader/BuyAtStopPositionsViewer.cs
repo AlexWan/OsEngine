@@ -141,23 +141,6 @@ namespace OsEngine.OsTrader
             {
                 DataGridView newGrid = DataGridFactory.GetDataGridBuyAtStopPositions();
                 newGrid.ScrollBars = ScrollBars.Vertical;
-
-                /*  
-    positionOpener.Number
-    positionOpener.TimeCreate
-    positionOpener.TabName
-    positionOpener.Securit
-    positionOpener.Volume = volume;
-    positionOpener.Side
-    positionOpener.ActivateType
-    positionOpener.PriceRedLine
-    positionOpener.PriceOrder
-    positionOpener.ExpiresBars
-
-    */
-
-
-
                 return newGrid;
             }
             catch (Exception error)
@@ -274,6 +257,7 @@ positionOpener.ActivateType
 positionOpener.PriceRedLine
 positionOpener.PriceOrder
 positionOpener.ExpiresBars
+positionOpener.LifeTimeType
 
 */
 
@@ -310,6 +294,8 @@ positionOpener.ExpiresBars
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[9].Value = position.ExpiresBars.ToString();
 
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[10].Value = position.LifeTimeType.ToString();
 
 
                 return nRow;
@@ -346,4 +332,6 @@ positionOpener.ExpiresBars
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }
+
+
 }

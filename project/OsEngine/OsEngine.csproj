@@ -1029,9 +1029,6 @@
     </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionCreator.cs" />
     <Compile Include="OsTrader\RiskManager\RiskManager.cs" />
-    <Compile Include="OsTrader\Panels\Tab\Internal\PositionOpenUi.xaml.cs">
-      <DependentUpon>PositionOpenUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionStopUi.xaml.cs">
       <DependentUpon>PositionStopUi.xaml</DependentUpon>
     </Compile>
@@ -1558,10 +1555,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\Tab\Internal\PositionModificateUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\Tab\Internal\PositionOpenUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

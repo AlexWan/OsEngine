@@ -856,5 +856,9 @@ namespace OsEngine.Language
         public string Label211 => OsLocalization.ConvertToLocString(
            "Eng:Now_" +
            "Ru:Сейчас_");
+
+        public string Label212 => OsLocalization.ConvertToLocString(
+           "Eng:Lifetime Type_" +
+           "Ru:Тип жизни заявки_");
     }
 }

@@ -1660,8 +1660,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceLimit">order price / цена ордера</param>
         /// <param name="priceRedLine">line price / цена линии, после достижения которой будет выставлен ордер на покупку</param>
         /// <param name="activateType">activation type / тип активации ордера</param>
-        /// /// <param name="expiresBars">life time in candels count / время жизни ордера в барах</param>
-        public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars, string signalType)
+        /// <param name="expiresBars">life time in candels count / время жизни ордера в барах</param>
+        /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen / тип сигнала на открытие. Будет записано в позицию как SignalTypeOpen</param>
+        /// <param name="lifeTimeType">order life type / тип жизни ордера</param>
+        public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, 
+            StopActivateType activateType, int expiresBars, string signalType, PositionOpenerToStopLifeTimeType lifeTimeType)
         {
             try
             {
@@ -1681,7 +1684,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.TimeCreate = TimeServerCurrent;
                 positionOpener.OrderCreateBarNumber = CandlesFinishedOnly.Count;
                 positionOpener.TabName = TabName;
-
+                positionOpener.LifeTimeType = lifeTimeType;
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
                 positionOpener.ActivateType = activateType;
@@ -1706,9 +1709,24 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceRedLine">line price / цена линии, после достижения которой будет выставлен ордер на покупку</param>
         /// <param name="activateType">activation type / тип активации ордера</param>
         /// /// <param name="expiresBars">life time in candels count / время жизни ордера в барах</param>
+        public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine,
+            StopActivateType activateType, int expiresBars, string signalType)
+        {
+            BuyAtStop(volume, priceLimit, priceRedLine, activateType, expiresBars, signalType, PositionOpenerToStopLifeTimeType.CandlesCount);
+        }
+
+        /// <summary>
+        /// enter position Long at price intersection / 
+        /// купить по пересечению цены
+        /// </summary>
+        /// <param name="volume">volume / объём</param>
+        /// <param name="priceLimit">order price / цена ордера</param>
+        /// <param name="priceRedLine">line price / цена линии, после достижения которой будет выставлен ордер на покупку</param>
+        /// <param name="activateType">activation type / тип активации ордера</param>
+        /// /// <param name="expiresBars">life time in candels count / время жизни ордера в барах</param>
         public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
         {
-            BuyAtStop(volume, priceLimit, priceRedLine, activateType, expiresBars, "");
+            BuyAtStop(volume, priceLimit, priceRedLine, activateType, expiresBars, "", PositionOpenerToStopLifeTimeType.CandlesCount);
         }
 
         /// <summary>
@@ -1721,7 +1739,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="activateType">activation type / тип активации ордера</param>
         public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
         {
-            BuyAtStop(volume, priceLimit, priceRedLine, activateType, 1, "");
+            BuyAtStop(volume, priceLimit, priceRedLine, activateType, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
         }
 
         /// <summary>
@@ -1735,7 +1753,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen / тип сигнала на открытие. Будет записано в позицию как SignalTypeOpen</param>
         public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, string signalType)
         {
-            BuyAtStop(volume, priceLimit, priceRedLine, activateType, 1, signalType);
+            BuyAtStop(volume, priceLimit, priceRedLine, activateType, 1, signalType, PositionOpenerToStopLifeTimeType.CandlesCount);
         }
 
         /// <summary>
@@ -2349,7 +2367,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="activateType">activation type /тип активации ордера</param>
         /// <param name="expiresBars">life time in candels count / через сколько свечей заявка будет снята</param>
         /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen / тип сигнала на открытие. Будет записано в позицию как SignalTypeOpen</param>
-        public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars, string signalType)
+        /// <param name="lifeTimeType">order life type / тип жизни ордера</param>
+        public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine,
+            StopActivateType activateType, int expiresBars, string signalType, PositionOpenerToStopLifeTimeType lifeTimeType)
         {
             try
             {
@@ -2369,7 +2389,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.ExpiresBars = expiresBars;
                 positionOpener.TimeCreate = TimeServerCurrent;
                 positionOpener.OrderCreateBarNumber = CandlesFinishedOnly.Count;
-
+                positionOpener.LifeTimeType = lifeTimeType;
                 positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
                 positionOpener.ActivateType = activateType;
@@ -2393,9 +2413,25 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceRedLine">line price / цена линии, после достижения которой будет выставлен ордер на продажу</param>
         /// <param name="activateType">activation type /тип активации ордера</param>
         /// <param name="expiresBars">life time in candels count / через сколько свечей заявка будет снята</param>
+        /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen / тип сигнала на открытие. Будет записано в позицию как SignalTypeOpen</param>
+        public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine,
+            StopActivateType activateType, int expiresBars, string signalType)
+        {
+            SellAtStop(volume, priceLimit, priceRedLine, activateType, expiresBars, signalType, PositionOpenerToStopLifeTimeType.CandlesCount);
+        }
+
+        /// <summary>
+        /// enter position Short at price intersection / 
+        /// продать по пересечению цены
+        /// </summary>
+        /// <param name="volume">volume / объём</param>
+        /// <param name="priceLimit">order price / цена ордера</param>
+        /// <param name="priceRedLine">line price / цена линии, после достижения которой будет выставлен ордер на продажу</param>
+        /// <param name="activateType">activation type /тип активации ордера</param>
+        /// <param name="expiresBars">life time in candels count / через сколько свечей заявка будет снята</param>
         public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
         {
-            SellAtStop(volume, priceLimit, priceRedLine, activateType, expiresBars, "");
+            SellAtStop(volume, priceLimit, priceRedLine, activateType, expiresBars, "",PositionOpenerToStopLifeTimeType.CandlesCount);
         }
 
         /// <summary>
@@ -2408,7 +2444,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="activateType">activation type /тип активации ордера</param>
         public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType)
         {
-            SellAtStop(volume, priceLimit, priceRedLine, activateType, 1, "");
+            SellAtStop(volume, priceLimit, priceRedLine, activateType, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
         }
 
         /// <summary>
@@ -2422,7 +2458,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen / тип сигнала на открытие. Будет записано в позицию как SignalTypeOpen</param>
         public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, string signalType)
         {
-            SellAtStop(volume, priceLimit, priceRedLine, activateType, 1, signalType);
+            SellAtStop(volume, priceLimit, priceRedLine, activateType, 1, signalType, PositionOpenerToStopLifeTimeType.CandlesCount);
         }
 
         /// <summary>
@@ -4167,6 +4203,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             for (int i = 0; _stopsOpener != null && i < _stopsOpener.Count; i++)
             {
+                if (_stopsOpener[i].LifeTimeType == PositionOpenerToStopLifeTimeType.NoLifeTime)
+                {
+                    continue;
+                }
+
                 if (_stopsOpener[i].ExpiresBars <= 1)
                 {
                     _stopsOpener.RemoveAt(i);
@@ -5037,23 +5078,5 @@ namespace OsEngine.OsTrader.Panels.Tab
 
     }
 
-    /// <summary>
-    /// activation type stop order / 
-    /// тип активации стоп приказа
-    /// </summary>
-    public enum StopActivateType
-    {
 
-        /// <summary>
-        /// activate when the price is higher or equal
-        /// активировать когда цена будет выше или равно
-        /// </summary>
-        HigherOrEqual,
-
-        /// <summary>
-        /// activate when the price is lower or equal / 
-        /// активировать когда цена будет ниже или равно
-        /// </summary>
-        LowerOrEqyal
-    }
 }
