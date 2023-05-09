@@ -3019,7 +3019,13 @@ namespace OsEngine.Charts.CandleChart
                     return false;
                 }
 
-                if(alertToChart.Lines == null)
+                if (_chart == null)
+                {
+                    return false;
+                }
+
+                if(alertToChart.Lines == null
+                    || alertToChart.Lines.Length == 0)
                 {
                     return false;
                 }
