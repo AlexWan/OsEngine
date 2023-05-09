@@ -875,7 +875,7 @@ namespace OsEngine.Language
 
         public string Label216 => OsLocalization.ConvertToLocString(
            "Eng:Do you want to recall selected order?_" +
-           "Ru:Вы хотите отозвать выбранную заявку?_");
+           "Ru:Вы хотите отозвать выбранную заявку?_"); 
 
     }
 }

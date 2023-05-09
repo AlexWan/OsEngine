@@ -178,7 +178,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-        private List<BotTabSimple> _tabsToWatch = new List<BotTabSimple>();
+        private List<BotTabSimple> _tabsToWatch = new List<BotTabSimple>(); 
 
         public void StopPaint()
         {
