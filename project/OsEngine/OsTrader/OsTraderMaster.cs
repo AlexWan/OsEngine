@@ -839,7 +839,7 @@ namespace OsEngine.OsTrader
                                if(allTabs[i]._stopLimitsOrders[i2].Number == ordNum)
                                 {
                                     allTabs[i]._stopLimitsOrders.RemoveAt(i2);
-                                    allTabs[i].SaveStopLimits();
+                                    allTabs[i].UpdateStopLimits();
                                     return;
                                 }
                             }

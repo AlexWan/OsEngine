@@ -1605,6 +1605,14 @@ namespace OsEngine.Journal.Internal
                 }
 
                 _positionsToPaint.Add(position);
+
+                if(_startProgram == StartProgram.IsTester)
+                {
+                    if(_positionsToPaint.Count > 200)
+                    {
+                        _positionsToPaint.RemoveAt(0);
+                    }
+                }
             }
             catch
             {

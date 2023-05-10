@@ -150,6 +150,16 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="deals">deals/сделки</param>
         void ProcessPositions(List<Position> deals);
 
+        // Stop Limits / стоп Лимиты
+
+        /// <summary>
+        /// add stop limits to the drawing
+        /// добавить Стоп-лимиты в прорисовку
+        /// </summary>
+        /// <param name="deals">deals/сделки</param>
+        void ProcessStopLimits(List<PositionOpenerToStopLimit> stopLimits);
+
+
         // CUSTOM ELEMENTS ПОЛЬЗОВАТЕЛЬСКИЕ ЭЛЕМЕНТЫ
 
         /// <summary>

@@ -26,6 +26,7 @@ using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
 using System.Data.SqlTypes;
 using System.Windows.Shapes;
+using System.Security.Cryptography;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -1098,6 +1099,21 @@ namespace OsEngine.Charts.CandleChart
                         PaintPositions(positions);
                     }
                 }
+                
+                if (!_stopLimits.IsEmpty)
+                {
+                    List<PositionOpenerToStopLimit> positions = new List<PositionOpenerToStopLimit>();
+
+                    while (!_stopLimits.IsEmpty)
+                    {
+                        _stopLimits.TryDequeue(out positions);
+                    }
+
+                    if (positions != null && positions.Count != 0)
+                    {
+                       PaintStopLimits(positions);
+                    }
+                }
 
                 // see if there are any new elements to draw on chart
                 // проверяем, есть ли новые элементы для прорисовки на чарте
@@ -1278,6 +1294,9 @@ namespace OsEngine.Charts.CandleChart
         private ConcurrentQueue<IIndicator> _indicatorsToPaint = new ConcurrentQueue<IIndicator>();
 
         private ConcurrentQueue<AlertToChart> _alertsToPaint = new ConcurrentQueue<AlertToChart>();
+
+        ConcurrentQueue<List<PositionOpenerToStopLimit>> _stopLimits = new ConcurrentQueue<List<PositionOpenerToStopLimit>>();
+
 
         // candles / свечи
 
@@ -1619,6 +1638,37 @@ namespace OsEngine.Charts.CandleChart
         // Deals / сделки
 
         /// <summary>
+        /// add positions to the drawing
+        /// добавить позиции в прорисовку
+        /// </summary>
+        /// <param name="deals">deals/сделки</param>
+        public void ProcessPositions(List<Position> deals)
+        {
+            if (_startProgram == StartProgram.IsTester &&
+                _host != null)
+            {
+                PaintPositions(deals);
+            }
+            else
+            {
+                if (_positions != null &&_positions.IsEmpty == false
+
+                    &&
+                    _positions.Count > 0)
+                {
+                    List<Position> res;
+
+                    while (_positions.IsEmpty == false)
+                        _positions.TryDequeue(out res);
+                }
+                if (_positions != null)
+                {
+                    _positions.Enqueue(deals);
+                }    
+            }
+        }
+
+        /// <summary>
         /// plot dealss on chart
         /// прорисовать сделки на графике
         /// </summary>
@@ -1656,7 +1706,7 @@ namespace OsEngine.Charts.CandleChart
                 buySellSeries.YAxisType = AxisType.Secondary;
                 buySellSeries.ChartArea = "Prime";
                 buySellSeries.YValuesPerPoint = 1;
-                
+
                 buySellSeries.ChartType = SeriesChartType.Point;
                 buySellSeries.MarkerStyle = MarkerStyle.Cross;
 
@@ -1715,11 +1765,11 @@ namespace OsEngine.Charts.CandleChart
 
                     for (int indTrades = 0; indTrades < trades.Count; indTrades++)
                     {
-                        if(trades[indTrades] == null)
+                        if (trades[indTrades] == null)
                         {
                             continue;
                         }
-                        
+
                         DateTime timePoint = trades[indTrades].Time;
 
                         if (timePoint == DateTime.MinValue)
@@ -1734,7 +1784,7 @@ namespace OsEngine.Charts.CandleChart
 
                         buySellSeries.Points.AddXY(xIndexPoint, trades[indTrades].Price);
 
-                        if(_startProgram == StartProgram.IsOsTrader)
+                        if (_startProgram == StartProgram.IsOsTrader)
                         {
                             buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
                         }
@@ -2015,37 +2065,6 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
-        /// add positions to the drawing
-        /// добавить позиции в прорисовку
-        /// </summary>
-        /// <param name="deals">deals/сделки</param>
-        public void ProcessPositions(List<Position> deals)
-        {
-            if (_startProgram == StartProgram.IsTester &&
-                _host != null)
-            {
-                PaintPositions(deals);
-            }
-            else
-            {
-                if (_positions != null &&_positions.IsEmpty == false
-
-                    &&
-                    _positions.Count > 0)
-                {
-                    List<Position> res;
-
-                    while (_positions.IsEmpty == false)
-                        _positions.TryDequeue(out res);
-                }
-                if (_positions != null)
-                {
-                    _positions.Enqueue(deals);
-                }    
-            }
-        }
-
-        /// <summary>
         /// to draw a series of deals safely
         /// прорисовать серию со сделками безопасно
         /// </summary>
@@ -2247,6 +2266,122 @@ namespace OsEngine.Charts.CandleChart
             else
             {
                 return start + (end - start) / 2;
+            }
+        }
+
+        // Stop Limits / стоп Лимиты
+
+        /// <summary>
+        /// add stop limits to the drawing
+        /// добавить Стоп-лимиты в прорисовку
+        /// </summary>
+        /// <param name="deals">deals/сделки</param>
+        public void ProcessStopLimits(List<PositionOpenerToStopLimit> stopLimits)
+        {
+            if (_startProgram == StartProgram.IsTester &&
+                           _host != null)
+            {
+                PaintStopLimits(stopLimits);
+            }
+            else
+            {
+                if (_stopLimits != null && _stopLimits.IsEmpty == false
+                    &&
+                    _stopLimits.Count > 0)
+                {
+                    List<PositionOpenerToStopLimit> res;
+
+                    while (_stopLimits.IsEmpty == false)
+                    {
+                        _stopLimits.TryDequeue(out res);
+                    }
+                }
+                if (_stopLimits != null)
+                {
+                    _stopLimits.Enqueue(stopLimits);
+                }
+            }
+        }
+
+        private void PaintStopLimits(List<PositionOpenerToStopLimit> stopLimits)
+        {
+            if (_myCandles == null)
+            {
+                return;
+            }
+            if (stopLimits == null || _myCandles == null)
+            {
+                return;
+            }
+
+            if (_isPaint == false)
+            {
+                return;
+            }
+
+            List<Series> stopLimitsSeries = new List<Series>();
+
+            for (int i = 0; i < stopLimits.Count; i++)
+            {
+                // going through stop order
+                // проходим СТОП ОРДЕРА
+
+                Series lineSeries = new Series("StopLimit_" + stopLimits[i].Number);
+                lineSeries.ChartType = SeriesChartType.StepLine;
+                lineSeries.YAxisType = AxisType.Secondary;
+                lineSeries.XAxisType = AxisType.Secondary;
+                lineSeries.ChartArea = "Prime";
+                lineSeries.ShadowOffset = 1;
+                lineSeries.YValuesPerPoint = 1;
+
+                lineSeries.Points.AddXY(0, stopLimits[i].PriceRedLine);
+                lineSeries.Points.AddXY(_myCandles.Count + 500, stopLimits[i].PriceRedLine);
+
+                if (stopLimits[i].Side == Side.Buy)
+                {
+                    lineSeries.Color = Color.DarkCyan;
+                }
+                else
+                {
+                    lineSeries.Color = Color.MediumVioletRed;
+                }
+
+                stopLimitsSeries.Add(lineSeries);
+            }
+
+            PaintStopLimitsSafe(stopLimitsSeries);
+        }
+
+        private void PaintStopLimitsSafe(List<Series> stopLimitsSeries)
+        {
+            if (_chart == null)
+            {
+                return;
+            }
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action<List<Series>>
+                    (PaintStopLimitsSafe), stopLimitsSeries);
+                return;
+            }
+
+            for (int i = 0; _chart.Series != null && i < _chart.Series.Count; i++)
+            {
+                // deleting old
+                // удаляем старые
+                string name = _chart.Series[i].Name.Split('_')[0];
+
+                if (name == "StopLimit")
+                {
+                    ClearLabelOnY2(_chart.Series[i].Name + "Label", "Prime", _chart.Series[i].Color);
+                    _chart.Series.Remove(_chart.Series[i]);
+                    i--;
+                }
+            }
+
+            for (int i = 0; stopLimitsSeries != null && i < stopLimitsSeries.Count; i++)
+            {
+                _chart.Series.Add(stopLimitsSeries[i]);
             }
         }
 

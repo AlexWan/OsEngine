@@ -492,6 +492,12 @@ namespace OsEngine.Charts.CandleChart
                     _myPosition.Clear();
                     _myPosition = null;
                 }
+
+                if (_myStopLimit != null)
+                {
+                    _myStopLimit.Clear();
+                    _myStopLimit = null;
+                }
             }
             catch (Exception error)
             {
@@ -1367,6 +1373,7 @@ namespace OsEngine.Charts.CandleChart
                         _lastCandleIncome = DateTime.Now;
                         ChartCandle?.ProcessCandles(candles);
                         ChartCandle?.ProcessPositions(_myPosition);
+                        ChartCandle?.ProcessStopLimits(_myStopLimit);
                     }
 
                     if (_indicators != null)
@@ -1437,6 +1444,24 @@ namespace OsEngine.Charts.CandleChart
             }
         }
 
+        // stop Limits drawing
+
+        private List<PositionOpenerToStopLimit> _myStopLimit;
+
+        public void SetStopLimits(List<PositionOpenerToStopLimit> stopLimits)
+        {
+            if (_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+            _myStopLimit = stopLimits;
+
+            if (ChartCandle != null)
+            {
+                ChartCandle.ProcessStopLimits(stopLimits);
+            }
+        }
+
         // management управление
 
         /// <summary>
@@ -1454,6 +1479,7 @@ namespace OsEngine.Charts.CandleChart
                 ChartCandle.StartPaintPrimeChart(gridChart, host, rectangle);
                 ChartCandle.ProcessCandles(_myCandles);
                 ChartCandle.ProcessPositions(_myPosition);
+                ChartCandle.ProcessStopLimits(_myStopLimit);
 
                 for (int i = 0; _indicators != null && i < _indicators.Count; i++)
                 {
@@ -1512,6 +1538,7 @@ namespace OsEngine.Charts.CandleChart
             }
            
             _myPosition = null;
+            _myStopLimit = null;
 
             for (int i = 0; _indicators != null && i < _indicators.Count; i++)
             {
@@ -1672,6 +1699,7 @@ namespace OsEngine.Charts.CandleChart
 
             string lastSecurity = _securityOnThisChart;
             List<Position> positions = _myPosition;
+            List<PositionOpenerToStopLimit> limits = _myStopLimit;
             _timeFrameBuilder = timeFrameBuilder;
             _securityOnThisChart = security;
             _timeFrameSecurity = timeFrameBuilder.TimeFrame;
@@ -1681,9 +1709,16 @@ namespace OsEngine.Charts.CandleChart
             Clear();
             PaintLabelOnSlavePanel();
 
-            if (lastSecurity == security && positions != null)
+            if (lastSecurity == security)
             {
-                SetPosition(positions);
+                if(positions != null)
+                {
+                    SetPosition(positions);
+                }
+                if(limits != null)
+                {
+                    SetStopLimits(limits);
+                }
             }
         }
 

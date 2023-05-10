@@ -122,6 +122,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         _stopLimitsOrders = stopLimitsFromJournal;
                     }
+                    UpdateStopLimits();
                 }
             }
             catch (Exception error)
@@ -1702,7 +1703,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.SignalType = signalType;
 
                 _stopLimitsOrders.Add(positionOpener);
-                SaveStopLimits();
+                UpdateStopLimits();
             }
             catch (Exception error)
             {
@@ -1986,7 +1987,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         i--;
                     }
                 }
-                SaveStopLimits();
+                UpdateStopLimits();
             }
             catch (Exception error)
             {
@@ -2409,7 +2410,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.SignalType = signalType;
 
                 _stopLimitsOrders.Add(positionOpener);
-                SaveStopLimits();
+                UpdateStopLimits();
             }
             catch (Exception error)
             {
@@ -2680,7 +2681,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                SaveStopLimits();
+                UpdateStopLimits();
             }
             catch (Exception error)
             {
@@ -4242,7 +4243,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if(neadSave == true)
             {
-                SaveStopLimits(); ;
+                UpdateStopLimits(); ;
             }
         }
 
@@ -4331,7 +4332,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (neadSave == true)
                 {
-                    SaveStopLimits();
+                    UpdateStopLimits();
                 }
             }
             catch (Exception error)
@@ -4340,14 +4341,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        public void SaveStopLimits()
+        public void UpdateStopLimits()
         {
-            if(StartProgram != StartProgram.IsOsTrader)
+            if(StartProgram != StartProgram.IsOsOptimizer)
             {
-                return;
+                _chartMaster?.SetStopLimits(_stopLimitsOrders);
             }
 
-            _journal.SetStopLimits(_stopLimitsOrders);
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                _journal?.SetStopLimits(_stopLimitsOrders);
+            }
+
+          
         }
 
         // icebergs control
