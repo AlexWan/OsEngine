@@ -96,8 +96,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ManualPositionSupport.LogMessageEvent += SetNewLogMessage;
                 ManualPositionSupport.DontOpenOrderDetectedEvent += _dealOpeningWatcher_DontOpenOrderDetectedEvent;
 
-                _stopsOpener = new List<PositionOpenerToStop>();
-
                 _acebergMaker = new AcebergMaker();
                 _acebergMaker.NewOrderNeadToExecute += _acebergMaker_NewOrderNeadToExecute;
                 _acebergMaker.NewOrderNeadToCansel += _acebergMaker_NewOrderNeadToCansel;
@@ -113,6 +111,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
+                _stopLimitsOrders = new List<PositionOpenerToStopLimit>();
+
+                if(startProgram == StartProgram.IsOsTrader)
+                {
+                    List<PositionOpenerToStopLimit> stopLimitsFromJournal = _journal.LoadStopLimits();
+
+                    if(stopLimitsFromJournal != null &&
+                        stopLimitsFromJournal.Count > 0)
+                    {
+                        _stopLimitsOrders = stopLimitsFromJournal;
+                    }
+                }
             }
             catch (Exception error)
             {
@@ -311,10 +321,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _marketDepthPainter = null;
                 }
 
-                if (_stopsOpener != null)
+                if (_stopLimitsOrders != null)
                 {
-                    _stopsOpener.Clear();
-                    _stopsOpener = null;
+                    _stopLimitsOrders.Clear();
+                    _stopLimitsOrders = null;
                 }
 
                 if (_dealCreator != null)
@@ -779,9 +789,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// stop-limit orders
         /// все ожидающие цены ордера бота
         /// </summary>
-        public List<PositionOpenerToStop> PositionOpenerToStopsAll
+        public List<PositionOpenerToStopLimit> PositionOpenerToStopsAll
         {
-            get { return _stopsOpener; }
+            get { return _stopLimitsOrders; }
         }
 
         /// <summary>
@@ -1675,7 +1685,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                PositionOpenerToStop positionOpener = new PositionOpenerToStop();
+                PositionOpenerToStopLimit positionOpener = new PositionOpenerToStopLimit();
 
                 positionOpener.Volume = volume;
                 positionOpener.Security = Securiti.Name;
@@ -1691,7 +1701,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.Side = Side.Buy;
                 positionOpener.SignalType = signalType;
 
-                _stopsOpener.Add(positionOpener);
+                _stopLimitsOrders.Add(positionOpener);
+                SaveStopLimits();
             }
             catch (Exception error)
             {
@@ -1962,19 +1973,20 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (_stopsOpener == null || _stopsOpener.Count == 0)
+                if (_stopLimitsOrders == null || _stopLimitsOrders.Count == 0)
                 {
                     return;
                 }
 
-                for (int i = 0; _stopsOpener.Count != 0 && i < _stopsOpener.Count; i++)
+                for (int i = 0; _stopLimitsOrders.Count != 0 && i < _stopLimitsOrders.Count; i++)
                 {
-                    if (_stopsOpener[i].Side == Side.Buy)
+                    if (_stopLimitsOrders[i].Side == Side.Buy)
                     {
-                        _stopsOpener.RemoveAt(i);
+                        _stopLimitsOrders.RemoveAt(i);
                         i--;
                     }
                 }
+                SaveStopLimits();
             }
             catch (Exception error)
             {
@@ -2380,7 +2392,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                PositionOpenerToStop positionOpener = new PositionOpenerToStop();
+                PositionOpenerToStopLimit positionOpener = new PositionOpenerToStopLimit();
 
                 positionOpener.Volume = volume;
                 positionOpener.Security = Securiti.Name;
@@ -2396,7 +2408,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.Side = Side.Sell;
                 positionOpener.SignalType = signalType;
 
-                _stopsOpener.Add(positionOpener);
+                _stopLimitsOrders.Add(positionOpener);
+                SaveStopLimits();
             }
             catch (Exception error)
             {
@@ -2653,19 +2666,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (_stopsOpener == null || _stopsOpener.Count == 0)
+                if (_stopLimitsOrders == null || _stopLimitsOrders.Count == 0)
                 {
                     return;
                 }
 
-                for (int i = 0; _stopsOpener.Count != 0 && i < _stopsOpener.Count; i++)
+                for (int i = 0; _stopLimitsOrders.Count != 0 && i < _stopLimitsOrders.Count; i++)
                 {
-                    if (_stopsOpener[i].Side == Side.Sell)
+                    if (_stopLimitsOrders[i].Side == Side.Sell)
                     {
-                        _stopsOpener.RemoveAt(i);// будет работать
+                        _stopLimitsOrders.RemoveAt(i);// будет работать
                         i--;
                     }
                 }
+
+                SaveStopLimits();
             }
             catch (Exception error)
             {
@@ -4190,36 +4205,44 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        // opening deals by the deferred method
-        // открытие сделок отложенным методом
+        // Stop Limit`s
 
         /// <summary>
         /// stop opening waiting for its price / 
         /// стоп - открытия ожидающие своей цены
         /// </summary>
-        public List<PositionOpenerToStop> _stopsOpener;
+        public List<PositionOpenerToStopLimit> _stopLimitsOrders;
 
         private void CancelStopOpenerByNewCandle(List<Candle> candles)
         {
-            for (int i = 0; _stopsOpener != null && i < _stopsOpener.Count; i++)
+            bool neadSave = false;
+
+            for (int i = 0; _stopLimitsOrders != null && i < _stopLimitsOrders.Count; i++)
             {
-                if (_stopsOpener[i].LifeTimeType == PositionOpenerToStopLifeTimeType.NoLifeTime)
+                if (_stopLimitsOrders[i].LifeTimeType == PositionOpenerToStopLifeTimeType.NoLifeTime)
                 {
                     continue;
                 }
 
-                if (_stopsOpener[i].ExpiresBars <= 1)
+                if (_stopLimitsOrders[i].ExpiresBars <= 1)
                 {
-                    _stopsOpener.RemoveAt(i);
+                    _stopLimitsOrders.RemoveAt(i);
                     i--;
+                    neadSave = true;
                     continue;
                 }
 
-                if (candles[candles.Count - 1].TimeStart > _stopsOpener[i].LastCandleTime)
+                if (candles[candles.Count - 1].TimeStart > _stopLimitsOrders[i].LastCandleTime)
                 {
-                    _stopsOpener[i].LastCandleTime = candles[candles.Count - 1].TimeStart;
-                    _stopsOpener[i].ExpiresBars = _stopsOpener[i].ExpiresBars - 1;
+                    _stopLimitsOrders[i].LastCandleTime = candles[candles.Count - 1].TimeStart;
+                    _stopLimitsOrders[i].ExpiresBars = _stopLimitsOrders[i].ExpiresBars - 1;
+                    neadSave = true;
                 }
+            }
+
+            if(neadSave == true)
+            {
+                SaveStopLimits(); ;
             }
         }
 
@@ -4237,20 +4260,22 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
+                bool neadSave = false;
+
                 for (int i = 0;
-                    i > -1 && _stopsOpener != null && _stopsOpener.Count != 0 && i < _stopsOpener.Count;
+                    i > -1 && _stopLimitsOrders != null && _stopLimitsOrders.Count != 0 && i < _stopLimitsOrders.Count;
                     i++)
                 {
-                    if ((_stopsOpener[i].ActivateType == StopActivateType.HigherOrEqual &&
-                         price >= _stopsOpener[i].PriceRedLine)
+                    if ((_stopLimitsOrders[i].ActivateType == StopActivateType.HigherOrEqual &&
+                         price >= _stopLimitsOrders[i].PriceRedLine)
                         ||
-                        (_stopsOpener[i].ActivateType == StopActivateType.LowerOrEqyal &&
-                         price <= _stopsOpener[i].PriceRedLine))
+                        (_stopLimitsOrders[i].ActivateType == StopActivateType.LowerOrEqyal &&
+                         price <= _stopLimitsOrders[i].PriceRedLine))
                     {
-                        if (_stopsOpener[i].Side == Side.Buy)
+                        if (_stopLimitsOrders[i].Side == Side.Buy)
                         {
-                            PositionOpenerToStop opener = _stopsOpener[i];
-                            Position pos = LongCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
+                            PositionOpenerToStopLimit opener = _stopLimitsOrders[i];
+                            Position pos = LongCreate(_stopLimitsOrders[i].PriceOrder, _stopLimitsOrders[i].Volume, OrderPriceType.Limit,
                                 ManualPositionSupport.SecondToOpen, true);
 
                             if (pos != null
@@ -4259,21 +4284,24 @@ namespace OsEngine.OsTrader.Panels.Tab
                                 pos.SignalTypeOpen = opener.SignalType;
                             }
 
-                            if (_stopsOpener.Count == 0)
+                            if (_stopLimitsOrders.Count == 0)
                             { // пользователь может удалить сам из слоя увидив что сделка открыается
                                 return;
                             }
 
-                            _stopsOpener.RemoveAt(i);
+                            _stopLimitsOrders.RemoveAt(i);
                             i = -1;
                             if (PositionBuyAtStopActivateEvent != null && pos != null)
-                            { PositionBuyAtStopActivateEvent(pos); }
+                            { 
+                                PositionBuyAtStopActivateEvent(pos); 
+                            }
+                            neadSave = true;
                             continue;
                         }
-                        else if (_stopsOpener[i].Side == Side.Sell)
+                        else if (_stopLimitsOrders[i].Side == Side.Sell)
                         {
-                            PositionOpenerToStop opener = _stopsOpener[i];
-                            Position pos = ShortCreate(_stopsOpener[i].PriceOrder, _stopsOpener[i].Volume, OrderPriceType.Limit,
+                            PositionOpenerToStopLimit opener = _stopLimitsOrders[i];
+                            Position pos = ShortCreate(_stopLimitsOrders[i].PriceOrder, _stopLimitsOrders[i].Volume, OrderPriceType.Limit,
                                 ManualPositionSupport.SecondToOpen, true);
 
                             if (pos != null
@@ -4282,26 +4310,44 @@ namespace OsEngine.OsTrader.Panels.Tab
                                 pos.SignalTypeOpen = opener.SignalType;
                             }
 
-                            if (_stopsOpener.Count == 0)
+                            if (_stopLimitsOrders.Count == 0)
                             { // пользователь может удалить сам из слоя увидив что сделка открыается
                                 return;
                             }
 
-                            _stopsOpener.RemoveAt(i);
+                            _stopLimitsOrders.RemoveAt(i);
                             i = -1;
 
                             if (PositionSellAtStopActivateEvent != null && pos != null)
-                            { PositionSellAtStopActivateEvent(pos); }
+                            { 
+                                PositionSellAtStopActivateEvent(pos); 
+                            }
+                            neadSave = true;
                             continue;
                         }
                         i--;
                     }
+                }
+
+                if (neadSave == true)
+                {
+                    SaveStopLimits();
                 }
             }
             catch (Exception error)
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        public void SaveStopLimits()
+        {
+            if(StartProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
+            _journal.SetStopLimits(_stopLimitsOrders);
         }
 
         // icebergs control
@@ -4535,8 +4581,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 AlertControlPosition();
 
-                if (_stopsOpener != null &&
-                    _stopsOpener.Count != 0)
+                if (_stopLimitsOrders != null &&
+                    _stopLimitsOrders.Count != 0)
                 {
                     CancelStopOpenerByNewCandle(candles);
                 }
@@ -4811,8 +4857,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if (_stopsOpener != null &&
-                _stopsOpener.Count != 0)
+            if (_stopLimitsOrders != null &&
+                _stopLimitsOrders.Count != 0)
             {
                 for (int i2 = 0; i2 < newTrades.Count; i2++)
                 {

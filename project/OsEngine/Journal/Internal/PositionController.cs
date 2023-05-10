@@ -73,6 +73,7 @@ namespace OsEngine.Journal.Internal
 
                     controller.SavePositions();
                     controller.TryPaintPositions();
+                    controller.TrySaveStopLimits();
                 }
 
                 if (!MainWindow.ProccesIsWorked)
@@ -228,7 +229,21 @@ namespace OsEngine.Journal.Internal
                     }
                 }
 
-                if(_gridOpenDeal != null)
+                string dealControllerStopLimitsPath = @"Engine\" + _name + @"DealControllerStopLimits.txt";
+
+                if (File.Exists(dealControllerStopLimitsPath))
+                {
+                    try
+                    {
+                        File.Delete(dealControllerStopLimitsPath);
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.System);
+                    }
+                }
+
+                if (_gridOpenDeal != null)
                 {
                     _gridOpenDeal.Click -= _gridOpenDeal_Click;
                     _gridOpenDeal = null;
@@ -782,6 +797,125 @@ namespace OsEngine.Journal.Internal
         /// пустой лист который мы возвращаем вместо null при запросе массивов
         /// </summary>
         private List<Position> _emptyList = new List<Position>();
+
+        #region StopLimits
+
+        public void SetStopLimits(List<PositionOpenerToStopLimit> stopLimits)
+        {
+            _actualStopLimits = stopLimits;
+            _neadToSaveStopLimit = true;
+        }
+
+        private List<PositionOpenerToStopLimit> _actualStopLimits;
+
+        private bool _neadToSaveStopLimit;
+
+        private void TrySaveStopLimits()
+        {
+            if (_startProgram == StartProgram.IsOsOptimizer
+           || _startProgram == StartProgram.IsOsMiner)
+            {
+                return;
+            }
+
+            if (_neadToSaveStopLimit == false)
+            {
+                return;
+            }
+
+            _neadToSaveStopLimit = false;
+
+            if(_actualStopLimits == null
+               || _actualStopLimits.Count == 0)
+            { // очищаем файл от записей
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealControllerStopLimits.txt", false))
+                {
+                    
+                }
+                return;
+            }
+
+            try
+            {
+                string positionsString = "";
+
+                for(int i = 0;i < _actualStopLimits.Count;i++)
+                {
+                    if (_actualStopLimits[i].LifeTimeType == PositionOpenerToStopLifeTimeType.NoLifeTime)
+                    {
+                        positionsString += _actualStopLimits[i].GetSaveString() + "\n";
+                    }
+                }
+
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealControllerStopLimits.txt", false))
+                {
+                    writer.Write(positionsString);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+
+        public List<PositionOpenerToStopLimit> LoadStopLimits()
+        {
+            try
+            {
+                if(_startProgram != StartProgram.IsOsTrader)
+                {
+                    return null;
+                }
+
+                if(File.Exists(@"Engine\" + _name + @"DealControllerStopLimits.txt") == false)
+                {
+                    return null;
+                }
+
+                // 1 count the number of transactions in the file
+                //1 считаем кол-во сделок в файле
+
+                List<string> orders = new List<string>();
+
+
+
+                using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"DealControllerStopLimits.txt"))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        orders.Add(reader.ReadLine());
+                    }
+                }
+
+                List<PositionOpenerToStopLimit> stopLimits = new List<PositionOpenerToStopLimit>();
+
+                for (int i = 0;i < orders.Count;i++)
+                {
+                    string str = orders[i];
+
+                    if(String.IsNullOrEmpty(str))
+                    {
+                        continue;
+                    }
+
+                    PositionOpenerToStopLimit stop = new PositionOpenerToStopLimit();
+                    stop.LoadFromString(str);
+                    stopLimits.Add(stop);   
+                }
+
+                return stopLimits;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+
+        #endregion
 
         // last position последняя позиция
 

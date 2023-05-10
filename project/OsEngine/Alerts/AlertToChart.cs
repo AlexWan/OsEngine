@@ -113,6 +113,12 @@ namespace OsEngine.Alerts
         {
             try
             {
+                if(Lines == null ||
+                    Lines.Length == 0)
+                {
+                    return;
+                }
+
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @"Alert.txt", false))
                 {
                     writer.WriteLine(Type);

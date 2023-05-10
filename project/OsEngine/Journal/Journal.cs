@@ -676,6 +676,26 @@ namespace OsEngine.Journal
             }
         }
 
+        public void SetStopLimits(List<PositionOpenerToStopLimit> stopLimits)
+        {
+            if(_positionController == null)
+            {
+                return;
+            }
+
+            _positionController.SetStopLimits(stopLimits);
+        }
+
+        public List<PositionOpenerToStopLimit> LoadStopLimits()
+        {
+            if (_positionController == null)
+            {
+                return null;
+            }
+
+            return _positionController.LoadStopLimits();
+        }
+
         // прорисовка текстБокса для бота
 
         /// <summary>

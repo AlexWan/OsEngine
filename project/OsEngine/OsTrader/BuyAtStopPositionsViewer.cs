@@ -344,14 +344,14 @@ namespace OsEngine.OsTrader
 
                 await Task.Delay(3000);
 
-                List<PositionOpenerToStop> stopLimits = new List<PositionOpenerToStop>();
+                List<PositionOpenerToStopLimit> stopLimits = new List<PositionOpenerToStopLimit>();
 
                 for(int i = 0;i < _tabsToWatch.Count;i++)
                 {
-                    if (_tabsToWatch[i]._stopsOpener != null &&
-                        _tabsToWatch[i]._stopsOpener.Count != 0)
+                    if (_tabsToWatch[i]._stopLimitsOrders != null &&
+                        _tabsToWatch[i]._stopLimitsOrders.Count != 0)
                     {
-                        stopLimits.AddRange(_tabsToWatch[i]._stopsOpener);
+                        stopLimits.AddRange(_tabsToWatch[i]._stopLimitsOrders);
                     }
                 }
 
@@ -361,18 +361,18 @@ namespace OsEngine.OsTrader
         }
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
-        private void CheckPosition(DataGridView grid, List<PositionOpenerToStop> positions)
+        private void CheckPosition(DataGridView grid, List<PositionOpenerToStopLimit> positions)
         {
             if (grid.InvokeRequired)
             {
-                grid.Invoke(new Action<DataGridView, List<PositionOpenerToStop>>(CheckPosition), grid, positions);
+                grid.Invoke(new Action<DataGridView, List<PositionOpenerToStopLimit>>(CheckPosition), grid, positions);
                 return;
             }
             try
             {
                 for (int i1 = 0; i1 < positions.Count; i1++)
                 {
-                    PositionOpenerToStop position = positions[i1];
+                    PositionOpenerToStopLimit position = positions[i1];
                     bool isIn = false;
                     for (int i = 0; i < grid.Rows.Count; i++)
                     {
@@ -410,7 +410,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-        private DataGridViewRow GetRow(PositionOpenerToStop position)
+        private DataGridViewRow GetRow(PositionOpenerToStopLimit position)
         {
             if (position == null)
             {

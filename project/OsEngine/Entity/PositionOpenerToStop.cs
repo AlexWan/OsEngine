@@ -4,7 +4,7 @@
 */
 
 using System;
-
+using System.Globalization;
 
 namespace OsEngine.Entity
 {
@@ -12,9 +12,9 @@ namespace OsEngine.Entity
     /// an object encapsulating data for opening a Stop transaction. OpenAtStop
     /// объект инкапсулирующий данные для открытия сделки по Стопу. OpenAtStop
     /// </summary>
-    public class PositionOpenerToStop
+    public class PositionOpenerToStopLimit
     {
-        public PositionOpenerToStop()
+        public PositionOpenerToStopLimit()
         {
             ExpiresBars = 0;
         }
@@ -95,6 +95,50 @@ namespace OsEngine.Entity
         /// время создания приказа
         /// </summary>
         public DateTime TimeCreate;
+
+        public string GetSaveString()
+        {
+            string saveStr = "";
+
+            saveStr += Security + "&";
+            saveStr += TabName + "&";
+            saveStr += Number + "&";
+            saveStr += LifeTimeType + "&";
+            saveStr += PriceOrder + "&";
+            saveStr += PriceRedLine + "&";
+            saveStr += ActivateType + "&";
+            saveStr += Volume + "&";
+            saveStr += Side + "&";
+            saveStr += _expiresBars + "&";
+            saveStr += _orderCreateBarNumber + "&";
+            saveStr += LastCandleTime.ToString(CultureInfo) + "&";
+            saveStr += SignalType + "&";
+            saveStr += TimeCreate.ToString(CultureInfo);
+
+            return saveStr;
+        }
+
+        public void LoadFromString(string str)
+        {
+            string[] savStr = str.Split('&');
+
+            Security = savStr[0];
+            TabName = savStr[1];
+            Number = Convert.ToInt32(savStr[2]);
+            Enum.TryParse(savStr[3], out LifeTimeType);
+            PriceOrder = savStr[4].ToDecimal();
+            PriceRedLine = savStr[5].ToDecimal();
+            Enum.TryParse(savStr[6], out ActivateType);
+            Volume = savStr[7].ToDecimal();
+            Enum.TryParse(savStr[8], out Side);
+            _expiresBars = Convert.ToInt32(savStr[9]);
+            _orderCreateBarNumber = Convert.ToInt32(savStr[10]);
+            LastCandleTime = Convert.ToDateTime(savStr[11], CultureInfo);
+            SignalType = savStr[12];
+            TimeCreate = Convert.ToDateTime(savStr[13], CultureInfo);
+        }
+
+        private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
     }
 
     /// <summary>

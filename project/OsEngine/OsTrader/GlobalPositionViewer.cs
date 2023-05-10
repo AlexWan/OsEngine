@@ -125,7 +125,7 @@ namespace OsEngine.OsTrader
         /// journals we follow
         /// журналы за которыми мы следим
         /// </summary>
-        private List<Journal.Journal> _journals; 
+        private List<Journal.Journal> _journals;
 
         private WindowsFormsHost _hostOpenPoses;
 
