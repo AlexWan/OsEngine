@@ -3596,17 +3596,22 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            for (int i = 0; i < _allTrades.Length; i++)
+            if(_typeTesterData != TesterDataType.TickAllCandleState &&
+                _typeTesterData != TesterDataType.TickOnlyReadyCandle)
             {
-                List<Trade> curTrades = _allTrades[i];
-
-                if (curTrades != null &&
-                    curTrades.Count > 100)
+                for (int i = 0; i < _allTrades.Length; i++)
                 {
-                    curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
-                    _allTrades[i] = curTrades;
+                    List<Trade> curTrades = _allTrades[i];
+
+                    if (curTrades != null &&
+                        curTrades.Count > 100)
+                    {
+                        curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
+                        _allTrades[i] = curTrades;
+                    }
                 }
             }
+
 
             ServerTime = tradesNew[tradesNew.Count - 1].Time;
 
@@ -4170,6 +4175,12 @@ namespace OsEngine.Market.Servers.Tester
                 now < TimeStart)
             {
                 return;
+            }
+
+            if(now.Month == 4 &&
+                now.Day > 4)
+            {
+
             }
 
             if (LastTrade != null &&
