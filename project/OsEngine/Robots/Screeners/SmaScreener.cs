@@ -116,17 +116,17 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
-            int allPosesInAllTabs = this.PositionsCount;
-
-            if(allPosesInAllTabs >= MaxPoses.ValueInt)
-            {
-                return;
-            }
-
             List<Position> positions = tab.PositionsOpenAll;
 
             if(positions.Count == 0)
             { // логика открытия
+
+                int allPosesInAllTabs = this.PositionsCount;
+
+                if (allPosesInAllTabs >= MaxPoses.ValueInt)
+                {
+                    return;
+                }
 
                 Aindicator sma = (Aindicator)tab.Indicators[0];
 
