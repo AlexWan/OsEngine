@@ -955,12 +955,15 @@ namespace OsEngine.Alerts
             int secondHourCandle = -1;
 
             int nowHour = candles[candles.Count - 1].TimeStart.Hour;
+            int nowDay = candles[candles.Count - 1].TimeStart.Day;
 
             for (int i = candles.Count - 1; i > -1; i--)
             {
-                if (nowHour != candles[i].TimeStart.Hour)
+                if (nowHour != candles[i].TimeStart.Hour 
+                    || nowDay != candles[i].TimeStart.Day)
                 {
                     nowHour = candles[i].TimeStart.Hour;
+                    nowDay = candles[i].TimeStart.Day;
 
                     if (firstHourCandle == -1)
                     {
