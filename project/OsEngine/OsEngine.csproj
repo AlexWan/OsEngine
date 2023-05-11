@@ -506,6 +506,8 @@
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\RequestAuthenticator.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampServer.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\JsonResponse.cs" />
+    <Compile Include="Market\Servers\BybitSpot\BybitSpotServer.cs" />
+    <Compile Include="Market\Servers\BybitSpot\BybitSpotServerPermission.cs" />
     <Compile Include="Market\Servers\Bybit\BybitServer.cs" />
     <Compile Include="Market\Servers\Bybit\BybitServerPermission.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\Client.cs" />

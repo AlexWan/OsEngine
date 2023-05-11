@@ -46,6 +46,7 @@ using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
 using OsEngine.Market.Servers.BitMaxFutures;
+using OsEngine.Market.Servers.BybitSpot;
 
 namespace OsEngine.Market
 {
@@ -101,6 +102,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HuobiFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
+                serverTypes.Add(ServerType.BybitSpot);
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Bitmax_AscendexFutures);
 
@@ -195,6 +197,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Bitfinex);
                 serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.Exmo);
+                serverTypes.Add(ServerType.BybitSpot);
                 serverTypes.Add(ServerType.HuobiSpot);
                 serverTypes.Add(ServerType.HuobiFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
@@ -299,6 +302,10 @@ namespace OsEngine.Market
                 if (type == ServerType.Bitmax_AscendexFutures)
                 {
                     newServer = new BitMaxFuturesServer();
+                }
+                if (type == ServerType.BybitSpot)
+                {
+                    newServer = new BybitSpotServer();
                 }
                 if (type == ServerType.OKX)
                 {
@@ -807,6 +814,18 @@ namespace OsEngine.Market
                 if (serverPermission == null)
                 {
                     serverPermission = new HuobiFuturesServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.BybitSpot)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new BybitSpotServerPermission();
                     _serversPermissions.Add(serverPermission);
                 }
 
@@ -1380,6 +1399,11 @@ namespace OsEngine.Market
         /// <summary>
         /// Ascendex exchange
         /// </summary>
-        Bitmax_AscendexFutures
+        Bitmax_AscendexFutures,
+
+        /// <summary>
+        /// BybitSpot exchange
+        /// </summary>
+        BybitSpot
     }
 }
