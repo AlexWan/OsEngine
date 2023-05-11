@@ -349,11 +349,11 @@ namespace OsEngine.Entity
 
             for (int i = 0; i < tradesToMerge.Count; i++)
             {
-                Trade candle = tradesToMerge[i];
+                Trade tradeNew = tradesToMerge[i];
 
-                if (candle.Time > newTrades[newTrades.Count - 1].Time)
+                if (tradeNew.Time >= newTrades[newTrades.Count - 1].Time)
                 {
-                    newTrades.Add(candle);
+                    newTrades.Add(tradeNew);
                 }
             }
 

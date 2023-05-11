@@ -31,6 +31,7 @@ using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 
+
 namespace OsEngine.OsTrader.Panels.Tab
 {
     /// <summary>
@@ -1117,53 +1118,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// show position closing window / 
-        /// показать окно закрытия позиции
-        /// </summary>
-        /// <param name="position">position to be closed / позиция которую будем закрывать</param>
-        public void ShowClosePositionDialog(Position position)
-        {
-            try
-            {
-                ClosePositionUi ui = new ClosePositionUi(position, _connector.BestBid);
-                ui.ShowDialog();
-
-                if (ui.IsAccept == false)
-                {
-                    return;
-                }
-
-                if (ui.OpenType == PositionOpenType.Market)
-                {
-                    CloseAtMarket(position, position.OpenVolume);
-                }
-                else if (ui.OpenType == PositionOpenType.Limit)
-                {
-                    if (ui.Price <= 0)
-                    {
-                        return;
-                    }
-                    CloseAtLimit(position, ui.Price, position.OpenVolume);
-                }
-                else if (ui.OpenType == PositionOpenType.Aceberg)
-                {
-                    CloseAtAceberg(position, ui.Price, position.OpenVolume, ui.CountAcebertOrder);
-                }
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
         /// show position opening window / 
         /// показать окно открытия позиции
         /// </summary>
         public void ShowOpenPositionDialog()
         {
             BotTabSimple activTab = this;
-
 
             for (int i = 0; i < _guisOpenPos.Count; i++)
             {
@@ -1206,140 +1166,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// show window for position modification / 
-        /// показать окно для модификации позиции
+        /// show position closing window / 
+        /// показать окно закрытия позиции
         /// </summary>
-        public void ShowPositionModificateDialog(Position position)
+        /// <param name="position">position to be closed / позиция которую будем закрывать</param>
+        public void ShowClosePositionDialog(Position position)
         {
             try
             {
-                PositionModificateUi ui = new PositionModificateUi(_connector.BestBid, Securiti.Name);
-                ui.ShowDialog();
+                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Limit, position);
+                ui.Show();
 
-                if (ui.IsAccept == false)
-                {
-                    return;
-                }
-
-                if (ui.OpenType == PositionOpenType.Market)
-                {
-                    if (ui.Side == Side.Buy)
-                    {
-                        if (position.Direction == Side.Buy)
-                        {
-                            BuyAtMarketToPosition(position, ui.Volume);
-                        }
-                        else
-                        {
-                            if (position.OpenVolume > ui.Volume)
-                            {
-                                CloseAtMarket(position, ui.Volume);
-                            }
-                            else
-                            {
-                                CloseAtMarket(position, position.OpenVolume);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (position.Direction == Side.Sell)
-                        {
-                            SellAtMarketToPosition(position, ui.Volume);
-                        }
-                        else
-                        {
-                            if (position.OpenVolume > ui.Volume)
-                            {
-                                CloseAtMarket(position, ui.Volume);
-                            }
-                            else
-                            {
-                                CloseAtMarket(position, position.OpenVolume);
-                            }
-                        }
-                    }
-                }
-
-                else if (ui.OpenType == PositionOpenType.Limit ||
-                    ui.OpenType == PositionOpenType.Aceberg && ui.CountAcebertOrder == 1)
-                {
-                    if (ui.Side == Side.Buy)
-                    {
-                        if (position.Direction == Side.Buy)
-                        {
-                            BuyAtLimitToPosition(position, ui.Price, ui.Volume);
-                        }
-                        else
-                        {
-                            if (position.OpenVolume > ui.Volume)
-                            {
-                                CloseAtLimit(position, ui.Price, ui.Volume);
-                            }
-                            else
-                            {
-                                CloseAtLimit(position, ui.Price, position.OpenVolume);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (position.Direction == Side.Sell)
-                        {
-                            SellAtLimitToPosition(position, ui.Price, ui.Volume);
-                        }
-                        else
-                        {
-                            if (position.OpenVolume > ui.Volume)
-                            {
-                                CloseAtLimit(position, ui.Price, ui.Volume);
-                            }
-                            else
-                            {
-                                CloseAtLimit(position, ui.Price, position.OpenVolume);
-                            }
-                        }
-                    }
-                }
-                else if (ui.OpenType == PositionOpenType.Aceberg)
-                {
-                    if (ui.Side == Side.Buy)
-                    {
-                        if (position.Direction == Side.Buy)
-                        {
-                            BuyAtAcebergToPosition(position, ui.Price, ui.Volume, ui.CountAcebertOrder);
-                        }
-                        else
-                        {
-                            if (position.OpenVolume > ui.Volume)
-                            {
-                                CloseAtAceberg(position, ui.Price, ui.Volume, ui.CountAcebertOrder);
-                            }
-                            else
-                            {
-                                CloseAtAceberg(position, ui.Price, position.OpenVolume, ui.CountAcebertOrder);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (position.Direction == Side.Sell)
-                        {
-                            SellAtAcebergToPosition(position, ui.Price, ui.Volume, ui.CountAcebertOrder);
-                        }
-                        else
-                        {
-                            if (position.OpenVolume > ui.Volume)
-                            {
-                                CloseAtAceberg(position, ui.Price, ui.Volume, ui.CountAcebertOrder);
-                            }
-                            else
-                            {
-                                CloseAtAceberg(position, ui.Price, position.OpenVolume, ui.CountAcebertOrder);
-                            }
-                        }
-                    }
-                }
             }
             catch (Exception error)
             {
@@ -1355,20 +1192,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionStopUi ui = new PositionStopUi(position, _connector.BestBid, OsLocalization.Trader.Label107);
-                ui.ShowDialog();
+                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Stop, position);
+                ui.Show();
 
-                if (ui.IsAccept == false)
-                {
-                    return;
-                }
-
-                if (ui.PriceActivate <= 0 || ui.PriceOrder <= 0)
-                {
-                    return;
-                }
-
-                CloseAtStop(position, ui.PriceActivate, ui.PriceOrder);
             }
             catch (Exception error)
             {
@@ -1384,19 +1210,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionStopUi ui = new PositionStopUi(position, _connector.BestBid, OsLocalization.Trader.Label110);
-                ui.ShowDialog();
+                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Profit, position);
+                ui.Show();
 
-                if (ui.IsAccept == false)
-                {
-                    return;
-                }
-                if (ui.PriceActivate <= 0 || ui.PriceOrder <= 0)
-                {
-                    return;
-                }
-
-                CloseAtProfit(position, ui.PriceActivate, ui.PriceOrder);
             }
             catch (Exception error)
             {
@@ -2731,6 +2547,91 @@ namespace OsEngine.OsTrader.Panels.Tab
                         CloseAtMarket(positions[i], positions[i].OpenVolume, signalType);
                     }
                 }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// close the position in Fake mode / 
+        /// закрыть позицию в Фэйк режиме
+        /// </summary>
+        /// <param name="position">position to be closed / позиция которую будем закрывать</param>
+        public void CloseAtFake(Position position, decimal volume, decimal price, DateTime time)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
+                if (volume <= 0 || position.OpenVolume <= 0)
+                {
+                    return;
+                }
+
+                if (position == null)
+                {
+                    return;
+                }
+
+                position.ProfitOrderIsActiv = false;
+                position.StopOrderIsActiv = false;
+
+                for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
+                {
+                    if (position.CloseOrders[i].State == OrderStateType.Activ)
+                    {
+                        _connector.OrderCancel(position.CloseOrders[i]);
+                    }
+                }
+
+                for (int i = 0; position.OpenOrders != null && i < position.OpenOrders.Count; i++)
+                {
+                    if (position.OpenOrders[i].State == OrderStateType.Activ)
+                    {
+                        _connector.OrderCancel(position.OpenOrders[i]);
+                    }
+                }
+
+                if (Securiti == null)
+                {
+                    return;
+                }
+
+                Side sideCloseOrder = Side.Buy;
+
+                if (position.Direction == Side.Buy)
+                {
+                    sideCloseOrder = Side.Sell;
+                }
+
+                price = RoundPrice(price, Securiti, sideCloseOrder);
+
+                if (position.State == PositionStateType.Done &&
+                    position.OpenVolume == 0)
+                {
+                    return;
+                }
+
+                position.State = PositionStateType.Closing;
+
+                Order closeOrder 
+                    = _dealCreator.CreateCloseOrderForDeal(Securiti, position, price, OrderPriceType.Limit, new TimeSpan(1,1,1,1), StartProgram); ;
+
+                closeOrder.SecurityNameCode = Securiti.Name;
+                closeOrder.SecurityClassCode = Securiti.NameClass;
+                closeOrder.PortfolioNumber = Portfolio.Number;
+
+                position.AddNewCloseOrder(closeOrder);
+
+                OrderFakeExecute(closeOrder, time);
+
             }
             catch (Exception error)
             {
@@ -4701,15 +4602,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ShowOpenPositionDialog();
                 }
 
-                if (signalType == SignalType.Modificate)
-                {
-                    if (position == null)
-                    {
-                        return;
-                    }
-                    ShowPositionModificateDialog(position);
-                }
-
                 if (signalType == SignalType.DeletePos)
                 {
                     if (position == null)
@@ -4869,18 +4761,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                 for (int i2 = 0; i2 < newTrades.Count; i2++)
                 {
                     CheckStopOpener(newTrades[i2].Price);
+                }
+            }
+            if (NewTickEvent != null)
+            {
+                for (int i2 = 0; i2 < newTrades.Count; i2++)
+                {
 
-                    if (NewTickEvent != null)
+                    try
                     {
-                        try
-                        {
-                            NewTickEvent(newTrades[i2]);
-                        }
-                        catch (Exception error)
-                        {
-                            SetNewLogMessage(error.ToString(), LogMessageType.Error);
-                        }
-
+                        NewTickEvent(newTrades[i2]);
+                    }
+                    catch (Exception error)
+                    {
+                        SetNewLogMessage(error.ToString(), LogMessageType.Error);
                     }
                 }
             }

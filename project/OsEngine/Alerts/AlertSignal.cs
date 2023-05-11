@@ -93,12 +93,6 @@ namespace OsEngine.Alerts
         ReloadProfit,
 
         /// <summary>
-        /// modify position
-        /// модифицировать позицию
-        /// </summary>
-        Modificate,
-
-        /// <summary>
         /// open new deal
         /// открыть новую сделку
         /// </summary>

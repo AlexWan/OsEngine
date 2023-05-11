@@ -567,7 +567,7 @@ namespace OsEngine.OsTrader
 
             try
             {
-                MenuItem[] items = new MenuItem[6];
+                MenuItem[] items = new MenuItem[5];
 
                 items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
                 items[0].Click += PositionCloseAll_Click;
@@ -575,17 +575,14 @@ namespace OsEngine.OsTrader
                 items[1] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem3 };
                 items[1].Click += PositionCloseForNumber_Click;
 
-                items[2] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem4 };
-                items[2].Click += PositionModificationForNumber_Click;
+                items[2] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
+                items[2].Click += PositionNewStop_Click;
 
-                items[3] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
-                items[3].Click += PositionNewStop_Click;
+                items[3] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
+                items[3].Click += PositionNewProfit_Click;
 
-                items[4] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
-                items[4].Click += PositionNewProfit_Click;
-
-                items[5] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
-                items[5].Click += PositionClearDelete_Click;
+                items[4] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
+                items[4].Click += PositionClearDelete_Click;
 
                 ContextMenu menu = new ContextMenu(items);
 
@@ -651,40 +648,6 @@ namespace OsEngine.OsTrader
                 if (UserSelectActionEvent != null)
                 {
                     UserSelectActionEvent(GetPositionForNumber(number), SignalType.CloseOne);
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// the user has ordered a position modification
-        /// пользователь заказал модификацию позиции
-        /// </summary>
-        void PositionModificationForNumber_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                int number;
-                try
-                {
-                    if(_gridOpenPoses.CurrentCell == null)
-                    {
-                        return;
-                    }
-                    number = Convert.ToInt32(_gridOpenPoses.Rows[_gridOpenPoses.CurrentCell.RowIndex].Cells[0].Value);
-                }
-                catch (Exception)
-                {
-                    return;
-                }
-
-
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.Modificate);
                 }
             }
             catch (Exception error)

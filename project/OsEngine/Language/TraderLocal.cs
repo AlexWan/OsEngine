@@ -875,7 +875,50 @@ namespace OsEngine.Language
 
         public string Label216 => OsLocalization.ConvertToLocString(
            "Eng:Do you want to recall selected order?_" +
-           "Ru:Вы хотите отозвать выбранную заявку?_"); 
+           "Ru:Вы хотите отозвать выбранную заявку?_");
 
+        public string Label217 => OsLocalization.ConvertToLocString(
+           "Eng:Close at limit_" +
+           "Ru:Закрыть лимит ордером_");
+
+        public string Label218 => OsLocalization.ConvertToLocString(
+           "Eng:Close at market_" +
+           "Ru:Закрыть маркет ордером_");
+
+        public string Label219 => OsLocalization.ConvertToLocString(
+           "Eng:Close at stop_" +
+           "Ru:Выставить стоп ордер_");
+
+        public string Label220 => OsLocalization.ConvertToLocString(
+           "Eng:Close at profit_" +
+           "Ru:Выставить профит ордер_");
+
+        public string Label221 => OsLocalization.ConvertToLocString(
+           "Eng:Close at fake_" +
+           "Ru:Закрыть фэйк ордером_");
+
+        public string Label222 => OsLocalization.ConvertToLocString(
+           "Eng:Profit_" +
+           "Ru:Профит_");
+
+        public string Label223 => OsLocalization.ConvertToLocString(
+          "Eng:Volume_" +
+          "Ru:Объём_");
+
+        public string Label224 => OsLocalization.ConvertToLocString(
+          "Eng:State_" +
+          "Ru:Статус_");
+
+        public string Label225 => OsLocalization.ConvertToLocString(
+          "Eng:Number_" +
+          "Ru:Номер_");
+
+        public string Label226 => OsLocalization.ConvertToLocString(
+          "Eng:Close position window_" +
+          "Ru:Окно закрытия позиции_");
+
+        public string Label227 => OsLocalization.ConvertToLocString(
+          "Eng:The position already has an order to close in the market. Shall I continue?_" +
+          "Ru:У позиции уже есть ордер на закрытие в рынке. Продолжить?_");
     }
 }

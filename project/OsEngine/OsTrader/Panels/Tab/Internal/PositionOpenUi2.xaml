@@ -51,7 +51,7 @@
 
                     <TextBox x:Name="TextBoxStopLifeTime" HorizontalAlignment="Left" Margin="148,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label x:Name="LabelStopLifeTime" Content="Lifetime candles" HorizontalAlignment="Left" Margin="9,66,0,0" VerticalAlignment="Top"/>
-                    
+
                     <ComboBox x:Name="ComboBoxStopLifetimeType" HorizontalAlignment="Left" Margin="148,38,0,0" VerticalAlignment="Top" Width="199"/>
                     <Label x:Name="LabelStopLifeTimeType" Content="Lifetime Type" HorizontalAlignment="Left" Margin="9,38,0,0" VerticalAlignment="Top"/>
                 </Grid>

@@ -1754,10 +1754,6 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     tabWithPosition.ShowClosePositionDialog(pos);
                 }
-                else if (signal == SignalType.Modificate)
-                {
-                    tabWithPosition.ShowPositionModificateDialog(pos);
-                }
                 else if (signal == SignalType.ReloadStop)
                 {
                     tabWithPosition.ShowStopSendDialog(pos);

@@ -1743,7 +1743,7 @@ namespace OsEngine.Journal.Internal
 
             try
             {
-                MenuItem[] items = new MenuItem[7];
+                MenuItem[] items = new MenuItem[6];
 
                 items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
                 items[0].Click += PositionCloseAll_Click;
@@ -1754,17 +1754,14 @@ namespace OsEngine.Journal.Internal
                 items[2] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem3 };
                 items[2].Click += PositionCloseForNumber_Click;
 
-                items[3] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem4 };
-                items[3].Click += PositionModificationForNumber_Click;
+                items[3] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
+                items[3].Click += PositionNewStop_Click;
 
-                items[4] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
-                items[4].Click += PositionNewStop_Click;
+                items[4] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
+                items[4].Click += PositionNewProfit_Click;
 
-                items[5] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
-                items[5].Click += PositionNewProfit_Click;
-
-                items[6] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
-                items[6].Click += PositionClearDelete_Click;
+                items[5] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
+                items[5].Click += PositionClearDelete_Click;
 
                 ContextMenu menu = new ContextMenu(items);
 
@@ -1835,7 +1832,6 @@ namespace OsEngine.Journal.Internal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
 
         // work with context menu
 
@@ -1918,36 +1914,6 @@ namespace OsEngine.Journal.Internal
                 if (UserSelectActionEvent != null)
                 {
                     UserSelectActionEvent(GetPositionForNumber(number), SignalType.CloseOne);
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// the user has ordered a position modification
-        /// пользователь заказал модификацию позиции
-        /// </summary>
-        void PositionModificationForNumber_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                int number;
-                try
-                {
-                    number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
-                }
-                catch (Exception)
-                {
-                    return;
-                }
-
-
-                if (UserSelectActionEvent != null)
-                {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.Modificate);
                 }
             }
             catch (Exception error)

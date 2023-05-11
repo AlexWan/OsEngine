@@ -37,7 +37,6 @@ namespace OsEngine.Alerts
             ComboBoxSignalType.Items.Add(SignalType.Sell);
             ComboBoxSignalType.Items.Add(SignalType.CloseAll);
             ComboBoxSignalType.Items.Add(SignalType.CloseOne);
-            ComboBoxSignalType.Items.Add(SignalType.Modificate);
             ComboBoxSignalType.Items.Add(SignalType.OpenNew);
             ComboBoxSignalType.Items.Add(SignalType.ReloadProfit);
             ComboBoxSignalType.Items.Add(SignalType.ReloadStop);

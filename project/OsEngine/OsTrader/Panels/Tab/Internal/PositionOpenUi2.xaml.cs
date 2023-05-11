@@ -156,7 +156,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void _marketDepthPainter_UserClickOnMDAndSelectPriceEvent(decimal priceSelectedUser)
         {
-            if(TextBoxLimitPrice.Dispatcher.CheckAccess() == false)
+            if (TextBoxLimitPrice.Dispatcher.CheckAccess() == false)
             {
                 TextBoxLimitPrice.Dispatcher.Invoke(new Action<decimal>(_marketDepthPainter_UserClickOnMDAndSelectPriceEvent), priceSelectedUser);
                 return;
@@ -185,7 +185,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void ButtonBuy_Click(object sender, RoutedEventArgs e)
         {
-            if(TabControlTypePosition.SelectedIndex == 0)
+            if (TabControlTypePosition.SelectedIndex == 0)
             {
                 BuyAtLimit();
             }
@@ -352,7 +352,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            Tab.BuyAtStop(volume, priceOrder, priceActivation, stopActivateType, lifeTime,"userSendBuyAtStopFromUi", lifeTimeType);
+            Tab.BuyAtStop(volume, priceOrder, priceActivation, stopActivateType, lifeTime, "userSendBuyAtStopFromUi", lifeTimeType);
         }
 
         private void SellAtStop()
@@ -391,7 +391,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void SetNowTimeInControlsFakeOpenPos()
         {
-            if(TextBoxFakeOpenTime.Dispatcher.CheckAccess() == false)
+            if (TextBoxFakeOpenTime.Dispatcher.CheckAccess() == false)
             {
                 TextBoxFakeOpenTime.Dispatcher.Invoke(SetNowTimeInControlsFakeOpenPos);
                 return;
@@ -399,7 +399,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             DateTime time = Tab.TimeServerCurrent;
 
-            if(time == DateTime.MinValue)
+            if (time == DateTime.MinValue)
             {
                 time = DateTime.Now;
             }
@@ -420,7 +420,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 price = TextBoxFakePrice.Text.ToDecimal();
                 volume = TextBoxFakeVolume.Text.ToDecimal();
                 timeOpen = DatePickerFakeOpenDate.SelectedDate.Value;
-                string [] openTimeStr = TextBoxFakeOpenTime.Text.ToString().Split(':');
+                string[] openTimeStr = TextBoxFakeOpenTime.Text.ToString().Split(':');
 
                 timeOpen = timeOpen.AddHours(Convert.ToInt32(openTimeStr[0]));
                 timeOpen = timeOpen.AddMinutes(Convert.ToInt32(openTimeStr[1]));

@@ -913,6 +913,9 @@
     <Compile Include="OsTrader\Panels\Tab\BotTabScreenerUi.xaml.cs">
       <DependentUpon>BotTabScreenerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\Tab\Internal\PositionCloseUi2.xaml.cs">
+      <DependentUpon>PositionCloseUi2.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionOpenUi2.xaml.cs">
       <DependentUpon>PositionOpenUi2.xaml</DependentUpon>
     </Compile>
@@ -1025,9 +1028,6 @@
     <Compile Include="OsTrader\Panels\Tab\Internal\AcebergMaker.cs" />
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionCloseUi.xaml.cs">
       <DependentUpon>PositionCloseUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OsTrader\Panels\Tab\Internal\PositionModificateUi.xaml.cs">
-      <DependentUpon>PositionModificateUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionCreator.cs" />
     <Compile Include="OsTrader\RiskManager\RiskManager.cs" />
@@ -1472,6 +1472,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="OsTrader\Panels\Tab\Internal\PositionCloseUi2.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OsTrader\Panels\Tab\Internal\PositionOpenUi2.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1553,10 +1557,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\Tab\Internal\PositionCloseUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\Tab\Internal\PositionModificateUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
