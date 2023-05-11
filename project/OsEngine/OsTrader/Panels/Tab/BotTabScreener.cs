@@ -1582,7 +1582,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// send log message / 
         /// выслать новое сообщение на верх
         /// </summary>
-        private void SendNewLogMessage(string message, LogMessageType type)
+        public void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {
