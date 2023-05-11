@@ -16,7 +16,6 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using System.Threading.Tasks;
-using OkonkwoOandaV20.TradeLibrary.DataTypes.Pricing;
 
 namespace OsEngine.Market.Connectors
 {

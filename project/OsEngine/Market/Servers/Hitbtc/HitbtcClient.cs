@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using OkonkwoOandaV20.TradeLibrary.DataTypes.Order;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using WebSocket4Net;

@@ -15,7 +15,6 @@ using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
-using OkonkwoOandaV20.TradeLibrary.DataTypes.Pricing;
 using OsEngine.Alerts;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Charts.CandleChart.Elements;

@@ -27,7 +27,6 @@ using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.PrimeSettings;
 using Grid = System.Windows.Controls.Grid;
-using OkonkwoOandaV20.TradeLibrary.DataTypes.Pricing;
 using OsEngine.Charts.CandleChart.Indicators;
 
 namespace OsEngine.OsTrader
