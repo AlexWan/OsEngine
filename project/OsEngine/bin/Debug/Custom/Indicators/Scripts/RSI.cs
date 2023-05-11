@@ -94,11 +94,11 @@ namespace CustomIndicators.Scripts
             else if (index > length)
             {
 
-                decimal a = Math.Round(2.0m / (length * 2), 7);
+                decimal a = Math.Round(2.0m / (length * 2), 10);
                 decimal lastValueMoving = moving[index - 1];
-                decimal lastValueSeries = Math.Round(valuesSeries[index], 7);
+                decimal lastValueSeries = Math.Round(valuesSeries[index], 10);
                 decimal nowValueMoving;
-                nowValueMoving = Math.Round(lastValueMoving + a * (lastValueSeries - lastValueMoving), 7);
+                nowValueMoving = Math.Round(lastValueMoving + a * (lastValueSeries - lastValueMoving), 10);
 
                 moving[index] = nowValueMoving;
             }
