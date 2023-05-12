@@ -50,6 +50,7 @@ namespace OsEngine.OsTrader.Panels
                 if (_testerServer != null)
                 {
                     _testerServer.TestingFastEvent += Serv_TestingFastEvent;
+                    _testerServer.TestingEndEvent += _testerServer_TestingEndEvent;
                 }
 
             }
@@ -87,6 +88,12 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
+        private void _testerServer_TestingEndEvent()
+        {
+             StartPaint();
+             _panel.MoveChartToTheRight();
+        }
+
         private void BotPanelChartUi_Closed(object sender, EventArgs e)
         {
             Closed -= BotPanelChartUi_Closed;
@@ -98,6 +105,7 @@ namespace OsEngine.OsTrader.Panels
             if (_testerServer != null)
             {
                 _testerServer.TestingFastEvent -= Serv_TestingFastEvent;
+                _testerServer.TestingEndEvent -= _testerServer_TestingEndEvent;
                 _testerServer = null;
             }
         }
