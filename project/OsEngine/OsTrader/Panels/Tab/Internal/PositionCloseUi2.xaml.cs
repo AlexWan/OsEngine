@@ -4,6 +4,8 @@ using OsEngine.Layout;
 using OsEngine.Market;
 using System;
 using System.Windows;
+using System.Threading.Tasks;
+using System.Windows.Data;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -38,6 +40,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             LabelOpenVolume.Content = OsLocalization.Trader.Label223 + ":";
             LabelPosState.Content = OsLocalization.Trader.Label224 + ":";
             LabelPosNumber.Content = OsLocalization.Trader.Label225 + ":";
+            LabelOpenSide.Content = OsLocalization.Trader.Label228 + ":";
 
             LabelLimitPrice.Content = OsLocalization.Trader.Label205;
             LabelStopPrice.Content = OsLocalization.Trader.Label205;
@@ -53,8 +56,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TabItemFake.Header = OsLocalization.Trader.Label203;
             TabItemProfit.Header = OsLocalization.Trader.Label222;
 
-            LabelFakeOpenDate.Content = OsLocalization.Trader.Label209;
-            LabelFakeOpenTime.Content = OsLocalization.Trader.Label210;
+            LabelFakeOpenDate.Content = OsLocalization.Trader.Label229;
+            LabelFakeOpenTime.Content = OsLocalization.Trader.Label230;
             ButtonFakeTimeOpenNow.Content = OsLocalization.Trader.Label211;
 
             ButtonCloseAtLimit.Content = OsLocalization.Trader.Label217;
@@ -90,7 +93,60 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 TabControlTypePosition.SelectedIndex = 4;
             }
+
+            Task.Run(WatcherThreadPlace);
         }
+
+        public void SelectTabIndx(ClosePositionType closePositionType)
+        {
+            if (LabelOpenVolumeValue.Dispatcher.CheckAccess() == false)
+            {
+                LabelOpenVolumeValue.Dispatcher.Invoke(new Action<ClosePositionType>(SelectTabIndx), closePositionType);
+                return;
+            }
+
+            if (closePositionType == ClosePositionType.Limit)
+            {
+                TabControlTypePosition.SelectedIndex = 0;
+            }
+            else if (closePositionType == ClosePositionType.Market)
+            {
+                TabControlTypePosition.SelectedIndex = 1;
+            }
+            else if (closePositionType == ClosePositionType.Stop)
+            {
+                TabControlTypePosition.SelectedIndex = 2;
+            }
+            else if (closePositionType == ClosePositionType.Profit)
+            {
+                TabControlTypePosition.SelectedIndex = 3;
+            }
+            else if (closePositionType == ClosePositionType.Fake)
+            {
+                TabControlTypePosition.SelectedIndex = 4;
+            }
+        }
+
+        private void PositionOpenUi2_Closed(object sender, EventArgs e)
+        {
+            _isDeleted = true;
+
+            Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
+            Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
+            Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+
+            Closed -= PositionOpenUi2_Closed;
+
+            _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
+            _marketDepthPainter.StopPaint();
+            _marketDepthPainter.Delete();
+            _marketDepthPainter = null;
+
+            Tab = null;
+            Position = null;
+        }
+
+        private bool _isDeleted;
 
         private void SetNowTimeInControlsFakeOpenPos()
         {
@@ -136,19 +192,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         public Position Position;
 
-        private void PositionOpenUi2_Closed(object sender, EventArgs e)
-        {
-            Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
-            Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
-
-            _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
-            _marketDepthPainter.StopPaint();
-            _marketDepthPainter.Delete();
-            _marketDepthPainter = null;
-
-            Tab = null;
-        }
-
         private void ActivateMarketDepth()
         {
             _marketDepthPainter = new MarketDepthPainter(Tab.TabName + "OpenPosGui");
@@ -168,6 +211,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TextBoxLimitPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxStopActivationPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxStopPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
+            TextBoxProfitActivationPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
+            TextBoxProfitPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
+
             TextBoxFakePrice.Text = priceSelectedUser.ToStringWithNoEndZero();
         }
 
@@ -205,7 +251,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            if(Position.CloseActiv == true)
+            if (Position.CloseActiv == true)
             {
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label227);
                 ui.ShowDialog();
@@ -257,7 +303,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            Tab.CloseAtStop(Position,priceActivation, priceOrder);
+            Tab.CloseAtStop(Position, priceActivation, priceOrder);
         }
 
         private void ButtonCloseAtProfit_Click(object sender, RoutedEventArgs e)
@@ -312,23 +358,65 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            Tab.CloseAtFake(Position,Position.OpenVolume, price, timeOpen);
+            Tab.CloseAtFake(Position, Position.OpenVolume, price, timeOpen);
 
         }
 
         // поток отвечающий за просмотром статуса позиции
 
+        private async void WatcherThreadPlace()
+        {
+            while (true)
+            {
+                if (_isDeleted)
+                {
+                    return;
+                }
+
+                await Task.Delay(2000);
+
+                RepaintCurPosStatus();
+            }
+        }
+
         private void RepaintCurPosStatus()
         {
-            LabelOpenVolumeValue.Content = Position.OpenVolume.ToStringWithNoEndZero();
-            LabelPosStateValue.Content = Position.State.ToString();
-            LabelPosNumberValue.Content = Position.Number.ToString();
+            try
+            {
+                if (LabelOpenVolumeValue.Dispatcher.CheckAccess() == false)
+                {
+                    LabelOpenVolumeValue.Dispatcher.Invoke(RepaintCurPosStatus);
+                    return;
+                }
 
-            TextBoxProfitActivationPrice.Text = Position.ProfitOrderRedLine.ToStringWithNoEndZero();
-            TextBoxProfitPrice.Text = Position.ProfitOrderPrice.ToStringWithNoEndZero();
 
-            TextBoxStopActivationPrice.Text = Position.StopOrderRedLine.ToStringWithNoEndZero();
-            TextBoxStopPrice.Text = Position.StopOrderPrice.ToStringWithNoEndZero();
+                if (Position == null)
+                {
+                    return;
+                }
+
+                LabelOpenVolumeValue.Content = Position.OpenVolume.ToStringWithNoEndZero();
+                LabelPosStateValue.Content = Position.State.ToString();
+                LabelPosNumberValue.Content = Position.Number.ToString();
+                LabelOpenSideValue.Content = Position.Direction.ToString();
+
+                TextBoxProfitActivationPrice.Text = Position.ProfitOrderRedLine.ToStringWithNoEndZero();
+                TextBoxProfitPrice.Text = Position.ProfitOrderPrice.ToStringWithNoEndZero();
+
+                TextBoxStopActivationPrice.Text = Position.StopOrderRedLine.ToStringWithNoEndZero();
+                TextBoxStopPrice.Text = Position.StopOrderPrice.ToStringWithNoEndZero();
+
+                if (Position.State == PositionStateType.Done)
+                {
+                    _isDeleted = true;
+                    Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
         }
     }
 

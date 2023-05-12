@@ -1164,6 +1164,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        private PositionCloseUi2 _ui;
+
         /// <summary>
         /// show position closing window / 
         /// показать окно закрытия позиции
@@ -1173,9 +1175,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Limit, position);
-                ui.Show();
-
+                if(_ui == null)
+                {
+                    _ui = new PositionCloseUi2(this, ClosePositionType.Limit, position);
+                    _ui.Show();
+                }
+                else
+                {
+                    _ui.SelectTabIndx(ClosePositionType.Limit);
+                    _ui.Activate();
+                }
             }
             catch (Exception error)
             {
@@ -1191,9 +1200,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Stop, position);
-                ui.Show();
-
+                if (_ui == null)
+                {
+                    _ui = new PositionCloseUi2(this, ClosePositionType.Stop, position);
+                    _ui.Show();
+                }
+                else
+                {
+                    _ui.SelectTabIndx(ClosePositionType.Stop);
+                    _ui.Activate();
+                }
             }
             catch (Exception error)
             {
@@ -1209,9 +1225,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Profit, position);
-                ui.Show();
-
+                if (_ui == null)
+                {
+                    _ui = new PositionCloseUi2(this, ClosePositionType.Profit, position);
+                    _ui.Show();
+                }
+                else
+                {
+                    _ui.SelectTabIndx(ClosePositionType.Profit);
+                    _ui.Activate();
+                }
             }
             catch (Exception error)
             {

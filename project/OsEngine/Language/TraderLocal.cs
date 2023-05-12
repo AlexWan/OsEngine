@@ -920,5 +920,17 @@ namespace OsEngine.Language
         public string Label227 => OsLocalization.ConvertToLocString(
           "Eng:The position already has an order to close in the market. Shall I continue?_" +
           "Ru:У позиции уже есть ордер на закрытие в рынке. Продолжить?_");
+
+        public string Label228 => OsLocalization.ConvertToLocString(
+          "Eng:Side_" +
+          "Ru:Сторона_");
+
+        public string Label229 => OsLocalization.ConvertToLocString(
+          "Eng:Close date_" +
+          "Ru:Дата закрытия_");
+
+        public string Label230 => OsLocalization.ConvertToLocString(
+          "Eng:Close time_" +
+          "Ru:Время закрытия_");
     }
 }

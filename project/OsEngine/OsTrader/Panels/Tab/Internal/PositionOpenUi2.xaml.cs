@@ -137,6 +137,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
             Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
             Tab.EmulatorIsOnChangeStateEvent -= Tab_EmulatorIsOnChangeStateEvent;
+            Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+            Closed -= PositionOpenUi2_Closed;
 
             _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
             _marketDepthPainter.StopPaint();

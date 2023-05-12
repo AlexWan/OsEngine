@@ -15,11 +15,13 @@
             <Label Name="LabelTabName" Content="Bot tab:" HorizontalAlignment="Left" Margin="1,86,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelTabNameValue" Content="TabName" HorizontalAlignment="Left" Margin="72,86,0,0" VerticalAlignment="Top" Width="115"/>
             <Label Name="LabelPosNumber" Content="Pos num:" HorizontalAlignment="Left" Margin="1,112,0,0" VerticalAlignment="Top"/>
-            <Label x:Name="LabelPosNumberValue" Content="Number" HorizontalAlignment="Left" Margin="72,112,0,0" VerticalAlignment="Top" Width="115"/>
-            <Label x:Name="LabelPosState" Content="Pos state:" HorizontalAlignment="Left" Margin="1,140,0,0" VerticalAlignment="Top"/>
-            <Label x:Name="LabelPosStateValue" Content="Open" HorizontalAlignment="Left" Margin="72,140,0,0" VerticalAlignment="Top" Width="115"/>
-            <Label x:Name="LabelOpenVolume" Content="Volume:" HorizontalAlignment="Left" Margin="1,168,0,0" VerticalAlignment="Top"/>
-            <Label x:Name="LabelOpenVolumeValue" Content="1.3" HorizontalAlignment="Left" Margin="72,168,0,0" VerticalAlignment="Top" Width="115"/>
+            <Label Name="LabelPosNumberValue" Content="Number" HorizontalAlignment="Left" Margin="72,112,0,0" VerticalAlignment="Top" Width="115"/>
+            <Label Name="LabelPosState" Content="Pos state:" HorizontalAlignment="Left" Margin="1,140,0,0" VerticalAlignment="Top"/>
+            <Label Name="LabelPosStateValue" Content="Open" HorizontalAlignment="Left" Margin="72,140,0,0" VerticalAlignment="Top" Width="115"/>
+            <Label Name="LabelOpenVolume" Content="Volume:" HorizontalAlignment="Left" Margin="1,196,0,0" VerticalAlignment="Top"/>
+            <Label Name="LabelOpenVolumeValue" Content="1.3" HorizontalAlignment="Left" Margin="72,196,0,0" VerticalAlignment="Top" Width="115"/>
+            <Label Name="LabelOpenSide" Content="Side:" HorizontalAlignment="Left" Margin="1,168,0,0" VerticalAlignment="Top"/>
+            <Label Name="LabelOpenSideValue" Content="Buy" HorizontalAlignment="Left" Margin="72,168,0,0" VerticalAlignment="Top" Width="115"/>
 
         </Grid>
         <TabControl Name="TabControlTypePosition" Margin="0,0,0,2" Height="212" VerticalAlignment="Bottom">
