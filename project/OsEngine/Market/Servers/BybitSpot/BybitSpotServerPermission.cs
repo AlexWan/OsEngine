@@ -17,31 +17,31 @@ namespace OsEngine.Market.Servers.BybitSpot
 
         public bool DataFeedTf1SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf5SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf10SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf15SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf20SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf30SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf1MinuteCanLoad
         {
@@ -81,11 +81,11 @@ namespace OsEngine.Market.Servers.BybitSpot
         }
         public bool DataFeedTfTickCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         #endregion
@@ -94,7 +94,7 @@ namespace OsEngine.Market.Servers.BybitSpot
 
         public bool MarketOrdersIsSupport
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool IsTradeServer
