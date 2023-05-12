@@ -504,6 +504,8 @@
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\JsonResponse.cs" />
     <Compile Include="Market\Servers\BybitSpot\BybitSpotServer.cs" />
     <Compile Include="Market\Servers\BybitSpot\BybitSpotServerPermission.cs" />
+    <Compile Include="Market\Servers\BybitSpot\Entities\ResponseRestMessage.cs" />
+    <Compile Include="Market\Servers\BybitSpot\Entities\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Bybit\BybitServer.cs" />
     <Compile Include="Market\Servers\Bybit\BybitServerPermission.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\Client.cs" />

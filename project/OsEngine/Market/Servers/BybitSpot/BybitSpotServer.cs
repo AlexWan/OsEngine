@@ -2,6 +2,7 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.BybitSpot.Entities;
 using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Concurrent;
@@ -29,7 +30,7 @@ namespace OsEngine.Market.Servers.BybitSpot
 
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
         {
-            return ((BybitSpotServerRealization)ServerRealization).GetCandleHistory(nameSec, tf);
+            return ((BybitSpotServerRealization)ServerRealization).GetCandleHistory(nameSec, tf, false, DateTime.Now, 0);
         }
     }
 
@@ -114,7 +115,7 @@ namespace OsEngine.Market.Servers.BybitSpot
                 concurrentQueueMessageWebSocket = null;
             }
         }
-        
+
         private void MessageReader()
         {
             while (IsDispose == false)
@@ -207,7 +208,7 @@ namespace OsEngine.Market.Servers.BybitSpot
                 webSocketPublic.Closed -= WebSocketPublic_Closed;
                 webSocketPublic.Error -= WebSocketPublic_Error;
                 webSocketPublic = null;
-                
+
             }
         }
 
@@ -340,10 +341,30 @@ namespace OsEngine.Market.Servers.BybitSpot
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            return null;
+            int countNeedToLoad = GetCountCandlesFromSliceTime(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+            var candeles = GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, true, endTime, countNeedToLoad);
+            return candeles;
         }
 
         #endregion
+
+        private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
+        {
+            if (tf.Hours != 0)
+            {
+                var totalHour = tf.TotalHours;
+                TimeSpan TimeSlice = endTime - startTime;
+
+                return Convert.ToInt32(TimeSlice.TotalHours / totalHour);
+            }
+            else
+            {
+                var totalMinutes = tf.Minutes;
+                TimeSpan TimeSlice = endTime - startTime;
+                return Convert.ToInt32(TimeSlice.TotalMinutes / totalMinutes);
+            }
+        }
+
 
         #region Trade
 
@@ -410,7 +431,7 @@ namespace OsEngine.Market.Servers.BybitSpot
 
         public void CancelAllOrders()
         {
-            
+
         }
 
         public void CancelOrder(Order order)
@@ -458,7 +479,6 @@ namespace OsEngine.Market.Servers.BybitSpot
         }
 
         #endregion
-
         #region TradesEntity
         private void StartUpdatePortfolios()
         {
@@ -550,13 +570,21 @@ namespace OsEngine.Market.Servers.BybitSpot
                 SendLogMessage($"State Code: {responseMessage.StatusCode}", LogMessageType.Error);
             }
         }
-        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
+        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, DateTime timeEnd, int CountToLoad)
         {
             string stringInterval = $"{tf.TotalMinutes}m";
             int CountToLoadCandle = GetCountCandlesToLoad();
 
+
             List<Candle> candles = new List<Candle>();
             DateTime TimeToRequest = DateTime.UtcNow;
+
+            if (IsOsData == true)
+            {
+                CountToLoadCandle = CountToLoad;
+                TimeToRequest = timeEnd;
+            }
+
             do
             {
 
@@ -571,10 +599,10 @@ namespace OsEngine.Market.Servers.BybitSpot
                 rangeCandles = GetQueryCandles(nameSec, stringInterval, limit, TimeToRequest.AddSeconds(10));
 
                 rangeCandles.Reverse();
-                
+
                 candles.AddRange(rangeCandles);
 
-                TimeToRequest = candles[candles.Count -1].TimeStart;
+                TimeToRequest = candles[candles.Count - 1].TimeStart;
 
                 CountToLoadCandle -= limit;
 
@@ -585,6 +613,7 @@ namespace OsEngine.Market.Servers.BybitSpot
         }
 
         #endregion
+
 
         #region Events
 
@@ -890,149 +919,5 @@ namespace OsEngine.Market.Servers.BybitSpot
 
             return 300;
         }
-    }
-
-    public class ResponseRestMessage<T>
-    {
-        public string retCode;
-        public string retMsg;
-        public string time;
-        public T result;
-    }
-    public class ArraySymbols
-    {
-        public List<ResponseSymbol> list;
-    }
-    public class ArrayBars
-    {
-        public List<ResponseBars> list;
-    }
-    public class ArrayPortfolios
-    {
-        public List<ResponsePortfolio> balances;
-    }
-    public class ResponseBars
-    {
-        public string t;
-        public string s;
-        public string sn;
-        public string c;
-        public string h;
-        public string l;
-        public string o;
-        public string v;
-    }
-    public class ResponsePortfolio
-    {
-        public string coin;
-        public string coinId;
-        public string total;
-        public string free;
-        public string locked;
-    }
-    public class ResponseSymbol
-    {
-        public string name;
-        public string alias;
-        public string baseCoin;
-        public string quoteCoin;
-        public string basePrecision;
-        public string quotePrecision;
-        public string minTradeQty;
-        public string minTradeAmt;
-        public string maxTradeQty;
-        public string maxTradeAmt;
-        public string minPricePrecision;
-        public string category;
-        public string showStatus;
-        public string innovation;
-    }
-    public class ResponseServerTime
-    {
-        public string timeSecond;
-        public string timeNano;
-    }
-    public class ResponseWebSocketMessage<T>
-    {
-        public string topic;
-        public long ts;
-        public string type;
-        public T data;
-    }
-    public class SubscribleMessage
-    {
-        public string op;
-        public bool success;
-        public string req_id;
-        public string ret_msg;
-        public string conn_id;
-    }
-    public class ResponseTrade
-    {
-        public string v;
-        public long t;
-        public string p;
-        public string q;
-        public bool m;
-        public string type;
-    }
-    public class ResponseOrderBook
-    {
-        public string s;
-        public string t;
-        public string[,] b;
-        public string[,] a;
-    }
-    public class ResponseMyTrades
-    {
-        public string e;
-        public string E;
-        public string s;
-        public string q;
-        public string t;
-        public string p;
-        public string T;
-        public string o;
-        public string c;
-        public string O;
-        public string a;
-        public string A;
-        public string m;
-        public string S;
-        public string b;
-    }
-    public class ResponseOrder
-    {
-        public string e;
-        public string E;
-        public string s;
-        public string c;
-        public string S;
-        public string o;
-        public string f;
-        public string q;
-        public string p;
-        public string X;
-        public string i;
-        public string M;
-        public string l;
-        public string z;
-        public string L;
-        public string n;
-        public string N;
-        public string u;
-        public string w;
-        public string m;
-        public string O;
-        public string Z;
-        public string A;
-        public string C;
-        public string v;
-        public string d;
-        public string sg;
-        public string st;
-        public string ct;
-        public string so;
-        public string b;
     }
 }
