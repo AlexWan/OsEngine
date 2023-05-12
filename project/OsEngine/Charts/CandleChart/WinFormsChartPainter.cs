@@ -1061,9 +1061,9 @@ namespace OsEngine.Charts.CandleChart
                 if (_lastTimeClear.AddSeconds(5) > DateTime.Now
                     && _startProgram != StartProgram.IsOsOptimizer)
                 {
-                    await Task.Delay(5000);
                     _candlesToPaint = new ConcurrentQueue<List<Candle>>();
                     _indicatorsToPaint = new ConcurrentQueue<IIndicator>();
+                    await Task.Delay(5000);
                 }
                 // checking to see if the candles are here.
                 // проверяем, пришли ли свечи
