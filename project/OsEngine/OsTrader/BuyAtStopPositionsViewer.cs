@@ -337,12 +337,12 @@ namespace OsEngine.OsTrader
 
             while(true)
             {
+                await Task.Delay(3000);
+
                 if (_isDeleted)
                 {
                     return;
                 }
-
-                await Task.Delay(3000);
 
                 List<PositionOpenerToStopLimit> stopLimits = new List<PositionOpenerToStopLimit>();
 
@@ -363,6 +363,10 @@ namespace OsEngine.OsTrader
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
         private void CheckPosition(DataGridView grid, List<PositionOpenerToStopLimit> positions)
         {
+            if (grid == null)
+            {
+                return;
+            }
             if (grid.InvokeRequired)
             {
                 grid.Invoke(new Action<DataGridView, List<PositionOpenerToStopLimit>>(CheckPosition), grid, positions);

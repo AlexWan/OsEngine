@@ -1109,7 +1109,7 @@ namespace OsEngine.Charts.CandleChart
                         _stopLimits.TryDequeue(out positions);
                     }
 
-                    if (positions != null && positions.Count != 0)
+                    if (positions != null)
                     {
                        PaintStopLimits(positions);
                     }

@@ -57,6 +57,11 @@
                         <WindowsFormsHost x:Name="HostOpenPosition" Margin="0,0,0,0" Foreground="Black"/>
                     </Grid>
                 </TabItem>
+                <TabItem Name="TabItemStopLimits" Header="Stop limits" Width="140"  >
+                    <Grid Margin="-5,-5,-5,-5">
+                        <WindowsFormsHost x:Name="HostStopLimits" Foreground="Black" />
+                    </Grid>
+                </TabItem>
                 <TabItem Name="TabItemClosedPos" Header="Closed positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost x:Name="HostClosePosition" Foreground="Black" />

@@ -818,9 +818,20 @@ namespace OsEngine.OsTrader
 
                     for (int i = 0; i < PanelsArray.Count; i++)
                     {
-                        if (_buyAtStopPosViewer != null)
+                        if(PanelsArray[i].TabsSimple != null)
                         {
                             allTabs.AddRange(PanelsArray[i].TabsSimple);
+                        }
+                      
+                        if (PanelsArray[i].TabsScreener != null)
+                        {
+                            for (int i2 = 0; i2 < PanelsArray[i].TabsScreener.Count; i2++)
+                            {
+                                if (PanelsArray[i].TabsScreener[i2].Tabs != null)
+                                {
+                                    allTabs.AddRange(PanelsArray[i].TabsScreener[i2].Tabs);
+                                }
+                            }
                         }
                     }
 

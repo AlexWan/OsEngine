@@ -19,6 +19,7 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Layout;
 using System.IO;
 using OsEngine.OsTrader.Panels.Tab.Internal;
+using OsEngine.Alerts;
 
 namespace OsEngine.OsTrader.Panels
 {
@@ -69,35 +70,42 @@ namespace OsEngine.OsTrader.Panels
             CheckPanels();
 
             GlobalGUILayout.Listen(this, "botPanel_" + panel.NameStrategyUniq);
+
+            _stopLimitsViewer = new BuyAtStopPositionsViewer(HostStopLimits, panel.StartProgram);
+            _stopLimitsViewer.UserSelectActionEvent += _stopLimitsViewer_UserSelectActionEvent;
+            _stopLimitsViewer.LogMessageEvent += SendNewLogMessage;
+
+            UpdateTabsInStopLimitViewer();
+            panel.NewTabCreateEvent += UpdateTabsInStopLimitViewer;
         }
 
-        // для тестирования
-
-        TesterServer _testerServer = null;
-
-        private void Serv_TestingFastEvent()
+        private void UpdateTabsInStopLimitViewer()
         {
-            if (_testerServer.TestingFastIsActivate == true)
-            {
-                _panel.StopPaint();
-            }
-            else if (_testerServer.TestingFastIsActivate == false)
-            {
-                StartPaint();
-                _panel.MoveChartToTheRight();
-            }
-        }
+            List<BotTabSimple> allTabs = new List<BotTabSimple>();
 
-        private void _testerServer_TestingEndEvent()
-        {
-             StartPaint();
-             _panel.MoveChartToTheRight();
+            if (_panel.TabsSimple != null)
+            {
+                allTabs.AddRange(_panel.TabsSimple);
+            }
+            if (_panel.TabsScreener != null)
+            {
+                for (int i = 0; i < _panel.TabsScreener.Count; i++)
+                {
+                    if (_panel.TabsScreener[i].Tabs != null)
+                    {
+                        allTabs.AddRange(_panel.TabsScreener[i].Tabs);
+                    }
+                }
+            }
+
+            _stopLimitsViewer.LoadTabToWatch(allTabs);
         }
 
         private void BotPanelChartUi_Closed(object sender, EventArgs e)
         {
             Closed -= BotPanelChartUi_Closed;
             _panel.StopPaint();
+            _panel.NewTabCreateEvent -= UpdateTabsInStopLimitViewer;
             _panel = null;
             LocationChanged -= RobotUi_LocationChanged;
             TabControlBotsName.SizeChanged -= TabControlBotsName_SizeChanged;
@@ -108,6 +116,91 @@ namespace OsEngine.OsTrader.Panels
                 _testerServer.TestingEndEvent -= _testerServer_TestingEndEvent;
                 _testerServer = null;
             }
+
+            _stopLimitsViewer.UserSelectActionEvent -= _stopLimitsViewer_UserSelectActionEvent;
+            _stopLimitsViewer.LogMessageEvent -= SendNewLogMessage;
+            _stopLimitsViewer.ClearDelete();
+            _stopLimitsViewer = null;
+        }
+
+        // стоп - лимиты
+
+        private void _stopLimitsViewer_UserSelectActionEvent(int limitNum, Alerts.SignalType signal)
+        {
+            try
+            {
+
+                List<BotTabSimple> allTabs = new List<BotTabSimple>();
+
+                if(_panel.TabsSimple != null)
+                {
+                    allTabs.AddRange(_panel.TabsSimple);
+                }
+                if (_panel.TabsScreener != null)
+                {
+                    for(int i = 0;i < _panel.TabsScreener.Count;i++)
+                    {
+                        if (_panel.TabsScreener[i].Tabs != null)
+                        {
+                            allTabs.AddRange(_panel.TabsScreener[i].Tabs);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < allTabs.Count; i++)
+                {
+                    if (signal == SignalType.DeleteAllPoses)
+                    {
+                        allTabs[i].BuyAtStopCancel();
+                        allTabs[i].SellAtStopCancel();
+                    }
+                    else
+                    {
+                        for (int i2 = 0; i2 < allTabs[i]._stopLimitsOrders.Count; i2++)
+                        {
+                            if (allTabs[i]._stopLimitsOrders[i2].Number == limitNum)
+                            {
+                                allTabs[i]._stopLimitsOrders.RemoveAt(i2);
+                                allTabs[i].UpdateStopLimits();
+                                return;
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        // для тестирования
+
+        TesterServer _testerServer = null;
+
+        BuyAtStopPositionsViewer _stopLimitsViewer;
+
+        private void Serv_TestingFastEvent()
+        {
+            if (_testerServer.TestingFastIsActivate == true)
+            {
+                _panel.StopPaint();
+                _stopLimitsViewer.StopPaint();
+            }
+            else if (_testerServer.TestingFastIsActivate == false)
+            {
+                StartPaint();
+                _panel.MoveChartToTheRight();
+                _stopLimitsViewer.StartPaint();
+            }
+        }
+
+        private void _testerServer_TestingEndEvent()
+        {
+             StartPaint();
+             _panel.MoveChartToTheRight();
+             _stopLimitsViewer.StartPaint();
         }
 
         public void StartPaint()
@@ -151,6 +244,7 @@ namespace OsEngine.OsTrader.Panels
             TabItemMarketDepth.Header = OsLocalization.Trader.Label25;
             TabItemAlerts.Header = OsLocalization.Trader.Label26;
             TabItemControl.Header = OsLocalization.Trader.Label27;
+            TabItemStopLimits.Header = OsLocalization.Trader.Label193;
             ButtonBuyFast.Content = OsLocalization.Trader.Label28;
             ButtonSellFast.Content = OsLocalization.Trader.Label29;
             TextBoxVolumeInterText.Text = OsLocalization.Trader.Label30;
@@ -165,8 +259,7 @@ namespace OsEngine.OsTrader.Panels
             ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
             ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
             ButtonRedactTab.Content = OsLocalization.Trader.Label44;
-
-            ButtonMoreOpenPositionDetail.Content = OsLocalization.Trader.Label197;   
+            ButtonMoreOpenPositionDetail.Content = OsLocalization.Trader.Label197;
         }
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
