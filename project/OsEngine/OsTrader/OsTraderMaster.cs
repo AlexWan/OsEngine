@@ -530,8 +530,6 @@ namespace OsEngine.OsTrader
 
                 if (PanelsArray != null)
                 {
-                    List<BotTabSimple> allTabs = new List<BotTabSimple>();
-
                     for (int i = 0; i < PanelsArray.Count; i++)
                     {
                         List<Journal.Journal> journals = PanelsArray[i].GetJournals();
@@ -545,15 +543,31 @@ namespace OsEngine.OsTrader
                                 _globalPositionViewer.SetJournal(journals[i2]);
                             }
                         }
-
-                        if (_buyAtStopPosViewer != null)
-                        {
-                            allTabs.AddRange(PanelsArray[i].TabsSimple);
-                        }
                     }
 
                     if (_buyAtStopPosViewer != null)
                     {
+                        List<BotTabSimple> allTabs = new List<BotTabSimple>();
+
+                        for (int i = 0; i < PanelsArray.Count; i++)
+                        {
+                            if (PanelsArray[i].TabsSimple != null)
+                            {
+                                allTabs.AddRange(PanelsArray[i].TabsSimple);
+                            }
+
+                            if (PanelsArray[i].TabsScreener != null)
+                            {
+                                for(int i2 = 0;i2 < PanelsArray[i].TabsScreener.Count; i2++)
+                                {
+                                    if(PanelsArray[i].TabsScreener[i2].Tabs != null)
+                                    {
+                                        allTabs.AddRange(PanelsArray[i].TabsScreener[i2].Tabs);
+                                    }
+                                }
+                            }
+                        }
+
                         _buyAtStopPosViewer.LoadTabToWatch(allTabs);
                     }
                 }
