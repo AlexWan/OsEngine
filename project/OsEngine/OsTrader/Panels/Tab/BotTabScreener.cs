@@ -936,9 +936,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             CandleEngine bot = new CandleEngine(botName, _startProgram);
+
+            BotTabSimple myTab = Tabs[tabyNum];
+
             // bot.TabCreate(BotTabType.Simple);
             bot.GetTabs().Clear();
-            bot.GetTabs().Add(Tabs[tabyNum]);
+            bot.GetTabs().Add(myTab);
+            bot.TabsSimple[0] = myTab;
 
             bot.ChartClosedEvent += (string nameBot) =>
             {
