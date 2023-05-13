@@ -734,7 +734,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 return _journal.ComissionType;
             }
-            set { _journal.ComissionType = value; }
+            set 
+            { 
+                _journal.ComissionType = value;
+                _connector.ComissionType = value;
+            }
         }
 
         /// <summary>
@@ -751,7 +755,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 return _journal.ComissionValue;
             }
-            set { _journal.ComissionValue = value; }
+            set
+            {
+                _journal.ComissionValue = value;
+                _connector.ComissionValue = value;
+            }
         }
 
         /// <summary>

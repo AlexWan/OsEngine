@@ -17,6 +17,7 @@ using OsEngine.Robots.Engines;
 using OsEngine.Language;
 using OsEngine.Alerts;
 using OsEngine.Market.Connectors;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -350,7 +351,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         Tabs.Add(newTab);
                         SubscribleOnTab(newTab);
-                        //UpdateTabSettings(Tabs[Tabs.Count - 1]);
+                        UpdateTabSettings(Tabs[Tabs.Count - 1]);
                         PaintNewRow();
 
                         if (NewTabCreateEvent != null)
@@ -717,6 +718,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
             }
 
+            for(int i = 0;Tabs != null && i < Tabs.Count;i++)
+            {
+                UpdateTabSettings(Tabs[i]);
+            }
+
             SaveTabs();
 
             NeadToReloadTabs = false;
@@ -742,6 +748,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.ReversCandlesPunktsMinMove = ReversCandlesPunktsMinMove;
             tab.Connector.ReversCandlesPunktsBackMove = ReversCandlesPunktsBackMove;
             tab.Connector.SaveTradesInCandles = SaveTradesInCandles;
+            tab.Connector.ComissionType = ComissionType;
+            tab.Connector.ComissionValue = ComissionValue;
             tab.ComissionType = ComissionType;
             tab.ComissionValue = ComissionValue;
         }
@@ -775,6 +783,24 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.SecurityName = sec.SecurityName;
             newTab.Connector.SecurityClass = sec.SecurityClass;
             newTab.TimeFrameBuilder.TimeFrame = frame;
+            newTab.Connector.PortfolioName = PortfolioName;
+            newTab.Connector.ServerType = ServerType;
+            newTab.Connector.EmulatorIsOn = EmulatorIsOn;
+            newTab.Connector.CandleMarketDataType = CandleMarketDataType;
+            newTab.Connector.CandleCreateMethodType = CandleCreateMethodType;
+            newTab.Connector.SetForeign = SetForeign;
+            newTab.Connector.CountTradeInCandle = CountTradeInCandle;
+            newTab.Connector.VolumeToCloseCandleInVolumeType = VolumeToCloseCandleInVolumeType;
+            newTab.Connector.RencoPunktsToCloseCandleInRencoType = RencoPunktsToCloseCandleInRencoType;
+            newTab.Connector.RencoIsBuildShadows = RencoIsBuildShadows;
+            newTab.Connector.DeltaPeriods = DeltaPeriods;
+            newTab.Connector.RangeCandlesPunkts = RangeCandlesPunkts;
+            newTab.Connector.ReversCandlesPunktsMinMove = ReversCandlesPunktsMinMove;
+            newTab.Connector.ReversCandlesPunktsBackMove = ReversCandlesPunktsBackMove;
+            newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
+            newTab.ComissionType = ComissionType;
+            newTab.ComissionValue = ComissionValue;
+
             curTabs.Add(newTab);
 
             SubscribleOnTab(newTab);
@@ -939,10 +965,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             BotTabSimple myTab = Tabs[tabyNum];
 
-            // bot.TabCreate(BotTabType.Simple);
+             //bot.TabCreate(BotTabType.Simple);
             bot.GetTabs().Clear();
             bot.GetTabs().Add(myTab);
             bot.TabsSimple[0] = myTab;
+            bot.ActivTab = myTab;
 
             bot.ChartClosedEvent += (string nameBot) =>
             {
