@@ -148,6 +148,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
             _wsSource.MessageEvent += WsSourceOnMessageEvent;
             _wsSource.Start();
 
+            _lastTimeUpdateSocket = DateTime.Now;
             ServerStatus = ServerConnectStatus.Connect;
         }
 
@@ -228,7 +229,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
                     continue;
                 }
 
-                if (_lastTimeUpdateSocket.AddSeconds(60) < DateTime.Now)
+                if (_lastTimeUpdateSocket.AddSeconds(120) < DateTime.Now)
                 {
                     SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
                     Dispose();
