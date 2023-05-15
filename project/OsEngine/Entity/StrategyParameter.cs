@@ -31,7 +31,7 @@ namespace OsEngine.Entity
         void LoadParamFromString(string[] save);
 
         /// <summary>
-        /// parameter type
+        /// Parameter type
         /// </summary>
         StrategyParameterType Type { get; }
 
@@ -78,7 +78,9 @@ namespace OsEngine.Entity
             Color = color;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Uniq parameter name
+        /// </summary>
         public string Name { get { return _name; } }
 
         private string _name;
@@ -108,16 +110,24 @@ namespace OsEngine.Entity
         /// </summary>
         public System.Drawing.Color Color;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Parameter type
+        /// </summary>
         public StrategyParameterType Type { get { return StrategyParameterType.Label; } }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
         public string TabName { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
         public event Action ValueChange;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Get formatted string to save to file
+        /// </summary>
         public string GetStringToSave()
         {
             string save = _name + "#";
@@ -131,7 +141,10 @@ namespace OsEngine.Entity
             return save;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
             try
@@ -191,7 +204,9 @@ namespace OsEngine.Entity
 
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Uniq parameter name
+        /// </summary>
         public string Name
         {
             get { return _name; }
@@ -199,13 +214,17 @@ namespace OsEngine.Entity
 
         private string _name;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
         public string TabName
         {
             get; set;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Get formatted string to save to file
+        /// </summary>
         public string GetStringToSave()
         {
             string save = _name + "#";
@@ -219,7 +238,10 @@ namespace OsEngine.Entity
             return save;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
             _valueInt = Convert.ToInt32(save[1]);
@@ -238,7 +260,9 @@ namespace OsEngine.Entity
 
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Parameter type
+        /// </summary>
         public StrategyParameterType Type
         {
             get { return StrategyParameterType.Int; }
@@ -321,7 +345,9 @@ namespace OsEngine.Entity
 
         private int _valueIntStep;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
         public event Action ValueChange;
     }
 
@@ -367,7 +393,9 @@ namespace OsEngine.Entity
 
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Get formatted string to save to file
+        /// </summary>
         public string GetStringToSave()
         {
             string save = _name + "#";
@@ -380,7 +408,10 @@ namespace OsEngine.Entity
             return save;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
             _valueDecimal = save[1].ToDecimal();
@@ -398,7 +429,9 @@ namespace OsEngine.Entity
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Uniq parameter name
+        /// </summary>
         public string Name
         {
             get { return _name; }
@@ -406,13 +439,17 @@ namespace OsEngine.Entity
 
         private string _name;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
         public string TabName
         {
             get; set;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Parameter type
+        /// </summary>
         public StrategyParameterType Type
         {
             get { return _type; }
@@ -497,7 +534,9 @@ namespace OsEngine.Entity
 
         private decimal _valueDecimalStep;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
         public event Action ValueChange;
     }
 
@@ -534,13 +573,17 @@ namespace OsEngine.Entity
 
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
         public string TabName
         {
             get; set;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Get formatted string to save to file
+        /// </summary>
         public string GetStringToSave()
         {
             string save = _name + "#";
@@ -550,7 +593,10 @@ namespace OsEngine.Entity
             return save;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
             _name = save[0];
@@ -566,7 +612,9 @@ namespace OsEngine.Entity
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Uniq parameter name
+        /// </summary>
         public string Name
         {
             get { return _name; }
@@ -574,7 +622,9 @@ namespace OsEngine.Entity
 
         private string _name;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Parameter type
+        /// </summary>
         public StrategyParameterType Type
         {
             get { return _type; }
@@ -620,7 +670,9 @@ namespace OsEngine.Entity
 
         private bool _valueBoolDefolt;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
         public event Action ValueChange;
     }
 
@@ -700,7 +752,9 @@ namespace OsEngine.Entity
 
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Get formatted string to save to file
+        /// </summary>
         public string GetStringToSave()
         {
             string save = _name + "#";
@@ -714,7 +768,10 @@ namespace OsEngine.Entity
             return save;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
             _valueString = save[1];
@@ -732,7 +789,9 @@ namespace OsEngine.Entity
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Uniq parameter name
+        /// </summary>
         public string Name
         {
             get { return _name; }
@@ -740,14 +799,18 @@ namespace OsEngine.Entity
 
         private string _name;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
         public string TabName
         {
             get; set;
         }
 
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Parameter type
+        /// </summary>
         public StrategyParameterType Type
         {
             get { return _type; }
@@ -797,7 +860,9 @@ namespace OsEngine.Entity
 
         private List<string> _setStringValues;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
         public event Action ValueChange;
     }
 
@@ -833,7 +898,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Parameter name. Used to identify a parameter in the settings windows
+        /// Uniq parameter name
         /// </summary>
         public string Name
         {
@@ -842,7 +907,9 @@ namespace OsEngine.Entity
 
         private string _name;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
         public string TabName { get; set; }
 
         /// <summary>
@@ -851,7 +918,7 @@ namespace OsEngine.Entity
         public TimeOfDay Value;
 
         /// <summary>
-        /// To take a line to save
+        /// Get formatted string to save to file
         /// </summary>
         public string GetStringToSave()
         {
@@ -861,7 +928,10 @@ namespace OsEngine.Entity
             return save;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
             if (Value.LoadFromString(save[1]) &&
@@ -871,7 +941,9 @@ namespace OsEngine.Entity
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Parameter type
+        /// </summary>
         public StrategyParameterType Type
         {
             get { return _type; }
@@ -879,7 +951,9 @@ namespace OsEngine.Entity
 
         private StrategyParameterType _type;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
         public event Action ValueChange;
 
         /// <summary>
@@ -1061,7 +1135,9 @@ namespace OsEngine.Entity
             TabName = tabName;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
         public string TabName { get; set; }
 
         /// <summary>
@@ -1072,7 +1148,9 @@ namespace OsEngine.Entity
 
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Get formatted string to save to file
+        /// </summary>
         public string GetStringToSave()
         {
             string save = _name + "#";
@@ -1080,12 +1158,17 @@ namespace OsEngine.Entity
             return save;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Uniq parameter name
+        /// </summary>
         public string Name
         {
             get { return _name; }
@@ -1093,7 +1176,9 @@ namespace OsEngine.Entity
 
         private string _name;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Parameter type
+        /// </summary>
         public StrategyParameterType Type
         {
             get { return _type; }
@@ -1101,7 +1186,9 @@ namespace OsEngine.Entity
 
         private StrategyParameterType _type;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
         public event Action ValueChange;
 
         /// <summary>
@@ -1152,7 +1239,9 @@ namespace OsEngine.Entity
             TabName = tabName;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
         public string TabName { get; set; }
 
         /// <summary>
@@ -1163,7 +1252,9 @@ namespace OsEngine.Entity
 
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Get formatted string to save to file
+        /// </summary>
         public string GetStringToSave()
         {
             string save = _name + "#";
@@ -1180,7 +1271,10 @@ namespace OsEngine.Entity
             return save;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
             _name = save[0];
@@ -1202,7 +1296,9 @@ namespace OsEngine.Entity
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Uniq parameter name
+        /// </summary>
         public string Name
         {
             get { return _name; }
@@ -1235,7 +1331,9 @@ namespace OsEngine.Entity
 
         private CheckState _checkState;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Parameter type
+        /// </summary>
         public StrategyParameterType Type
         {
             get { return _type; }
@@ -1243,7 +1341,9 @@ namespace OsEngine.Entity
 
         private StrategyParameterType _type;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
         public event Action ValueChange;
     }
 
