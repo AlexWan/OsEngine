@@ -10,15 +10,12 @@ using OsEngine.Market;
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
     /// <summary>
-    /// create position / 
-    /// создатель сделок
+    /// Create position
     /// </summary>
     public class PositionCreator
     {
-
         /// <summary>
-        /// create position / 
-        /// создать сделку
+        /// Create position
         /// </summary>
         public Position CreatePosition(string botName, Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
             Security security, Portfolio portfolio, StartProgram startProgram)
@@ -27,8 +24,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             newDeal.Number = NumberGen.GetNumberDeal(startProgram);
             
-
-           
             newDeal.Direction = direction;
             newDeal.State = PositionStateType.Opening;
 
@@ -48,8 +43,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         private int _ordersNumInOptimizer = 1;
 
         /// <summary>
-        /// create order / 
-        /// создать ордер
+        /// Create order
         /// </summary>
         public Order CreateOrder(Security security,
             Side direction, decimal priceOrder, decimal volume, 
@@ -73,8 +67,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// create closing order / 
-        /// создать закрывающий ордер
+        /// Create closing order
         /// </summary>
         public Order CreateCloseOrderForDeal(Security security, Position deal, decimal price, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
         {
@@ -110,6 +103,5 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             return newOrder;
         }
-
     }
 }

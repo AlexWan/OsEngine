@@ -15,25 +15,22 @@ namespace OsEngine.OsTrader.RiskManager
 {
     /// <summary>
     /// Risk Manager
-    /// Риск Мэнеджер
     /// </summary>
     public class RiskManager
     {
-        // static part with work flow / статическая часть с работой потока
+        // static part with work flow 
 
         public static Task Watcher;
 
         /// <summary>
-        /// risk managers who need to be serviced
-        /// риск менеджеры которые нужно обслуживать
+        /// Risk managers who need to be serviced
         /// </summary>
         public static List<RiskManager> RiskManagersToCheck = new List<RiskManager>();
 
         private static object _activatorLocker = new object();
 
         /// <summary>
-        /// activate flow
-        /// активировать поток
+        /// Activate flow
         /// </summary>
         public static void Activate()
         {
@@ -49,8 +46,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// place of work thread
-        /// место работы потока
+        /// Place of work thread
         /// </summary>
         public static async void WatcherHome()
         {
@@ -87,14 +83,13 @@ namespace OsEngine.OsTrader.RiskManager
             }
         }
 
-        // service / сервис
+        // service
 
         /// <summary>
-        /// constructor
-        /// конструктор
+        /// Constructor
         /// </summary>
-        /// <param name="nameBot">uid / имя робота</param>
-        /// <param name="startProgram">the program that launched the class / программа которая запустила класс</param>
+        /// <param name="nameBot">uid</param>
+        /// <param name="startProgram">the program that launched the class</param>
         public RiskManager(string nameBot, StartProgram startProgram)
         {
             _startProgram = startProgram;
@@ -114,37 +109,32 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// the program that launched the class
-        /// какая программа запустила класс
+        /// The program that launched the class
         /// </summary>
         private StartProgram _startProgram;
 
         /// <summary>
-        /// name / имя 
+        /// Name
         /// </summary>
         private string _name;
 
         /// <summary>
-        /// maximum drawdown per day
-        /// максимальная просадка на день
+        /// Maximum drawdown per day
         /// </summary>
         public decimal MaxDrowDownToDayPersent;
 
         /// <summary>
-        /// type of reaction
-        /// тип реакции
+        /// Type of reaction
         /// </summary>
         public RiskManagerReactionType ReactionType;
 
         /// <summary>
-        /// is the manager included
-        /// включен ли менеджер
+        /// Is the manager included
         /// </summary>
         public bool IsActiv;
 
         /// <summary>
-        /// clear previously loaded jorunals
-        /// очистить от ранее загруженых журналов
+        /// Clear previously loaded jorunals
         /// </summary>
         public void ClearJournals()
         {
@@ -152,8 +142,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// load in Risk Manager
-        /// подгрузить в Риск Менеджер журнал
+        /// Load in Risk Manager
         /// </summary>
         public void SetNewJournal(Journal.Journal newJournal)
         {
@@ -172,14 +161,12 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// risk manager journals
-        /// журналы риск менеджера
+        /// Risk manager journals
         /// </summary>
         private List<Journal.Journal> _journals;
 
         /// <summary>
-        /// save
-        /// сохранить
+        /// Save
         /// </summary>
         private void Load()
         {
@@ -205,8 +192,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// load
-        /// загрузить
+        /// Load
         /// </summary>
         public void Save()
         {
@@ -228,8 +214,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// delete
-        /// удалить
+        /// Delete
         /// </summary>
         public void Delete()
         {
@@ -256,8 +241,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// show
-        /// показать
+        /// Show
         /// </summary>
         public void ShowDialog()
         {
@@ -273,8 +257,7 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// method in which we review logs for excess of allowable losses
-        /// метод, в котором мы просматриваем журналы на превышение допустимых  норм убытков
+        /// Method in which we review logs for excess of allowable losses
         /// </summary>
         private void CheckJournals()
         {
@@ -321,11 +304,10 @@ namespace OsEngine.OsTrader.RiskManager
             }
         }
 
-        // logging / сообщения в лог 
+        // logging
 
         /// <summary>
-        /// send new message
-        /// выслать новое сообщение
+        /// Send new message
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -340,40 +322,34 @@ namespace OsEngine.OsTrader.RiskManager
         }
 
         /// <summary>
-        /// outgoing message for log
-        /// исходящее сообщение для лога
+        /// Outgoing message for log
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         /// <summary>
-        /// send excess loss alert
-        /// выслать оповещение о превышении убытков
+        /// Send excess loss alert
         /// </summary>
         public event Action<RiskManagerReactionType> RiskManagerAlarmEvent;
 
     }
 
     /// <summary>
-    /// manager's risk response reaction to too much loss
-    /// реакция риск менеджера на слишком большой убыток
+    /// Manager's risk response reaction to too much loss
     /// </summary>
     public enum RiskManagerReactionType
     {
         /// <summary>
-        /// pop up a window
-        /// выдать всплывающее окно
+        /// Pop up a window
         /// </summary>
         ShowDialog,
 
         /// <summary>
-        /// close all positions and disable the robot
-        /// закрыть все позиции и отключить робота
+        /// Close all positions and disable the robot
         /// </summary>
         CloseAndOff,
 
         /// <summary>
-        /// none
-        /// никакой
+        /// None
         /// </summary>
         None
     }
