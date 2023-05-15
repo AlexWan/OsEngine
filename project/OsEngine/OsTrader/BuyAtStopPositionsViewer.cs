@@ -155,7 +155,7 @@ namespace OsEngine.OsTrader
             return null;
         }
 
-        #region прорисовка дважды нажатого ордера
+        #region drawing a double-clicked order
 
         private void _gridOpenPoses_DoubleClick(object sender, EventArgs e)
         {
@@ -227,7 +227,7 @@ namespace OsEngine.OsTrader
 
         #endregion
 
-        #region клики по таблице
+        #region clicks on the table
 
         private void _grid_Click(object sender, EventArgs e)
         {
@@ -323,7 +323,7 @@ namespace OsEngine.OsTrader
 
         #endregion
 
-        // прорисовка
+        // drawing
 
         bool _isDeleted;
 
@@ -484,11 +484,10 @@ positionOpener.LifeTimeType
             return null;
         }
 
-        // messages in log / сообщения в лог 
+        // messages in log
 
         /// <summary>
-        /// send a new message to the top
-        /// выслать новое сообщение на верх
+        /// Send a new message to the top
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -503,10 +502,8 @@ positionOpener.LifeTimeType
         }
 
         /// <summary>
-        /// outgoing message for log
-        /// исходящее сообщение для лога
+        /// Outgoing message for log
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
-
     }
 }
