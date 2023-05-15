@@ -3,31 +3,29 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Windows.Forms.Integration;
-using System.Windows.Shapes;
 using OsEngine.Charts.ClusterChart;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
-using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms.Integration;
+using System.Windows.Shapes;
+using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
     /// <summary>
-    /// tab creating and drawing cluster graph /
-    /// вкладка создающая и прорисовывающая кластерный график
+    /// Tab creating and drawing cluster graph
     /// </summary>
     public class BotTabCluster : IIBotTab
     {
         /// <summary>
-        /// constructor /
-        /// конструктор
+        /// Constructor
         /// </summary>
-        /// <param name="name">bot name / имя робота</param>
-        /// <param name="startProgram">class creating program / программа создающая класс</param>
+        /// <param name="name">bot name</param>
+        /// <param name="startProgram">class creating program</param>
         public BotTabCluster(string name, StartProgram startProgram)
         {
             TabName = name;
@@ -165,7 +163,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// включена ли подача событий на верх или нет
+        /// Whether the submission of events to the top is enabled or not
         /// </summary>
         public bool EventsIsOn
         {
@@ -186,11 +184,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private bool _eventsIsOn = true;
 
+        /// <summary>
+        /// Save settings to a file
+        /// </summary>
         private void Save()
         {
             try
             {
-
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ClusterOnOffSet.txt", false))
                 {
                     writer.WriteLine(EventsIsOn);
@@ -226,29 +226,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// The connector is connected to a new instrument /
-        /// коннектор подключился к новому инструменту
+        /// The connector is connected to a new instrument
         /// </summary>
         private void CandleConnector_SecuritySubscribeEvent(Security newSecurity)
         {
             _horizontalVolume.Security = CandleConnector.Security;
         }
 
-        /// <summary>
-        /// tab name /
-        /// имя вкладки
-        /// </summary>
+        ///<inheritdoc/>
         public string TabName { get; set; }
 
-        /// <summary>
-        /// tab number /
-        /// номер вкладки
-        /// </summary>
+        ///<inheritdoc/>
         public int TabNum { get; set; }
 
         /// <summary>
-        /// line step value / 
-        /// шаг для линий в кластере
+        /// Line step value
         /// </summary>
         public decimal LineStep
         {
@@ -261,8 +253,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// chart type
-        /// тип чарта
+        /// Chart type
         /// </summary>
         public ClusterType ChartType
         {
@@ -274,33 +265,26 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// class creating program / 
-        /// программа создавшая робота
+        /// Class creating program
         /// </summary>
         private StartProgram _startProgram;
 
         /// <summary>
-        /// security
-        /// Инструмент по которому мы строим кластеры
+        /// Security on which we build clusters
         /// </summary>
         public ConnectorCandles CandleConnector;
 
         /// <summary>
-        /// chart /
-        /// чарт
+        /// Chart
         /// </summary>
         private ChartClusterMaster _chartMaster;
 
         /// <summary>
-        /// volumes /
-        /// горизонтальные объёмы
+        /// Horizontal volumes
         /// </summary>
         private HorizontalVolume _horizontalVolume;
 
-        /// <summary>
-        /// delete /
-        /// удалить
-        /// </summary>
+        ///<inheritdoc/>
         public void Delete()
         {
             _chartMaster.Delete();
@@ -308,21 +292,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             CandleConnector.Delete();
         }
 
-        /// <summary>
-        /// clear /
-        /// очистить
-        /// </summary>
+        ///<inheritdoc/>
         public void Clear()
         {
             _horizontalVolume.Clear();
             _chartMaster.Clear();
         }
 
-// control / управление
+// control
 
         /// <summary>
-        /// settings gui
-        /// вызвать окно управления
+        /// Settings gui
         /// </summary>
         public void ShowDialog()
         {
@@ -331,37 +311,32 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        ///  call the window to connect candles /
-        /// вызвать окно подключения свечек
+        /// Call the window to connect candles
         /// </summary>
         public void ShowCandlesDialog()
         {
             CandleConnector.ShowDialog(false);
         }
-       
-        /// <summary>
-        /// stop drawing / 
-        /// остановить прорисовку
-        /// </summary>
+
+        ///<inheritdoc/>
         public void StopPaint()
         {
             _chartMaster.StopPaint();
         }
 
         /// <summary>
-        /// start drawing this robot / 
-        /// начать прорисовку этого робота
+        /// Start drawing this robot
         /// </summary> 
         public void StartPaint(WindowsFormsHost host, Rectangle rectangle)
         {
             _chartMaster.StartPaint(host, rectangle);
         }
 
+        ///<inheritdoc/>
         public DateTime LastTimeCandleUpdate { get; set; }
 
         /// <summary>
-        /// the last candle has changed / 
-        /// изменилась последняя свеча
+        /// The last candle has changed
         /// </summary>
         private void Tab_LastCandlesChangeEvent(List<Candle> candles)
         {
@@ -370,11 +345,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.Process(_horizontalVolume);
         }
 
-// data request / запрос данных
+// data request
 
         /// <summary>
-        /// volume columns
-        /// колонки объёмов
+        /// Volume columns
         /// </summary>
         public List<HorizontalVolumeCluster> VolumeClusters
         {
@@ -382,8 +356,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// volume column with the maximum volume of all transactions / 
-        /// столбец объёма с максимальным объёмом всех сделок
+        /// Volume column with the maximum volume of all transactions
         /// </summary>
         public HorizontalVolumeCluster MaxSummVolumeCluster
         {
@@ -391,8 +364,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// volume column with the minimum volume of all transactions / 
-        /// столбец объёма с минимальным объёмом всех сделок
+        /// Volume column with the minimum volume of all transactions
         /// </summary>
         public HorizontalVolumeCluster MinSummVolumeCluster
         {
@@ -400,8 +372,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// volume column with the maximum amount of buy /
-        /// столбец объёма с максимальным объёмом покупок
+        /// Volume column with the maximum amount of buy
         /// </summary>
         public HorizontalVolumeCluster MaxBuyVolumeCluster
         {
@@ -409,8 +380,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// volume column with a minimum amount of buy / 
-        /// столбец объёма с минимальным объёмом покупок
+        /// Volume column with a minimum amount of buy
         /// </summary>
         public HorizontalVolumeCluster MinBuyVolumeCluster
         {
@@ -418,8 +388,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// volume column with maximum sales / 
-        /// столбец объёма с максимальным объёмом продаж
+        /// Volume column with maximum sales
         /// </summary>
         public HorizontalVolumeCluster MaxSellVolumeCluster
         {
@@ -427,8 +396,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// volume column with minimum sales / 
-        /// столбец объёма с минимальным объёмом продаж
+        /// Volume column with minimum sales
         /// </summary>
         public HorizontalVolumeCluster MinSellVolumeCluster
         {
@@ -436,8 +404,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// volume column with the maximum delta volume (purchases minus sales) / 
-        /// столбец объёма с максимальным объёмом по дельте (покупки минус продажи)
+        /// Volume column with the maximum delta volume (purchases minus sales)
         /// </summary>
         public HorizontalVolumeCluster MaxDeltaVolumeCluster
         {
@@ -445,143 +412,123 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// minimum volume delta volume column (purchases minus sales) / 
-        /// столбец объёма с минимальным объёмом по дельте (покупки минус продажи)
+        /// Minimum volume delta volume column (purchases minus sales)
         /// </summary>
         public HorizontalVolumeCluster MinDeltaVolumeCluster
         {
             get { return _horizontalVolume.MinDeltaVolumeCluster; }
         }
 
-// data access methods / методы доступа к данным
+// data access methods
 
         /// <summary>
-        /// find cluster with maximum volume / 
-        /// найти кластер с максимальным объёмом
+        /// Find cluster with maximum volume
         /// </summary>
-        /// <param name="startIndex">start index / стартовый индекс</param>
-        /// <param name="endIndex">end index / конечный индекс</param>
-        /// <param name="typeCluster">type cluster / тип объёма в кластере</param>
+        /// <param name="startIndex">start index</param>
+        /// <param name="endIndex">end index</param>
+        /// <param name="typeCluster">type cluster</param>
         public HorizontalVolumeCluster FindMaxVolumeCluster(int startIndex, int endIndex, ClusterType typeCluster)
         {
             return _horizontalVolume.FindMaxVolumeCluster(startIndex, endIndex, typeCluster);
         }
 
         /// <summary>
-        /// find cluster with minimum volume / 
-        /// найти кластер с минимальный объёмом
+        /// Find cluster with minimum volume
         /// </summary>
-        /// <param name="startIndex">start index / стартовый индекс</param>
-        /// <param name="endIndex">end index / конечный индекс</param>
-        /// <param name="typeCluster">type cluster / тип объёма в кластере</param>
+        /// <param name="startIndex">start index</param>
+        /// <param name="endIndex">end index</param>
+        /// <param name="typeCluster">type cluster</param>
         public HorizontalVolumeCluster FindMinVolumeCluster(int startIndex, int endIndex, ClusterType typeCluster)
         {
             return _horizontalVolume.FindMinVolumeCluster(startIndex, endIndex, typeCluster);
         }
 
-// outgoing events / исходящие события
+// outgoing events
 
         /// <summary>
-        /// the cluster has changed with the maximum total volume / 
-        /// изменился кластер с максимальным суммарным объёмом
+        /// The cluster has changed with the maximum total volume
         /// </summary>
         public event Action<HorizontalVolumeCluster> MaxSummClusterChangeEvent;
 
         /// <summary>
-        /// the cluster with the maximum total amount of buy has changed / 
-        /// изменился кластер с максимальным сумарным объёмом покупок
+        /// The cluster with the maximum total amount of buy has changed
         /// </summary>
         public event Action<HorizontalVolumeCluster> MaxBuyClusterChangeEvent;
 
         /// <summary>
-        /// the cluster with the maximum total sales volume has changed /
-        /// изменился кластер с максимальным сумарным объёмом продаж
+        /// The cluster with the maximum total sales volume has changed
         /// </summary>
         public event Action<HorizontalVolumeCluster> MaxSellClusterChangeEvent;
 
         /// <summary>
-        /// the cluster with the maximum total volume by delta has changed (purchases - sales) / 
-        /// изменился кластер с максимальным сумарным объёмом по дельте (покупки - продажи)
+        /// The cluster with the maximum total volume by delta has changed (purchases - sales)
         /// </summary>
         public event Action<HorizontalVolumeCluster> MaxDeltaClusterChangeEvent;
 
         /// <summary>
-        /// the cluster has changed with the minimum total volume / 
-        /// изменился кластер с минимальным сумарным объёмом
+        /// The cluster has changed with the minimum total volume
         /// </summary>
         public event Action<HorizontalVolumeCluster> MinSummClusterChangeEvent;
 
         /// <summary>
-        /// the cluster has changed with the minimum total amount of buy /
-        /// изменился кластер с минимальным сумарным объёмом покупок
+        /// The cluster has changed with the minimum total amount of buy
         /// </summary>
         public event Action<HorizontalVolumeCluster> MinBuyClusterChangeEvent;
 
         /// <summary>
-        /// the cluster has changed with a minimum total sales volume / 
-        /// изменился кластер с минимальным сумарным объёмом продаж
+        /// The cluster has changed with a minimum total sales volume 
         /// </summary>
         public event Action<HorizontalVolumeCluster> MinSellClusterChangeEvent;
 
         /// <summary>
-        /// the cluster has changed with the minimum total volume by delta (purchases - sales) /
-        /// изменился кластер с минимальным сумарным объёмом по дельте (покупки - продажи)
+        /// The cluster has changed with the minimum total volume by delta (purchases - sales)
         /// </summary>
         public event Action<HorizontalVolumeCluster> MinDeltaClusterChangeEvent;
 
         /// <summary>
-        /// volume line with maximum total volume changed /
-        /// изменилась линия объёма с максимальным сумарным объёмом
+        /// Volume line with maximum total volume changed
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxSummLineChangeEvent;
 
         /// <summary>
-        /// the volume line with the maximum total volume of buy has changed / 
-        /// изменилась линия объёма с максимальным сумарным объёмом покупок
+        /// The volume line with the maximum total volume of buy has changed
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxBuyLineChangeEvent;
 
         /// <summary>
-        /// volume line has changed with the maximum total sales volume / 
-        /// изменилась линия объёма с максимальным сумарным объёмом продаж
+        /// Volume line has changed with the maximum total sales volume
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxSellLineChangeEvent;
 
         /// <summary>
-        /// volume line changed with the maximum total volume of the delta (buy - sale) / 
-        /// изменилась линия объёма с максимальным сумарным объёмом по дельте (покупки - продажи)
+        /// Volume line changed with the maximum total volume of the delta (buy - sale)
         /// </summary>
         public event Action<HorizontalVolumeLine> MaxDeltaLineChangeEvent;
 
         /// <summary>
-        /// the volume line has changed with the minimum total volume / 
-        /// изменилась линия объёма с минимальным сумарным объёмом
+        /// The volume line has changed with the minimum total volume
         /// </summary>
         public event Action<HorizontalVolumeLine> MinSummLineChangeEvent;
 
         /// <summary>
-        /// the volume line was changed by the minimum total amount of buy
-        /// изменилась линия объёма  минимальным сумарным объёмом покупок
+        /// The volume line was changed by the minimum total amount of buy
         /// </summary>
         public event Action<HorizontalVolumeLine> MinBuyLineChangeEvent;
 
         /// <summary>
-        /// the volume line has changed with a minimum total sales volume
-        /// изменилась линия объёма  минимальным сумарным объёмом продаж
+        /// The volume line has changed with a minimum total sales volume
         /// </summary>
         public event Action<HorizontalVolumeLine> MinSellLineChangeEvent;
 
         /// <summary>
-        /// the volume line with the minimum total volume of the delta has changed (purchases - sales) / 
-        /// изменилась линия объёма  минимальным сумарным объёмом по дельте (покупки - продажи)
+        /// The volume line with the minimum total volume of the delta has changed (purchases - sales)
         /// </summary>
         public event Action<HorizontalVolumeLine> MinDeltaLineChangeEvent;
 
-// log / логирование
+// log
 
         /// <summary>
-        /// send new log message / 
-        /// выслать новое сообщение на верх
+        /// Send new log message
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -595,15 +542,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// log message
-        /// сообщение для лога
-        /// </summary>
+        ///<inheritdoc/>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         /// <summary>
-        /// get chart
-        /// взять чарт
+        /// Get chart
         /// </summary>
         public Chart GetChart()
         {
@@ -612,32 +555,27 @@ namespace OsEngine.OsTrader.Panels.Tab
     }
 
     /// <summary>
-    ///  cluster display type / 
-    /// тип отображения кластеров
+    /// Cluster display type
     /// </summary>
     public enum ClusterType
     {
         /// <summary>
-        /// by total volume /
-        /// по суммарному объёму
+        /// By total volume
         /// </summary>
         SummVolume,
 
         /// <summary>
-        /// buy volume /
-        /// по объёму покупок
+        /// Buy volume
         /// </summary>
         BuyVolume,
 
         /// <summary>
-        /// sell volume /
-        /// по объёму продаж
+        /// Sell volume
         /// </summary>
         SellVolume,
 
         /// <summary>
-        /// by delta volume (purchase - sale) / 
-        /// по объёму дельты (покупка - продажи)
+        /// By delta volume (purchase - sale)
         /// </summary>
         DeltaVolume
     }

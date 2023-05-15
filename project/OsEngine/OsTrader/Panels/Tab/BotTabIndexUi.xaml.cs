@@ -9,8 +9,7 @@ using OsEngine.Language;
 using OsEngine.Entity;
 
 namespace OsEngine.OsTrader.Panels.Tab
-{
-    
+{ 
     public partial class BotTabIndexUi
     {
         

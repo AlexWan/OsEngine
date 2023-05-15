@@ -176,9 +176,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// Stop drawing this robot
-        /// </summary>
+        ///<inheritdoc/>
         public void StopPaint()
         {
             try
@@ -194,19 +192,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// Unique robot name
-        /// </summary>
+        ///<inheritdoc/>
         public string TabName { get; set; }
 
-        /// <summary>
-        /// Tab num
-        /// </summary>
+        ///<inheritdoc/>
         public int TabNum { get; set; }
 
-        /// <summary>
-        /// Clear data in the robot
-        /// </summary>
+        ///<inheritdoc/>
         public void Clear()
         {
             try
@@ -241,9 +233,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// Remove the robot and all child structures
-        /// </summary>
+        ///<inheritdoc/>
         public void Delete()
         {
             try
@@ -398,9 +388,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// Outgoing message for log
-        /// </summary>
+        ///<inheritdoc/>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         // indicator management
@@ -4398,6 +4386,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        ///<inheritdoc/>
         public DateTime LastTimeCandleUpdate { get; set; }
 
         /// <summary>
