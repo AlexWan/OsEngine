@@ -26,7 +26,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         #region staticPart
 
         /// <summary>
-        /// активировать прорисовку гридов
+        /// Activate grid drawing
         /// </summary>
         private static void StaticThreadActivation()
         {
@@ -43,21 +43,28 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// вкладки со скринерами
+        /// Screener tabs
         /// </summary>
         private static List<BotTabScreener> _screeners = new List<BotTabScreener>();
 
         private static string _screenersListLocker = "scrLocker";
 
+        /// <summary>
+        /// Add a new tracking tab
+        /// </summary>
+        /// <param name="tab">screener tab</param>
         private static void AddNewTabToWatch(BotTabScreener tab)
         {
             lock(_screenersListLocker)
             {
                 _screeners.Add(tab);
-            }
-            
+            }         
         }
 
+        /// <summary>
+        /// Remove a tab from being followed
+        /// </summary>
+        /// <param name="tab">screener tab</param>
         private static void RemoveTabFromWatch(BotTabScreener tab)
         {
             lock (_screenersListLocker)
@@ -74,17 +81,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// блокиратор многопоточного доступа к активации прорисовки скринеров
+        /// Blocker of multi-threaded access to the activation of the rendering of screeners
         /// </summary>
         private static object _staticThreadLocker = new object();
 
         /// <summary>
-        /// поток прорисовывающий скринеры
+        /// Thread rendering screeners
         /// </summary>
         private static Thread _staticThread;
 
         /// <summary>
-        /// место работы потока прорисовывающего скринеры
+        /// Place of work for the thread that draws screeners
         /// </summary>
         private static void StaticThreadArea()
         {
@@ -116,11 +123,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// прорисовать последние аск, бид, ласт и кол-во позиций
+        /// Draw the last ask, bid, last and number of positions
         /// </summary>
         private static void PaintLastBidAsk(BotTabSimple tab, DataGridView securitiesDataGrid)
         {
-
             if (securitiesDataGrid.InvokeRequired)
             {
                 securitiesDataGrid.Invoke(new Action<BotTabSimple, DataGridView>(PaintLastBidAsk), tab, securitiesDataGrid);
@@ -173,13 +179,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 tab.SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         #endregion
 
-        #region сервис
+        #region service
 
+        /// <summary>
+        /// Tab for portfolio securities
+        /// </summary>
+        /// <param name="name">uniq name</param>
+        /// <param name="startProgram">start program</param>
         public BotTabScreener(string name, StartProgram startProgram)
         {
             TabName = name;
@@ -198,14 +208,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             DeleteEvent += BotTabScreener_DeleteEvent;
         }
 
+        /// <summary>
+        /// Tab delete event handler
+        /// </summary>
         private void BotTabScreener_DeleteEvent()
         {
             RemoveTabFromWatch(this);
         }
 
         /// <summary>
-        /// program that created the robot / 
-        /// программа создавшая робота
+        /// Program that created the robot
         /// </summary>
         public StartProgram StartProgram
         {
@@ -214,29 +226,20 @@ namespace OsEngine.OsTrader.Panels.Tab
         private StartProgram _startProgram;
 
         /// <summary>
-        /// connectors array
-        /// Массив для хранения списка интсрументов
+        /// Storage location for all simple tabs owned by the screener
         /// </summary>
         public List<BotTabSimple> Tabs = new List<BotTabSimple>();
 
-        /// <summary>
-        /// bot name /
-        /// уникальное имя робота.
-        /// </summary>
+        ///<inheritdoc/>
         public string TabName { get; set; }
 
-        /// <summary>
-        /// bot number / 
-        /// номер вкладки
-        /// </summary>
+        ///<inheritdoc/>
         public int TabNum { get; set; }
 
+        ///<inheritdoc/>
         public DateTime LastTimeCandleUpdate { get; set; }
 
-        /// <summary>
-        /// clear / 
-        /// очистить журнал и графики
-        /// </summary>
+        ///<inheritdoc/>
         public void Clear()
         {
             LastTimeCandleUpdate = DateTime.MinValue;
@@ -248,8 +251,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// save / 
-        /// сохранить настройки в файл
+        /// Save settings to a file
         /// </summary>
         private void SaveTabs()
         {
@@ -279,7 +281,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private bool _tabIsLoad = false;
 
         /// <summary>
-        /// включена ли подача событий на верх или нет
+        /// Whether the submission of events to the top is enabled or not
         /// </summary>
         public bool EventsIsOn
         {
@@ -315,14 +317,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         private bool _eventsIsOn = true;
 
         /// <summary>
-        /// load / 
-        /// загрузить настройки из файла
+        /// Load settings from file
         /// </summary>
         public void TryLoadTabs()
         {
             if (!ServerMaster.HasActiveServers())
             {
-                if (ServerType != ServerType.None)  //AVP чтоб срабатывала функция автозапуска сервера
+                if (ServerType != ServerType.None)  //AVP so that the server autostart function works
                 {
                     ServerMaster.SetNeedServer(ServerType); //AVP
                 }
@@ -374,11 +375,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             ReloadIndicatorsOnTabs();
-
         }
 
         /// <summary>
-        /// сохранить настройки
+        /// Save settings
         /// </summary>
         public void SaveSettings()
         {
@@ -422,7 +422,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// загрузить настройки
+        /// Load settings
         /// </summary>
         private void LoadSettings()
         {
@@ -480,10 +480,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// remove tab and all child structures
-        /// удалить робота и все дочерние структуры
-        /// </summary>
+        ///<inheritdoc/>
         public void Delete()
         {
             for (int i = 0; Tabs != null && i < Tabs.Count; i++)
@@ -511,8 +508,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public event Action DeleteEvent;
 
         /// <summary>
-        /// get journal / 
-        /// взять журнал
+        /// Get journal
         /// </summary>
         public List<Journal.Journal> GetJournals()
         {
@@ -536,105 +532,105 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region работа с вкладками
+        #region working with tabs
 
         /// <summary>
-        /// имя портфеля для торговли
+        /// Trade portfolio name
         /// </summary>
         public string PortfolioName;
 
         /// <summary>
-        /// класс бумаг в скринере
+        /// Class of papers in the screener
         /// </summary>
         public string SecuritiesClass;
 
         /// <summary>
-        /// имена бумаг добавленых в подключение
+        /// Names of securities added to the connection
         /// </summary>
         public List<ActivatedSecurity> SecuritiesNames = new List<ActivatedSecurity>();
 
         /// <summary>
-        /// таймфрейм
+        /// Timeframe
         /// </summary>
         public TimeFrame TimeFrame = TimeFrame.Min1;
 
         /// <summary>
-        /// тип сервера
+        /// Server type
         /// </summary>
         public ServerType ServerType;
 
         /// <summary>
-        /// включен ли эмулятор
+        /// Is the emulator enabled
         /// </summary>
         public bool EmulatorIsOn;
 
         /// <summary>
-        /// тип данных для рассчёта свечек в серии свечей
+        /// Data type for calculating candles in a series of candles
         /// </summary>
         public CandleMarketDataType CandleMarketDataType;
 
         /// <summary>
-        /// метод для создания свечек
+        /// Method for creating candles
         /// </summary>
         public CandleCreateMethodType CandleCreateMethodType;
 
         /// <summary>
-        /// нужно ли запрашивать не торговые интервалы
+        /// Whether it is necessary to request non-trading intervals
         /// </summary>
         public bool SetForeign;
 
         /// <summary>
-        /// кол-во трейдов в свече
+        /// Number of trades in a candle
         /// </summary>
         public int CountTradeInCandle;
 
         /// <summary>
-        /// объём для закрытия свечи
+        /// Volume to close the candle
         /// </summary>
         public decimal VolumeToCloseCandleInVolumeType;
 
         /// <summary>
-        /// движение для закрытия свечи в свечах типа Renco
+        /// Movement to close the candle in Renco type candles
         /// </summary>
         public decimal RencoPunktsToCloseCandleInRencoType;
 
         /// <summary>
-        /// сторим ли тени в свечках типа Renco
+        /// Do we build shadows in candles like Renco
         /// </summary>
         public bool RencoIsBuildShadows;
 
         /// <summary>
-        /// период дельты
+        /// Delta period
         /// </summary>
         public decimal DeltaPeriods;
 
         /// <summary>
-        /// пункты для свечек Range
+        /// Candle Items Range
         /// </summary>
         public decimal RangeCandlesPunkts;
 
         /// <summary>
-        /// Минимальный откат для свечек Range
+        /// Minimum Pullback for Range Candles
         /// </summary>
         public decimal ReversCandlesPunktsMinMove;
 
         /// <summary>
-        /// Откат для создания свечи вниз для свечек Range
+        /// Rollback to create candle down for Range candles
         /// </summary>
         public decimal ReversCandlesPunktsBackMove;
 
         /// <summary>
-        /// тип комиссии для позиций
+        /// Commission type for positions
         /// </summary>
         public ComissionType ComissionType;
 
         /// <summary>
-        /// размер комиссии
+        /// Commission amount
         /// </summary>
         public decimal ComissionValue;
 
         /// <summary>
-        /// нужно ли сохранять трейды внутри свечи которой они принадлежат
+        /// Whether it is necessary to save trades inside the candle they belong to
         /// </summary>
         public bool SaveTradesInCandles;
 
@@ -643,7 +639,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public bool NeadToReloadTabs = false;
 
         /// <summary>
-        /// перезагрузить вкладки
+        /// Reload tabs
         /// </summary>
         private void TryReLoadTabs()
         {
@@ -662,7 +658,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            // 1 удаляем не нужные вкладки
+            // 1 remove unwanted tabs
 
             bool deleteSomeTabs = false;
 
@@ -683,14 +679,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 RePaintSecuritiesGrid();
             }
 
-            // 2 обновляем во вкладках данные
+            // 2 update data in tabs
 
             //for (int i = 0; i < Tabs.Count; i++)
             //{
             //    UpdateTabSettings(Tabs[i]);
             //}
 
-            // 3 создаём не достающие вкладки
+            // 3 create missing tabs
             IsLoadTabs = true;
             for (int i = 0; i < SecuritiesNames.Count; i++)
             {
@@ -729,7 +725,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// обновить настройки для вкладок
+        /// Update settings for tabs
         /// </summary>
         private void UpdateTabSettings(BotTabSimple tab)
         {
@@ -755,7 +751,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// попробовать создать вкладку с такими параметрами
+        /// Try creating a tab with these options
         /// </summary>
         private void TryCreateTab(ActivatedSecurity sec, TimeFrame frame, List<BotTabSimple> curTabs)
         {
@@ -807,7 +803,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// проверяем, существует ли вкладка
+        /// Check if the tab exists
         /// </summary>
         private bool TabIsAlive(List<ActivatedSecurity> securities, TimeFrame frame, BotTabSimple tab)
         {
@@ -832,7 +828,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// можно ли сейчас создавать вкладки
+        /// Is it possible to create tabs now
         /// </summary>
         private bool TabsReadyToLoad()
         {
@@ -860,7 +856,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// обновился индикатор внутри вкладки номер один
+        /// Updated indicator inside tab number one
         /// </summary>
         private void BotTabScreener_IndicatorUpdateEvent()
         {
@@ -897,7 +893,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// все позиции по вкладкам
+        /// All tab positions
         /// </summary>
         public List<Position> PositionsOpenAll
         {
@@ -921,12 +917,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region прорисовка и работа с ГУИ
-
+        #region drawing and working with the GUI
 
         /// <summary>
-        /// show GUI
-        /// вызвать окно управления
+        /// Show GUI
         /// </summary>
         public void ShowDialog()
         {
@@ -944,13 +938,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// штуки для вызова отдельных окон по инструментам
+        /// Things to call individual windows by tool
         /// </summary>
         List<CandleEngine> _chartEngines = new List<CandleEngine>();
 
         /// <summary>
-        /// show GUI
-        /// вызвать окно управления
+        /// Show GUI
         /// </summary>
         public void ShowChart(int tabyNum)
         {
@@ -990,8 +983,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// start drawing this robot / 
-        /// начать прорисовку этого робота
+        /// start drawing this robot
         /// </summary> 
         public void StartPaint(WindowsFormsHost host)
         {
@@ -999,10 +991,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             RePaintSecuritiesGrid();
         }
 
-        /// <summary>
-        /// stop drawing this robot / 
-        /// остановить прорисовку этого робота
-        /// </summary>
+        ///<inheritdoc/>
         public void StopPaint()
         {
             if (_host == null)
@@ -1014,21 +1003,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// дата грид скринера
+        /// Grid screener date
         /// </summary>
         public DataGridView SecuritiesDataGrid;
 
         /// <summary>
-        /// хост на котором храниться грид скринера
+        /// Host where the screener grid is stored
         /// </summary>
         WindowsFormsHost _host;
 
         /// <summary>
-        /// создать таблицу для скринера
+        /// Create table for screener
         /// </summary>
         private void CreateSecuritiesGrid()
         {
-            // номер, класс, код инструмента, цены ласт, бид и аск, кол-во позиций, Чарт
+            // number, class, instrument code, last, bid and ask prices, number of positions, Chart
 
             DataGridView newGrid =
                 DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.DisplayedCells);
@@ -1104,7 +1093,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 		private int prevActiveRow;
 
         /// <summary>
-        /// клик по таблице
+        /// Click on table
         /// </summary>
         private void NewGrid_Click(object sender, EventArgs e)
         {
@@ -1112,12 +1101,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (mouse.Button == MouseButtons.Right)
             {
-                // отсылаем к созданию окна настроек
+                // refer to the creation of the settings window
                 CreateGridDialog(mouse);
             }
             if (mouse.Button == MouseButtons.Left)
             {
-                // отсылаем смотреть чарт
+                // send to watch the chart
                 if (SecuritiesDataGrid.SelectedCells == null ||
                     SecuritiesDataGrid.SelectedCells.Count == 0)
                 {
@@ -1136,9 +1125,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 prevActiveRow = tabRow;		
             }
         }
-        
+
         /// <summary>
-        /// перерисовать грид
+        /// Redraw the grid
         /// </summary>
         private void RePaintSecuritiesGrid()
         {
@@ -1166,6 +1155,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Draw a new row
+        /// </summary>
         private void PaintNewRow()
         {
             if (_host == null)
@@ -1179,12 +1171,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count-1], Tabs.Count - 1));
-            
+            SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count-1], Tabs.Count - 1));         
         }
 
         /// <summary>
-        /// взять строку по вкладке для грида
+        /// Take row by tab for grid
         /// </summary>
         private DataGridViewRow GetRowFromTab(BotTabSimple tab, int num)
         {
@@ -1217,7 +1208,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// создать всплывающее окно настроек для грида
+        /// Create settings popup for grid
         /// </summary>
         private void CreateGridDialog(MouseEventArgs mouse)
         {
@@ -1607,11 +1598,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        // log / логирование
+        // log
 
         /// <summary>
-        /// send log message / 
-        /// выслать новое сообщение на верх
+        /// Send log message
         /// </summary>
         public void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -1625,13 +1615,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// сообщение в лог
-        /// </summary>
+        ///<inheritdoc/>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        // внешнее управление позициями
+        // external position management
 
+        /// <summary>
+        /// Close all market positions
+        /// </summary>
         public void CloseAllPositionAtMarket()
         {
             try
@@ -1652,6 +1643,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Get tab by position number
+        /// </summary>
+        /// <param name="positionNum">position number</param>
         public BotTabSimple GetTabWithThisPosition(int positionNum)
         {
             try
@@ -1685,15 +1680,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             return null;
         }
 
-        // исходящие события
+        // outgoing events
 
         /// <summary>
-        /// событие создания новой вкладки 
+        /// New tab creation event
         /// </summary>
         public event Action<BotTabSimple> NewTabCreateEvent;
 
         /// <summary>
-        /// подписаться на события во вкладке
+        /// Subscribe to events in the tab
         /// </summary>
         private void SubscribleOnTab(BotTabSimple tab)
         {
@@ -1816,124 +1811,109 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// last candle finished / 
-        /// завершилась новая свечка
+        /// Last candle finishede
         /// </summary>
         public event Action<List<Candle>,BotTabSimple> CandleFinishedEvent;
 
         /// <summary>
-        /// last candle update /
-        /// обновилась последняя свечка
+        /// Last candle update
         /// </summary>
         public event Action<List<Candle>, BotTabSimple> CandleUpdateEvent;
 
         /// <summary>
-        /// new trades
-        /// пришли новые тики
+        /// New trades
         /// </summary>
         public event Action<Trade, BotTabSimple> NewTickEvent;
 
         /// <summary>
-        /// my new trade event /
-        /// событие моей новой сделки
+        /// My new trade event
         /// </summary>
         public event Action<MyTrade, BotTabSimple> MyTradeEvent;
 
         /// <summary>
-        /// updated order
-        /// обновился ордер
+        /// Updated order
         /// </summary>
         public event Action<Order, BotTabSimple> OrderUpdateEvent;
 
         /// <summary>
-        /// new marketDepth
-        /// пришёл новый стакан
+        /// New marketDepth
         /// </summary>
         public event Action<MarketDepth, BotTabSimple> MarketDepthUpdateEvent;
 
         /// <summary>
-        /// position successfully closed / 
-        /// позиция успешно закрыта
+        /// Position successfully closed
         /// </summary>
         public event Action<Position, BotTabSimple> PositionClosingSuccesEvent;
 
         /// <summary>
-        /// position successfully opened /
-        /// позиция успешно открыта
+        /// Position successfully opened
         /// </summary>
         public event Action<Position, BotTabSimple> PositionOpeningSuccesEvent;
 
         /// <summary>
-        /// open position volume has changed / 
-        /// у позиции изменился открытый объём
+        /// Open position volume has changed
         /// </summary>
         public event Action<Position, BotTabSimple> PositionNetVolumeChangeEvent;
 
         /// <summary>
-        /// opening position failed / 
-        /// открытие позиции не случилось
+        /// Opening position failed
         /// </summary>
         public event Action<Position, BotTabSimple> PositionOpeningFailEvent;
 
         /// <summary>
-        /// position closing failed / 
-        /// закрытие позиции не прошло
+        /// Position closing failed
         /// </summary>
         public event Action<Position, BotTabSimple> PositionClosingFailEvent;
 
         /// <summary>
-        /// a stop order is activated for the position
-        /// по позиции активирован стоп-ордер
+        /// A stop order is activated for the position
         /// </summary>
         public event Action<Position, BotTabSimple> PositionStopActivateEvent;
 
         /// <summary>
-        /// a profit order is activated for the position
-        /// по позиции активирован профит-ордер
+        /// A profit order is activated for the position
         /// </summary>
         public event Action<Position, BotTabSimple> PositionProfitActivateEvent;
 
         /// <summary>
-        /// stop order buy activated
-        /// активирована покупка по стоп-приказу
+        /// Stop order buy activated
         /// </summary>
         public event Action<Position, BotTabSimple> PositionBuyAtStopActivateEvent;
 
         /// <summary>
-        /// stop order sell activated
-        /// активирована продажа по стоп-приказу
+        /// Stop order sell activated
         /// </summary>
         public event Action<Position, BotTabSimple> PositionSellAtStopActivateEvent;
 
     }
 
     /// <summary>
-    /// класс для хранения индикаторов которые должны быть на вкладках
+    /// Class for storing indicators that should be on tabs
     /// </summary>
     public class IndicatorOnTabs
     {
         /// <summary>
-        /// номер индикатора
+        /// Indicator number
         /// </summary>
         public int Num;
 
         /// <summary>
-        /// тип индикатора
+        /// Indicator type
         /// </summary>
         public string Type;
 
         /// <summary>
-        /// название области на чарте
+        /// Area name on the chart
         /// </summary>
         public string NameArea;
 
         /// <summary>
-        /// параметры для индикатора
+        /// Parameters for the indicator
         /// </summary>
         public List<string> Params = new List<string>();
 
         /// <summary>
-        /// взять строку сохранения
+        /// Take the save string
         /// </summary>
         public string GetSaveStr()
         {
@@ -1953,7 +1933,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// настроить класс из строки сохранения
+        /// Set class from save string
         /// </summary>
         public void SetFromStr(string saveStr)
         {

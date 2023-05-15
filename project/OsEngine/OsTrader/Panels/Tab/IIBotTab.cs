@@ -9,43 +9,43 @@ using OsEngine.Logging;
 namespace OsEngine.OsTrader.Panels.Tab
 {
     /// <summary>
-    /// tab interface for robot panel
-    /// интерфейс вкладки для панели робота
+    /// Tab interface for robot panel
     /// </summary>
     public interface IIBotTab
     {
         /// <summary>
-        /// delete / 
-        /// удалить 
+        /// Remove tab and all child structures
         /// </summary>
         void Delete();
 
         /// <summary>
-        /// clear / 
-        /// очистить
+        /// Clear
         /// </summary>
         void Clear();
 
         /// <summary>
-        /// stop drawing tabs / 
-        /// остановить прорисовку вкладки
+        /// Stop drawing this robot
         /// </summary>
         void StopPaint();
 
         /// <summary>
-        /// tab name /
-        /// имя вкладки
+        /// Unique robot name
         /// </summary>
         string TabName { get; set; }
 
         /// <summary>
-        /// tab number / 
-        /// номер вкладки
+        /// Tab number
         /// </summary>
         int TabNum { get; set; }
 
+        /// <summary>
+        /// Time of the last update of the candle
+        /// </summary>
         DateTime LastTimeCandleUpdate { get; set; }
         
+        /// <summary>
+        /// New log message event
+        /// </summary>
         event Action<string, LogMessageType> LogMessageEvent;
     }
 }
