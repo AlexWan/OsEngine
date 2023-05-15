@@ -2,6 +2,74 @@
 
 ![oslogo250](https://cloud.githubusercontent.com/assets/26077466/23395381/5545b688-fd9f-11e6-8db9-c8e8944a8cc2.png)
 
+# Open Source Algo Trading Platform
+
+[Developer site](http://o-s-a.net/)
+
+[Support](https://t.me/osengine_official_support)
+
+## What is OsEngine?
+
+This is a full range of programs required to automate trading on the stock exchange.
+
+![algotasks](https://user-images.githubusercontent.com/26077466/53003898-e9a84a00-3427-11e9-9582-53dd1a18271a.png)
+
+It includes:
+
+The layer for creating robots is similar to the Wealth-Lab script and Ninja Script. It's simple. We do not change it with every release and support backward compatibility.
+
+*Data* - program to download historical data. With the program you can get candles, market depths and trades from a variety of sources.
+
+*Optimizer* - the program to select the optimal parameters for the strategy.
+
+*Tester* - exchange emulator. The program for testing on the history of many strategies at the same time, with a single portfolio. Supports translation of multiple timeframes and multiple instruments at the same time.
+
+*Miner* - the program to search for profitable formations on the chart. Both manual and automatic. Work with Bigdata on your computer. Patterns found with the help of this program can be launched into trading.
+
+*Bot station* -the program to run the robots in the trade.
+
+
+*Available international connections*
+
+1) LMAX
+2) Interactive Brokers
+3) Ninja trader
+
+*Available connections for MOEX*
+
+1) Quik
+2) SmartCom
+3) Transaq
+4) Plaza 2
+5) Asts Bridge
+6) Tinkoff
+
+*Available connections for cryptocurrency exchanges*
+
+1) Binance
+2) Bitmex
+3) Huobi
+4) Bitstamp
+5) Bitfinex
+6) Kraken
+7) AscendEx (BitMax)
+8) ExMo
+9) ZB
+10) Gate IO
+11) HitBtc
+12) ByBit
+13) OKX
+
+*Included with OsEngine is more than 30 built-in robots*
+
+1) Сlassic trend robots like moving average crossing, bill Williams strategy or Jesse Livermore trend strategy.
+
+2) Counter-trend systems on Bollinger bands, balance lines and even some market-making strategies.
+
+3) Arbitrage strategies for trading divergences of correlating instruments, including one-legged arbitrage.
+
+![oslogo250](https://cloud.githubusercontent.com/assets/26077466/23395381/5545b688-fd9f-11e6-8db9-c8e8944a8cc2.png)
+
 ## Что такое OsEngine?
 
 Это полный комплекс программ необходимых для автоматизации торговли на бирже. 
@@ -67,78 +135,3 @@
 Как пользоваться и писать ботов смотрите на канале: https://www.youtube.com/channel/UCLmOUsdFs48mo37hgXmIJTQ/videos
 
 Форум: http://o-s-a.net/forum
-
-
-# Open Source Algo Trading Platform
-
-[Developer site](http://o-s-a.net/eng/)
-
-## What is OsEngine?
-
-This is a full range of programs required to automate trading on the stock exchange.
-
-![algotasks](https://user-images.githubusercontent.com/26077466/53003898-e9a84a00-3427-11e9-9582-53dd1a18271a.png)
-
-It includes:
-
-The layer for creating robots is similar to the Wealth-Lab script and Ninja Script. It's simple. We do not change it with every release and support backward compatibility.
-
-*Data* - program to download historical data. With the program you can get candles, market depths and trades from a variety of sources.
-
-*Optimizer* - the program to select the optimal parameters for the strategy.
-
-*Tester* - exchange emulator. The program for testing on the history of many strategies at the same time, with a single portfolio. Supports translation of multiple timeframes and multiple instruments at the same time.
-
-*Miner* - the program to search for profitable formations on the chart. Both manual and automatic. Work with Bigdata on your computer. Patterns found with the help of this program can be launched into trading.
-
-*Bot station* -the program to run the robots in the trade.
-
-
-*Available international connections*
-
-1) LMAX
-2) Interactive Brokers
-3) Ninja trader
-
-*Available connections for MOEX*
-
-1) Quik
-2) SmartCom
-3) Transaq
-4) Plaza 2
-5) Asts Bridge
-6) Tinkoff
-
-*Available connections for cryptocurrency exchanges*
-
-1) Binance
-2) Bitmex
-3) Huobi
-4) Bitstamp
-5) Bitfinex
-6) Kraken
-7) AscendEx (BitMax)
-8) ExMo
-9) ZB
-10) Gate IO
-11) HitBtc
-12) ByBit
-13) OKX
-
-*Included with OsEngine is more than 30 built-in robots*
-
-1) Сlassic trend robots like moving average crossing, bill Williams strategy or Jesse Livermore trend strategy.
-
-2) Counter-trend systems on Bollinger bands, balance lines and even some market-making strategies.
-
-3) Arbitrage strategies for trading divergences of correlating instruments, including one-legged arbitrage.
-
-Forum http://o-s-a.net/eng/forum
-
-
-
-![oslogo250](https://cloud.githubusercontent.com/assets/26077466/23395381/5545b688-fd9f-11e6-8db9-c8e8944a8cc2.png)
-
-# Open Source Algo Trading Platform
-
-
