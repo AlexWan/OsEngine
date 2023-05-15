@@ -55,10 +55,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="tab">screener tab</param>
         private static void AddNewTabToWatch(BotTabScreener tab)
         {
-            lock(_screenersListLocker)
+            lock (_screenersListLocker)
             {
                 _screeners.Add(tab);
-            }         
+            }
         }
 
         /// <summary>
@@ -160,9 +160,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     decimal bid = tab.PriceBestBid;
 
                     decimal last = 0;
-					
-                    int posCurr = tab.PositionsOpenAll.Count; 
-                    int posTotal = tab.PositionsAll.Count;  
+
+                    int posCurr = tab.PositionsOpenAll.Count;
+                    int posTotal = tab.PositionsAll.Count;
 
                     if (tab.CandlesAll != null && tab.CandlesAll.Count != 0)
                     {
@@ -172,7 +172,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     row.Cells[3].Value = last.ToString();
                     row.Cells[4].Value = bid.ToString();
                     row.Cells[5].Value = ask.ToString();
-					row.Cells[6].Value = posCurr.ToString() + "/" + posTotal.ToString();
+                    row.Cells[6].Value = posCurr.ToString() + "/" + posTotal.ToString();
                 }
             }
             catch (Exception error)
@@ -230,16 +230,24 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<BotTabSimple> Tabs = new List<BotTabSimple>();
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Unique robot name
+        /// </summary>
         public string TabName { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Tab number
+        /// </summary>
         public int TabNum { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Time of the last update of the candle
+        /// </summary>
         public DateTime LastTimeCandleUpdate { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Clear
+        /// </summary>
         public void Clear()
         {
             LastTimeCandleUpdate = DateTime.MinValue;
@@ -291,7 +299,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             set
             {
-                if(_eventsIsOn == value)
+                if (_eventsIsOn == value)
                 {
                     return;
                 }
@@ -480,7 +488,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        //// <summary>
+        /// Remove tab and all child structures
+        /// </summary>
         public void Delete()
         {
             for (int i = 0; Tabs != null && i < Tabs.Count; i++)
@@ -498,8 +508,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
             }
-            
-            if(DeleteEvent != null)
+
+            if (DeleteEvent != null)
             {
                 DeleteEvent();
             }
@@ -643,7 +653,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void TryReLoadTabs()
         {
-            if(NeadToReloadTabs == false)
+            if (NeadToReloadTabs == false)
             {
                 return;
             }
@@ -674,7 +684,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if(deleteSomeTabs)
+            if (deleteSomeTabs)
             {
                 RePaintSecuritiesGrid();
             }
@@ -694,9 +704,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
 
-                if(tabCount != Tabs.Count)
+                if (tabCount != Tabs.Count)
                 {
-                    UpdateTabSettings(Tabs[Tabs.Count-1]);
+                    UpdateTabSettings(Tabs[Tabs.Count - 1]);
                     PaintNewRow();
 
                     if (NewTabCreateEvent != null)
@@ -714,7 +724,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
             }
 
-            for(int i = 0;Tabs != null && i < Tabs.Count;i++)
+            for (int i = 0; Tabs != null && i < Tabs.Count; i++)
             {
                 UpdateTabSettings(Tabs[i]);
             }
@@ -769,7 +779,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             int numerator = 1;
 
-            while(Tabs.Find(t => t.TabName == nameStart) != null)
+            while (Tabs.Find(t => t.TabName == nameStart) != null)
             {
                 nameStart = numerator + " " + TabName;
                 numerator++;
@@ -869,7 +879,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             bool oldIndicatorInArray = false;
 
-            for (int i = 0; Tabs[0].Indicators != null &&i < Tabs[0].Indicators.Count; i++)
+            for (int i = 0; Tabs[0].Indicators != null && i < Tabs[0].Indicators.Count; i++)
             {
                 try
                 {
@@ -883,7 +893,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if(oldIndicatorInArray)
+            if (oldIndicatorInArray)
             {
                 Tabs[0].SetNewLogMessage(OsLocalization.Trader.Label177, LogMessageType.Error);
             }
@@ -901,11 +911,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<Position> positions = new List<Position>();
 
-                for(int i = 0;i < Tabs.Count;i++)
+                for (int i = 0; i < Tabs.Count; i++)
                 {
                     List<Position> curPoses = Tabs[i].PositionsOpenAll;
 
-                    if(curPoses.Count != 0)
+                    if (curPoses.Count != 0)
                     {
                         positions.AddRange(curPoses);
                     }
@@ -958,7 +968,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             BotTabSimple myTab = Tabs[tabyNum];
 
-             //bot.TabCreate(BotTabType.Simple);
+            //bot.TabCreate(BotTabType.Simple);
             bot.GetTabs().Clear();
             bot.GetTabs().Add(myTab);
             bot.TabsSimple[0] = myTab;
@@ -991,7 +1001,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             RePaintSecuritiesGrid();
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Stop drawing this robot
+        /// </summary>
         public void StopPaint()
         {
             if (_host == null)
@@ -1071,7 +1083,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum6);
 
-            DataGridViewColumn colum7 = new DataGridViewColumn();           
+            DataGridViewColumn colum7 = new DataGridViewColumn();
             colum7.CellTemplate = cell0;
             colum7.HeaderText = "Pos. (curr/total)";
             colum7.ReadOnly = true;
@@ -1090,7 +1102,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newGrid.Click += NewGrid_Click;
         }
 
-		private int prevActiveRow;
+        private int prevActiveRow;
 
         /// <summary>
         /// Click on table
@@ -1119,10 +1131,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ShowChart(tabRow);
                 }
-				
+
                 SecuritiesDataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
                 SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-                prevActiveRow = tabRow;		
+                prevActiveRow = tabRow;
             }
         }
 
@@ -1136,7 +1148,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            if(_host.Dispatcher.CheckAccess() == false)
+            if (_host.Dispatcher.CheckAccess() == false)
             {
                 _host.Dispatcher.Invoke(new Action(RePaintSecuritiesGrid));
                 return;
@@ -1171,7 +1183,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count-1], Tabs.Count - 1));         
+            SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count - 1], Tabs.Count - 1));
         }
 
         /// <summary>
@@ -1195,8 +1207,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-			
-			nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
@@ -1303,7 +1315,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(Tabs != null 
+                if (Tabs != null
                     && Tabs.Count != 0)
                 {
                     _indicators = new List<IndicatorOnTabs>();
@@ -1312,7 +1324,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     for (int i = 0; indic != null && i < indic.Count; i++)
                     {
-                        if(indic[i].GetType().BaseType.Name != "Aindicator")
+                        if (indic[i].GetType().BaseType.Name != "Aindicator")
                         {
                             continue;
                         }
@@ -1320,7 +1332,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Aindicator aindicator = (Aindicator)indic[i];
 
                         IndicatorOnTabs indicator = new IndicatorOnTabs();
-                        indicator.Num = i+1;
+                        indicator.Num = i + 1;
 
                         indicator.Type = indic[i].GetType().Name;
                         indicator.NameArea = indic[i].NameArea;
@@ -1334,7 +1346,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                             if (aindicator.Parameters[i2].Type == IndicatorParameterType.Int)
                             {
-                                curParam = ((IndicatorParameterInt)aindicator.Parameters[i2]).ValueInt.ToString() ;
+                                curParam = ((IndicatorParameterInt)aindicator.Parameters[i2]).ValueInt.ToString();
                             }
                             if (aindicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
                             {
@@ -1464,9 +1476,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                  indicatorsFirst.Count == 0)
             { // удаляем все индикаторы во второй вкладке
 
-                for(int i = 0;
-                    second.Indicators != null && 
-                    i < second.Indicators.Count;i++)
+                for (int i = 0;
+                    second.Indicators != null &&
+                    i < second.Indicators.Count; i++)
                 {
                     second.DeleteCandleIndicator(second.Indicators[i]);
                     break;
@@ -1476,10 +1488,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             // удаляем не нужные индикаторы
 
             for (int i = 0;
-                second.Indicators != null 
-                && indicatorsFirst != null 
+                second.Indicators != null
+                && indicatorsFirst != null
                 && indicatorsFirst.Count != 0
-                && i < second.Indicators.Count; 
+                && i < second.Indicators.Count;
                 i++)
             {
                 if (TryRemoveThisIndicator((Aindicator)second.Indicators[i], indicatorsFirst, second))
@@ -1615,7 +1627,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// New log message event
+        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         // external position management
@@ -1673,7 +1687,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 return tabWithPosition;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -1696,7 +1710,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             tab.CandleFinishedEvent += (List<Candle> candles) =>
             {
-                if(CandleFinishedEvent != null && EventsIsOn)
+                if (CandleFinishedEvent != null && EventsIsOn)
                 {
                     CandleFinishedEvent(candles, tab);
                 }
@@ -1813,7 +1827,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Last candle finishede
         /// </summary>
-        public event Action<List<Candle>,BotTabSimple> CandleFinishedEvent;
+        public event Action<List<Candle>, BotTabSimple> CandleFinishedEvent;
 
         /// <summary>
         /// Last candle update

@@ -98,12 +98,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _acebergMaker.NewOrderNeadToExecute += _acebergMaker_NewOrderNeadToExecute;
                 _acebergMaker.NewOrderNeadToCansel += _acebergMaker_NewOrderNeadToCansel;
 
-                if(startProgram == StartProgram.IsOsTrader)
+                if (startProgram == StartProgram.IsOsTrader)
                 {// load the latest orders for robots to the general storage in ServerMaster
 
                     List<Order> oldOrders = _journal.GetLastOrdersToPositions(50);
 
-                    for(int i = 0;i< oldOrders.Count;i++)
+                    for (int i = 0; i < oldOrders.Count; i++)
                     {
                         _connector.LoadOrderInOrderStorage(oldOrders[i]);
                     }
@@ -111,11 +111,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _stopLimitsOrders = new List<PositionOpenerToStopLimit>();
 
-                if(startProgram == StartProgram.IsOsTrader)
+                if (startProgram == StartProgram.IsOsTrader)
                 {
                     List<PositionOpenerToStopLimit> stopLimitsFromJournal = _journal.LoadStopLimits();
 
-                    if(stopLimitsFromJournal != null &&
+                    if (stopLimitsFromJournal != null &&
                         stopLimitsFromJournal.Count > 0)
                     {
                         _stopLimitsOrders = stopLimitsFromJournal;
@@ -176,7 +176,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Stop drawing this robot
+        /// </summary>
         public void StopPaint()
         {
             try
@@ -192,13 +194,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Unique robot name
+        /// </summary>
         public string TabName { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Tab number
+        /// </summary>
         public int TabNum { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Clear
+        /// </summary>
         public void Clear()
         {
             try
@@ -233,7 +241,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Remove tab and all child structures
+        /// </summary>
         public void Delete()
         {
             try
@@ -388,7 +398,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// New log message event
+        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         // indicator management
@@ -574,20 +586,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 List<Position> openPoses = _journal.OpenPositions;
 
-                if(openPoses.Count > 0)
+                if (openPoses.Count > 0)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label192 + this.TabName, LogMessageType.Error);
                     return;
                 }
 
-                if(_connector.EmulatorIsOn == value)
+                if (_connector.EmulatorIsOn == value)
                 {
                     return;
                 }
 
                 _connector.EmulatorIsOn = value;
 
-                if(EmulatorIsOnChangeStateEvent != null)
+                if (EmulatorIsOnChangeStateEvent != null)
                 {
                     EmulatorIsOnChangeStateEvent(value);
                 }
@@ -692,8 +704,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 return _journal.ComissionType;
             }
-            set 
-            { 
+            set
+            {
                 _journal.ComissionType = value;
                 _connector.ComissionType = value;
             }
@@ -837,7 +849,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     List<PositionOnBoard> posesWithMySecurity = new List<PositionOnBoard>();
 
-                    for(int i = 0; positionsOnBoard != null && i < positionsOnBoard.Count;i++)
+                    for (int i = 0; positionsOnBoard != null && i < positionsOnBoard.Count; i++)
                     {
                         if (positionsOnBoard[i] == null)
                         {
@@ -1122,7 +1134,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(_ui == null)
+                if (_ui == null)
                 {
                     _ui = new PositionCloseUi2(this, ClosePositionType.Limit, position);
                     _ui.Show();
@@ -1450,7 +1462,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="expiresBars">life time in candels count</param>
         /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen</param>
         /// <param name="lifeTimeType">order life type</param>
-        public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, 
+        public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine,
             StopActivateType activateType, int expiresBars, string signalType, PositionOpenerToStopLifeTimeType lifeTimeType)
         {
             try
@@ -1792,7 +1804,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 price = RoundPrice(price, Securiti, direction);
 
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume,OrderPriceType.Limit,
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
                     ManualPositionSupport.SecondToOpen, Securiti, Portfolio, StartProgram);
 
                 _journal.SetNewDeal(newDeal);
@@ -2200,7 +2212,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="expiresBars">life time in candels count</param>
         public void SellAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, int expiresBars)
         {
-            SellAtStop(volume, priceLimit, priceRedLine, activateType, expiresBars, "",PositionOpenerToStopLifeTimeType.CandlesCount);
+            SellAtStop(volume, priceLimit, priceRedLine, activateType, expiresBars, "", PositionOpenerToStopLifeTimeType.CandlesCount);
         }
 
         /// <summary>
@@ -2551,8 +2563,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 position.State = PositionStateType.Closing;
 
-                Order closeOrder 
-                    = _dealCreator.CreateCloseOrderForDeal(Securiti, position, price, OrderPriceType.Limit, new TimeSpan(1,1,1,1), StartProgram); ;
+                Order closeOrder
+                    = _dealCreator.CreateCloseOrderForDeal(Securiti, position, price, OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1), StartProgram); ;
 
                 closeOrder.SecurityNameCode = Securiti.Name;
                 closeOrder.SecurityClassCode = Securiti.NameClass;
@@ -2578,7 +2590,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(_connector.IsConnected == false 
+                if (_connector.IsConnected == false
                     || _connector.IsReadyToTrade == false)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
@@ -3063,7 +3075,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 else
                 {
                     _connector.OrderExecute(newOrder);
-                }                
+                }
             }
             catch (Exception error)
             {
@@ -3112,7 +3124,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _journal.SetNewDeal(newDeal);
 
                 _connector.OrderExecute(newDeal.OpenOrders[0]);
-               
+
                 return newDeal;
             }
             catch (Exception error)
@@ -3615,7 +3627,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         // handling alerts and stop maintenance
-        
+
         private object _lockerManualReload = new object();
 
         /// <summary>
@@ -4030,7 +4042,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if(neadSave == true)
+            if (neadSave == true)
             {
                 UpdateStopLimits(); ;
             }
@@ -4081,8 +4093,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                             _stopLimitsOrders.RemoveAt(i);
                             i = -1;
                             if (PositionBuyAtStopActivateEvent != null && pos != null)
-                            { 
-                                PositionBuyAtStopActivateEvent(pos); 
+                            {
+                                PositionBuyAtStopActivateEvent(pos);
                             }
                             neadSave = true;
                             continue;
@@ -4108,8 +4120,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                             i = -1;
 
                             if (PositionSellAtStopActivateEvent != null && pos != null)
-                            { 
-                                PositionSellAtStopActivateEvent(pos); 
+                            {
+                                PositionSellAtStopActivateEvent(pos);
                             }
                             neadSave = true;
                             continue;
@@ -4131,7 +4143,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void UpdateStopLimits()
         {
-            if(StartProgram != StartProgram.IsOsOptimizer)
+            if (StartProgram != StartProgram.IsOsOptimizer)
             {
                 _chartMaster?.SetStopLimits(_stopLimitsOrders);
             }
@@ -4139,11 +4151,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (StartProgram == StartProgram.IsOsTrader)
             {
                 _journal?.SetStopLimits(_stopLimitsOrders);
-            }     
+            }
         }
 
         // icebergs control
-       
+
         /// <summary>
         /// Icebergs master
         /// </summary>
@@ -4386,7 +4398,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Time of the last update of the candle
+        /// </summary>
         public DateTime LastTimeCandleUpdate { get; set; }
 
         /// <summary>

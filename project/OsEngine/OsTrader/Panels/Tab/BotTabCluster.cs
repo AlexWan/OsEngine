@@ -113,12 +113,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             };
             _horizontalVolume.MaxSellLineChangeEvent += delegate (HorizontalVolumeLine line)
+            {
+                if (EventsIsOn)
                 {
-                    if (EventsIsOn)
-                    {
-                        MaxSellLineChangeEvent?.Invoke(line);
-                    }
-                };
+                    MaxSellLineChangeEvent?.Invoke(line);
+                }
+            };
             _horizontalVolume.MaxDeltaLineChangeEvent += delegate (HorizontalVolumeLine line)
             {
                 if (EventsIsOn)
@@ -233,10 +233,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             _horizontalVolume.Security = CandleConnector.Security;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Unique robot name
+        /// </summary>
         public string TabName { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Tab number
+        /// </summary>
         public int TabNum { get; set; }
 
         /// <summary>
@@ -284,7 +288,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private HorizontalVolume _horizontalVolume;
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Remove tab and all child structures
+        /// </summary>
         public void Delete()
         {
             _chartMaster.Delete();
@@ -292,14 +298,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             CandleConnector.Delete();
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Clear
+        /// </summary>
         public void Clear()
         {
             _horizontalVolume.Clear();
             _chartMaster.Clear();
         }
 
-// control
+        // control
 
         /// <summary>
         /// Settings gui
@@ -318,7 +326,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             CandleConnector.ShowDialog(false);
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Stop drawing this robot
+        /// </summary>
         public void StopPaint()
         {
             _chartMaster.StopPaint();
@@ -332,7 +342,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.StartPaint(host, rectangle);
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Time of the last update of the candle
+        /// </summary>
         public DateTime LastTimeCandleUpdate { get; set; }
 
         /// <summary>
@@ -345,7 +357,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.Process(_horizontalVolume);
         }
 
-// data request
+        // data request
 
         /// <summary>
         /// Volume columns
@@ -419,7 +431,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             get { return _horizontalVolume.MinDeltaVolumeCluster; }
         }
 
-// data access methods
+        // data access methods
 
         /// <summary>
         /// Find cluster with maximum volume
@@ -443,7 +455,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             return _horizontalVolume.FindMinVolumeCluster(startIndex, endIndex, typeCluster);
         }
 
-// outgoing events
+        // outgoing events
 
         /// <summary>
         /// The cluster has changed with the maximum total volume
@@ -525,7 +537,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<HorizontalVolumeLine> MinDeltaLineChangeEvent;
 
-// log
+        // log
 
         /// <summary>
         /// Send new log message
@@ -542,7 +554,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// New log message event
+        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         /// <summary>
