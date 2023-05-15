@@ -348,24 +348,6 @@ namespace OsEngine.Market.Servers.BybitSpot
 
         #endregion
 
-        private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
-        {
-            if (tf.Hours != 0)
-            {
-                var totalHour = tf.TotalHours;
-                TimeSpan TimeSlice = endTime - startTime;
-
-                return Convert.ToInt32(TimeSlice.TotalHours / totalHour);
-            }
-            else
-            {
-                var totalMinutes = tf.Minutes;
-                TimeSpan TimeSlice = endTime - startTime;
-                return Convert.ToInt32(TimeSlice.TotalMinutes / totalMinutes);
-            }
-        }
-
-
         #region Trade
 
 
@@ -384,11 +366,12 @@ namespace OsEngine.Market.Servers.BybitSpot
             var orderPlace = new
             {
                 symbol = order.SecurityNameCode,
-                orderPrice = order.Price,
-                side = order.Side.ToString(),
-                orderQty = order.Volume.ToString(),
+                orderPrice = order.Price.ToString().Replace(",", "."),
+                side = order.Side.ToString().ToUpper(),
+                orderQty = order.Volume.ToString().Replace(",", "."),
                 orderType = order.TypeOrder.ToString().ToUpper(),
-                timeInForce = "GTC"
+                timeInForce = "GTC",
+                orderLinkId = order.NumberUser.ToString()
             };
 
             string json = JsonConvert.SerializeObject(orderPlace);
@@ -438,14 +421,14 @@ namespace OsEngine.Market.Servers.BybitSpot
         {
             var orderPlace = new
             {
-                orderLinkId = order.NumberMarket
+                orderId = order.NumberMarket,
             };
 
             string json = JsonConvert.SerializeObject(orderPlace);
             HttpContent httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
 
-            string endpoint = UrlRest + "/spot/v3/private/order";
+            string endpoint = UrlRest + "/spot/v3/private/cancel-order";
             long timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             long recvWindow = 90000000;
 
@@ -479,6 +462,7 @@ namespace OsEngine.Market.Servers.BybitSpot
         }
 
         #endregion
+
         #region TradesEntity
         private void StartUpdatePortfolios()
         {
@@ -614,7 +598,6 @@ namespace OsEngine.Market.Servers.BybitSpot
 
         #endregion
 
-
         #region Events
 
         public event Action<Order> MyOrderEvent;
@@ -741,55 +724,63 @@ namespace OsEngine.Market.Servers.BybitSpot
         }
         private void UpdateMyTrade(string message)
         {
-            ResponseWebSocketMessage<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseMyTrades>());
-            MyTrade myTrade = new MyTrade();
+            ResponseWebSocketMessage<List<ResponseMyTrades>> responseMyTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<ResponseMyTrades>>());
 
-            myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data.t));
-            myTrade.NumberOrderParent = responseMyTrades.data.o;
-            myTrade.NumberTrade = responseMyTrades.data.T.ToString();
-            myTrade.Volume = responseMyTrades.data.q.Replace('.', ',').ToDecimal();
-            myTrade.Price = responseMyTrades.data.p.Replace('.', ',').ToDecimal();
-            myTrade.SecurityNameCode = responseMyTrades.data.s;
-            myTrade.Side = responseMyTrades.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
+            for (int i = 0; i < responseMyTrades.data.Count; i++)
+            {
+                MyTrade myTrade = new MyTrade();
 
-            MyTradeEvent(myTrade);
+                myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].t));
+                myTrade.NumberOrderParent = responseMyTrades.data[i].o;
+                myTrade.NumberTrade = responseMyTrades.data[i].T.ToString();
+                myTrade.Volume = responseMyTrades.data[i].q.Replace('.', ',').ToDecimal();
+                myTrade.Price = responseMyTrades.data[i].p.Replace('.', ',').ToDecimal();
+                myTrade.SecurityNameCode = responseMyTrades.data[i].s;
+                myTrade.Side = responseMyTrades.data[i].S.Equals("BUY") ? Side.Buy : Side.Sell;
+
+                MyTradeEvent(myTrade);
+            }
+            
         }
         private void UpdateOrder(string message)
         {
-            ResponseWebSocketMessage<ResponseOrder> responseMyTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrder>());
+            ResponseWebSocketMessage<List<ResponseOrder>> responseMyTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<ResponseOrder>>());
 
-            OrderStateType stateType = OrderStateType.None;
-
-            stateType = responseMyTrades.data.X switch
+            for (int i = 0; i < responseMyTrades.data.Count; i++)
             {
-                "NEW" => OrderStateType.Activ,
-                "ORDER_NEW" => OrderStateType.Activ,
-                "PARTIALLY_FILLED" => OrderStateType.Patrial,
-                "FILLED" => OrderStateType.Done,
-                "ORDER_FILLED" => OrderStateType.Done,
-                "CANCELED" => OrderStateType.Cancel,
-                "ORDER_CANCELED" => OrderStateType.Cancel,
-                "PARTIALLY_FILLED_CANCELLED" => OrderStateType.Cancel,
-                "REJECTED" => OrderStateType.Fail,
-                "ORDER_REJECTED" => OrderStateType.Fail,
-                "ORDER_FAILED" => OrderStateType.Fail,
-                _ => OrderStateType.None,
-            };
-            Order newOrder = new Order();
-            newOrder.SecurityNameCode = responseMyTrades.data.s;
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data.O));
-            newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data.c);
+                OrderStateType stateType = OrderStateType.None;
 
-            newOrder.NumberMarket = responseMyTrades.data.i;
-            newOrder.Side = responseMyTrades.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
-            newOrder.State = stateType;
-            newOrder.Volume = responseMyTrades.data.q.Replace('.', ',').ToDecimal();
-            newOrder.Price = responseMyTrades.data.p.Replace('.', ',').ToDecimal();
-            newOrder.ServerType = ServerType.BybitSpot;
-            newOrder.PortfolioNumber = "BybitSpot";
+                stateType = responseMyTrades.data[i].X switch
+                {
+                    "NEW" => OrderStateType.Activ,
+                    "ORDER_NEW" => OrderStateType.Activ,
+                    "PARTIALLY_FILLED" => OrderStateType.Patrial,
+                    "FILLED" => OrderStateType.Done,
+                    "ORDER_FILLED" => OrderStateType.Done,
+                    "CANCELED" => OrderStateType.Cancel,
+                    "ORDER_CANCELED" => OrderStateType.Cancel,
+                    "PARTIALLY_FILLED_CANCELLED" => OrderStateType.Cancel,
+                    "REJECTED" => OrderStateType.Fail,
+                    "ORDER_REJECTED" => OrderStateType.Fail,
+                    "ORDER_FAILED" => OrderStateType.Fail,
+                    _ => OrderStateType.None,
+                };
+                Order newOrder = new Order();
+                newOrder.SecurityNameCode = responseMyTrades.data[i].s;
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].O));
+                newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].c);
+
+                newOrder.NumberMarket = responseMyTrades.data[i].i;
+                newOrder.Side = responseMyTrades.data[i].S.Equals("BUY") ? Side.Buy : Side.Sell;
+                newOrder.State = stateType;
+                newOrder.Volume = responseMyTrades.data[i].q.Replace('.', ',').ToDecimal();
+                newOrder.Price = responseMyTrades.data[i].p.Replace('.', ',').ToDecimal();
+                newOrder.ServerType = ServerType.BybitSpot;
+                newOrder.PortfolioNumber = "BybitSpot";
 
 
-            MyOrderEvent(newOrder);
+                MyOrderEvent(newOrder);
+            }
         }
         private void SendLogMessage(string message, LogMessageType type)
         {
@@ -919,5 +910,22 @@ namespace OsEngine.Market.Servers.BybitSpot
 
             return 300;
         }
+        private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
+        {
+            if (tf.Hours != 0)
+            {
+                var totalHour = tf.TotalHours;
+                TimeSpan TimeSlice = endTime - startTime;
+
+                return Convert.ToInt32(TimeSlice.TotalHours / totalHour);
+            }
+            else
+            {
+                var totalMinutes = tf.Minutes;
+                TimeSpan TimeSlice = endTime - startTime;
+                return Convert.ToInt32(TimeSlice.TotalMinutes / totalMinutes);
+            }
+        }
+
     }
 }
