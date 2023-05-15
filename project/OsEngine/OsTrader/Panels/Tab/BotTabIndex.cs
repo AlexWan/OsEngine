@@ -24,8 +24,8 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public class BotTabIndex : IIBotTab
     {
-        public BotTabIndex(string name, StartProgram  startProgram)
-        { 
+        public BotTabIndex(string name, StartProgram startProgram)
+        {
             TabName = name;
             _startProgram = startProgram;
 
@@ -88,11 +88,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
             ui.ShowDialog();
-            
-            if(creator.SecuritiesNames != null &&
+
+            if (creator.SecuritiesNames != null &&
                 creator.SecuritiesNames.Count != 0)
             {
-                for(int i = 0;i < creator.SecuritiesNames.Count;i++)
+                for (int i = 0; i < creator.SecuritiesNames.Count; i++)
                 {
                     TryRunSecurity(creator.SecuritiesNames[i], creator);
                 }
@@ -108,9 +108,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="creator">mass source creator</param>
         private void TryRunSecurity(ActivatedSecurity security, MassSourcesCreator creator)
         {
-            for(int i = 0; i < Tabs.Count;i++)
+            for (int i = 0; i < Tabs.Count; i++)
             {
-                if(Tabs[i].SecurityName == security.SecurityName &&
+                if (Tabs[i].SecurityName == security.SecurityName &&
                     Tabs[i].ServerType == creator.ServerType)
                 {
                     return;
@@ -119,13 +119,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             int num = Tabs.Count;
 
-            while(true)
+            while (true)
             {
                 bool isNotInArray = true;
 
-                for(int i = 0;i < Tabs.Count;i++)
+                for (int i = 0; i < Tabs.Count; i++)
                 {
-                    if(Tabs[i].UniqName == TabName + num)
+                    if (Tabs[i].UniqName == TabName + num)
                     {
                         num++;
                         isNotInArray = false;
@@ -133,13 +133,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if(isNotInArray == true)
+                if (isNotInArray == true)
                 {
                     break;
                 }
             }
 
-            ConnectorCandles connector = new ConnectorCandles(TabName + num, _startProgram,false);
+            ConnectorCandles connector = new ConnectorCandles(TabName + num, _startProgram, false);
             connector.SaveTradesInCandles = false;
 
             connector.ServerType = creator.ServerType;
@@ -161,7 +161,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.ReversCandlesPunktsBackMove = creator.ReversCandlesPunktsBackMove;
             connector.ComissionType = creator.ComissionType;
             connector.ComissionValue = creator.ComissionValue;
-            
+
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
         }
@@ -171,7 +171,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void CreateNewSecurityConnector()
         {
-            ConnectorCandles connector = new ConnectorCandles(TabName + Tabs.Count, _startProgram,false);
+            ConnectorCandles connector = new ConnectorCandles(TabName + Tabs.Count, _startProgram, false);
             connector.SaveTradesInCandles = false;
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
@@ -201,19 +201,27 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.StartPaint(grid, host, rectangle);
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Stop drawing this robot
+        /// </summary>
         public void StopPaint()
         {
             _chartMaster.StopPaint();
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Unique robot name
+        /// </summary>
         public string TabName { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Tab number
+        /// </summary>
         public int TabNum { get; set; }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Clear
+        /// </summary>
         public void Clear()
         {
             _valuesToFormula = new List<ValueSave>();
@@ -227,7 +235,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(_isLoaded)
+                if (_isLoaded)
                 {
                     return;
                 }
@@ -296,11 +304,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     string[] save2 = reader.ReadLine().Split('#');
                     for (int i = 0; i < save2.Length - 1; i++)
                     {
-                        ConnectorCandles newConnector = new ConnectorCandles(save2[i], _startProgram,false);
+                        ConnectorCandles newConnector = new ConnectorCandles(save2[i], _startProgram, false);
                         newConnector.SaveTradesInCandles = false;
-                        
 
-                        if(newConnector.CandleMarketDataType != CandleMarketDataType.MarketDepth)
+
+                        if (newConnector.CandleMarketDataType != CandleMarketDataType.MarketDepth)
                         {
                             newConnector.NeadToLoadServerData = false;
                         }
@@ -311,7 +319,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     UserFormula = reader.ReadLine();
 
-                    if(reader.EndOfStream == false)
+                    if (reader.EndOfStream == false)
                     {
                         _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
                     }
@@ -332,7 +340,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             _isLoaded = false;
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Remove tab and all child structures
+        /// </summary>
         public void Delete()
         {
             _chartMaster.Delete();
@@ -342,7 +352,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
             }
 
-            for(int i = 0; Tabs != null && i < Tabs.Count; i++)
+            for (int i = 0; Tabs != null && i < Tabs.Count; i++)
             {
                 Tabs[i].Delete();
             }
@@ -370,7 +380,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// Time of the last update of the candle
+        /// </summary>
         public DateTime LastTimeCandleUpdate { get; set; }
 
         /// <summary>
@@ -417,7 +429,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Candles = val.ValueCandles;
 
-                    if (Candles.Count > 1 && 
+                    if (Candles.Count > 1 &&
                         Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
                     {
                         try
@@ -463,7 +475,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<List<Candle>> SpreadChangeEvent;
 
-// index calculation
+        // index calculation
 
         /// <summary>
         /// Formula
@@ -536,13 +548,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for (int i = 0; i < formula.Length; i++)
             {
-                if (formula[i] != '/' && formula[i] !=  '*' && formula[i] !=  '+' && formula[i] !=  '-'
+                if (formula[i] != '/' && formula[i] != '*' && formula[i] != '+' && formula[i] != '-'
                     && formula[i] != '(' && formula[i] != ')' && formula[i] != 'A' && formula[i] != '1' && formula[i] != '0'
-                    && formula[i] !=  '2' && formula[i] !=  '3' && formula[i] !=  '4' && formula[i] !=  '5'
-                    && formula[i] !=  '6' && formula[i] !=  '7' && formula[i] !=  '8' && formula[i] !=  '9'
+                    && formula[i] != '2' && formula[i] != '3' && formula[i] != '4' && formula[i] != '5'
+                    && formula[i] != '6' && formula[i] != '7' && formula[i] != '8' && formula[i] != '9'
                     && formula[i] != '.')
                 { // incomprehensible characters
-                    SendNewLogMessage(OsLocalization.Trader.Label76,LogMessageType.Error);
+                    SendNewLogMessage(OsLocalization.Trader.Label76, LogMessageType.Error);
                     return "";
                 }
             }
@@ -563,7 +575,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             // delete this design (A0)
             for (int i = 3; i < formula.Length; i++)
             {
-                if(formula[i - 3] == '(' && formula[i] == ')')
+                if (formula[i - 3] == '(' && formula[i] == ')')
                 {
                     formula = formula.Remove(i, 1);
                     formula = formula.Remove(i - 3, 1);
@@ -815,7 +827,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="sign">sign</param>
         private string Concate(string valOne, string valTwo, string sign)
         {
-            if(string.IsNullOrWhiteSpace(valOne))
+            if (string.IsNullOrWhiteSpace(valOne))
             {
                 return valTwo;
             }
@@ -861,15 +873,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             if (sign == "+")
             {
-                return (valOne+valTwo).ToString();
+                return (valOne + valTwo).ToString();
             }
             else if (sign == "-")
             {
-                return (valOne-valTwo).ToString();
+                return (valOne - valTwo).ToString();
             }
             else if (sign == "*")
             {
-                return (valOne*valTwo).ToString();
+                return (valOne * valTwo).ToString();
             }
             else if (sign == "/")
             {
@@ -877,7 +889,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return "0";
                 }
-                return (valOne/valTwo).ToString();
+                return (valOne / valTwo).ToString();
             }
             return "";
         }
@@ -885,7 +897,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Count arrays of candles
         /// </summary>
-        private string ConcateCandles(string valOne,string valTwo,string sign)
+        private string ConcateCandles(string valOne, string valTwo, string sign)
         {
             // take the first value
             List<Candle> candlesOne = null;
@@ -946,7 +958,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else if (sign == "*")
             {
-              znak = "multiply";
+                znak = "multiply";
             }
             else if (sign == "/")
             {
@@ -958,7 +970,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (exitVal == null)
             {
                 exitVal = new ValueSave();
-                exitVal.Name = "B" +  valOne + znak + valTwo;
+                exitVal.Name = "B" + valOne + znak + valTwo;
                 exitVal.ValueCandles = new List<Candle>();
                 _valuesToFormula.Add(exitVal);
             }
@@ -966,18 +978,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             List<Candle> exitCandles = exitVal.ValueCandles;
 
             if (exitCandles.Count != 0 &&
-                candlesOne[candlesOne.Count-1].TimeStart == candlesTwo[candlesTwo.Count-1].TimeStart &&
-                candlesOne[candlesOne.Count-1].TimeStart == exitCandles[exitCandles.Count-1].TimeStart)
+                candlesOne[candlesOne.Count - 1].TimeStart == candlesTwo[candlesTwo.Count - 1].TimeStart &&
+                candlesOne[candlesOne.Count - 1].TimeStart == exitCandles[exitCandles.Count - 1].TimeStart)
             {
                 // need to update only the last candle
                 exitCandles[exitCandles.Count - 1] = (GetCandle(exitCandles[exitCandles.Count - 1], candlesOne[candlesOne.Count - 1], candlesTwo[candlesTwo.Count - 1], sign));
             }
             else if (exitCandles.Count != 0 &&
-                candlesOne[candlesOne.Count-1].TimeStart == candlesTwo[candlesTwo.Count-1].TimeStart &&
-                candlesOne[candlesOne.Count-2].TimeStart == exitCandles[exitCandles.Count-1].TimeStart)
+                candlesOne[candlesOne.Count - 1].TimeStart == candlesTwo[candlesTwo.Count - 1].TimeStart &&
+                candlesOne[candlesOne.Count - 2].TimeStart == exitCandles[exitCandles.Count - 1].TimeStart)
             {
                 // need to add one candle
-                exitCandles.Add(GetCandle(null, candlesOne[candlesOne.Count - 1], candlesTwo[candlesTwo.Count-1], sign));
+                exitCandles.Add(GetCandle(null, candlesOne[candlesOne.Count - 1], candlesTwo[candlesTwo.Count - 1], sign));
             }
             else
             {
@@ -1064,7 +1076,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
                 candlesOne = Tabs[iOne].Candles(true);
-                if(candlesOne == null)
+                if (candlesOne == null)
                 {
                     return valOne;
                 }
@@ -1142,7 +1154,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (candlesOne[i1].TimeStart <= exitCandles[exitCandles.Count - 1].TimeStart &&
                         indexStartFirst == 0)
                     {
-                        indexStartFirst = i1+1;
+                        indexStartFirst = i1 + 1;
                         break;
                     }
                 }
@@ -1160,7 +1172,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// count number and array
         /// </summary>
-        private string ConcateDecimalAndCandle(string valOne,string valTwo,string sign)
+        private string ConcateDecimalAndCandle(string valOne, string valTwo, string sign)
         {
             // take the first value
             decimal valueOne = Convert.ToDecimal(valOne, new CultureInfo("en-US"));
@@ -1197,7 +1209,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else if (sign == "*")
             {
-              znak = "multiply";
+                znak = "multiply";
             }
             else if (sign == "/")
             {
@@ -1209,7 +1221,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (exitVal == null)
             {
                 exitVal = new ValueSave();
-                exitVal.Name = "B" +  valOne + znak + valTwo;
+                exitVal.Name = "B" + valOne + znak + valTwo;
                 exitVal.ValueCandles = new List<Candle>();
                 _valuesToFormula.Add(exitVal);
             }
@@ -1238,14 +1250,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (candlesTwo[i2].TimeStart <= exitCandles[exitCandles.Count - 1].TimeStart &&
                         indexStartSecond == 0)
                     {
-                        indexStartSecond = i2+1;
+                        indexStartSecond = i2 + 1;
                         break;
                     }
                 }
 
                 for (int i2 = indexStartSecond; i2 < candlesTwo.Count; i2++)
                 {
-                     exitCandles.Add(GetCandle(null, valueOne, candlesTwo[i2], sign));
+                    exitCandles.Add(GetCandle(null, valueOne, candlesTwo[i2], sign));
                 }
                 exitVal.ValueCandles = exitCandles;
             }
@@ -1434,11 +1446,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 oldCandle.Close = c;
             }
 
-            if(oldCandle.Open > oldCandle.High)
+            if (oldCandle.Open > oldCandle.High)
             {
                 oldCandle.Open = oldCandle.High;
             }
-            if(oldCandle.Open < oldCandle.Low)
+            if (oldCandle.Open < oldCandle.Low)
             {
                 oldCandle.Open = oldCandle.Low;
             }
@@ -1481,9 +1493,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         public List<IIndicator> Indicators
         {
             get { return _chartMaster.Indicators; }
-        } 
+        }
 
-// log 
+        // log 
 
         /// <summary>
         /// send log message
@@ -1500,7 +1512,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        ///<inheritdoc/>
+        /// <summary>
+        /// New log message event
+        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         /// <summary>
@@ -1525,6 +1539,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// candles
         /// </summary>
-        public  List<Candle> ValueCandles;
+        public List<Candle> ValueCandles;
     }
 }
