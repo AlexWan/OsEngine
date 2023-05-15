@@ -4,23 +4,23 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market;
+using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 using System;
 using System.Collections.Generic;
 using System.Windows;
-using OsEngine.Language;
-using MessageBox = System.Windows.MessageBox;
-using OsEngine.Market;
-using OsEngine.Market.Connectors;
 using System.Windows.Forms;
 using System.Windows.Input;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
     /// <summary>
-    /// Логика взаимодействия для BotTabScreenerUi.xaml
+    /// Interaction logic for BotTabScreenerUi.xaml
     /// </summary>
     public partial class BotTabScreenerUi : Window
     {
@@ -41,17 +41,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                 List<IServer> servers = ServerMaster.GetServers();
 
                 if (servers == null)
-                {// if connection server to exhange hasn't been created yet / если сервер для подключения к бирже ещё не создан
+                {// if connection server to exhange hasn't been created yet
                     Close();
                     return;
                 }
 
                 // save connectors
-                // сохраняем коннекторы
                 _screener = connectorBot;
 
                 // upload settings to controls
-                // загружаем настройки в контролы
                 for (int i = 0; i < servers.Count; i++)
                 {
                     ComboBoxTypeServer.Items.Add(servers[i].ServerType);
@@ -213,6 +211,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             this.Focus();
         }
 
+        /// <summary>
+        /// Window close handler
+        /// </summary>
         private void BotTabScreenerUi_Closed(object sender, EventArgs e)
         {
             List<IServer> serversAll = ServerMaster.GetServers();
@@ -255,6 +256,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         BotTabScreener _screener;
 
+        /// <summary>
+        /// Is it possible to save trades in a candle
+        /// </summary>
         public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
         {
             if (CheckBoxSaveTradeArrayInCandle.Dispatcher.CheckAccess() == false)
@@ -269,6 +273,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Rollback text change event handler
+        /// </summary>
         private void TextBoxReversCandlesPunktsBackMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
@@ -280,9 +287,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-                if (
-
-                        TextBoxReversCandlesPunktsBackMove.Text.ToDecimal() <= 0)
+                if (TextBoxReversCandlesPunktsBackMove.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
@@ -295,6 +300,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Minimum movement for reverse bars changed
+        /// </summary>
         private void TextBoxReversCandlesPunktsMinMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
@@ -306,13 +314,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-                if (
-                        TextBoxReversCandlesPunktsMinMove.Text.ToDecimal() <= 0)
+                if (TextBoxReversCandlesPunktsMinMove.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
-                _reversCandlesPunktsMinMove =
-                        TextBoxReversCandlesPunktsMinMove.Text.ToDecimal();
+                _reversCandlesPunktsMinMove = TextBoxReversCandlesPunktsMinMove.Text.ToDecimal();
             }
             catch
             {
@@ -320,6 +326,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Punkts for reverse bars changed
+        /// </summary>
         private void TextBoxRangeCandlesPunkts_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
@@ -331,8 +340,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-                if (
-                        TextBoxRangeCandlesPunkts.Text.ToDecimal() <= 0)
+                if (TextBoxRangeCandlesPunkts.Text.ToDecimal() <= 0)
                 {
                     throw new Exception();
                 }
@@ -345,6 +353,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// The method of creating candles has changed
+        /// </summary>
         void ComboBoxCandleCreateMethodType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             ShowDopCandleSettings(); ;
@@ -366,7 +377,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private bool _saveTradesInCandles;
 
-        void TextBoxDeltaPeriods_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        /// <summary>
+        /// The delta period has changed
+        /// </summary>
+        private void TextBoxDeltaPeriods_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
             {
@@ -382,8 +396,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     throw new Exception();
                 }
-                _deltaPeriods =
-                        TextBoxDeltaPeriods.Text.ToDecimal();
+                _deltaPeriods = TextBoxDeltaPeriods.Text.ToDecimal();
             }
             catch
             {
@@ -392,10 +405,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// the number of trades in the candle with timeframe "Trades" has changed
-        /// изменилось кол-во трейдов в свече с ТФ "трейды"
+        /// The number of trades in the candle with timeframe "Trades" has changed
         /// </summary>
-        void TextBoxCountTradesInCandle_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void TextBoxCountTradesInCandle_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
             {
@@ -411,6 +423,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// The number of pips for Renko candles has changed
+        /// </summary>
         private void TextBoxRencoPunkts_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
@@ -436,6 +451,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Changed the value of the volume required to close the candle
+        /// </summary>
         private void TextBoxVolumeToClose_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
@@ -463,14 +481,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// it's need when security changes. For test connection we look at Timeframe for this security
-        /// нужно когда изменяется бумага. При тестовом подключении смотрим здесь ТайФреймы для этой бумаги
+        /// It's need when security changes. For test connection we look at Timeframe for this security
         /// </summary>
-        void ComboBoxSecurities_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ComboBoxSecurities_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             GetTimeFramesInTester();
         }
 
+        /// <summary>
+        /// Get timeframe in tester
+        /// </summary>
         private void GetTimeFramesInTester()
         {
             TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
@@ -525,16 +545,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// selected server for now
-        /// выбранный в данным момент сервер
+        /// Selected server for now
         /// </summary>
         private ServerType _selectedType;
 
         /// <summary>
-        /// user changed server type to connect
-        /// пользователь изменил тип сервера для подключения
+        /// User changed server type to connect
         /// </summary>
-        void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             try
             {
@@ -568,36 +586,32 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// happens after switching the class of displayed instruments
-        /// происходит после переключения класса отображаемых инструментов
+        /// Happens after switching the class of displayed instruments
         /// </summary>
-        void ComboBoxClass_SelectionChanged(object sender,
+        private void ComboBoxClass_SelectionChanged(object sender,
             System.Windows.Controls.SelectionChangedEventArgs e)
         {
             LoadSecurityOnBox();
         }
 
         /// <summary>
-        /// new securities arrived at the server
-        /// на сервер пришли новые бумаги
+        /// New securities arrived at the server
         /// </summary>
-        void server_SecuritiesCharngeEvent(List<Security> securities)
+        private void server_SecuritiesCharngeEvent(List<Security> securities)
         {
             LoadClassOnBox();
         }
 
         /// <summary>
-        /// new accounts arrived at the server
-        /// на сервер пришли новые счета
+        /// New accounts arrived at the server
         /// </summary>
-        void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
+        private void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
         {
             LoadPortfolioOnBox();
         }
 
         /// <summary>
-        /// unload accounts to the form
-        /// выгружает счета на форму
+        /// Unload accounts to the form
         /// </summary>
         private void LoadPortfolioOnBox()
         {
@@ -611,7 +625,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-
 
                 if (!ComboBoxClass.CheckAccess())
                 {
@@ -627,7 +640,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 ComboBoxPortfolio.Items.Clear();
-
 
                 string portfolio = _screener.PortfolioName;
 
@@ -673,7 +685,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                             break;
                         }
                     }
-
                 }
             }
             catch (Exception error)
@@ -683,8 +694,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// place classes in the window
-        /// поместить классы в окно
+        /// Place classes in the window
         /// </summary>
         private void LoadClassOnBox()
         {
@@ -727,7 +737,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ComboBoxClass.SelectedItem = _screener.SecuritiesClass;
                 }
-
             }
             catch (Exception error)
             {
@@ -735,11 +744,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        #region работа с бумагами на гриде
+        #region work with papers on the grid
 
         /// <summary>
-        /// upload data from storage to form
-        /// выгрузить данные из хранилища на форму
+        /// Upload data from storage to form
         /// </summary>
         private void LoadSecurityOnBox()
         {
@@ -754,10 +762,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
                 // clear all
-                // стираем всё
-
+                
                 // download available instruments
-                // грузим инструменты доступные для скачивания
 
                 var securities = server.Securities;
 
@@ -780,7 +786,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 // download already running instruments
-                // грузим уже запущенные инструменты
 
                 UpdateGrid(securitiesToLoad);
 
@@ -793,9 +798,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         DataGridView _gridSecurities;
 
+        /// <summary>
+        /// Create data grid
+        /// </summary>
         private void CreateGrid()
         {
-            // номер, класс, тип, сокращонное название бумаги, полное имя, дополнительное имя, влк/выкл
+            // number, class, type, paper abbreviation, full name, additional name, on/off
 
             DataGridView newGrid =
                 DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.DisplayedCells);
@@ -862,11 +870,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             SecuritiesHost.Child = _gridSecurities;
         }
 
+        /// <summary>
+        /// Update data geid
+        /// </summary>
         private void UpdateGrid(List<Security> securities)
         {
             _gridSecurities.Rows.Clear();
 
-            // номер, класс, тип, сокращонное название бумаги, полное имя, дополнительное имя, влк/выкл
+            // number, class, type, paper abbreviation, full name, additional name, on/off
 
             for (int indexSecuriti = 0; indexSecuriti < securities.Count; indexSecuriti++)
             {
@@ -904,9 +915,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _gridSecurities.Rows.Add(nRow);
             }
-
         }
 
+        /// <summary>
+        /// Choose all
+        /// </summary>
         private void CheckBoxSelectAllCheckBox_Click(object sender, RoutedEventArgs e)
         {
             bool isCheck = CheckBoxSelectAllCheckBox.IsChecked.Value;
@@ -919,6 +932,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
+        /// <summary>
+        /// Load combo box with timeframes
+        /// </summary>
         private void LoadTimeFrameBox()
         {
             ComboBoxTimeFrame.Items.Clear();
@@ -926,14 +942,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (_screener.StartProgram == StartProgram.IsTester)
             {
                 // Timeframe
-                // таймФрейм
+                
                 TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
                 if (server.TypeTesterData != TesterDataType.Candle)
                 {
                     // if we build data on ticks or depths, then any Timeframe can be used
                     // candle manager builds any Timeframe
-                    // если строим данные на тиках или стаканах, то можно использовать любой ТФ
-                    // менеджер свечей построит любой
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
                     ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
@@ -962,8 +976,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     // then if we use ready-made candles, then we need to use only those Timeframe that are
                     // and they are inserted only when we select the security in the method
-                    // далее, если используем готовые свечки, то нужно ставить только те ТФ, которые есть
-                    // и вставляются они только когда мы выбираем бумагу в методе 
 
                     GetTimeFramesInTester();
                     ComboBoxCandleCreateMethodType.SelectedItem = CandleCreateMethodType.Simple;
@@ -1084,11 +1096,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         // log messages
-        // сообщения в лог 
-
+        
         /// <summary>
-        /// send new message to up
-        /// выслать новое сообщение на верх
+        /// Send new message to up
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -1099,13 +1109,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// outgoing log message
-        /// исходящее сообщение для лога
+        /// Outgoing log message
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         // additional settings for different types of candles
-        // дополнительные настройки разных типов свечей
 
         private void ShowDopCandleSettings()
         {
@@ -1156,6 +1164,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Hide advanced candle settings
+        /// </summary>
         private void ClearDopCandleSettings()
         {
             CheckBoxRencoIsBuildShadows.Visibility = Visibility.Hidden;
@@ -1179,6 +1190,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextBoxReversCandlesPunktsMinMove.Visibility = Visibility.Hidden;
         }
 
+        /// <summary>
+        /// Hide additional settings for simple candles
+        /// </summary>
         private void CreateSimpleCandleSettings()
         {
             ComboBoxTimeFrame.Visibility = Visibility.Visible;
@@ -1193,6 +1207,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             this.Height = 490;
         }
 
+        /// <summary>
+        /// Show settings for delta candles
+        /// </summary>
         private void CreateDeltaCandleSettings()
         {
             TextBoxDeltaPeriods.Visibility = Visibility.Visible;
@@ -1204,6 +1221,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             this.Height = 465;
         }
 
+        /// <summary>
+        /// Show settings for tick candles
+        /// </summary>
         private void CreateTicksCandleSettings()
         {
             TextBoxCountTradesInCandle.Visibility = Visibility.Visible;
@@ -1214,6 +1234,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             Height = 465;
         }
 
+        /// <summary>
+        /// Show settings for renko candles
+        /// </summary>
         private void CreateRencoCandleSettings()
         {
             TextBoxRencoPunkts.Visibility = Visibility.Visible;
@@ -1227,6 +1250,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             Height = 500;
         }
 
+        /// <summary>
+        /// Show settings for bulk candles
+        /// </summary>
         private void CreateVolumeCandleSettings()
         {
             LabelVolumeToClose.Visibility = Visibility.Visible;
@@ -1237,6 +1263,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             Height = 465;
         }
 
+        /// <summary>
+        /// Show settings for HaikenAshi candles
+        /// </summary>
         private void CreateHaikenAshiCandleSettings()
         {
             ComboBoxTimeFrame.Visibility = Visibility.Visible;
@@ -1248,6 +1277,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             Height = 465;
         }
 
+        /// <summary>
+        /// Show settings for Range candles
+        /// </summary>
         private void CreateRangeCandleSettings()
         {
             LabelRangeCandlesPunkts.Visibility = Visibility.Visible;
@@ -1256,9 +1288,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             LabelRangeCandlesPunkts.Margin = new Thickness(41, 360, 0, 0);
             TextBoxRangeCandlesPunkts.Margin = new Thickness(206, 360, 0, 0);
             Height = 465;
-
         }
 
+        /// <summary>
+        /// Show settings for Revers candles
+        /// </summary>
         private void CreateReversCandleSettings()
         {
             TextBoxReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
@@ -1277,14 +1311,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// accept button
-        /// кнопка принять
+        /// Accept button
         /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-
                 _screener.PortfolioName = ComboBoxPortfolio.Text;
                 if (CheckBoxIsEmulator.IsChecked != null)
                 {
@@ -1369,6 +1401,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Get security by data from row
+        /// </summary>
         private ActivatedSecurity GetSecurity(DataGridViewRow row)
         {
             ActivatedSecurity sec = new ActivatedSecurity();
@@ -1383,7 +1418,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             return sec;
         }
 
-        #region поиск по таблице бумаг
+        #region search by securities table
 
         private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -1540,6 +1575,5 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         #endregion
-
     }
 }

@@ -12,29 +12,26 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
 
     /// <summary>
-    /// class to create iceberg
-    /// класс для создания айсберг заявок
+    /// Class to create iceberg
     /// </summary>
     public class AcebergMaker
     {
 
         /// <summary>
-        /// all icebergs
-        /// все айсберги
+        /// All icebergs
         /// </summary>
         private List<Aceberg> _acebergOrders;
 
         /// <summary>
-        /// make a new iceberg
-        /// сделать новый айсберг
+        /// Make a new iceberg
         /// </summary>
-        /// <param name="price">price / цена</param>
-        /// <param name="lifiTime">life time / время жизни</param>
-        /// <param name="ordersCount">orders count / количество ордеров</param>
-        /// <param name="position">position / позиция</param>
-        /// <param name="type">type / тип</param>
-        /// <param name="volume">volume / объём</param>
-        /// <param name="bot">bot / робот</param>
+        /// <param name="price">price</param>
+        /// <param name="lifiTime">life time</param>
+        /// <param name="ordersCount">orders count</param>
+        /// <param name="position">position</param>
+        /// <param name="type">type</param>
+        /// <param name="volume">volume</param>
+        /// <param name="bot">bot</param>
         public void MakeNewAceberg(decimal price, TimeSpan lifiTime, int ordersCount, Position position, AcebergType type, decimal volume, BotTabSimple bot)
         {
             if (_acebergOrders == null)
@@ -52,8 +49,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// you must execute this order event
-        /// необходимо исполнить этот ордер
+        /// You must execute this order event
         /// </summary>
         private void newAceberg_newOrderNeadToExecute(Order order)
         {
@@ -64,8 +60,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// it is necessary to withdraw the order
-        /// необходимо отозвать ордер
+        /// It is necessary to withdraw the order
         /// </summary>
         private void newAceberg_newOrderNeadToCansel(Order order)
         {
@@ -76,8 +71,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// incoming order
-        /// входящий ордер
+        /// Incoming order
         /// </summary>
         public void SetNewOrder(Order order)
         {
@@ -94,8 +88,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// clear icebergs
-        /// очистить айсберги
+        /// Clear icebergs
         /// </summary>
         public void ClearAcebergs()
         {
@@ -119,39 +112,34 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// order must be executed event
-        /// необходимо исполнить ордер
+        /// Order must be executed event
         /// </summary>
         public event Action<Order> NewOrderNeadToExecute;
 
         /// <summary>
-        /// order must be withdraw event
-        /// необходимо отозвать ордер
+        /// Order must be withdraw event
         /// </summary>
         public event Action<Order> NewOrderNeadToCansel;
 
     }
 
     /// <summary>
-    /// iceberg
-    /// айсберг
+    /// Iceberg
     /// </summary>
     public class Aceberg
     {
         /// <summary>
-        /// constructor
-        /// конструктор
+        /// Constructor
         /// </summary>
-        /// <param name="price">price / цена</param>
-        /// <param name="lifiTime">life time / время жизни заявок</param>
-        /// <param name="ordersCount">orders count / кол-во ордеров</param>
-        /// <param name="position">position / позиция</param>
-        /// <param name="bot">robot / робот</param>
-        /// <param name="type">iceberg type / тип айсберга</param>
-        /// <param name="volume">sum volume / общий объём</param>
+        /// <param name="price">price</param>
+        /// <param name="lifiTime">life time</param>
+        /// <param name="ordersCount">orders count</param>
+        /// <param name="position">position</param>
+        /// <param name="bot">robot</param>
+        /// <param name="type">iceberg type</param>
+        /// <param name="volume">sum volume</param>
         public Aceberg(decimal price, TimeSpan lifiTime, int ordersCount, Position position, BotTabSimple bot, AcebergType type, decimal volume)
-        {
-         
+        {        
             _bot = bot;
             _price = price;
             _lifiTime = lifiTime;
@@ -176,66 +164,54 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 CreateModificateOrdersSell();
             }
-
         }
 
         /// <summary>
-        /// life time
-        /// время жизни заявок
-        /// </summary>
+        /// Life time
         private TimeSpan _lifiTime;
 
         /// <summary>
-        /// position
-        /// позиция
+        /// Position
         /// </summary>
         private Position _position;
 
         /// <summary>
-        /// price
-        /// цена
+        /// Price
         /// </summary>
         private decimal _price;
 
         /// <summary>
-        /// orders count
-        /// количество ордеров
+        /// Orders count
         /// </summary>
         private int _ordersCount;
 
         /// <summary>
-        /// sum volume
-        /// общий объём
+        /// Sum volume
         /// </summary>
         private decimal _volume;
 
         /// <summary>
-        /// robot
-        /// робот
+        /// Robot
         /// </summary>
         private BotTabSimple _bot;
 
         /// <summary>
-        /// order placed in the system
-        /// выставленный в систему ордер
+        /// Order placed in the system
         /// </summary>
         private Order _ordersInSystem;
 
         /// <summary>
-        /// orders that must be placed
-        /// ордера которые должны быть выставленны
+        /// Orders that must be placed
         /// </summary>
         private List<Order> _ordersNeadToCreate;
 
         /// <summary>
-        /// iceberg type
-        /// тип айсберга
+        /// Iceberg type
         /// </summary>
         private AcebergType _type;
 
         /// <summary>
-        /// create an array of orders for iceberg
-        /// создать массив ордеров для айсберга
+        /// Create an array of orders for iceberg
         /// </summary>
         private void CreateOpenOrders()
         {
@@ -278,8 +254,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// create an array of orders for iceberg
-        /// создать массив ордеров для айсберга
+        /// Create an array of orders for iceberg
         /// </summary>
         private void CreateCloseOrders()
         {
@@ -331,8 +306,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// create an array of orders for iceberg
-        /// создать массив ордеров для айсберга
+        /// Create an array of orders for iceberg
         /// </summary>
         private void CreateModificateOrdersBuy()
         {
@@ -374,8 +348,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// create an array of orders for iceberg
-        /// создать массив ордеров для айсберга
+        /// Create an array of orders for iceberg
         /// </summary>
         private void CreateModificateOrdersSell()
         {
@@ -417,8 +390,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// add order to iceberg
-        /// добавить ордер в айсберг
+        /// Add order to iceberg
         /// </summary>
         public void SetNewOrder(Order order)
         {
@@ -434,8 +406,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// withdraw all orders
-        /// отозвать все ордера
+        /// Withdraw all orders
         /// </summary>
         public void CloseAllOrder()
         {
@@ -464,8 +435,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// check whether it is time to send a new order
-        /// проверить, не пора ли высылать новую заявку
+        /// Check whether it is time to send a new order
         /// </summary>
         public void Check()
         {
@@ -522,46 +492,39 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         }
 
         /// <summary>
-        /// order must be executed
-        /// необходимо исполнить ордер
+        /// Order must be executed
         /// </summary>
         public event Action<Order> NewOrderNeadToExecute;
 
         /// <summary>
-        /// order must be withdraw
-        /// необходимо отозвать ордер
+        /// Order must be withdraw
         /// </summary>
         public event Action<Order> NewOrderNeadToCansel;
 
     }
 
     /// <summary>
-    /// iceberg type /
-    /// тип айсберга
+    /// Iceberg type
     /// </summary>
     public enum AcebergType
     {
         /// <summary>
-        /// to open /
-        /// на открытие
+        /// To open
         /// </summary>
         Open,
 
         /// <summary>
-        /// to close /
-        /// на закрытие
+        /// To close
         /// </summary>
         Close,
 
         /// <summary>
-        /// modification by buy/
-        /// модификация через покупку
+        /// Modification by buy
         /// </summary>
         ModificateBuy,
 
         /// <summary>
-        /// modification by sale /
-        /// модификация через продажу
+        /// Modification by sale
         /// </summary>
         ModificateSell,
     }
