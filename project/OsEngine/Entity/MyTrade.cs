@@ -11,69 +11,58 @@ namespace OsEngine.Entity
 {
     /// <summary>
     /// customer transaction on the exchange
-    /// клиентская транзакция, совершённая на бирже
     /// </summary>
     public class MyTrade
     {
         /// <summary>
-        /// volume
-        /// объём
+        /// Volume
         /// </summary>
         public decimal Volume;
 
         /// <summary>
-        /// price
-        /// цена
+        /// Price
         /// </summary>
         public decimal Price;
 
         /// <summary>
-        ///  trade number
-        /// номер сделки в торговой системе
+        /// Trade number
         /// </summary>
         public string NumberTrade;
 
         /// <summary>
-        /// parent's warrant number
-        /// номер ордера родителя
+        /// Parent's warrant number
         /// </summary>
         public string NumberOrderParent;
 
         /// <summary>
-        /// the robot's position number in OsEngine
-        /// номер позиции у робота в OsEngine
+        /// The robot's position number in OsEngine
         /// </summary>
         public string NumberPosition;
 
         /// <summary>
-        /// instrument code
-        /// код инструмента по которому прошла сделка
+        /// Instrument code
         /// </summary>
         public string SecurityNameCode;
 
         /// <summary>
-        /// time
-        /// время
+        /// Time
         /// </summary>
         public DateTime Time;
 
         /// <summary>
-        /// microseconds
-        /// микросекунды
+        /// Microseconds
         /// </summary>
         public int MicroSeconds;
 
         /// <summary>
-        /// party to the transaction
-        /// сторона сделки
+        /// Party to the transaction
         /// </summary>
         public Side Side;
 
         private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
 
         /// <summary>
-        /// to take a line to save
-        /// взять строку для сохранения
+        /// To take a line to save
         /// </summary>
         public string GetStringFofSave()
         {
@@ -92,8 +81,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// upload from an incoming line
-        /// загрузить из входящей строки
+        /// Upload from an incoming line
         /// </summary>
         public void SetTradeFromString(string saveString)
         {
@@ -107,12 +95,10 @@ namespace OsEngine.Entity
             Enum.TryParse(arraySave[5], out Side);
             SecurityNameCode = arraySave[6];
             NumberPosition = arraySave[7];
-
         }
 
         /// <summary>
-        /// to take a line for a hint
-        /// взять строку для подсказки
+        /// To take a line for a hint
         /// </summary>
         public string ToolTip
         {

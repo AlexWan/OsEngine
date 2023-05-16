@@ -10,32 +10,32 @@ namespace OsEngine.Entity
 {
     public class MarketDepth
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public MarketDepth()
         {
             Asks = new List<MarketDepthLevel>();
             Bids = new List<MarketDepthLevel>();
         }
+
         /// <summary>
-        /// time to create a glass
-        /// время создания стакана
+        /// Time to create a glass
         /// </summary>
         public DateTime Time;
 
         /// <summary>
-        /// levels of sales. best with index 0
-        /// уровни продаж. лучшая с индексом 0
+        /// Levels of sales. best with index 0
         /// </summary>
         public List<MarketDepthLevel> Asks;
 
         /// <summary>
-        /// purchase levels. best with index 0
-        /// уровни покупок. лучшая с индексом 0
+        /// Purchase levels. best with index 0
         /// </summary>
         public List<MarketDepthLevel> Bids;
 
         /// <summary>
-        /// total sales volume
-        /// суммарный объём в продажах
+        /// Total sales volume
         /// </summary>
         public decimal AskSummVolume
         {
@@ -51,8 +51,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// total amount in purchases
-        /// суммарный объём в покупках
+        /// Total amount in purchases
         /// </summary>
         public decimal BidSummVolume
         {
@@ -68,14 +67,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// security that owns to glass
-        /// бумага, которой принадлежит стакан
+        /// Security that owns to glass
         /// </summary>
         public string SecurityNameCode;
 
         /// <summary>
-        /// set the cup from the stored value
-        /// установить стакан из сохранённого значения
+        /// Set the cup from the stored value
         /// </summary>
         public void SetMarketDepthFromString(string str)
         {
@@ -125,10 +122,9 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// take the save string for the whole glass
-        /// взять строку сохранения для всего стакана
+        /// Take the save string for the whole glass
         /// </summary>
-        /// <param name="depth">depth of glass to keep/глубина стакана которую нужно сохранить</param>
+        /// <param name="depth">depth of glass to keep</param>
         public string GetSaveStringToAllDepfh(int depth)
         {
             // NameSecurity_Time_Bids_Asks
@@ -162,8 +158,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// take a "deep" copy of the glass
-        /// взять "глубокую" копию стакана
+        /// Take a "deep" copy of the glass
         /// </summary>
         public MarketDepth GetCopy()
         {
@@ -196,33 +191,27 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
-    /// class representing one price level in a glass
-    /// класс представляющий один ценовой уровень в стакане
+    /// Class representing one price level in a glass
     /// </summary>
     public class MarketDepthLevel
     {
-
         /// <summary>
-        /// number of contracts for sale at this price level
-        /// количество контрактов на продажу по этому уровню цены
+        /// Number of contracts for sale at this price level
         /// </summary>
         public decimal Ask;
 
         /// <summary>
-        /// \number of purchase contracts at this price level
-        /// количество контрактов на покупку по этому уровню цены
+        /// Number of purchase contracts at this price level
         /// </summary>
         public decimal Bid;
 
         /// <summary>
-        /// price
-        /// цена
+        /// Price
         /// </summary>
         public decimal Price;
 
         /// <summary>
         /// Unique price level number, required for working with BitMex
-        /// уникальный номер ценового уровня, необходим для работы с BitMex
         /// </summary>
         public long Id;
     }

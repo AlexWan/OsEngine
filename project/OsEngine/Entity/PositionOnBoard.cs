@@ -6,40 +6,33 @@
 namespace OsEngine.Entity
 {
     /// <summary>
-    /// common position on the instrument on the exchange
-    /// общая позиция по инструменту на бирже
+    /// Common position on the instrument on the exchange
     /// </summary>
     public class PositionOnBoard
     {
         /// <summary>
-        /// position at the beginning of the session
-        /// позиция на начало сессии
+        /// Position at the beginning of the session
         /// </summary>
         public decimal ValueBegin;
 
         /// <summary>
-        /// current volume
-        /// текущий объём
+        /// Current volume
         /// </summary>
         public decimal ValueCurrent;
 
         /// <summary>
-        /// blocked volume
-        /// заблокированный объем
+        /// Blocked volume
         /// </summary>
         public decimal ValueBlocked;
 
         /// <summary>
-        /// tool for which the position is open
-        /// инструмент по которому открыта позиция
+        /// Tool for which the position is open
         /// </summary>
         public string SecurityNameCode;
 
         /// <summary>
-        /// portfolio on which the position is open
-        /// портфель по которому открыта позиция
+        /// Portfolio on which the position is open
         /// </summary>
         public string PortfolioName;
-
     }
 }
