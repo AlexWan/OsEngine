@@ -17,6 +17,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using MessageBox = System.Windows.MessageBox;
+using System.Globalization;
 
 namespace OsEngine.Journal.Internal
 {
@@ -44,12 +45,15 @@ namespace OsEngine.Journal.Internal
         {
             if (_worker == null)
             {
+                _currentCulture = OsLocalization.CurCulture;
                 _worker = new Task(WatcherHome);
                 _worker.Start();
             }
         }
 
         private static Task _worker;
+
+        private static CultureInfo _currentCulture;
 
         /// <summary>
         /// flow location
@@ -1510,9 +1514,9 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
-                nRow.Cells[1].Value = position.TimeOpen;
+                nRow.Cells[1].Value = position.TimeOpen.ToString(_currentCulture);
 
-                nRow.Cells[2].Value = position.TimeClose;
+                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
 
                 nRow.Cells[3].Value = position.NameBot;
 
@@ -1641,10 +1645,10 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells[0].Value = position.Number;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = position.TimeOpen;
+                nRow.Cells[1].Value = position.TimeOpen.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = position.TimeClose;
+                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = position.NameBot;

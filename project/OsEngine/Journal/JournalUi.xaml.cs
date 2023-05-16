@@ -58,6 +58,8 @@ namespace OsEngine.Journal
             _startProgram = startProgram;
             _botsJournals = botsJournals;
             InitializeComponent();
+            _currentCulture = OsLocalization.CurCulture;
+
             OsEngine.Layout.StickyBorders.Listen(this);
 
             TabBots.SizeChanged += TabBotsSizeChanged;
@@ -1715,10 +1717,10 @@ namespace OsEngine.Journal
                 nRow.Cells[0].Value = position.Number;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = position.TimeCreate;
+                nRow.Cells[1].Value = position.TimeCreate.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = position.TimeClose;
+                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = position.NameBot;

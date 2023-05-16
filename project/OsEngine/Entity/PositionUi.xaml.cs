@@ -35,6 +35,7 @@ namespace OsEngine.Entity
             _startProgramm = startProgram;
             _position = position;
             InitializeComponent();
+            _currentCulture = OsLocalization.CurCulture;
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             CreateMainTable();
@@ -52,6 +53,8 @@ namespace OsEngine.Entity
             this.Activate();
             this.Focus();
         }
+
+        CultureInfo _currentCulture;
 
         StartProgram _startProgramm;
 
@@ -93,10 +96,10 @@ namespace OsEngine.Entity
             nRow.Cells[0].Value = position.Number;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[1].Value = position.TimeCreate;
+            nRow.Cells[1].Value = position.TimeCreate.ToString(_currentCulture);
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[2].Value = position.TimeClose;
+            nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[3].Value = position.NameBot;
@@ -212,7 +215,7 @@ namespace OsEngine.Entity
 
             DataGridViewButtonCell timeButton = new DataGridViewButtonCell();
             nRow.Cells.Add(timeButton);
-            nRow.Cells[2].Value = order.TimeCallBack;
+            nRow.Cells[2].Value = order.TimeCallBack.ToString(_currentCulture);
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[3].Value = order.SecurityNameCode;
@@ -543,7 +546,7 @@ namespace OsEngine.Entity
 
             DataGridViewButtonCell timeButton = new DataGridViewButtonCell();
             nRow.Cells.Add(timeButton);
-            nRow.Cells[3].Value = trade.Time;
+            nRow.Cells[3].Value = trade.Time.ToString(_currentCulture);
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[4].Value = trade.Price.ToStringWithNoEndZero();

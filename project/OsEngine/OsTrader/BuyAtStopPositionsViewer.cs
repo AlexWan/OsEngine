@@ -14,6 +14,7 @@ using OsEngine.Logging;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Drawing;
 using OsEngine.Alerts;
+using System.Globalization;
 
 namespace OsEngine.OsTrader
 {
@@ -29,10 +30,13 @@ namespace OsEngine.OsTrader
             _positionHost.Child.Show();
             _grid.Click += _grid_Click;
             _grid.DoubleClick += _gridOpenPoses_DoubleClick;
+            _currentCulture = OsLocalization.CurCulture;
 
             Task task = new Task(WatcherThreadWorkArea);
             task.Start();
         }
+
+        CultureInfo _currentCulture;
 
         public void LoadTabToWatch(List<BotTabSimple> tabs)
         {
@@ -445,7 +449,7 @@ positionOpener.LifeTimeType
                 nRow.Cells[0].Value = position.Number;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = position.TimeCreate;
+                nRow.Cells[1].Value = position.TimeCreate.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[2].Value = position.TabName;

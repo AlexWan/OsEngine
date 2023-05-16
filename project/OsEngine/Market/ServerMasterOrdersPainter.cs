@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -20,11 +21,14 @@ namespace OsEngine.Market
     {
         public ServerMasterOrdersPainter()
         {
+            _currentCulture = OsLocalization.CurCulture;
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
 
             Task task = new Task(PainterThreadArea);
             task.Start();
         }
+
+        private CultureInfo _currentCulture;
 
         /// <summary>
         /// incoming events. a new server has been deployed in server-master
@@ -401,7 +405,7 @@ namespace OsEngine.Market
                     nRow.Cells[1].Value = ordersToPaint[i].NumberMarket;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[2].Value = ordersToPaint[i].TimeCreate;
+                    nRow.Cells[2].Value = ordersToPaint[i].TimeCreate.ToString(_currentCulture);
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[3].Value = ordersToPaint[i].SecurityNameCode;

@@ -13,6 +13,7 @@ using OsEngine.Logging;
 using System.Drawing;
 using OsEngine.Language;
 using OsEngine.Alerts;
+using System.Globalization;
 
 namespace OsEngine.OsTrader
 {
@@ -25,8 +26,9 @@ namespace OsEngine.OsTrader
         public GlobalPositionViewer(WindowsFormsHost openPositionHost, WindowsFormsHost closePositionHost, StartProgram startProgram)
         {
             _startProgram = startProgram;
+            _currentCulture = OsLocalization.CurCulture;
 
-            if(openPositionHost != null)
+            if (openPositionHost != null)
             {
                 _hostOpenPoses = openPositionHost;
                 _gridOpenPoses = CreateNewTable();
@@ -49,6 +51,8 @@ namespace OsEngine.OsTrader
             Task task = new Task(WatcherThreadWorkArea);
             task.Start();
         }
+
+        CultureInfo _currentCulture;
 
         /// <summary>
         /// add another magazine to the collection to draw his deals
@@ -236,10 +240,10 @@ namespace OsEngine.OsTrader
                 nRow.Cells[0].Value = position.Number;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = position.TimeCreate;
+                nRow.Cells[1].Value = position.TimeCreate.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = position.TimeClose;
+                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = position.NameBot;
@@ -325,15 +329,15 @@ namespace OsEngine.OsTrader
         private void TryRePaint(Position position, DataGridViewRow nRow)
         {
             if (nRow.Cells[1].Value == null
-                || nRow.Cells[1].Value.ToString() != position.TimeCreate.ToString())// == false) //AVP убрал, потому что  во вкладке все позиции, дату позиции не обновляло
+                || nRow.Cells[1].Value.ToString() != position.TimeCreate.ToString(_currentCulture))// == false) //AVP убрал, потому что  во вкладке все позиции, дату позиции не обновляло
             {
-                nRow.Cells[1].Value = position.TimeCreate.ToString();
+                nRow.Cells[1].Value = position.TimeCreate.ToString(_currentCulture);
             }
 
             if (nRow.Cells[2].Value == null
-                || nRow.Cells[2].Value.ToString() != position.TimeClose.ToString())// == false) //AVP убрал потому что во вкладке все позиции, дату позиции не обновляло
+                || nRow.Cells[2].Value.ToString() != position.TimeClose.ToString(_currentCulture))// == false) //AVP убрал потому что во вкладке все позиции, дату позиции не обновляло
             {
-                nRow.Cells[2].Value = position.TimeClose.ToString();
+                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
             }
 
             if (nRow.Cells[6].Value == null
