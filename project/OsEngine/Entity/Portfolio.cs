@@ -8,48 +8,41 @@ using System.Collections.Generic;
 namespace OsEngine.Entity
 {
     /// <summary>
-    /// portfolio (account) in the trading system and positions opened on this account
-    /// портфель (счёт) в торговой системе и позиции открытые по этому счёту
+    /// Portfolio (account) in the trading system and positions opened on this account
     /// </summary>
     public class Portfolio
     {
         /// <summary>
         /// Account number
-        /// номер счёта
         /// </summary>
         public string Number;
 
         /// <summary>
-        /// deposit at the beginning of the session
-        /// депозит на счёте на начало сессии
+        /// Deposit at the beginning of the session
         /// </summary>
         public decimal ValueBegin;
 
         /// <summary>
-        /// deposit amount now
-        /// размер депозита сейчас
+        /// Deposit amount now
         /// </summary>
         public decimal ValueCurrent;
 
         /// <summary>
-        /// blocked part of the deposit. And positions and bids
-        /// блокированная часть депозита. И позициями и заявками
+        /// Blocked part of the deposit. And positions and bids
         /// </summary>
         public decimal ValueBlocked;
 
         /// <summary>
-        /// session profit
-        /// профит за сессию
+        /// Session profit
         /// </summary>
         public decimal Profit;
+
         // then goes the storage of open positions in the system by portfolio
-        // далее идёт хранилище открытых позиций в системе по портфелю
 
         private List<PositionOnBoard> _positionOnBoard;
 
         /// <summary>
-        /// take positions on the portfolio in the trading system
-        /// взять позиции по портфелю в торговой системе
+        /// Take positions on the portfolio in the trading system
         /// </summary>
         public List<PositionOnBoard> GetPositionOnBoard()
         {
@@ -57,12 +50,10 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// update the position of the instrument in the trading system
-        /// обновить позицию по инструменту в торговой системе
+        /// Update the position of the instrument in the trading system
         /// </summary>
         public void SetNewPosition(PositionOnBoard position)
         {
-
             if (_positionOnBoard != null && _positionOnBoard.Count != 0)
             {
                 for (int i = 0; i < _positionOnBoard.Count; i ++)
@@ -83,12 +74,10 @@ namespace OsEngine.Entity
             }
 
             _positionOnBoard.Add(position);
-
         }
 
         /// <summary>
-        /// clear all positions on the exchange
-        /// очистить все позиции на бирже
+        /// Clear all positions on the exchange
         /// </summary>
         public void ClearPositionOnBoard()
         {
