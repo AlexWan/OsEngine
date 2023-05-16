@@ -9,17 +9,14 @@ using System.Globalization;
 namespace OsEngine.Entity
 {
     /// <summary>
-    /// tick
-    /// тик
+    /// Tick
     /// </summary>
     public class Trade
     {
         // standard part
-        // стандартная часть
-
+        
         /// <summary>
-        /// instrument code for which the transaction took place
-        /// код инструмента по которому прошла сделка
+        /// Instrument code for which the transaction took place
         /// </summary>
         public string SecurityNameCode
         {
@@ -33,74 +30,63 @@ namespace OsEngine.Entity
         private string name;
 
         /// <summary>
-        /// transaction number in the system
-        /// номер сделки в системе
+        /// Transaction number in the system
         /// </summary>
         public string Id;
 
         /// <summary>
-        /// volume
-        /// объём
+        /// Volume
         /// </summary>
         public decimal Volume;
 
         /// <summary>
-        /// transaction price
-        /// цена сделки
+        /// Transaction price
         /// </summary>
         public decimal Price;
 
         /// <summary>
-        /// deal time
-        /// время сделки
+        /// Deal time
         /// </summary>
         public DateTime Time;
 
         /// <summary>
-        /// microseconds
-        /// микросекунды
+        /// Microseconds
         /// </summary>
         public int MicroSeconds;
 
         /// <summary>
-        ///  transaction direction
-        /// направление сделки
+        ///  Transaction direction
         /// </summary>
         public Side Side;
-        // a new part. This part of the final is not to be downloaded. It can be obtained from OsData, only from standard connectors
-        // новая часть. Эту часть с финама не скачать. Её можно добыть OsData, только из стандартных коннекторов
 
+        // a new part. This part of the final is not to be downloaded. It can be obtained from OsData, only from standard connectors
+        
         /// <summary>
-        /// the best sale in a glass when this trade came in.
-        /// лучшая продажа в стакане, на момент когда пришёл этот трейд
+        /// The best sale in a glass when this trade came in.
         /// </summary>
         public decimal Bid;
 
         /// <summary>
-        /// the best buy in the glass when this trade came in.
-        /// лучшая покупка в стакане, на момент когда пришёл этот трейд
+        /// The best buy in the glass when this trade came in.
         /// </summary>
         public decimal Ask;
 
         /// <summary>
-        /// the total volume of sales in a glass at the moment when this trade came in
-        /// суммарный объём в продажах в стакане, на момент когда пришёл этот трейд
+        /// The total volume of sales in a glass at the moment when this trade came in
         /// </summary>
         public decimal BidsVolume;
 
         /// <summary>
-        /// the total volume of purchases in the glass at the moment when this trade came in
-        /// суммарный объём в покупках в стакане, на момент когда пришёл этот трейд
+        /// The total volume of purchases in the glass at the moment when this trade came in
         /// </summary>
         public decimal AsksVolume;
-        // //saving / loading ticks
-        //сохранение / загрузка тика
 
+        // //saving / loading ticks
+        
         /// <summary>
-        /// to take a line to save
-        /// взять строку для сохранения
+        ///To take a line to save
         /// </summary>
-        /// <returns>line with the state of the object/строка с состоянием объекта</returns>
+        /// <returns>line with the state of the object</returns>
         public string GetSaveString()
         {
             //20150401,100000,86160.000000000,2
@@ -134,10 +120,9 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// upload a tick from a saved line
-        /// загрузить тик из сохранённой строки
+        /// Upload a tick from a saved line
         /// </summary>
-        /// <param name="In"></param>
+        /// <param name="In">incoming data</param>
         public void SetTradeFromString(string In)
         {
             //20150401,100000,86160.000000000,2
@@ -205,6 +190,10 @@ namespace OsEngine.Entity
         }
 
         private Random _rand = null;
+
+        /// <summary>
+        /// direction generation for transactions from IqFeed
+        /// </summary>
         private Side GetSideIqFeed()
         {
             if (Bid == Price && Bid != Ask) //the deal was for sale/ сделка была на продажу
