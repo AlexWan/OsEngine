@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Media;
 using System.Text;
@@ -122,6 +123,7 @@ namespace OsEngine.Logging
         {
             _uniqName = uniqName;
             _startProgram = startProgram;
+            _currentCulture = OsLocalization.CurCulture;
 
             lock (_starterLocker)
             {
@@ -372,6 +374,8 @@ namespace OsEngine.Logging
 
         private StartProgram _startProgram;
 
+        private CultureInfo _currentCulture;
+
         List<CandleConverter> _candleConverters = new List<CandleConverter>();
         List<OsConverterMaster> _osConverterMasters = new List<OsConverterMaster>();
         List<OsTraderMaster> _osTraderMasters = new List<OsTraderMaster>();
@@ -603,7 +607,7 @@ namespace OsEngine.Logging
                 {
                     DataGridViewRow row = new DataGridViewRow();
                     row.Cells.Add(new DataGridViewTextBoxCell());
-                    row.Cells[0].Value = messageLog.Time;
+                    row.Cells[0].Value = messageLog.Time.ToString(_currentCulture);
 
                     row.Cells.Add(new DataGridViewTextBoxCell());
                     row.Cells[1].Value = messageLog.Type;
@@ -891,7 +895,7 @@ namespace OsEngine.Logging
             {
                 DataGridViewRow row1 = new DataGridViewRow();
                 row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = DateTime.Now;
+                row1.Cells[0].Value = DateTime.Now.ToString(OsLocalization.CurCulture);
 
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[1].Value = LogMessageType.Error;
@@ -909,7 +913,7 @@ namespace OsEngine.Logging
 
             DataGridViewRow row = new DataGridViewRow();
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[0].Value = DateTime.Now;
+            row.Cells[0].Value = DateTime.Now.ToString(OsLocalization.CurCulture);
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[1].Value = LogMessageType.Error;
