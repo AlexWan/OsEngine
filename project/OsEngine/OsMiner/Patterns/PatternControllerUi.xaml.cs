@@ -1074,9 +1074,9 @@ namespace OsEngine.OsMiner.Patterns
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[3].Value = securities[i].Security.PriceStep;
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[4].Value = securities[i].TimeStart;
+                    nRow.Cells[4].Value = securities[i].TimeStart.ToString(OsLocalization.ShortDateFormatString);
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[5].Value = securities[i].TimeEnd;
+                    nRow.Cells[5].Value = securities[i].TimeEnd.ToString(OsLocalization.ShortDateFormatString);
 
                     _myGridView.Rows.Add(nRow);
                 }

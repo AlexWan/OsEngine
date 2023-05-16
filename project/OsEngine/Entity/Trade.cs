@@ -72,7 +72,7 @@ namespace OsEngine.Entity
         public decimal Ask;
 
         /// <summary>
-        /// The total volume of purchases in the market depth at the moment when this trade came in
+        /// The total volume of buy in the market depth at the moment when this trade came in
         /// </summary>
         public decimal BidsVolume;
 
