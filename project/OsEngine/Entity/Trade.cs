@@ -60,24 +60,24 @@ namespace OsEngine.Entity
         public Side Side;
 
         // a new part. This part of the final is not to be downloaded. It can be obtained from OsData, only from standard connectors
-        
+
         /// <summary>
-        /// The best sale in a glass when this trade came in.
+        /// The best buy in the market depth when this trade came in.
         /// </summary>
         public decimal Bid;
 
         /// <summary>
-        /// The best buy in the glass when this trade came in.
+        /// The best sale in a market depth when this trade came in.
         /// </summary>
         public decimal Ask;
 
         /// <summary>
-        /// The total volume of sales in a glass at the moment when this trade came in
+        /// The total volume of purchases in the market depth at the moment when this trade came in
         /// </summary>
         public decimal BidsVolume;
 
         /// <summary>
-        /// The total volume of purchases in the glass at the moment when this trade came in
+        /// The total volume of sales in a market depth at the moment when this trade came in
         /// </summary>
         public decimal AsksVolume;
 
