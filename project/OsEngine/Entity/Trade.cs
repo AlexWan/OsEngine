@@ -185,8 +185,6 @@ namespace OsEngine.Entity
                 BidsVolume = Convert.ToInt32(sIn[9]);
                 AsksVolume = Convert.ToInt32(sIn[10]);
             }
-
-
         }
 
         private Random _rand = null;
