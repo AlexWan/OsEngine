@@ -5,6 +5,7 @@
 
 using System;
 using System.Windows;
+using System.Windows.Markup;
 using OsEngine.Language;
 
 namespace OsEngine.Market.Servers.Tester
@@ -43,6 +44,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 CalendarSelectData.SelectedDate = timeNow;
             }
+
+            CalendarSelectData.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
 
             ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
             Title = OsLocalization.Charts.Label8;

@@ -42,8 +42,8 @@
                         </Slider.RenderTransform>
                     </Slider>
 
-                    <TextBox Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="96,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148"/>
-                    <TextBox Name="TextBoxTo" HorizontalAlignment="Left" Margin="96,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148"/>
+                    <TextBox Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="96,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>
+                    <TextBox Name="TextBoxTo" HorizontalAlignment="Left" Margin="96,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>
                     <Label Name="LabelFrom"  Content="From" HorizontalAlignment="Left" Margin="9,65,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
                     <Label Name="LabelTo"  Content="To" HorizontalAlignment="Left" Margin="9,95,0,0" VerticalAlignment="Top" FontFamily="Calibri" Width="24"/>
                 </Grid>
