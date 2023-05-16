@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Windows.Markup;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
@@ -135,6 +136,8 @@ namespace OsEngine.OsData
             this.Activate();
             this.Focus();
 
+            DatePickerTimeStart.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
+            DatePickerTimeEnd.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
         }
 
         private void TextBoxFolderName_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)

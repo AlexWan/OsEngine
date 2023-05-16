@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 
@@ -29,6 +30,41 @@ namespace OsEngine.Language
             localizations.Add(OsLocalType.Ru);
 
             return localizations;
+        }
+
+        public static string CurLocalizationCode
+        {
+            get
+            {
+                if (_curLocalization == OsLocalType.Eng)
+                {
+                    return "en-US";
+                }
+                else if(_curLocalization == OsLocalType.Ru)
+                {
+                    return "ru-RU";
+                }
+
+                return "en-US";
+            }
+        }
+
+        public static CultureInfo CurCulture
+        {
+            get
+            {
+                return new CultureInfo(CurLocalizationCode);
+            }
+        }
+
+        public static string ShortDateFormatString
+        {
+            get
+            {
+                CultureInfo culture = CurCulture;
+
+                return CurCulture.DateTimeFormat.ShortDatePattern;
+            }
         }
 
         public static OsLocalType CurLocalization

@@ -12,7 +12,7 @@ using System.Windows.Forms.Integration;
 using System.Windows.Forms;
 using System.Threading;
 using OsEngine.Charts.CandleChart;
-
+using System.Globalization;
 
 namespace OsEngine.OsData
 {
@@ -487,9 +487,9 @@ namespace OsEngine.OsData
             }
 
             _labelSetName.Content = _set.SetName;
-            _labelTimeStart.Content = _set.BaseSettings.TimeStart.ToShortDateString();
-            _labelTimeEnd.Content = _set.BaseSettings.TimeEnd.ToShortDateString();
 
+            _labelTimeStart.Content = _set.BaseSettings.TimeStart.ToString(OsLocalization.ShortDateFormatString);
+            _labelTimeEnd.Content = _set.BaseSettings.TimeEnd.ToString(OsLocalization.ShortDateFormatString);
         }
 
         private void RePaintGrid()
@@ -707,10 +707,10 @@ colum11.HeaderText = "Delete";
             row.Cells[3].Value = "";
 
             row.Cells.Add(new DataGridViewTextBoxCell()); // Start
-            row.Cells[4].Value = loader.TimeStartInReal.Date.ToString("dd.MM.yyyy");
+            row.Cells[4].Value = loader.TimeStartInReal.Date.ToString(OsLocalization.ShortDateFormatString);
 
             row.Cells.Add(new DataGridViewTextBoxCell()); // End
-            row.Cells[5].Value = loader.TimeEndInReal.Date.ToString("dd.MM.yyyy");
+            row.Cells[5].Value = loader.TimeEndInReal.Date.ToString(OsLocalization.ShortDateFormatString);
 
             row.Cells.Add(new DataGridViewTextBoxCell()); // TF
             row.Cells[6].Value = loader.TimeFrame.ToString();
