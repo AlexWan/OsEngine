@@ -1,6 +1,6 @@
 ﻿/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -11,13 +11,11 @@ namespace OsEngine.Entity
 {
     /// <summary>
     /// Candle
-    /// Свеча
     /// </summary>
     public class Candle
     {
         /// <summary>
-        /// candle start time
-        /// время начала свечи
+        /// Candle start time
         /// </summary>
         public DateTime TimeStart
         {
@@ -30,37 +28,32 @@ namespace OsEngine.Entity
         private DateTime _timeStart;
 
         /// <summary>
-        ///  opening price
-        /// цена открытия
+        /// Opening price
         /// </summary>
         public decimal Open;
 
         /// <summary>
-        /// maximum price for the period
-        /// максимальная цена за период
+        /// Maximum price for the period
         /// </summary>
         public decimal High;
 
         /// <summary>
-        /// closing price
-        /// цена закрытия
+        /// Closing price
         /// </summary>
         public decimal Close;
 
         /// <summary>
-        /// minimum price for the period
-        /// минимальная цена за период
+        /// Minimum price for the period
         /// </summary>
         public decimal Low;
 
         /// <summary>
-        /// volume
-        /// объём
+        /// Volume
         /// </summary>
         public decimal Volume;
 
         /// <summary>
-        /// определённая точка на свечке
+        /// Certain point on the candle
         /// </summary>
         /// <param name="type"> "Close","High","Low","Open","Median","Typical"</param>
         public decimal GetPoint(string type)
@@ -93,14 +86,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candles completion status
-        /// статус завершённости свечи
+        /// Candles completion status
         /// </summary>
         public CandleState State;
 
         /// <summary>
-        /// the trades that make up this candle
-        /// трейды составляющие эту свечу
+        /// The trades that make up this candle
         /// </summary>
         public List<Trade> Trades
         {
@@ -114,8 +105,7 @@ namespace OsEngine.Entity
         private List<Trade> _trades = new List<Trade>();
 
         /// <summary>
-        /// if this growing candle
-        /// растущая ли эта свеча
+        /// If this growing candle
         /// </summary>
         public bool IsUp
         {
@@ -130,8 +120,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// if that candle is falling
-        /// падающая ли эта свеча
+        /// If that candle is falling
         /// </summary>
         public bool IsDown
         {
@@ -146,8 +135,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// if type of that candle is doji (indecision in the market, Close = Open)
-        /// если тип этой свечи доджи (нерешительность на рынке, Close = Open)
+        /// If type of that candle is doji (indecision in the market, Close = Open)
         /// </summary>
         public bool IsDoji
         {
@@ -162,8 +150,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// shadow top
-        /// тень сверху
+        /// Shadow top
         /// </summary>
         public decimal ShadowTop
         {
@@ -181,8 +168,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// shadow bottom
-        /// тень снизу
+        /// Shadow bottom
         /// </summary>
         public decimal ShadowBottom
         {
@@ -200,8 +186,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candle body with shadows
-        /// тело свечи с учетом теней
+        /// Candle body with shadows
         /// </summary>
         public decimal ShadowBody
         {
@@ -212,8 +197,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candle body without shadows
-        /// тело свечи без учета теней
+        /// Candle body without shadows
         /// </summary>
         public decimal Body
         {
@@ -231,8 +215,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candle body (%)
-        /// тело свечи (%)
+        /// Candle body (%)
         /// </summary>
         public decimal BodyPercent
         {
@@ -254,8 +237,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candle center
-        /// центр свечи
+        /// Candle center
         /// </summary>
         public decimal Center
         {
@@ -266,8 +248,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candle volatility (regarding center, %)
-        /// волатильность свечи (от центра, %)
+        /// Candle volatility (regarding center, %)
         /// </summary>
         public decimal Volatility
         {
@@ -282,10 +263,9 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// to load the status of the candlestick from the line
-        /// загрузить состояние свечи из строки
+        /// To load the status of the candlestick from the line
         /// </summary>
-        /// <param name="In">status line/строка состояния</param>
+        /// <param name="In">status line</param>
         public void SetCandleFromString(string In)
         {
 //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1
@@ -318,8 +298,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// take a line of signatures
-        /// взять строку с подписями
+        /// Take a line of signatures
         /// </summary>
         public string ToolTip
         {
@@ -415,7 +394,6 @@ namespace OsEngine.Entity
                 if (_closeWhenGotLastString == Close)
                 {
                     // If we've taken candles before, we're not counting on that line.
-                    // если мы уже брали свечи раньше, не рассчитываем заного строку
                     return _stringToSave;
                 }
 
@@ -445,26 +423,22 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
-    /// candle formation status
-    /// состояние формирования свечи
+    /// Candle formation status
     /// </summary>
     public enum CandleState
     {
         /// <summary>
-        /// completed
-        /// завершено
+        /// Completed
         /// </summary>
         Finished,
 
         /// <summary>
-        /// started
-        /// начато
+        /// Started
         /// </summary>
         Started,
 
         /// <summary>
-        /// indefinitely
-        /// неизвестно
+        /// Indefinitely
         /// </summary>
         None
     }
