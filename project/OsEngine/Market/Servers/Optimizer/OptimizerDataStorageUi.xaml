@@ -32,8 +32,8 @@
                         </Slider.RenderTransform>
                     </Slider>
 
-                    <TextBox x:Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="95,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148"/>
-                    <TextBox x:Name="TextBoxTo" HorizontalAlignment="Left" Margin="95,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="148"/>
+                    <TextBox x:Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="95,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>
+                    <TextBox x:Name="TextBoxTo" HorizontalAlignment="Left" Margin="95,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>
                     <Label x:Name="LabelFrom"  Content="From" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
                     <Label x:Name="LabelTo"  Content="To" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
                 </Grid>

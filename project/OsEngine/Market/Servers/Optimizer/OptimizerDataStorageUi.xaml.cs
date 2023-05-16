@@ -25,6 +25,7 @@ namespace OsEngine.Market.Servers.Optimizer
         public OptimizerDataStorageUi(OptimizerDataStorage server, Log log)
         {
             InitializeComponent();
+            _currentCulture = OsLocalization.CurCulture;
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
@@ -84,6 +85,8 @@ namespace OsEngine.Market.Servers.Optimizer
             this.Activate();
             this.Focus();
         }
+
+        private CultureInfo _currentCulture;
 
         /// <summary>
 		/// data source has changed. Folder or set
@@ -229,16 +232,16 @@ namespace OsEngine.Market.Servers.Optimizer
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[3].Value = securities[i].Security.PriceStep.ToStringWithNoEndZero();
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[4].Value = securities[i].TimeStart;
+                    nRow.Cells[4].Value = securities[i].TimeStart.ToString(_currentCulture);
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[5].Value = securities[i].TimeEnd;
+                    nRow.Cells[5].Value = securities[i].TimeEnd.ToString(_currentCulture);
 
                     _myGridView.Rows.Add(nRow);
                 }
             }
 
-            TextBoxFrom.Text = _server.TimeStart.ToString(new CultureInfo("RU-ru"));
-            TextBoxTo.Text = _server.TimeEnd.ToString(new CultureInfo("RU-ru"));
+            TextBoxFrom.Text = _server.TimeStart.ToString(_currentCulture);
+            TextBoxTo.Text = _server.TimeEnd.ToString(_currentCulture);
 
             SliderFrom.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
             SliderFrom.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
@@ -329,7 +332,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             DateTime to = DateTime.MinValue.AddMinutes(SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value);
             _server.TimeEnd = to;
-            TextBoxTo.Text = to.ToString(new CultureInfo("RU-ru"));
+            TextBoxTo.Text = to.ToString(_currentCulture);
 
             if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
             {
@@ -344,7 +347,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             DateTime from = DateTime.MinValue.AddMinutes(SliderFrom.Value);
             _server.TimeStart = from;
-            TextBoxFrom.Text = from.ToString(new CultureInfo("RU-ru"));
+            TextBoxFrom.Text = from.ToString(_currentCulture);
 
             if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
             {
@@ -359,7 +362,7 @@ namespace OsEngine.Market.Servers.Optimizer
             DateTime to;
             try
             {
-                to = Convert.ToDateTime(TextBoxTo.Text);
+                to = Convert.ToDateTime(TextBoxTo.Text, _currentCulture);
 
                 if (to < _server.TimeMin ||
                     to > _server.TimeMax)
@@ -369,7 +372,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
             catch (Exception)
             {
-                TextBoxTo.Text = _server.TimeEnd.ToString(new CultureInfo("RU-ru"));
+                TextBoxTo.Text = _server.TimeEnd.ToString(_currentCulture);
                 return;
             }
 
@@ -384,7 +387,7 @@ namespace OsEngine.Market.Servers.Optimizer
             DateTime from;
             try
             {
-                from = Convert.ToDateTime(TextBoxFrom.Text);
+                from = Convert.ToDateTime(TextBoxFrom.Text, _currentCulture);
 
                 if (from < _server.TimeMin ||
                     from > _server.TimeMax)
@@ -394,7 +397,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
             catch (Exception)
             {
-                TextBoxFrom.Text = _server.TimeStart.ToString(new CultureInfo("RU-ru"));
+                TextBoxFrom.Text = _server.TimeStart.ToString(_currentCulture);
                 return;
             }
 

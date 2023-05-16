@@ -37,7 +37,6 @@ namespace OsEngine.OsOptimizer
             CreateTableFazes();
             CreateTableResults();
 
-
             LabelSortBy.Content = OsLocalization.Optimizer.Label39;
             LabelOptimSeries.Content = OsLocalization.Optimizer.Label30;
             LabelTableResults.Content = OsLocalization.Optimizer.Label31;
@@ -201,11 +200,11 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(cell);
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
-                cell2.Value = fazes[i].TimeStart.ToShortDateString();
+                cell2.Value = fazes[i].TimeStart.ToString(OsLocalization.ShortDateFormatString);
                 row.Cells.Add(cell2);
 
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
-                cell3.Value = fazes[i].TimeEnd.ToShortDateString();
+                cell3.Value = fazes[i].TimeEnd.ToString(OsLocalization.ShortDateFormatString);
                 row.Cells.Add(cell3);
 
                 DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();

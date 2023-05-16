@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.OsOptimizer.OptEntity;
 
@@ -18,7 +20,7 @@ namespace OsEngine.OsOptimizer
             System.Windows.Controls.Label robustnessMetrica)
         {
             _sortBotsType = SortBotsType.TotalProfit;
-
+            _currentCulture = OsLocalization.CurCulture;
             _hostDataGrid = hostDataGrid;
             _hostColumnsResult = hostColumnsResult;
             _hostPieChartResult = hostPieChartResult;
@@ -47,6 +49,8 @@ namespace OsEngine.OsOptimizer
             CreatePie();
             PaintOutOfSampleEquityChart();
         }
+
+        private CultureInfo _currentCulture;
 
         private System.Windows.Controls.ComboBox _boxTypeSort;
 
@@ -372,11 +376,11 @@ namespace OsEngine.OsOptimizer
 
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
-                cell2.Value = curReport.Faze.TimeStart.ToShortDateString();
+                cell2.Value = curReport.Faze.TimeStart.ToString(OsLocalization.ShortDateFormatString);
                 row.Cells.Add(cell2);
 
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
-                cell3.Value = curReport.Faze.TimeEnd.ToShortDateString();
+                cell3.Value = curReport.Faze.TimeEnd.ToString(OsLocalization.ShortDateFormatString);
                 row.Cells.Add(cell3);
 
                 DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();

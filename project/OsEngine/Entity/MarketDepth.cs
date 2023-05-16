@@ -20,7 +20,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Time to create a glass
+        /// Time to create a market depth
         /// </summary>
         public DateTime Time;
 
@@ -30,7 +30,7 @@ namespace OsEngine.Entity
         public List<MarketDepthLevel> Asks;
 
         /// <summary>
-        /// Purchase levels. best with index 0
+        /// Levels of buy. best with index 0
         /// </summary>
         public List<MarketDepthLevel> Bids;
 
@@ -51,7 +51,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Total amount in purchases
+        /// Total buy volume
         /// </summary>
         public decimal BidSummVolume
         {
@@ -67,12 +67,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Security that owns to glass
+        /// Security that owns to market depth
         /// </summary>
         public string SecurityNameCode;
 
         /// <summary>
-        /// Set the cup from the stored value
+        /// Set the market depth from the stored value
         /// </summary>
         public void SetMarketDepthFromString(string str)
         {
@@ -122,9 +122,9 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Take the save string for the whole glass
+        /// Take the save string for the whole market depth
         /// </summary>
-        /// <param name="depth">depth of glass to keep</param>
+        /// <param name="depth">depth of market depth to keep</param>
         public string GetSaveStringToAllDepfh(int depth)
         {
             // NameSecurity_Time_Bids_Asks
@@ -158,7 +158,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Take a "deep" copy of the glass
+        /// Take a "deep" copy of the market depth
         /// </summary>
         public MarketDepth GetCopy()
         {
@@ -191,17 +191,17 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
-    /// Class representing one price level in a glass
+    /// Market depth representing one price level
     /// </summary>
     public class MarketDepthLevel
     {
         /// <summary>
-        /// Number of contracts for sale at this price level
+        /// Number of contracts for SALE at this price level
         /// </summary>
         public decimal Ask;
 
         /// <summary>
-        /// Number of purchase contracts at this price level
+        /// Number of contracts for BUY this price level
         /// </summary>
         public decimal Bid;
 

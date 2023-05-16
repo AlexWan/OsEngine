@@ -21,6 +21,8 @@ using OsEngine.OsOptimizer.OptEntity;
 using System.Threading;
 using OsEngine.Layout;
 using System.IO;
+using System.Windows.Markup;
+using System.Globalization;
 
 namespace OsEngine.OsOptimizer
 {
@@ -33,6 +35,7 @@ namespace OsEngine.OsOptimizer
         public OptimizerUi()
         {
             InitializeComponent();
+            _currentCulture = OsLocalization.CurCulture;
             OsEngine.Layout.StickyBorders.Listen(this);
             Thread.Sleep(200);
 
@@ -99,6 +102,8 @@ namespace OsEngine.OsOptimizer
 
             // Stages/Этапы
 
+            DatePickerStart.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
+            DatePickerEnd.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
             DatePickerStart.DisplayDate = _master.TimeStart;
             DatePickerEnd.DisplayDate = _master.TimeEnd;
             TextBoxPercentFiltration.Text = _master.PercentOnFilration.ToString();
@@ -188,6 +193,8 @@ namespace OsEngine.OsOptimizer
 
             Task.Run(new Action(StrategyLoader));
         }
+
+        private CultureInfo _currentCulture;
 
         void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -1315,7 +1322,7 @@ namespace OsEngine.OsOptimizer
 
             try
             {
-                DateTime time = Convert.ToDateTime(_gridFazes.Rows[indexRow].Cells[indexColumn].EditedFormattedValue.ToString());
+                DateTime time = Convert.ToDateTime(_gridFazes.Rows[indexRow].Cells[indexColumn].EditedFormattedValue.ToString(), _currentCulture);
 
                 if (indexColumn == 2)
                 {
@@ -1331,11 +1338,11 @@ namespace OsEngine.OsOptimizer
             {
                 if (indexColumn == 2)
                 {
-                    _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeStart.ToShortDateString(); ;
+                    _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeStart.ToString(OsLocalization.ShortDateFormatString);
                 }
                 else
                 {
-                    _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeEnd.ToShortDateString(); ;
+                    _gridFazes.Rows[indexRow].Cells[indexColumn].Value = _master.Fazes[indexRow].TimeEnd.ToString(OsLocalization.ShortDateFormatString);
                 }
             }
 
@@ -1382,11 +1389,11 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(cell);
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
-                cell2.Value = fazes[i].TimeStart.ToShortDateString();
+                cell2.Value = fazes[i].TimeStart.ToString(OsLocalization.ShortDateFormatString);
                 row.Cells.Add(cell2);
 
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
-                cell3.Value = fazes[i].TimeEnd.ToShortDateString();
+                cell3.Value = fazes[i].TimeEnd.ToString(OsLocalization.ShortDateFormatString);
                 row.Cells.Add(cell3);
 
                 DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();
@@ -1959,11 +1966,11 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(cell);
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
-                cell2.Value = fazes[i].TimeStart.ToShortDateString();
+                cell2.Value = fazes[i].TimeStart.ToString(OsLocalization.ShortDateFormatString);
                 row.Cells.Add(cell2);
 
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
-                cell3.Value = fazes[i].TimeEnd.ToShortDateString();
+                cell3.Value = fazes[i].TimeEnd.ToString(OsLocalization.ShortDateFormatString);
                 row.Cells.Add(cell3);
 
                 DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();
