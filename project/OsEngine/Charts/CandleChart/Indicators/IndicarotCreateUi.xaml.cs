@@ -3,13 +3,16 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
+using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -114,7 +117,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Volume Oscillator");
             _gridViewIndicators.Rows.Add("Volume");
             _gridViewIndicators.Rows.Add("VWAP");
-            _gridViewIndicators.Rows.Add("WilliamsRange");
+            _gridViewIndicators.Rows.Add("WilliamsRange");          
 
             _gridViewIndicators.Click += delegate { _lastScriptGrid = false; };
 
@@ -983,7 +986,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 IndicatorCandle.ShowDialog();
             }
-
         }
 
         // script

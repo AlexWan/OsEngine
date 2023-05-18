@@ -389,11 +389,13 @@
     <Compile Include="Entity\StrategyParameter.cs" />
     <Compile Include="Entity\TimeFrameBuilder.cs" />
     <Compile Include="Entity\Utils\CompressionUtils.cs" />
+    <Compile Include="Indicators\AC.cs" />
     <Compile Include="Indicators\Aindicator.cs" />
     <Compile Include="Indicators\AIndicatorUi.xaml.cs">
       <DependentUpon>AIndicatorUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Indicators\Entity.cs" />
+    <Compile Include="Indicators\IndicatorAttribute.cs" />
     <Compile Include="Indicators\IndicatorParameter.cs" />
     <Compile Include="Indicators\IndicatorsFactory.cs" />
     <Compile Include="Indicators\ScriptSpells.cs" />

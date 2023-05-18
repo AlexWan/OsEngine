@@ -7,6 +7,9 @@ using System.Reflection;
 using System.Windows;
 using Microsoft.CSharp;
 using OsEngine.Entity;
+using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.OsTrader.Panels;
+using System.Windows.Media;
 
 namespace OsEngine.Indicators
 {
@@ -31,9 +34,35 @@ namespace OsEngine.Indicators
 
     public class IndicatorsFactory
     {
+        public static readonly Dictionary<string, Type> IndicatorsWithAttribute = GetTypesWithIndicatorAttribute();
+
+        private static Dictionary<string, Type> GetTypesWithIndicatorAttribute()
+        {
+            Assembly assembly = Assembly.GetAssembly(typeof(Aindicator));
+            Dictionary<string, Type> indicators = new Dictionary<string, Type>();
+            foreach (Type type in assembly.GetTypes())
+            {
+                object[] attributes = type.GetCustomAttributes(typeof(IndicatorAttribute), false);
+                if (attributes.Length > 0)
+                {
+                    indicators[((IndicatorAttribute)attributes[0]).Name] = type;
+                }
+            }
+
+            return indicators;
+        }
+
+        private static Aindicator CreateIndicatorWithAttribute(string typeName, string name, bool canDelete)
+        {
+            Type indicatorType = IndicatorsWithAttribute[typeName];
+
+            var indicator = (Aindicator)Activator.CreateInstance(indicatorType, name, canDelete);
+
+            return indicator;
+        }
+
         public static List<string> GetIndicatorsNames()
         {
-
             if (Directory.Exists(@"Custom") == false)
             {
                 Directory.CreateDirectory(@"Custom");
@@ -79,7 +108,11 @@ namespace OsEngine.Indicators
                 }
             }
 
-            return resultTrue;
+            resultTrue.AddRange(IndicatorsWithAttribute.Keys);
+
+            var result = resultTrue.OrderBy(x => x).ToList();
+
+            return result;
         }
 
         private static List<NamesFilesFromFolder> _filesInDir = new List<NamesFilesFromFolder>();
@@ -132,15 +165,20 @@ namespace OsEngine.Indicators
 
         public static Aindicator CreateIndicatorByName(string nameClass, string name, bool canDelete,StartProgram startProgram = StartProgram.IsOsTrader)
         {
-            Aindicator Indicator = null;
+             Aindicator Indicator = null;
 
-            /* if (nameClass == "FBD")
-             {
-                 Indicator = new FBD();
-             }*/
-
+            //if (nameClass == "FBD")
+            //{
+            //    Indicator = new FBD();
+            //}
+        
             try
             {
+                if (IndicatorsWithAttribute.ContainsKey(nameClass))
+                {
+                    Indicator = (Aindicator)Activator.CreateInstance(IndicatorsWithAttribute[nameClass]);
+                }
+
                 if (Indicator == null)
                 {
                     if (!Directory.Exists(@"Custom\Indicators\Scripts"))
