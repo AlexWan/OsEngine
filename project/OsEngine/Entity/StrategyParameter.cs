@@ -833,7 +833,9 @@ namespace OsEngine.Entity
                 {
                     return;
                 }
+
                 _valueString = value;
+
                 if (ValueChange != null)
                 {
                     ValueChange();

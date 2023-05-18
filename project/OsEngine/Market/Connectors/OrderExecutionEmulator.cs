@@ -36,7 +36,7 @@ namespace OsEngine.Market.Connectors
         {
             while (true)
             {
-                await Task.Delay(250);
+                await Task.Delay(250); 
 
                 if (MainWindow.ProccesIsWorked == false)
                 {

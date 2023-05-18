@@ -34,12 +34,6 @@ namespace OsEngine.OsOptimizer.OptEntity
 
             try
             {
-                /* if (_chart != null && _chart.InvokeRequired)
-                 {
-                     _chart.Invoke(new Action(CreateChart));
-                     return;
-                 }*/
-
                 _chart = new Chart();
                 ChartMasterColorKeeper _colorKeeper = new ChartMasterColorKeeper("walkForward");
 

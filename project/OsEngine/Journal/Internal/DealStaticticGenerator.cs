@@ -82,8 +82,8 @@ namespace OsEngine.Journal.Internal
             report.Add(Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")));   // Recovery
             report.Add("");
 
-            report.Add(Convert.ToDouble(GetMidleProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //average profit
-            report.Add(Math.Round(GetMidleProfitInPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in %
+            report.Add(Convert.ToDouble(GetMidleProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //average profit in 1 contract
+            report.Add(Math.Round(GetMidleProfitInPersentOneContract(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in % 1 contract
             report.Add(Convert.ToDouble(GetMidleProfitInPunktToDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //average profit
             report.Add(Math.Round(GetMidleProfitInPersentToDepozit(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in %
 
@@ -211,7 +211,7 @@ namespace OsEngine.Journal.Internal
         /// to take the average profit from the deal as a percentage
         /// взять средний профит со сделки в процентах
         /// </summary>
-        public static decimal GetMidleProfitInPersent(Position[] deals) 
+        public static decimal GetMidleProfitInPersentOneContract(Position[] deals) 
         {
             if (deals.Length == 0)
             {

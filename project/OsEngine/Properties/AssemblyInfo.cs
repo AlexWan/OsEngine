@@ -8,9 +8,9 @@ using System.Windows;
 [assembly: AssemblyTitle("OsEngine")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Wang Capital")]
+[assembly: AssemblyCompany("Wang Technology")]
 [assembly: AssemblyProduct("OsEngine")]
-[assembly: AssemblyCopyright("Wang Capital")]
+[assembly: AssemblyCopyright("Wang Technology")]
 [assembly: AssemblyTrademark("OsEngine")]
 [assembly: AssemblyCulture("")]
 
@@ -49,5 +49,5 @@ using System.Windows;
 // Можно задать все значения или принять номера сборки и редакции по умолчанию 
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.7.8.3")]
-[assembly: AssemblyFileVersion("1.7.8.3")]
+[assembly: AssemblyVersion("1.7.8.4")]
+[assembly: AssemblyFileVersion("1.7.8.4")]

@@ -25,7 +25,7 @@ namespace OsEngine.OsOptimizer.OptEntity
 
             label += " Faze End :" + _faze.Faze.TimeEnd.Date.ToShortDateString();
 
-            label += " Aver profit % in faze " + report.AverageProfitPercent;
+            label += " Aver profit % in faze " + report.AverageProfitPercentOneContract;
 
             Title = Title + label;
 
@@ -104,6 +104,10 @@ namespace OsEngine.OsOptimizer.OptEntity
             if (parameter.Type == StrategyParameterType.TimeOfDay)
             {
                 nRow.Cells[1].Value = ((StrategyParameterTimeOfDay)parameter).Value.ToString();
+            }
+            if (parameter.Type == StrategyParameterType.CheckBox)
+            {
+                nRow.Cells[1].Value = ((StrategyParameterCheckBox)parameter).CheckState;
             }
 
             return nRow;

@@ -53,7 +53,7 @@ namespace OsEngine.Market.Connectors
                 ServerMaster.RevokeOrderToEmulatorEvent += ServerMaster_RevokeOrderToEmulatorEvent;
             }
 
-            if (createEmulator == true)
+            if (createEmulator == true && startProgram != StartProgram.IsOsOptimizer)
             {
                 _emulator = new OrderExecutionEmulator();
                 _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;

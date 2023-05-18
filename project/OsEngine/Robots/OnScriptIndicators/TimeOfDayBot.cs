@@ -21,6 +21,10 @@ namespace OsEngine.Robots.OnScriptIndicators
             Stop = CreateParameter("Stop", 1, 1.0m, 10, 0.1m);
             Profit = CreateParameter("Profit", 1, 1.0m, 10, 0.1m);
 
+            CreateParameterCheckBox("SomeCheckBox", true);
+            CreateParameter("SomeStringParam", "value");
+
+
             _tab.NewTickEvent += TabOnNewTickEvent;
             _tab.PositionOpeningSuccesEvent += TabOnPositionOpeningSuccesEvent;
         }

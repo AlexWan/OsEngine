@@ -578,7 +578,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public bool IsAcceptedByFilter(OptimizerReport report)
         {
-            if (FilterMiddleProfitIsOn && report.AverageProfitPercent < FilterMiddleProfitValue)
+            if (FilterMiddleProfitIsOn && report.AverageProfitPercentOneContract < FilterMiddleProfitValue)
             {
                 return false;
             }

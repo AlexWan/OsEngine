@@ -390,5 +390,17 @@ namespace OsEngine.Language
         public string Label53 => OsLocalization.ConvertToLocString(
              "Eng:Robustness metric: _" +
              "Ru:Показатель робастности: _");
+
+        public string Label54 => OsLocalization.ConvertToLocString(
+            "Eng:Total profit _" +
+            "Ru:Итоговый профит _");
+
+        public string Label55 => OsLocalization.ConvertToLocString(
+           "Eng:Profit factor _" +
+           "Ru:Профит фактор _");
+
+        public string Label56 => OsLocalization.ConvertToLocString(
+           "Eng:P/L % 1 contract _" +
+           "Ru:П/У % 1 контракт _");
     }
 }

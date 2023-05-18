@@ -614,7 +614,7 @@ position => position.State != PositionStateType.OpeningFail
                     position => position.State != PositionStateType.OpeningFail
                     && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStaticticGenerator.GetMidleProfitInPersent(positions.ToArray());
+                    result += PositionStaticticGenerator.GetMidleProfitInPersentOneContract(positions.ToArray());
                 }
                 return result;
             }
