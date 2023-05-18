@@ -26,6 +26,7 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.GateIo.Futures.Response;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
@@ -1124,7 +1125,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private PositionCloseUi2 _ui;
+        private List<PositionCloseUi2> _guisClosePos = new List<PositionCloseUi2>();
 
         /// <summary>
         /// Show position closing window
@@ -1134,20 +1135,40 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (_ui == null)
+                for (int i = 0; i < _guisClosePos.Count; i++)
                 {
-                    _ui = new PositionCloseUi2(this, ClosePositionType.Limit, position);
-                    _ui.Show();
+                    if (_guisClosePos[i].Position.Number == position.Number)
+                    {
+                        _guisClosePos[i].Activate();
+                        _guisClosePos[i].SelectTabIndx(ClosePositionType.Limit);
+                        return;
+                    }
                 }
-                else
-                {
-                    _ui.SelectTabIndx(ClosePositionType.Limit);
-                    _ui.Activate();
-                }
+
+
+                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Limit, position);
+                ui.Show();
+                _guisClosePos.Add(ui);
+                ui.Closing += Ui_Closing1;
+
             }
             catch (Exception error)
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void Ui_Closing1(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            PositionCloseUi2 myUi = (PositionCloseUi2)sender;
+
+            for (int i = 0; i < _guisClosePos.Count; i++)
+            {
+                if (_guisClosePos[i].Position.Number == myUi.Position.Number)
+                {
+                    _guisClosePos.RemoveAt(i);
+                    return;
+                }
             }
         }
 
@@ -1158,22 +1179,30 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (_ui == null)
+                for (int i = 0; i < _guisClosePos.Count; i++)
                 {
-                    _ui = new PositionCloseUi2(this, ClosePositionType.Stop, position);
-                    _ui.Show();
+                    if (_guisClosePos[i].Position.Number == position.Number)
+                    {
+                        _guisClosePos[i].Activate();
+                        _guisClosePos[i].SelectTabIndx(ClosePositionType.Stop);
+                        return;
+                    }
                 }
-                else
-                {
-                    _ui.SelectTabIndx(ClosePositionType.Stop);
-                    _ui.Activate();
-                }
+
+
+                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Stop, position);
+                ui.Show();
+                _guisClosePos.Add(ui);
+                ui.Closing += Ui_Closing1;
+
             }
             catch (Exception error)
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+
 
         /// <summary>
         /// Show profit order window
@@ -1182,16 +1211,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (_ui == null)
+                for (int i = 0; i < _guisClosePos.Count; i++)
                 {
-                    _ui = new PositionCloseUi2(this, ClosePositionType.Profit, position);
-                    _ui.Show();
+                    if (_guisClosePos[i].Position.Number == position.Number)
+                    {
+                        _guisClosePos[i].Activate();
+                        _guisClosePos[i].SelectTabIndx(ClosePositionType.Profit);
+                        return;
+                    }
                 }
-                else
-                {
-                    _ui.SelectTabIndx(ClosePositionType.Profit);
-                    _ui.Activate();
-                }
+
+                PositionCloseUi2 ui = new PositionCloseUi2(this, ClosePositionType.Profit, position);
+                ui.Show();
+                _guisClosePos.Add(ui);
+                ui.Closing += Ui_Closing1;
+
             }
             catch (Exception error)
             {

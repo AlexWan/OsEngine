@@ -94,7 +94,19 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 TabControlTypePosition.SelectedIndex = 4;
             }
 
+            LabelOpenVolumeValue.Content = Position.OpenVolume.ToStringWithNoEndZero();
+            LabelPosStateValue.Content = Position.State.ToString();
+            LabelPosNumberValue.Content = Position.Number.ToString();
+            LabelOpenSideValue.Content = Position.Direction.ToString();
+
+            TextBoxProfitActivationPrice.Text = Position.ProfitOrderRedLine.ToStringWithNoEndZero();
+            TextBoxProfitPrice.Text = Position.ProfitOrderPrice.ToStringWithNoEndZero();
+
+            TextBoxStopActivationPrice.Text = Position.StopOrderRedLine.ToStringWithNoEndZero();
+            TextBoxStopPrice.Text = Position.StopOrderPrice.ToStringWithNoEndZero();
+
             Task.Run(WatcherThreadPlace);
+
         }
 
         public void SelectTabIndx(ClosePositionType closePositionType)
@@ -397,14 +409,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 LabelOpenVolumeValue.Content = Position.OpenVolume.ToStringWithNoEndZero();
                 LabelPosStateValue.Content = Position.State.ToString();
-                LabelPosNumberValue.Content = Position.Number.ToString();
-                LabelOpenSideValue.Content = Position.Direction.ToString();
-
-                TextBoxProfitActivationPrice.Text = Position.ProfitOrderRedLine.ToStringWithNoEndZero();
-                TextBoxProfitPrice.Text = Position.ProfitOrderPrice.ToStringWithNoEndZero();
-
-                TextBoxStopActivationPrice.Text = Position.StopOrderRedLine.ToStringWithNoEndZero();
-                TextBoxStopPrice.Text = Position.StopOrderPrice.ToStringWithNoEndZero();
 
                 if (Position.State == PositionStateType.Done)
                 {
