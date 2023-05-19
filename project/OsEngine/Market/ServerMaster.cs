@@ -47,6 +47,7 @@ using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
 using OsEngine.Market.Servers.BitMaxFutures;
 using OsEngine.Market.Servers.BybitSpot;
+using OsEngine.Market.Servers.BitGet.BitGetSpot;
 
 namespace OsEngine.Market
 {
@@ -105,6 +106,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BybitSpot);
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Bitmax_AscendexFutures);
+                serverTypes.Add(ServerType.BitGetSpot);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -203,6 +205,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
+                serverTypes.Add(ServerType.BitGetSpot);
 
                 return serverTypes;
             }
@@ -299,6 +302,10 @@ namespace OsEngine.Market
                 SaveMostPopularServers(type);
 
                 IServer newServer = null;
+                if (type == ServerType.BitGetSpot)
+                {
+                    newServer = new BitGetServerSpot();
+                }
                 if (type == ServerType.Bitmax_AscendexFutures)
                 {
                     newServer = new BitMaxFuturesServer();
@@ -672,7 +679,16 @@ namespace OsEngine.Market
         {
             IServerPermission serverPermission = null;
 
+            if (type == ServerType.BitGetSpot)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
 
+                if (serverPermission == null)
+                {
+                    serverPermission = new BitGetSpotServerPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+            }
             if (type == ServerType.AscendEx_BitMax)
             {
                 serverPermission = _serversPermissions.Find(s => s.ServerType == type);
@@ -1404,6 +1420,11 @@ namespace OsEngine.Market
         /// <summary>
         /// BybitSpot exchange
         /// </summary>
-        BybitSpot
+        BybitSpot,
+
+        /// <summary>
+        /// BitGet exchange
+        /// </summary>
+        BitGetSpot
     }
 }

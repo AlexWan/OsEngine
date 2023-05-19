@@ -763,6 +763,9 @@ namespace OsEngine.Language
             "Eng:Secret key_" +
             "Ru:Секретный ключ_");
 
+        public string ServerParamPassphrase => OsLocalization.ConvertToLocString(
+            "Eng:Passphrase_" +
+            "Ru:Пароль_");
 
         public string ServerParamToken => OsLocalization.ConvertToLocString(
             "Eng:Token_" +
