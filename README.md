@@ -28,13 +28,6 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 *Bot station* -the program to run the robots in the trade.
 
-
-*Available international connections*
-
-1) LMAX
-2) Interactive Brokers
-3) Ninja trader
-
 *Available connections for MOEX*
 
 1) Quik
@@ -59,6 +52,16 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 11) HitBtc
 12) ByBit
 13) OKX
+
+*Available international connections*
+
+| logo                                                                                                                                                                                     | name                | support                                                                                                            | discount for our users                                                                                                                                                                                                           
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------:|
+| [![Interactive Brokers](https://user-images.githubusercontent.com/26077466/239535591-8420295f-7405-4bf2-9e18-c5112b4b2582.png)](https://www.interactivebrokers.com/en/home.php)          | Interactive Brokers | ![standart](https://user-images.githubusercontent.com/26077466/239537839-a844b85a-1139-444f-80bf-44914c09740c.png) | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
+| [![Ninja Trader](https://user-images.githubusercontent.com/26077466/239535631-bb4596f4-160f-4506-bcdd-4832d1deb188.png)](https://ninjatrader.com)                                        | Ninja Trader        | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
+| [![LMAX](https://user-images.githubusercontent.com/26077466/239535509-2336139b-b648-4a66-b2a6-cb6d2b3e91b6.png)](https://www.lmax.com)                                                   | LMAX                | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
+
+
 
 *Included with OsEngine is more than 30 built-in robots*
 
@@ -93,12 +96,6 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 *Bot station* - программа для запуска роботов в торговлю.
 
 
-*Доступные международные подключения*
-
-1) LMAX
-2) Interactive Brokers
-3) Ninja trader
-
 *Доступные подключения для MOEX*
 
 1) Quik
@@ -123,6 +120,15 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 11) HitBtc
 12) ByBit
 13) OKX
+
+*Доступные международные подключения*
+
+| logo                                                                                                                                                                                     | name                | support                                                                                                            | discount for our users                                                                                                                                                                                                           
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------:|
+| [![Interactive Brokers](https://user-images.githubusercontent.com/26077466/239535591-8420295f-7405-4bf2-9e18-c5112b4b2582.png)](https://www.interactivebrokers.com/en/home.php)          | Interactive Brokers | ![standart](https://user-images.githubusercontent.com/26077466/239537839-a844b85a-1139-444f-80bf-44914c09740c.png) | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
+| [![Ninja Trader](https://user-images.githubusercontent.com/26077466/239535631-bb4596f4-160f-4506-bcdd-4832d1deb188.png)](https://ninjatrader.com)                                        | Ninja Trader        | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
+| [![LMAX](https://user-images.githubusercontent.com/26077466/239535509-2336139b-b648-4a66-b2a6-cb6d2b3e91b6.png)](https://www.lmax.com)                                                   | LMAX                | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
+
 
 *В комплекте с OsEngine идёт более 30ти встроенных роботов*
 
