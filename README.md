@@ -50,12 +50,16 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 *Available connections for MOEX*
 
-1) Quik
-2) SmartCom
-3) Transaq
-4) Plaza 2
-5) Asts Bridge
-6) Tinkoff
+| ________ logo ________                                                                                                                        |_______ name _______ | _______ support _______                                                                                            |   discount for our users                                                                                                                                                                                                                                                     |
+|:---------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------:|:------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| ![Quik DDE](https://user-images.githubusercontent.com/26077466/239535136-051c4d6e-980a-456b-996c-93024d72fa8b.png)                            | Quik DDE            | ![prime](https://user-images.githubusercontent.com/26077466/239537776-71b68997-e4f9-4c06-9a9c-770b6e54b32d.png)    | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Transaq](https://user-images.githubusercontent.com/26077466/239535313-b948d50e-1d7d-4cff-b994-c2c711bb1688.png)                             | Transaq             | ![prime](https://user-images.githubusercontent.com/26077466/239537776-71b68997-e4f9-4c06-9a9c-770b6e54b32d.png)    | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Tinkoff Api](https://user-images.githubusercontent.com/26077466/239535245-83ac09ac-586c-4021-a96b-9b9685e5ffc4.png)                         | Tinkoff Api         | ![prime](https://user-images.githubusercontent.com/26077466/239537776-71b68997-e4f9-4c06-9a9c-770b6e54b32d.png)    | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Quik LUA](https://user-images.githubusercontent.com/26077466/239535058-d5ac0db1-8b0f-4602-a6c1-abcbe6fc7cb6.png)                            | Quik LUA            | ![standart](https://user-images.githubusercontent.com/26077466/239537839-a844b85a-1139-444f-80bf-44914c09740c.png) | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![SmartCom](https://user-images.githubusercontent.com/26077466/239535195-8188cfc8-203f-40ba-8941-3dd486bd17c2.png)                            | SmartCom            | ![standart](https://user-images.githubusercontent.com/26077466/239537839-a844b85a-1139-444f-80bf-44914c09740c.png) | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Plaza 2](https://user-images.githubusercontent.com/26077466/239535000-fb36abb2-4e29-4ae1-ae3f-9952c4211485.png)                             | Plaza 2             | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Asts Bridge](https://user-images.githubusercontent.com/26077466/239534827-4d9bfa5a-2a20-4bca-92ac-63ef62aace77.png)                         | Asts Bridge         | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+
 
 
 *Available international connections*
@@ -122,12 +126,16 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 *Доступные подключения для MOEX*
 
-1) Quik
-2) SmartCom
-3) Transaq
-4) Plaza 2
-5) Asts Bridge
-6) Tinkoff
+| ________ Лого ________                                                                                                                        |_______ Имя _______  |  _______ Поддержка _______                                                                                         | Скидка пользователям OsEngine                                                                                                                                                                                                         
+|:---------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------:|:------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| ![Quik DDE](https://user-images.githubusercontent.com/26077466/239535136-051c4d6e-980a-456b-996c-93024d72fa8b.png)                            | Quik DDE            | ![prime](https://user-images.githubusercontent.com/26077466/239537776-71b68997-e4f9-4c06-9a9c-770b6e54b32d.png)    | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Transaq](https://user-images.githubusercontent.com/26077466/239535313-b948d50e-1d7d-4cff-b994-c2c711bb1688.png)                             | Transaq             | ![prime](https://user-images.githubusercontent.com/26077466/239537776-71b68997-e4f9-4c06-9a9c-770b6e54b32d.png)    | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Tinkoff Api](https://user-images.githubusercontent.com/26077466/239535245-83ac09ac-586c-4021-a96b-9b9685e5ffc4.png)                         | Tinkoff Api         | ![prime](https://user-images.githubusercontent.com/26077466/239537776-71b68997-e4f9-4c06-9a9c-770b6e54b32d.png)    | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Quik LUA](https://user-images.githubusercontent.com/26077466/239535058-d5ac0db1-8b0f-4602-a6c1-abcbe6fc7cb6.png)                            | Quik LUA            | ![standart](https://user-images.githubusercontent.com/26077466/239537839-a844b85a-1139-444f-80bf-44914c09740c.png) | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![SmartCom](https://user-images.githubusercontent.com/26077466/239535195-8188cfc8-203f-40ba-8941-3dd486bd17c2.png)                            | SmartCom            | ![standart](https://user-images.githubusercontent.com/26077466/239537839-a844b85a-1139-444f-80bf-44914c09740c.png) | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Plaza 2](https://user-images.githubusercontent.com/26077466/239535000-fb36abb2-4e29-4ae1-ae3f-9952c4211485.png)                             | Plaza 2             | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+| ![Asts Bridge](https://user-images.githubusercontent.com/26077466/239534827-4d9bfa5a-2a20-4bca-92ac-63ef62aace77.png)                         | Asts Bridge         | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)                                               |
+
 
 *Доступные международные подключения*
 
