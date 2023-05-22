@@ -89,6 +89,8 @@ namespace OsEngine.Market.Servers
 
                 _serverStatusNead = ServerConnectStatus.Disconnect;
 
+                _loadDataLocker = "lockerData_" + ServerType.ToString();
+
                 Task task = new Task(PrimeThreadArea);
                 task.Start();
 
@@ -1468,6 +1470,8 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action NeadToReconnectEvent;
 
+        private string _loadDataLocker;
+
         /// <summary>
         /// take the candle history for a period
         /// взять историю свечей за период
@@ -1532,9 +1536,12 @@ namespace OsEngine.Market.Servers
 
             if (timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
             {
-                series.CandlesAll =
+                lock(_loadDataLocker)
+                {
+                    series.CandlesAll =
                     ServerRealization.GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime,
-                        actualTime);
+                    actualTime);
+                }
             }
 
            /* if (series.CandlesAll == null)
@@ -1618,9 +1625,12 @@ namespace OsEngine.Market.Servers
                     return null;
                 }
             }
+            List<Trade> trades = null;
 
-            List<Trade> trades = ServerRealization.GetTickDataToSecurity(security, startTime, endTime, actualTime);
-
+            lock (_loadDataLocker)
+            {
+                trades = ServerRealization.GetTickDataToSecurity(security, startTime, endTime, actualTime);
+            }
             return trades;
         }
 
