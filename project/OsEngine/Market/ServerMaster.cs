@@ -688,6 +688,8 @@ namespace OsEngine.Market
                     serverPermission = new BitGetSpotServerPermission();
                     _serversPermissions.Add(serverPermission);
                 }
+
+                return serverPermission;
             }
             if (type == ServerType.AscendEx_BitMax)
             {

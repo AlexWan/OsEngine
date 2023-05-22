@@ -487,6 +487,9 @@
     <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\SubscriptionInformation.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\BitGetServerSpot.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\BitGetSpotServerPermission.cs" />
+    <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\RequestWebsocketAuth.cs" />
+    <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseMessageRest.cs" />
+    <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseWebSocketMessageAction.cs" />
     <Compile Include="Market\Servers\BitMaxFutures\BitMaxFuturesServer.cs" />
     <Compile Include="Market\Servers\BitMax\BitMaxEntity.cs" />
     <Compile Include="Market\Servers\BitMax\BitMaxMarketDepthCreator.cs" />

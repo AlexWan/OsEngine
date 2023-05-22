@@ -2,6 +2,7 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.BitGet.BitGetSpot.Entity;
 using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Concurrent;
@@ -485,7 +486,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         }
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
         {
-            string stringInterval = $"{tf.TotalMinutes}min";
+            string stringInterval = GetStringInterval(tf);
             int CountToLoadCandle = GetCountCandlesToLoad();
 
 
@@ -1036,143 +1037,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
             return stateType;
         }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////REST////////////////////////////////////////////////////////////////
-    public class ResponseMessageRest<T>
-    {
-        public string code;
-        public string msg;
-        public T data;
-    }
-
-    public class ResponseAsset
-    {
-        public string coinId;
-        public string coinName;
-        public string available;
-        public string frozen;
-        public string Lock;
-        public string utime;
-    }
-
-    public class ResposeSymbol
-    {
-        public string symbol;
-        public string symbolName;
-        public string baseCoin;
-        public string quoteCoin;
-        public string minTradeAmount;
-        public string maxTradeAmount;
-        public string takerFeeRate;
-        public string makerFeeRate;
-        public string priceScale;
-        public string quantityScale;
-        public string minTradeUSDT;
-        public string status;
-        public string buyLimitPriceRatio;
-        public string sellLimitPriceRatio;
-    }
-
-    public class ResponseCandle
-    {
-        public string open;
-        public string high;
-        public string low;
-        public string close;
-        public string quoteVol;
-        public string baseVol;
-        public string usdtVol;
-        public string ts;
-    }
-
-    public class ResponseMyTrade
-    {
-        public string accountId;
-        public string symbol;
-        public string orderId;
-        public string fillId;
-        public string orderType;
-        public string side;
-        public string fillPrice;
-        public string fillQuantity;
-        public string fillTotalAmount;
-        public string cTime;
-        public string feeCcy;
-        public string fees;
-    }
-
-
-    ////////////////////////////////////////////////////////////////////////// WebSocket ///////////////////////////////////////////////////////////
-
-    // Response
-    public class ResponseWebSocketMessageAction<T>
-    {
-        public string action;
-        public ResponseWebSocketMessageArg arg;
-        public T data;
-    }
-
-    public class ResponseWebSocketMessageSubscrible
-    {
-        public string Event;
-        public string code;
-        public string msg;
-    }
-
-    public class ResponseWebSocketMessageArg
-    {
-        public string instType;
-        public string channel;
-        public string instId;
-    }
-
-    public class ResponseWebSocketDepthItem
-    {
-        public List<List<string>> asks;
-        public List<List<string>> bids;
-        public int checksum;
-        public string ts;
-    }
-
-    public class ResponseWebSocketOrder
-    {
-        public string instId;
-        public string ordId;
-        public string clOrdId;
-        public string px;
-        public string sz;
-        public string notional;
-        public string ordType;
-        public string force;
-        public string side;
-        public string fillPx;
-        public string tradeId;
-        public string fillSz;
-        public string fillTime;
-        public string fillFee;
-        public string fillFeeCcy;
-        public string execType;
-        public string accFillSz;
-        public string avgPx;
-        public string status;
-        public string cTime;
-        public string uTime;
-        public string eps;
-    }
-
-    // Request
-    public class RequestWebsocketAuth
-    {
-        public string op;
-        public List<AuthItem> args;
-    }
-
-    public class AuthItem
-    {
-        public string apiKey;
-        public string passphrase;
-        public string timestamp;
-        public string sign;
+        private string GetStringInterval(TimeSpan tf)
+        {
+            if (tf.Minutes != 0)
+            {
+                return $"{tf.Minutes}min";
+            }
+            else
+            {
+                return $"{tf.Hours}h";
+            }
+        }
     }
 }
