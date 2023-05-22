@@ -1326,7 +1326,7 @@ namespace OsEngine.OsData
 
             if (pie.Status == DataPieStatus.Load)
             {
-                return;
+                //return;
             }
 
             string id = SecId;
@@ -2145,12 +2145,14 @@ namespace OsEngine.OsData
                 ObjectCount = 0;
             }
 
-            if (Candles != null)
+            if (Candles != null
+                && Candles.Count != 0)
             {
                 ObjectCount = Candles.Count;
             }
 
-            if (Trades != null)
+            if (Trades != null 
+                && Trades.Count != 0)
             {
                 ObjectCount = Trades.Count;
             }
