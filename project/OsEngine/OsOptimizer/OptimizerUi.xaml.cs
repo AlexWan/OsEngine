@@ -1555,12 +1555,15 @@ namespace OsEngine.OsOptimizer
         private void _gridParametrs_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             int columnIndx = e.ColumnIndex;
+            _lastRowClickParamGridNum = e.RowIndex;
 
-            if(columnIndx == 0)
+            if (columnIndx == 0)
             {
                 Task.Run(StopRedactTableTask);
             }
         }
+
+        private int _lastRowClickParamGridNum;
 
         private async void StopRedactTableTask()
         {
@@ -1576,20 +1579,25 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            if(_gridParametrs.Rows.Count == 0 ||
-                 _gridParametrs.Rows[0].Cells == null ||
-                  _gridParametrs.Rows[0].Cells.Count < 2)
+            try
             {
-                return;
-            }
+                if (_gridParametrs.Rows.Count == 0 ||
+                    _gridParametrs.Rows[0].Cells == null ||
+                    _gridParametrs.Rows[0].Cells.Count < 2)
+                {
+                    return;
+                }
 
-            if(_gridParametrs.Rows[0].Cells[0].Selected != true)
-            {
-                _gridParametrs.Rows[0].Cells[0].Selected = true;
+                if (_lastRowClickParamGridNum >= _gridParametrs.Rows.Count)
+                {
+                    return;
+                }
+
+                _gridParametrs.Rows[_lastRowClickParamGridNum].Cells[1].Selected = true;
             }
-            else
+            catch(Exception ex)
             {
-                _gridParametrs.Rows[0].Cells[1].Selected = true;
+                MessageBox.Show(ex.ToString());
             }
         }
 
