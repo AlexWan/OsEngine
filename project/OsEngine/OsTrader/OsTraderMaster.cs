@@ -871,11 +871,11 @@ namespace OsEngine.OsTrader
                         }
                         else
                         {
-                           for(int i2 = 0;i2 < allTabs[i]._stopLimitsOrders.Count;i2++)
+                           for(int i2 = 0;i2 < allTabs[i].PositionOpenerToStop.Count;i2++)
                             {
-                               if(allTabs[i]._stopLimitsOrders[i2].Number == ordNum)
+                               if(allTabs[i].PositionOpenerToStop[i2].Number == ordNum)
                                 {
-                                    allTabs[i]._stopLimitsOrders.RemoveAt(i2);
+                                    allTabs[i].PositionOpenerToStop.RemoveAt(i2);
                                     allTabs[i].UpdateStopLimits();
                                     return;
                                 }

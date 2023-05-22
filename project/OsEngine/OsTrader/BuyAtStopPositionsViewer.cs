@@ -352,10 +352,10 @@ namespace OsEngine.OsTrader
 
                 for(int i = 0;i < _tabsToWatch.Count;i++)
                 {
-                    if (_tabsToWatch[i]._stopLimitsOrders != null &&
-                        _tabsToWatch[i]._stopLimitsOrders.Count != 0)
+                    if (_tabsToWatch[i].PositionOpenerToStop != null &&
+                        _tabsToWatch[i].PositionOpenerToStop.Count != 0)
                     {
-                        stopLimits.AddRange(_tabsToWatch[i]._stopLimitsOrders);
+                        stopLimits.AddRange(_tabsToWatch[i].PositionOpenerToStop);
                     }
                 }
 
