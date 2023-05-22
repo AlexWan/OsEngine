@@ -56,36 +56,61 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             HttpResponseMessage responseMessage = httpClient.GetAsync(BaseUrl + "/api/spot/v1/public/time").Result;
             string json = responseMessage.Content.ReadAsStringAsync().Result;
 
-
-
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                FIFOListWebSocketMessage = new ConcurrentQueue<string>();
-                StartCheckAliveWebSocket();
-                StartMessageReader();
-                CreateWebSocketConnection();
-                StartUpdatePortfolio();
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                try
+                {
+                    TimeToSendPing = DateTime.Now;
+                    TimeToUprdatePortfolio = DateTime.Now;
+                    FIFOListWebSocketMessage = new ConcurrentQueue<string>();
+                    StartCheckAliveWebSocket();
+                    StartMessageReader();
+                    CreateWebSocketConnection();
+                    StartUpdatePortfolio();
+                    ServerStatus = ServerConnectStatus.Connect;
+                    ConnectEvent();
+                }
+                catch (Exception exeption)
+                {
+                    HandlerExeption(exeption);
+                    IsDispose = true;
+                }
             }
             else
             {
                 IsDispose = true;
             }
-
         }
         public void Dispose()
         {
-            DeleteWebscoektConnection();
-            IsDispose = true;
-            ServerStatus = ServerConnectStatus.Disconnect;
-            DisconnectEvent();
-            FIFOListWebSocketMessage = null;
+            try
+            {
+                DeleteWebscoektConnection();
+            }
+            catch (Exception exeption)
+            {
+                HandlerExeption(exeption);
+            }
+            finally
+            {
+                IsDispose = true;
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+                FIFOListWebSocketMessage = null;
+            }
         }
         public void Subscrible(Security security)
         {
-            rateGateSubscrible.WaitToProceed();
-            CreateSubscribleSecurityMessageWebSocket(security);
+            try
+            {
+                rateGateSubscrible.WaitToProceed();
+                CreateSubscribleSecurityMessageWebSocket(security);
+            }
+            catch (Exception exeption)
+            {
+                HandlerExeption(exeption);
+            }
+            
         }
 
         #region Properties
@@ -101,6 +126,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(500));
         private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
         private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private DateTime TimeToSendPing = DateTime.Now;
+        private DateTime TimeToUprdatePortfolio = DateTime.Now;
 
         #endregion
 
@@ -187,11 +214,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(30000);
+                Thread.Sleep(100);
 
-                if (webSocket != null && webSocket.State == WebSocketState.Open)
+                if (webSocket != null &&
+                    (webSocket.State == WebSocketState.Open ||
+                    webSocket.State == WebSocketState.Connecting)
+                    )
                 {
-                    webSocket.Send("ping");
+                    if (TimeToSendPing.AddSeconds(30) < DateTime.Now)
+                    {
+                        webSocket.Send("ping");
+                        TimeToSendPing = DateTime.Now;
+                    }
                 }
                 else
                 {
@@ -390,15 +424,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             Thread thread = new Thread(UpdatingPortfolio);
             thread.IsBackground = true;
+            thread.Name = "UpdatingPortfolio";
             thread.Start();
         }
         private void UpdatingPortfolio()
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(10000);
+                Thread.Sleep(100);
 
-                CreateQueryPortfolio(false);
+                if (TimeToUprdatePortfolio.AddSeconds(30) < DateTime.Now)
+                {
+                    CreateQueryPortfolio(false);
+                    TimeToUprdatePortfolio = DateTime.Now;
+                }
+
             }
         }
         public void GetPortfolios()
@@ -551,6 +591,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 {
                     securities.Add(new Security()
                     {
+                        Exchange = ServerType.BitGetSpot.ToString(),
                         DecimalsVolume = Convert.ToInt32(item.quantityScale),
                         Name = item.symbolName,
                         NameFull = item.symbol,
@@ -889,13 +930,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 AggregateException httpError = (AggregateException)exception;
 
                 foreach (var item in httpError.InnerExceptions)
+
                 {
-                    SendLogMessage(item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                    if (item is NullReferenceException == false)
+                    {
+                        SendLogMessage(item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                    }
+                    
                 }
             }
             else
             {
-                SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                if (exception is NullReferenceException == false)
+                {
+                    SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                }
             }
         }
         private string GenerateSignature(string timestamp, string method, string requestPath, string queryString, string body, string secretKey)
