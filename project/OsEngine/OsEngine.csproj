@@ -813,6 +813,10 @@
     <Compile Include="Market\Services\CandlesCreator.cs" />
     <Compile Include="Market\Services\RestChannel.cs" />
     <Compile Include="Market\Services\WsSource.cs" />
+    <Compile Include="Market\SupportTable\SupportTableBase.cs" />
+    <Compile Include="Market\SupportTable\SupportTableUi.xaml.cs">
+      <DependentUpon>SupportTableUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsConverter\OsCandleConverterUi.xaml.cs">
       <DependentUpon>OsCandleConverterUi.xaml</DependentUpon>
     </Compile>
@@ -1402,6 +1406,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Market\SupportTable\SupportTableUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OsConverter\OsCandleConverterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1721,6 +1729,9 @@
     <EmbeddedResource Include="Resources\OsEngine_logo_transpared.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\Support\No.png" />
+    <Resource Include="Images\Support\Prime.png" />
+    <Resource Include="Images\Support\Standart.png" />
     <Content Include="lua\clibs\lua51.dll" />
     <Content Include="lua\clibs\socket\core.dll" />
   </ItemGroup>

@@ -118,7 +118,7 @@ namespace OsEngine.Language
 
         public string Label20 => OsLocalization.ConvertToLocString(
             "Eng:Deploy servers automatically_" +
-            "Ru:Разворачивать сервера автоматически_");
+            "Ru:Авто-развёртывание подключений_");
 
         public string Label21 => OsLocalization.ConvertToLocString(
            "Eng: Connection state _" +
@@ -308,6 +308,58 @@ namespace OsEngine.Language
            "Eng:Are you sure you want to call off this order?_" +
            "Ru:Вы точно хотите отозовать этот ордер?_");
 
+        public string Label69 => OsLocalization.ConvertToLocString(
+           "Eng:Logo_" +
+           "Ru:Логотип_");
+
+        public string Label70 => OsLocalization.ConvertToLocString(
+           "Eng:Name_" +
+           "Ru:Название_");
+
+        public string Label71 => OsLocalization.ConvertToLocString(
+           "Eng:Support_" +
+           "Ru:Поддержка_");
+
+        public string Label72 => OsLocalization.ConvertToLocString(
+           "Eng:Discount_" +
+           "Ru:Скидка_");
+
+        public string Label73 => OsLocalization.ConvertToLocString(
+           "Eng:Get discount_" +
+           "Ru:Получить скидку_");
+
+        public string Label74 => OsLocalization.ConvertToLocString(
+           "Eng:All detected problems are put first \n on the fixing_" +
+           "Ru:Все обнаруженные проблемы ставятся в \n первую очередь на правки_");
+
+        public string Label75 => OsLocalization.ConvertToLocString(
+          "Eng:All detected problems are put in the \n second turn on the fixing_" +
+          "Ru:Все обнаруженные проблемы ставятся во \n вторую очередь на правки_");
+
+        public string Label76 => OsLocalization.ConvertToLocString(
+          "Eng:All detected problems must be corrected \n by the users themselves_" +
+          "Ru:Все обнаруженные проблемы должны быть \n устранены пользователями самостоятельно_");
+
+        public string Label77 => OsLocalization.ConvertToLocString(
+          "Eng:Connectors support rules_" +
+          "Ru:Правила поддержки коннекторов_");
+
+        public string Label78 => OsLocalization.ConvertToLocString(
+          "Eng:MOEX_" +
+          "Ru:Россия_");
+
+        public string Label79 => OsLocalization.ConvertToLocString(
+          "Eng:Crypto_" +
+          "Ru:Крипта_");
+
+        public string Label80 => OsLocalization.ConvertToLocString(
+          "Eng:International_" +
+          "Ru:Международные_");
+
+        public string Label81 => OsLocalization.ConvertToLocString(
+          "Eng:Support rules_" +
+          "Ru:Правила поддержки_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
@@ -327,7 +379,6 @@ namespace OsEngine.Language
         public string TabItem2 => OsLocalization.ConvertToLocString(
             "Eng: Logging_" +
             "Ru: Логирование _");
-
 
         // Servers
 
@@ -426,8 +477,6 @@ namespace OsEngine.Language
         public string TabItem4 => OsLocalization.ConvertToLocString(
             "Eng: Logging _" +
             "Ru: Логирование _");
-
-
 
         public string ButtonConnect => OsLocalization.ConvertToLocString(
             "Eng:Connect_" +

@@ -26,7 +26,7 @@
                                 <Grid Margin="-5,-5,-5,-5" >
                                     <WindowsFormsHost Name="HostStopLimitPoses" Margin="0,0,0,0"/>
                                 </Grid>
-                            </TabItem> 
+                            </TabItem>
                             <TabItem Name="TabHistoricalPos" Header="Historical" Width="280" Height="12">
                                 <Grid Margin="-5,-5,-5,-5" >
                                     <WindowsFormsHost Name="HostHistoricalPoses" Margin="0,0,0,0"/>
@@ -64,9 +64,14 @@
                 </TabItem>
                 <TabItem Name="TabItemControl" Header="Server" Width="130" >
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost Name="HostServers" Margin="5,0,0,25" HorizontalAlignment="Left" Width="355"/>
-                        <WindowsFormsHost Name="HostServerLog" Margin="365,0,0,0"/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="380"/>
+                            <ColumnDefinition Width="801*"/>
+                        </Grid.ColumnDefinitions>
+                        <WindowsFormsHost Name="HostServers" Margin="0,0,0,25"/>
+                        <WindowsFormsHost Name="HostServerLog" Margin="0,0,0,0" Grid.Column="1"/>
                         <CheckBox x:Name="CheckBoxServerAutoOpen" Content="Deploy servers automatically" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,0,0,0"/>
+                        <Button Name="ButtonSupportTable" Content="Support table" VerticalAlignment="Bottom" Click="ButtonSupportTable_Click" HorizontalAlignment="Right" Width="133"/>
                     </Grid>
 
                 </TabItem>

@@ -8,6 +8,7 @@
                 <Grid>
                     <WindowsFormsHost x:Name="HostSource" Foreground="Black" Margin="0,0,0,31"/>
                     <CheckBox x:Name="CheckBoxServerAutoOpen" Content="Deploy servers automatically" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,3"/>
+                    <Button Name="ButtonSupportTable" Content="Support table" HorizontalAlignment="Right" Margin="0,0,5,0" VerticalAlignment="Bottom" Width="179" Click="ButtonSupportTable_Click"/>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItem2" Header=" Logging ">

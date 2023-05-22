@@ -9,6 +9,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Layout;
+using OsEngine.Market.SupportTable;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -71,6 +72,7 @@ namespace OsEngine.OsTrader.Gui
             TabActiveOrders.Header = OsLocalization.Trader.Label189;
             TabHistoricalOrders.Header = OsLocalization.Trader.Label190;
             TabStopLimitPoses.Header = OsLocalization.Trader.Label193;
+            ButtonSupportTable.Content = OsLocalization.Market.Label81;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -121,6 +123,12 @@ namespace OsEngine.OsTrader.Gui
             {
                 GreedChartPanel.Cursor = System.Windows.Input.Cursors.ScrollS;
             }
+        }
+
+        private void ButtonSupportTable_Click(object sender, RoutedEventArgs e)
+        {
+            SupportTableUi supportTableUi = new SupportTableUi();
+            supportTableUi.ShowDialog();
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using OsEngine.Language;
 using OsEngine.Market.Servers;
+using OsEngine.Market.SupportTable;
 
 namespace OsEngine.Market
 {
@@ -50,6 +51,7 @@ namespace OsEngine.Market
             TabItem1.Header = OsLocalization.Market.TabItem1;
             TabItem2.Header = OsLocalization.Market.TabItem2;
             CheckBoxServerAutoOpen.Content = OsLocalization.Market.Label20;
+            ButtonSupportTable.Content = OsLocalization.Market.Label81;
 
             ServerMasterSourcesPainter painter = new ServerMasterSourcesPainter(HostSource, HostLog, CheckBoxServerAutoOpen);
 
@@ -61,6 +63,12 @@ namespace OsEngine.Market
 
             this.Activate();
             this.Focus();
+        }
+
+        private void ButtonSupportTable_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            SupportTableUi supportTableUi = new SupportTableUi();
+            supportTableUi.ShowDialog();
         }
     }
 }

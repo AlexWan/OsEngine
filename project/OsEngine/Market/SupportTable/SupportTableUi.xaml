@@ -1,0 +1,42 @@
+﻿<Window x:Class="OsEngine.Market.SupportTable.SupportTableUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Market.SupportTable"
+        mc:Ignorable="d"
+        Title="Connectors Support Table" Height="523" Width="642" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Style="{StaticResource WindowStyleNoResize}" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <TabControl Foreground="Black" Margin="0,0,0,0">
+            <TabItem Name="TabItem1" Width="120" Header="MOEX">
+                <Grid>
+                    <WindowsFormsHost Name="HostMoexConnections"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItem2" Width="120"  Header="CRYPTO">
+                <Grid>
+                    <WindowsFormsHost Name="HostCryptoConnections" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItem3" Width="120" Header="INTERNATIONAL">
+                <Grid>
+                    <WindowsFormsHost Name="HostInternationalConnections" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItem4" Width="120" Header="SUPPORT RULES">
+                <Grid>
+                    <Image HorizontalAlignment="Left" Source="/Images/Support/No.png" Height="29" Margin="55,301,0,0" VerticalAlignment="Top" Width="111"/>
+                    <Image HorizontalAlignment="Left" Source="/Images/Support/Standart.png" Height="29" Margin="55,190,0,0" VerticalAlignment="Top" Width="111"/>
+                    <Image HorizontalAlignment="Left" Source="/Images/Support/Prime.png" Height="29" Margin="55,82,0,0" VerticalAlignment="Top" Width="111"/>
+                    <Label Name="LabelPrimeSup" Content="Prime Support Rules" Margin="219,76,33,0" VerticalAlignment="Top" Height="40"/>
+                    <Label Name="LabelStandartSup" Content="Standart Support Rules" Margin="219,184,33,0" VerticalAlignment="Top" Height="40"/>
+                    <Label Name="LabelNoSup" Content="No Supprot Rules" Margin="219,295,33,0" VerticalAlignment="Top" Height="40"/>
+
+
+
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
