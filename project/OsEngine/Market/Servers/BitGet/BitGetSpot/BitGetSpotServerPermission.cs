@@ -66,7 +66,7 @@
         }
         public bool DataFeedTf2HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf4HourCanLoad
         {
@@ -112,7 +112,7 @@
                 TimeFrameSec30IsOn = false,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
-                TimeFrameMin3IsOn = true,
+                TimeFrameMin3IsOn = false,
                 TimeFrameMin5IsOn = true,
                 TimeFrameMin10IsOn = false,
                 TimeFrameMin15IsOn = true,
@@ -120,7 +120,7 @@
                 TimeFrameMin30IsOn = true,
                 TimeFrameMin45IsOn = false,
                 TimeFrameHour1IsOn = true,
-                TimeFrameHour2IsOn = true,
+                TimeFrameHour2IsOn = false,
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = false
             };
