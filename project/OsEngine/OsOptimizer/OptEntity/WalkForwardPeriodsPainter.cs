@@ -107,7 +107,14 @@ namespace OsEngine.OsOptimizer.OptEntity
 
                 decimal clusterStartY = Convert.ToDecimal((fazes[i].TimeStart - firstTime).TotalDays);
 
-                candleSeries.Points.AddXY(linePriceX, clusterStartY, clusterStartY + fazes[i].Days);
+                if (fazes[i].TypeFaze == OptimizerFazeType.InSample)
+                {
+                    candleSeries.Points.AddXY(linePriceX, clusterStartY, clusterStartY + fazes[i].Days);
+                }
+                else if (fazes[i].TypeFaze == OptimizerFazeType.OutOfSample)
+                {
+                    candleSeries.Points.AddXY(linePriceX, clusterStartY-1, clusterStartY + fazes[i].Days);
+                }
 
                 DataPoint myPoint = candleSeries.Points[candleSeries.Points.Count - 1];
 

@@ -1776,7 +1776,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     {
                         continue;
                     }
-                    else if (candle.TimeStart > timeEnd)
+                    else if (candle.TimeStart > timeEnd.AddDays(1))
                     {
                         break;
                     }
