@@ -179,6 +179,7 @@ namespace OsEngine.OsOptimizer
             ButtonStrategyReload.Content = OsLocalization.Optimizer.Label48;
             ButtonResults.Content = OsLocalization.Optimizer.Label49;
             LabelRobustnessMetric.Content = OsLocalization.Optimizer.Label53;
+            ButtonSetStandartParams.Content = OsLocalization.Optimizer.Label57;
 
             _resultsCharting = new OptimizerReportCharting(
                 HostStepsOfOptimizationTable,
@@ -2166,6 +2167,21 @@ namespace OsEngine.OsOptimizer
 
             LabelIteartionCountNumber.Content = value.ToString();
 
+        }
+
+        private void ButtonSetStandartParams_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                List<IIStrategyParameter> par = _master.ParametersStandart;
+                _master.SaveStandartParameters();
+                _parameters = par;
+                ReloadStrategy();
+            }
+            catch(Exception ex)
+            {
+                _master.SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
+            }
         }
 
         // phase table for switching after testing/таблица фаз для переключения после тестирования

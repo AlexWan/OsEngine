@@ -402,5 +402,9 @@ namespace OsEngine.Language
         public string Label56 => OsLocalization.ConvertToLocString(
            "Eng:P/L % 1 contract _" +
            "Ru:П/У % 1 контракт _");
+
+        public string Label57 => OsLocalization.ConvertToLocString(
+           "Eng:Set Standart Params_" +
+           "Ru:Вернуть стандартные параметры_");
     }
 }
