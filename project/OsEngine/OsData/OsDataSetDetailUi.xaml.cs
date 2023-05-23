@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -35,27 +36,69 @@ namespace OsEngine.OsData
             CreateTable();
 
             RePaintAll();
+
+            Closed += OsDataSetDetailUi_Closed;
+
+            Task.Run(PainterThreadArea);
         }
+
+        private void OsDataSetDetailUi_Closed(object sender, EventArgs e)
+        {
+            _isDeleted = true;
+            _loader = null;
+
+            _grid.CellClick -= _grid_CellClick;
+            DataGridFactory.ClearLinks(_grid);
+            _grid = null;
+        }
+
+        private async void PainterThreadArea()
+        {
+            while(true)
+            {
+                await Task.Delay(10000);
+
+                if(_isDeleted)
+                {
+                    return;
+                }
+
+                RePaintAll();
+            }
+        }
+
+        bool _isDeleted;
 
         private void RePaintAll()
         {
+            if (_grid == null)
+            {
+                return;
+            }
+
             if (_grid.InvokeRequired)
             {
                 _grid.Invoke(new Action(RePaintAll));
                 return;
             }
-            LabelStatusValue.Content = _loader.Status.ToString();
-            LabelExchangeValue.Content = _loader.Exchange;
-            LabelSecurityValue.Content = _loader.SecName;
-            LabelClassValue.Content = _loader.SecClass;
-            LabelTimeFrameValue.Content = _loader.TimeFrame.ToString();
-            LabelTimeStartValue.Content = _loader.TimeStart.ToString(OsLocalization.ShortDateFormatString);
-            LabelTimeEndValue.Content = _loader.TimeEnd.ToString(OsLocalization.ShortDateFormatString);
-            LabelTimeStartRealValue.Content = _loader.TimeStartInReal.ToString(OsLocalization.ShortDateFormatString);
-            LabelTimeEndRealValue.Content = _loader.TimeEndInReal.ToString(OsLocalization.ShortDateFormatString);
+            try
+            {
+                LabelStatusValue.Content = _loader.Status.ToString();
+                LabelExchangeValue.Content = _loader.Exchange;
+                LabelSecurityValue.Content = _loader.SecName;
+                LabelClassValue.Content = _loader.SecClass;
+                LabelTimeFrameValue.Content = _loader.TimeFrame.ToString();
+                LabelTimeStartValue.Content = _loader.TimeStart.ToString(OsLocalization.ShortDateFormatString);
+                LabelTimeEndValue.Content = _loader.TimeEnd.ToString(OsLocalization.ShortDateFormatString);
+                LabelTimeStartRealValue.Content = _loader.TimeStartInReal.ToString(OsLocalization.ShortDateFormatString);
+                LabelTimeEndRealValue.Content = _loader.TimeEndInReal.ToString(OsLocalization.ShortDateFormatString);
 
-            PaintTable();
-
+                PaintTable();
+            }
+            catch(Exception error)
+            {
+               System.Windows.MessageBox.Show(error.Message);
+            }
         }
 
         SecurityTfLoader _loader;
@@ -218,17 +261,59 @@ namespace OsEngine.OsData
 
         public void PaintTable()
         {
+            if(_grid == null)
+            {
+                return;
+            }
             if (_grid.InvokeRequired)
             {
                 _grid.Invoke(new Action(PaintTable));
                 return;
             }
 
-            _grid.Rows.Clear();
-
-            for(int i = 0;i < _loader.DataPies.Count;i++)
+            if(_grid.Rows.Count != _loader.DataPies.Count)
             {
-                _grid.Rows.Add(GetRow(_loader.DataPies[i]));
+                _grid.Rows.Clear();
+
+                for (int i = 0; i < _loader.DataPies.Count; i++)
+                {
+                    _grid.Rows.Add(GetRow(_loader.DataPies[i]));
+                }
+            }
+            else
+            {
+                for (int i = 0; i < _loader.DataPies.Count; i++)
+                {
+                    UpDateRow(_grid.Rows[i],_loader.DataPies[i]);
+                }
+            }
+        }
+
+        private void UpDateRow(DataGridViewRow nRow, DataPie pie)
+        {
+            if(nRow.Cells[0].Value.ToString() != pie.ObjectCount.ToString())
+            {
+                nRow.Cells[0].Value = pie.ObjectCount.ToString();
+            }
+           
+            if (nRow.Cells[1].Value.ToString() != pie.Start.ToString(_curCulture))
+            {
+                nRow.Cells[1].Value = pie.Start.ToString(_curCulture);
+            }
+            
+            if(nRow.Cells[2].Value.ToString() != pie.End.ToString(_curCulture))
+            {
+                nRow.Cells[2].Value = pie.End.ToString(_curCulture);
+            }
+            
+            if (nRow.Cells[3].Value.ToString() != pie.StartFact.ToString(_curCulture))
+            {
+                nRow.Cells[3].Value = pie.StartFact.ToString(_curCulture);
+            }
+            
+            if(nRow.Cells[4].Value.ToString() != pie.EndFact.ToString(_curCulture))
+            {
+                nRow.Cells[4].Value = pie.EndFact.ToString(_curCulture);
             }
         }
 
