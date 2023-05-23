@@ -44,6 +44,7 @@ namespace OsEngine.OsTrader
                 _gridClosePoses = CreateNewTable();
                 _hostClosePoses.Child = _gridClosePoses;
                 _hostClosePoses.Child.Show();
+                _gridClosePoses.Click += _gridClosePoses_Click;
                 _gridClosePoses.DoubleClick += _gridClosePoses_DoubleClick;
 
             }
@@ -94,6 +95,23 @@ namespace OsEngine.OsTrader
                 if(_journals[i] != null)
                 {
                     List<Position> curPoses = _journals[i].OpenPositions;
+
+                    deals.AddRange(curPoses);
+                }
+            }
+
+            return deals.Find(position => position.Number == number);
+        }
+
+        public Position GetClosePositionForNumber(int number)
+        {
+            List<Position> deals = new List<Position>();
+
+            for (int i = 0; i < _journals.Count; i++)
+            {
+                if (_journals[i] != null)
+                {
+                    List<Position> curPoses = _journals[i].AllPosition;
 
                     deals.AddRange(curPoses);
                 }
@@ -544,11 +562,76 @@ namespace OsEngine.OsTrader
             }
         }
 
-        #region Активные позиции
+        #region Исторические позиции
 
         private void _gridClosePoses_DoubleClick(object sender, EventArgs e)
         {
             PaintPos(_gridClosePoses);
+        }
+
+        private void _gridClosePoses_Click(object sender, EventArgs e)
+        {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
+            try
+            {
+                MenuItem[] items = new MenuItem[1];
+
+                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
+                items[0].Click += ClosePositionClearDelete_Click;
+
+                ContextMenu menu = new ContextMenu(items);
+
+                _gridClosePoses.ContextMenu = menu;
+                _gridClosePoses.ContextMenu.Show(_gridClosePoses, new Point(mouse.X, mouse.Y));
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+
+        void ClosePositionClearDelete_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                int number;
+                try
+                {
+                    if (_gridClosePoses.CurrentCell == null)
+                    {
+                        return;
+                    }
+                    number = Convert.ToInt32(_gridClosePoses.Rows[_gridClosePoses.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetClosePositionForNumber(number), SignalType.DeletePos);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion

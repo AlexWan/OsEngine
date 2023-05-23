@@ -1667,11 +1667,16 @@ position => position.State != PositionStateType.OpeningFail
 
                 // check that the position belongs to this particular robot
 
+                if(position == null)
+                {
+                    return;
+                }
+
                 BotTabSimple tabWithPosition = null;
 
                 for (int i = 0; i < _tabSimple.Count; i++)
                 {
-                    List<Position> posOnThisTab = _tabSimple[i].PositionsOpenAll;
+                    List<Position> posOnThisTab = _tabSimple[i].PositionsAll;
 
                     for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
                     {
