@@ -136,9 +136,15 @@ namespace OsEngine.OsData
 
         public void StartPaintActiveSet()
         {
-            if (_master.SelectSet == null)
+            if (_master.Sets == null||
+                _master.Sets.Count == 0)
             {
                 return;
+            }
+
+            if(_master.SelectSet == null)
+            {
+                _master.SelectSet = _master.Sets[0];
             }
 
             OsDataSetPainter curPainter = null;

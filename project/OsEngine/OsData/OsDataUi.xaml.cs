@@ -44,6 +44,8 @@ namespace OsEngine.OsData
 
             this.Activate();
             this.Focus();
+
+            _osDataMaster.StartPaintActiveSet();
         }
 
         void OsDataUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
