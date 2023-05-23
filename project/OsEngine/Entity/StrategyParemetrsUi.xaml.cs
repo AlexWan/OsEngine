@@ -33,8 +33,9 @@ namespace OsEngine.Entity
             _parameters = parameters;
 
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
+            ButtonUpdate.Content = OsLocalization.Entity.ButtonUpdate;
 
-            if(string.IsNullOrEmpty(settings.Title))
+            if (string.IsNullOrEmpty(settings.Title))
             {
                 Title = OsLocalization.Entity.TitleParametersUi;
             }
@@ -146,6 +147,14 @@ namespace OsEngine.Entity
             }
 
             Close();
+        }
+
+        private void ButtonUpdate_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            for (int i = 0; i < _tabs.Count; i++)
+            {
+                _tabs[i].Save();
+            }
         }
     }
 

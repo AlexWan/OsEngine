@@ -283,6 +283,10 @@ namespace OsEngine.Language
             "Eng:Accept_" +
             "Ru:Принять_");
 
+        public string ButtonUpdate => OsLocalization.ConvertToLocString(
+            "Eng:Update_" +
+            "Ru:Обновить_");
+
         public string ButtonCancel1 => OsLocalization.ConvertToLocString(
             "Eng:Stop_" +
             "Ru:Нет_");

@@ -3,9 +3,10 @@
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Parameters" Height="450" Width="626" Topmost="False" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterOwner"  Icon="/Images/OsLogo.ico">
     <Grid>
-        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,5" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="137" Click="ButtonAccept_Click"/>
+        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,5" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="213" Click="ButtonAccept_Click"/>
         <TabControl Name="TabControlSettings" Margin="0,0,0,30">
         </TabControl>
+        <Button x:Name="ButtonUpdate" Content="Update" Margin="0,0,0,5" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="213" Click="ButtonUpdate_Click" />
 
     </Grid>
 </Window>
