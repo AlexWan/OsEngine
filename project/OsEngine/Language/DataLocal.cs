@@ -127,7 +127,7 @@ namespace OsEngine.Language
 
         public string Label26 => OsLocalization.ConvertToLocString(
             "Eng:Log_" +
-            "Ru:Лог_");        
+            "Ru:Лог_");
 
         public string Label27 => OsLocalization.ConvertToLocString(
             "Eng:You want to close the program. Are you sure?_" +
@@ -146,12 +146,12 @@ namespace OsEngine.Language
             "Ru:Создать сет данных_");
 
         public string Label31 => OsLocalization.ConvertToLocString(
-           "Eng:Set Name:_" +
-           "Ru:Название:_");
+            "Eng:Set Name:_" +
+            "Ru:Название:_");
 
         public string Label32 => OsLocalization.ConvertToLocString(
-           "Eng:Load %_" +
-           "Ru:% загрузки_");
+             "Eng:Load %_" +
+             "Ru:% загрузки_");
 
         public string Label33 => OsLocalization.ConvertToLocString(
               "Eng:Status_" +
@@ -208,5 +208,54 @@ namespace OsEngine.Language
         public string Label46 => OsLocalization.ConvertToLocString(
             "Eng:Checking data errors. It's better to wait..._" +
             "Ru:Идёт сверка данных. Лучше подождать..._");
+
+        public string Label47 => OsLocalization.ConvertToLocString(
+            "Eng:More info_" +
+            "Ru:Детали_");
+
+        public string Label48 => OsLocalization.ConvertToLocString(
+            "Eng:Start in data _" +
+            "Ru:Начало в данных_");
+
+        public string Label49 => OsLocalization.ConvertToLocString(
+            "Eng:End in data _" +
+            "Ru:Конец в данных _");
+
+        public string Label50 => OsLocalization.ConvertToLocString(
+            "Eng:Data Stream Detail_" +
+            "Ru:Детали потока данных_");
+
+        public string Label51 => OsLocalization.ConvertToLocString(
+            "Eng:Objects_" +
+            "Ru:Объектов_");
+
+        public string Label52 => OsLocalization.ConvertToLocString(
+            "Eng:Start fact_" +
+            "Ru:Начало факт_");
+
+        public string Label53 => OsLocalization.ConvertToLocString(
+            "Eng:End fact_" +
+            "Ru:Конец факт_");
+
+        public string Label54 => OsLocalization.ConvertToLocString(
+            "Eng:Open folder_" +
+            "Ru:Открыть папку_");
+
+        public string Label55 => OsLocalization.ConvertToLocString(
+           "Eng:Clear_" +
+           "Ru:Очистить_");
+
+        public string Label56 => OsLocalization.ConvertToLocString(
+           "Eng:Open file_" +
+           "Ru:Открыть файл_");
+
+        public string Label57 => OsLocalization.ConvertToLocString(
+           "Eng:Cache data_" +
+           "Ru:Кэш_");
+
+        public string Label58 => OsLocalization.ConvertToLocString(
+           "Eng:Do you want to delete a piece of data?_" +
+           "Ru:Вы хотите удалить часть данных?_");
+
     }
 }

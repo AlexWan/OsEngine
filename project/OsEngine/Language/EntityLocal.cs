@@ -284,24 +284,8 @@ namespace OsEngine.Language
             "Ru:Принять_");
 
         public string ButtonCancel1 => OsLocalization.ConvertToLocString(
-            "Eng:Think again_" +
-            "Ru:Ещё подумать_");
-
-        public string ButtonCancel2 => OsLocalization.ConvertToLocString(
-            "Eng:Earn more_" +
-            "Ru:Дальше зарабатывать_");
-
-        public string ButtonCancel3 => OsLocalization.ConvertToLocString(
-            "Eng:No!_" +
-            "Ru:Нет!_");
-
-        public string ButtonCancel4 => OsLocalization.ConvertToLocString(
-            "Eng:Stop!_" +
-            "Ru:Остановится!_");
-
-        public string ButtonCancel5 => OsLocalization.ConvertToLocString(
-            "Eng:Don't do it_" +
-            "Ru:Не нужно так_");
+            "Eng:Stop_" +
+            "Ru:Нет_");
 
         public string ErrorSave => OsLocalization.ConvertToLocString(
             "Eng:The saving process is interrupted. One of the fields does not have a valid value_" +

@@ -774,6 +774,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 security.NameClass = sec.quoteAsset;
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.Futures;
+                security.Exchange = ServerType.BinanceFutures.ToString();
                 security.Lot = sec.filters[1].minQty.ToDecimal();
                 security.PriceStep = sec.filters[0].tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;

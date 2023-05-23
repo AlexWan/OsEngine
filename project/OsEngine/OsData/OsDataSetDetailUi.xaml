@@ -1,0 +1,35 @@
+﻿<Window x:Class="OsEngine.OsData.OsDataSetDetailUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsData"
+        mc:Ignorable="d"
+        Title="Data Stream Detail" Height="600" Width="540" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Style="{StaticResource WindowStyleNoResize}" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <WindowsFormsHost Name="HostDataPiesDetails" Margin="0,192,0,0"/>
+        <Label Name="LabelStatus" Content="Status: " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelExchange" Content="Exchange: " HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelSecurity" Content="Security: " HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelClass" Content="Class: " HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeFrame" Content="Time Frame: " HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeStart" Content="Time Start: " HorizontalAlignment="Left" Margin="279,10,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeEnd" Content="Time End: " HorizontalAlignment="Left" Margin="279,38,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeStartReal" Content="Time Start Real: " HorizontalAlignment="Left" Margin="279,66,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeEndReal" Content="Time End Real: " HorizontalAlignment="Left" Margin="279,94,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelStatusValue" Content="StatusVal" HorizontalAlignment="Left" Margin="136,10,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelExchangeValue" Content="ExchangeVal" HorizontalAlignment="Left" Margin="136,38,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelSecurityValue" Content="SecurityVal" HorizontalAlignment="Left" Margin="136,66,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelClassValue" Content="ClassVal" HorizontalAlignment="Left" Margin="136,94,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelTimeFrameValue" Content="TimeFrameVal" HorizontalAlignment="Left" Margin="136,122,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelTimeStartValue" Content="Time Start val " HorizontalAlignment="Left" Margin="417,10,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelTimeEndValue" Content="Time End val" HorizontalAlignment="Left" Margin="417,38,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelTimeStartRealValue" Content="Time Start Real val" HorizontalAlignment="Left" Margin="417,66,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelTimeEndRealValue" Content="Time End Real val" HorizontalAlignment="Left" Margin="417,94,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelCache" Content="Cache data " HorizontalAlignment="Left" Margin="0,167,0,0" VerticalAlignment="Top"/>
+
+
+
+
+    </Grid>
+</Window>

@@ -990,8 +990,8 @@ namespace OsEngine.OsData
             {
                 DataPie curPie = DataPies[i];
 
-                DateTime curStart = curPie.StartActualTime;
-                DateTime curEnd = curPie.EndActualTime;
+                DateTime curStart = curPie.StartFact;
+                DateTime curEnd = curPie.EndFact;
 
                 if (curStart != DateTime.MinValue &&
                     curStart < start)
@@ -1009,6 +1009,9 @@ namespace OsEngine.OsData
             if (start == DateTime.MaxValue ||
                 end == DateTime.MinValue)
             {
+                TimeStartInReal = DateTime.MinValue;
+                TimeEndInReal = DateTime.MinValue;
+
                 return;
             }
 
@@ -2102,6 +2105,27 @@ namespace OsEngine.OsData
 
         }
 
+        public void Clear()
+        {
+            try
+            {
+                CountTriesToLoadSet = 0;
+                ObjectCount = 0;
+                StartFact = DateTime.MinValue;
+                EndFact = DateTime.MinValue;
+                Status = DataPieStatus.None;
+
+                if (File.Exists(_pathMyTempPieInTfFolder + "\\" + TempFileName))
+                {
+                    File.Delete(_pathMyTempPieInTfFolder + "\\" + TempFileName);
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         public void UpDateStatus()
         {
             // 1 Актуальное время старта
@@ -2121,7 +2145,7 @@ namespace OsEngine.OsData
                 start = Trades[0].Time;
             }
 
-            StartActualTime =  start;
+            StartFact =  start;
 
             // 2 актуальное время конца
 
@@ -2137,7 +2161,7 @@ namespace OsEngine.OsData
                 end = Trades[Trades.Count - 1].Time;
             }
 
-            EndActualTime = end;
+            EndFact = end;
 
             if (Candles == null &&
                 Trades == null)
@@ -2160,15 +2184,32 @@ namespace OsEngine.OsData
 
         public DateTime Start;
 
-        public DateTime StartActualTime;
+        public DateTime StartFact;
 
         public DateTime End;
 
-        public DateTime EndActualTime;
+        public DateTime EndFact;
 
         public DataPieStatus Status;
 
         public int ObjectCount;
+
+        public string TempFileName
+        {
+            get
+            {
+                if (_tempFileName != null)
+                {
+                    return _tempFileName;
+                }
+
+                _tempFileName = Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+
+                return _tempFileName;
+            }
+        }
+
+        private string _tempFileName;
 
         // свечи
 
@@ -2218,7 +2259,7 @@ namespace OsEngine.OsData
 
         private void SaveCandleDataPieInTempFile(List<Candle> candles)
         {
-            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + TempFileName;
 
             try
             {
@@ -2297,7 +2338,7 @@ namespace OsEngine.OsData
 
         private void SaveTradesDataPieInTempFile(List<Trade> trades)
         {
-            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + TempFileName;
 
             try
             {

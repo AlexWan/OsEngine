@@ -12,12 +12,6 @@ namespace OsEngine.Entity
     {
 
         /// <summary>
-        /// the number of the inscription that will be displayed on the button
-        /// номер надписи которая будет выведена на кнопку
-        /// </summary>
-        private static int _numMessage;
-
-        /// <summary>
         /// The user has approved the action to be taken
         /// Пользователь одобрил проводитмое действие
         /// </summary>
@@ -34,34 +28,7 @@ namespace OsEngine.Entity
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             LabelText.Content = text;
-
-            _numMessage++;
-
-            if (_numMessage > 4)
-            {
-                _numMessage = 0;
-            }
-
-            if (_numMessage == 0)
-            {
-                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel1;
-            }
-            else if (_numMessage == 1)
-            {
-                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel2;
-            }
-            else if (_numMessage == 2)
-            {
-                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel3;
-            }
-            else if (_numMessage == 3)
-            {
-                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel4;
-            }
-            else if (_numMessage == 4)
-            {
-                ButtonCancel.Content = OsLocalization.Entity.ButtonCancel5;
-            }
+            ButtonCancel.Content = OsLocalization.Entity.ButtonCancel1;
 
             Title = OsLocalization.Entity.TitleAcceptDialog;
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;

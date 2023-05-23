@@ -824,6 +824,9 @@
       <DependentUpon>OsCandleConverterUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsData\OsDataMaster.cs" />
+    <Compile Include="OsData\OsDataSetDetailUi.xaml.cs">
+      <DependentUpon>OsDataSetDetailUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsData\OsDataSetPainter.cs" />
     <Compile Include="OsData\OsDataUi.xaml.cs">
       <DependentUpon>OsDataUi.xaml</DependentUpon>
@@ -1414,6 +1417,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsConverter\OsCandleConverterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsData\OsDataSetDetailUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

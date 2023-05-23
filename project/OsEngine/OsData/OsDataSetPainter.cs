@@ -416,11 +416,57 @@ namespace OsEngine.OsData
                 }
             }
             else if (coluIndex == 10)
-            { // delete
+            { // delete or detail
 
                 if(_dataGrid.Rows[rowIndex].Cells[0].Value == null
                    || _dataGrid.Rows[rowIndex].Cells[0].Value.ToString() == "")
                 {
+                    // detail
+                    int numSecurity = -1;
+
+                    for (int i = rowIndex; i > -1; i--)
+                    {
+                        try
+                        {
+                            numSecurity = Convert.ToInt32(_dataGrid.Rows[i].Cells[0].Value.ToString());
+                            break;
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (numSecurity == -1)
+                    {
+                        return;
+                    }
+
+                    string TfInSecurity = _dataGrid.Rows[rowIndex].Cells[6].Value.ToString();
+
+                    SecurityToLoad sec = _set.SecuritiesLoad[numSecurity - 1];
+
+                    SecurityTfLoader loader = null;
+
+                    for (int i = 0; i < sec.SecLoaders.Count; i++)
+                    {
+                        if (sec.SecLoaders[i].TimeFrame.ToString() == TfInSecurity)
+                        {
+                            loader = sec.SecLoaders[i];
+                            break;
+                        }
+                    }
+
+                    if (loader == null)
+                    {
+                        return;
+                    }
+
+                    OsDataSetDetailUi detailUi = new OsDataSetDetailUi(loader);
+                    detailUi.ShowDialog();
+                    loader.CheckTimeInSets();
+                    RePaintInterface();
+
                     return;
                 }
 
@@ -730,7 +776,12 @@ colum11.HeaderText = "Delete";
             }
            
             row.Cells.Add(new DataGridViewButtonCell()); //"Delete";
-            row.Cells[10].Value = "";
+
+            if(loader.TimeFrame != TimeFrame.MarketDepth)
+            {
+                row.Cells[10].Value = OsLocalization.Data.Label47;
+            }
+            
 
             return row;
         }
