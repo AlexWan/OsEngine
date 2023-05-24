@@ -852,6 +852,8 @@ namespace OsEngine.Market.Servers.Bybit
             foreach (var depth in new_md_list)
             {
                 SortAsksMarketDepth(depth);
+                var time = Convert.ToInt64(response.SelectToken("timestamp_e6").ToString());
+                depth.Time = TimeManager.GetDateTimeFromTimeStamp(time / 1000);
                 MarketDepthEvent(depth);
             }
         }
