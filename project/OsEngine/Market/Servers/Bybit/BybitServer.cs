@@ -852,6 +852,7 @@ namespace OsEngine.Market.Servers.Bybit
             foreach (var depth in new_md_list)
             {
                 SortAsksMarketDepth(depth);
+                depth.Time = DateTime.UtcNow;
                 MarketDepthEvent(depth);
             }
         }
