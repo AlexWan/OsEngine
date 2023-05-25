@@ -485,6 +485,11 @@
     <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\JsonConverter.cs" />
     <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\NewOrderPayload.cs" />
     <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\SubscriptionInformation.cs" />
+    <Compile Include="Market\Servers\BitGet\BitGetFutures\BitGetFuturesServerPermission.cs" />
+    <Compile Include="Market\Servers\BitGet\BitGetFutures\BitGetServerFutures.cs" />
+    <Compile Include="Market\Servers\BitGet\BitGetFutures\Entity\RequestWebsocketAuth.cs" />
+    <Compile Include="Market\Servers\BitGet\BitGetFutures\Entity\ResponseRestMessage.cs" />
+    <Compile Include="Market\Servers\BitGet\BitGetFutures\Entity\ResponseWebSocketMessageAction.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\BitGetServerSpot.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\BitGetSpotServerPermission.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\RequestWebsocketAuth.cs" />
