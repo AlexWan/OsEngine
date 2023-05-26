@@ -119,7 +119,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
         private readonly ConcurrentQueue<string> _queueMessagesReceivedFromExchange = new ConcurrentQueue<string>();
 
-        public  void Connect()
+        public void Connect()
         {
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
@@ -605,7 +605,8 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
                 foreach (var item in accountPosition)
                 {
-                    string SellBuy = item.size.ToDecimal() < 0 ? "_Sell" : "_Buy";
+                    string mode = item.mode.Contains("single") ? "Single" : item.mode;
+                    string SellBuy = mode == "Single" ? "_Single" : item.mode.Contains("short") ? "_SHORT" : "_LONG";
                     PositionOnBoard position = new PositionOnBoard();
                     position.PortfolioName = "GateIoFutures";
                     position.SecurityNameCode = item.contract + SellBuy;
@@ -1106,12 +1107,12 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
         public void CancelAllOrders()
         {
-            
+
         }
 
         public void ResearchTradesToOrders(List<Order> orders)
         {
-            
+
         }
 
         private void SendLogMessage(string messgae, LogMessageType logMessageType)
