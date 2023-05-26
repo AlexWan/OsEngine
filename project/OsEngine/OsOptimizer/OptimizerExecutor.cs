@@ -66,6 +66,7 @@ namespace OsEngine.OsOptimizer
 
             _primeThreadWorker = new Thread(PrimeThreadWorkerPlace);
             _primeThreadWorker.Name = "OptimizerExecutorThread";
+            _primeThreadWorker.IsBackground = true;
             _primeThreadWorker.Start();
 
             return true;
