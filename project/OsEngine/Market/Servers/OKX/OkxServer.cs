@@ -41,7 +41,7 @@ namespace OsEngine.Market.Servers.OKX
         }
 
         OkxClient _client;
-
+        
         public ServerType ServerType
         {
             get { return ServerType.OKX; }
@@ -53,6 +53,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public void Connect()
         {
+            marketDepthSupports.Clear();
             if (_client == null)
             {
                 _client = new OkxClient(
@@ -127,6 +128,20 @@ namespace OsEngine.Market.Servers.OKX
 
         public void Subscrible(Security security)
         {
+
+            var support = marketDepthSupports.Find(sup => sup.SecurityNameCode.Equals(security.Name));
+
+            if (support == null)
+            {
+                marketDepthSupports.Add(new MarketDepth()
+                {
+                     SecurityNameCode = security.Name,
+                      Asks = new List<MarketDepthLevel>(),
+                       Bids = new List<MarketDepthLevel>(),
+                        Time = DateTime.UtcNow
+
+                });
+            }
 
             _client.SetLeverage(security);
 
@@ -479,6 +494,8 @@ namespace OsEngine.Market.Servers.OKX
                         return;
                     }
 
+                    needDepth = RefreshDepthSupport(needDepth, depthResponse.arg.instId);
+
                     if (MarketDepthEvent != null)
                     {
                         MarketDepthEvent(needDepth.GetCopy());
@@ -748,5 +765,51 @@ namespace OsEngine.Market.Servers.OKX
 
         #endregion
 
+        #region AgreegateMarketDepth
+
+        private List<MarketDepth> marketDepthSupports = new List<MarketDepth>();
+        private MarketDepth RefreshDepthSupport(MarketDepth depth, string SecName)
+        {
+            var FullDepth = marketDepthSupports.Find(depth => depth.SecurityNameCode.Equals(SecName));
+            try
+            {
+
+
+                for (int i = 0; i < depth.Asks.Count && i <= 40; i++)
+                {
+                    if (FullDepth.Asks.Count < i + 1)
+                    {
+                        FullDepth.Asks.Add(depth.Asks[i]);
+                    }
+                    else
+                    {
+                        FullDepth.Asks[i] = depth.Asks[i];
+                    }
+                }
+
+                for (int i = 0; i < depth.Bids.Count && i <= 40; i++)
+                {
+                    if (FullDepth.Bids.Count < i + 1)
+                    {
+                        FullDepth.Bids.Add(depth.Bids[i]);
+                    }
+                    else
+                    {
+                        FullDepth.Bids[i] = depth.Bids[i];
+                    }
+
+                }
+
+                FullDepth.Time = depth.Time;
+            }
+            catch (Exception exeption)
+            {
+                SendLogMessage(exeption.StackTrace + " " + exeption.Message, LogMessageType.Error);
+            }
+
+            return FullDepth;
+        }
+
+        #endregion
     }
 }

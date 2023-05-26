@@ -1264,7 +1264,7 @@ namespace OsEngine.Market.Servers.OKX
             requestTrade.args = new List<SubscribeArgs>();
             requestTrade.args.Add(new SubscribeArgs()
             {
-                channel = "books5",
+                channel = "books",
                 instId = securityName
             });
 
