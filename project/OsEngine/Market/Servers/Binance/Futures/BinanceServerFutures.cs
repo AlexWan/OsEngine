@@ -711,6 +711,21 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newPortf.ValueCurrent =
                         onePortf.marginBalance.ToDecimal();
 
+
+                    decimal lockedBalanceUSDT = 0m;
+                    if (onePortf.asset.Equals("USDT"))
+                    {
+                        
+                        foreach (var position in portfs.positions)
+                        {
+                            if (position.symbol == "USDTUSDT") continue;
+
+                            lockedBalanceUSDT += (position.initialMargin.ToDecimal() + position.maintMargin.ToDecimal());
+                        }
+                    }
+
+                    newPortf.ValueBlocked = lockedBalanceUSDT;
+
                     myPortfolio.SetNewPosition(newPortf);
                 }
 
