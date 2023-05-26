@@ -38,7 +38,7 @@ namespace CustomIndicators.Scripts
         {
             TrueRangeReload(candles, index);
             _moving = MovingAverageWild(_trueRange, _moving, _lenght.ValueInt, index);
-            _series.Values[index] = Math.Round(_moving[index], 7);
+            _series.Values[index] = Math.Round(_moving[index], 9);
         }
 
         private List<decimal> _moving = new List<decimal>();
@@ -96,14 +96,14 @@ namespace CustomIndicators.Scripts
             }
             else
             {
-                decimal lastValueSeries = Math.Round(valuesSeries[index], 7);
+                decimal lastValueSeries = Math.Round(valuesSeries[index], 9);
                 decimal lastValueMoving = moving[index - 1];
 
                 if (index > moving.Count - 1)
                 {
                     moving.Add(0);
                 }
-                moving[index] = Math.Round((lastValueMoving * (_lenght.ValueInt - 1) + lastValueSeries) / _lenght.ValueInt, 7);
+                moving[index] = Math.Round((lastValueMoving * (_lenght.ValueInt - 1) + lastValueSeries) / _lenght.ValueInt, 9);
             }
 
             return moving;
