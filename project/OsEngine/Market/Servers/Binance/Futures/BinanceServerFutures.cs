@@ -9,6 +9,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Binance.Futures.Entity;
 using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
 using OsEngine.Market.Servers.Entity;
+using RestSharp;
 
 namespace OsEngine.Market.Servers.Binance.Futures
 {
@@ -196,6 +197,23 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public void CancelAllOrders()
         {
 
+        }
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+            try
+            {
+                Dictionary<string, string> param = new Dictionary<string, string>();
+
+                param.Add("symbol=", security.Name.ToUpper());
+
+                _client.CreateQuery(Method.DELETE, "/" + _client.type_str_selector + "/v1/allOpenOrders", param, true);
+            }
+            catch (Exception exeption)
+            {
+                SendLogMessage(exeption.Message, LogMessageType.Error);
+            }
+            
         }
 
         /// <summary>

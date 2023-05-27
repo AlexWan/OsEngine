@@ -639,6 +639,44 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #region Trade
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+            rateGateCancelOrder.WaitToProceed();
+
+            string jsonRequest = JsonConvert.SerializeObject(new
+            {
+                symbol = security.Name,
+                marginCoin = "USDT",
+            });
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/order/cancel-order", "POST", null, jsonRequest);
+            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+            ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
+
+            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                if (stateResponse.code.Equals("00000") == true)
+                {
+                    // ignore
+                }
+                else
+                {
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+            else
+            {
+                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                if (stateResponse != null && stateResponse.code != null)
+                {
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+        }
+
         public void GetOrdersState(List<Order> orders)
         {
 

@@ -360,6 +360,45 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
 
         }
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+            rateGateCancelOrder.WaitToProceed();
+
+            string jsonRequest = JsonConvert.SerializeObject(new
+            {
+                symbol = security.Name + "_SPBL"
+            });
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/spot/v1/trade/cancel-order-v2", "POST", null, jsonRequest);
+            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
+
+            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                if (stateResponse.code.Equals("00000") == true)
+                {
+                    // ignore
+                }
+                else
+                {
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+            else
+            {
+                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                if (stateResponse != null && stateResponse.code != null)
+                {
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+
+
+        }
         public void CancelOrder(Order order)
         {
             rateGateCancelOrder.WaitToProceed();

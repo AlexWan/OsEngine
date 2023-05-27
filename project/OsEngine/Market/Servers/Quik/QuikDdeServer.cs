@@ -1175,6 +1175,11 @@ namespace OsEngine.Market.Servers.Quik
 
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         /// <summary>
         /// send exeptions
         /// отправляет исключения

@@ -531,6 +531,11 @@ namespace OsEngine.Market.Servers.Kraken
 
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         /// <summary>
         /// outgoing log message
         /// исходящее сообщение для лога

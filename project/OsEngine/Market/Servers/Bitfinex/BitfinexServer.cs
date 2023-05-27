@@ -1176,6 +1176,11 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 }

@@ -567,6 +567,11 @@ namespace OsEngine.Market.Servers.ZB
            
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;

@@ -428,6 +428,11 @@ namespace OsEngine.Market.Servers.Plaza
 
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         /// <summary>
         /// outgoing log message
         /// исходящее сообщение для лога

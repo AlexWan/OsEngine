@@ -583,6 +583,11 @@ namespace OsEngine.Market.Servers.MFD
             }
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public void ResearchTradesToOrders(List<Order> orders)
         {
 

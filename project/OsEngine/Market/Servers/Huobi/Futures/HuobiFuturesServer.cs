@@ -1054,6 +1054,11 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public void ResearchTradesToOrders(List<Order> orders)
         {
            

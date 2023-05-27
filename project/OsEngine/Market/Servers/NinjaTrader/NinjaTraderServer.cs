@@ -276,6 +276,11 @@ namespace OsEngine.Market.Servers.NinjaTrader
            
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         /// <summary>
         /// outgoing log message
         /// исходящее сообщение для лога
