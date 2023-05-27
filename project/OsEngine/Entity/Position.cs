@@ -560,7 +560,12 @@ namespace OsEngine.Entity
 
             if (closeOrder != null)
             {
-                closeOrder.State = newOrder.State;
+                if (closeOrder.State != OrderStateType.Done
+                   || closeOrder.Volume != closeOrder.VolumeExecute)    //AVP 
+                { 
+                    closeOrder.State = newOrder.State;
+                }
+
                 closeOrder.NumberMarket = newOrder.NumberMarket;
 
                 if (closeOrder.TimeCallBack == DateTime.MinValue)
@@ -627,51 +632,54 @@ namespace OsEngine.Entity
         public void SetTrade(MyTrade trade)
         {
             _myTrades = null;
+
             if (_openOrders != null)
             {
-
                 for (int i = 0; i < _openOrders.Count; i++)
                 {
-                    if ((_openOrders[i].NumberMarket == trade.NumberOrderParent
-                        //||_openOrders[i].NumberUser.ToString() == trade.NumberOrderParent
-                        )
-                        && _openOrders[i].SecurityNameCode == trade.SecurityNameCode)
+                    Order curOrdOpen = _openOrders[i];
+
+                    if (curOrdOpen.NumberMarket == trade.NumberOrderParent
+                        && curOrdOpen.SecurityNameCode == trade.SecurityNameCode)
                     {
                         trade.NumberPosition = Number.ToString();
-                        _openOrders[i].SetTrade(trade);
-                        if (OpenVolume != 0)
+                        curOrdOpen.SetTrade(trade);
+
+                        if (OpenVolume != 0 &&
+                            State == PositionStateType.Opening)
                         {
                             State = PositionStateType.Open;
                         }
                         else if (OpenVolume == 0)
                         {
-                            _openOrders[i].TimeDone = trade.Time;
+                            curOrdOpen.TimeDone = trade.Time;
                             State = PositionStateType.Done;
                         }
                     }
                 }
             }
 
-            if (CloseOrders != null)
+            if (_closeOrders != null)
             {
-                for (int i = 0; i < CloseOrders.Count; i++)
+                for (int i = 0; i < _closeOrders.Count; i++)
                 {
-                    if ((CloseOrders[i].NumberMarket == trade.NumberOrderParent 
-                        //|| CloseOrders[i].NumberUser.ToString() == trade.NumberOrderParent
-                        )
-                        && CloseOrders[i].SecurityNameCode == trade.SecurityNameCode)
+                    Order curOrdClose = _closeOrders[i];
+
+                    if (curOrdClose.NumberMarket == trade.NumberOrderParent
+                        && curOrdClose.SecurityNameCode == trade.SecurityNameCode)
                     {
                         trade.NumberPosition = Number.ToString();
-                        CloseOrders[i].SetTrade(trade);
+                        curOrdClose.SetTrade(trade);
+
                         if (OpenVolume == 0)
                         {
                             State = PositionStateType.Done;
-                            CloseOrders[i].TimeDone = trade.Time;
+                            curOrdClose.TimeDone = trade.Time;
                         }
                         else if (OpenVolume < 0)
                         {
                             State = PositionStateType.ClosingSurplus;
-                        }      
+                        }
                     }
                 }
             }
@@ -681,7 +689,7 @@ namespace OsEngine.Entity
                 decimal entryPrice = EntryPrice;
                 decimal closePrice = ClosePrice;
 
-                if(entryPrice != 0 && closePrice != 0)
+                if (entryPrice != 0 && closePrice != 0)
                 {
                     if (Direction == Side.Buy)
                     {

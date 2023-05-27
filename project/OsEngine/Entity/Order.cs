@@ -214,6 +214,11 @@ namespace OsEngine.Entity
                     return TimeCreate;
                 }
 
+                if (MyTrades[0] != null)
+                {
+                    return MyTrades[0].Time;
+                }
+
                 return MyTrades[0].Time;
             }
         }
@@ -243,14 +248,6 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetTrade(MyTrade trade)
         {
-            if (_trades != null &&
-                _trades.Count > 0
-                && State == OrderStateType.Done
-                && (Volume != 0 && Volume == VolumeExecute))
-            {
-                return;
-            }
-
             if (trade.NumberOrderParent != NumberMarket)
             {
                 return;
@@ -258,7 +255,7 @@ namespace OsEngine.Entity
 
             if (_trades != null)
             {
-                for (int i = 0; i < _trades.Count;i++)
+                for (int i = 0; i < _trades.Count; i++)
                 {
                     if (_trades[i] == null)
                     {
@@ -266,13 +263,10 @@ namespace OsEngine.Entity
                     }
                     if (_trades[i].NumberTrade == trade.NumberTrade)
                     {
-                        // / such an application is already in storage, a stupid API is poisoning with toxic data, we exit
                         return;
                     }
                 }
             }
-
-            _volumeExecuteChange = true;
 
             if (_trades == null)
             {
@@ -280,6 +274,8 @@ namespace OsEngine.Entity
             }
 
             _trades.Add(trade);
+
+            _volumeExecuteChange = true;
 
             if (Volume != VolumeExecute)
             {

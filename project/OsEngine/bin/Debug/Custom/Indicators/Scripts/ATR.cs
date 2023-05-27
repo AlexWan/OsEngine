@@ -96,6 +96,11 @@ namespace CustomIndicators.Scripts
             }
             else
             {
+                while(moving.Count < index)
+                {
+                    moving.Add(moving[moving.Count-1]);
+                }
+
                 decimal lastValueSeries = Math.Round(valuesSeries[index], 9);
                 decimal lastValueMoving = moving[index - 1];
 
