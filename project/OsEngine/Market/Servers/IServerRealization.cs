@@ -84,6 +84,12 @@ namespace OsEngine.Market.Servers
         void CancelAllOrders();
 
         /// <summary>
+        /// cancel all orders from trading system to security
+        /// отозвать все ордера из торговой системы по названию инструмента
+        /// </summary>
+        void CancelAllOrdersToSecurity(Security security);
+
+        /// <summary>
         /// subscribe to candles
         /// подписаться на свечи
         /// </summary>

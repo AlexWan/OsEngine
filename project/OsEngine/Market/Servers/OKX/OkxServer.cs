@@ -162,6 +162,11 @@ namespace OsEngine.Market.Servers.OKX
 
         #region Trade
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public void CancelAllOrders()
         {
             //Empty

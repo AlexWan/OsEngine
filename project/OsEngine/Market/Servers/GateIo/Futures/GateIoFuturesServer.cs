@@ -1131,5 +1131,10 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
     }
 }

@@ -350,7 +350,10 @@ namespace OsEngine.Market.Servers.BybitSpot
 
         #region Trade
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
 
+        }
         public void GetOrdersState(List<Order> orders)
         {
 

@@ -269,6 +269,11 @@ namespace OsEngine.Market.Servers.BitMaxFutures
 
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public void SendOrder(Order order)
         {
 

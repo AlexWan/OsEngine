@@ -1208,6 +1208,11 @@ namespace OsEngine.Market.Servers.Bybit
             
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public void ResearchTradesToOrders(List<Order> orders)
         {
            

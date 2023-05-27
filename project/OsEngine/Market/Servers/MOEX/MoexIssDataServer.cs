@@ -778,6 +778,11 @@ namespace OsEngine.Market.Servers.MOEX
             }
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public void ResearchTradesToOrders(List<Order> orders)
         {
 

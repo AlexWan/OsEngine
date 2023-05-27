@@ -8,6 +8,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
 using OsEngine.Market.Servers.Entity;
+using RestSharp;
 
 namespace OsEngine.Market.Servers.Binance.Spot
 {
@@ -810,6 +811,23 @@ namespace OsEngine.Market.Servers.Binance.Spot
         public void ResearchTradesToOrders(List<Order> orders)
         {
 
+        }
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+            try
+            {
+                Dictionary<string, string> param = new Dictionary<string, string>();
+
+                param.Add("symbol=", security.Name.ToUpper());
+
+                _client.CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "api/v3/openOrders", param, true);
+            }
+            catch (Exception exeption)
+            {
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+            }
+            
         }
 
         /// <summary>

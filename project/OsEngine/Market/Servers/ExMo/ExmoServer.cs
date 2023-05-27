@@ -356,6 +356,11 @@ namespace OsEngine.Market.Servers.ExMo
 
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         /// <summary>
         /// outgoing log message
         /// исходящее сообщение для лога

@@ -2046,6 +2046,11 @@ namespace OsEngine.Market.Servers.BitMex
 
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         // outgoing events
         // исходящие события
 

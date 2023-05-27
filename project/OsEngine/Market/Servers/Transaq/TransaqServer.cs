@@ -1698,6 +1698,11 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         /// <summary>
         /// outgoing lom message
         /// исходящее сообщение для лога

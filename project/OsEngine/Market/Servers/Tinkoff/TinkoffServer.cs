@@ -140,6 +140,11 @@ namespace OsEngine.Market.Servers.Tinkoff
             // Этот сервер берёт их автоматически, раз в N секунд
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         public List<Candle> GetCandleHistory(string nameSec, TimeFrame tf)
         {
             DateTime to = DateTime.Now;

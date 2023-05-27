@@ -915,6 +915,11 @@ namespace OsEngine.Market.Servers.BitMax
         {
         }
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         /// <summary>
         /// outgoing lom message
         /// исходящее сообщение для лога

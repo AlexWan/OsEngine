@@ -824,6 +824,11 @@ namespace OsEngine.Market.Servers.Hitbtc
         public event Action<string, LogMessageType> LogMessageEvent;
         #endregion
 
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
         internal class OrderCoupler
         {
             public int OsOrderNumberUser;
