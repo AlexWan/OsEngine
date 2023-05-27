@@ -219,7 +219,7 @@ namespace OsEngine.Entity
                     return MyTrades[0].Time;
                 }
 
-                return MyTrades[0].Time;
+                return TimeCreate;
             }
         }
 
