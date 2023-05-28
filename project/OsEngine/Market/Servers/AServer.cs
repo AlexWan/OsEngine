@@ -107,13 +107,6 @@ namespace OsEngine.Market.Servers
                 Task task3 = new Task(MyTradesBeepThread);
                 task3.Start();
 
-                Task task4 = new Task(SaveLoadOrdersThreadArea);
-                task4.Start();
-
-                Thread thread = new Thread(ReserchOrdersToDone);
-                thread.Name = "ReserchOrdersToDone";
-                thread.Start();
-
                 _serverIsStart = true;
 
             }
@@ -759,27 +752,6 @@ namespace OsEngine.Market.Servers
 
                     return;
                 }
-            }
-        }
-
-        /// <summary>
-        /// server time of last starting
-        /// проверка ордеров на исполнение
-        /// </summary>
-        private void ReserchOrdersToDone()
-        {
-            return;
-
-            while (true)
-            {
-                Thread.Sleep(60000);
-
-                if (_myExecuteOrdersAllSessions.Count == 0)
-                {
-                    continue;
-                }
-
-                _serverRealization.ResearchTradesToOrders(_myExecuteOrdersAllSessions);
             }
         }
 
@@ -1935,8 +1907,6 @@ namespace OsEngine.Market.Servers
             _myTradesToSend.Enqueue(trade);
             _myTrades.Add(trade);
             _neadToBeepOnTrade = true;
-
-            UpDateMyTrade(trade);
         }
 
         /// <summary>
@@ -2052,8 +2022,6 @@ namespace OsEngine.Market.Servers
                     _myTradesToSend.Enqueue(_myTrades[i]);
                 }
             }
-
-            UpDateOrder(myOrder);
         }
 
         /// <summary>
@@ -2085,10 +2053,6 @@ namespace OsEngine.Market.Servers
 
             _ordersToExecute.Enqueue(ord);
 
-            _myExecuteOrdersAllSessions.Add(order);
-
-            _myExecuteOrdersThisSession.Add(order);
-
             SendLogMessage(OsLocalization.Market.Message19 + order.Price +
                            OsLocalization.Market.Message20 + order.Side +
                            OsLocalization.Market.Message21 + order.Volume +
@@ -2114,9 +2078,6 @@ namespace OsEngine.Market.Servers
 
             _ordersToExecute.Enqueue(ord);
 
-            _myCanselOrdersAllSessions.Add(order);
-            _myCanselOrdersThisSession.Add(order);
-
             SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
         }
 
@@ -2134,314 +2095,6 @@ namespace OsEngine.Market.Servers
         /// изменился ордер
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
-
-        // хранение ордеров и запросы их статуса у сервера
-
-        private void UpDateOrder(Order order)
-        {
-            if (order == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _myExecuteOrdersAllSessions.Count; i++)
-            {
-                if (_myExecuteOrdersAllSessions[i] == null)
-                {
-                    continue;
-                }
-                if (_myExecuteOrdersAllSessions[i].NumberUser == order.NumberUser)
-                {
-                    CopySettings(order, _myExecuteOrdersAllSessions[i]);
-                    _needToSaveOrders = true;
-                    break;
-                }
-            }
-            for (int i = 0; i < _myCanselOrdersAllSessions.Count; i++)
-            {
-                if (_myCanselOrdersAllSessions[i] == null)
-                {
-                    continue;
-                }
-                if (_myCanselOrdersAllSessions[i].NumberUser == order.NumberUser)
-                {
-                    CopySettings(order, _myCanselOrdersAllSessions[i]);
-                    _needToSaveOrders = true;
-                    break;
-                }
-            }
-        }
-
-        private void CopySettings(Order orderToCopy, Order order)
-        {
-            order.NumberMarket = orderToCopy.NumberMarket;
-            order.State = orderToCopy.State;
-            order.VolumeExecute = orderToCopy.VolumeExecute;
-        }
-
-        private void UpDateMyTrade(MyTrade trade)
-        {
-            for (int i = 0; i < _myExecuteOrdersAllSessions.Count; i++)
-            {
-                if(_myExecuteOrdersAllSessions[i] == null)
-                {
-                    continue;
-                }
-                if (_myExecuteOrdersAllSessions[i].NumberMarket == trade.NumberOrderParent)
-                {
-                    _myExecuteOrdersAllSessions[i].SetTrade(trade);
-                    _needToSaveOrders = true;
-                    return;
-                }
-            }
-
-            for (int i = 0; i < _myCanselOrdersAllSessions.Count; i++)
-            {
-                if (_myCanselOrdersAllSessions[i].NumberMarket == trade.NumberOrderParent)
-                {
-                    if(_myCanselOrdersAllSessions[i] == null)
-                    {
-                        continue;
-                    }
-
-                    _myCanselOrdersAllSessions[i].SetTrade(trade);
-                    _needToSaveOrders = true;
-                    return;
-                }
-            }
-        }
-
-        private List<Order> _myExecuteOrdersAllSessions = new List<Order>();
-
-        private List<Order> _myCanselOrdersAllSessions = new List<Order>();
-
-        private List<Order> _myExecuteOrdersThisSession = new List<Order>();
-
-        private List<Order> _myCanselOrdersThisSession = new List<Order>();
-
-        private DateTime _lastTimeCheckOrders = DateTime.MinValue;
-
-        int myExecureOrdersCount;
-
-        int myCanselOrdersCount;
-
-        bool _needToSaveOrders;
-
-        private void SaveLoadOrdersThreadArea()
-        {
-            LoadOrders();
-
-            myExecureOrdersCount = _myExecuteOrdersAllSessions.Count;
-            myCanselOrdersCount = _myCanselOrdersAllSessions.Count;
-
-            while (true)
-            {
-                Thread.Sleep(500);
-
-                try
-                {
-                    
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        continue;
-                    }
-
-                    if (LastStartServerTime.AddSeconds(30) >= DateTime.Now)
-                    {
-                        continue;
-                    }
-
-                    AllSessionOrdersManagment();
-
-                    ThisSessionOrdersManagment();
-
-                }
-                catch(Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    Thread.Sleep(10000);
-                }
-            }
-        }
-
-        private void ThisSessionOrdersManagment()
-        {
-            return;
-            for(int i = 0;i < _myExecuteOrdersThisSession.Count;i++)
-            {
-                Order order = _myExecuteOrdersThisSession[i];
-
-                if (order.TimeCreate.AddMinutes(3)< ServerTime)
-                {
-                    List<Order> ordersToCheck = new List<Order>();
-                    ordersToCheck.Add(order);
-
-                    ServerRealization.GetOrdersState(ordersToCheck);
-
-                    _myExecuteOrdersThisSession.RemoveAt(i);
-
-                    return;
-                }
-            }
-        }
-
-        private void AllSessionOrdersManagment()
-        {
-            return;
-
-            if (LastStartServerTime.AddSeconds(30) < DateTime.Now
-                && LastStartServerTime.AddSeconds(120) > DateTime.Now)
-            {
-                if (_lastTimeCheckOrders == DateTime.MinValue)
-                {
-                    _lastTimeCheckOrders = DateTime.Now;
-                    CheckOrderStatesOnStartProgramm();
-
-                    while(_myExecuteOrdersAllSessions.Count > 1)
-                    {
-                        _myExecuteOrdersAllSessions.RemoveAt(0);
-                    }
-
-                    while (_myCanselOrdersAllSessions.Count > 1)
-                    {
-                        _myCanselOrdersAllSessions.RemoveAt(0);
-                    }
-
-                    SaveOrders();
-                }
-
-                return;
-            }
-
-            if (_myExecuteOrdersAllSessions.Count != myExecureOrdersCount ||
-                _myCanselOrdersAllSessions.Count != myCanselOrdersCount ||
-                _needToSaveOrders == true)
-            {
-                SaveOrders();
-                _needToSaveOrders = false;
-                myExecureOrdersCount = _myExecuteOrdersAllSessions.Count;
-                myCanselOrdersCount = _myCanselOrdersAllSessions.Count;
-            }
-        }
-
-        private void SaveOrders()
-        {
-            SaveOpenOrders();
-            SaveCanselOrders();
-        }
-
-        private void LoadOrders()
-        {
-            LoadOpenOrders();
-            LoadCanselOrders();
-        }
-
-        private void LoadOpenOrders()
-        {
-            if (!File.Exists(@"Engine\" + ServerType + @" OpenOrders.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + @" OpenOrders.txt"))
-                {
-                    while(reader.EndOfStream == false)
-                    {
-                        string str = reader.ReadLine();
-                        Order ord = new Order();
-                        ord.SetOrderFromString(str);
-                        _myExecuteOrdersAllSessions.Add(ord);
-                    }
-                    reader.Close();
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        private void SaveOpenOrders()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" OpenOrders.txt", false))
-                {
-                    for (int i = _myExecuteOrdersAllSessions.Count - 1; i >= 0 && i > _myExecuteOrdersAllSessions.Count - 100; i--)
-                    {
-                        string saveStr = _myExecuteOrdersAllSessions[i].GetStringForSave().ToString();
-                        writer.WriteLine(saveStr);
-                    }
-                   
-                    writer.Close();
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        private void LoadCanselOrders()
-        {
-            if (!File.Exists(@"Engine\" + ServerType + @" CanselOrders.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + @" CanselOrders.txt"))
-                {
-                    while (reader.EndOfStream == false)
-                    {
-                        string str = reader.ReadLine();
-                        Order ord = new Order();
-                        ord.SetOrderFromString(str);
-                        _myCanselOrdersAllSessions.Add(ord);
-                    }
-
-                    reader.Close();
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        private void SaveCanselOrders()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @" CanselOrders.txt", false))
-                {
-                    for (int i = _myCanselOrdersAllSessions.Count - 1; i >= 0 && i > _myCanselOrdersAllSessions.Count - 100; i--)
-                    {
-                        string saveStr = _myCanselOrdersAllSessions[i].GetStringForSave().ToString();
-                        writer.WriteLine(saveStr);
-                    }
-                    writer.Close();
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        private void CheckOrderStatesOnStartProgramm()
-        {
-            return;
-            if(_myExecuteOrdersAllSessions.Count != 0)
-            {
-                _serverRealization.GetOrdersState(_myExecuteOrdersAllSessions);
-            }
-            if(_myCanselOrdersAllSessions.Count != 0)
-            {
-                _serverRealization.GetOrdersState(_myCanselOrdersAllSessions);
-            }
-        }
 
         // log messages / сообщения для лога
 

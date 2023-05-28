@@ -2336,6 +2336,11 @@ namespace OsEngine.Market.Servers.Optimizer
             while (LastCandle == null ||
                 LastCandle.TimeStart < now)
             {
+                if(_lastCandleIndex >= Candles.Count)
+                {
+                    _lastCandleIndex = Candles.Count - 1;
+                }
+
                 LastCandle = Candles[_lastCandleIndex];
                 LastCandle.State = CandleState.Finished;
                 _lastCandleIndex++;
