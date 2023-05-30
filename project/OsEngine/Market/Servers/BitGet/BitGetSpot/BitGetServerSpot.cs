@@ -317,7 +317,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 symbol = order.SecurityNameCode + "_SPBL",
                 side = order.Side.ToString().ToLower(),
-                orderType = order.TypeOrder.ToString().ToLower(),
+                orderType = OrderPriceType.Limit.ToString().ToLower(),
                 force = "normal",
                 price = order.Price.ToString().Replace(",", "."),
                 quantity = order.Volume.ToString().Replace(",", "."),
@@ -336,12 +336,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
                 else
                 {
+                    CreateOrderFail(order);
                     SendLogMessage($"Code: {stateResponse.code}\n"
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
             else
             {
+                CreateOrderFail(order);
                 SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                 if (stateResponse != null && stateResponse.code != null)
@@ -421,12 +423,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
                 else
                 {
+                    CreateOrderFail(order);
                     SendLogMessage($"Code: {stateResponse.code}\n"
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
             else
             {
+                CreateOrderFail(order);
                 SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                 if (stateResponse != null && stateResponse.code != null)
@@ -751,6 +755,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 OrderStateType stateType = GetOrderState(item.status);
 
+                if (item.ordType.Equals("market") && stateType == OrderStateType.Activ)
+                {
+                    continue;
+                }
+
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = item.instId.Replace("_SPBL", "");
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
@@ -761,17 +770,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
 
                 newOrder.NumberMarket = item.ordId.ToString();
-                newOrder.Side = item.side.Equals("long") ? Side.Buy : Side.Sell;
+                newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = stateType;
                 newOrder.Volume = item.sz.Replace('.', ',').ToDecimal();
-                if (item.ordType.Equals("market") == false)
+                newOrder.Price = item.avgPx.Replace('.', ',').ToDecimal();
+                if (item.px != null)
                 {
-                    newOrder.Price = item.avgPx.Replace('.', ',').ToDecimal() != 0 ? item.avgPx.Replace('.', ',').ToDecimal() : item.px.Replace('.', ',').ToDecimal();
+                    newOrder.Price = item.px.Replace('.', ',').ToDecimal();
                 }
                 newOrder.ServerType = ServerType.BitGetSpot;
                 newOrder.PortfolioNumber = "BitGetSpot";
 
-                MyOrderEvent(newOrder);
+                
 
                 if (stateType == OrderStateType.Done ||
                     stateType == OrderStateType.Patrial)
@@ -781,7 +791,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     // как только приходит ордер исполненный или частично исполненный триггер на запрос портфеля
                     CreateQueryPortfolio(false);
                 }
-
+                MyOrderEvent(newOrder);
             }
         }
 
@@ -1085,6 +1095,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             else
             {
                 return $"{tf.Hours}h";
+            }
+        }
+
+        private void CreateOrderFail(Order order)
+        {
+            order.State = OrderStateType.Fail;
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(order);
             }
         }
     }
