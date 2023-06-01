@@ -31,6 +31,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string offTime;
         public string limitOpenTime;
         public string maintainTime;
+        public string pricePlace;
     }
 
     public class RestMessageAccount

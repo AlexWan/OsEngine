@@ -83,7 +83,7 @@
 
         public bool MarketOrdersIsSupport
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsTradeServer
         {

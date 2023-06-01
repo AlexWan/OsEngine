@@ -354,6 +354,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 OrderStateType stateType = GetOrderState(item.status);
 
+                if (item.ordType.Equals("market") &&
+                    stateType == OrderStateType.Activ)
+                {
+                    continue;
+                }
+
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = item.instId; //.Replace("_SPBL", "")
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
@@ -371,7 +377,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 newOrder.ServerType = ServerType.BitGetFutures;
                 newOrder.PortfolioNumber = "BitGetFutures";
 
-                MyOrderEvent(newOrder);
+                
 
                 if (stateType == OrderStateType.Done ||
                     stateType == OrderStateType.Patrial)
@@ -390,8 +396,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     MyTradeEvent(myTrade);
 
 
+                    newOrder.Price = item.fillPx.Replace('.', ',').ToDecimal();
+
                     CreateQueryPortfolio(false);
                 }
+
+                MyOrderEvent(newOrder);
 
             }
         }
@@ -587,6 +597,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 var item = symbols.data[i];
 
+                var decimals = Convert.ToInt32(item.pricePlace);
+                var priceStep = Convert.ToDecimal(GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep)));
+
                 if (item.symbolStatus.Equals("normal"))
                 {
                     securities.Add(new Security()
@@ -598,9 +611,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         NameClass = item.quoteCoin,
                         NameId = item.symbol,
                         SecurityType = SecurityType.CurrencyPair,
-                        Decimals = Convert.ToInt32(item.priceEndStep) - 1,
-                        PriceStep = Convert.ToInt32(item.priceEndStep) - 1,
-                        PriceStepCost = Convert.ToInt32(item.priceEndStep) - 1,
+                        Decimals = decimals,
+                        PriceStep = priceStep,
+                        PriceStepCost = priceStep,
                         State = SecurityStateType.Activ,
                         Lot = 1,
                     });
@@ -1086,5 +1099,28 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        private string GetPriceStep(int PricePlace, int PriceEndStep)
+        {
+            if (PricePlace == 0)
+            {
+                return Convert.ToString(PriceEndStep);
+            }
+
+            string res = String.Empty;
+
+            for (int i = 0; i < PricePlace; i++)
+            {
+                if (i == 0)
+                {
+                    res += "0,";
+                }
+                else
+                {
+                    res += "0";
+                }
+            }
+
+            return res + PriceEndStep;
+        }
     }
 }
