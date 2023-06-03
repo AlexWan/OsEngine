@@ -12,7 +12,7 @@
 
 This is a full range of programs required to automate trading on the stock exchange.
 
-![algotasks](https://user-images.githubusercontent.com/26077466/53003898-e9a84a00-3427-11e9-9582-53dd1a18271a.png)
+![algotasks](https://user-images.githubusercontent.com/26077466/243118924-bfb99f06-1107-495e-a266-12ba0c8d5a55.jpg)
 
 It includes:
 
@@ -87,7 +87,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 [Сайт разработчиков](http://o-s-a.net)
 
-![default](https://user-images.githubusercontent.com/26077466/42362896-01b3e74a-80fe-11e8-8f36-3db24cb7522c.png)
+![default](https://user-images.githubusercontent.com/26077466/243121761-25fe883f-d567-4ed0-bdd6-7f28c7ff667b.jpg)
 
 В него входят:
 
