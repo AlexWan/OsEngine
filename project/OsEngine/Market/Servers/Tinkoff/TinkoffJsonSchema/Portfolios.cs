@@ -19,6 +19,18 @@ namespace OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema
 
         public decimal GetValue()
         {
+            decimal unitsDecimal = units.ToDecimal();
+
+            if (unitsDecimal < 0 && _value == Decimal.MinValue)
+            {
+                return unitsDecimal;
+            }
+
+            if (unitsDecimal < 0 && _value > 0 )
+            {
+                _value = -_value;
+            }
+
             if (_value != Decimal.MinValue)
             {
                 return _value;
