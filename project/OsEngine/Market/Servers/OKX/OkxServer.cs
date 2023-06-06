@@ -150,13 +150,6 @@ namespace OsEngine.Market.Servers.OKX
             _client.SubscribleTrades(security);
             _client.SubscribleDepths(security);
             _client.SubscriblePositions(security);
-
-            Thread checkOrdersWorkerPlace = new Thread(CheckOrdersWorkerPlace);
-            checkOrdersWorkerPlace.CurrentCulture = new CultureInfo("ru-RU");
-            checkOrdersWorkerPlace.IsBackground = true;
-            checkOrdersWorkerPlace.Name = "ConvertToTrade";
-            checkOrdersWorkerPlace.Start();
-
             _client.SubscribleOrders(security);
         }
 
@@ -212,54 +205,20 @@ namespace OsEngine.Market.Servers.OKX
                 MyOrderEvent(newOrder);
             }
 
-            OrdersToCheckMyTrades.Enqueue(newOrder);
-        }
 
-        ConcurrentQueue<Order> OrdersToCheckMyTrades = new ConcurrentQueue<Order>();
-
-        private object lockerMyTrades = new object();
-
-        private void CheckOrdersWorkerPlace()
-        {
-            while (true)
+            if (stateType == OrderStateType.Patrial ||
+                stateType == OrderStateType.Done)
             {
-                try
+                List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
+
+                for (int i = 0; i < tradesInOrder.Count; i++)
                 {
-                    if (OrdersToCheckMyTrades.IsEmpty == false)
-                    {
-                        new Task(() =>
-                        {
-                            Task.Delay(300);
-
-                            Order orderToCheck = null;
-
-                            if (OrdersToCheckMyTrades.TryDequeue(out orderToCheck))
-                            {
-                                List<MyTrade> tradesInOrder = GenerateTradesToOrder(orderToCheck, 1);
-
-                                for (int i = 0; i < tradesInOrder.Count; i++)
-                                {
-                                    lock (lockerMyTrades)
-                                    {
-                                        MyTradeEvent(tradesInOrder[i]);
-                                    }
-                                }
-                            }
-                        }).Start();
-
-                    }
-                    else
-                    {
-                        Thread.Sleep(200);
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage($"{error.Message} { error.StackTrace}", LogMessageType.Error);
-                    Thread.Sleep(1000);
+                    MyTradeEvent(tradesInOrder[i]);
                 }
             }
         }
+
+
 
         private RateGate _rateGateGenerateToTrate = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
