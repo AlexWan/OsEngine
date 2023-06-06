@@ -12,6 +12,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Transaq.TransaqEntity;
 using Point = System.Drawing.Point;
 
 namespace OsEngine.Market
@@ -74,15 +75,15 @@ namespace OsEngine.Market
         /// </summary>
         public void StartPaint()
         {
-            if(_positionHost.Dispatcher.CheckAccess() == false)
+            if(_hostPortfolio.Dispatcher.CheckAccess() == false)
             {
-                _positionHost.Dispatcher.Invoke(new Action(StartPaint));
+                _hostPortfolio.Dispatcher.Invoke(new Action(StartPaint));
                 return;
             }
 
             try
             {
-                _positionHost.Child = _gridPosition;
+                _hostPortfolio.Child = _gridPortfolio;
             }
             catch (Exception error)
             {
@@ -92,7 +93,7 @@ namespace OsEngine.Market
 
         public void StopPaint()
         {
-            _positionHost.Child = null;
+            _hostPortfolio.Child = null;
         }
 
       
@@ -100,12 +101,16 @@ namespace OsEngine.Market
         {
             try
             {
-                _gridPosition = DataGridFactory.GetDataGridPortfolios();
+                if(_gridPortfolio == null)
+                {
+                    _gridPortfolio = DataGridFactory.GetDataGridPortfolios();
+                    _gridPortfolio.CellClick += _gridPortfolio_CellClick;
+                }
 
-                _positionHost = hostPortfolio;
-                _positionHost.Child = _gridPosition;
-                _positionHost.Child.Show();
-                _positionHost.Child.Refresh();
+                _hostPortfolio = hostPortfolio;
+                _hostPortfolio.Child = _gridPortfolio;
+                _hostPortfolio.Child.Show();
+                _hostPortfolio.Child.Refresh();
             }
             catch (Exception error)
             {
@@ -201,13 +206,13 @@ namespace OsEngine.Market
         /// table for drawing portfolios
         /// таблица для прорисовки портфелей
         /// </summary>
-        private DataGridView _gridPosition;
+        private DataGridView _gridPortfolio;
 
         /// <summary>
         /// area for drawing portfolios
         /// область для прорисовки портфелей
         /// </summary>
-        private WindowsFormsHost _positionHost;
+        private WindowsFormsHost _hostPortfolio;
 
         /// <summary>
         /// redraw the portfolio table
@@ -217,7 +222,7 @@ namespace OsEngine.Market
         {
             try
             {
-                if (_positionHost.Child == null)
+                if (_hostPortfolio.Child == null)
                 {
                     return;
                 }
@@ -269,32 +274,32 @@ namespace OsEngine.Market
                 }
 
 
-                if (!_positionHost.CheckAccess())
+                if (!_hostPortfolio.CheckAccess())
                 {
-                    _positionHost.Dispatcher.Invoke(RePaintPortfolio);
+                    _hostPortfolio.Dispatcher.Invoke(RePaintPortfolio);
                     return;
                 }
 
                 if (_portfolios == null)
                 {
-                    _gridPosition.Rows.Clear();
+                    _gridPortfolio.Rows.Clear();
                     return;
                 }
 
                 int curUpRow = 0;
                 int curSelectRow = 0;
 
-                if (_gridPosition.RowCount != 0)
+                if (_gridPortfolio.RowCount != 0)
                 {
-                    curUpRow = _gridPosition.FirstDisplayedScrollingRowIndex;
+                    curUpRow = _gridPortfolio.FirstDisplayedScrollingRowIndex;
                 }
 
-                if (_gridPosition.SelectedRows.Count != 0)
+                if (_gridPortfolio.SelectedRows.Count != 0)
                 {
-                    curSelectRow = _gridPosition.SelectedRows[0].Index;
+                    curSelectRow = _gridPortfolio.SelectedRows[0].Index;
                 }
 
-                _gridPosition.Rows.Clear();
+                _gridPortfolio.Rows.Clear();
 
                 // send portfolios to draw
                 // отправляем портфели на прорисовку
@@ -315,14 +320,14 @@ namespace OsEngine.Market
 
                if (curUpRow != 0 && curUpRow != -1)
                {
-                   _gridPosition.FirstDisplayedScrollingRowIndex = curUpRow;
+                   _gridPortfolio.FirstDisplayedScrollingRowIndex = curUpRow;
                }
 
                if (curSelectRow != 0 &&
-                   _gridPosition.Rows.Count > curSelectRow
+                   _gridPortfolio.Rows.Count > curSelectRow
                    && curSelectRow != -1)
                {
-                   _gridPosition.Rows[curSelectRow].Selected = true;
+                   _gridPortfolio.Rows[curSelectRow].Selected = true;
                }
 
             }
@@ -381,7 +386,7 @@ namespace OsEngine.Market
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
                 secondRow.Cells[3].Value = portfolio.ValueBlocked.ToString().ToDecimal();
 
-                _gridPosition.Rows.Add(secondRow);
+                _gridPortfolio.Rows.Add(secondRow);
 
                 List<PositionOnBoard> positionsOnBoard = portfolio.GetPositionOnBoard();
 
@@ -395,7 +400,7 @@ namespace OsEngine.Market
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[nRow.Cells.Count - 1].Value = "No positions";
 
-                    _gridPosition.Rows.Add(nRow);
+                    _gridPortfolio.Rows.Add(nRow);
                 }
                 else
                 {
@@ -431,7 +436,14 @@ namespace OsEngine.Market
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToString().ToDecimal();
 
-                        _gridPosition.Rows.Add(nRow);
+                        if(HaveClosePosButton(portfolio, positionsOnBoard[i]))
+                        {
+                            nRow.Cells.Add(new DataGridViewButtonCell());
+                            nRow.Cells[8].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                            nRow.Cells[8].Value = OsLocalization.Market.Label82;
+                        }
+
+                        _gridPortfolio.Rows.Add(nRow);
                     }
 
                     if (havePoses == false)
@@ -444,7 +456,7 @@ namespace OsEngine.Market
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells[nRow.Cells.Count - 1].Value = "No positions";
 
-                        _gridPosition.Rows.Add(nRow);
+                        _gridPortfolio.Rows.Add(nRow);
                     }
                 }
             }
@@ -465,9 +477,142 @@ namespace OsEngine.Market
 
         #endregion
 
+        #region кнопка удалить позицию
+
+        private bool HaveClosePosButton(Portfolio portfolio, PositionOnBoard positionOnBoard)
+        {
+            IServer myServer = GetServerByPortfolioName(portfolio.Number);
+
+            if (myServer == null)
+            {
+                return false;
+            }
+
+            if (myServer.ServerType == ServerType.Tester)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private IServer GetServerByPortfolioName(string portfolioName)
+        {
+            List<IServer> servers = ServerMaster.GetServers();
+
+            IServer myServer = null;
+
+            for (int i = 0; servers != null && i < servers.Count; i++)
+            {
+                try
+                {
+                    if (servers[i] == null)
+                    {
+                        continue;
+                    }
+                    if (servers[i].ServerType == ServerType.Optimizer)
+                    {
+                        continue;
+                    }
+
+                    List<Portfolio> portfolios = servers[i].Portfolios;
+
+                    for (int j = 0; portfolios != null && j < portfolios.Count; j++)
+                    {
+                        if (portfolios[j].Number == portfolioName)
+                        {
+                            myServer = servers[i];
+                            break;
+                        }
+                    }
+
+                    if (myServer != null)
+                    {
+                        break;
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+
+            return myServer;
+        }
+
+        private void _gridPortfolio_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int rowInd = e.RowIndex;
+            int colInd = e.ColumnIndex;
+
+            if(colInd != 8)
+            {
+                return;
+            }
+
+            if (_gridPortfolio.Rows[rowInd].Cells.Count < 9 ||
+                _gridPortfolio.Rows[rowInd].Cells[colInd] == null ||
+                _gridPortfolio.Rows[rowInd].Cells[colInd].Value == null ||
+                _gridPortfolio.Rows[rowInd].Cells[colInd].Value.ToString() != OsLocalization.Market.Label82)
+            {
+                return;
+            }
+
+            string secName = _gridPortfolio.Rows[rowInd].Cells[4].Value.ToString();
+
+            if (String.IsNullOrEmpty(secName))
+            {
+                return;
+            }
+
+            AcceptDialogUi ui = new AcceptDialogUi( secName + OsLocalization.Market.Label83);
+
+            ui.ShowDialog();
+
+            if(ui.UserAcceptActioin == false)
+            {
+                return;
+            }
+
+            string portfolioName = "";
+
+            for(int i = rowInd; i >= 0; i--)
+            {
+                if(_gridPortfolio.Rows[i].Cells[0] == null)
+                {
+                    continue;
+                }
+                if (_gridPortfolio.Rows[i].Cells[0].Value == null)
+                {
+                    continue;
+                }
+                if (_gridPortfolio.Rows[i].Cells[0].Value.ToString() == "")
+                {
+                    continue;
+                }
+
+                portfolioName = _gridPortfolio.Rows[i].Cells[0].Value.ToString();
+                break;
+            }
+
+            IServer myServer = GetServerByPortfolioName(portfolioName);
+
+            if(myServer == null)
+            {
+                return;
+            }
+
+            if(ClearPositionOnBoardEvent != null)
+            {
+                ClearPositionOnBoardEvent(secName,myServer);
+            }
+        }
+
+        public event Action<string, IServer> ClearPositionOnBoardEvent;
+
+        #endregion
 
         // log message
-        // сообщения в лог
 
         /// <summary>
         /// send a new message to up

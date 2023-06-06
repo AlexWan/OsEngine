@@ -360,6 +360,18 @@ namespace OsEngine.Language
           "Eng:Support rules_" +
           "Ru:Правила поддержки_");
 
+        public string Label82 => OsLocalization.ConvertToLocString(
+          "Eng:Delete_" +
+          "Ru:Удалить_");
+
+        public string Label83 => OsLocalization.ConvertToLocString(
+          "Eng: \nDo you want to delete a position on the exchange? \nRobots trading this security will be stopped!_" +
+          "Ru: \nВы хотите удалить позицию на бирже? \nРоботы торгующие эту бумагу будут остановлены!_");
+
+        public string Label84 => OsLocalization.ConvertToLocString(
+          "Eng:Server is not active! The operation is not possible!_" +
+          "Ru:Сервер не активен! Операция не возможна!_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");

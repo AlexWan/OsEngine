@@ -2103,6 +2103,11 @@ namespace OsEngine.Market.Servers.Tester
                 { // test with using ticks / прогон на тиках
                     List<Trade> trades = security.LastTradeSeries;
 
+                    if(order.Price == 0)
+                    {
+                        order.Price = trades[0].Price;
+                    }
+
                     for (int indexTrades = 0; trades != null && indexTrades < trades.Count; indexTrades++)
                     {
                         if (CheckOrdersInTickTest(order, trades[indexTrades],false))
@@ -2115,6 +2120,13 @@ namespace OsEngine.Market.Servers.Tester
                 else if(security.DataType == SecurityTesterDataType.Candle)
                 { // test with using candles / прогон на свечках
                     Candle lastCandle = security.LastCandle;
+
+                    if (order.Price == 0)
+                    {
+                        order.Price = lastCandle.Open;
+                    }
+
+
                     if (CheckOrdersInCandleTest(order, lastCandle))
                     {
                         i--;
@@ -3746,7 +3758,8 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            if (order.Price <= 0)
+            if (order.Price <= 0
+                && order.TypeOrder != OrderPriceType.Market)
             {
                 SendLogMessage(OsLocalization.Market.Message41 + order.Price, LogMessageType.Error);
                 FailedOperationOrder(order);

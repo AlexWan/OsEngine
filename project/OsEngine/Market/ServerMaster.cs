@@ -1161,15 +1161,32 @@ namespace OsEngine.Market
         /// </summary>
         public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostActiveOrders, WindowsFormsHost hostHistoricalOrders)
         {
-            _painterPortfolios = new ServerMasterPortfoliosPainter();
-            _painterPortfolios.LogMessageEvent += SendNewLogMessage;
-            _painterPortfolios.SetHostTable(hostPortfolio);
+            if (_painterPortfolios == null)
+            {
+                _painterPortfolios = new ServerMasterPortfoliosPainter();
+                _painterPortfolios.LogMessageEvent += SendNewLogMessage;
+                _painterPortfolios.ClearPositionOnBoardEvent += _painterPortfolios_ClearPositionOnBoardEvent;
+                _painterPortfolios.SetHostTable(hostPortfolio);
+            }
 
-            _ordersStorage = new ServerMasterOrdersPainter();
-            _ordersStorage.LogMessageEvent += SendNewLogMessage;
-            _ordersStorage.SetHostTable(hostActiveOrders, hostHistoricalOrders);
-            _ordersStorage.RevokeOrderToEmulatorEvent += _ordersStorage_RevokeOrderToEmulatorEvent;
+            if(_ordersStorage == null)
+            {
+                _ordersStorage = new ServerMasterOrdersPainter();
+                _ordersStorage.LogMessageEvent += SendNewLogMessage;
+                _ordersStorage.SetHostTable(hostActiveOrders, hostHistoricalOrders);
+                _ordersStorage.RevokeOrderToEmulatorEvent += _ordersStorage_RevokeOrderToEmulatorEvent;
+            }
         }
+
+        private static void _painterPortfolios_ClearPositionOnBoardEvent(string sec, IServer server)
+        {
+            if(ClearPositionOnBoardEvent != null)
+            {
+                ClearPositionOnBoardEvent(sec, server);
+            }
+        }
+
+        public static event Action<string, IServer> ClearPositionOnBoardEvent;
 
         private static void _ordersStorage_RevokeOrderToEmulatorEvent(Order order)
         {

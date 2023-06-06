@@ -893,6 +893,12 @@ positionOpener.LifeTimeType
             column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridPosition.Columns.Add(column7);
 
+            DataGridViewColumn column8 = new DataGridViewColumn();
+            column8.CellTemplate = cell0;
+            column8.ReadOnly = true;
+            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridPosition.Columns.Add(column8);
+
             return _gridPosition;
         }
 

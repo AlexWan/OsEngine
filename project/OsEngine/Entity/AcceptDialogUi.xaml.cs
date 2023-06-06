@@ -27,7 +27,7 @@ namespace OsEngine.Entity
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
-            LabelText.Content = text;
+            TextBoxMessage.Text = text;
             ButtonCancel.Content = OsLocalization.Entity.ButtonCancel1;
 
             Title = OsLocalization.Entity.TitleAcceptDialog;
