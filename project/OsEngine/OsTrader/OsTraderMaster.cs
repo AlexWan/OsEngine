@@ -696,8 +696,6 @@ namespace OsEngine.OsTrader
                 }
             }
 
-
-
             for(int i = 0;i< tabsWithMySecInAllBots.Count;i++)
             {
 
@@ -801,12 +799,19 @@ namespace OsEngine.OsTrader
                 return;
             }
 
-            Order order = CreateOrderToClosePosition(secName, server, myPosOnBoards);
+            Security sec = GetSecurityFromTabs(secName, server);
+
+            if(sec == null)
+            {
+                return;
+            }
+
+            Order order = CreateOrderToClosePosition(secName, server, myPosOnBoards, sec);
 
             server.ExecuteOrder(order);
         }
 
-        private Order CreateOrderToClosePosition(string secName, Market.Servers.IServer server, PositionOnBoard pos)
+        private Order CreateOrderToClosePosition(string secName, Market.Servers.IServer server, PositionOnBoard pos, Security sec)
         {
             Order newOrder = new Order();
 
@@ -817,6 +822,7 @@ namespace OsEngine.OsTrader
             newOrder.TimeCreate = server.ServerTime;
             newOrder.TypeOrder = OrderPriceType.Market;
             newOrder.SecurityNameCode = secName;
+            newOrder.SecurityClassCode = sec.NameClass;
             newOrder.PortfolioNumber = pos.PortfolioName;
             newOrder.ServerType = server.ServerType;
             newOrder.PositionConditionType = OrderPositionConditionType.Close;
@@ -871,6 +877,39 @@ namespace OsEngine.OsTrader
             }
 
             return botTabSimples;
+        }
+
+        private Security GetSecurityFromTabs(string secName, Market.Servers.IServer server)
+        {
+            List<BotTabSimple> tabsWithMySecInAllBots = new List<BotTabSimple>();
+
+            for (int i = 0; i < PanelsArray.Count; i++)
+            {
+                BotPanel bot = PanelsArray[i];
+
+                List<BotTabSimple> botTabSimples = GetTabsSimpleWhithMySecurity(secName, server, bot);
+
+                if (botTabSimples != null &&
+                    botTabSimples.Count > 0)
+                {
+                    tabsWithMySecInAllBots.AddRange(botTabSimples);
+                }
+            }
+
+            if(tabsWithMySecInAllBots == null || tabsWithMySecInAllBots.Count == 0)
+            {
+                return null;
+            }
+
+            Security sec = null;
+
+            if (tabsWithMySecInAllBots.Count > 1)
+            {
+                sec = tabsWithMySecInAllBots[0].Securiti;
+            }
+
+
+            return sec;
         }
 
 

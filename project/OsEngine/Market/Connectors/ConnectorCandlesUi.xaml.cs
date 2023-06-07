@@ -997,7 +997,7 @@ namespace OsEngine.Market.Connectors
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Trader.Label165;
             colum0.ReadOnly = true;
-            colum0.Width = 100;
+            colum0.Width = 50;
             newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colum2 = new DataGridViewColumn();

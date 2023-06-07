@@ -439,13 +439,20 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 for (int i = 0; i < Positions.data.Count; i++)
                 {
-                    var pos = new PositionOnBoard()
+                    PositionOnBoard pos = new PositionOnBoard();
+
+                    pos.PortfolioName = "BitGetFutures";
+                    pos.SecurityNameCode = Positions.data[i].symbol + "_" + Positions.data[i].holdSide;
+                    pos.ValueBlocked = Positions.data[i].locked.ToDecimal();
+
+                    if(Positions.data[i].holdSide == "short")
                     {
-                        PortfolioName = "BitGetFutures",
-                        SecurityNameCode = Positions.data[i].symbol + "_" + Positions.data[i].holdSide,
-                        ValueBlocked = Positions.data[i].locked.ToDecimal(),
-                        ValueCurrent = Positions.data[i].available.ToDecimal()
-                    };
+                        pos.ValueCurrent = -Positions.data[i].available.ToDecimal();
+                    }
+                    else
+                    {
+                        pos.ValueCurrent = Positions.data[i].available.ToDecimal();
+                    }
 
                     if (IsUpdateValueBegin)
                     {
@@ -470,10 +477,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             Trade trade = new Trade();
             trade.SecurityNameCode = responseTrade.arg.instId + "_UMCBL";
 
-            trade.Price = Convert.ToDecimal(responseTrade.data[0][1].Replace(".", ","));
+            trade.Price = responseTrade.data[0][1].ToDecimal();
             trade.Id = responseTrade.data[0][0];
             trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data[0][0]));
-            trade.Volume = Convert.ToDecimal(responseTrade.data[0][2].Replace('.', ',').Replace(".", ","));
+            trade.Volume = responseTrade.data[0][2].ToDecimal();
             trade.Side = responseTrade.data[0][3].Equals("buy") ? Side.Buy : Side.Sell;
 
             NewTradesEvent(trade);
@@ -598,7 +605,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 var item = symbols.data[i];
 
                 var decimals = Convert.ToInt32(item.pricePlace);
-                var priceStep = Convert.ToDecimal(GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep)));
+                var priceStep = GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep)).ToDecimal();
 
                 if (item.symbolStatus.Equals("normal"))
                 {
@@ -637,7 +644,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(1000);
 
                 if (TimeToUprdatePortfolio.AddSeconds(30) < DateTime.Now)
                 {
@@ -662,7 +669,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 marginCoin = "USDT",
             });
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/order/cancel-order", "POST", null, jsonRequest);
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/order/cancel-symbol-orders", "POST", null, jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
             ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
 
@@ -759,19 +766,38 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 side = order.Side == Side.Buy ? "open_long" : "open_short";
             }
 
-
             rateGateSendOrder.WaitToProceed();
-            string jsonRequest = JsonConvert.SerializeObject(new
+
+            string jsonRequest = "";
+
+            if(order.TypeOrder == OrderPriceType.Limit)
             {
-                symbol = order.SecurityNameCode,
-                marginCoin = order.SecurityClassCode,
-                side = side,
-                orderType = order.TypeOrder.ToString().ToLower(),
-                timeInForceValue = "normal",
-                price = order.Price.ToString().Replace(",", "."),
-                size = order.Volume.ToString().Replace(",", "."),
-                clientOid = order.NumberUser
-            });
+                jsonRequest = JsonConvert.SerializeObject(new
+                {
+                    symbol = order.SecurityNameCode,
+                    marginCoin = order.SecurityClassCode,
+                    side = side,
+                    orderType = order.TypeOrder.ToString().ToLower(),
+                    timeInForceValue = "normal",
+                    price = order.Price.ToString().Replace(",", "."),
+                    size = order.Volume.ToString().Replace(",", "."),
+                    clientOid = order.NumberUser
+                });
+            }
+            else if(order.TypeOrder == OrderPriceType.Market)
+            {
+                jsonRequest = JsonConvert.SerializeObject(new
+                {
+                    symbol = order.SecurityNameCode,
+                    marginCoin = order.SecurityClassCode,
+                    side = side,
+                    orderType = order.TypeOrder.ToString().ToLower(),
+                    timeInForceValue = "normal",
+                    //price = order.Price.ToString().Replace(",", "."),
+                    size = order.Volume.ToString().Replace(",", "."),
+                    clientOid = order.NumberUser
+                });
+            }
 
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/order/placeOrder", "POST", null, jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
