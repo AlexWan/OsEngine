@@ -1178,15 +1178,15 @@ namespace OsEngine.Market
             }
         }
 
-        private static void _painterPortfolios_ClearPositionOnBoardEvent(string sec, IServer server)
+        private static void _painterPortfolios_ClearPositionOnBoardEvent(string sec, IServer server, string fullName)
         {
             if(ClearPositionOnBoardEvent != null)
             {
-                ClearPositionOnBoardEvent(sec, server);
+                ClearPositionOnBoardEvent(sec, server, fullName);
             }
         }
 
-        public static event Action<string, IServer> ClearPositionOnBoardEvent;
+        public static event Action<string, IServer, string> ClearPositionOnBoardEvent;
 
         private static void _ordersStorage_RevokeOrderToEmulatorEvent(Order order)
         {

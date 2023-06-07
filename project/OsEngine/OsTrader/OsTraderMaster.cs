@@ -10,6 +10,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
+using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.AdminPanelApi;
@@ -631,7 +632,7 @@ namespace OsEngine.OsTrader
 
         #region PositionOnBoard closing
 
-        private void ServerMaster_ClearPositionOnBoardEvent(string secName, Market.Servers.IServer server)
+        private void ServerMaster_ClearPositionOnBoardEvent(string secName, Market.Servers.IServer server, string fullName)
         {
             // важно!!!!
             // сервер должен работать и быть активным
@@ -650,7 +651,7 @@ namespace OsEngine.OsTrader
                 StopBotsWhoTradeSecurity(secName, server);
                 CanselOrdersWhithSecurity(secName, server);
                 DeleteOpenPositionsWhithSecurity(secName, server);
-                ClosePositionOnBoardWhithFakePoses(secName, server);
+                ClosePositionOnBoardWhithFakePoses(secName, server, fullName);
             }
             catch (Exception error)
             {
@@ -695,8 +696,11 @@ namespace OsEngine.OsTrader
                 }
             }
 
+
+
             for(int i = 0;i< tabsWithMySecInAllBots.Count;i++)
             {
+
                 List<Position> poses = tabsWithMySecInAllBots[i].PositionsOpenAll;
 
                 for(int j = 0; poses != null && j < poses.Count; j++)
@@ -706,6 +710,26 @@ namespace OsEngine.OsTrader
                         tabsWithMySecInAllBots[i].CloseAllOrderToPosition(poses[j]);
                     }
                 }
+            }
+
+            try
+            {
+                Security sec = null;
+
+                if (tabsWithMySecInAllBots.Count > 1)
+                {
+                    sec = tabsWithMySecInAllBots[0].Securiti;
+                }
+
+                if(sec != null)
+                {
+                    AServer aServer = (AServer)server;
+                    aServer.ServerRealization.CancelAllOrdersToSecurity(sec);
+                }
+            }
+            catch
+            {
+                // ignore
             }
         }
 
@@ -747,7 +771,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-        private void ClosePositionOnBoardWhithFakePoses(string secName, Market.Servers.IServer server)
+        private void ClosePositionOnBoardWhithFakePoses(string secName, Market.Servers.IServer server, string fullName)
         {
             PositionOnBoard myPosOnBoards = null;
 
@@ -759,7 +783,7 @@ namespace OsEngine.OsTrader
 
                 for (int j = 0;j < posesInPortfolio.Count;j++)
                 {
-                    if (posesInPortfolio[j].SecurityNameCode == secName)
+                    if (posesInPortfolio[j].SecurityNameCode == fullName)
                     {
                         myPosOnBoards = posesInPortfolio[j];
                         break;

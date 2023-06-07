@@ -493,7 +493,35 @@ namespace OsEngine.Market
                 return true;
             }
 
+            if(myServer.ServerType == ServerType.BinanceFutures)
+            {
+                if(positionOnBoard.SecurityNameCode.EndsWith("_LONG")
+                    || positionOnBoard.SecurityNameCode.EndsWith("_SHORT")
+                    || positionOnBoard.SecurityNameCode.EndsWith("_BOTH"))
+                {
+                    return true;
+                }
+            }
+
             return false;
+        }
+
+        private string TrimmSecName(string secName, IServer server)
+        {
+            string trueNameSec = secName;
+
+            if(server.ServerType == ServerType.Tester)
+            {
+                return trueNameSec;
+            }
+            if(server.ServerType == ServerType.BinanceFutures)
+            {
+                trueNameSec = trueNameSec.Replace("_LONG", "");
+                trueNameSec = trueNameSec.Replace("_SHORT", "");
+                trueNameSec = trueNameSec.Replace("_BOTH", "");
+            }
+
+            return trueNameSec;
         }
 
         private IServer GetServerByPortfolioName(string portfolioName)
@@ -565,6 +593,8 @@ namespace OsEngine.Market
                 return;
             }
 
+            string secVol = _gridPortfolio.Rows[rowInd].Cells[6].Value.ToString();
+
             AcceptDialogUi ui = new AcceptDialogUi( secName + OsLocalization.Market.Label83);
 
             ui.ShowDialog();
@@ -602,13 +632,16 @@ namespace OsEngine.Market
                 return;
             }
 
-            if(ClearPositionOnBoardEvent != null)
+            string trimmedSecName = TrimmSecName(secName, myServer);
+
+
+            if (ClearPositionOnBoardEvent != null)
             {
-                ClearPositionOnBoardEvent(secName,myServer);
+                ClearPositionOnBoardEvent(trimmedSecName, myServer, secName);
             }
         }
 
-        public event Action<string, IServer> ClearPositionOnBoardEvent;
+        public event Action<string, IServer, string> ClearPositionOnBoardEvent;
 
         #endregion
 
