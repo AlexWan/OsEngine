@@ -368,10 +368,10 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                trade.Price = Convert.ToDecimal(tradeRespone.data[0].px.Replace('.', ','));
+                trade.Price = tradeRespone.data[0].px.ToDecimal();
                 trade.Id = tradeRespone.data[0].tradeId;
                 trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(tradeRespone.data[0].ts));
-                trade.Volume = Convert.ToDecimal(tradeRespone.data[0].sz.Replace('.', ','));
+                trade.Volume = tradeRespone.data[0].sz.ToDecimal();
                 if (tradeRespone.data[0].side.Equals("buy"))
                 {
                     trade.Side = Side.Buy;
@@ -544,7 +544,7 @@ namespace OsEngine.Market.Servers.OKX
                     PositionOnBoard newPortf = new PositionOnBoard();
                     newPortf.SecurityNameCode = portfs.data[0].details[i].ccy;
                     newPortf.ValueBegin = portfs.data[0].details[i].cashBal.ToDecimal();
-                    newPortf.ValueCurrent = portfs.data[0].details[i].availEq.ToDecimal();
+                    newPortf.ValueCurrent = portfs.data[0].details[i].availBal.ToDecimal();
                     newPortf.ValueBlocked = portfs.data[0].details[i].frozenBal.ToDecimal();
 
 

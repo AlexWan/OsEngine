@@ -1123,11 +1123,11 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(candlesResponce.data[j][0]));
 
-                    candle.Open = Convert.ToDecimal(candlesResponce.data[j][1].Replace(".", ","));
-                    candle.High = Convert.ToDecimal(candlesResponce.data[j][2].Replace(".", ","));
-                    candle.Low = Convert.ToDecimal(candlesResponce.data[j][3].Replace(".", ","));
-                    candle.Close = Convert.ToDecimal(candlesResponce.data[j][4].Replace(".", ","));
-                    candle.Volume = Convert.ToDecimal(candlesResponce.data[j][5].Replace(".", ","));
+                    candle.Open = candlesResponce.data[j][1].ToDecimal();
+                    candle.High = candlesResponce.data[j][2].ToDecimal();
+                    candle.Low = candlesResponce.data[j][3].ToDecimal();
+                    candle.Close = candlesResponce.data[j][4].ToDecimal();
+                    candle.Volume = candlesResponce.data[j][5].ToDecimal();
                     var VolCcy = candlesResponce.data[j][6];
 
                     candles.Add(candle);
