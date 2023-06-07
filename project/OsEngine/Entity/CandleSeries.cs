@@ -219,15 +219,12 @@ namespace OsEngine.Entity
 
             Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
 
-            if (
-                (
-                    (lastCandle.TimeStart.Add(TimeFrameSpan) < time.AddSeconds(-5))
-                    ||
-                    (TimeFrame == TimeFrame.Day 
-                     && lastCandle.TimeStart.Date < time.Date)
-                )
-                &&
-                lastCandle.State != CandleState.Finished)
+            if(lastCandle.State == CandleState.Finished)
+            {
+                return;
+            }
+
+            if (lastCandle.TimeStart.Add(TimeFrameSpan) < time.AddSeconds(-5))
             {
                 // пришло время закрыть свечу
                 lastCandle.State = CandleState.Finished;
@@ -368,6 +365,8 @@ namespace OsEngine.Entity
                 }
                 else
                 {
+                    bool isNewTradesFurther = false;
+
                     for (int i = 0; i < trades.Count; i++)
                     {
                         try
@@ -387,12 +386,15 @@ namespace OsEngine.Entity
                                     // если IDшников нет - просто игнорируем трейды с идентичным временем
                                     continue;
                                 }
-                                else
+                                else if(isNewTradesFurther == false)
                                 {
                                     if(IsInArrayTradeIds(trades[i].Id))
                                     {// если IDшник в последних 100 трейдах
                                         continue;
                                     }
+                                    // дальше по массиву точно идут новые трейды.
+                                    // 1) они новые 2) текущий уже не лежит в старых трейдах
+                                    isNewTradesFurther = true;
                                 }
                             }
 
@@ -422,10 +424,9 @@ namespace OsEngine.Entity
                     newTrades.RemoveAt(i2);
                     i2--;
                 }
-                if (string.IsNullOrEmpty(newTrades[i2].Id) == false
-                    && newTrades[i2].Time.Second == _lastTradeTime.Second)
+                if (string.IsNullOrEmpty(newTrades[i2].Id) == false)
                 {
-                    AddInListTradeIds(newTrades[i2].Id, _lastTradeTime);
+                    AddInListTradeIds(newTrades[i2].Id, newTrades[i2].Time);
                 } 
             }
 
@@ -438,7 +439,8 @@ namespace OsEngine.Entity
 
         private void AddInListTradeIds(string id, DateTime _timeNow)
         {
-            if(_idsTime.Second != _timeNow.Second)
+            if(_idsTime.Second != _timeNow.Second 
+                && _idsTime < _timeNow)
             {
                 _lastTradeIds.Clear();
                 _idsTime = _timeNow;
