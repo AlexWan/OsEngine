@@ -102,20 +102,20 @@ namespace OsEngine.Market.Servers.OKX
             SetPositionMode();
 
             CreateDataChanels();
+            CreateTradeChanel();
+            CreateDepthsChanel();
+            CreateOrderChanel();
+            CreatePositionChanell();
         }
         public void Dispose()
         {
             Thread.Sleep(1000);
             try
             {
-                foreach (var ws in _wsChanelPositions)
-                {
-                    ws.Value.Closed -= new EventHandler(DisconnectPsoitonsChanel);
-                    ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessagePositions);
-
-                    ws.Value.Close();
-                    ws.Value.Dispose();
-                }
+                _wsClientPositions.Closed -= new EventHandler(DisconnectPsoitonsChanel);
+                _wsClientPositions.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessagePositions);
+                _wsClientPositions.Close();
+                _wsClientPositions.Dispose();
 
                 IsConnectedPositions = false;
             }
@@ -126,14 +126,10 @@ namespace OsEngine.Market.Servers.OKX
 
             try
             {
-                foreach (var ws in _wsChanelOrders)
-                {
-                    ws.Value.Closed -= new EventHandler(DisconnectOrdersChanel);
-                    ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageOrders);
-
-                    ws.Value.Close();
-                    ws.Value.Dispose();
-                }
+                _wsClientOrders.Closed -= new EventHandler(DisconnectOrdersChanel);
+                _wsClientOrders.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageOrders);
+                _wsClientOrders.Close();
+                _wsClientOrders.Dispose();
 
                 IsConnectedOrders = false;
             }
@@ -144,15 +140,10 @@ namespace OsEngine.Market.Servers.OKX
 
             try
             {
-                foreach (var ws in _wsChanelDepths)
-                {
-                    ws.Value.Closed -= new EventHandler(DisconnectDepthsChanel);
-                    ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageDepths);
-
-                    ws.Value.Close();
-                    ws.Value.Dispose();
-                }
-
+                _wsClientDepths.Closed -= new EventHandler(DisconnectDepthsChanel);
+                _wsClientDepths.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageDepths);
+                _wsClientDepths.Close();
+                _wsClientDepths.Dispose();
                 IsConnectedDepths = false;
             }
             catch
@@ -163,15 +154,11 @@ namespace OsEngine.Market.Servers.OKX
 
             try
             {
-                foreach (var ws in _wsChanelTrades)
-                {
-                    ws.Value.Closed -= new EventHandler(DisconnectTradesChanel);
-                    ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageTrade);
+                _wsClientTrades.Closed -= new EventHandler(DisconnectTradesChanel);
+                _wsClientTrades.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(PushMessageTrade);
 
-                    ws.Value.Close();
-                    ws.Value.Dispose();
-                }
-
+                _wsClientTrades.Close();
+                _wsClientTrades.Dispose();
                 IsConnectedTrades = false;
             }
             catch
@@ -230,42 +217,30 @@ namespace OsEngine.Market.Servers.OKX
 
                     lock (lockerPositionsWs)
                     {
-                        foreach (var wsPos in _wsChanelPositions)
+                        if (_wsClientPositions.State == WebSocketState.Open)
                         {
-                            if (wsPos.Value.State == WebSocketState.Open)
-                            {
-                                wsPos.Value.Send("ping");
-                            }
+                            _wsClientPositions.Send("ping");
                         }
                     }
                     lock (lockerOrdersWs)
                     {
-                        foreach (var wsOrd in _wsChanelOrders)
+                        if (_wsClientOrders.State == WebSocketState.Open)
                         {
-                            if (wsOrd.Value.State == WebSocketState.Open)
-                            {
-                                wsOrd.Value.Send("ping");
-                            }
+                            _wsClientOrders.Send("ping");
                         }
                     }
                     lock (lockerTradesWs)
                     {
-                        foreach (var wsTrade in _wsChanelTrades)
+                        if (_wsClientTrades.State == WebSocketState.Open)
                         {
-                            if (wsTrade.Value.State == WebSocketState.Open)
-                            {
-                                wsTrade.Value.Send("ping");
-                            }
+                            _wsClientTrades.Send("ping");
                         }
                     }
                     lock (lockerDepthsWs)
                     {
-                        foreach (var wsDepth in _wsChanelDepths)
+                        if (_wsClientDepths.State == WebSocketState.Open)
                         {
-                            if (wsDepth.Value.State == WebSocketState.Open)
-                            {
-                                wsDepth.Value.Send("ping");
-                            }
+                            _wsClientDepths.Send("ping");
                         }
                     }
                 }
@@ -415,8 +390,6 @@ namespace OsEngine.Market.Servers.OKX
 
         private ConcurrentQueue<string> _newMessagePositions = new ConcurrentQueue<string>();
 
-        private Dictionary<string, WebSocket> _wsChanelPositions = new Dictionary<string, WebSocket>();
-
         private WebSocket _wsClientPositions;
 
         private void ConverterErrorPositions()
@@ -475,40 +448,25 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        public void SubscriblePositions(Security security)
+        public void CreatePositionChanell()
         {
-            if (!_wsChanelPositions.ContainsKey(security.Name))
-            {
-                _wsClientPositions = new WebSocket(_privateWebSocket);
 
-                _wsClientPositions.Opened += new EventHandler((sender, e) => {
-                    //_rateGateWebSocketPositions.WaitToProceed();
-                    ConnectPositionsChanel(sender, e, security.Name);
-                });
+            _wsClientPositions = new WebSocket(_privateWebSocket);
 
-                _wsClientPositions.Closed += new EventHandler(DisconnectPsoitonsChanel);
+            _wsClientPositions.Opened += new EventHandler((sender, e) => {
+                ConnectPositionsChanel(sender, e);
+            });
 
-                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, security.Name, "Position Chanell"); });
+            _wsClientPositions.Closed += new EventHandler(DisconnectPsoitonsChanel);
 
-                _wsClientPositions.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessagePositions);
+            _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, "", "Position Chanell"); });
 
+            _wsClientPositions.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessagePositions);
 
-
-                if (_wsChanelPositions.ContainsKey(security.Name))
-                {
-                    _wsChanelPositions[security.Name].Close();
-                    _wsChanelPositions.Remove(security.Name);
-                }
-
-                _wsClientPositions.Open();
-                lock (lockerPositionsWs)
-                {
-                    _wsChanelPositions.Add(security.Name, _wsClientPositions);
-                }
-            }
+            _wsClientPositions.Open();
         }
 
-        private void ConnectPositionsChanel(object sender, EventArgs e, string securityName)
+        private void ConnectPositionsChanel(object sender, EventArgs e)
         {
             //Авторизация 
             var client = (WebSocket)sender;
@@ -516,22 +474,28 @@ namespace OsEngine.Market.Servers.OKX
 
 
             string TypeInst = "SPOT";
-            if (securityName.EndsWith("SWAP"))
-            {
-                TypeInst = "SWAP";
-            }
-
-            //Подписываемся на нужный канал
-            RequestSubscribe<SubscribeArgsAccount> requestTrade = new RequestSubscribe<SubscribeArgsAccount>();
-            requestTrade.args = new List<SubscribeArgsAccount>();
-            requestTrade.args.Add(new SubscribeArgsAccount()
+            RequestSubscribe<SubscribeArgsAccount> requestTradeSpot = new RequestSubscribe<SubscribeArgsAccount>();
+            requestTradeSpot.args = new List<SubscribeArgsAccount>();
+            requestTradeSpot.args.Add(new SubscribeArgsAccount()
             {
                 channel = "positions",
                 instType = TypeInst
             });
 
-            var json = JsonConvert.SerializeObject(requestTrade);
-            client.Send(json);
+            var jsonSpot = JsonConvert.SerializeObject(requestTradeSpot);
+            client.Send(jsonSpot);
+
+
+            TypeInst = "SWAP";
+            RequestSubscribe<SubscribeArgsAccount> requestTradeSwap = new RequestSubscribe<SubscribeArgsAccount>();
+            requestTradeSwap.args = new List<SubscribeArgsAccount>();
+            requestTradeSwap.args.Add(new SubscribeArgsAccount()
+            {
+                channel = "positions",
+                instType = TypeInst
+            });
+            var jsonSwap = JsonConvert.SerializeObject(requestTradeSwap);
+            client.Send(jsonSwap);
 
             IsConnectedPositions = true;
         }
@@ -541,8 +505,6 @@ namespace OsEngine.Market.Servers.OKX
             if (IsConnectedPositions)
             {
                 IsConnectedPositions = false;
-
-                _wsChanelPositions.Clear();
 
                 if (Disconnected != null)
                 {
@@ -612,8 +574,6 @@ namespace OsEngine.Market.Servers.OKX
 
         private ConcurrentQueue<string> _newMessageOrders = new ConcurrentQueue<string>();
 
-        private Dictionary<string, WebSocket> _wsChanelOrders = new Dictionary<string, WebSocket>();
-
         private WebSocket _wsClientOrders;
 
         private void ConverterOrders()
@@ -664,63 +624,56 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        public void SubscribleOrders(Security security)
+        private void CreateOrderChanel()
         {
-            if (!_wsChanelOrders.ContainsKey(security.Name))
-            {
-                _wsClientOrders = new WebSocket(_privateWebSocket);
+            _wsClientOrders = new WebSocket(_privateWebSocket);
 
-                _wsClientOrders.Opened += new EventHandler((sender, e) => {
-                    //_rateGateWebSocketOrders.WaitToProceed();
-                    ConnectOrdersChanel(sender, e, security.Name);
-                });
+            _wsClientOrders.Opened += new EventHandler((sender, e) => {
+                ConnectOrdersChanel(sender, e);
+            });
 
-                _wsClientOrders.Closed += new EventHandler(DisconnectOrdersChanel);
+            _wsClientOrders.Closed += new EventHandler(DisconnectOrdersChanel);
 
-                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, security.Name, "Orders Chanell"); });
+            _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, "", "Orders Chanell"); });
 
-                _wsClientOrders.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageOrders);
+            _wsClientOrders.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageOrders);
 
-
-
-                if (_wsChanelOrders.ContainsKey(security.Name))
-                {
-                    _wsChanelOrders[security.Name].Close();
-                    _wsChanelOrders.Remove(security.Name);
-                }
-
-                _wsClientOrders.Open();
-
-                lock (lockerOrdersWs)
-                {
-                    _wsChanelOrders.Add(security.Name, _wsClientOrders);
-                }
-            }
+            _wsClientOrders.Open();
         }
 
-        private void ConnectOrdersChanel(object sender, EventArgs e, string securityName)
+        private void ConnectOrdersChanel(object sender, EventArgs e)
         {
             //Авторизация 
             var client = (WebSocket)sender;
             client.Send(Encryptor.MakeAuthRequest(PublicKey, SeckretKey, Password));
 
             string TypeInst = "SPOT";
-            if (securityName.EndsWith("SWAP"))
-            {
-                TypeInst = "SWAP";
-            }
+
 
             //Подписываемся на нужный канал
-            RequestSubscribe<SubscribeArgsAccount> requestTrade = new RequestSubscribe<SubscribeArgsAccount>();
-            requestTrade.args = new List<SubscribeArgsAccount>();
-            requestTrade.args.Add(new SubscribeArgsAccount()
+            RequestSubscribe<SubscribeArgsAccount> requestTradeSpot = new RequestSubscribe<SubscribeArgsAccount>();
+            requestTradeSpot.args = new List<SubscribeArgsAccount>();
+            requestTradeSpot.args.Add(new SubscribeArgsAccount()
             {
                 channel = "orders",
                 instType = TypeInst
             });
 
-            var json = JsonConvert.SerializeObject(requestTrade);
-            client.Send(json);
+            var jsonSpot = JsonConvert.SerializeObject(requestTradeSpot);
+            client.Send(jsonSpot);
+
+            TypeInst = "SWAP";
+            //Подписываемся на нужный канал
+            RequestSubscribe<SubscribeArgsAccount> requestTradeSwap = new RequestSubscribe<SubscribeArgsAccount>();
+            requestTradeSwap.args = new List<SubscribeArgsAccount>();
+            requestTradeSwap.args.Add(new SubscribeArgsAccount()
+            {
+                channel = "orders",
+                instType = TypeInst
+            });
+            var jsonSwap = JsonConvert.SerializeObject(requestTradeSwap);
+            client.Send(jsonSwap);
+
 
             IsConnectedOrders = true;
         }
@@ -730,8 +683,6 @@ namespace OsEngine.Market.Servers.OKX
             if (IsConnectedOrders)
             {
                 IsConnectedOrders = false;
-
-                _wsChanelOrders.Clear();
 
                 if (Disconnected != null)
                 {
@@ -807,7 +758,6 @@ namespace OsEngine.Market.Servers.OKX
         #endregion
 
         #region Portfolio
-
         private void UpdatePortfolios()
         {
             Thread.Sleep(30000);
@@ -1160,43 +1110,40 @@ namespace OsEngine.Market.Servers.OKX
 
         private ConcurrentQueue<string> _newMessageDepths = new ConcurrentQueue<string>();
 
-        private Dictionary<string, WebSocket> _wsChanelDepths = new Dictionary<string, WebSocket>();
-
         private WebSocket _wsClientDepths;
 
+        private void CreateDepthsChanel()
+        {
+            _wsClientDepths = new WebSocket(_publicWebSocket);
+
+            _wsClientDepths.Opened += new EventHandler((sender, e) => {
+                ConnectDepthsChanel(sender, e);
+            });
+
+            _wsClientDepths.Closed += new EventHandler(DisconnectDepthsChanel);
+
+            _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, "", "Depths Chanell"); });
+
+            _wsClientDepths.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageDepths);
+
+            _wsClientDepths.Open();
+        }
 
         public void SubscribleDepths(Security security)
         {
-            if (!_wsChanelDepths.ContainsKey(security.Name))
+            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
+            requestTrade.args = new List<SubscribeArgs>();
+            requestTrade.args.Add(new SubscribeArgs()
             {
-                _wsClientDepths = new WebSocket(_publicWebSocket);
+                channel = "books",
+                instId = security.Name
+            });
 
-                _wsClientDepths.Opened += new EventHandler((sender, e) => {
-                    //_rateGateWebSocketDepths.WaitToProceed();
-                    ConnectDepthsChanel(sender, e, security.Name);
-                });
+            var json = JsonConvert.SerializeObject(requestTrade);
 
-                _wsClientDepths.Closed += new EventHandler(DisconnectDepthsChanel);
+            _wsClientDepths.Send(json);
 
-                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, security.Name, "Depths Chanell"); });
-
-                _wsClientDepths.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageDepths);
-
-
-
-                if (_wsChanelDepths.ContainsKey(security.Name))
-                {
-                    _wsChanelDepths[security.Name].Close();
-                    _wsChanelDepths.Remove(security.Name);
-                }
-
-                _wsClientDepths.Open();
-
-                lock (lockerDepthsWs)
-                {
-                    _wsChanelDepths.Add(security.Name, _wsClientDepths);
-                }
-            }
+            IsConnectedDepths = true;
         }
 
         private void PushMessageDepths(object sender, MessageReceivedEventArgs e)
@@ -1257,22 +1204,9 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void ConnectDepthsChanel(object sender, EventArgs e, string securityName)
+        private void ConnectDepthsChanel(object sender, EventArgs e)
         {
-            var client = (WebSocket)sender;
-            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
-            requestTrade.args = new List<SubscribeArgs>();
-            requestTrade.args.Add(new SubscribeArgs()
-            {
-                channel = "books",
-                instId = securityName
-            });
-
-            var json = JsonConvert.SerializeObject(requestTrade);
-
-            client.Send(json);
-
-            IsConnectedDepths = true;
+            
         }
 
         private void DisconnectDepthsChanel(object sender, EventArgs e)
@@ -1280,8 +1214,6 @@ namespace OsEngine.Market.Servers.OKX
             if (IsConnectedDepths)
             {
                 IsConnectedDepths = false;
-
-                _wsChanelDepths.Clear();
 
                 if (Disconnected != null)
                 {
@@ -1298,42 +1230,40 @@ namespace OsEngine.Market.Servers.OKX
 
         private ConcurrentQueue<string> _newMessageTrade = new ConcurrentQueue<string>();
 
-        private Dictionary<string, WebSocket> _wsChanelTrades = new Dictionary<string, WebSocket>();
-
         private WebSocket _wsClientTrades;
 
         public void SubscribleTrades(Security security)
         {
-            if (!_wsChanelTrades.ContainsKey(security.Name))
+            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
+            requestTrade.args = new List<SubscribeArgs>();
+            requestTrade.args.Add(new SubscribeArgs()
             {
-                _wsClientTrades = new WebSocket(_publicWebSocket); // create web-socket / создаем вебсоке
+                channel = "trades",
+                instId = security.Name
+            });
 
-                _wsClientTrades.Opened += new EventHandler((sender, e) => {
-                    //_rateGateWebSocketTicks.WaitToProceed();
-                    ConnectTradesChanel(sender, e, security.Name);
-                }); //Connect
+            var json = JsonConvert.SerializeObject(requestTrade);
 
-                _wsClientTrades.Closed += new EventHandler(DisconnectTradesChanel);
+            _wsClientTrades.Send(json);
 
-                _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, security.Name, "Trades Chanell"); });
+            IsConnectedTrades = true;
+        }
 
-                _wsClientTrades.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageTrade);
+        private void CreateTradeChanel()
+        {
+            _wsClientTrades = new WebSocket(_publicWebSocket); // create web-socket / создаем вебсоке
 
+            _wsClientTrades.Opened += new EventHandler((sender, e) => {;
+                ConnectTradesChanel(sender, e);
+            });
 
+            _wsClientTrades.Closed += new EventHandler(DisconnectTradesChanel);
 
-                if (_wsChanelTrades.ContainsKey(security.Name))
-                {
-                    _wsChanelTrades[security.Name].Close();
-                    _wsChanelTrades.Remove(security.Name);
-                }
+            _wsClientTrades.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>((sender, e) => { WsError(sender, e, "", "Trades Chanell"); });
 
-                _wsClientTrades.Open();
+            _wsClientTrades.MessageReceived += new EventHandler<MessageReceivedEventArgs>(PushMessageTrade);
 
-                lock (lockerTradesWs)
-                {
-                    _wsChanelTrades.Add(security.Name, _wsClientTrades);
-                }
-            }
+            _wsClientTrades.Open();
         }
 
         private void ConverterTrades()
@@ -1406,22 +1336,9 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void ConnectTradesChanel(object sender, EventArgs e, string securityName)
+        private void ConnectTradesChanel(object sender, EventArgs e)
         {
-            var client = (WebSocket)sender;
-            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
-            requestTrade.args = new List<SubscribeArgs>();
-            requestTrade.args.Add(new SubscribeArgs()
-            {
-                channel = "trades",
-                instId = securityName
-            });
-
-            var json = JsonConvert.SerializeObject(requestTrade);
-
-            client.Send(json);
-
-            IsConnectedTrades = true;
+            
         }
 
         private void DisconnectTradesChanel(object sender, EventArgs e)
@@ -1429,8 +1346,6 @@ namespace OsEngine.Market.Servers.OKX
             if (IsConnectedTrades)
             {
                 IsConnectedTrades = false;
-
-                _wsChanelTrades.Clear();
 
                 if (Disconnected != null)
                 {
