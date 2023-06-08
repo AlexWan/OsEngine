@@ -4,11 +4,12 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
+using RestSharp;
 using SuperSocket.ClientEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -57,11 +58,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
 
-            HttpClient httpClient = new HttpClient();
-            HttpResponseMessage responseMessage = httpClient.GetAsync(BaseUrl + "/api/mix/v1/market/contracts?productType=umcbl").Result;
-            string json = responseMessage.Content.ReadAsStringAsync().Result;
+            string requestStr = "/api/mix/v1/market/contracts?productType=umcbl";
+            RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+            var response = new RestClient(BaseUrl).Execute(requestRest).Content;
 
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            string json = response;
+
+            if (response != null 
+                && response != ""
+                && response.Contains("404 Not Found") == false)
             {
                 try
                 {
@@ -135,7 +140,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         private DateTime TimeToSendPing = DateTime.Now;
         private DateTime TimeToUprdatePortfolio = DateTime.Now;
         private ConcurrentQueue<string> FIFOListWebSocketMessage;
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(500));
+        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(100));
         private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
         private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
@@ -585,7 +590,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             string stringInterval = GetStringInterval(tf);
             int CountToLoadCandle = GetCountCandlesToLoad();
 
-
             List<Candle> candles = new List<Candle>();
             DateTime TimeToRequest = DateTime.UtcNow;
 
@@ -631,11 +635,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public void GetSecurities()
         {
-            HttpClient httpClient = new HttpClient();
-            HttpResponseMessage responseMessage = httpClient.GetAsync("https://api.bitget.com/api/mix/v1/market/contracts?productType=umcbl").Result;
-            string json = responseMessage.Content.ReadAsStringAsync().Result;
-
-
+            string requestStr = "/api/mix/v1/market/contracts?productType=umcbl";
+            RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+            var json = new RestClient(BaseUrl).Execute(requestRest).Content;
 
             ResponseRestMessage<List<RestMessageSymbol>> symbols = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<RestMessageSymbol>>());
 
@@ -710,32 +712,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 marginCoin = "USDT",
             });
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/order/cancel-order", "POST", null, jsonRequest);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
-
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                if (stateResponse.code.Equals("00000") == true)
-                {
-                    // ignore
-                }
-                else
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
-            }
-            else
-            {
-                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                if (stateResponse != null && stateResponse.code != null)
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
-            }
+            CreatePrivateQuery("/api/mix/v1/order/cancel-symbol-orders", Method.POST, null, jsonRequest);
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -759,11 +736,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 orderId = order.NumberMarket
             });
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/order/cancel-order", "POST", null, jsonRequest);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+            IRestResponse response = CreatePrivateQuery("/api/mix/v1/order/cancel-order", Method.POST, null, jsonRequest);
+            string JsonResponse = response.Content;
+
             ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
 
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 if (stateResponse.code.Equals("00000") == true)
                 {
@@ -779,7 +757,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             else
             {
                 CreateOrderFail(order);
-                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                SendLogMessage($"Http State Code: {response.StatusCode}", LogMessageType.Error);
 
                 if (stateResponse != null && stateResponse.code != null)
                 {
@@ -821,8 +799,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 clientOid = order.NumberUser
             });
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/order/placeOrder", "POST", null, jsonRequest);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+            IRestResponse responseMessage = CreatePrivateQuery("/api/mix/v1/order/placeOrder", Method.POST, null, jsonRequest);
+            string JsonResponse = responseMessage.Content;
+
             ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
 
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -872,8 +851,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
-                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/account/accounts?productType=umcbl", "GET", null, null);
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                IRestResponse responseMessage = CreatePrivateQuery("/api/mix/v1/account/accounts?productType=umcbl", Method.GET, null, null);
+                string json = responseMessage.Content;
 
                 ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<object>());
 
@@ -910,8 +889,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
-                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/mix/v1/position/allPosition?productType=umcbl", "GET", null, null);
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                IRestResponse responseMessage = CreatePrivateQuery("/api/mix/v1/position/allPosition?productType=umcbl", Method.GET, null, null);
+                string json = responseMessage.Content;
 
                 ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<object>());
 
@@ -950,38 +929,35 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private List<Candle> CreateQueryCandles(string nameSec, string stringInterval, int limit, DateTime timeEndToLoad)
         {
-            HttpClient client = new HttpClient();
-            HttpResponseMessage responseMessage = client.GetAsync(BaseUrl + $"/api/mix/v1/market/candles?symbol={nameSec}&startTime=0&granularity={stringInterval}&limit={limit}&endTime={TimeManager.GetTimeStampMilliSecondsToDateTime(timeEndToLoad)}").Result;
-            string content = responseMessage.Content.ReadAsStringAsync().Result;
+            string requestStr = $"/api/mix/v1/market/candles" + $"?symbol={nameSec}&startTime=0&granularity={stringInterval}&limit={limit}&endTime={TimeManager.GetTimeStampMilliSecondsToDateTime(timeEndToLoad)}";
+            RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+            var response = new RestClient(BaseUrl).Execute(requestRest).Content;
 
-
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.Contains("404 Not Found"))
             {
-                List<string[]> symbols = JsonConvert.DeserializeAnonymousType(content, new List<string[]>());
-
-                List<Candle> candles = new List<Candle>();
-
-                foreach (var item in symbols)
-                {
-                    candles.Add(new Candle()
-                    {
-                        Close = item[4].ToDecimal(),
-                        High = item[2].ToDecimal(),
-                        Low = item[3].ToDecimal(),
-                        Open = item[1].ToDecimal(),
-                        Volume = item[5].ToDecimal(),
-                        State = CandleState.Finished,
-                        TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[0]))
-                    });
-                }
-
-                return candles;
-            }
-            else
-            {
-                SendLogMessage($"State Code: {responseMessage.StatusCode}", LogMessageType.Error);
                 return null;
             }
+
+            List<string[]> symbols = JsonConvert.DeserializeAnonymousType(response, new List<string[]>());
+
+            List<Candle> candles = new List<Candle>();
+
+            foreach (var item in symbols)
+            {
+                candles.Add(new Candle()
+                {
+                    Close = item[4].ToDecimal(),
+                    High = item[2].ToDecimal(),
+                    Low = item[3].ToDecimal(),
+                    Open = item[1].ToDecimal(),
+                    Volume = item[5].ToDecimal(),
+                    State = CandleState.Finished,
+                    TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[0]))
+                });
+            }
+
+            return candles;
+
         }
 
         private bool _ordersIsSubscrible = false;
@@ -1046,29 +1022,26 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private HttpResponseMessage CreatePrivateQuery(string path, string method, string queryString, string body)
+        private IRestResponse CreatePrivateQuery(string path, Method method, string queryString, string body)
         {
-            string requestPath = path;
-            string url = $"{BaseUrl}{requestPath}";
+            string requestStr = path;
+
+            RestRequest requestRest = new RestRequest(requestStr, method);
+
             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            string signature = GenerateSignature(timestamp, method, requestPath, queryString, body, SeckretKey);
+            string signature = GenerateSignature(timestamp, method.ToString(), path, queryString, body, SeckretKey);
 
-            HttpClient httpClient = new HttpClient();
+            requestRest.AddHeader("ACCESS-KEY", PublicKey);
+            requestRest.AddHeader("ACCESS-SIGN", signature);
+            requestRest.AddHeader("ACCESS-TIMESTAMP", timestamp);
+            requestRest.AddHeader("ACCESS-PASSPHRASE", Passphrase);
+            requestRest.AddHeader("X-CHANNEL-API-CODE", "6yq7w");
 
-            httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
-            httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
-            httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
-            httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
-            httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
+            RestClient client = new RestClient(BaseUrl);
 
-            if (method.Equals("POST"))
-            {
-                return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
-            }
-            else
-            {
-                return httpClient.GetAsync(url).Result;
-            }
+            IRestResponse response = client.Execute(requestRest);
+
+            return response;
         }
 
         #endregion
