@@ -143,14 +143,14 @@ namespace OsEngine.Market.Servers.OKX
                 });
             }
 
-            _client.SetLeverage(security);
+            //_client.SetLeverage(security);
 
             _client._rateGateWebSocket.WaitToProceed();
 
             _client.SubscribleTrades(security);
             _client.SubscribleDepths(security);
-            _client.SubscriblePositions(security);
-            _client.SubscribleOrders(security);
+            //_client.SubscriblePositions(security);
+            //_client.SubscribleOrders(security);
         }
 
         #region Trade
@@ -543,8 +543,8 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     PositionOnBoard newPortf = new PositionOnBoard();
                     newPortf.SecurityNameCode = portfs.data[0].details[i].ccy;
-                    newPortf.ValueBegin = portfs.data[0].details[i].cashBal.ToDecimal();
-                    newPortf.ValueCurrent = portfs.data[0].details[i].availBal.ToDecimal();
+                    newPortf.ValueBegin = portfs.data[0].details[i].availEq.ToDecimal();
+                    newPortf.ValueCurrent = portfs.data[0].details[i].availEq.ToDecimal();
                     newPortf.ValueBlocked = portfs.data[0].details[i].frozenBal.ToDecimal();
 
 
