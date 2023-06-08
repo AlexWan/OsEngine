@@ -111,8 +111,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
+
                 rateGateSubscrible.WaitToProceed();
                 CreateSubscribleSecurityMessageWebSocket(security);
+
             }
             catch (Exception exeption)
             {
@@ -988,7 +990,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void CreateSubscribleSecurityMessageWebSocket(Security security)
         {
-            if(IsDispose)
+            if (IsDispose)
             {
                 return;
             }
@@ -1003,7 +1005,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             _subscribledSecutiries.Add(security.Name);
 
-            lock(_socketLocker)
+            lock (_socketLocker)
             {
                 webSocket.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"mc\",\"channel\": \"books15\",\"instId\": \"{security.Name.Replace("_UMCBL", "")}\"}}]}}");
                 webSocket.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"mc\",\"channel\": \"trade\",\"instId\": \"{security.Name.Replace("_UMCBL", "")}\"}}]}}");

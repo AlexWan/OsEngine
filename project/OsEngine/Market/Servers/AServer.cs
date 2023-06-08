@@ -1302,7 +1302,11 @@ namespace OsEngine.Market.Servers
         /// multithreaded access locker in StartThisSecurity
         /// объект блокирующий многопоточный доступ в StartThisSecurity
         /// </summary>
-        private object _lockerStarter = new object();
+        private string _lockerStarter = "lockerStarterAserver";
+
+        private string _lockerStarterByTime = "lockerStarterByTimeAserver";
+
+        private DateTime _lastTrySubCandle = DateTime.MinValue;
 
         /// <summary>
         /// start uploading data on instrument
@@ -1314,6 +1318,16 @@ namespace OsEngine.Market.Servers
         /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
         public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
         {
+            lock(_lockerStarterByTime)
+            {
+                if(_lastTrySubCandle.AddMilliseconds(100) > DateTime.Now)
+                {
+                    return null;
+                }
+
+                _lastTrySubCandle = DateTime.Now;
+            }
+
             try
             {
                 lock (_lockerStarter)
