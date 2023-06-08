@@ -52,6 +52,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             _sourcesGrid = DataGridFactory.GetDataGridView(
                 DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
+            _sourcesGrid.ScrollBars = ScrollBars.Vertical;
+
             _sourcesGrid.CellDoubleClick += Grid1CellValueChangeClick;
 
             DataGridViewTextBoxCell fcell0 = new DataGridViewTextBoxCell();
