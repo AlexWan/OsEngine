@@ -60,13 +60,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             string requestStr = "/api/mix/v1/market/contracts?productType=umcbl";
             RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-            var response = new RestClient(BaseUrl).Execute(requestRest).Content;
+            IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
 
-            string json = response;
-
-            if (response != null 
-                && response != ""
-                && response.Contains("404 Not Found") == false)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 try
                 {
