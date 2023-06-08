@@ -4,7 +4,7 @@
     {
         public ServerType ServerType
         {
-            get { return ServerType.BitGetSpot; }
+            get { return ServerType.BitGetFutures; }
         }
 
         public bool DataFeedTf1SecondCanLoad
