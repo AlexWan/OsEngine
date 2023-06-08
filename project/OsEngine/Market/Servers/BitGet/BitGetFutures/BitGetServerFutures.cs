@@ -927,14 +927,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             string requestStr = $"/api/mix/v1/market/candles" + $"?symbol={nameSec}&startTime=0&granularity={stringInterval}&limit={limit}&endTime={TimeManager.GetTimeStampMilliSecondsToDateTime(timeEndToLoad)}";
             RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-            var response = new RestClient(BaseUrl).Execute(requestRest).Content;
+            IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
 
-            if (response.Contains("404 Not Found"))
+            if (response.StatusCode != HttpStatusCode.OK)
             {
                 return null;
             }
 
-            List<string[]> symbols = JsonConvert.DeserializeAnonymousType(response, new List<string[]>());
+            List<string[]> symbols = JsonConvert.DeserializeAnonymousType(response.Content, new List<string[]>());
 
             List<Candle> candles = new List<Candle>();
 
