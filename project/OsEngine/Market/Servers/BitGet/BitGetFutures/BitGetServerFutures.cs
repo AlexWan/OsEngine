@@ -377,8 +377,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 newOrder.ServerType = ServerType.BitGetFutures;
                 newOrder.PortfolioNumber = "BitGetFutures";
 
-                
-
                 if (stateType == OrderStateType.Done ||
                     stateType == OrderStateType.Patrial)
                 {
@@ -603,22 +601,23 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             for (int i = 0; i < symbols.data.Count; i++)
             {
                 var item = symbols.data[i];
-
-                var decimals = Convert.ToInt32(item.pricePlace);
-                var priceStep = GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep)).ToDecimal();
+              
+                int decimalsVolume = Convert.ToInt32(item.volumePlace);
+                int decimalsPrice = Convert.ToInt32(item.pricePlace);
+                decimal priceStep = GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep)).ToDecimal();
 
                 if (item.symbolStatus.Equals("normal"))
                 {
                     securities.Add(new Security()
                     {
                         Exchange = ServerType.BitGetFutures.ToString(),
-                        DecimalsVolume = Convert.ToInt32(item.volumePlace),
+                        DecimalsVolume = decimalsVolume,
                         Name = item.symbol,
                         NameFull = item.symbol,
                         NameClass = item.quoteCoin,
                         NameId = item.symbol,
                         SecurityType = SecurityType.CurrencyPair,
-                        Decimals = decimals,
+                        Decimals = decimalsPrice,
                         PriceStep = priceStep,
                         PriceStepCost = priceStep,
                         State = SecurityStateType.Activ,

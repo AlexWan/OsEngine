@@ -987,6 +987,8 @@ position => position.State != PositionStateType.OpeningFail
             return (StrategyParameterLabel)LoadParameterValues(newParameter);
         }
 
+        private DateTime _lastParamLoadTime = DateTime.MinValue;
+
         /// <summary>
         /// load parameter settings
         /// </summary>
@@ -995,6 +997,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
+                _lastParamLoadTime = DateTime.Now;
                 GetValueParameterSaveByUser(newParameter);
             }
 
@@ -1067,6 +1070,11 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public void SaveParametrs()
         {
+            if (_lastParamLoadTime.AddSeconds(3) > DateTime.Now)
+            {
+                return;
+            }
+
             if (_parameters == null ||
                 _parameters.Count == 0)
             {
