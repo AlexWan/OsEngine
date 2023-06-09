@@ -414,9 +414,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 newOrder.SecurityNameCode = item.instId; //.Replace("_SPBL", "")
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
 
-                if (!item.clOrdId.Equals(String.Empty) == true)
+                if (string.IsNullOrEmpty(item.clOrdId))
+                {
+                    return;
+                }
+
+                try
                 {
                     newOrder.NumberUser = Convert.ToInt32(item.clOrdId);
+                }
+                catch
+                {
+                    SendLogMessage("order with strange num: " + item.clOrdId, LogMessageType.Error);
+                    return;
                 }
 
                 newOrder.NumberMarket = item.ordId.ToString();
@@ -426,8 +436,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 newOrder.Price = item.px.Replace('.', ',').ToDecimal();
                 newOrder.ServerType = ServerType.BitGetFutures;
                 newOrder.PortfolioNumber = "BitGetFutures";
-
-
 
                 if (stateType == OrderStateType.Done ||
                     stateType == OrderStateType.Patrial)
