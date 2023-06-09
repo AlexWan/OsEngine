@@ -239,6 +239,22 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Tab number
         /// </summary>
         public int TabNum { get; set; }
+		
+        /// <summary>
+        /// custom name robot
+        /// пользовательское имя робота
+        /// </summary>
+        public string NameStrategy
+        {
+            get
+            {
+                if (TabName.Contains("tab"))
+                {
+                    return TabName.Remove(TabName.LastIndexOf("tab"), TabName.Length - TabName.LastIndexOf("tab"));
+                }
+                return "";
+            }
+        }
 
         /// <summary>
         /// Time of the last update of the candle
@@ -758,6 +774,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.ComissionValue = ComissionValue;
             tab.ComissionType = ComissionType;
             tab.ComissionValue = ComissionValue;
+            tab.IsCreatedByScreener = true;			
         }
 
         /// <summary>
@@ -806,6 +823,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
             newTab.ComissionType = ComissionType;
             newTab.ComissionValue = ComissionValue;
+            newTab.IsCreatedByScreener = true;			
 
             curTabs.Add(newTab);
 
