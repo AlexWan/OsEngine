@@ -10,6 +10,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -708,7 +709,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 marginCoin = "USDT",
             });
 
-            CreatePrivateQuery("/api/mix/v1/order/cancel-symbol-orders", Method.POST, null, jsonRequest);
+            CreatePrivateQueryOrders("/api/mix/v1/order/cancel-symbol-orders", Method.POST.ToString(), null, jsonRequest);
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -732,8 +733,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 orderId = order.NumberMarket
             });
 
-            IRestResponse response = CreatePrivateQuery("/api/mix/v1/order/cancel-order", Method.POST, null, jsonRequest);
-            string JsonResponse = response.Content;
+            HttpResponseMessage response = CreatePrivateQueryOrders("/api/mix/v1/order/cancel-order", Method.POST.ToString(), null, jsonRequest);
+            string JsonResponse = response.Content.ReadAsStringAsync().Result;
 
             ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
 
@@ -795,8 +796,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 clientOid = order.NumberUser
             });
 
-            IRestResponse responseMessage = CreatePrivateQuery("/api/mix/v1/order/placeOrder", Method.POST, null, jsonRequest);
-            string JsonResponse = responseMessage.Content;
+            HttpResponseMessage responseMessage = CreatePrivateQueryOrders("/api/mix/v1/order/placeOrder", Method.POST.ToString(), null, jsonRequest);
+            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
 
@@ -1020,9 +1021,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private IRestResponse CreatePrivateQuery(string path, Method method, string queryString, string body)
         {
-            string requestStr = path;
-
-            RestRequest requestRest = new RestRequest(requestStr, method);
+            RestRequest requestRest = new RestRequest(path, method);
 
             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
             string signature = GenerateSignature(timestamp, method.ToString(), path, queryString, body, SeckretKey);
@@ -1038,6 +1037,31 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             IRestResponse response = client.Execute(requestRest);
 
             return response;
+        }
+
+        private HttpResponseMessage CreatePrivateQueryOrders(string path, string method, string queryString, string body)
+        {
+            string requestPath = path;
+            string url = $"{BaseUrl}{requestPath}";
+            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            string signature = GenerateSignature(timestamp, method, requestPath, queryString, body, SeckretKey);
+
+            HttpClient httpClient = new HttpClient();
+
+            httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
+            httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
+            httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
+            httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
+            httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
+
+            if (method.Equals("POST"))
+            {
+                return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
+            }
+            else
+            {
+                return httpClient.GetAsync(url).Result;
+            }
         }
 
         #endregion
