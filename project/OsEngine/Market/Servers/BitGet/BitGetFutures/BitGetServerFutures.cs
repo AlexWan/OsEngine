@@ -231,20 +231,27 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void WebSocket_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
-            if(e == null)
+            try
             {
-                return;
-            }
-            if(e.Message == null)
-            {
-                return;
-            }
-            if(e.Message.Length == 4)
-            { // pong message
-                return;
-            }
+                if (e == null)
+                {
+                    return;
+                }
+                if (e.Message == null)
+                {
+                    return;
+                }
+                if (e.Message.Length == 4)
+                { // pong message
+                    return;
+                }
 
-            FIFOListWebSocketMessage.Enqueue(e.Message);
+                FIFOListWebSocketMessage.Enqueue(e.Message);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void WebSocket_Error(object sender, ErrorEventArgs e)
