@@ -52,6 +52,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         public List<IServerParameter> ServerParameters { get; set; }
         public DateTime ServerTime { get; set; }
 
+        private DateTime _lastConnectionStartTime = DateTime.MinValue;
+
         public void Connect()
         {
             IsDispose = false;
@@ -75,6 +77,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     CreateWebSocketConnection();
                     StartUpdatePortfolio();
                     ConnectEvent();
+                    _lastConnectionStartTime = DateTime.Now;
                 }
                 catch (Exception exeption)
                 {
@@ -219,7 +222,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 if (IsDispose == false)
                 {
                     IsDispose = true;
-                    SendLogMessage("Connection Close", LogMessageType.System);
+                    SendLogMessage("Connection Closed by ByBit", LogMessageType.System);
                     Dispose();
                 }
             }
@@ -302,10 +305,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     {
                         if (SubscribleState.code.Equals("0") == false)
                         {
+                            SendLogMessage("WebSocket listener error", LogMessageType.Error);
                             SendLogMessage(SubscribleState.code + "\n" +
                                 SubscribleState.msg, LogMessageType.Error);
 
-                            Dispose();
+                            if(_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
+                            { // если на старте вёб-сокета проблемы, то надо его перезапускать
+                                Dispose();
+                            }
                         }
 
                         continue;
@@ -353,7 +360,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(1000);
 
                 if (webSocket != null &&
                     (webSocket.State == WebSocketState.Open ||
