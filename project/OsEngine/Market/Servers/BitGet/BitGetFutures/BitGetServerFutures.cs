@@ -136,7 +136,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         private bool IsDispose;
         private DateTime TimeToSendPing = DateTime.Now;
         private DateTime TimeToUprdatePortfolio = DateTime.Now;
-        private ConcurrentQueue<string> FIFOListWebSocketMessage;
+        private ConcurrentQueue<string> FIFOListWebSocketMessage = new ConcurrentQueue<string>();
         private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(100));
         private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
         private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
@@ -231,17 +231,20 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void WebSocket_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
-            try
+            if(e == null)
             {
-                if (FIFOListWebSocketMessage != null)
-                {
-                    FIFOListWebSocketMessage.Enqueue(e.Message);
-                }
+                return;
             }
-            catch (Exception ex)
+            if(e.Message == null)
             {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return;
             }
+            if(e.Message.Length == 4)
+            { // pong message
+                return;
+            }
+
+            FIFOListWebSocketMessage.Enqueue(e.Message);
         }
 
         private void WebSocket_Error(object sender, ErrorEventArgs e)
@@ -275,23 +278,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             while (IsDispose == false)
             {
-                Thread.Sleep(1);
-
                 try
                 {
-                    if (FIFOListWebSocketMessage == null ||
-                        FIFOListWebSocketMessage.Count == 0)
+                    if (FIFOListWebSocketMessage.IsEmpty)
                     {
+                        Thread.Sleep(1);
                         continue;
                     }
 
                     string message;
                     FIFOListWebSocketMessage.TryDequeue(out message);
-
-                    if (message.Equals("pong"))
-                    {
-                        continue;
-                    }
 
                     ResponseWebSocketMessageSubscrible SubscribleState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscrible());
 
@@ -313,6 +309,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                         if (action.arg != null)
                         {
+                            if (action.arg.channel.Equals("orders"))
+                            {
+                                UpdateOrder(message);
+                                continue;
+                            }
                             if (action.arg.channel.Equals("books15"))
                             {
                                 UpdateDepth(message);
@@ -321,11 +322,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             if (action.arg.channel.Equals("trade"))
                             {
                                 UpdateTrade(message);
-                                continue;
-                            }
-                            if (action.arg.channel.Equals("orders"))
-                            {
-                                UpdateOrder(message);
                                 continue;
                             }
                         }
@@ -692,7 +688,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(1000);
 
                 if (TimeToUprdatePortfolio.AddSeconds(30) < DateTime.Now)
                 {
@@ -852,6 +848,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         #endregion
 
         #region Querys
+
         private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
             try
