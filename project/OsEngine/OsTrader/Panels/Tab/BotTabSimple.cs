@@ -204,6 +204,34 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Tab number
         /// </summary>
         public int TabNum { get; set; }
+		
+        /// <summary>
+        /// has this BotTabScreener tab been created
+        /// создана ли вкладка BotTabScreener
+        /// </summary>
+
+        public bool IsCreatedByScreener { get; set; }
+ 
+        /// <summary>
+        /// custom name robot
+        /// пользовательское имя робота
+        /// </summary>
+        public string NameStrategy
+        {
+            get
+            {
+                if (!TabName.Contains("tab"))
+                {
+                    return "";
+                }
+                string _nameStrategy = TabName.Remove(TabName.LastIndexOf("tab"), TabName.Length - TabName.LastIndexOf("tab"));
+                if (IsCreatedByScreener == true)
+                {
+                    _nameStrategy = _nameStrategy.Remove(0, _nameStrategy.IndexOf(" ") + 1);
+                }
+                return _nameStrategy;
+            }
+        }		
 
         /// <summary>
         /// Clear

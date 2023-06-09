@@ -244,6 +244,22 @@ namespace OsEngine.OsTrader.Panels.Tab
         public int TabNum { get; set; }
 
         /// <summary>
+        /// custom name robot
+        /// пользовательское имя робота
+        /// </summary>
+        public string NameStrategy
+        {
+            get
+            {
+                if (TabName.Contains("tab"))
+                {
+                    return TabName.Remove(TabName.LastIndexOf("tab"), TabName.Length - TabName.LastIndexOf("tab"));
+                }
+                return "";
+            }
+        }
+
+        /// <summary>
         /// Line step value
         /// </summary>
         public decimal LineStep
