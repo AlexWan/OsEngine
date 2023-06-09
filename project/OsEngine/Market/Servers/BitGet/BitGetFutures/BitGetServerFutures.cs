@@ -96,6 +96,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             try
             {
                 _ordersIsSubscrible = false;
+                _portfolioIsStarted = false;
                 _subscribledSecutiries.Clear();
                 DeleteWebscoektConnection();
             }
@@ -462,11 +463,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
                     MyTradeEvent(myTrade);
-
-
                     newOrder.Price = item.fillPx.Replace('.', ',').ToDecimal();
-
-                    CreateQueryPortfolio(false);
                 }
 
                 MyOrderEvent(newOrder);
@@ -474,7 +471,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void UpdatePorfolio(string json, bool IsUpdateValueBegin)
+        private bool _portfolioIsStarted = false;
+
+        private void UpdatePorfolio(string json)
         {
             ResponseRestMessage<List<RestMessageAccount>> assets = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<RestMessageAccount>>());
             var Positions = CreateQueryPositions();
@@ -495,7 +494,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     ValueCurrent = assets.data[i].available.ToDecimal()
                 };
 
-                if (IsUpdateValueBegin)
+                if (_portfolioIsStarted == false)
                 {
                     pos.ValueBegin = assets.data[i].available.ToDecimal();
                 }
@@ -507,22 +506,22 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 for (int i = 0; i < Positions.data.Count; i++)
                 {
-                    var pos = new PositionOnBoard()
+                    PositionOnBoard pos = new PositionOnBoard();
+                    pos.PortfolioName = "BitGetFutures";
+                    pos.SecurityNameCode = Positions.data[i].symbol + "_" + Positions.data[i].holdSide;
+                    pos.ValueBlocked = Positions.data[i].openDelegateCount.ToDecimal();
+                    pos.ValueCurrent = Positions.data[i].total.ToDecimal();
+                   
+                    if (_portfolioIsStarted == false)
                     {
-                        PortfolioName = "BitGetFutures",
-                        SecurityNameCode = Positions.data[i].symbol + "_" + Positions.data[i].holdSide,
-                        ValueBlocked = Positions.data[i].locked.ToDecimal(),
-                        ValueCurrent = Positions.data[i].available.ToDecimal()
-                    };
-
-                    if (IsUpdateValueBegin)
-                    {
-                        pos.ValueBegin = Positions.data[i].available.ToDecimal();
+                        pos.ValueBegin = Positions.data[i].total.ToDecimal();
                     }
 
                     portfolio.SetNewPosition(pos);
                 }
             }
+
+            _portfolioIsStarted = true;
 
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
@@ -645,7 +644,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public void GetPortfolios()
         {
-            CreateQueryPortfolio(true);
+            CreateQueryPortfolio();
         }
 
         public void GetSecurities()
@@ -706,7 +705,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (TimeToUprdatePortfolio.AddSeconds(30) < DateTime.Now)
                 {
-                    CreateQueryPortfolio(false);
+                    CreateQueryPortfolio();
                     TimeToUprdatePortfolio = DateTime.Now;
                 }
 
@@ -863,7 +862,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #region Querys
 
-        private void CreateQueryPortfolio(bool IsUpdateValueBegin)
+
+        private void CreateQueryPortfolio()
         {
             try
             {
@@ -876,7 +876,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     if (stateResponse.code.Equals("00000") == true)
                     {
-                        UpdatePorfolio(json, IsUpdateValueBegin);
+                        UpdatePorfolio(json);
                     }
                     else
                     {
