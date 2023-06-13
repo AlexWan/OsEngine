@@ -76,18 +76,24 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     StartCheckAliveWebSocket();
                     CreateWebSocketConnection();
                     StartUpdatePortfolio();
-                    ConnectEvent();
+                    
                     _lastConnectionStartTime = DateTime.Now;
                 }
                 catch (Exception exeption)
                 {
                     HandlerExeption(exeption);
                     IsDispose = true;
+                    SendLogMessage("Connection can be open. BitGet. Error request", LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
                 }
             }
             else
             {
                 IsDispose = true;
+                SendLogMessage("Connection can be open. BitGet. Error request", LogMessageType.Error);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
@@ -95,6 +101,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
+                IsDispose = true;
                 _ordersIsSubscrible = false;
                 _portfolioIsStarted = false;
                 _subscribledSecutiries.Clear();
@@ -106,10 +113,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             finally
             {
-                IsDispose = true;
                 FIFOListWebSocketMessage = new ConcurrentQueue<string>();
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
             }
         }
 
@@ -117,7 +122,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
-
                 rateGateSubscrible.WaitToProceed();
                 CreateSubscribleSecurityMessageWebSocket(security);
 
@@ -209,6 +213,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 CreateAuthMessageWebSocekt();
                 SendLogMessage("Connection Open", LogMessageType.System);
                 ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent();
             }
             catch (Exception ex) 
             {
@@ -223,7 +228,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 if (IsDispose == false)
                 {
                     SendLogMessage("Connection Closed by BitGet. WebSocket Closed Event", LogMessageType.Error);
-                    Dispose();
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
                 }
             }
             catch (Exception ex)
@@ -289,7 +295,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void MessageReader()
         {
-            Thread.Sleep(1000);
+            Thread.Sleep(5000);
 
             while (IsDispose == false)
             {
@@ -316,7 +322,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                             if(_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
                             { // если на старте вёб-сокета проблемы, то надо его перезапускать
-                                Dispose();
+                                ServerStatus = ServerConnectStatus.Disconnect;
+                                DisconnectEvent();
                             }
                         }
 
@@ -384,7 +391,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 else
                 {
-                    Dispose();
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
                 }
             }
         }

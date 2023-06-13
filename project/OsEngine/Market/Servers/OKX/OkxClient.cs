@@ -261,6 +261,7 @@ namespace OsEngine.Market.Servers.OKX
         #region Trade
 
         private object _lockOrder = new object();
+
         public void ExecuteOrder(Order order)
         {
             lock (_lockOrder)
@@ -286,6 +287,7 @@ namespace OsEngine.Market.Servers.OKX
                 }
             }
         }
+
         private void SendOrderSpot(Order order)
         {
 
@@ -309,6 +311,7 @@ namespace OsEngine.Market.Servers.OKX
             MyOrderRequest.Add(order);
             _wsClientPositions.Send(json);
         }
+
         private void SendOrderSwap(Order order)
         {
 
@@ -344,6 +347,7 @@ namespace OsEngine.Market.Servers.OKX
             MyOrderRequest.Add(order);
             _wsClientPositions.Send(json);
         }
+
         public void CancelOrder(Order order)
         {
             List<InstIdOrdId> arg = new List<InstIdOrdId>();
@@ -365,6 +369,7 @@ namespace OsEngine.Market.Servers.OKX
             _wsClientOrders.Send(json);
 
         }
+
         private string GetListActivOrders()
         {
             var url = $"{_baseUrl}{"api/v5/trade/orders-pending"}";
