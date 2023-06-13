@@ -34,6 +34,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
     public class ResponseWebSocketOrder
     {
         public string accFillSz;
+        public string avgPx;
         public string cTime;
         public string clOrdId;
         public string eps;

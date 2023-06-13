@@ -107,9 +107,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             finally
             {
                 IsDispose = true;
+                FIFOListWebSocketMessage = new ConcurrentQueue<string>();
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
-                FIFOListWebSocketMessage = null;
             }
         }
 
@@ -222,8 +222,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 if (IsDispose == false)
                 {
-                    IsDispose = true;
-                    SendLogMessage("Connection Closed by ByBit", LogMessageType.System);
+                    SendLogMessage("Connection Closed by BitGet. WebSocket Closed Event", LogMessageType.Error);
                     Dispose();
                 }
             }
@@ -247,6 +246,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 if (e.Message.Length == 4)
                 { // pong message
+                    return;
+                }
+
+                if(FIFOListWebSocketMessage == null)
+                {
                     return;
                 }
 
@@ -425,51 +429,41 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 newOrder.SecurityNameCode = item.instId; //.Replace("_SPBL", "")
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
 
-                if (string.IsNullOrEmpty(item.clOrdId))
-                {
-                    return;
-                }
-
-                try
+                if (!item.clOrdId.Equals(String.Empty) == true)
                 {
                     newOrder.NumberUser = Convert.ToInt32(item.clOrdId);
-                }
-                catch
-                {
-                    SendLogMessage("order with strange num: " + item.clOrdId, LogMessageType.Error);
-                    return;
                 }
 
                 newOrder.NumberMarket = item.ordId.ToString();
                 newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = stateType;
-                newOrder.Volume = item.sz.Replace('.', ',').ToDecimal();
-                newOrder.Price = item.px.Replace('.', ',').ToDecimal();
+                newOrder.Volume = item.sz.ToDecimal();
+                newOrder.Price = item.px.ToDecimal();
                 newOrder.ServerType = ServerType.BitGetFutures;
                 newOrder.PortfolioNumber = "BitGetFutures";
 
                 if (stateType == OrderStateType.Done ||
                     stateType == OrderStateType.Patrial)
                 {
-
                     MyTrade myTrade = new MyTrade();
-
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.fillTime));
                     myTrade.NumberOrderParent = item.ordId.ToString();
                     myTrade.NumberTrade = item.tradeId;
-                    myTrade.Volume = item.fillSz.Replace('.', ',').ToDecimal();
-                    myTrade.Price = item.fillPx.Replace('.', ',').ToDecimal();
+                    myTrade.Volume = item.fillSz.ToDecimal();
+                    myTrade.Price = item.fillPx.ToDecimal();
                     myTrade.SecurityNameCode = item.instId.ToUpper();
                     myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
                     MyTradeEvent(myTrade);
-                    newOrder.Price = item.fillPx.Replace('.', ',').ToDecimal();
+
+                    newOrder.Price = item.fillPx.ToDecimal();
                 }
 
                 MyOrderEvent(newOrder);
 
             }
         }
+        
 
         private bool _portfolioIsStarted = false;
 
@@ -486,17 +480,25 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             for (int i = 0; i < assets.data.Count; i++)
             {
-                var pos = new PositionOnBoard()
+                PositionOnBoard pos = new PositionOnBoard();
+
+                pos.PortfolioName = "BitGetFutures";
+                pos.SecurityNameCode = assets.data[i].marginCoin;
+                pos.ValueBlocked = assets.data[i].locked.ToDecimal();
+
+                if(string.IsNullOrEmpty(assets.data[i].unrealizedPL))
                 {
-                    PortfolioName = "BitGetFutures",
-                    SecurityNameCode = assets.data[i].marginCoin,
-                    ValueBlocked = assets.data[i].locked.ToDecimal(),
-                    ValueCurrent = assets.data[i].available.ToDecimal()
-                };
+                    pos.ValueCurrent = assets.data[i].available.ToDecimal();
+                }
+                else
+                {
+                    pos.ValueCurrent = (assets.data[i].available.ToDecimal() + assets.data[i].unrealizedPL.ToDecimal());
+                }
+                
 
                 if (_portfolioIsStarted == false)
                 {
-                    pos.ValueBegin = assets.data[i].available.ToDecimal();
+                    pos.ValueBegin = pos.ValueCurrent;
                 }
 
                 portfolio.SetNewPosition(pos);
