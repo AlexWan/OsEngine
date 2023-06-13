@@ -941,6 +941,7 @@
     <Compile Include="Robots\AutoTestBots\TestBotConnectionParams.xaml.cs">
       <DependentUpon>TestBotConnectionParams.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Robots\AutoTestBots\TestBotOpenAndCanselOrders.cs" />
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
     <Compile Include="Robots\OnScriptIndicators\GridSample.cs" />

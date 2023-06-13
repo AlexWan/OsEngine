@@ -9,7 +9,6 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Market.Servers;
-using OsEngine.Market;
 using OsEngine.Charts.CandleChart;
 using System;
 using System.Threading;
