@@ -714,7 +714,7 @@ namespace OsEngine.OsTrader
             {
                 Security sec = null;
 
-                if (tabsWithMySecInAllBots.Count > 1)
+                if (tabsWithMySecInAllBots.Count > 0)
                 {
                     sec = tabsWithMySecInAllBots[0].Securiti;
                 }
@@ -855,7 +855,6 @@ namespace OsEngine.OsTrader
                     }
                 }
 
-                botTabSimples.AddRange(bot.TabsSimple);
             }
 
             if (bot.TabsScreener != null &&
@@ -903,7 +902,7 @@ namespace OsEngine.OsTrader
 
             Security sec = null;
 
-            if (tabsWithMySecInAllBots.Count > 1)
+            if (tabsWithMySecInAllBots.Count > 0)
             {
                 sec = tabsWithMySecInAllBots[0].Securiti;
             }

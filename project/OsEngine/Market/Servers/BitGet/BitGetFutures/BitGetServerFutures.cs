@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using Jayrock.Json;
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.GateIo.Futures.Response;
 using RestSharp;
 using SuperSocket.ClientEngine;
 using System;
@@ -427,68 +429,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         public event Action DisconnectEvent;
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        private void UpdateOrder(string message)
-        {
-            ResponseWebSocketMessageAction<List<ResponseWebSocketOrder>> Order = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseWebSocketOrder>>());
-
-            if (Order.data == null ||
-                Order.data.Count == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < Order.data.Count; i++)
-            {
-                var item = Order.data[i];
-
-                OrderStateType stateType = GetOrderState(item.status);
-
-                if (item.ordType.Equals("market") &&
-                    stateType == OrderStateType.Activ)
-                {
-                    continue;
-                }
-
-                Order newOrder = new Order();
-                newOrder.SecurityNameCode = item.instId; //.Replace("_SPBL", "")
-                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
-
-                if (!item.clOrdId.Equals(String.Empty) == true)
-                {
-                    newOrder.NumberUser = Convert.ToInt32(item.clOrdId);
-                }
-
-                newOrder.NumberMarket = item.ordId.ToString();
-                newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
-                newOrder.State = stateType;
-                newOrder.Volume = item.sz.ToDecimal();
-                newOrder.Price = item.px.ToDecimal();
-                newOrder.ServerType = ServerType.BitGetFutures;
-                newOrder.PortfolioNumber = "BitGetFutures";
-
-                if (stateType == OrderStateType.Done ||
-                    stateType == OrderStateType.Patrial)
-                {
-                    MyTrade myTrade = new MyTrade();
-                    myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.fillTime));
-                    myTrade.NumberOrderParent = item.ordId.ToString();
-                    myTrade.NumberTrade = item.tradeId;
-                    myTrade.Volume = item.fillSz.ToDecimal();
-                    myTrade.Price = item.fillPx.ToDecimal();
-                    myTrade.SecurityNameCode = item.instId.ToUpper();
-                    myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
-
-                    MyTradeEvent(myTrade);
-
-                    newOrder.Price = item.fillPx.ToDecimal();
-                }
-
-                MyOrderEvent(newOrder);
-
-            }
-        }
         
-
         private bool _portfolioIsStarted = false;
 
         private void UpdatePorfolio(string json)
@@ -535,9 +476,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     PositionOnBoard pos = new PositionOnBoard();
                     pos.PortfolioName = "BitGetFutures";
                     pos.SecurityNameCode = Positions.data[i].symbol + "_" + Positions.data[i].holdSide;
-                    pos.ValueBlocked = Positions.data[i].openDelegateCount.ToDecimal();
-                    pos.ValueCurrent = Positions.data[i].total.ToDecimal();
-                   
+                    
+
+                    if(Positions.data[i].holdSide == "long")
+                    {
+                        pos.ValueCurrent = Positions.data[i].total.ToDecimal();
+                        pos.ValueBlocked = Positions.data[i].openDelegateCount.ToDecimal();
+                    }
+                    else if(Positions.data[i].holdSide == "short")
+                    {
+                        pos.ValueCurrent = Positions.data[i].total.ToDecimal() * -1;
+                        pos.ValueBlocked = Positions.data[i].openDelegateCount.ToDecimal() * -1;
+                    }
+                    
                     if (_portfolioIsStarted == false)
                     {
                         pos.ValueBegin = Positions.data[i].total.ToDecimal();
@@ -618,6 +569,162 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent(message, messageType);
+        }
+
+        #endregion
+
+        #region Orders Events
+
+        private void UpdateOrder(string message)
+        {
+            ResponseWebSocketMessageAction<List<ResponseWebSocketOrder>> Order = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseWebSocketOrder>>());
+
+            if (Order.data == null ||
+                Order.data.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < Order.data.Count; i++)
+            {
+                var item = Order.data[i];
+
+                OrderStateType stateType = GetOrderState(item.status);
+
+                if (item.ordType.Equals("market") &&
+                    stateType == OrderStateType.Activ)
+                {
+                    continue;
+                }
+
+                Order newOrder = new Order();
+                newOrder.SecurityNameCode = item.instId; //.Replace("_SPBL", "")
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
+
+                if (!item.clOrdId.Equals(String.Empty) == true)
+                {
+                    try
+                    {
+                        newOrder.NumberUser = Convert.ToInt32(item.clOrdId);
+                    }
+                    catch
+                    {
+                        SendLogMessage("strage order num: " + item.clOrdId,LogMessageType.Error);
+                        return;
+                    }
+                    
+                }
+
+                newOrder.NumberMarket = item.ordId.ToString();
+                newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
+                newOrder.State = stateType;
+                newOrder.Volume = item.sz.ToDecimal();
+                newOrder.Price = item.px.ToDecimal();
+                newOrder.ServerType = ServerType.BitGetFutures;
+                newOrder.PortfolioNumber = "BitGetFutures";
+
+                if (stateType == OrderStateType.Patrial)
+                {
+                    MyTrade myTrade = new MyTrade();
+                    myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.fillTime));
+                    myTrade.NumberOrderParent = item.ordId.ToString();
+                    myTrade.NumberTrade = item.tradeId;
+                    myTrade.Volume = item.fillSz.ToDecimal();
+                    myTrade.Price = item.fillPx.ToDecimal();
+                    myTrade.SecurityNameCode = item.instId.ToUpper();
+                    myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
+
+                    TrySendMyTradeInEvent(myTrade);
+
+                    newOrder.Price = item.fillPx.ToDecimal();
+                }
+                else if (stateType == OrderStateType.Done)
+                {
+                    decimal exeVol = GetExecuteVolumeByThisOrder(newOrder);
+
+                    MyTrade myTrade = new MyTrade();
+                    myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.fillTime));
+                    myTrade.NumberOrderParent = item.ordId.ToString();
+                    myTrade.NumberTrade = item.tradeId + "_DoneTrade";
+                    myTrade.Volume = newOrder.Volume - exeVol;
+
+                    if(myTrade.Volume > 0)
+                    {
+                        myTrade.Price = item.fillPx.ToDecimal();
+                        myTrade.SecurityNameCode = item.instId.ToUpper();
+                        myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
+                        TrySendMyTradeInEvent(myTrade);
+                    }
+
+                    newOrder.Price = item.fillPx.ToDecimal();
+                }
+
+                MyOrderEvent(newOrder);
+            }
+        }
+
+        private List<MyTrade> myTrades = new List<MyTrade>();
+
+        private void TrySendMyTradeInEvent(MyTrade myTrade)
+        {
+            bool isInArray = false;
+
+            for (int i = myTrades.Count-1; i >= 0; i--)
+            {
+                if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
+                    && myTrades[i].NumberTrade.EndsWith("_DoneTrade"))
+                {// на случай если АПИ может сначала выдать DONE по ордеру, а зетем Patrial
+                    return;
+                }
+
+                if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
+                    && myTrades[i].NumberTrade == myTrade.NumberTrade)
+                {
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if (isInArray)
+            {
+                return;
+            }
+
+            myTrades.Add(myTrade);
+
+            MyTradeEvent(myTrade);
+
+            while (myTrades.Count > 1000)
+            {
+                myTrades.RemoveAt(0);
+            }
+        }
+
+        private decimal GetExecuteVolumeByThisOrder(Order order)
+        {
+            List <MyTrade> trades = new List<MyTrade>();
+
+            for (int i = 0; i < myTrades.Count; i++)
+            {
+                if (myTrades[i].NumberOrderParent == order.NumberMarket)
+                {
+                    trades.Add(myTrades[i]);
+                }
+            }
+
+            if(trades.Count == 0)
+            {
+                return 0;
+            }
+
+            decimal volumeExecute = 0;
+
+            for(int i = 0;i < trades.Count;i++)
+            {
+                volumeExecute += trades[i].Volume;
+            }
+
+            return volumeExecute;
         }
 
         #endregion
@@ -887,7 +994,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         #endregion
 
         #region Querys
-
 
         private void CreateQueryPortfolio()
         {
