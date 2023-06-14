@@ -132,8 +132,7 @@ namespace OsEngine.Robots.AutoTestBots
 
         private void CanselOrderByPosition(Position pos)
         {
-
-
+            _tab.CloseAllOrderToPosition(pos);
         }
 
     }

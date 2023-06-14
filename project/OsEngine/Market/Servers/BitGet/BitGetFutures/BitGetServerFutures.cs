@@ -246,7 +246,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     return;
                 }
-                if (e.Message == null)
+                if (string.IsNullOrEmpty(e.Message))
                 {
                     return;
                 }
@@ -307,10 +307,26 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-                    string message;
+                    string message = null;
                     FIFOListWebSocketMessage.TryDequeue(out message);
 
-                    ResponseWebSocketMessageSubscrible SubscribleState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscrible());
+                    if(message == null)
+                    {
+                        continue;
+                    }
+
+                    ResponseWebSocketMessageSubscrible SubscribleState = null;
+
+                    try
+                    {
+                        SubscribleState = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageSubscrible());
+                    }
+                    catch(Exception error)
+                    {
+                        SendLogMessage("Error in message reader: " + error.ToString(),LogMessageType.Error);
+                        SendLogMessage("message str: \n" + message, LogMessageType.Error);
+                        continue;
+                    }
 
                     if (SubscribleState.code != null)
                     {
