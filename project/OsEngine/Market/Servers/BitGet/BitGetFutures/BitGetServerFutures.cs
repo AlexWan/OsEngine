@@ -308,6 +308,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
 
                     string message = null;
+
                     FIFOListWebSocketMessage.TryDequeue(out message);
 
                     if(message == null)
@@ -509,10 +510,26 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             ResponseWebSocketMessageAction<List<List<string>>> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<List<string>>>());
 
+            if (responseTrade == null)
+            {
+                return;
+            }
+
             if (responseTrade.data == null)
             {
                 return;
             }
+
+            if (responseTrade.data[0] == null)
+            {
+                return;
+            }
+
+            if (responseTrade.data[0].Count < 2)
+            {
+                return;
+            }
+
             Trade trade = new Trade();
             trade.SecurityNameCode = responseTrade.arg.instId + "_UMCBL";
 
