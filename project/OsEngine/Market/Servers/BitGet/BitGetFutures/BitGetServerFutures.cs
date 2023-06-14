@@ -1,11 +1,9 @@
-﻿using Jayrock.Json;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.GateIo.Futures.Response;
 using RestSharp;
 using SuperSocket.ClientEngine;
 using System;
@@ -477,7 +475,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     pos.PortfolioName = "BitGetFutures";
                     pos.SecurityNameCode = Positions.data[i].symbol + "_" + Positions.data[i].holdSide;
                     
-
                     if(Positions.data[i].holdSide == "long")
                     {
                         pos.ValueCurrent = Positions.data[i].total.ToDecimal();
@@ -488,10 +485,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         pos.ValueCurrent = Positions.data[i].total.ToDecimal() * -1;
                         pos.ValueBlocked = Positions.data[i].openDelegateCount.ToDecimal() * -1;
                     }
-                    
+                    else
+                    {
+                        pos.ValueCurrent = Positions.data[i].total.ToDecimal();
+                        pos.ValueBlocked = Positions.data[i].openDelegateCount.ToDecimal();
+                    }
+
                     if (_portfolioIsStarted == false)
                     {
-                        pos.ValueBegin = Positions.data[i].total.ToDecimal();
+                        pos.ValueBegin = pos.ValueCurrent;
                     }
 
                     portfolio.SetNewPosition(pos);

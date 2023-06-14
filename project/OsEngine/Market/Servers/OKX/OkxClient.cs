@@ -14,7 +14,6 @@ using WebSocket4Net;
 using System.Net.Http;
 using SuperSocket.ClientEngine;
 
-
 namespace OsEngine.Market.Servers.OKX
 {
     public class OkxClient
@@ -1117,7 +1116,8 @@ namespace OsEngine.Market.Servers.OKX
             requestTrade.args = new List<SubscribeArgs>();
             requestTrade.args.Add(new SubscribeArgs()
             {
-                channel = "books",
+                //channel = "books",
+                channel = "books5",
                 instId = security.Name
             });
 
