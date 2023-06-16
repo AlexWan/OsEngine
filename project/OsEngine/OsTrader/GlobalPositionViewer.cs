@@ -261,7 +261,15 @@ namespace OsEngine.OsTrader
                 nRow.Cells[1].Value = position.TimeCreate.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+
+                if (position.TimeClose != position.TimeOpen)
+                {
+                    nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+                }
+                else
+                {
+                    nRow.Cells[2].Value = "";
+                }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = position.NameBot;
@@ -351,11 +359,13 @@ namespace OsEngine.OsTrader
             {
                 nRow.Cells[1].Value = position.TimeCreate.ToString(_currentCulture);
             }
-
-            if (nRow.Cells[2].Value == null
-                || nRow.Cells[2].Value.ToString() != position.TimeClose.ToString(_currentCulture))// == false) //AVP убрал потому что во вкладке все позиции, дату позиции не обновляло
+            if (position.TimeClose != position.TimeOpen)
             {
-                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+                if (nRow.Cells[2].Value == null
+    || nRow.Cells[2].Value.ToString() != position.TimeClose.ToString(_currentCulture))// == false) //AVP убрал потому что во вкладке все позиции, дату позиции не обновляло
+                {
+                    nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+                }
             }
 
             if (nRow.Cells[6].Value == null

@@ -1786,7 +1786,14 @@ namespace OsEngine.Journal
                 nRow.Cells[1].Value = position.TimeCreate.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+                if (position.TimeClose != position.TimeOpen)
+                {
+                    nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+                }
+                else
+                {
+                    nRow.Cells[2].Value = "";
+                }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = position.NameBot;

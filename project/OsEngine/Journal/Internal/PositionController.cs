@@ -1516,7 +1516,14 @@ namespace OsEngine.Journal.Internal
             {
                 nRow.Cells[1].Value = position.TimeOpen.ToString(_currentCulture);
 
-                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+                if (position.TimeClose != position.TimeOpen)
+                {
+                    nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+                }
+                else
+                {
+                    nRow.Cells[2].Value = "";
+                }
 
                 nRow.Cells[3].Value = position.NameBot;
 
@@ -1648,7 +1655,15 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells[1].Value = position.TimeOpen.ToString(_currentCulture);
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+
+                if (position.TimeClose != position.TimeOpen)
+                {
+                    nRow.Cells[2].Value = position.TimeClose.ToString(_currentCulture);
+                }
+                else
+                {
+                    nRow.Cells[2].Value = "";
+                }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = position.NameBot;
