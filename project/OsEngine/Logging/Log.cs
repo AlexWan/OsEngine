@@ -847,6 +847,8 @@ namespace OsEngine.Logging
             _gridErrorLog = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
 
+            _gridErrorLog.ScrollBars = ScrollBars.Vertical;
+
             DataGridViewCellStyle style = new DataGridViewCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;
             style.WrapMode = DataGridViewTriState.True;

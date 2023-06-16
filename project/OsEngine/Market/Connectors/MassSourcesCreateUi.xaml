@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Market.Connectors"
         mc:Ignorable="d"
-         Title="Screener Securities Setup" Height="661.381" Width="880.569" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+         Title="Screener Securities Setup" Height="630" MinHeight="630" Width="835" MinWidth="835" Style="{StaticResource WindowStyleCanResize}" ResizeMode="CanResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Window.Background>
         <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
             <GradientStop Color="#FF323234" Offset="1"/>
@@ -59,11 +59,11 @@
         <Label x:Name="LabelSecurities" Content="Securities" HorizontalAlignment="Left" Margin="419,5,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Label x:Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="421,33,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxClass" Margin="533,33,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
-        <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="841,10,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
-        <Button x:Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="731,10,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
-        <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="774,10,0,0" VerticalAlignment="Top" Height="20"/>
-        <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="789,10,0,0" VerticalAlignment="Top" Height="20"/>
-        <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="808,10,0,0" VerticalAlignment="Top" Height="20"/>
+        <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Right" Margin="0,10,16,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Button x:Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Right" Margin="0,10,126,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Right" Margin="0,10,91,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Right" Margin="0,10,72,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Right" Margin="0,10,57,0" VerticalAlignment="Top" Height="20"/>
 
     </Grid>
 </Window>

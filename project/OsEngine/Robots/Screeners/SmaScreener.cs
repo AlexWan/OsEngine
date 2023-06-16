@@ -8,6 +8,8 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
+using OsEngine.Charts.CandleChart.Indicators;
+using System;
 
 namespace OsEngine.Robots.Screeners
 {
@@ -24,7 +26,8 @@ namespace OsEngine.Robots.Screeners
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             MaxPoses = CreateParameter("Max poses", 1, 1, 20, 1);
             Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
-            Volume = CreateParameter("Volume", 0.1m, 0.1m, 50, 0.1m);
+            VolumeType = CreateParameter("Volume type","Contract currency", new[] { "Contract currency", "Contracts" });
+            Volume = CreateParameter("Volume", 7m, 0.1m, 50, 0.1m);
             TrailStop = CreateParameter("Trail Stop", 0.7m, 0.5m, 5, 0.1m);
             CandlesLookBack = CreateParameter("Candles Look Back count", 10, 5, 100, 1);
 
@@ -55,6 +58,8 @@ namespace OsEngine.Robots.Screeners
         /// проскальзывание
         /// </summary>
         public StrategyParameterInt Slippage;
+
+        public StrategyParameterString VolumeType;
 
         /// <summary>
         /// volume for entry
@@ -150,7 +155,7 @@ namespace OsEngine.Robots.Screeners
                     return;
                 }
 
-                tab.BuyAtLimit(Volume.ValueDecimal, tab.PriceBestAsk + tab.Securiti.PriceStep * Slippage.ValueInt);
+                tab.BuyAtLimit(GetVolume(candles,tab), tab.PriceBestAsk + tab.Securiti.PriceStep * Slippage.ValueInt);
             }
             else
             {
@@ -168,5 +173,24 @@ namespace OsEngine.Robots.Screeners
                 tab.CloseAtTrailingStop(pos, priceActivation, priceOrder);
             }
         }
+
+        private decimal GetVolume(List<Candle> candles, BotTabSimple tab)
+        {
+            if(VolumeType.ValueString == "Contracts")
+            {
+                return Volume.ValueDecimal;
+            }
+            else // if(VolumeType.ValueString == "Contract currency")
+            {
+                decimal volumeOnPosition = Volume.ValueDecimal;
+                decimal contractPrice = candles[candles.Count - 1].Close;
+                int volumeDecimals = tab.Securiti.DecimalsVolume;
+                decimal volume = Math.Round(volumeOnPosition / contractPrice, volumeDecimals);
+
+                return volume;
+            }
+        }
     }
+
+
 }
