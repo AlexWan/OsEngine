@@ -4,7 +4,6 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.OsData;
 using RestSharp;
 using SuperSocket.ClientEngine;
 using System;
@@ -50,7 +49,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         }
 
         public ServerConnectStatus ServerStatus { get; set; }
+
         public List<IServerParameter> ServerParameters { get; set; }
+
         public DateTime ServerTime { get; set; }
 
         private DateTime _lastConnectionStartTime = DateTime.MinValue;
@@ -833,14 +834,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     newSecurity.PriceStep = priceStep;
                     newSecurity.PriceStepCost = priceStep;
                     newSecurity.State = SecurityStateType.Activ;
-                    
+
                     securities.Add(newSecurity);
                 }
             }
 
             SecurityEvent(securities);
-
-
         }
 
         private decimal GetVolumeStep(int ScalePrice)

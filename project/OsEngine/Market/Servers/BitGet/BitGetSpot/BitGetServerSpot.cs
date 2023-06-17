@@ -842,15 +842,38 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
             for (int i = 0; i < responseMyTrades.data.Count; i++)
             {
+                ResponseMyTrade responseT = responseMyTrades.data[i];
+
                 MyTrade myTrade = new MyTrade();
 
-                myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].cTime));
-                myTrade.NumberOrderParent = responseMyTrades.data[i].orderId;
-                myTrade.NumberTrade = responseMyTrades.data[i].fillId.ToString();
-                myTrade.Volume = responseMyTrades.data[i].fillQuantity.Replace('.', ',').ToDecimal();
-                myTrade.Price = responseMyTrades.data[i].fillPrice.Replace('.', ',').ToDecimal();
-                myTrade.SecurityNameCode = responseMyTrades.data[i].symbol.ToUpper().Replace("_SPBL", "");
-                myTrade.Side = responseMyTrades.data[i].side.Equals("buy") ? Side.Buy : Side.Sell;
+                myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseT.cTime));
+                myTrade.NumberOrderParent = responseT.orderId;
+                myTrade.NumberTrade = responseT.fillId.ToString();
+                myTrade.Price = responseT.fillPrice.ToDecimal();
+                myTrade.SecurityNameCode = responseT.symbol.ToUpper().Replace("_SPBL", "");
+                myTrade.Side = responseT.side.Equals("buy") ? Side.Buy : Side.Sell;
+
+
+                if (string.IsNullOrEmpty(responseT.feeCcy) == false
+                    && string.IsNullOrEmpty(responseT.fees) == false
+                    && responseT.fees.ToDecimal() != 0)
+                {// комиссия берёться в какой-то монете
+                    string comissionSecName = responseT.feeCcy;
+
+                    if (myTrade.SecurityNameCode.StartsWith("BGB")
+                        || myTrade.SecurityNameCode.StartsWith(comissionSecName))
+                    {
+                        myTrade.Volume = responseT.fillQuantity.ToDecimal() + responseT.fees.ToDecimal();
+                    }
+                    else
+                    {
+                        myTrade.Volume = responseT.fillQuantity.ToDecimal();
+                    }
+                }
+                else
+                {// не известная монета комиссии. Берём весь объём
+                    myTrade.Volume = responseT.fillQuantity.ToDecimal();
+                }
 
                 MyTradeEvent(myTrade);
             }
