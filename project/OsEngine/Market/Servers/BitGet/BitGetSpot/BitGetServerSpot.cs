@@ -714,25 +714,42 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 if (item.status.Equals("online"))
                 {
-                    securities.Add(new Security()
-                    {
-                        Exchange = ServerType.BitGetSpot.ToString(),
-                        DecimalsVolume = Convert.ToInt32(item.quantityScale),
-                        Name = item.symbolName,
-                        NameFull = item.symbol,
-                        NameClass = item.quoteCoin,
-                        NameId = item.symbol,
-                        SecurityType = SecurityType.CurrencyPair,
-                        Decimals = Convert.ToInt32(item.priceScale),
-                        PriceStep = GetPriceStep(Convert.ToInt32(item.priceScale)),
-                        PriceStepCost = GetPriceStep(Convert.ToInt32(item.priceScale)),
-                        State = SecurityStateType.Activ,
-                        Lot = 1,
-                    });
+                    Security newSecurity = new Security();
+
+                    newSecurity.Exchange = ServerType.BitGetSpot.ToString();
+                    newSecurity.DecimalsVolume = Convert.ToInt32(item.quantityScale);
+                    newSecurity.Lot = GetPriceStep(Convert.ToInt32(item.quantityScale));
+                    newSecurity.Name = item.symbolName;
+                    newSecurity.NameFull = item.symbol;
+                    newSecurity.NameClass = item.quoteCoin;
+                    newSecurity.NameId = item.symbol;
+                    newSecurity.SecurityType = SecurityType.CurrencyPair;
+                    newSecurity.Decimals = Convert.ToInt32(item.priceScale);
+                    newSecurity.PriceStep = GetPriceStep(Convert.ToInt32(item.priceScale));
+                    newSecurity.PriceStepCost = newSecurity.PriceStep;
+                    newSecurity.State = SecurityStateType.Activ;
+                    securities.Add(newSecurity);
                 }
             }
 
             SecurityEvent(securities);
+        }
+
+        private decimal GetPriceStep(int ScalePrice)
+        {
+            if (ScalePrice == 0)
+            {
+                return 1;
+            }
+            string priceStep = "0,";
+            for (int i = 0; i < ScalePrice - 1; i++)
+            {
+                priceStep += "0";
+            }
+
+            priceStep += "1";
+
+            return Convert.ToDecimal(priceStep);
         }
 
         private void UpdateTrade(string message)
@@ -1180,23 +1197,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             return 300;
         }
 
-        private decimal GetPriceStep(int ScalePrice)
-        {
-            if (ScalePrice == 0)
-            {
-                return 1;
-            }
-            string priceStep = "0,";
-            for (int i = 0; i < ScalePrice - 1; i++)
-            {
-                priceStep += "0";
-            }
-
-            priceStep += "1";
-
-            return Convert.ToDecimal(priceStep);
-
-        }
+     
 
         private OrderStateType GetOrderState(string orderStateResponse)
         {

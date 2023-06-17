@@ -704,7 +704,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 security.PriceLimitLow = sec.filters[0].minPrice.ToDecimal();
                 security.PriceLimitHigh = sec.filters[0].maxPrice.ToDecimal();
                 
-
                 if (security.PriceStep < 1)
                 {
                     string prStep = security.PriceStep.ToString(CultureInfo.InvariantCulture);
@@ -723,6 +722,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                    
                     security.Lot = minQty;
                     string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
+
                     if(qtyInStr.Split('.').Length > 1)
                     {
                         security.DecimalsVolume = qtyInStr.Split('.')[1].Length;

@@ -4,6 +4,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.OsData;
 using RestSharp;
 using SuperSocket.ClientEngine;
 using System;
@@ -533,10 +534,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             Trade trade = new Trade();
             trade.SecurityNameCode = responseTrade.arg.instId + "_UMCBL";
 
-            trade.Price = Convert.ToDecimal(responseTrade.data[0][1].Replace(".", ","));
+            trade.Price = responseTrade.data[0][1].ToDecimal();
             trade.Id = responseTrade.data[0][0];
             trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data[0][0]));
-            trade.Volume = Convert.ToDecimal(responseTrade.data[0][2].Replace('.', ',').Replace(".", ","));
+            trade.Volume = responseTrade.data[0][2].ToDecimal();
             trade.Side = responseTrade.data[0][3].Equals("buy") ? Side.Buy : Side.Sell;
 
             NewTradesEvent(trade);
@@ -814,31 +815,73 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 var item = symbols.data[i];
 
                 var decimals = Convert.ToInt32(item.pricePlace);
-                var priceStep = Convert.ToDecimal(GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep)));
+                var priceStep = (GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep))).ToDecimal();
 
                 if (item.symbolStatus.Equals("normal"))
                 {
-                    securities.Add(new Security()
-                    {
-                        Exchange = ServerType.BitGetFutures.ToString(),
-                        DecimalsVolume = Convert.ToInt32(item.volumePlace),
-                        Name = item.symbol,
-                        NameFull = item.symbol,
-                        NameClass = item.quoteCoin,
-                        NameId = item.symbol,
-                        SecurityType = SecurityType.CurrencyPair,
-                        Decimals = decimals,
-                        PriceStep = priceStep,
-                        PriceStepCost = priceStep,
-                        State = SecurityStateType.Activ,
-                        Lot = 1,
-                    });
+                    Security newSecurity = new Security();
+
+                    newSecurity.Exchange = ServerType.BitGetFutures.ToString();
+                    newSecurity.DecimalsVolume = Convert.ToInt32(item.volumePlace);
+                    newSecurity.Lot = GetVolumeStep(newSecurity.DecimalsVolume);
+                    newSecurity.Name = item.symbol;
+                    newSecurity.NameFull = item.symbol;
+                    newSecurity.NameClass = item.quoteCoin;
+                    newSecurity.NameId = item.symbol;
+                    newSecurity.SecurityType = SecurityType.Futures;
+                    newSecurity.Decimals = decimals;
+                    newSecurity.PriceStep = priceStep;
+                    newSecurity.PriceStepCost = priceStep;
+                    newSecurity.State = SecurityStateType.Activ;
+                    
+                    securities.Add(newSecurity);
                 }
             }
 
             SecurityEvent(securities);
 
 
+        }
+
+        private decimal GetVolumeStep(int ScalePrice)
+        {
+            if (ScalePrice == 0)
+            {
+                return 1;
+            }
+            string priceStep = "0,";
+            for (int i = 0; i < ScalePrice - 1; i++)
+            {
+                priceStep += "0";
+            }
+
+            priceStep += "1";
+
+            return Convert.ToDecimal(priceStep);
+        }
+
+        private string GetPriceStep(int PricePlace, int PriceEndStep)
+        {
+            if (PricePlace == 0)
+            {
+                return Convert.ToString(PriceEndStep);
+            }
+
+            string res = String.Empty;
+
+            for (int i = 0; i < PricePlace; i++)
+            {
+                if (i == 0)
+                {
+                    res += "0,";
+                }
+                else
+                {
+                    res += "0";
+                }
+            }
+
+            return res + PriceEndStep;
         }
 
         private void StartUpdatePortfolio()
@@ -1345,28 +1388,5 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private string GetPriceStep(int PricePlace, int PriceEndStep)
-        {
-            if (PricePlace == 0)
-            {
-                return Convert.ToString(PriceEndStep);
-            }
-
-            string res = String.Empty;
-
-            for (int i = 0; i < PricePlace; i++)
-            {
-                if (i == 0)
-                {
-                    res += "0,";
-                }
-                else
-                {
-                    res += "0";
-                }
-            }
-
-            return res + PriceEndStep;
-        }
     }
 }
