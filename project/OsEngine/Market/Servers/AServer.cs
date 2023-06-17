@@ -1434,8 +1434,11 @@ namespace OsEngine.Market.Servers
             {
                 series.IsMergedByCandlesFromFile = true;
 
-                List<Candle> candles = _candleStorage.GetCandles(series.Specification, _neadToSaveCandlesCountParam.Value);
-                series.CandlesAll = series.CandlesAll.Merge(candles);
+                if(_neadToSaveCandlesParam.Value == true)
+                {
+                    List<Candle> candles = _candleStorage.GetCandles(series.Specification, _neadToSaveCandlesCountParam.Value);
+                    series.CandlesAll = series.CandlesAll.Merge(candles);
+                }
             }
 
             if (_needToRemoveCandlesFromMemory.Value == true
