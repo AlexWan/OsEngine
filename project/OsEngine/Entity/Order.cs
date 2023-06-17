@@ -277,11 +277,7 @@ namespace OsEngine.Entity
 
             _volumeExecuteChange = true;
 
-            if (Volume != VolumeExecute)
-            {
-                State = OrderStateType.Patrial;
-            }
-            else
+            if (Volume == VolumeExecute)
             {
                 State = OrderStateType.Done;
             }

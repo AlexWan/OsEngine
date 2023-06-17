@@ -1542,6 +1542,31 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         }
 
+        private List<Order> _ordersOnBoard = new List<Order>();
+
+        private void SetOrderOnBoard(Order order)
+        {
+            _ordersOnBoard.Add(order);
+
+            while(_ordersOnBoard.Count > 200)
+            {
+                _ordersOnBoard.RemoveAt(0);
+            }
+        }
+
+        private Order GetOrderFromBoard(string orderNum)
+        {
+            for(int i = 0;i < _ordersOnBoard.Count;i++)
+            {
+                if (_ordersOnBoard[i].NumberMarket == orderNum)
+                {
+                    return _ordersOnBoard[i];
+                }
+            }
+            return null;
+        }
+
+
         /// <summary>
         /// takes messages from the general queue, converts them to C # classes and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
@@ -1606,6 +1631,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     {
                                         MyOrderEvent(newOrder);
                                     }
+                                    SetOrderOnBoard(newOrder);
                                 }
                                 else if (order.x == "CANCELED")
                                 {
@@ -1645,18 +1671,74 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     {
                                         MyOrderEvent(newOrder);
                                     }
+
+                                    SendLogMessage("Binance spot order fail. Order num: " + newOrder.NumberUser +
+                                        " \n Reasons in order request: " + order.r, LogMessageType.Error);
                                 }
                                 else if (order.x == "TRADE")
                                 {
+                                    Order oldOrder = GetOrderFromBoard(order.i.ToLower());
+
+                                    if(oldOrder != null &&
+                                        order.z != null && 
+                                        oldOrder.Volume == order.z.ToString().ToDecimal())
+                                    {// ордер Done
+                                        Order newOrder = new Order();
+                                        newOrder.SecurityNameCode = order.s;
+                                        newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                                        newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+
+                                        newOrder.NumberMarket = order.i.ToString();
+                                        //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
+                                        newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
+                                        newOrder.State = OrderStateType.Done;
+                                        newOrder.Volume = order.q.ToDecimal();
+                                        newOrder.Price = order.p.ToDecimal();
+                                        newOrder.ServerType = ServerType.Binance;
+                                        newOrder.PortfolioNumber = "Binance";
+
+                                        if (MyOrderEvent != null)
+                                        {
+                                            MyOrderEvent(newOrder);
+                                        }
+                                    }
 
                                     MyTrade trade = new MyTrade();
                                     trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.T));
                                     trade.NumberOrderParent = order.i.ToString();
                                     trade.NumberTrade = order.t.ToString();
-                                    trade.Volume = order.l.ToDecimal();
                                     trade.Price = order.L.ToDecimal();
                                     trade.SecurityNameCode = order.s;
                                     trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
+
+                                    if (string.IsNullOrEmpty(order.n)
+                                        || order.n.ToDecimal() == 0)
+                                    {// комиссии нет никакой. просто ложим в трейд 
+                                        trade.Volume = order.l.ToDecimal();
+                                    }
+                                    else
+                                    {
+                                        if (order.N != null &&
+                                            string.IsNullOrEmpty(order.N.ToString()) == false)
+                                        {// комиссия берёться в какой-то монете
+                                            string comissionSecName = order.N.ToString();
+
+                                            if (trade.SecurityNameCode.StartsWith("BNB") 
+                                                || trade.SecurityNameCode.StartsWith(comissionSecName))
+                                            {
+                                                trade.Volume = order.l.ToDecimal() - order.n.ToDecimal();
+                                            }
+                                            else
+                                            {
+                                                trade.Volume = order.l.ToDecimal();
+                                            }
+                                        }
+                                        else
+                                        {// не известная монета комиссии. Берём весь объём
+                                            trade.Volume = order.l.ToDecimal();
+                                        }
+
+                                    }
 
                                     if (MyTradeEvent != null)
                                     {
@@ -1683,8 +1765,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                         MyOrderEvent(newOrder);
                                     }
                                 }
+                                else if (order.x == "FILLED")
+                                {
 
-                                continue;
+                                }
+
+                                    continue;
                             }
 
                             else if (mes.Contains("\"e\"" + ":" + "\"outboundAccountPosition\""))
