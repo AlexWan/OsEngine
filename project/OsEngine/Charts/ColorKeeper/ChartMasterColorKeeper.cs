@@ -47,8 +47,6 @@ namespace OsEngine.Charts.ColorKeeper
         {
             try
             {
-                Thread.Sleep(500);
-
                 if (!Directory.Exists(@"Engine\Color"))
                 {
                     Directory.CreateDirectory(@"Engine\Color");

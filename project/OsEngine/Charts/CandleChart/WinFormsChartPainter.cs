@@ -388,7 +388,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 _colorKeeper.LogMessageEvent -= SendLogMessage;
                 _colorKeeper.NeedToRePaintFormEvent -= _colorKeeper_NeedToRePaintFormEvent;
-                _colorKeeper.Delete();
+                //_colorKeeper.Delete();
                 _colorKeeper = null;
             }
 
