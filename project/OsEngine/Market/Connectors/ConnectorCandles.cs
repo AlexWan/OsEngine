@@ -1199,7 +1199,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if (_emulator != null)
                     {
-                        _emulator.ProcessBidAsc(_bestBid, _bestAsk, MarketTime);
+                        _emulator.ProcessBidAsc(_bestBid, _bestAsk);
                     }
                 }
 
@@ -1252,7 +1252,7 @@ namespace OsEngine.Market.Connectors
                 {
                     if(_emulator != null)
                     {
-                        _emulator.ProcessBidAsc(_bestAsk, _bestBid, MarketTime);
+                        _emulator.ProcessBidAsc(_bestAsk, _bestBid);
                     }
                 }
             }
@@ -1316,6 +1316,13 @@ namespace OsEngine.Market.Connectors
                 if (TimeChangeEvent != null && EventsIsOn == true)
                 {
                     TimeChangeEvent(time);
+                }
+                if(EmulatorIsOn == true)
+                {
+                    if(_emulator != null)
+                    {
+                        _emulator.ProcessTime(time);
+                    }
                 }
             }
             catch (Exception error)

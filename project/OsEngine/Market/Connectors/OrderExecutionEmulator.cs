@@ -429,6 +429,11 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         private DateTime _serverTime;
 
+        public void ProcessTime(DateTime time)
+        {
+            _serverTime = time;
+        }
+
         /// <summary>
         /// get new last prices
         /// провести новые последние цены
@@ -436,7 +441,7 @@ namespace OsEngine.Market.Connectors
         /// <param name="sell"> best sell price / лучшая цена продажи </param>
         /// <param name="buy"> best buy price / лучшая цена покупки </param>
         /// <param name="time"> time / время </param>
-        public void ProcessBidAsc(decimal sell, decimal buy, DateTime time)
+        public void ProcessBidAsc(decimal sell, decimal buy)
         {
             if (sell == 0 || buy == 0)
             {
@@ -453,8 +458,6 @@ namespace OsEngine.Market.Connectors
                 _bestBuy = buy;
                 _bestSell = sell;
             }
-
-            _serverTime = time;
 
             for (int i = 0; ordersOnBoard != null && i < ordersOnBoard.Count; i++)
             {
