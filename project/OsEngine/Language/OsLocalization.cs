@@ -89,6 +89,9 @@ namespace OsEngine.Language
                 }
                 _curLocalization = value;
 
+                // System.Threading.Thread.CurrentThread.CurrentUICulture = OsLocalization.CurCulture;
+                // System.Threading.Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
+
                 LocalizationTypeChangeEvent?.Invoke();
                 Save();
             }
@@ -133,6 +136,9 @@ namespace OsEngine.Language
                     Enum.TryParse(reader.ReadLine(), true, out _curLocalization);
                     reader.Close();
                 }
+
+                // System.Threading.Thread.CurrentThread.CurrentUICulture = OsLocalization.CurCulture;
+                // System.Threading.Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
             }
             catch 
             {

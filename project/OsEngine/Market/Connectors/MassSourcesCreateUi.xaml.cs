@@ -678,7 +678,12 @@ namespace OsEngine.Market.Connectors
                             break;
                         }
                     }
+                }
 
+                if (ComboBoxPortfolio.SelectedItem == null
+                    && ComboBoxPortfolio.Items.Count != 0)
+                {
+                    ComboBoxPortfolio.SelectedItem = ComboBoxPortfolio.Items[0];
                 }
             }
             catch (Exception error)
@@ -731,6 +736,12 @@ namespace OsEngine.Market.Connectors
                 if (string.IsNullOrEmpty(_sorcesCreator.SecuritiesClass) == false)
                 {
                     ComboBoxClass.SelectedItem = _sorcesCreator.SecuritiesClass;
+                }
+
+                if (ComboBoxClass.SelectedItem == null
+                    && ComboBoxClass.Items.Count != 0)
+                {
+                    ComboBoxClass.SelectedItem = ComboBoxClass.Items[0];
                 }
 
             }

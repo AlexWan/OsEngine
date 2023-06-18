@@ -211,7 +211,6 @@ namespace OsEngine.Market.Servers
             }
         }
 
-
         // parameters / параметры
 
         /// <summary>

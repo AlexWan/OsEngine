@@ -680,6 +680,12 @@ namespace OsEngine.Market.Connectors
                     }
 
                 }
+
+                if(ComboBoxPortfolio.SelectedItem == null
+                    && ComboBoxPortfolio.Items.Count != 0)
+                {
+                    ComboBoxPortfolio.SelectedItem = ComboBoxPortfolio.Items[0];
+                }
             }
             catch (Exception error)
             {
@@ -731,6 +737,12 @@ namespace OsEngine.Market.Connectors
                 if (_connectorBot.Security != null)
                 {
                     ComboBoxClass.SelectedItem = _connectorBot.Security.NameClass;
+                }
+
+                if(ComboBoxClass.SelectedItem == null 
+                    && ComboBoxClass.Items.Count != 0)
+                {
+                    ComboBoxClass.SelectedItem = ComboBoxClass.Items[0];
                 }
 
             }

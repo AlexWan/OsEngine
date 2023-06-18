@@ -30,7 +30,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.AddNewOpenOrder(CreateOrder(security, direction, priceOrder, volume, priceType, timeLife, startProgram,OrderPositionConditionType.Open));
 
             newDeal.NameBot = botName;
-            newDeal.Lots = security.Lot;
+            //newDeal.Lots = security.Lot;
             newDeal.PriceStepCost = security.PriceStepCost;
             newDeal.PriceStep = security.PriceStep;
             newDeal.PortfolioValueOnOpenPosition = portfolio.ValueCurrent;

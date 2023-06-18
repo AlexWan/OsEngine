@@ -66,8 +66,6 @@ namespace OsEngine.PrimeSettings
 
         private static bool _transactionBeepIsActiv;
 
-
-
         public static bool RebootTradeUiLigth
         {
             get

@@ -686,6 +686,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                     }
                 }
+
+                if (ComboBoxPortfolio.SelectedItem == null
+                    && ComboBoxPortfolio.Items.Count != 0)
+                {
+                    ComboBoxPortfolio.SelectedItem = ComboBoxPortfolio.Items[0];
+                }
             }
             catch (Exception error)
             {
@@ -736,6 +742,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (string.IsNullOrEmpty(_screener.SecuritiesClass) == false)
                 {
                     ComboBoxClass.SelectedItem = _screener.SecuritiesClass;
+                }
+
+                if (ComboBoxClass.SelectedItem == null
+                    && ComboBoxClass.Items.Count != 0)
+                {
+                    ComboBoxClass.SelectedItem = ComboBoxClass.Items[0];
                 }
             }
             catch (Exception error)
