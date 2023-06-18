@@ -6,6 +6,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
 using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
@@ -153,7 +154,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private void ButtonColorUp_Click(object sender, RoutedEventArgs e) 
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostColorUp.Child.BackColor;
             dialog.ShowDialog();
             HostColorUp.Child.BackColor = dialog.Color;
@@ -165,7 +166,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private void ButtonColorDown_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostColorDown.Child.BackColor;
             dialog.ShowDialog();
             HostColorDown.Child.BackColor = dialog.Color;
@@ -177,7 +178,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private void ButtonColorBase_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostColorBase.Child.BackColor;
             dialog.ShowDialog();
             HostColorBase.Child.BackColor = dialog.Color;

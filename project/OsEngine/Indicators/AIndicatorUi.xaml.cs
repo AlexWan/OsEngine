@@ -276,7 +276,7 @@ namespace OsEngine.Indicators
 
                 if (cellIndex == 1)
                 {
-                    ColorDialog dialog = new ColorDialog();
+                    ColorCustomDialog dialog = new ColorCustomDialog();
                     dialog.Color = _gridVisual.Rows[rowIndex].Cells[1].Style.ForeColor;
                     dialog.ShowDialog();
 

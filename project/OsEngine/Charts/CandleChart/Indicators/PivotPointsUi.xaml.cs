@@ -4,6 +4,7 @@
 */
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using TextBox = System.Windows.Forms.TextBox;
@@ -80,7 +81,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonR1_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostR1.Child.BackColor;
             dialog.ShowDialog();
             HostR1.Child.BackColor = dialog.Color;
@@ -88,7 +89,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonR2_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostR2.Child.BackColor;
             dialog.ShowDialog();
             HostR2.Child.BackColor = dialog.Color;
@@ -96,7 +97,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonR3_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostR3.Child.BackColor;
             dialog.ShowDialog();
             HostR3.Child.BackColor = dialog.Color;
@@ -106,7 +107,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonS1_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostS1.Child.BackColor;
             dialog.ShowDialog();
             HostS1.Child.BackColor = dialog.Color;
@@ -114,7 +115,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonS2_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostS2.Child.BackColor;
             dialog.ShowDialog();
             HostS2.Child.BackColor = dialog.Color;
@@ -122,7 +123,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonS3_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostS3.Child.BackColor;
             dialog.ShowDialog();
             HostS3.Child.BackColor = dialog.Color;

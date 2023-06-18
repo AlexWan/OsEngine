@@ -373,6 +373,9 @@
       <DependentUpon>AwaitUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
+    <Compile Include="Entity\ColorCustomDialog.xaml.cs">
+      <DependentUpon>ColorCustomDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Entity\DataGridFactory.cs" />
     <Compile Include="Entity\DateTimeSelectionDialog.xaml.cs">
       <DependentUpon>DateTimeSelectionDialog.xaml</DependentUpon>
@@ -1283,6 +1286,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Entity\AwaitUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\ColorCustomDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

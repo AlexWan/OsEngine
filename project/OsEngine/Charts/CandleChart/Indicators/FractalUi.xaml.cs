@@ -5,6 +5,7 @@
 
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
 using OsEngine.Language;
 
 namespace OsEngine.Charts.CandleChart.Indicators
@@ -72,7 +73,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private void ButtonColorUp_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostColorUp.Child.BackColor;
             dialog.ShowDialog();
 
@@ -85,7 +86,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private void ButtonColorDown_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostColorDown.Child.BackColor;
             dialog.ShowDialog();
 

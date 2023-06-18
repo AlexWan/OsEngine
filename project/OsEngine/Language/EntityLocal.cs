@@ -288,7 +288,7 @@ namespace OsEngine.Language
             "Ru:Обновить_");
 
         public string ButtonCancel1 => OsLocalization.ConvertToLocString(
-            "Eng:Stop_" +
+            "Eng:No_" +
             "Ru:Нет_");
 
         public string ErrorSave => OsLocalization.ConvertToLocString(
@@ -450,5 +450,10 @@ namespace OsEngine.Language
         public string PositionBuyAtStopColumn11 => OsLocalization.ConvertToLocString(
              "Eng:Lifetime type_" +
              "Ru:Тип жизни заявки_");
+
+        public string CustomColorDialogUiTitle => OsLocalization.ConvertToLocString(
+             "Eng:Color dialog_" +
+             "Ru:Выбор цвета_");
+
     }
 }

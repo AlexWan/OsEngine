@@ -7,6 +7,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
 using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
@@ -128,7 +129,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonColorUp_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostEtalonLine.Child.BackColor;
             dialog.ShowDialog();
             HostEtalonLine.Child.BackColor = dialog.Color;
@@ -136,7 +137,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonColorDown_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostLineRounded.Child.BackColor;
             dialog.ShowDialog();
             HostLineRounded.Child.BackColor = dialog.Color;
@@ -144,7 +145,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonColorBase_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostLineLate.Child.BackColor;
             dialog.ShowDialog();
             HostLineLate.Child.BackColor = dialog.Color;
@@ -152,7 +153,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonFirst_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostColorFirst.Child.BackColor;
             dialog.ShowDialog();
             HostColorFirst.Child.BackColor = dialog.Color;
@@ -160,7 +161,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private void ButtonSecond_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostColorSecond.Child.BackColor;
             dialog.ShowDialog();
             HostColorSecond.Child.BackColor = dialog.Color;

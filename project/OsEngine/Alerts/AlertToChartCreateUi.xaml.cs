@@ -1020,7 +1020,7 @@ namespace OsEngine.Alerts
         /// </summary>
         private void ButtonColorLabel_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog ui = new ColorDialog();
+            ColorCustomDialog ui = new ColorCustomDialog();
 
             System.Windows.Media.Color labelColor = ((SolidColorBrush)ButtonColorLabel.Background).Color;
             ui.Color = System.Drawing.Color.FromArgb(labelColor.A, labelColor.R, labelColor.G, labelColor.B);
@@ -1040,7 +1040,7 @@ namespace OsEngine.Alerts
         /// </summary>
         private void ButtonColorLine_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog ui = new ColorDialog();
+            ColorCustomDialog ui = new ColorCustomDialog();
 
             System.Windows.Media.Color lineColor = ((SolidColorBrush)ButtonColorLine.Background).Color;
             ui.Color = System.Drawing.Color.FromArgb(lineColor.A, lineColor.R, lineColor.G, lineColor.B);

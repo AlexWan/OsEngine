@@ -5,6 +5,7 @@
 using System;
 using System.Windows;
 using System.Windows.Forms;
+using OsEngine.Entity;
 using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
@@ -99,7 +100,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private void ButtonColor_Click(object sender, RoutedEventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            ColorCustomDialog dialog = new ColorCustomDialog();
             dialog.Color = HostColorBase.Child.BackColor;
             dialog.ShowDialog();
             HostColorBase.Child.BackColor = dialog.Color;
