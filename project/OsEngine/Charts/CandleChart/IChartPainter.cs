@@ -141,6 +141,8 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="history">candles/свечи</param>
         void ProcessCandles(List<Candle> history);
 
+        int OpenChartScale { get; set; }
+
         // Deals / сделки
 
         /// <summary>

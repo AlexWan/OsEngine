@@ -735,6 +735,10 @@ position => position.State != PositionStateType.OpeningFail
 
                 for (int i = 0; i < journals.Count; i++)
                 {
+                    if(journals[i] == null)
+                    {
+                        continue;
+                    }
                     if (journals[i].OpenPositions == null ||
                         journals[i].OpenPositions.Count == 0)
                     {

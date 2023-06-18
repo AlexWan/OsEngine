@@ -1392,6 +1392,7 @@ namespace OsEngine.Charts.CandleChart
                     ResizeSeriesLabels();
                     RePaintRightLebels();
                     ResizeYAxisOnArea("Prime");
+                    MoveChartToTheRight();
                 }
                 ResizeXAxis();
             }
@@ -6534,7 +6535,6 @@ namespace OsEngine.Charts.CandleChart
             return max;
         }
 
-
         private double GetMinFromSeries(Series series, int start, int end, Series candleSeries)
         {
             double min = double.MaxValue;
@@ -6817,6 +6817,45 @@ namespace OsEngine.Charts.CandleChart
             _chart.ChartAreas[0].AxisX.ScaleView.Position = _myCandles.Count - values;
             
 
+        }
+
+        public int OpenChartScale 
+        {
+            get
+            {
+                
+                int value = 0;
+
+                if (double.IsNaN(_chart.ChartAreas[0].AxisX.ScaleView.Size))
+                {
+                    return 0;
+                }
+                else
+                {
+                    value = (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
+                }
+
+                return value;
+            }
+            set
+            {
+                if(value < 5)
+                {
+                    return;
+                }
+                ChangeOpenScaleSize(value);
+            }
+        }
+
+        private void ChangeOpenScaleSize(int value)
+        {
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action<int>(ChangeOpenScaleSize), value);
+                return;
+            }
+
+            _chart.ChartAreas[0].AxisX.ScaleView.Size = value;
         }
 
         /// <summary>

@@ -1492,6 +1492,12 @@ namespace OsEngine.Charts.CandleChart
                 }
                
                 PaintAlerts(_alertArray, true);
+
+                if(_lastStopChartScale > 10)
+                {
+                    ChartCandle.OpenChartScale = _lastStopChartScale;
+                    ChartCandle.MoveChartToTheRight();
+                }
             }
             catch (Exception error)
             {
@@ -1511,8 +1517,10 @@ namespace OsEngine.Charts.CandleChart
 
                 ChartCandle = null;
 
+                _lastStopChartScale = painter.OpenChartScale; 
                 painter.StopPaint();
                 painter.Delete();
+                
             }
            
             if (_grid != null)
@@ -1523,6 +1531,8 @@ namespace OsEngine.Charts.CandleChart
 
             //UpDateChartPainter();
         }
+
+        private int _lastStopChartScale = 0;
 
         /// <summary>
         /// clear chart
