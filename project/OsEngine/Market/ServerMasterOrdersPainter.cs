@@ -171,49 +171,58 @@ namespace OsEngine.Market
             {
                 await Task.Delay(5000);
 
-                if (MainWindow.ProccesIsWorked == false)
+                try
                 {
-                    return;
+
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    if (_needToPaintOrders)
+                    {
+                        _needToPaintOrders = false;
+
+                        //_orders
+
+                        List<Order> activeOrders = new List<Order>();
+
+                        List<Order> historicalOrders = new List<Order>();
+
+                        for (int i = 0; i < _orders.Count; i++)
+                        {
+                            if (_orders[i].State == OrderStateType.Activ
+                                || _orders[i].State == OrderStateType.Pending
+                                || _orders[i].State == OrderStateType.None)
+                            {
+                                activeOrders.Add(_orders[i]);
+                            }
+                            else
+                            {
+                                historicalOrders.Add(_orders[i]);
+                            }
+                        }
+
+                        SortOrders(activeOrders);
+                        SortOrders(historicalOrders);
+
+                        // высылаем на прорисовку отдельно
+
+                        if (_gridActiveOrders != null)
+                        {
+                            PaintOrders(activeOrders, _gridActiveOrders);
+                        }
+
+                        if (_gridHistoricalOrders != null)
+                        {
+                            PaintOrders(historicalOrders, _gridHistoricalOrders);
+                        }
+                    }
+
                 }
-
-                if (_needToPaintOrders)
+                catch (Exception error)
                 {
-                    _needToPaintOrders = false;
-
-                    //_orders
-
-                    List<Order> activeOrders = new List<Order>();
-
-                    List<Order> historicalOrders = new List<Order>();
-
-                    for (int i = 0; i < _orders.Count; i++)
-                    {
-                        if (_orders[i].State == OrderStateType.Activ 
-                            || _orders[i].State == OrderStateType.Pending
-                            || _orders[i].State == OrderStateType.None)
-                        {
-                            activeOrders.Add(_orders[i]);
-                        }
-                        else
-                        {
-                            historicalOrders.Add(_orders[i]);
-                        }
-                    }
-
-                    SortOrders(activeOrders);
-                    SortOrders(historicalOrders);
-
-                    // высылаем на прорисовку отдельно
-
-                    if (_gridActiveOrders != null)
-                    {
-                        PaintOrders(activeOrders, _gridActiveOrders);
-                    }
-
-                    if (_gridHistoricalOrders != null)
-                    {
-                        PaintOrders(historicalOrders, _gridHistoricalOrders);
-                    }
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }
         }
