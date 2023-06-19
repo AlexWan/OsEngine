@@ -543,6 +543,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     if (neeedPortf == null)
                     {
+                        PositionOnBoard newPos = new PositionOnBoard();
+                        newPos.PortfolioName = portfolio.Number;
+                        newPos.SecurityNameCode = onePortf.a;
+                        newPos.ValueBegin = onePortf.f.ToDecimal();
+                        newPos.ValueCurrent = onePortf.f.ToDecimal();
+                        portfolio.SetNewPosition(newPos);
+
                         continue;
                     }
 
@@ -588,6 +595,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     PositionOnBoard newPortf = new PositionOnBoard();
                     newPortf.SecurityNameCode = onePortf.asset;
+
                     newPortf.ValueBegin =
                         onePortf.free.ToDecimal();
                     newPortf.ValueCurrent =

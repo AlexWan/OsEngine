@@ -251,11 +251,6 @@ namespace OsEngine.Market
                     // ignore
                 }
 
-                while (_portfolios != null && _portfolios.Count > 250)
-                {
-                    _portfolios.RemoveAt(500);
-                }
-
                 for(int i = 0;i < _portfolios.Count;i++)
                 {
                     Portfolio port = _portfolios[i];
@@ -263,13 +258,6 @@ namespace OsEngine.Market
                     if (port == null)
                     {
                         continue;
-                    }
-                    List<PositionOnBoard> poses = port.GetPositionOnBoard();
-                    
-                    while (poses != null &&
-                        poses.Count > 500)
-                    {
-                        poses.RemoveAt(500);
                     }
                 }
 
