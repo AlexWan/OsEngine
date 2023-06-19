@@ -7,9 +7,6 @@ using System.Reflection;
 using System.Windows;
 using Microsoft.CSharp;
 using OsEngine.Entity;
-using OsEngine.OsTrader.Panels.Attributes;
-using OsEngine.OsTrader.Panels;
-using System.Windows.Media;
 
 namespace OsEngine.Indicators
 {
@@ -50,15 +47,6 @@ namespace OsEngine.Indicators
             }
 
             return indicators;
-        }
-
-        private static Aindicator CreateIndicatorWithAttribute(string typeName, string name, bool canDelete)
-        {
-            Type indicatorType = IndicatorsWithAttribute[typeName];
-
-            var indicator = (Aindicator)Activator.CreateInstance(indicatorType, name, canDelete);
-
-            return indicator;
         }
 
         public static List<string> GetIndicatorsNames()
