@@ -932,5 +932,9 @@ namespace OsEngine.Language
         public string Label230 => OsLocalization.ConvertToLocString(
           "Eng:Close time_" +
           "Ru:Время закрытия_");
+
+        public string Label231 => OsLocalization.ConvertToLocString(
+          "Eng:As soon as the first security is connected, the position support setting will be available_" +
+          "Ru:Как только подключится первый инструмент, настройка поддержки позиции будет доступна_");
     }
 }

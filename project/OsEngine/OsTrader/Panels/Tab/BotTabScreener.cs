@@ -1260,6 +1260,23 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
+        #region Настройки сопровождения позиций
+
+        public void ShowManualControlDialog()
+        {
+            if(Tabs.Count == 0)
+            {
+                SendNewLogMessage(OsLocalization.Trader.Label231, LogMessageType.Error);
+                return;
+            }
+
+            Tabs[0].ShowManualControlDialog();
+            SuncFirstTab();
+        }
+
+        #endregion
+
+
         #region создание / удаление / хранение индикаторов
 
         /// <summary>
@@ -1470,23 +1487,54 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void SuncFirstTab()
         {
-            if (Tabs.Count <= 1)
+            try
             {
-                return;
+                if (Tabs.Count <= 1)
+                {
+                    return;
+                }
+
+                BotTabSimple firstTab = Tabs[0];
+
+                for (int i = 1; i < Tabs.Count; i++)
+                {
+                    SyncTabsIndicators(firstTab, Tabs[i]);
+                    SyncTabsManualPositionControl(firstTab, Tabs[i]);
+                }
             }
-
-            BotTabSimple firstTab = Tabs[0];
-
-            for (int i = 1; i < Tabs.Count; i++)
+            catch (Exception error)
             {
-                SyncTabs(firstTab, Tabs[i]);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void SyncTabsManualPositionControl(BotTabSimple first, BotTabSimple second)
+        {
+            second.ManualPositionSupport.SecondToClose = first.ManualPositionSupport.SecondToClose;
+            second.ManualPositionSupport.SecondToOpen = first.ManualPositionSupport.SecondToOpen;
+            second.ManualPositionSupport.DoubleExitIsOn = first.ManualPositionSupport.DoubleExitIsOn;
+            second.ManualPositionSupport.DoubleExitSlipage = first.ManualPositionSupport.DoubleExitSlipage;
+            second.ManualPositionSupport.ProfitDistance = first.ManualPositionSupport.ProfitDistance;
+            second.ManualPositionSupport.ProfitIsOn = first.ManualPositionSupport.ProfitIsOn;
+            second.ManualPositionSupport.ProfitSlipage = first.ManualPositionSupport.ProfitSlipage;
+            second.ManualPositionSupport.SecondToCloseIsOn = first.ManualPositionSupport.SecondToCloseIsOn;
+            second.ManualPositionSupport.SecondToOpenIsOn = first.ManualPositionSupport.SecondToOpenIsOn;
+            second.ManualPositionSupport.SetbackToCloseIsOn = first.ManualPositionSupport.SetbackToCloseIsOn;
+            second.ManualPositionSupport.SetbackToClosePosition = first.ManualPositionSupport.SetbackToOpenPosition;
+            second.ManualPositionSupport.SetbackToOpenIsOn = first.ManualPositionSupport.SetbackToOpenIsOn;
+            second.ManualPositionSupport.SetbackToOpenPosition = first.ManualPositionSupport.SetbackToOpenPosition;
+            second.ManualPositionSupport.StopDistance = first.ManualPositionSupport.StopDistance;
+            second.ManualPositionSupport.StopIsOn = first.ManualPositionSupport.StopIsOn;
+            second.ManualPositionSupport.StopSlipage = first.ManualPositionSupport.StopSlipage;
+            second.ManualPositionSupport.TypeDoubleExitOrder = first.ManualPositionSupport.TypeDoubleExitOrder;
+            second.ManualPositionSupport.ValuesType = first.ManualPositionSupport.ValuesType;
+
         }
 
         /// <summary>
         /// синхронизировать две вкладки
         /// </summary>
-        private void SyncTabs(BotTabSimple first, BotTabSimple second)
+        private void SyncTabsIndicators(BotTabSimple first, BotTabSimple second)
         {
             List<IIndicator> indicatorsFirst = first.Indicators;
 

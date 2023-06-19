@@ -614,6 +614,12 @@ namespace OsEngine.OsOptimizer
 
         void _master_NewSecurityEvent(List<Security> securities)
         {
+            if(securities == null
+                || securities.Count == 0)
+            {
+                return;
+            }
+
             PaintTableTabsSimple();
             PaintTableTabsIndex();
         }
@@ -794,7 +800,6 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
-
 
             _gridTableTabsSimple.Rows.Clear();
             List<string> names = new List<string>();
