@@ -1776,6 +1776,8 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public List<Trade>[] AllTrades { get { return _allTrades; } }
 
+        private string _newTradesLocker = "tradesLocker";
+
         /// <summary>
         /// came new ticks
         /// пришли новые тики
@@ -1784,6 +1786,11 @@ namespace OsEngine.Market.Servers
         {
             try
             {
+                if(trade == null)
+                {
+                    return;
+                }
+
                 if (trade.Price <= 0)
                 {
                     return;
@@ -1796,71 +1803,63 @@ namespace OsEngine.Market.Servers
                     BathTradeMarketDepthData(trade);
                 }
 
-                if (trade == null)
+                lock(_newTradesLocker)
                 {
-                    return;
-                }
-
-                // save / сохраняем
-                if (_allTrades == null)
-                {
-                    _allTrades = new List<Trade>[1];
-                    _allTrades[0] = new List<Trade> { trade };
-                }
-                else
-                {
-                    // sort trades by storages / сортируем сделки по хранилищам
-                    List<Trade> myList = null;
-                    bool isSave = false;
-                    for (int i = 0; i < _allTrades.Length; i++)
+                    // save / сохраняем
+                    if (_allTrades == null)
                     {
-                        List<Trade> curList = _allTrades[i];
-
-                        if (curList == null || curList.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        if (curList[0].SecurityNameCode != trade.SecurityNameCode)
-                        {
-                            continue;
-                        }
-
-                        if (trade.Time < curList[curList.Count - 1].Time)
-                        {
-                            return;
-                        }
-
-                        curList.Add(trade);
-                        myList = curList;
-                        isSave = true;
-                        break;
-
+                        _allTrades = new List<Trade>[1];
+                        _allTrades[0] = new List<Trade> { trade };
                     }
-
-                    if (isSave == false)
+                    else
                     {
-                        // there is no storage for instrument / хранилища для инструмента нет
-                        List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
+                        // sort trades by storages / сортируем сделки по хранилищам
+                        List<Trade> myList = null;
+                        bool isSave = false;
                         for (int i = 0; i < _allTrades.Length; i++)
                         {
-                            allTradesNew[i] = _allTrades[i];
+                            List<Trade> curList = _allTrades[i];
+
+                            if (curList == null
+                                || curList.Count == 0
+                                || curList[0] == null)
+                            {
+                                continue;
+                            }
+
+                            if (curList[0].SecurityNameCode != trade.SecurityNameCode)
+                            {
+                                continue;
+                            }
+
+                            if (trade.Time < curList[curList.Count - 1].Time)
+                            {
+                                return;
+                            }
+
+                            curList.Add(trade);
+                            myList = curList;
+                            isSave = true;
+                            break;
                         }
 
-                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                        allTradesNew[allTradesNew.Length - 1].Add(trade);
-                        myList = allTradesNew[allTradesNew.Length - 1];
-                        _allTrades = allTradesNew;
-                    }
-                    /*
-                    if (_needToRemoveTradesFromMemory.Value == true &&
-                        myList.Count > 100)
-                    {
-                        myList[myList.Count - 100] = null;
-                    }
-                    */
+                        if (isSave == false)
+                        {
+                            // there is no storage for instrument / хранилища для инструмента нет
+                            List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
+                            for (int i = 0; i < _allTrades.Length; i++)
+                            {
+                                allTradesNew[i] = _allTrades[i];
+                            }
 
-                    _tradesToSend.Enqueue(myList);
+                            allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
+                            allTradesNew[allTradesNew.Length - 1].Add(trade);
+                            myList = allTradesNew[allTradesNew.Length - 1];
+                            _allTrades = allTradesNew;
+                        }
+
+                        _tradesToSend.Enqueue(myList);
+                    }
                 }
             }
             catch (Exception error)

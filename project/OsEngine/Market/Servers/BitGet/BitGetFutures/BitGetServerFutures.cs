@@ -537,6 +537,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             trade.Price = responseTrade.data[0][1].ToDecimal();
             trade.Id = responseTrade.data[0][0];
+
+            if(trade.Id == null)
+            {
+                return;
+            }
             trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data[0][0]));
             trade.Volume = responseTrade.data[0][2].ToDecimal();
             trade.Side = responseTrade.data[0][3].Equals("buy") ? Side.Buy : Side.Sell;
