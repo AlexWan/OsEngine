@@ -678,6 +678,8 @@ namespace OsEngine.Market.Servers.OKX
                     }
                 }
 
+                security.Exchange = ServerType.OKX.ToString();
+
                 security.NameId = item.instId;
                 security.SecurityType = securityType;
 
