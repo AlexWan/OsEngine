@@ -65,7 +65,7 @@ namespace OsEngine.Entity
             colum0.CellTemplate = cell0;
             colum0.HeaderText = "";
             colum0.ReadOnly = true;
-            colum0.Width = 250;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum0);
 
             // Check Box
@@ -73,7 +73,8 @@ namespace OsEngine.Entity
             DataGridViewColumn colum01 = new DataGridViewColumn();
             colum01.CellTemplate = cell0;
             colum01.HeaderText = "";
-            colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colum01.Width = 50;
+            
             colum01.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             _grid.Columns.Add(colum01);
 
