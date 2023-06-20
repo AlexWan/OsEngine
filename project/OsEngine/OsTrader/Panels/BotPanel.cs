@@ -199,7 +199,7 @@ namespace OsEngine.OsTrader.Panels
         /// </summary> 
         public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost glass, WindowsFormsHost hostOpenDeals,
             WindowsFormsHost hostCloseDeals, WindowsFormsHost boxLog, Rectangle rectangle, WindowsFormsHost hostAlerts,
-            TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel)
+            TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, TextBox textBoxVolume)
         {
             if (_isPainting)
             {
@@ -216,7 +216,7 @@ namespace OsEngine.OsTrader.Panels
             _hostAlerts = hostAlerts;
             _textBoxLimitPrice = textBoxLimitPrice;
             _gridChartControlPanel = gridChartControlPanel;
-
+            _textBoxVolume = textBoxVolume;
             try
             {
                 if (_tabBotTab == null)
@@ -227,9 +227,9 @@ namespace OsEngine.OsTrader.Panels
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
                     _tabBotTab.Dispatcher.Invoke(new Action<Grid, WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
-                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid>
+                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid, TextBox>
                     (StartPaint), gridChart, hostChart, glass, hostOpenDeals, hostCloseDeals,
-                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, gridChartControlPanel);
+                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, gridChartControlPanel,textBoxVolume);
                     return;
                 }
 
@@ -310,6 +310,7 @@ namespace OsEngine.OsTrader.Panels
                 _hostAlerts = null;
                 _textBoxLimitPrice = null;
                 _gridChartControlPanel = null;
+                _textBoxVolume = null;
 
                 _isPainting = false;
                 ReloadTab();
@@ -328,6 +329,7 @@ namespace OsEngine.OsTrader.Panels
         private Rectangle _rectangle;
         private WindowsFormsHost _hostAlerts;
         private TextBox _textBoxLimitPrice;
+        private TextBox _textBoxVolume;
         private Grid _gridChartControlPanel;
 
         /// <summary>
@@ -1515,7 +1517,7 @@ position => position.State != PositionStateType.OpeningFail
                 if (ActivTab.GetType().Name == "BotTabSimple")
                 {
                     ((BotTabSimple)ActivTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
-                        _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel);
+                        _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel, _textBoxVolume);
                 }
                 else if (ActivTab.GetType().Name == "BotTabIndex")
                 {

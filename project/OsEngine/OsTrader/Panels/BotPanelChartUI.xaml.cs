@@ -207,7 +207,7 @@ namespace OsEngine.OsTrader.Panels
         {
             _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
              HostClosePosition, HostBotLog, RectChart,
-             HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel);
+             HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, TextBoxVolumeFast);
         }
 
         private BotPanel _panel;

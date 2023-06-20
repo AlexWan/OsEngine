@@ -159,12 +159,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Start drawing this robot
         /// </summary>
         public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost hostGlass, WindowsFormsHost hostOpenDeals,
-                     WindowsFormsHost hostCloseDeals, Rectangle rectangleChart, WindowsFormsHost hostAlerts, TextBox textBoxLimitPrice, Grid gridChartControlPanel)
+                     WindowsFormsHost hostCloseDeals, Rectangle rectangleChart, WindowsFormsHost hostAlerts, TextBox textBoxLimitPrice, Grid gridChartControlPanel, TextBox textBoxVolume)
         {
             try
             {
                 _chartMaster?.StartPaint(gridChart, hostChart, rectangleChart);
-                _marketDepthPainter?.StartPaint(hostGlass, textBoxLimitPrice);
+                _marketDepthPainter?.StartPaint(hostGlass, textBoxLimitPrice, textBoxVolume);
                 _journal?.StartPaint(hostOpenDeals, hostCloseDeals);
 
                 _alerts?.StartPaint(hostAlerts);

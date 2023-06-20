@@ -208,7 +208,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             _marketDepthPainter = new MarketDepthPainter(Tab.TabName + "OpenPosGui");
             _marketDepthPainter.ProcessMarketDepth(Tab.MarketDepth);
-            _marketDepthPainter.StartPaint(WinFormsHostMarketDepth, null);
+            _marketDepthPainter.StartPaint(WinFormsHostMarketDepth, null,null);
             _marketDepthPainter.UserClickOnMDAndSelectPriceEvent += _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
         }
 

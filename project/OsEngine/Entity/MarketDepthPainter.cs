@@ -77,6 +77,7 @@ namespace OsEngine.Entity
                 }
             }
         }
+
         // main class
         // основной класс
 
@@ -131,11 +132,9 @@ namespace OsEngine.Entity
         /// </summary>
         DataGridView _glassBox;
 
-        /// <summary>
-        /// element for drawing the price selected by the user
-        /// элемент для отрисовки выбранной пользователем цены
-        /// </summary>
         private System.Windows.Controls.TextBox _textBoxLimitPrice;
+
+        private System.Windows.Controls.TextBox _textBoxVolume;
 
         /// <summary>
         /// Last price selected by the user
@@ -325,13 +324,13 @@ namespace OsEngine.Entity
         /// to start drawing the connector elements
         /// начать прорисовывать элементы коннектора
         /// </summary>
-        public void StartPaint(WindowsFormsHost glass, System.Windows.Controls.TextBox textBoxLimitPrice)
+        public void StartPaint(WindowsFormsHost glass, System.Windows.Controls.TextBox textBoxLimitPrice, System.Windows.Controls.TextBox textBoxVolume)
         {
             try
             {
                 if (glass.Dispatcher.CheckAccess() == false)
                 {
-                    glass.Dispatcher.Invoke(new Action<WindowsFormsHost, System.Windows.Controls.TextBox>(StartPaint), glass, textBoxLimitPrice);
+                    glass.Dispatcher.Invoke(new Action<WindowsFormsHost, System.Windows.Controls.TextBox, System.Windows.Controls.TextBox>(StartPaint), glass, textBoxLimitPrice,textBoxVolume);
                     return;
                 }
 
@@ -340,10 +339,26 @@ namespace OsEngine.Entity
                     CreateGlass();
                     TryPaintMarketDepth();
                 }
+
+                if(textBoxVolume != null)
+                {
+                    _textBoxVolume = textBoxVolume;
+
+                    if(string.IsNullOrEmpty(_lastVolumeText) == false)
+                    {
+                        _textBoxVolume.Text = _lastVolumeText;
+                    }
+                }
                 
                 if(textBoxLimitPrice != null)
                 {
                     _textBoxLimitPrice = textBoxLimitPrice;
+
+                    if(string.IsNullOrEmpty(_lastPriceText) == false)
+                    {
+                        _textBoxLimitPrice.Text = _lastPriceText;
+                    }
+
                     _textBoxLimitPrice.TextChanged += _textBoxLimitPrice_TextChanged;
                     _textBoxLimitPrice.Text = Convert.ToDouble(_lastSelectPrice).ToString(new CultureInfo("RU-ru"));
                 }
@@ -361,6 +376,10 @@ namespace OsEngine.Entity
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private string _lastPriceText;
+
+        private string _lastVolumeText; 
 
         /// <summary>
         /// Stop drawing connector elements
@@ -383,7 +402,14 @@ namespace OsEngine.Entity
                 if (_textBoxLimitPrice != null)
                 {
                     _textBoxLimitPrice.TextChanged -= _textBoxLimitPrice_TextChanged;
+                    _lastPriceText = _textBoxLimitPrice.Text;
                     _textBoxLimitPrice = null;
+                }
+
+                if(_textBoxVolume != null)
+                {
+                    _lastVolumeText = _textBoxVolume.Text;
+                    _textBoxVolume = null;
                 }
 
                 if (_hostGlass != null)
