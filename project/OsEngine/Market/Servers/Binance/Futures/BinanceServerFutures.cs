@@ -906,6 +906,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             security.Name = secName;
             security.NameFull = secName;
             security.NameClass = "FutHistory";
+            security.Exchange = ServerType.BinanceFutures.ToString();
             security.NameId = secName;
             security.SecurityType = SecurityType.Futures;
             security.Lot = sec.Lot;
