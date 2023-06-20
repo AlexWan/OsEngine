@@ -939,8 +939,9 @@
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionOpenUi2.xaml.cs">
       <DependentUpon>PositionOpenUi2.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Robots\AutoTestBots\ServerTests\WTestBotMarketDepth.cs" />
-    <Compile Include="Robots\AutoTestBots\ServerTests\WTestBotSecurities.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\AServerTester.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\MarketDepthTester.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\SecuritiesTester.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotCandlesComparison.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotConnection.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotConnectionParams.xaml.cs">
