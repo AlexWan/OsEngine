@@ -270,7 +270,6 @@ namespace OsEngine.Market.Servers.Hitbtc
                 {
                     NumberOrderParent = result.clientOrderId,
                     Side = result.side == "sell" ? Side.Sell : Side.Buy,
-                    NumberPosition = Convert.ToString(needCoupler.OsOrderNumberUser),
                     SecurityNameCode = result.symbol,
                     Price =
                         result.price.ToDecimal()

@@ -5,7 +5,6 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 
 namespace OsEngine.Entity
 {

@@ -1389,10 +1389,10 @@ namespace OsEngine.Charts.CandleChart
 
                     ReloadAreaSizes();
                     PaintAllCandles(history);
+                    MoveChartToTheRight();
                     ResizeSeriesLabels();
                     RePaintRightLebels();
                     ResizeYAxisOnArea("Prime");
-                    MoveChartToTheRight();
                 }
                 ResizeXAxis();
             }

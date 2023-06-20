@@ -191,15 +191,17 @@ namespace OsEngine.Market
 
                         for (int i = 0; i < _orders.Count; i++)
                         {
-                            if (_orders[i].State == OrderStateType.Activ
-                                || _orders[i].State == OrderStateType.Pending
-                                || _orders[i].State == OrderStateType.None)
+                            Order order = _orders[i];
+
+                            if (order.State == OrderStateType.Activ
+                                || order.State == OrderStateType.Pending
+                                || order.State == OrderStateType.None)
                             {
-                                activeOrders.Add(_orders[i]);
+                                activeOrders.Add(order);
                             }
                             else
                             {
-                                historicalOrders.Add(_orders[i]);
+                                historicalOrders.Add(order);
                             }
                         }
 

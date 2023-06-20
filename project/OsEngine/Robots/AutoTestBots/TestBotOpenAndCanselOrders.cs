@@ -3,16 +3,11 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
-using OsEngine.Market.Servers;
-using OsEngine.Charts.CandleChart;
-using System;
 using System.Threading;
-using OsEngine.Charts.CandleChart.Indicators;
 
 namespace OsEngine.Robots.AutoTestBots
 {
