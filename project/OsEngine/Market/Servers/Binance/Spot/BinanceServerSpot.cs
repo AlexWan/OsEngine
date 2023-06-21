@@ -477,11 +477,19 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     needDepth.Asks = ascs;
                     needDepth.Bids = bids;
                     needDepth.Time = ServerTime;
-
+                   
                     if (needDepth.Time == DateTime.MinValue)
                     {
                         return;
                     }
+
+                    if(needDepth.Time == _lastTimeMd)
+                    {
+                        _lastTimeMd = _lastTimeMd.AddMilliseconds(1);
+                        needDepth.Time = _lastTimeMd;
+                    }
+
+                    _lastTimeMd = needDepth.Time;
 
                     if (MarketDepthEvent != null)
                     {
@@ -494,6 +502,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private DateTime _lastTimeMd = DateTime.MinValue;
 
         #region Портфели
 

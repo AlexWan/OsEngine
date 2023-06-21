@@ -90,8 +90,8 @@ namespace OsEngine.Market.Servers
         void CancelAllOrdersToSecurity(Security security);
 
         /// <summary>
-        /// subscribe to candles
-        /// подписаться на свечи
+        /// subscribe to trades and market depth
+        /// подписаться на трейды и стаканы
         /// </summary>
         void Subscrible(Security security);
 

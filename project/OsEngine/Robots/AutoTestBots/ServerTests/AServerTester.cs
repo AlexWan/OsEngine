@@ -15,18 +15,20 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         public WServerTester(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            StrategyParameterButton button = CreateParameterButton("Start Test");
-            button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
+            StrategyParameterButton buttonSecTests = CreateParameterButton("Start sec Test", "sec");
+            buttonSecTests.UserClickOnButtonEvent += ButtonSecTests_UserClickOnButtonEvent;
 
-            SecuriteisTestIsOn = CreateParameter("Securities test is on", true);
-
-            MarketDepthTestIsOn = CreateParameter("Market Depth test is on", true);
-
+            StrategyParameterButton buttonMarketDepth = CreateParameterButton("Start md Test", "md");
+            buttonMarketDepth.UserClickOnButtonEvent += ButtonMarketDepth_UserClickOnButtonEvent;
+            MarketDepthSecToTestCount = CreateParameter("Securities count", 5, 5, 5, 1, "md");
+            MarketDepthMinutesToTest = CreateParameter("Md tester work time minutes", 5, 5, 5, 1, "md");
         }
 
-        StrategyParameterBool SecuriteisTestIsOn;
 
-        StrategyParameterBool MarketDepthTestIsOn;
+
+        StrategyParameterInt MarketDepthSecToTestCount;
+        StrategyParameterInt MarketDepthMinutesToTest;
+
 
         public override string GetNameStrategyType()
         {
@@ -38,16 +40,33 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         }
 
-        private void Button_UserClickOnButtonEvent()
+        private void ButtonMarketDepth_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.MarketDepth;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonSecTests_UserClickOnButtonEvent()
         {
             if(_threadIsWork == true)
             {
                 return;
             }
 
+            CurTestType = ServerTestType.Security;
+
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
         }
+
+        private ServerTestType CurTestType;
 
         private void WorkerThreadArea()
         {
@@ -65,25 +84,34 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for(int i = 0; servers != null && i < servers.Count;i++)
             {
-                if(SecuriteisTestIsOn.ValueBool == true)
+                string servType = servers[i].GetType().BaseType.ToString();
+
+                if (servType.EndsWith("AServer") == false) 
+                {
+                    continue;
+                }
+
+                if(CurTestType == ServerTestType.Security)
                 {
                     SecuritiesTester tester = new SecuritiesTester();
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
-                    tester.Server = servers[i];
-                    SendNewLogMessage("Securities tests started", LogMessageType.Error);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Securities tests started " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
 
-                if(MarketDepthTestIsOn.ValueBool == true)
+                else if(CurTestType == ServerTestType.MarketDepth)
                 {
                     MarketDepthTester tester = new MarketDepthTester();
+                    tester.MinutesToTest = MarketDepthMinutesToTest.ValueInt;
+                    tester.CountSecuritiesToConnect = MarketDepthSecToTestCount.ValueInt;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
-                    tester.Server = servers[i];
-                    SendNewLogMessage("Market depth tests started", LogMessageType.Error);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Market depth tests started " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
             }
@@ -127,9 +155,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         }
     }
 
+    public enum ServerTestType
+    {
+        Security,
+        MarketDepth
+
+    }
+
     public abstract class AServerTester
     {
-        public IServer Server
+        public AServer Server
         {
             get
             {
@@ -162,7 +197,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             else
             {
                 report += "STATUS: FAIL \n";
-                report += "Erors: \n";
+                report += "Errors: \n";
 
                 for(int i = 0;i < _errors.Count;i++)
                 {
@@ -170,7 +205,24 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
+            if(_serviceInfo.Count != 0)
+            {
+                report += "\n SERVICE INFO \n";
+
+                for (int i = 0; i < _serviceInfo.Count; i++)
+                {
+                    report += (i + 1) + "  " + _serviceInfo[i] + "\n";
+                }
+            }
+
             return report;
+        }
+
+        List<string> _serviceInfo = new List<string>();
+
+        public void SetNewServiceInfo(string serviceInfo)
+        {
+            _serviceInfo.Add(serviceInfo);
         }
 
         List<string> _errors = new List<string>();
@@ -188,7 +240,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             _errors.Add(error);
         }
 
-        public IServer _myServer;
+        public AServer _myServer;
 
         public event Action<string, LogMessageType> LogMessage;
 

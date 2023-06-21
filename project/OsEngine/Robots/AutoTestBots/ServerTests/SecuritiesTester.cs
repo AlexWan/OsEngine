@@ -15,6 +15,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 securities.Count > 0)
             {
                 CheckSecurities(securities, Server.ServerType);
+                SetNewServiceInfo("Securities count: " + securities.Count);
             }
             else
             {
