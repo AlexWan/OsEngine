@@ -442,7 +442,17 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 for (int i = 0; i < openDeals.Count; i++)
                 {
-                    Position position = openDeals[i];
+                    Position position = null;
+                    try
+                    {
+                        position = openDeals[i];
+                    }
+                    catch
+                    {
+                        continue;
+                        // ignore
+                    }
+                    
 
                     for (int i2 = 0; position.OpenOrders != null && i2 < position.OpenOrders.Count; i2++)
                     {
@@ -465,7 +475,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         {
                             SendNewLogMessage(OsLocalization.Trader.Label70 + openOrder.NumberMarket,
                                 LogMessageType.Trade);
-                            SendOrderToClose(openOrder, openDeals[i]);
+                            SendOrderToClose(openOrder, position);
                         }
 
                         if (SetbackToOpenIsOn &&
@@ -477,7 +487,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             {
                                 SendNewLogMessage(OsLocalization.Trader.Label157 + openOrder.NumberMarket,
                                     LogMessageType.Trade);
-                                SendOrderToClose(openOrder, openDeals[i]);
+                                SendOrderToClose(openOrder, position);
                             }
                         }
 
@@ -490,7 +500,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             {
                                 SendNewLogMessage(OsLocalization.Trader.Label157 + openOrder.NumberMarket,
                                     LogMessageType.Trade);
-                                SendOrderToClose(openOrder, openDeals[i]);
+                                SendOrderToClose(openOrder, position);
                             }
                         }
                     }
@@ -516,7 +526,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         {
                             SendNewLogMessage(OsLocalization.Trader.Label70 + closeOrder.NumberMarket,
                                 LogMessageType.Trade);
-                            SendOrderToClose(closeOrder, openDeals[i]);
+                            SendOrderToClose(closeOrder, position);
                         }
 
                         if (SetbackToCloseIsOn &&
@@ -529,7 +539,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             {
                                 SendNewLogMessage(OsLocalization.Trader.Label157 + closeOrder.NumberMarket,
                                     LogMessageType.Trade);
-                                SendOrderToClose(closeOrder, openDeals[i]);
+                                SendOrderToClose(closeOrder, position);
                             }
                         }
 
@@ -543,7 +553,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             {
                                 SendNewLogMessage(OsLocalization.Trader.Label157 + closeOrder.NumberMarket,
                                     LogMessageType.Trade);
-                                SendOrderToClose(closeOrder, openDeals[i]);
+                                SendOrderToClose(closeOrder, position);
                             }
                         }
                     }
