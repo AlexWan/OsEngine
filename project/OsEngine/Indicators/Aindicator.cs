@@ -630,7 +630,8 @@ namespace OsEngine.Indicators
                     }
                     else
                     {
-                        DataSeries[i].Values.Add(DataSeries[i].Values[DataSeries[i].Values.Count-1]);
+                        DataSeries[i].Values.Add(0);
+                        // DataSeries[i].Values.Add(DataSeries[i].Values[DataSeries[i].Values.Count-1]);
                     }
                 }
             }
