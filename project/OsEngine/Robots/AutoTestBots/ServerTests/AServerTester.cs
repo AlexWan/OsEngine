@@ -15,20 +15,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         public WServerTester(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            StrategyParameterButton buttonSecTests = CreateParameterButton("Start sec Test", "sec");
+            StrategyParameterButton buttonSecTests = CreateParameterButton("Start test sec1", "sec");
             buttonSecTests.UserClickOnButtonEvent += ButtonSecTests_UserClickOnButtonEvent;
 
-            StrategyParameterButton buttonMarketDepth = CreateParameterButton("Start md Test", "md");
+            StrategyParameterButton buttonMarketDepth = CreateParameterButton("Start test md1", "md");
             buttonMarketDepth.UserClickOnButtonEvent += ButtonMarketDepth_UserClickOnButtonEvent;
             MarketDepthSecToTestCount = CreateParameter("Securities count", 5, 5, 5, 1, "md");
             MarketDepthMinutesToTest = CreateParameter("Md tester work time minutes", 5, 5, 5, 1, "md");
+
+            StrategyParameterButton buttonDataTest1 = CreateParameterButton("Start test data1", "data1");
+            buttonDataTest1.UserClickOnButtonEvent += ButtonDataTest1_UserClickOnButtonEvent;
+            SecurityNameDataTest1 = CreateParameter("Sec name data test 1", "ADAUSDT","data1");
+
         }
-
-
 
         StrategyParameterInt MarketDepthSecToTestCount;
         StrategyParameterInt MarketDepthMinutesToTest;
-
+        StrategyParameterString SecurityNameDataTest1;
 
         public override string GetNameStrategyType()
         {
@@ -38,6 +41,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         public override void ShowIndividualSettingsDialog()
         {
 
+        }
+
+        private void ButtonDataTest1_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.DataTest1;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
         }
 
         private void ButtonMarketDepth_UserClickOnButtonEvent()
@@ -101,7 +117,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     SendNewLogMessage("Securities tests started " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
-
                 else if(CurTestType == ServerTestType.MarketDepth)
                 {
                     MarketDepthTester tester = new MarketDepthTester();
@@ -112,6 +127,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     _testers.Add(tester);
                     tester.Server = (AServer)servers[i];
                     SendNewLogMessage("Market depth tests started " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
+                else if (CurTestType == ServerTestType.DataTest1)
+                {
+                    DataTest1_IntegrityOfData tester = new DataTest1_IntegrityOfData();
+                    tester.SecName = SecurityNameDataTest1.ValueString;
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Data test 1 started " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
             }
@@ -158,7 +184,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     public enum ServerTestType
     {
         Security,
-        MarketDepth
+        MarketDepth,
+        DataTest1
 
     }
 
