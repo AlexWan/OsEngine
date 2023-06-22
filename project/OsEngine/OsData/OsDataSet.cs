@@ -1555,7 +1555,7 @@ namespace OsEngine.OsData
 
             List<Trade> trades =
                 server.GetTickDataToSecurity(
-                    id, SecClass, pie.Start, pie.End, pie.Start, false);
+                    id, SecClass, pie.Start, pie.End.AddDays(1), pie.Start, false);
 
             /*  tradesIsLoad =
       _myServer.GetTickDataToSecurity(loadSec.Id, loadSec.Class,

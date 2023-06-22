@@ -237,6 +237,18 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 return null;
             }
 
+            for(int i = candles.Count-1;i >= 0;i--)
+            {
+                if (candles[i].TimeStart <= endTime)
+                {
+                    break;
+                }
+                if (candles[i].TimeStart > endTime)
+                {
+                    candles.RemoveAt(i);
+                }
+            }
+
             return candles;
         }
 
@@ -251,15 +263,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 return null;
             }
 
-            endTime = endTime.AddDays(1);
-
             string markerDateTime = "";
 
             List<Trade> trades = new List<Trade>();
 
             DateTime startOver = startTime;
-
-
 
             long lastId = 0;
 
@@ -350,8 +358,17 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 return null;
             }
 
-            while (trades.Last().Time >= endTime)
-                trades.Remove(trades.Last());
+            for (int i = trades.Count - 1; i >= 0; i--)
+            {
+                if (trades[i].Time <= endTime)
+                {
+                    break;
+                }
+                if (trades[i].Time > endTime)
+                {
+                    trades.RemoveAt(i);
+                }
+            }
 
 
             return trades;
