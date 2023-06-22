@@ -188,6 +188,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             List<Candle> candles = new List<Candle>();
 
+            if(actualTime > endTime)
+            {
+                return null;
+            }
+
             actualTime = startTime;
 
             while (actualTime < endTime)
@@ -241,6 +246,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// </summary>
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
         {
+            if (lastDate > endTime)
+            {
+                return null;
+            }
+
             endTime = endTime.AddDays(1);
 
             string markerDateTime = "";
@@ -248,6 +258,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
             List<Trade> trades = new List<Trade>();
 
             DateTime startOver = startTime;
+
+
+
             long lastId = 0;
 
             while (true)
@@ -263,10 +276,35 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     List<Trade> firstTrades = new List<Trade>();
 
+                    int countMinutesAddToFindFirstTrade = 0;
+                    int countDaysAddToFindFirstTrade = 0;
+
                     do
                     {
                         firstTrades = _client.GetTickHistoryToSecurity(security.Name, startOver, startOver.AddSeconds(60), 0);
-                        startOver.AddSeconds(60);
+                        startOver = startOver.AddSeconds(60);
+
+                        if((firstTrades == null || firstTrades.Count == 0) &&
+                            countMinutesAddToFindFirstTrade < 10)
+                        {
+                            countMinutesAddToFindFirstTrade++;
+                            startOver = startOver.AddMinutes(60);
+                        }
+                        else if ((firstTrades == null || firstTrades.Count == 0) &&
+                            countDaysAddToFindFirstTrade < 10)
+                        {
+                            countDaysAddToFindFirstTrade++;
+                            startOver = startOver.AddDays(1);
+                        }
+                        else if(firstTrades == null || firstTrades.Count == 0)
+                        {
+                            startOver = startOver.AddDays(30);
+                        }
+
+                        if (startOver >= endTime)
+                        {
+                            return null;
+                        }
                     }
                     while (firstTrades == null || firstTrades.Count == 0);
 

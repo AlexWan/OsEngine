@@ -941,6 +941,7 @@
     </Compile>
     <Compile Include="Robots\AutoTestBots\ServerTests\AServerTester.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\DataTest1_IntegrityOfData.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\DataTest2_StrangeRequests.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\MarketDepthTester.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\SecuritiesTester.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotCandlesComparison.cs" />

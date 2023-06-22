@@ -27,11 +27,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             buttonDataTest1.UserClickOnButtonEvent += ButtonDataTest1_UserClickOnButtonEvent;
             SecurityNameDataTest1 = CreateParameter("Sec name data test 1", "ADAUSDT","data1");
 
+            StrategyParameterButton buttonDataTest2 = CreateParameterButton("Start test data2", "data2");
+            buttonDataTest2.UserClickOnButtonEvent += ButtonDataTest2_UserClickOnButtonEvent;
+            SecurityNameDataTest2 = CreateParameter("Sec name data test 2", "ADAUSDT", "data2");
+
         }
 
         StrategyParameterInt MarketDepthSecToTestCount;
         StrategyParameterInt MarketDepthMinutesToTest;
         StrategyParameterString SecurityNameDataTest1;
+        StrategyParameterString SecurityNameDataTest2;
 
         public override string GetNameStrategyType()
         {
@@ -41,6 +46,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         public override void ShowIndividualSettingsDialog()
         {
 
+        }
+
+        private void ButtonDataTest2_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.DataTest2;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
         }
 
         private void ButtonDataTest1_UserClickOnButtonEvent()
@@ -140,6 +158,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     SendNewLogMessage("Data test 1 started " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
+                else if (CurTestType == ServerTestType.DataTest2)
+                {
+                    DataTest2_StrangeRequests tester = new DataTest2_StrangeRequests();
+                    tester.SecName = SecurityNameDataTest2.ValueString;
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Data test 2 started " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
             }
 
             while (_testers.Count > 0)
@@ -185,7 +214,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         Security,
         MarketDepth,
-        DataTest1
+        DataTest1,
+        DataTest2,
 
     }
 
