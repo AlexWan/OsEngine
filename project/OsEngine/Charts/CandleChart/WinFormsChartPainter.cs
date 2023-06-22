@@ -3748,6 +3748,7 @@ namespace OsEngine.Charts.CandleChart
                 }
                 ReloadAreaSizes();
                 PaintSeriesSafe(series);
+                ResizeSeriesLabels();
             }
             ResizeYAxisOnArea(myArea.Name);
         }
@@ -3863,6 +3864,7 @@ namespace OsEngine.Charts.CandleChart
 
                 PaintSeriesSafe(series);
                 ReloadAreaSizes();
+                ResizeSeriesLabels();
             }
             ResizeYAxisOnArea(myArea.Name);
 
@@ -4006,6 +4008,7 @@ namespace OsEngine.Charts.CandleChart
 
                 PaintSeriesSafe(series);
                 ReloadAreaSizes();
+                ResizeSeriesLabels();
             }
             ResizeYAxisOnArea(myArea.Name);
         }
