@@ -1254,6 +1254,8 @@ namespace OsEngine.OsOptimizer
             }
 
             WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
+
+            PaintCountBotsInOptimization();
         }
 
         /// <summary>

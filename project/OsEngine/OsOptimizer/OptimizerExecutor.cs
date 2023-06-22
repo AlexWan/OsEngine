@@ -118,6 +118,11 @@ namespace OsEngine.OsOptimizer
 
             _countAllServersMax = countBots * (_master.IterationCount * 2);
 
+            if(_master.LastInSample)
+            {
+                _countAllServersMax = _countAllServersMax - countBots;
+            }
+
             SendLogMessage(OsLocalization.Optimizer.Message4 + _countAllServersMax, LogMessageType.System);
 
             DateTime timeStart = DateTime.Now;

@@ -69,7 +69,15 @@ namespace OsEngine.OsOptimizer
             {
                 return 0;
             }
-            return _optimizerExecutor.BotCountOneFaze(_parameters, _paramOn) * IterationCount * 2;
+
+            int value = _optimizerExecutor.BotCountOneFaze(_parameters, _paramOn) * IterationCount * 2;
+
+            if(LastInSample)
+            {
+                value = value - _optimizerExecutor.BotCountOneFaze(_parameters, _paramOn);
+            }
+
+            return value;
         }
 
         /// <summary>
