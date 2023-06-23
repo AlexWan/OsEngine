@@ -211,7 +211,38 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
 
         public bool IsCreatedByScreener { get; set; }
- 
+
+        /// <summary>
+        /// are events sent to the top from the tab?
+        /// </summary>
+        public bool EventsIsOn 
+        { 
+            get 
+            {
+                if(Connector == null)
+                {
+                    return false;
+                }
+
+                return Connector.EventsIsOn;
+            } 
+            set 
+            {
+                if (Connector == null)
+                {
+                    return;
+                }
+
+                if(Connector.EventsIsOn == value)
+                {
+                    return;
+                }
+
+                Connector.EventsIsOn = value;
+            } 
+        
+        }
+
         /// <summary>
         /// custom name robot
         /// пользовательское имя робота

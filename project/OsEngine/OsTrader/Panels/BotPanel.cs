@@ -1754,48 +1754,18 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
+                for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
                 {
-                    return _tabSimple[i].Connector.EventsIsOn;
-                }
-
-                for (int i = 0; _tabsIndex != null && i < _tabsIndex.Count; i++)
-                {
-                    return _tabsIndex[i].EventsIsOn;
-                }
-
-                for (int i = 0; _tabsCluster != null && i < _tabsCluster.Count; i++)
-                {
-                    return _tabsCluster[i].EventsIsOn;
-                }
-
-                for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
-                {
-                    return _tabsScreener[i].EventsIsOn;
+                    return _botTabs[i].EventsIsOn;
                 }
 
                 return false;
             }
             set
             {
-                for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
+                for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
                 {
-                    _tabSimple[i].Connector.EventsIsOn = value;
-                }
-
-                for (int i = 0; _tabsIndex != null && i < _tabsIndex.Count; i++)
-                {
-                    _tabsIndex[i].EventsIsOn = value;
-                }
-
-                for (int i = 0; _tabsCluster != null && i < _tabsCluster.Count; i++)
-                {
-                    _tabsCluster[i].EventsIsOn = value;
-                }
-
-                for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
-                {
-                    _tabsScreener[i].EventsIsOn = value;
+                    _botTabs[i].EventsIsOn = value;
                 }
             }
         }
