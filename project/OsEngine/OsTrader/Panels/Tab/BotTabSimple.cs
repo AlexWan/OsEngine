@@ -131,6 +131,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// source type
+        /// </summary>
+        public BotTabType TabType 
+        {
+            get
+            {
+                return BotTabType.Simple;
+            } 
+        }
+
+        /// <summary>
         /// The connector has started the reconnection procedure
         /// </summary>
         /// <param name="securityName">security name</param>

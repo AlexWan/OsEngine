@@ -163,6 +163,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// source type
+        /// </summary>
+        public BotTabType TabType
+        {
+            get
+            {
+                return BotTabType.Cluster;
+            }
+        }
+
+        /// <summary>
         /// Whether the submission of events to the top is enabled or not
         /// </summary>
         public bool EventsIsOn

@@ -36,6 +36,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// source type
+        /// </summary>
+        public BotTabType TabType
+        {
+            get
+            {
+                return BotTabType.Index;
+            }
+        }
+
+        /// <summary>
         /// Program that created the robot
         /// </summary>
         private StartProgram _startProgram;

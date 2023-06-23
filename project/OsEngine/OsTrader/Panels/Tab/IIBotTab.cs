@@ -14,6 +14,11 @@ namespace OsEngine.OsTrader.Panels.Tab
     public interface IIBotTab
     {
         /// <summary>
+        /// source type
+        /// </summary>
+        BotTabType TabType { get; }
+
+        /// <summary>
         /// Remove tab and all child structures
         /// </summary>
         void Delete();

@@ -25,7 +25,6 @@ using OsEngine.OsTrader.RiskManager;
 
 namespace OsEngine.OsTrader.Panels
 {
-
     /// <summary>
     /// types of tabs for the robot 
     /// </summary>
@@ -1779,10 +1778,9 @@ position => position.State != PositionStateType.OpeningFail
             {
                 for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
                 {
-                    string tabType = _botTabs[i].GetType().Name;
 
-                    if (tabType == "BotTabIndex"
-                        || tabType == "BotTabCluster")
+                    if (_botTabs[i].TabType == BotTabType.Index
+                        || _botTabs[i].TabType == BotTabType.Cluster)
                     {
                         continue;
                     }

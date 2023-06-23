@@ -209,6 +209,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// source type
+        /// </summary>
+        public BotTabType TabType
+        {
+            get
+            {
+                return BotTabType.Screener;
+            }
+        }
+
+        /// <summary>
         /// Tab delete event handler
         /// </summary>
         private void BotTabScreener_DeleteEvent()
