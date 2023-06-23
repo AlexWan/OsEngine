@@ -1565,6 +1565,10 @@ namespace OsEngine.OsOptimizer
                 {
                     _gridParametrs.Rows.Add(GetRowTimeOfDay(_parameters[i]));
                 }
+                else //if (_parameters[i].Type == StrategyParameterType.Label)
+                {// не известный или не реализованный параметр
+                    continue;
+                }
             }
 
             _gridParametrs.CellValueChanged += _gridParametrs_CellValueChanged;
@@ -1851,7 +1855,6 @@ namespace OsEngine.OsOptimizer
         private DataGridViewRow GetRowDecimal(IIStrategyParameter parameter, bool isOptimize)
         {
             DataGridViewRow row = new DataGridViewRow();
-
             // 0 on / off
             row.Cells.Add(new DataGridViewCheckBoxCell());
             row.Cells[0].ReadOnly = false;
@@ -1943,11 +1946,26 @@ namespace OsEngine.OsOptimizer
             {
                 DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
 
+                string actualValue = param.ValueString;
+                bool isInArray = false;
+
                 for (int i2 = 0; i2 < param.ValuesString.Count; i2++)
                 {
                     cell.Items.Add(param.ValuesString[i2]);
+                    if (param.ValuesString[i2].Equals(actualValue))
+                    {
+                        isInArray = true;
+                    }
                 }
-                cell.Value = param.ValueString;
+                if(isInArray)
+                {
+                    cell.Value = param.ValueString;
+                }
+                else
+                {
+                    cell.Value = param.ValuesString[0];
+                }
+                
                 row.Cells.Add(cell);
             }
             else if (param.ValuesString.Count == 1)
@@ -1994,49 +2012,53 @@ namespace OsEngine.OsOptimizer
 
             try
             {
-                for (int i = 0; i < _parameters.Count; i++)
+
+                for (int i_param = 0,i_grid = 0; i_param < _parameters.Count; i_param++, i_grid++)
                 {
-                    if (_parameters[i].Type == StrategyParameterType.String)
+                    IIStrategyParameter parameter = _parameters[i_param];
+                    DataGridViewRow row = _gridParametrs.Rows[i_grid];
+
+                    if (parameter.Type == StrategyParameterType.String)
                     {
-                        ((StrategyParameterString)_parameters[i]).ValueString = _gridParametrs.Rows[i].Cells[3].Value.ToString();
-                        _parametrsActiv[i] = false;
+                        ((StrategyParameterString)parameter).ValueString = row.Cells[3].Value.ToString();
+                        _parametrsActiv[i_param] = false;
                     }
-                    else if (_parameters[i].Type == StrategyParameterType.Bool)
+                    else if (parameter.Type == StrategyParameterType.Bool)
                     {
-                        ((StrategyParameterBool)_parameters[i]).ValueBool = Convert.ToBoolean(_gridParametrs.Rows[i].Cells[3].Value.ToString());
-                        _parametrsActiv[i] = false;
+                        ((StrategyParameterBool)parameter).ValueBool = Convert.ToBoolean(row.Cells[3].Value.ToString());
+                        _parametrsActiv[i_param] = false;
                     }
-                    else if (_parameters[i].Type == StrategyParameterType.CheckBox)
+                    else if (parameter.Type == StrategyParameterType.CheckBox)
                     {
-                        DataGridViewCheckBoxCell cell = (DataGridViewCheckBoxCell)_gridParametrs.Rows[i].Cells[3];
+                        DataGridViewCheckBoxCell cell = (DataGridViewCheckBoxCell)row.Cells[3];
 
                         bool isChecked = Convert.ToBoolean(cell.Value.ToString());
 
                         if (isChecked)
                         {
-                            ((StrategyParameterCheckBox)_parameters[i]).CheckState  = CheckState.Checked;
+                            ((StrategyParameterCheckBox)parameter).CheckState  = CheckState.Checked;
                         }
                         else
                         {
-                            ((StrategyParameterCheckBox)_parameters[i]).CheckState = CheckState.Unchecked;
+                            ((StrategyParameterCheckBox)parameter).CheckState = CheckState.Unchecked;
                         }
                        
-                        _parametrsActiv[i] = false;
+                        _parametrsActiv[i_param] = false;
                     }
-                    else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)
+                    else if (parameter.Type == StrategyParameterType.TimeOfDay)
                     {
                         TimeOfDay tD = new TimeOfDay();
-                        tD.LoadFromString(_gridParametrs.Rows[i].Cells[3].Value.ToString());
+                        tD.LoadFromString(row.Cells[3].Value.ToString());
 
-                        ((StrategyParameterTimeOfDay)_parameters[i]).Value = tD;
-                        _parametrsActiv[i] = false;
+                        ((StrategyParameterTimeOfDay)parameter).Value = tD;
+                        _parametrsActiv[i_param] = false;
                     }
-                    else if (_parameters[i].Type == StrategyParameterType.Int)
+                    else if (parameter.Type == StrategyParameterType.Int)
                     {
-                        int valueDefoult = Convert.ToInt32(_gridParametrs.Rows[i].Cells[3].Value);
-                        int valueStart = Convert.ToInt32(_gridParametrs.Rows[i].Cells[4].Value);
-                        int valueStep = Convert.ToInt32(_gridParametrs.Rows[i].Cells[5].Value);
-                        int valueStop = Convert.ToInt32(_gridParametrs.Rows[i].Cells[6].Value);
+                        int valueDefoult = Convert.ToInt32(row.Cells[3].Value);
+                        int valueStart = Convert.ToInt32(row.Cells[4].Value);
+                        int valueStep = Convert.ToInt32(row.Cells[5].Value);
+                        int valueStop = Convert.ToInt32(row.Cells[6].Value);
 
                         if (valueStart > valueStop)
                         {
@@ -2045,37 +2067,37 @@ namespace OsEngine.OsOptimizer
                             return;
                         }
 
-                        StrategyParameterInt param = ((StrategyParameterInt)_parameters[i]);
+                        StrategyParameterInt param = ((StrategyParameterInt)parameter);
 
                         if (valueStart != param.ValueIntStart ||
                             valueStep != param.ValueIntStep ||
                             valueStop != param.ValueIntStop ||
                             valueDefoult != param.ValueIntDefolt)
                         {
-                            _parameters.Insert(i, new StrategyParameterInt(_parameters[i].Name, valueDefoult,
+                            _parameters.Insert(i_param, new StrategyParameterInt(parameter.Name, valueDefoult,
                                 valueStart, valueStop, valueStep));
-                            _parameters.RemoveAt(i + 1);
+                            _parameters.RemoveAt(i_param + 1);
                         }
 
-                        DataGridViewCheckBoxCell box = (DataGridViewCheckBoxCell)_gridParametrs.Rows[i].Cells[0];
-                        if (_gridParametrs.Rows[i].Cells[0].Value == null ||
-                            (bool)_gridParametrs.Rows[i].Cells[0].Value == false)
+                        DataGridViewCheckBoxCell box = (DataGridViewCheckBoxCell)row.Cells[0];
+                        if (row.Cells[0].Value == null ||
+                            (bool)row.Cells[0].Value == false)
                         {
-                            _parametrsActiv[i] = false;
-                            UnActiveteRowOptimizing(_gridParametrs.Rows[i]);
+                            _parametrsActiv[i_param] = false;
+                            UnActiveteRowOptimizing(row);
                         }
                         else
                         {
-                            _parametrsActiv[i] = true;
-                            ActiveteRowOptimizing(_gridParametrs.Rows[i]);
+                            _parametrsActiv[i_param] = true;
+                            ActiveteRowOptimizing(row);
                         }
                     }
-                    else if (_parameters[i].Type == StrategyParameterType.Decimal)
+                    else if (parameter.Type == StrategyParameterType.Decimal)
                     {
-                        decimal valueDefoult = _gridParametrs.Rows[i].Cells[3].Value.ToString().ToDecimal();
-                        decimal valueStart = _gridParametrs.Rows[i].Cells[4].Value.ToString().ToDecimal();
-                        decimal valueStep = _gridParametrs.Rows[i].Cells[5].Value.ToString().ToDecimal();
-                        decimal valueStop = _gridParametrs.Rows[i].Cells[6].Value.ToString().ToDecimal();
+                        decimal valueDefoult = row.Cells[3].Value.ToString().ToDecimal();
+                        decimal valueStart = row.Cells[4].Value.ToString().ToDecimal();
+                        decimal valueStep = row.Cells[5].Value.ToString().ToDecimal();
+                        decimal valueStop = row.Cells[6].Value.ToString().ToDecimal();
 
                         if (valueStart > valueStop)
                         {
@@ -2084,28 +2106,33 @@ namespace OsEngine.OsOptimizer
                             return;
                         }
 
-                        StrategyParameterDecimal param = ((StrategyParameterDecimal)_parameters[i]);
+                        StrategyParameterDecimal param = ((StrategyParameterDecimal)parameter);
 
                         if (valueStart != param.ValueDecimalStart ||
                             valueStep != param.ValueDecimalStep ||
                             valueStop != param.ValueDecimalStop ||
                             valueDefoult != param.ValueDecimalDefolt)
                         {
-                            _parameters.Insert(i, new StrategyParameterDecimal(_parameters[i].Name, valueDefoult,
+                            _parameters.Insert(i_param, new StrategyParameterDecimal(parameter.Name, valueDefoult,
                                valueStart, valueStop, valueStep));
-                            _parameters.RemoveAt(i + 1);
+                            _parameters.RemoveAt(i_param + 1);
                         }
-                        if (_gridParametrs.Rows[i].Cells[0].Value == null ||
-                            (bool)_gridParametrs.Rows[i].Cells[0].Value == false)
+                        if (row.Cells[0].Value == null ||
+                            (bool)row.Cells[0].Value == false)
                         {
-                            _parametrsActiv[i] = false;
-                            UnActiveteRowOptimizing(_gridParametrs.Rows[i]);
+                            _parametrsActiv[i_param] = false;
+                            UnActiveteRowOptimizing(row);
                         }
                         else
                         {
-                            _parametrsActiv[i] = true;
-                            ActiveteRowOptimizing(_gridParametrs.Rows[i]);
+                            _parametrsActiv[i_param] = true;
+                            ActiveteRowOptimizing(row);
                         }
+                    }
+                    else //if (parameter.Type == StrategyParameterType.Label)
+                    {//неизвестный или не реализованный параметр
+                        i_grid--;
+                        continue;
                     }
                 }
                 _master.SaveStandartParameters();
