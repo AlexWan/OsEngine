@@ -414,7 +414,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(SecuritiesClass);
                     writer.WriteLine(TimeFrame);
                     writer.WriteLine(ServerType);
-                    writer.WriteLine(EmulatorIsOn);
+                    writer.WriteLine(_emulatorIsOn);
                     writer.WriteLine(CandleMarketDataType);
                     writer.WriteLine(CandleCreateMethodType);
                     writer.WriteLine(SetForeign);
@@ -464,7 +464,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Enum.TryParse(reader.ReadLine(), out TimeFrame);
                     Enum.TryParse(reader.ReadLine(), out ServerType);
 
-                    EmulatorIsOn = Convert.ToBoolean(reader.ReadLine());
+                    _emulatorIsOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out CandleMarketDataType);
                     Enum.TryParse(reader.ReadLine(), out CandleCreateMethodType);
 
@@ -588,7 +588,36 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Is the emulator enabled
         /// </summary>
-        public bool EmulatorIsOn;
+        public bool EmulatorIsOn
+        {
+            get
+            {
+                return _emulatorIsOn;
+            }
+            set
+            {
+                if(_emulatorIsOn == value)
+                {
+                    return;
+                }
+
+                for (int i = 0; Tabs != null && i < Tabs.Count; i++)
+                {
+                    try
+                    {
+                        Tabs[i].EmulatorIsOn = value;
+                    }
+                    catch
+                    {
+                        // ignore. Не все вкладки запустились
+                    }
+                }
+
+                _emulatorIsOn = value;
+                SaveSettings();
+            }
+        }
+        private bool _emulatorIsOn;
 
         /// <summary>
         /// Data type for calculating candles in a series of candles
@@ -757,7 +786,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             tab.Connector.PortfolioName = PortfolioName;
             tab.Connector.ServerType = ServerType;
-            tab.Connector.EmulatorIsOn = EmulatorIsOn;
+            tab.Connector.EmulatorIsOn = _emulatorIsOn;
             tab.Connector.CandleMarketDataType = CandleMarketDataType;
             tab.Connector.CandleCreateMethodType = CandleCreateMethodType;
             tab.Connector.SetForeign = SetForeign;
@@ -808,7 +837,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.TimeFrameBuilder.TimeFrame = frame;
             newTab.Connector.PortfolioName = PortfolioName;
             newTab.Connector.ServerType = ServerType;
-            newTab.Connector.EmulatorIsOn = EmulatorIsOn;
+            newTab.Connector.EmulatorIsOn = _emulatorIsOn;
             newTab.Connector.CandleMarketDataType = CandleMarketDataType;
             newTab.Connector.CandleCreateMethodType = CandleCreateMethodType;
             newTab.Connector.SetForeign = SetForeign;

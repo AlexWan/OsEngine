@@ -658,6 +658,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 _connector.EmulatorIsOn = value;
+                _connector.Save();
 
                 if (EmulatorIsOnChangeStateEvent != null)
                 {

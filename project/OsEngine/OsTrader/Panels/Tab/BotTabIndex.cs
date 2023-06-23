@@ -236,6 +236,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Is the emulator enabled
+        /// </summary>
+        public bool EmulatorIsOn { get; set; }
+
+        /// <summary>
         /// Clear
         /// </summary>
         public void Clear()

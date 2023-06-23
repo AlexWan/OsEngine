@@ -260,6 +260,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Is the emulator enabled
+        /// </summary>
+        public bool EmulatorIsOn { get; set; }
+
+        /// <summary>
         /// Line step value
         /// </summary>
         public decimal LineStep

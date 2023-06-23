@@ -44,6 +44,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         bool EventsIsOn { get; set; }
 
         /// <summary>
+        /// are events sent to the top from the tab?
+        /// </summary>
+        bool EmulatorIsOn { get; set; }
+
+        /// <summary>
         /// Time of the last update of the candle
         /// </summary>
         DateTime LastTimeCandleUpdate { get; set; }

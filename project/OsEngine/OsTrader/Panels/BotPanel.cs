@@ -1777,27 +1777,17 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
+                for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
                 {
-                    return _tabSimple[i].EmulatorIsOn;
-                }
+                    string tabType = _botTabs[i].GetType().Name;
 
-                for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
-                {
-                    BotTabScreener bot = _tabsScreener[i];
-
-                    for (int i2 = 0; i2 < bot.Tabs.Count; i2++)
+                    if (tabType == "BotTabIndex"
+                        || tabType == "BotTabCluster")
                     {
-                        try
-                        {
-                            return bot.Tabs[i2].EmulatorIsOn;
-                        }
-                        catch
-                        {
-                            // ignore. Не все вкладки запустились
-                        }
+                        continue;
                     }
-                    return bot.EmulatorIsOn;
+
+                    return _botTabs[i].EmulatorIsOn;
                 }
 
                 return false;
@@ -1809,34 +1799,9 @@ position => position.State != PositionStateType.OpeningFail
                     return;
                 }
 
-                for (int i = 0; _tabSimple != null && i < _tabSimple.Count; i++)
+                for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
                 {
-                    _tabSimple[i].EmulatorIsOn = value;
-                    _tabSimple[i].Connector.Save();
-                }
-
-                for (int i = 0; _tabsScreener != null && i < _tabsScreener.Count; i++)
-                {
-                    BotTabScreener bot = _tabsScreener[i];
-
-                    if (bot.EmulatorIsOn != value)
-                    {
-                        bot.EmulatorIsOn = value;
-                        bot.SaveSettings();
-                    }
-
-                    for (int i2 = 0; i2 < bot.Tabs.Count; i2++)
-                    {
-                        try
-                        {
-                            bot.Tabs[i2].EmulatorIsOn = value;
-                            bot.Tabs[i2].Connector.Save();
-                        }
-                        catch
-                        {
-                            // ignore. Не все вкладки запустились
-                        }
-                    }
+                    _botTabs[i].EmulatorIsOn = value;
                 }
             }
         }
