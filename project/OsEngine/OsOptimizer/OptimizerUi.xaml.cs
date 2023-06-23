@@ -1501,8 +1501,19 @@ namespace OsEngine.OsOptimizer
             _gridParametrs.Columns.Add(column4);
 
             _gridParametrs.Rows.Add(null, null);
+            _gridParametrs.DataError += _gridParametrs_DataError;
+
 
             HostParam.Child = _gridParametrs;
+        }
+
+        private void _gridParametrs_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            if(_master == null)
+            {
+                return;
+            }
+            _master.SendLogMessage(e.ToString(),LogMessageType.Error);
         }
 
         /// <summary>
