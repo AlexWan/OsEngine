@@ -1096,6 +1096,8 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        DateTime _timeLastEndCandle = DateTime.MinValue;
+
         /// <summary>
         /// the candle has just ended
         /// свеча только что завершилась
@@ -1104,9 +1106,30 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (NewCandlesChangeEvent != null && EventsIsOn == true)
+                if(EventsIsOn == false)
                 {
-                    NewCandlesChangeEvent(Candles(true));
+                    return;
+                }
+
+                List<Candle> candles = Candles(true);
+
+                if(candles == null || candles.Count == 0)
+                {
+                    return;
+                }
+
+                DateTime timeLastCandle = candles[candles.Count - 1].TimeStart;
+
+                if(timeLastCandle == _timeLastEndCandle)
+                {
+                    return;
+                }
+
+                _timeLastEndCandle = timeLastCandle;
+
+                if (NewCandlesChangeEvent != null)
+                {
+                    NewCandlesChangeEvent(candles);
                 }
             }
             catch (Exception error)

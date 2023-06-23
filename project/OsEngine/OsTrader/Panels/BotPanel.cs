@@ -48,8 +48,12 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// for trading a portfolio of instruments
         /// </summary>
-        Screener
+        Screener,
 
+        /// <summary>
+        ///  tab - for trading pairs
+        /// </summary>
+        Pair,
     }
 
     /// <summary>
@@ -133,11 +137,11 @@ namespace OsEngine.OsTrader.Panels
 
             for (int i = 0; _botTabs != null && i < _botTabs.Count; i++)
             {
-                if (_botTabs[i].GetType().Name == "BotTabSimple")
+                if (_botTabs[i].TabType == BotTabType.Simple)
                 {
                     journals.Add(((BotTabSimple)_botTabs[i]).GetJournal());
                 }
-                if (_botTabs[i].GetType().Name == "BotTabScreener")
+                else if (_botTabs[i].TabType == BotTabType.Screener)
                 {
                     List<Journal.Journal> journalsOnTab = ((BotTabScreener)_botTabs[i]).GetJournals();
 
@@ -149,7 +153,18 @@ namespace OsEngine.OsTrader.Panels
 
                     journals.AddRange(journalsOnTab);
                 }
+                else if (_botTabs[i].TabType == BotTabType.Pair)
+                {
+                    List<Journal.Journal> journalsOnTab = ((BotTabPair)_botTabs[i]).GetJournals();
 
+                    if (journalsOnTab == null ||
+                        journalsOnTab.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    journals.AddRange(journalsOnTab);
+                }
 
             }
 
@@ -436,6 +451,12 @@ namespace OsEngine.OsTrader.Panels
                 {
                     _tabsCluster.Clear();
                     _tabsCluster = null;
+                }
+
+                if (_tabsPair != null)
+                {
+                    _tabsPair.Clear();
+                    _tabsPair = null;
                 }
 
                 if (_tabsScreener != null)
@@ -1290,6 +1311,18 @@ position => position.State != PositionStateType.OpeningFail
         private List<BotTabCluster> _tabsCluster = new List<BotTabCluster>();
 
         /// <summary>
+        /// pair tabs
+        /// </summary>
+        public List<BotTabPair> TabsPair
+        {
+            get
+            {
+                return _tabsPair;
+            }
+        }
+        private List<BotTabPair> _tabsPair = new List<BotTabPair>();
+
+        /// <summary>
         /// screener tabs
         /// </summary>
         public List<BotTabScreener> TabsScreener
@@ -1299,7 +1332,6 @@ position => position.State != PositionStateType.OpeningFail
                 return _tabsScreener;
             }
         }
-
         private List<BotTabScreener> _tabsScreener = new List<BotTabScreener>();
 
         /// <summary>
@@ -1366,6 +1398,11 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     newTab = new BotTabCluster(nameTab, StartProgram);
                     _tabsCluster.Add((BotTabCluster)newTab);
+                }
+                else if (tabType == BotTabType.Pair)
+                {
+                    newTab = new BotTabPair(nameTab, StartProgram);
+                    _tabsPair.Add((BotTabPair)newTab);
                 }
                 else if (tabType == BotTabType.Screener)
                 {
@@ -1513,22 +1550,26 @@ position => position.State != PositionStateType.OpeningFail
 
                 ActivTab = _botTabs[tabNumber];
 
-                if (ActivTab.GetType().Name == "BotTabSimple")
+                if (ActivTab.TabType == BotTabType.Simple)
                 {
                     ((BotTabSimple)ActivTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
                         _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel, _textBoxVolume);
                 }
-                else if (ActivTab.GetType().Name == "BotTabIndex")
+                else if (ActivTab.TabType == BotTabType.Index)
                 {
                     ((BotTabIndex)ActivTab).StartPaint(_gridChart, _hostChart, _rectangle);
                 }
-                else if (ActivTab.GetType().Name == "BotTabCluster")
+                else if (ActivTab.TabType == BotTabType.Cluster)
                 {
                     ((BotTabCluster)ActivTab).StartPaint(_hostChart, _rectangle);
                 }
-                else if (ActivTab.GetType().Name == "BotTabScreener")
+                else if (ActivTab.TabType == BotTabType.Screener)
                 {
                     ((BotTabScreener)ActivTab).StartPaint(_hostChart);
+                }
+                else if (ActivTab.TabType == BotTabType.Pair)
+                {
+                    ((BotTabPair)ActivTab).StartPaint(_hostChart);
                 }
             }
             catch (Exception error)
@@ -1614,6 +1655,10 @@ position => position.State != PositionStateType.OpeningFail
             for (int i = 0; TabsScreener != null && i < TabsScreener.Count; i++)
             {
                 TabsScreener[i].Clear();
+            }
+            for (int i = 0; TabsPair != null && i < TabsPair.Count; i++)
+            {
+                TabsPair[i].Clear();
             }
 
             if (_botTabs != null)

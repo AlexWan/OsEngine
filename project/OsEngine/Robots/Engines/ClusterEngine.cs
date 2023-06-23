@@ -1,7 +1,6 @@
 ﻿using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.Robots.Engines
