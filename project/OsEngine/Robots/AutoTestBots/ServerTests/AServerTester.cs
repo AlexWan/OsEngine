@@ -31,7 +31,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             buttonDataTest2.UserClickOnButtonEvent += ButtonDataTest2_UserClickOnButtonEvent;
             SecurityNameDataTest2 = CreateParameter("Sec name data test 2", "ADAUSDT", "data2");
 
+            StrategyParameterButton buttonSubscribleAllsecurity = CreateParameterButton("Start Test Subscrible", "subscrible");
+            buttonSubscribleAllsecurity.UserClickOnButtonEvent += ButtonSubscribleAllsecurity_UserClickOnButtonEvent;
+            IsNeedToLoadAllSecurity = CreateParameter("Load All Security", true, "subscrible");
+            CountToLoadSec = CreateParameter("Count To Load", 100, 1, 1, 1, "subscrible");
+            MinutesIsTimeOut = CreateParameter("Time out minutes", 5, 5, 5, 5, "subscrible");
         }
+
+        StrategyParameterBool IsNeedToLoadAllSecurity;
+        StrategyParameterInt CountToLoadSec;
+        StrategyParameterInt MinutesIsTimeOut;
 
         StrategyParameterInt MarketDepthSecToTestCount;
         StrategyParameterInt MarketDepthMinutesToTest;
@@ -46,6 +55,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         public override void ShowIndividualSettingsDialog()
         {
 
+        }
+
+        private void ButtonSubscribleAllsecurity_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.AllSecurityTestSubscrible;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
         }
 
         private void ButtonDataTest2_UserClickOnButtonEvent()
@@ -169,6 +191,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     SendNewLogMessage("Data test 2 started " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
+                else if (CurTestType == ServerTestType.AllSecurityTestSubscrible)
+                {
+                    AllSecuritiesSubscribleTest tester = new AllSecuritiesSubscribleTest();
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    tester.Server.LogMessageEvent += tester.ErrorMessageServer; ;
+                    SendNewLogMessage("Subscrible test started " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    TabCreate(BotTabType.Screener);
+                    tester._screener = TabsScreener[0];
+                    tester.IsNeedToLoadAllSecurities = IsNeedToLoadAllSecurity.ValueBool;
+                    tester.CountToLoadTabs = CountToLoadSec.ValueInt;
+                    tester.countMinutesToTimeOut = MinutesIsTimeOut.ValueInt;
+                    tester.Start();
+                    
+                }
             }
 
             while (_testers.Count > 0)
@@ -216,6 +255,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         MarketDepth,
         DataTest1,
         DataTest2,
+        AllSecurityTestSubscrible,
 
     }
 
