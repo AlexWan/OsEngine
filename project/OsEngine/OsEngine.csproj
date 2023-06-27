@@ -940,6 +940,7 @@
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionOpenUi2.xaml.cs">
       <DependentUpon>PositionOpenUi2.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Robots\AutoTestBots\ServerTests\AllSecuritiesSubscribleTest.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\AServerTester.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\DataTest1_IntegrityOfData.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\DataTest2_StrangeRequests.cs" />
