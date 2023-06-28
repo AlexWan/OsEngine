@@ -936,5 +936,13 @@ namespace OsEngine.Language
         public string Label231 => OsLocalization.ConvertToLocString(
           "Eng:As soon as the first security is connected, the position support setting will be available_" +
           "Ru:Как только подключится первый инструмент, настройка поддержки позиции будет доступна_");
+
+        public string Label232 => OsLocalization.ConvertToLocString(
+          "Eng:It is not possible to open a deal! Market depth data is missing!_" +
+          "Ru:Не возможно открыть сделку! Нет данных по стакану!_");
+
+        public string Label233 => OsLocalization.ConvertToLocString(
+          "Eng:It is not possible to open a deal! Price can`t be zero!_" +
+          "Ru:Не возможно открыть сделку! Цена не может быть ноль!_");
     }
 }

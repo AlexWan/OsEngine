@@ -1353,7 +1353,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label232, LogMessageType.System);
                     return null;
                 }
 
@@ -1468,13 +1468,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System); 
                     return null;
                 }
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return null;
                 }
 
@@ -1715,7 +1715,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label232, LogMessageType.System);
                     return;
                 }
 
@@ -1802,7 +1802,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return;
                 }
 
@@ -1898,7 +1898,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return null;
                 }
 
@@ -1944,7 +1944,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return null;
                 }
 
@@ -2036,7 +2036,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label232, LogMessageType.System);
                     return null;
                 }
 
@@ -2155,7 +2155,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return null;
                 }
 
@@ -2477,7 +2477,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return;
                 }
 
@@ -2708,6 +2708,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 decimal price = _connector.BestAsk;
 
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label232, LogMessageType.System);
+                    return;
+                }
+
                 if (position.Direction == Side.Buy)
                 {
                     if (!Connector.EmulatorIsOn)
@@ -2725,12 +2731,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         price = price + Securiti.PriceStep * 40;
                     }
-                }
-
-                if (price == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
-                    return;
                 }
 
                 if (_connector.MarketOrdersIsSupport)
@@ -3092,7 +3092,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return null;
                 }
 
@@ -3141,7 +3141,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return;
                 }
 
@@ -3211,7 +3211,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return null;
                 }
 
@@ -3260,7 +3260,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label62, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
                     return;
                 }
 
