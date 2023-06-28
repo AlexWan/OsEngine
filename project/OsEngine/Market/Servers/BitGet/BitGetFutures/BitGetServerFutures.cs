@@ -147,9 +147,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         private DateTime TimeToSendPing = DateTime.Now;
         private DateTime TimeToUprdatePortfolio = DateTime.Now;
         private ConcurrentQueue<string> FIFOListWebSocketMessage = new ConcurrentQueue<string>();
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(100));
-        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
-        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(150));
+        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(250));
+        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(250));
 
         #endregion
 
