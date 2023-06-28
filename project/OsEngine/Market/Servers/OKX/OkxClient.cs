@@ -40,8 +40,11 @@ namespace OsEngine.Market.Servers.OKX
         #endregion
 
         //Задержка на подписку для вебсокетов
-
         public RateGate _rateGateWebSocket = new RateGate(1, TimeSpan.FromMilliseconds(500));
+        //Задержка на получения данных портфеля
+        public RateGate _rateGateGetBalance = new RateGate(1, TimeSpan.FromMilliseconds(500));
+        //Задержка на получения данных позиций
+        public RateGate _rateGateGetPositions = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
         public OkxClient(string PublicKey, string SeckretKey, string Password)
         {
@@ -413,6 +416,7 @@ namespace OsEngine.Market.Servers.OKX
 
         private string GetBalance()
         {
+            _rateGateGetBalance.WaitToProceed();
             var url = $"{_baseUrl}{"api/v5/account/balance"}";
 
             var res = GetBalanseOrMyTradesRequest(url);
@@ -467,6 +471,7 @@ namespace OsEngine.Market.Servers.OKX
 
         private string GetBlockBalance()
         {
+            _rateGateGetBalance.WaitToProceed();
             var url = $"{_baseUrl}{"api/v5/account/positions"}";
             var res = GetBalanseOrMyTradesRequest(url);
             var contentStr = res.Content.ReadAsStringAsync().Result;
