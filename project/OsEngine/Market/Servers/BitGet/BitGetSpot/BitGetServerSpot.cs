@@ -139,6 +139,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
+        private RateGate rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
         private DateTime TimeToSendPing = DateTime.Now;
 
         private DateTime TimeToUprdatePortfolio = DateTime.Now;
@@ -930,15 +932,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 newOrder.ServerType = ServerType.BitGetSpot;
                 newOrder.PortfolioNumber = "BitGetSpot";
 
-                
-
                 if (stateType == OrderStateType.Done ||
                     stateType == OrderStateType.Patrial)
                 {
                     // как только приходит ордер исполненный или частично исполненный триггер на запрос моего трейда по имени бумаги
                     CreateQueryMyTrade(newOrder.SecurityNameCode + "_SPBL", newOrder.NumberMarket);
-                    // как только приходит ордер исполненный или частично исполненный триггер на запрос портфеля
-                    CreateQueryPortfolio(false);
                 }
                 MyOrderEvent(newOrder);
             }
@@ -1039,6 +1037,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private void CreateQueryMyTrade(string nameSec, string OrdId)
         {
+            rateGateGetMyTradeState.WaitToProceed();
+
             string json = JsonConvert.SerializeObject(new
             {
                 symbol = nameSec,
