@@ -938,10 +938,82 @@ namespace OsEngine.Language
           "Ru:Как только подключится первый инструмент, настройка поддержки позиции будет доступна_");
 
         public string Label232 => OsLocalization.ConvertToLocString(
+           "Eng:Common settings_" +
+           "Ru:Общие настройки_");
+
+        public string Label233 => OsLocalization.ConvertToLocString(
+          "Eng:Sort_" +
+          "Ru:Сорт_");
+
+        public string Label234 => OsLocalization.ConvertToLocString(
+          "Eng:Pair num_" +
+          "Ru:Номер_");
+
+        public string Label235 => OsLocalization.ConvertToLocString(
+          "Eng:Set security_" +
+          "Ru:Выбрать бумагу_");
+
+        public string Label236 => OsLocalization.ConvertToLocString(
+          "Eng:Add pair_" +
+          "Ru:Добавить пару_");
+
+        public string Label237 => OsLocalization.ConvertToLocString(
+          "Eng:Delete pair?_" +
+          "Ru:Вы хотите удалить пару?_");
+
+        public string Label238 => OsLocalization.ConvertToLocString(
+          "Eng:Cointegration_" +
+          "Ru:Коинтеграция_");
+
+        public string Label239 => OsLocalization.ConvertToLocString(
+          "Eng:Deviation_" +
+          "Ru:Отклонение_");
+
+        public string Label240 => OsLocalization.ConvertToLocString(
+          "Eng:LookBack_" +
+          "Ru:Длина_");
+
+        public string Label241 => OsLocalization.ConvertToLocString(
+          "Eng:Mult step_" +
+          "Ru:Шаг множ._");
+
+        public string Label242 => OsLocalization.ConvertToLocString(
+          "Eng:Correlation_" +
+          "Ru:Корреляция_");
+
+        public string Label243 => OsLocalization.ConvertToLocString(
+          "Eng:Reload_" +
+          "Ru:Пересчитать_");
+
+        public string Label244 => OsLocalization.ConvertToLocString(
+          "Eng:Orders placement_" +
+          "Ru:Выставление ордеров_");
+
+        public string Label245 => OsLocalization.ConvertToLocString(
+          "Eng:Second by market_" +
+          "Ru:Второй по маркету_");
+
+        public string Label246 => OsLocalization.ConvertToLocString(
+          "Eng:Save_" +
+          "Ru:Сохранить_");
+
+        public string Label247 => OsLocalization.ConvertToLocString(
+          "Eng:Apply to all_" +
+          "Ru:Применить ко всем_");
+
+        public string Label248 => OsLocalization.ConvertToLocString(
+          "Eng:Pairs common settings_" +
+          "Ru:Окно общих настроек_");
+
+        public string Label249 => OsLocalization.ConvertToLocString(
+          "Eng:Pair trader_" +
+          "Ru:Торговля парой_");
+
+        public string Label290 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Market depth data is missing!_" +
           "Ru:Не возможно открыть сделку! Нет данных по стакану!_");
 
-        public string Label233 => OsLocalization.ConvertToLocString(
+        public string Label291 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Price can`t be zero!_" +
           "Ru:Не возможно открыть сделку! Цена не может быть ноль!_");
     }

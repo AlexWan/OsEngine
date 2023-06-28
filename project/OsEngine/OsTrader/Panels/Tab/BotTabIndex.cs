@@ -3,11 +3,13 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Alerts;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using System;
 using System.Collections.Generic;
@@ -68,6 +70,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowDialog()
         {
+            if (ServerMaster.GetServers() == null ||
+                ServerMaster.GetServers().Count == 0)
+            {
+                SendNewLogMessage(OsLocalization.Market.Message1,LogMessageType.Error);
+                return;
+            }
+
             BotTabIndexUi ui = new BotTabIndexUi(this);
             ui.ShowDialog();
 
@@ -86,6 +95,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowIndexConnectorIndexDialog(int index)
         {
+            if(index >= Tabs.Count)
+            {
+                return;
+            }
+
             Tabs[index].ShowDialog(false);
             Save();
         }

@@ -37,6 +37,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
         {
             _sourcesGrid.CellDoubleClick -= Grid1CellValueChangeClick;
+            _sourcesGrid.CellClick -= _sourcesGrid_CellClick;
+            this.Closed -= BotTabIndexUi_Closed;
+
             DataGridFactory.ClearLinks(_sourcesGrid);
             _sourcesGrid.Rows.Clear();
             _sourcesGrid = null;
@@ -55,6 +58,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _sourcesGrid.ScrollBars = ScrollBars.Vertical;
 
             _sourcesGrid.CellDoubleClick += Grid1CellValueChangeClick;
+            _sourcesGrid.CellClick += _sourcesGrid_CellClick;
 
             DataGridViewTextBoxCell fcell0 = new DataGridViewTextBoxCell();
 
@@ -86,6 +90,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             fcolumn3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _sourcesGrid.Columns.Add(fcolumn3);
 
+            DataGridViewColumn fcolumn4 = new DataGridViewColumn();
+            fcolumn4.CellTemplate = fcell0;
+            fcolumn4.HeaderText = "";
+            fcolumn4.ReadOnly = true;
+            fcolumn4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _sourcesGrid.Columns.Add(fcolumn4);
+
             HostSecurity1.Child = _sourcesGrid;
         }
 
@@ -95,6 +106,21 @@ namespace OsEngine.OsTrader.Panels.Tab
             _spread.ShowIndexConnectorIndexDialog(index);
             ReloadSecurityTable();
             IndexOrSourcesChanged = true;
+        }
+
+        private void _sourcesGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if(e.ColumnIndex != 4)
+            {
+                return;
+            }
+
+            int index = _sourcesGrid.CurrentCell.RowIndex;
+            _spread.ShowIndexConnectorIndexDialog(index);
+            ReloadSecurityTable();
+            IndexOrSourcesChanged = true;
+
+
         }
 
         private void ReloadSecurityTable()
@@ -129,6 +155,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 row.Cells.Add((new DataGridViewTextBoxCell()));
                 row.Cells[3].Value = _spread.Tabs[i].TimeFrame.ToString();
+
+                DataGridViewButtonCell button = new DataGridViewButtonCell(); 
+                button.Value = OsLocalization.Trader.Label235;
+                row.Cells.Add(button);
 
                 _sourcesGrid.Rows.Add(row);
             }

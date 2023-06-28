@@ -226,8 +226,7 @@ namespace OsEngine.Market.Connectors
                 if (ServerMaster.GetServers() == null ||
                     ServerMaster.GetServers().Count == 0)
                 {
-                    AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
-                    uiMessage.Show();
+                    SendNewLogMessage(OsLocalization.Market.Message1, LogMessageType.Error);
                     return;
                 }
 

@@ -1353,7 +1353,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label232, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label290, LogMessageType.System);
                     return null;
                 }
 
@@ -1474,7 +1474,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return null;
                 }
 
@@ -1715,7 +1715,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label232, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label290, LogMessageType.System);
                     return;
                 }
 
@@ -1802,7 +1802,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return;
                 }
 
@@ -1898,7 +1898,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return null;
                 }
 
@@ -1944,7 +1944,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return null;
                 }
 
@@ -2036,7 +2036,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label232, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label290, LogMessageType.System);
                     return null;
                 }
 
@@ -2155,7 +2155,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return null;
                 }
 
@@ -2477,7 +2477,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return;
                 }
 
@@ -2710,7 +2710,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label232, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label290, LogMessageType.System);
                     return;
                 }
 
@@ -3092,7 +3092,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return null;
                 }
 
@@ -3141,7 +3141,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return;
                 }
 
@@ -3211,7 +3211,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return null;
                 }
 
@@ -3260,7 +3260,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (price == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label233, LogMessageType.System);
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
                     return;
                 }
 
