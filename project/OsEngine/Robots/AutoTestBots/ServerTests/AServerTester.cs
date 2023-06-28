@@ -36,7 +36,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             IsNeedToLoadAllSecurity = CreateParameter("Load All Security", true, "subscrible");
             CountToLoadSec = CreateParameter("Count To Load", 100, 1, 1, 1, "subscrible");
             MinutesIsTimeOut = CreateParameter("Time out minutes", 5, 5, 5, 5, "subscrible");
+
+
+            StrategyParameterButton ButtonSpamTest = CreateParameterButton("Start Test Spam", "spam");
+            ButtonSpamTest.UserClickOnButtonEvent += ButtonSpamTest_UserClickOnButtonEvent;
+            TestSpamEntity = CreateParameter("Spam Test", "GetPortfolio", new string[] { "GetPortfolio", "GetCandlesData" }, "spam");
+            SecuritySpam = CreateParameter("Security", "ADAUSDT", "spam");
         }
+
+        StrategyParameterString SecuritySpam;
+        StrategyParameterString TestSpamEntity;
 
         StrategyParameterBool IsNeedToLoadAllSecurity;
         StrategyParameterInt CountToLoadSec;
@@ -55,6 +64,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         public override void ShowIndividualSettingsDialog()
         {
 
+        }
+
+        private void ButtonSpamTest_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.SpamPortfolio;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
         }
 
         private void ButtonSubscribleAllsecurity_UserClickOnButtonEvent()
@@ -198,7 +220,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
                     tester.Server = (AServer)servers[i];
-                    tester.Server.LogMessageEvent += tester.ErrorMessageServer; ;
+                    tester.Server.LogMessageEvent += tester.ErrorMessageServer;
                     SendNewLogMessage("Subscrible test started " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     TabCreate(BotTabType.Screener);
                     tester._screener = TabsScreener[0];
@@ -206,8 +228,22 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     tester.CountToLoadTabs = CountToLoadSec.ValueInt;
                     tester.countMinutesToTimeOut = MinutesIsTimeOut.ValueInt;
                     tester.Start();
-                    
                 }
+                else if(CurTestType == ServerTestType.SpamPortfolio)
+                {
+                    TestSpamEntity tester = new TestSpamEntity();
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    tester.Server = (AServer)servers[i];
+                    tester.Server.LogMessageEvent += tester.ErrorMessageServer;
+                    tester.TestingEntity = TestSpamEntity.ValueString;
+                    tester.TestingSecurity = tester.Server.Securities.Find(sec => sec.Name.Equals(SecuritySpam.ValueString));
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Spam test started " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
+
             }
 
             while (_testers.Count > 0)
@@ -256,6 +292,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         DataTest1,
         DataTest2,
         AllSecurityTestSubscrible,
+        SpamPortfolio,
 
     }
 
