@@ -1009,6 +1009,10 @@ namespace OsEngine.Language
           "Eng:Pair trader_" +
           "Ru:Торговля парой_");
 
+        public string Label250 => OsLocalization.ConvertToLocString(
+          "Eng:Trading different timeframes in PairTrader is forbidden!_" +
+          "Ru:Торговля разными Таймфреймами в PairTrader запрещена!_");
+
         public string Label290 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Market depth data is missing!_" +
           "Ru:Не возможно открыть сделку! Нет данных по стакану!_");
@@ -1016,5 +1020,7 @@ namespace OsEngine.Language
         public string Label291 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Price can`t be zero!_" +
           "Ru:Не возможно открыть сделку! Цена не может быть ноль!_");
+
+
     }
 }
