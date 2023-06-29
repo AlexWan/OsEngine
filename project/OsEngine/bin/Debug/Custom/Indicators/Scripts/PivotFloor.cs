@@ -112,7 +112,6 @@ namespace CustomIndicators.Scripts
             _seriesS1.Values[index] = _valuesS1[index];
             _seriesS2.Values[index] = _valuesS2[index];
             _seriesS3.Values[index] = _valuesS3[index];
-
         }
         private List<decimal> _valuesP = new List<decimal>();
         private List<decimal> _valuesR1 = new List<decimal>();
@@ -248,7 +247,6 @@ namespace CustomIndicators.Scripts
                 _valuesS1.Add(_s1);
                 _valuesS2.Add(_s2);
                 _valuesS3.Add(_s3);
-
             }
         }
 
@@ -316,7 +314,6 @@ namespace CustomIndicators.Scripts
             _r3 = (_pivot - _s1) + _r2;
             _s2 = _pivot - H + L;
             _s3 = _pivot - (_r2 - _s1);
-
         }
     }
 }

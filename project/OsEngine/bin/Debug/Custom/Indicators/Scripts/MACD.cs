@@ -32,11 +32,11 @@ namespace CustomIndicators.Scripts
                 _seriesSignalLine = CreateSeries("Signal line", Color.DarkRed, IndicatorChartPaintType.Line, true);
 
                 _emaFast = IndicatorsFactory.CreateIndicatorByName("Ema", Name + "Ema fast", false);
-                ((IndicatorParameterInt)_emaFast.Parameters[0]).Bind(_lenghtFastLine);
+                _emaFast.Parameters[0].Bind(_lenghtFastLine);
                 ProcessIndicator("Ema fast", _emaFast);
 
                 _emaSlow = IndicatorsFactory.CreateIndicatorByName("Ema", Name + "Ema slow", false);
-                ((IndicatorParameterInt)_emaSlow.Parameters[0]).Bind(_lenghtSlowLine);
+                _emaSlow.Parameters[0].Bind(_lenghtSlowLine);
                 ProcessIndicator("Ema slow", _emaSlow);
             }
         }
@@ -81,7 +81,6 @@ namespace CustomIndicators.Scripts
             }
 
             _seriesSignalLine.Values[index] = Math.Round(result, 8);
-
         }
     }
 }

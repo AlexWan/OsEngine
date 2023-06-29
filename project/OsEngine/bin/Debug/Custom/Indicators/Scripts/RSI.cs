@@ -10,7 +10,6 @@ namespace CustomIndicators.Scripts
     {
         private IndicatorParameterInt _lenght;
 
-
         private IndicatorDataSeries _series;
 
         public override void OnStateChange(IndicatorState state)
@@ -80,7 +79,6 @@ namespace CustomIndicators.Scripts
         {
             if (index == length)
             {
-
                 decimal lastMoving = 0;
 
                 for (int i = index; i > index - 1 - length; i--)
@@ -93,7 +91,6 @@ namespace CustomIndicators.Scripts
             }
             else if (index > length)
             {
-
                 decimal a = Math.Round(2.0m / (length * 2), 10);
                 decimal lastValueMoving = moving[index - 1];
                 decimal lastValueSeries = Math.Round(valuesSeries[index], 10);

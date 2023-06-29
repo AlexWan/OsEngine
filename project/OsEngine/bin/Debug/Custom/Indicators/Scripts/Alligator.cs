@@ -23,7 +23,6 @@ namespace CustomIndicators.Scripts
         private Aindicator _smaLips;
         private Aindicator _smaJaw;
 
-
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
@@ -41,17 +40,16 @@ namespace CustomIndicators.Scripts
                 _seriesLips = CreateSeries("Lips", Color.LawnGreen, IndicatorChartPaintType.Line, true);
 
                 _smaJaw = IndicatorsFactory.CreateIndicatorByName("Ssma", Name + "SsmaJaw", false);
-                ((IndicatorParameterInt)_smaJaw.Parameters[0]).Bind(_lengthJaw);
+                _smaJaw.Parameters[0].Bind(_lengthJaw);
                 ProcessIndicator("Jaw SSMA", _smaJaw);
 
                 _smaLips = IndicatorsFactory.CreateIndicatorByName("Ssma", Name + "SsmaLips", false);
-                ((IndicatorParameterInt)_smaLips.Parameters[0]).Bind(_lengthLips);
+                _smaLips.Parameters[0].Bind(_lengthLips);
                 ProcessIndicator("Lips SSMA", _smaLips);
 
                 _smaTeeth = IndicatorsFactory.CreateIndicatorByName("Ssma", Name + "SsmaTeeth", false);
-                ((IndicatorParameterInt)_smaTeeth.Parameters[0]).Bind(_lengthTeeth);
+                _smaTeeth.Parameters[0].Bind(_lengthTeeth);
                 ProcessIndicator("Teeth SSMA", _smaTeeth);
-
             }
         }
 

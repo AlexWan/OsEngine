@@ -20,7 +20,6 @@ namespace CustomIndicators.Scripts
                 _candlePoint = CreateParameterStringCollection("Candle point", "Close", Entity.CandlePointsArray);
                 _series = CreateSeries("StdDev", Color.Green, IndicatorChartPaintType.Line, true);
             }
-
         }
 
         public override void OnProcess(List<Candle> candles, int index)
@@ -57,7 +56,6 @@ namespace CustomIndicators.Scripts
             sd = (decimal)Math.Sqrt((double)sd / lenght2);  //find the root of sum/period // находим корень из суммы/период 
 
             return Math.Round(sd, 5);
-
         }
 
         private decimal GetPoint(List<Candle> candles, int index)

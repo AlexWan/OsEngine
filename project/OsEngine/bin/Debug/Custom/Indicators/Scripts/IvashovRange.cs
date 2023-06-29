@@ -119,6 +119,5 @@ namespace CustomIndicators.Scripts
         private List<decimal> range = new List<decimal>();
         private List<decimal> movinglist = new List<decimal>();
         private List<decimal> averagelist = new List<decimal>();
-
     }
 }

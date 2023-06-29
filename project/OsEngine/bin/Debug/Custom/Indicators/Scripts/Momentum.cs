@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
@@ -55,7 +54,6 @@ namespace CustomIndicators.Scripts
             {
                 value = candles[index].Low / candles[index - _length.ValueInt].Low * 100;
             }
-
 
             return Math.Round(value, 2);
         }

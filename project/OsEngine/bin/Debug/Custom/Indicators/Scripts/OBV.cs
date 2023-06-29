@@ -46,7 +46,6 @@ namespace CustomIndicators.Scripts
 
             if (index > 2)
             {
-
                 decimal p1 = candles[index].Close;
                 decimal p2 = candles[index - 1].Close;
 
@@ -71,6 +70,5 @@ namespace CustomIndicators.Scripts
         }
 
         private List<decimal> _temp = new List<decimal>();
-
     }
 }

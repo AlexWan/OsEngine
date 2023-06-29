@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -22,10 +21,6 @@ namespace CustomIndicators.Scripts
                 _candlePoint = CreateParameterStringCollection("Candle point", "Close", Entity.CandlePointsArray);
                 _series = CreateSeries("Vwma", Color.Aqua, IndicatorChartPaintType.Line, true);
             }
-            //else if (state == IndicatorState.Dispose)
-            //{
-
-            //}
         }
 
         public override void OnProcess(List<Candle> candles, int index)

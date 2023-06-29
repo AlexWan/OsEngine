@@ -82,7 +82,6 @@ namespace CustomIndicators.Scripts
                 return;
             }
 
-
             // Line equation    
             b = (sumxy * _period.ValueInt - sumx * sumy) / c;
             a = (sumy - sumx * b) / _period.ValueInt;
@@ -126,7 +125,6 @@ namespace CustomIndicators.Scripts
 
                 _seriesLowerband.Values[i] = _seriesCentralLine.Values[i] -
                                              (standartError * _downDeviation.ValueDecimal);
-
             }
         }
 
@@ -135,7 +133,6 @@ namespace CustomIndicators.Scripts
             for (int i = index - _period.ValueInt + 1; i < _seriesCentralLine.Values.Count; i++)
             {
                 _seriesCentralLine.Values[i] = 0;
-
             }
 
             for (int i = index - _period.ValueInt + 1; i < _seriesUpperband.Values.Count; i++)

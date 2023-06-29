@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
@@ -29,13 +28,13 @@ namespace CustomIndicators.Scripts
                 _series = CreateSeries("AO", Color.DarkGreen, IndicatorChartPaintType.Column, true);
 
                 _emaFast = IndicatorsFactory.CreateIndicatorByName("Ema", Name + "Ema fast", false);
-                ((IndicatorParameterInt)_emaFast.Parameters[0]).Bind(_lenghtFastLine);
-                ((IndicatorParameterString)_emaFast.Parameters[1]).Bind(_candlePoint);
+                _emaFast.Parameters[0].Bind(_lenghtFastLine);
+                _emaFast.Parameters[1].Bind(_candlePoint);
                 ProcessIndicator("Ema fast", _emaFast);
 
                 _emaSlow = IndicatorsFactory.CreateIndicatorByName("Ema", Name + "Ema slow", false);
-                ((IndicatorParameterInt)_emaSlow.Parameters[0]).Bind(_lenghtSlowLine);
-                ((IndicatorParameterString)_emaSlow.Parameters[1]).Bind(_candlePoint);
+                _emaSlow.Parameters[0].Bind(_lenghtSlowLine);
+                _emaSlow.Parameters[1].Bind(_candlePoint);
                 ProcessIndicator("Ema slow", _emaSlow);
             }
         }

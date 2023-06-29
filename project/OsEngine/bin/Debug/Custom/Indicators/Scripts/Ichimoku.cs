@@ -29,7 +29,6 @@ namespace CustomIndicators.Scripts
                 _sdvig = CreateParameterInt("Chinkou", 26);
                 _chinkou = CreateParameterInt("Deviation", 26);
 
-
                 _seriesEtalon = CreateSeries("Tenkan", Color.BlueViolet, IndicatorChartPaintType.Line, true);
                 _seriesEtalon.CanReBuildHistoricalValues = false;
 
@@ -63,8 +62,6 @@ namespace CustomIndicators.Scripts
                 if (_valuesLineSecond_Senkou_span_B != null)
                     _valuesLineSecond_Senkou_span_B.Clear();
             }
-
-
         }
 
         public override void OnProcess(List<Candle> candles, int index)
@@ -82,7 +79,6 @@ namespace CustomIndicators.Scripts
                 _valuesLineFirst_Senkkou_span_A.Clear();
                 _valuesLineSecond_Senkou_span_B.Clear();
             }
-
 
             Process(candles);
 
@@ -107,8 +103,6 @@ namespace CustomIndicators.Scripts
 
         public void Process(List<Candle> candles)
         {
-
-
             if (_valuesEtalonLine_Kejun_sen != null &&
                 _valuesEtalonLine_Kejun_sen.Count + 1 == candles.Count)
             {
@@ -217,7 +211,6 @@ namespace CustomIndicators.Scripts
                 (GetLineFirst(candles, candles.Count - 1));
             _valuesLineSecond_Senkou_span_B[_valuesLineSecond_Senkou_span_B.Count - 1] =
                 (GetLine(candles, candles.Count - 1, _fird.ValueInt, _sdvig.ValueInt));
-
         }
 
         private decimal GetLine(List<Candle> candles, int index, int length, int shift)
@@ -251,7 +244,6 @@ namespace CustomIndicators.Scripts
 
         public decimal GetLineLate(List<Candle> candles, int index)
         {
-
             if (index + _chinkou.ValueInt >= candles.Count)
             {
                 return candles[candles.Count - 1].Close;

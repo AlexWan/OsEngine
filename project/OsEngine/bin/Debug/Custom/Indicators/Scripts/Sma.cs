@@ -7,7 +7,6 @@ namespace CustomIndicators.Scripts
 {
     public class Sma : Aindicator
     {
-
         private IndicatorParameterInt _lenght;
 
         private IndicatorParameterString _candlePoint;

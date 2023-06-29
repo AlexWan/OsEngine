@@ -44,7 +44,6 @@ namespace CustomIndicators.Scripts
                 l = 0.0m;
             int x;
 
-
             for (int i = index - _period.ValueInt + 1, g = 0; i < index + 1; i++, g++)
             {
                 sumy += candles[i].GetPoint(_candlePoint.ValueString);
