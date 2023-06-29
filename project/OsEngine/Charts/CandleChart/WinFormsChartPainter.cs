@@ -178,9 +178,13 @@ namespace OsEngine.Charts.CandleChart
                 _host.Child = _chart;
                 _host.Child.Show();
                 _isPaint = true;
-                _rectangle.Fill =
+
+                if (_rectangle != null)
+                {
+                    _rectangle.Fill =
                     new SolidColorBrush(System.Windows.Media.Color.FromArgb(_colorKeeper.ColorBackChart.A,
-                        _colorKeeper.ColorBackChart.R, _colorKeeper.ColorBackChart.G, _colorKeeper.ColorBackChart.B));
+                    _colorKeeper.ColorBackChart.R, _colorKeeper.ColorBackChart.G, _colorKeeper.ColorBackChart.B));
+                }
 
                 ResizeYAxisOnArea("Prime");
                 ResizeSeriesLabels();
