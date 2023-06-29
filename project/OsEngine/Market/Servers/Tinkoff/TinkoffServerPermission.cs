@@ -133,7 +133,7 @@ namespace OsEngine.Market.Servers.Tinkoff
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = true,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = true
+                TimeFrameDayIsOn = false
             };
 
         #endregion
