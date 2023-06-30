@@ -845,6 +845,30 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < bots.Count; i++)
             {
+                List<BotTabPair> currentTabs = bots[i].TabsPair;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    List<PairToTrade> pairs = currentTabs[i2].Pairs;
+
+                    for(int i3 = 0; i3 < pairs.Count;i3++)
+                    {
+                        PairToTrade pair = pairs[i3];
+
+                        if(pair.Tab1.Securiti != null)
+                        {
+                            namesSecurity.Add(pair.Tab1.Securiti.Name);
+                        }
+                        if (pair.Tab2.Securiti != null)
+                        {
+                            namesSecurity.Add(pair.Tab2.Securiti.Name);
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
                 List<BotTabScreener> currentTabs = bots[i].TabsScreener;
 
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)

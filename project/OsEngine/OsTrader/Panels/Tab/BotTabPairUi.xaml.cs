@@ -60,6 +60,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             _pair.Tab1.CandleUpdateEvent += Tab1_CandleUpdateEvent;
             _pair.Tab2.CandleUpdateEvent += Tab2_CandleUpdateEvent;
 
+            if(pair.Tab1.StartProgram == StartProgram.IsTester)
+            {
+                _pair.Tab1.CandleFinishedEvent += Tab1_CandleUpdateEvent;
+                _pair.Tab2.CandleFinishedEvent += Tab2_CandleUpdateEvent;
+            }
+
             CreateCorrelationChart();
             UpdateCorrelationChart();
 
@@ -79,6 +85,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonCointegrationReload.Click -= ButtonCointegrationReload_Click;
             _pair.Tab1.CandleUpdateEvent -= Tab1_CandleUpdateEvent;
             _pair.Tab2.CandleUpdateEvent -= Tab2_CandleUpdateEvent;
+            _pair.Tab1.CandleFinishedEvent -= Tab1_CandleUpdateEvent;
+            _pair.Tab2.CandleFinishedEvent -= Tab2_CandleUpdateEvent;
 
             _pair.CorrelationChangeEvent -= _pair_CorrelationChangeEvent;
             _pair.CointegrationChangeEvent -= _pair_CointegrationChangeEvent;

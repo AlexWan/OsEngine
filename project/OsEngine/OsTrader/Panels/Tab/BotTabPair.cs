@@ -245,7 +245,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         // хранение пар
 
-        List<PairToTrade> Pairs = new List<PairToTrade>();
+        public List<PairToTrade> Pairs = new List<PairToTrade>();
 
         public void CreatePair()
         {

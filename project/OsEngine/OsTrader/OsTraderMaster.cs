@@ -1232,7 +1232,11 @@ namespace OsEngine.OsTrader
             else
             {
                 StartPaint();
-                _activPanel.MoveChartToTheRight();
+                if(_activPanel != null)
+                {
+                    _activPanel.MoveChartToTheRight();
+                }
+               
             }
         }
 
