@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -16,7 +15,6 @@ namespace CustomIndicators.Scripts
 
         private Aindicator _OffsetSma;
 
-
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
@@ -28,9 +26,8 @@ namespace CustomIndicators.Scripts
                 _series = CreateSeries("Sma", Color.DarkRed, IndicatorChartPaintType.Line, true);
 
                 _OffsetSma = IndicatorsFactory.CreateIndicatorByName("Sma", Name + "Sma", false);
-                ((IndicatorParameterInt)_OffsetSma.Parameters[0]).Bind(_lengthSma);
+                _OffsetSma.Parameters[0].Bind(_lengthSma);
                 ProcessIndicator("OffsetSma", _OffsetSma);
-
             }
         }
 

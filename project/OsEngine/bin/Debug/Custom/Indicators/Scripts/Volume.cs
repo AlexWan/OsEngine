@@ -7,7 +7,6 @@ namespace CustomIndicators.Scripts
 {
     public class Volume : Aindicator
     {
-
         private IndicatorDataSeries _series;
 
         public override void OnStateChange(IndicatorState state)

@@ -78,7 +78,6 @@ namespace CustomIndicators.Scripts
             {
                 return 0;
             }
-
         }
 
         private decimal GetMoveAverage(List<Candle> candles, int index)
@@ -94,7 +93,6 @@ namespace CustomIndicators.Scripts
             {
                 return 0;
             }
-
         }
 
         private decimal GetRangeAverage(List<Candle> candles, int index)
@@ -114,7 +112,6 @@ namespace CustomIndicators.Scripts
 
         private decimal GetRvi(int index)
         {
-
             if (index - _p1.ValueInt + 1<= 0)
             {
                 return 0;

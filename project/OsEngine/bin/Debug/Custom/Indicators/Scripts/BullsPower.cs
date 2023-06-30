@@ -20,7 +20,7 @@ namespace CustomIndicators.Scripts
                 _series = CreateSeries("Values", Color.LimeGreen, IndicatorChartPaintType.Column, true);
 
                 _sma = IndicatorsFactory.CreateIndicatorByName("Sma", Name + "Sma", false);
-                ((IndicatorParameterInt)_sma.Parameters[0]).Bind(_length);
+                _sma.Parameters[0].Bind(_length);
                 ProcessIndicator("Sma", _sma);
             }
         }

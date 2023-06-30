@@ -16,8 +16,6 @@ namespace CustomIndicators.Scripts
         private IndicatorParameterDecimal _koeff;           
         private IndicatorDataSeries _series;                
 
-
-
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)         
@@ -27,8 +25,6 @@ namespace CustomIndicators.Scripts
                 _series = CreateSeries("VolatilityCandles", Color.Aqua, IndicatorChartPaintType.Line, true);                     
             }
         }
-
-
 
         public override void OnProcess(List<Candle> candles, int index)
         {

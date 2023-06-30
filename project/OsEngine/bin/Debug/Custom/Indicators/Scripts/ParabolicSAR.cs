@@ -21,8 +21,6 @@ namespace CustomIndicators.Scripts
 
                 _series = CreateSeries("ParabolicSAR", Color.DodgerBlue, IndicatorChartPaintType.Point, true);
                 _series.CanReBuildHistoricalValues = false;
-
-
             }
             else if (state == IndicatorState.Dispose)
             {
@@ -140,7 +138,6 @@ namespace CustomIndicators.Scripts
                 _valuesDown.Add(0);
             }
 
-
             _values.Add(dop[0]);
             MasTrend.Add(dop[1]);
             MasHp.Add(dop[2]);
@@ -206,7 +203,6 @@ namespace CustomIndicators.Scripts
                 MasLp.Add(dop[3]);
                 MasAf.Add(dop[4]);
                 //Values.Add(GetValueParabolicSAR(candles, i));
-
             }
         }
 
@@ -237,7 +233,6 @@ namespace CustomIndicators.Scripts
             }
             else
             {
-
                 if (dop[1] == 1.0m)
                 {
                     dop[0] = candles[candles.Count - 1].Low;
@@ -311,7 +306,6 @@ namespace CustomIndicators.Scripts
                         afP = afP + _af.ValueDecimal;
                         if (afP > _maxAf.ValueDecimal) afP = _maxAf.ValueDecimal;
                     }
-
                 }
                 else
                 {
@@ -321,7 +315,6 @@ namespace CustomIndicators.Scripts
                         afP = afP + _af.ValueDecimal;
                         if (afP > _maxAf.ValueDecimal) afP = _maxAf.ValueDecimal;
                     }
-
                 }
             }
 
@@ -334,7 +327,6 @@ namespace CustomIndicators.Scripts
 
                     if (candles[index].Low < lineP)
                         lineP = candles[index].Low;
-
                 }
                 else
                 {
@@ -342,7 +334,6 @@ namespace CustomIndicators.Scripts
 
                     if (candles[index].High > lineP)
                         lineP = candles[index].High;
-
                 }
             }
 

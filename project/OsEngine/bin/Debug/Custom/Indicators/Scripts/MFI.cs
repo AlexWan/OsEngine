@@ -108,7 +108,5 @@ namespace CustomIndicators.Scripts
         /// typical prive
         /// </summary>
         private List<decimal> _tp = new List<decimal>();
-
-
     }
 }

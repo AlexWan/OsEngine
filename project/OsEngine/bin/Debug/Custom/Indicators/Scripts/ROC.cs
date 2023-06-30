@@ -30,7 +30,6 @@ namespace CustomIndicators.Scripts
             _series.Values[index] = GetValue(candles, index);
         }
 
-
         private decimal GetValue(List<Candle> candles, int index)
         {
             if (index < _period.ValueInt)
