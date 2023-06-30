@@ -373,6 +373,7 @@
       <DependentUpon>AwaitUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CandleConverter.cs" />
+    <Compile Include="Entity\CointegrationBuilder.cs" />
     <Compile Include="Entity\ColorCustomDialog.xaml.cs">
       <DependentUpon>ColorCustomDialog.xaml</DependentUpon>
     </Compile>
