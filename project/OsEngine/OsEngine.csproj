@@ -376,6 +376,7 @@
     <Compile Include="Entity\ColorCustomDialog.xaml.cs">
       <DependentUpon>ColorCustomDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Entity\CorrelationBuilder.cs" />
     <Compile Include="Entity\DataGridFactory.cs" />
     <Compile Include="Entity\DateTimeSelectionDialog.xaml.cs">
       <DependentUpon>DateTimeSelectionDialog.xaml</DependentUpon>
