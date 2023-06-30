@@ -1,0 +1,56 @@
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.BotTabPairCommonSettingsUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab"
+        mc:Ignorable="d"
+       Title="Pairs common settings" Height="483" Width="574" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize">
+    <Grid Margin="0,0,0,0">
+        <Rectangle Margin="4,28,4,0" Height="249" VerticalAlignment="Top"/>
+        <Label Name="LabelOrdersPlacement" Content="Orders placement" HorizontalAlignment="Left" VerticalAlignment="Top" Height="28" Width="243" FontSize="18"/>
+        <Label Name="LabelIndicators" Content="Indicators" HorizontalAlignment="Left" Margin="4,275,0,0" Height="28" Width="239" FontSize="18" VerticalAlignment="Top"/>
+        <Rectangle Margin="4,302,4,35"/>
+
+        <Label Name="LabelSecurity1" Content="Security 1" HorizontalAlignment="Left" Margin="106,39,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelSecurity2" Content="Security 2" HorizontalAlignment="Left" Margin="383,39,0,0" VerticalAlignment="Top"/>
+
+        <Label Name="LabelOrderType1" Content="Order type" HorizontalAlignment="Left" Margin="10,80,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxOrderType1" HorizontalAlignment="Left" Margin="138,80,0,0" VerticalAlignment="Top" Width="120"/>
+
+        <Label Name="LabelSlippage1" Content="Slippage" HorizontalAlignment="Left" Margin="10,108,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlippage1" HorizontalAlignment="Left" Margin="138,108,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+        <Label Name="LabelVolume1" Content="Volume (Currency)" HorizontalAlignment="Left" Margin="10,136,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxVolume1" HorizontalAlignment="Left" Margin="138,136,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+        <Label Name="LabelOrderType2" Content="Order type" HorizontalAlignment="Left" Margin="299,80,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxOrderType2" HorizontalAlignment="Left" Margin="427,80,0,0" VerticalAlignment="Top" Width="120"/>
+
+        <Label Name="LabelSlippage2" Content="Slippage" HorizontalAlignment="Left" Margin="299,108,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlippage2" HorizontalAlignment="Left" Margin="427,108,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+        <Label Name="LabelVolume2" Content="Volume (Currency)" HorizontalAlignment="Left" Margin="299,136,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxVolume2" HorizontalAlignment="Left" Margin="427,136,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+        <Button Name="ButtonPositionSupport" Content="Position support" Margin="191,201,181,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxSecondByMarket" Content="Second by market" Margin="225,234,225,0" VerticalAlignment="Top"/>
+
+        <Label Name="LabelCorrelation" Content="Correlation" HorizontalAlignment="Left" Margin="106,307,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelCointegration" Content="Cointegration" HorizontalAlignment="Left" Margin="379,307,0,0" VerticalAlignment="Top"/>
+
+        <Label Name="LabelCorrelationLookBack" Content="Look Back" HorizontalAlignment="Left" Margin="10,351,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxCorrelationLookBack" HorizontalAlignment="Left" Margin="138,351,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+        <Label Name="LabelCointegrationLookBack" Content="Look Back" HorizontalAlignment="Left" Margin="299,351,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxCointegrationLookBack" HorizontalAlignment="Left" Margin="427,351,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+        <Label Name="LabelCointegrationDeviation" Content="Deviation" HorizontalAlignment="Left" Margin="299,379,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxCointegrationDeviation" HorizontalAlignment="Left" Margin="427,379,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+        <Button Name="ButtonSave" Content="Save" HorizontalAlignment="Right" Margin="0,0,4,5" VerticalAlignment="Bottom" Width="220"/>
+        <Button Name="ButtonApply" Content="Apply to all" HorizontalAlignment="Left" Margin="4,0,0,5" VerticalAlignment="Bottom" Width="220"/>
+
+
+    </Grid>
+</Window>

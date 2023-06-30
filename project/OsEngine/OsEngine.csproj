@@ -932,6 +932,12 @@
       <DependentUpon>BotPanelChartUI.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\Tab\BotTabPair.cs" />
+    <Compile Include="OsTrader\Panels\Tab\BotTabPairCommonSettingsUi.xaml.cs">
+      <DependentUpon>BotTabPairCommonSettingsUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabPairUi.xaml.cs">
+      <DependentUpon>BotTabPairUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\Panels\Tab\BotTabScreener.cs" />
     <Compile Include="OsTrader\Panels\Tab\BotTabScreenerUi.xaml.cs">
       <DependentUpon>BotTabScreenerUi.xaml</DependentUpon>
@@ -1509,6 +1515,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\BotPanelChartUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\BotTabPairCommonSettingsUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\BotTabPairUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1013,6 +1013,10 @@ namespace OsEngine.Language
           "Eng:Trading different timeframes in PairTrader is forbidden!_" +
           "Ru:Торговля разными Таймфреймами в PairTrader запрещена!_");
 
+        public string Label251 => OsLocalization.ConvertToLocString(
+          "Eng:Indicators_" +
+          "Ru:Индикаторы_");
+
         public string Label290 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Market depth data is missing!_" +
           "Ru:Не возможно открыть сделку! Нет данных по стакану!_");
