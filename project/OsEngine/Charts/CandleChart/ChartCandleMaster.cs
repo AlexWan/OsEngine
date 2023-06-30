@@ -21,6 +21,8 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.PrimeSettings;
 using System.Threading;
+using System.Windows.Forms.DataVisualization.Charting;
+using System.Drawing;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -59,12 +61,14 @@ namespace OsEngine.Charts.CandleChart
                 ChartCandle.LogMessageEvent -= NewLogMessage;
                 ChartCandle.ClickToIndexEvent -= _chartCandle_ClickToIndexEvent;
                 ChartCandle.SizeAxisXChangeEvent -= ChartCandle_SizeAxisXChangeEvent;
+                ChartCandle.LastXIndexChangeEvent -= ChartCandle_LastXIndexChangeEvent;
             }
             ChartCandle = new WinFormsChartPainter(_name, _startProgram);
             ChartCandle.ChartClickEvent += ChartCandle_ChartClickEvent;
             ChartCandle.LogMessageEvent += NewLogMessage;
             ChartCandle.ClickToIndexEvent += _chartCandle_ClickToIndexEvent;
             ChartCandle.SizeAxisXChangeEvent += ChartCandle_SizeAxisXChangeEvent;
+            ChartCandle.LastXIndexChangeEvent += ChartCandle_LastXIndexChangeEvent;
             SetNewTimeFrameToChart(_timeFrameBuilder);  //AVP добавил, чтоб ChartCandle знал, с каким он таймфреймом. (Это важно для скринера, с отложенным созданием Чарта)  
 
             if (_indicators != null)
@@ -75,7 +79,6 @@ namespace OsEngine.Charts.CandleChart
                 }
             }
 
-           
         }
 
         /// <summary>
@@ -435,7 +438,9 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                if(_indicators != null)
+                _bindChart = null;
+
+                if (_indicators != null)
                 {
                     for (int i = 0; _indicators != null && i < _indicators.Count; i++)
                     {
@@ -521,6 +526,63 @@ namespace OsEngine.Charts.CandleChart
         /// чарт
         /// </summary>
         public IChartPainter ChartCandle;
+
+        // bind
+
+        public void Bind(ChartCandleMaster chart)
+        {
+            _bindChart = chart;
+
+        }
+
+        private ChartCandleMaster _bindChart;
+
+        private void ChartCandle_LastXIndexChangeEvent(int curXFromRight)
+        {
+            if(_bindChart == null)
+            {
+                ChartCandle.LastXIndexChangeEvent -= ChartCandle_LastXIndexChangeEvent;
+                return;
+            }
+
+            _bindChart.SetAxisXPositionFromRight(curXFromRight);
+        }
+
+        private void CheckBindAreaSize(int size)
+        {
+            if(_bindChart == null)
+            {
+                return;
+            }
+
+            if(size <= 0)
+            {
+                return;
+            }
+
+            _bindChart.SetAxisXSize(size);
+
+        }
+
+        public void SetAxisXSize(int size)
+        {
+            if(ChartCandle == null)
+            {
+                return;
+            }
+
+            ChartCandle.SetAxisXSize(size);
+        }
+
+        public void SetAxisXPositionFromRight(int xPosition)
+        {
+            if (ChartCandle == null)
+            {
+                return;
+            }
+
+            ChartCandle.SetAxisXPositionFromRight(xPosition);
+        }
 
         // context menu контекстное меню
 
@@ -817,6 +879,8 @@ namespace OsEngine.Charts.CandleChart
         private void ChartCandle_SizeAxisXChangeEvent(int newSizeX)
         {
             //  return;
+
+            CheckBindAreaSize(newSizeX);
 
             if (_myPosition == null ||
                 _myPosition.Count == 0)
@@ -1468,7 +1532,7 @@ namespace OsEngine.Charts.CandleChart
         /// to start drawing this chart on window
         /// начать прорисовывать данный чарт на окне
         /// </summary>
-        public void StartPaint(System.Windows.Controls.Grid gridChart, WindowsFormsHost host, Rectangle rectangle)
+        public void StartPaint(System.Windows.Controls.Grid gridChart, WindowsFormsHost host, System.Windows.Shapes.Rectangle rectangle)
         {
             try
             {

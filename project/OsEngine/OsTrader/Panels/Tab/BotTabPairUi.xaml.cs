@@ -191,6 +191,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartSec2 = new ChartCandleMaster(_pair.Name + "sec2", _pair.Tab2.StartProgram);
             _chartSec2.StartPaint(null, HostSec2, null);
             _chartSec2.SetCandles(_pair.Tab2.CandlesAll);
+
+            _chartSec1.Bind(_chartSec2);
         }
 
         private void Tab1_CandleUpdateEvent(System.Collections.Generic.List<Candle> candles)

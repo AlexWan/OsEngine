@@ -24,9 +24,6 @@ using OsEngine.Market;
 using Color = System.Drawing.Color;
 using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
-using System.Data.SqlTypes;
-using System.Windows.Shapes;
-using System.Security.Cryptography;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -6304,6 +6301,22 @@ namespace OsEngine.Charts.CandleChart
                     SizeAxisXChangeEvent(lastX - firstX);
                 }
 
+                if(LastXIndexChangeEvent != null 
+                    && candleArea.AxisX.ScaleView != null
+                    && chartSeries.Count > 0 
+                    && chartSeries[0].Points != null
+                    && double.IsNaN(candleArea.AxisX.ScaleView.Position) == false
+                    && double.IsNaN(candleArea.AxisX.ScaleView.Size) == false)
+                {
+                    int allCandleCount = chartSeries[0].Points.Count;
+                    int curPosition = Convert.ToInt32(candleArea.AxisX.ScaleView.Position);
+                    int scaleSize = Convert.ToInt32(candleArea.AxisX.ScaleView.Size);
+
+                    int xPositionFromRight =  + allCandleCount - (curPosition + scaleSize);
+
+                    LastXIndexChangeEvent(xPositionFromRight);
+                }
+
                 double max = double.MinValue;
                 double min = double.MaxValue;
 
@@ -6862,7 +6875,57 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            _chart.ChartAreas[0].AxisX.ScaleView.Size = value;
+            if(_chart.ChartAreas[0].AxisX.ScaleView != null &&
+                value == _chart.ChartAreas[0].AxisX.ScaleView.Size)
+            {
+                return;
+            }
+
+            if(_chart.ChartAreas[0].AxisX.ScaleView.Size != value)
+            {
+                _chart.ChartAreas[0].AxisX.ScaleView.Size = value;
+            }
+        }
+
+        public void SetAxisXSize(int size)
+        {
+            ChangeOpenScaleSize(size);
+        }
+
+        public void SetAxisXPositionFromRight(int xPosition)
+        {
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action<int>(SetAxisXPositionFromRight), xPosition);
+                return;
+            }
+
+            if (_chart.ChartAreas[0].AxisX.ScaleView == null
+                || double.IsNaN(_chart.ChartAreas[0].AxisX.ScaleView.Size))
+            {
+                return;
+            }
+
+            Series candleSeries = _chart.Series[0];
+
+            int pointCount = candleSeries.Points.Count;
+
+            int realPos = pointCount - xPosition - Convert.ToInt32(_chart.ChartAreas[0].AxisX.ScaleView.Size);
+
+            if (realPos < 0 
+                || candleSeries.Points.Count == 0
+                || candleSeries.Points.Count < xPosition)
+            {
+                return;
+            }
+
+            if(_chart.ChartAreas[0].AxisX.ScaleView.Position != realPos)
+            {
+                _chart.ChartAreas[0].AxisX.ScaleView.Position = realPos;
+                ResizeYAxisOnArea("Prime");
+                ResizeXAxis();
+            }
+          
         }
 
         /// <summary>
@@ -6870,6 +6933,12 @@ namespace OsEngine.Charts.CandleChart
         /// изменилось представление по оси Х
         /// </summary>
         public event Action<int> SizeAxisXChangeEvent;
+
+        /// <summary>
+        /// the distance from the right edge to the location of the view on the X axis has changed
+        /// изменилось расстояние от правого края до расположения представления на оси X
+        /// </summary>
+        public event Action<int> LastXIndexChangeEvent;
     }
 
     /// <summary>
