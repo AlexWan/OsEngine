@@ -78,14 +78,14 @@ namespace OsEngine.Robots.Vwma
             _VWMASlow.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += IntersectionOfTwoSma_ParametrsChangeByUser;
+            ParametrsChangeByUser += IntersectionOfTheTwoVwma_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
         }
 
         // Indicator Update event
-        private void IntersectionOfTwoSma_ParametrsChangeByUser()
+        private void IntersectionOfTheTwoVwma_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_VWMAFast.Parameters[0]).ValueInt = PeriodVWMAFast.ValueInt;
             _VWMAFast.Save();
