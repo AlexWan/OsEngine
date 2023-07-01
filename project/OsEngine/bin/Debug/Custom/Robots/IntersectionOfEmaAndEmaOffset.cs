@@ -87,7 +87,7 @@ namespace OsEngine.Robots.MyRobots
             _ema2.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += Break_EMA_ParametrsChangeByUser;
+            ParametrsChangeByUser += IntersectionOfEmaAndEmaOffset_ParametrsChangeByUser;
 
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -97,7 +97,7 @@ namespace OsEngine.Robots.MyRobots
         }
 
         // Indicator Update event
-        private void Break_EMA_ParametrsChangeByUser()
+        private void IntersectionOfEmaAndEmaOffset_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _periodEmaFast.ValueInt;
             _ema1.Save();
