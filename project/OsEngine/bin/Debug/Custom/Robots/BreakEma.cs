@@ -68,14 +68,14 @@ namespace OsEngine.Robots.MyRobots
             _ema.Save();
             
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += Break_EMA_ParametrsChangeByUser;
+            ParametrsChangeByUser += BreakEMA_ParametrsChangeByUser;
            
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;                      
         }
 
         // Indicator Update event
-        private void Break_EMA_ParametrsChangeByUser()
+        private void BreakEMA_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _emaPeriod.ValueInt;
             _ema.Save();
@@ -143,7 +143,6 @@ namespace OsEngine.Robots.MyRobots
                 // Long
                 if (Regime.ValueString != "OnlyShort") // if the mode is not only short, then we enter long
                 {
-                   
                     if (lastPrice > _lastMa)
                     {
                        
@@ -171,6 +170,7 @@ namespace OsEngine.Robots.MyRobots
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
             decimal lastPrice = candles[candles.Count - 1].Close;
             _lastMa = _ema.DataSeries[0].Last;
+            
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
                 if (openPositions[i].State != PositionStateType.Open)
@@ -236,5 +236,4 @@ namespace OsEngine.Robots.MyRobots
 
         }
     }
-
 }
