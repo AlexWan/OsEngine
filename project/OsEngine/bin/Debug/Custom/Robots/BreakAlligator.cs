@@ -19,7 +19,6 @@ Exit the position the price crosses the middle line.
  
  */
 
-
 namespace OsEngine.Robots.Aligator
 {
     [Bot("BreakAlligator")] // We create an attribute so that we don't write anything to the BotFactory
@@ -89,7 +88,6 @@ namespace OsEngine.Robots.Aligator
             ((IndicatorParameterInt)_Alligator.Parameters[2]).ValueInt = AlligatorMiddleLineLength.ValueInt;
             _Alligator.Save();
             _Alligator.Reload();
-
         }
 
         // The name of the robot in OsEngine
@@ -201,7 +199,6 @@ namespace OsEngine.Robots.Aligator
                     continue;
                 }
                 
-                
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
                    if(_lastFast < _lastMiddle)
@@ -215,7 +212,6 @@ namespace OsEngine.Robots.Aligator
                     {
                         _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
                     }
-
                 }
             }
         }
