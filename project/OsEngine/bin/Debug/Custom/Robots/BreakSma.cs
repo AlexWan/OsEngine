@@ -150,13 +150,13 @@ namespace OsEngine.Robots.SMA
 
             if (openPositions == null || openPositions.Count == 0)
             {
+                // The last value of the indicators
+                _lastSma = _SMA.DataSeries[0].Last;
+                
                 decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    // The last value of the indicators
-                    _lastSma = _SMA.DataSeries[0].Last;
-
                     decimal lastPrice = candles[candles.Count - 1].Close;
                     if (lastPrice > _lastSma)
                     {
@@ -167,9 +167,6 @@ namespace OsEngine.Robots.SMA
                 // Short
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    // The last value of the indicators
-                    _lastSma = _SMA.DataSeries[0].Last;
-
                     decimal lastPrice = candles[candles.Count - 1].Close;
                     if (lastPrice < _lastSma)
                     {
@@ -190,18 +187,15 @@ namespace OsEngine.Robots.SMA
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
+                decimal lastPrice = candles[candles.Count - 1].Close;
+                    
                 if (openPositions[i].State != PositionStateType.Open)
                 {
                     continue;
                 }
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
-                {
-                    // The last value of the indicators
-                    _lastSma = _SMA.DataSeries[0].Last;
-
-                    decimal lastPrice = candles[candles.Count - 1].Close;
-                                        
+                {                  
                     decimal profitActivation  = pos.EntryPrice + pos.EntryPrice * ProfitValue.ValueDecimal / 100;
                     decimal stopActivation = pos.EntryPrice - pos.EntryPrice * StopValue.ValueDecimal / 100;
 
@@ -209,12 +203,7 @@ namespace OsEngine.Robots.SMA
                     _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);                    
                 }
                 else // If the direction of the position is sale
-                {
-                    // The last value of the indicators
-                    _lastSma = _SMA.DataSeries[0].Last;
-
-                    decimal lastPrice = candles[candles.Count - 1].Close;
-                                        
+                {                  
                     decimal profitActivation = pos.EntryPrice - pos.EntryPrice * ProfitValue.ValueDecimal / 100;
                     decimal stopActivation = pos.EntryPrice + pos.EntryPrice * StopValue.ValueDecimal / 100;
 
