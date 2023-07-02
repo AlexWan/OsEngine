@@ -150,14 +150,16 @@ namespace OsEngine.Robots.Vwma
 
             if (openPositions == null || openPositions.Count == 0)
             {
+                // The last value of the indicators
+                _lastVwma = _Vwma.DataSeries[0].Last;
+                
+                decimal lastPrice = candles[candles.Count - 1].Close;
+                
                 decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    // The last value of the indicators
-                    _lastVwma = _Vwma.DataSeries[0].Last;
-
-                    decimal lastPrice = candles[candles.Count - 1].Close;
                     if (lastPrice > _lastVwma)
                     {
                         _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
@@ -167,10 +169,6 @@ namespace OsEngine.Robots.Vwma
                 // Short
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    // The last value of the indicators
-                    _lastVwma = _Vwma.DataSeries[0].Last;
-
-                    decimal lastPrice = candles[candles.Count - 1].Close;
                     if (lastPrice < _lastVwma)
                     {
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
@@ -187,8 +185,6 @@ namespace OsEngine.Robots.Vwma
             Position pos = openPositions[0];
 
             decimal stopPrice;
-
-
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
