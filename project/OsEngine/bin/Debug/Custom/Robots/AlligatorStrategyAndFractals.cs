@@ -197,10 +197,7 @@ namespace OsEngine.Robots.Aligator
                 _lastFast = _Alligator.DataSeries[2].Last;
                 _lastMiddle = _Alligator.DataSeries[1].Last;
                 _lastSlow = _Alligator.DataSeries[0].Last;
-
                 
-
-
                 decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
                 decimal lastPrice = candles[candles.Count - 1].Close;
                 // Long
@@ -264,9 +261,7 @@ namespace OsEngine.Robots.Aligator
                         return;
                     }
                     _tab.CloseAtTrailingStop(pos, price, price + _slippage);
-                }
-
-                
+                }   
             }
         }
 
@@ -315,9 +310,7 @@ namespace OsEngine.Robots.Aligator
                         price = candles[i].Low;
                     }
                 }
-
                 return price;
-
             }
 
             if(side == Side.Sell)
@@ -333,9 +326,7 @@ namespace OsEngine.Robots.Aligator
                 }
 
                 return price;
-
             }
-
             return 0;
         }
     }
