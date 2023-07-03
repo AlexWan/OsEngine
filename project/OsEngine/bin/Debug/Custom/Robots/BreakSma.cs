@@ -63,7 +63,7 @@ namespace OsEngine.Robots.SMA
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            PeriodSma = CreateParameter("Period Simple Moving Average", 20, 10, 200, 10, "indicator");
+            PeriodSma = CreateParameter("Period Simple Moving Average", 20, 10, 200, 10, "Indicator");
 
             // Create indicator
             _SMA = IndicatorsFactory.CreateIndicatorByName("Sma", name + "SMA", false);
