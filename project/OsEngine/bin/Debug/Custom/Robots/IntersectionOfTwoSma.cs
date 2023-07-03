@@ -61,8 +61,8 @@ namespace OsEngine.Robots.SMA
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            PeriodSmaFast = CreateParameter("Period SMA Fast", 100, 10, 300, 10, "indicator");
-            PeriodSmaSlow = CreateParameter("Period SMA Slow", 200, 10, 300, 10, "indicator");
+            PeriodSmaFast = CreateParameter("Period SMA Fast", 100, 10, 300, 10, "Indicator");
+            PeriodSmaSlow = CreateParameter("Period SMA Slow", 200, 10, 300, 10, "Indicator");
 
             // Create indicator SmaFast
             _SmaFast = IndicatorsFactory.CreateIndicatorByName("Sma", name + "SmaFast", false);
