@@ -12,6 +12,37 @@
         </Grid.RowDefinitions>
         <Grid Margin="0,0,0,235" HorizontalAlignment="Right" Width="305">
             <Rectangle Stroke="Black" Margin="0,0,0,0"/>
+            <Label x:Name="LabelCorrelationLookBack_Copy" Content="BTCUSDT ByBit" HorizontalAlignment="Right" Margin="0,10,0,0" VerticalAlignment="Top" FontSize="18" Width="305"/>
+            <Label x:Name="LabelCorrelationLookBack_Copy1" Content="ETHUSDT Binance" HorizontalAlignment="Right" Margin="0,216,0,0" VerticalAlignment="Top" FontSize="18" Width="305"/>
+            <Label Content="Volume" HorizontalAlignment="Left" Margin="10,116,0,0" VerticalAlignment="Top"/>
+            <TextBox Margin="220,116,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+            <Label Content="Slippage" HorizontalAlignment="Left" Margin="10,139,0,0" VerticalAlignment="Top"/>
+            <TextBox Margin="220,139,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+            <Button Content="Buy 1 Sell 2" HorizontalAlignment="Center" Margin="0,421,0,0" VerticalAlignment="Top" Width="285" />
+            <Button Content="Sell 1 Buy 2" HorizontalAlignment="Center" Margin="0,446,0,0" VerticalAlignment="Top" Width="285"/>
+            <Button Content="Close all poses" HorizontalAlignment="Center" Margin="0,471,0,0" VerticalAlignment="Top" Width="285"/>
+            <Label Content="Current position: " HorizontalAlignment="Left" Margin="10,163,0,0" VerticalAlignment="Top"/>
+            <TextBox Margin="220,163,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+            <Label Content="Volume" HorizontalAlignment="Left" Margin="10,329,0,0" VerticalAlignment="Top"/>
+            <Label Content="Slippage" HorizontalAlignment="Left" Margin="10,352,0,0" VerticalAlignment="Top"/>
+            <Label Content="Current position: " HorizontalAlignment="Left" Margin="10,376,0,0" VerticalAlignment="Top"/>
+            <CheckBox Content="Second by market" HorizontalAlignment="Center" Margin="0,527,0,0" VerticalAlignment="Top"/>
+            <CheckBox Content="All by market" HorizontalAlignment="Center" Margin="0,504,0,0" VerticalAlignment="Top" />
+            <TextBox HorizontalAlignment="Center" Margin="0,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+            <TextBox HorizontalAlignment="Center" Margin="0,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+            <Label Content="Best sell " HorizontalAlignment="Left" Margin="30,48,0,0" VerticalAlignment="Top"/>
+            <Label Content="Best buy " HorizontalAlignment="Left" Margin="218,71,0,0" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Center" Margin="0,259,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+            <TextBox HorizontalAlignment="Center" Margin="0,282,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+            <Label Content="Best sell " HorizontalAlignment="Left" Margin="32,259,0,0" VerticalAlignment="Top"/>
+            <Label Content="Best buy " HorizontalAlignment="Left" Margin="220,282,0,0" VerticalAlignment="Top"/>
+            <ComboBox HorizontalAlignment="Left" Margin="106,116,0,0" VerticalAlignment="Top" Width="106"/>
+            <ComboBox HorizontalAlignment="Left" Margin="106,139,0,0" VerticalAlignment="Top" Width="106"/>
+            <TextBox Margin="220,329,9,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+            <TextBox Margin="220,352,9,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+            <TextBox Margin="220,376,9,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+            <ComboBox HorizontalAlignment="Left" Margin="106,329,0,0" VerticalAlignment="Top" Width="106"/>
+            <ComboBox HorizontalAlignment="Left" Margin="106,352,0,0" VerticalAlignment="Top" Width="106"/>
         </Grid>
         <Grid Height="233" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="305">
             <Rectangle Stroke="Black" Margin="0,0,0,0"/>
@@ -52,6 +83,5 @@
                 <WindowsFormsHost Name="HostCointegration" Grid.Row="1" Margin="0,0,0,0"/>
             </Grid>
         </Grid>
-        <Button x:Name="ButtonHideShowSettingsPanel" Content="&gt;" HorizontalAlignment="Right" Margin="0,3,3,0" VerticalAlignment="Top"  Width="22" Height="22" />
     </Grid>
 </Window>

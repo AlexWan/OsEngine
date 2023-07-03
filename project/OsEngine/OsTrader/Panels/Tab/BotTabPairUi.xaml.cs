@@ -13,7 +13,9 @@ using System.Windows.Controls;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Collections.Generic;
 using System.Drawing;
-
+using OsEngine.Logging;
+using OsEngine.Market;
+using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -74,7 +76,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _pair.CorrelationChangeEvent += _pair_CorrelationChangeEvent;
             _pair.CointegrationChangeEvent += _pair_CointegrationChangeEvent;
+
+            if(_pair.Tab1.StartProgram == StartProgram.IsTester)
+            { // управление прорисовкой для тестера
+
+                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
+
+                server.TestingEndEvent += Server_TestingEndEvent;
+                server.TestingFastEvent += Server_TestingFastEvent;
+                server.TestingStartEvent += Server_TestingStartEvent;
+                server.TestRegimeChangeEvent += Server_TestRegimeChangeEvent;
+
+            }
         }
+
 
         private void BotTabPairUi_Closed(object sender, EventArgs e)
         {
@@ -92,6 +107,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             _pair.CointegrationChangeEvent -= _pair_CointegrationChangeEvent;
 
             Closed -= BotTabPairUi_Closed;
+
+            if (_pair.Tab1.StartProgram == StartProgram.IsTester)
+            { // управление прорисовкой для тестера
+
+                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
+                server.TestingEndEvent -= Server_TestingEndEvent;
+                server.TestingFastEvent -= Server_TestingFastEvent;
+                server.TestingStartEvent -= Server_TestingStartEvent;
+                server.TestRegimeChangeEvent -= Server_TestRegimeChangeEvent;
+            }
 
             _pair = null;
 
@@ -160,6 +185,91 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 return;
             }
+        }
+
+        // управление прорисовкой во время тестирования
+
+        private void Server_TestRegimeChangeEvent(TesterRegime currentTestRegime)
+        {
+            if (currentTestRegime == TesterRegime.Play)
+            {
+                _chartSec1.BindOff();
+            }
+            else if (currentTestRegime == TesterRegime.Pause)
+            {
+                _chartSec1.BindOn();
+            }
+            else if (currentTestRegime == TesterRegime.PlusOne)
+            {
+                _chartSec1.BindOn();
+            }
+        }
+
+        private void Server_TestingStartEvent()
+        {
+            if (_chartCorrelation == null)
+            {
+                return;
+            }
+
+            if (_chartCorrelation.InvokeRequired)
+            {
+                _chartCorrelation.Invoke(new Action(Server_TestingStartEvent));
+                return;
+            }
+
+            _chartSec1.StartPaint(null, HostSec1, null);
+            _chartSec2.StartPaint(null, HostSec2, null);
+            HostCorrelation.Child = _chartCorrelation;
+            HostCointegration.Child = _chartCointegration;
+        }
+
+        private void Server_TestingFastEvent()
+        {
+            if (_chartCorrelation == null)
+            {
+                return;
+            }
+
+            if (_chartCorrelation.InvokeRequired)
+            {
+                _chartCorrelation.Invoke(new Action(Server_TestingFastEvent));
+                return;
+            }
+
+            if (HostCointegration.Child == null)
+            { // нужно показывать
+                _chartSec1.StartPaint(null, HostSec1, null);
+                _chartSec2.StartPaint(null, HostSec2, null);
+                HostCorrelation.Child = _chartCorrelation;
+                HostCointegration.Child = _chartCointegration;
+            }
+            else
+            { // нужно прятать
+                _chartSec1.StopPaint();
+                _chartSec2.StopPaint();
+                HostCorrelation.Child = null;
+                HostCointegration.Child = null;
+            }
+        }
+
+        private void Server_TestingEndEvent()
+        {
+            if (_chartCorrelation == null)
+            {
+                return;
+            }
+
+            if (_chartCorrelation.InvokeRequired)
+            {
+                _chartCorrelation.Invoke(new Action(Server_TestingEndEvent));
+                return;
+            }
+            _chartSec1.StartPaint(null, HostSec1, null);
+            _chartSec1.BindOn();
+            _chartSec2.StartPaint(null, HostSec2, null);
+            HostCorrelation.Child = _chartCorrelation;
+            HostCointegration.Child = _chartCointegration;
         }
 
         // обработка нажатий на кнопки
@@ -453,5 +563,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 System.Windows.MessageBox.Show(ex.ToString());
             }
         }
+
     }
 }

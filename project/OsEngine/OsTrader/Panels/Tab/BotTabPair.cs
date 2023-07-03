@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Threading;
 
+
 namespace OsEngine.OsTrader.Panels.Tab
 {
     /// <summary>
@@ -113,6 +114,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Pairs[i].Delete();
                     Pairs[i].CointegrationPositionSideChangeEvent -= Pair_CointegrationPositionSideChangeEvent;
                     Pairs[i].CorrelationChangeEvent -= NewPair_CorrelationChangeEvent;
+
                 }
 
                 if (_grid != null)
@@ -284,6 +286,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             pair.CointegrationPositionSideChangeEvent += Pair_CointegrationPositionSideChangeEvent;
             pair.CorrelationChangeEvent += NewPair_CorrelationChangeEvent;
+            pair.CointegrationChangeEvent += Pair_CointegrationChangeEvent;
         }
 
         private void CopyPositionControllerSettings(BotTabSimple tab, BotManualControl control)
@@ -319,6 +322,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Pairs[i].CointegrationPositionSideChangeEvent -= Pair_CointegrationPositionSideChangeEvent;
                     Pairs[i].CorrelationChangeEvent -= NewPair_CorrelationChangeEvent;
+                    Pairs[i].CointegrationChangeEvent -= Pair_CointegrationChangeEvent;
                     Pairs[i].Delete();
                     Pairs.RemoveAt(i);
                     SavePairNames();
@@ -365,6 +369,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         PairToTrade newPair = new PairToTrade(pairName, _startProgram);
                         newPair.CointegrationPositionSideChangeEvent += Pair_CointegrationPositionSideChangeEvent;
                         newPair.CorrelationChangeEvent += NewPair_CorrelationChangeEvent;
+                        newPair.CointegrationChangeEvent += Pair_CointegrationChangeEvent;
                         Pairs.Add(newPair);
                     }
 
@@ -473,21 +478,47 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         // исходящие события
 
-        private void NewPair_CorrelationChangeEvent(List<PairIndicatorValue> arg1, PairToTrade arg2)
+        private void NewPair_CorrelationChangeEvent(List<PairIndicatorValue> correlationArray, PairToTrade pair)
         {
             if (SortGridType == MainGridPairSortType.Correlation)
             {
                 SortPairsArray();
             }
+
+            if(CorrelationChangeEvent != null)
+            {
+                CorrelationChangeEvent(correlationArray, pair);
+            }
         }
 
-        private void Pair_CointegrationPositionSideChangeEvent(CointegrationLineSide arg1, PairToTrade arg2)
+        private void Pair_CointegrationPositionSideChangeEvent(CointegrationLineSide side, PairToTrade pair)
         {
             if (SortGridType == MainGridPairSortType.Side)
             {
                 SortPairsArray();
             }
+
+            if (CointegrationPositionSideChangeEvent != null)
+            {
+                CointegrationPositionSideChangeEvent(side, pair);
+            }
         }
+
+        private void Pair_CointegrationChangeEvent(List<PairIndicatorValue> cointegrationArray, PairToTrade pair)
+        {
+            if (CointegrationChangeEvent != null)
+            {
+                CointegrationChangeEvent(cointegrationArray, pair);
+            }
+        }
+
+        public event Action<List<PairIndicatorValue>, PairToTrade> CorrelationChangeEvent;
+
+        public event Action<List<PairIndicatorValue>, PairToTrade> CointegrationChangeEvent;
+
+        public event Action<CointegrationLineSide, PairToTrade> CointegrationPositionSideChangeEvent;
+
+        public event Action<PairToTrade> PairToTradeCreateEvent;
 
         // прорисовка таблицы
 
@@ -1461,7 +1492,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
         }
-
 
         public event Action<List<PairIndicatorValue>, PairToTrade> CointegrationChangeEvent;
 

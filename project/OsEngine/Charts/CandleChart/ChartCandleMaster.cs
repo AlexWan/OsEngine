@@ -9,7 +9,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using System.Windows.Shapes;
 using OsEngine.Alerts;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
@@ -19,10 +18,6 @@ using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.PrimeSettings;
-using System.Threading;
-using System.Windows.Forms.DataVisualization.Charting;
-using System.Drawing;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -527,21 +522,44 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         public IChartPainter ChartCandle;
 
-        // bind
+        // bind 
 
         public void Bind(ChartCandleMaster chart)
         {
             _bindChart = chart;
-
+            _bindIsOn = true;
         }
+
+        public void BindOff()
+        {
+            _bindIsOn = false;
+        }
+
+        public void BindOn()
+        {
+            _bindIsOn = true;
+        }
+
+        private bool _bindIsOn = false;
 
         private ChartCandleMaster _bindChart;
 
         private void ChartCandle_LastXIndexChangeEvent(int curXFromRight)
         {
+
             if(_bindChart == null)
             {
                 ChartCandle.LastXIndexChangeEvent -= ChartCandle_LastXIndexChangeEvent;
+                return;
+            }
+
+            if (_bindIsOn == false)
+            {
+                return;
+            }
+
+            if (ChartCandle == null)
+            {
                 return;
             }
 
@@ -555,7 +573,17 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            if(size <= 0)
+            if (_bindIsOn == false)
+            {
+                return;
+            }
+
+            if (size <= 0)
+            {
+                return;
+            }
+
+            if (ChartCandle == null)
             {
                 return;
             }
