@@ -56,16 +56,16 @@ namespace OsEngine.Robots.MyRobots
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency", "% of the total portfolio" }, "Base");
+            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
             VolumeOnPosition = CreateParameter("Volume", 10, 1.0m, 50, 4, "Base");
             Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             TimeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             TimeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator Settings
-            _periodEmaFast = CreateParameter("fast EMA1 period", 100, 10, 300, 1, "Robot parameters");
-            _periodMiddle = CreateParameter("middle EMA2 period", 200, 10, 300, 1, "Robot parameters");
-            _periodEmaSlow = CreateParameter("slow EMA3 period", 300, 10, 300, 1, "Robot parameters");
+            _periodEmaFast = CreateParameter("fast EMA1 period", 100, 10, 300, 1, "indicator");
+            _periodMiddle = CreateParameter("middle EMA2 period", 200, 10, 300, 1, "indicator");
+            _periodEmaSlow = CreateParameter("slow EMA3 period", 300, 10, 300, 1, "indicator");
 
             // Creating an indicator EmaFast
             _ema1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema1", canDelete: false);
