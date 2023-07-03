@@ -80,11 +80,11 @@ namespace OsEngine.Robots.MyRobots
             TimeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator Settings
-            _periodEma1 = CreateParameter(" EMA1 period", 100, 10, 300, 1, "indicator");
-            _periodEma2 = CreateParameter(" EMA2 period", 200, 10, 300, 1, "indicator");
-            _periodEma3 = CreateParameter(" EMA3 period", 300, 10, 300, 1, "indicator");
-            _periodEma4 = CreateParameter(" EMA4 period", 400, 10, 300, 1, "indicator");
-            _periodEmaChannel = CreateParameter("EMA Channel Length", 10, 50, 50, 400, "indicator");
+            _periodEma1 = CreateParameter(" EMA1 period", 100, 10, 300, 1, "Indicator");
+            _periodEma2 = CreateParameter(" EMA2 period", 200, 10, 300, 1, "Indicator");
+            _periodEma3 = CreateParameter(" EMA3 period", 300, 10, 300, 1, "Indicator");
+            _periodEma4 = CreateParameter(" EMA4 period", 400, 10, 300, 1, "Indicator");
+            _periodEmaChannel = CreateParameter("EMA Channel Length", 10, 50, 50, 400, "Indicator");
 
             // Creating indicator Ema1
             _ema1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema1", canDelete: false);
