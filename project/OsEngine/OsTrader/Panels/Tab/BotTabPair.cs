@@ -128,6 +128,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _host.Child = null;
                     _host = null;
                 }
+
+                if(TabDeletedEvent != null)
+                {
+                    TabDeletedEvent();
+                }
             }
             catch (Exception error)
             {
@@ -1157,6 +1162,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        /// <summary>
+        /// Source removed
+        /// </summary>
+        public event Action TabDeletedEvent;
     }
 
     public class PairToTrade
@@ -1265,6 +1274,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Tab1.Delete();
             Tab2.Delete();
+
+            if(PairDeletedEvent != null)
+            {
+                PairDeletedEvent();
+            }
         }
 
         public bool EventsIsOn
@@ -1304,6 +1318,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Tab2.EmulatorIsOn = value;
             }
         }
+
+        /// <summary>
+        /// Source removed
+        /// </summary>
+        public event Action PairDeletedEvent;
 
         // торговые методы
 

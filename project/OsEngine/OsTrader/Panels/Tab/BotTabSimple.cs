@@ -403,6 +403,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     DeleteBotEvent(TabNum);
                 }
+
+                if(TabDeletedEvent != null)
+                {
+                    TabDeletedEvent();
+                }
             }
             catch (Exception error)
             {
@@ -4957,6 +4962,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Security for connector defined
         /// </summary>
         public event Action<Security> SecuritySubscribeEvent;
+
+        /// <summary>
+        /// Source removed
+        /// </summary>
+        public event Action TabDeletedEvent;
     }
 
     /// <summary>

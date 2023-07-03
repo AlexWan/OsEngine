@@ -88,8 +88,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 server.TestRegimeChangeEvent += Server_TestRegimeChangeEvent;
 
             }
+
+            _pair.PairDeletedEvent += _pair_PairDeletedEvent;
         }
 
+        private void _pair_PairDeletedEvent()
+        {
+            Close();
+        }
 
         private void BotTabPairUi_Closed(object sender, EventArgs e)
         {
@@ -105,6 +111,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _pair.CorrelationChangeEvent -= _pair_CorrelationChangeEvent;
             _pair.CointegrationChangeEvent -= _pair_CointegrationChangeEvent;
+            _pair.PairDeletedEvent -= _pair_PairDeletedEvent;
 
             Closed -= BotTabPairUi_Closed;
 

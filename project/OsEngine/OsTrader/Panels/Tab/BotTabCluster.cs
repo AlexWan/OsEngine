@@ -328,6 +328,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.Delete();
             _horizontalVolume.Delete();
             CandleConnector.Delete();
+
+            if(TabDeletedEvent != null)
+            {
+                TabDeletedEvent();
+            }
         }
 
         /// <summary>
@@ -590,6 +595,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// New log message event
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        /// <summary>
+        /// Source removed
+        /// </summary>
+        public event Action TabDeletedEvent;
 
         /// <summary>
         /// Get chart

@@ -6883,6 +6883,13 @@ namespace OsEngine.Charts.CandleChart
 
             if(_chart.ChartAreas[0].AxisX.ScaleView.Size != value)
             {
+                Series candlesSeries = _chart.Series[0];
+
+                if(candlesSeries.Points.Count < value)
+                {
+                    return;
+                }
+
                 _chart.ChartAreas[0].AxisX.ScaleView.Size = value;
             }
         }

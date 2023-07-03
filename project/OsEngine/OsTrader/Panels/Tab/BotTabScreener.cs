@@ -205,7 +205,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             ReloadIndicatorsOnTabs();
 
             AddNewTabToWatch(this);
-            DeleteEvent += BotTabScreener_DeleteEvent;
+            this.TabDeletedEvent += BotTabScreener_DeleteEvent;
         }
 
         /// <summary>
@@ -536,13 +536,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
             }
 
-            if (DeleteEvent != null)
+            if(TabDeletedEvent != null)
             {
-                DeleteEvent();
+                TabDeletedEvent();
             }
         }
-
-        public event Action DeleteEvent;
 
         /// <summary>
         /// Get journal
@@ -2005,6 +2003,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<Position, BotTabSimple> PositionSellAtStopActivateEvent;
 
+        /// <summary>
+        /// Source removed
+        /// </summary>
+        public event Action TabDeletedEvent;
     }
 
     /// <summary>

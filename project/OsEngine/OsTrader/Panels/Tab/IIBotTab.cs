@@ -57,7 +57,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Time of the last update of the candle
         /// </summary>
         DateTime LastTimeCandleUpdate { get; set; }
-        
+
+        /// <summary>
+        /// Source removed
+        /// </summary>
+        event Action TabDeletedEvent;
+
         /// <summary>
         /// New log message event
         /// </summary>

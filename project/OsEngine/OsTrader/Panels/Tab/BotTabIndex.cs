@@ -402,6 +402,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 Tabs[i].Delete();
             }
+
+            if(TabDeletedEvent != null)
+            {
+                TabDeletedEvent();
+            }
         }
 
         /// <summary>
@@ -1562,6 +1567,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// New log message event
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        /// <summary>
+        /// Source removed
+        /// </summary>
+        public event Action TabDeletedEvent;
 
         /// <summary>
         /// get chart information
