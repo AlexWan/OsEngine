@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using System.Reflection;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
@@ -645,9 +646,13 @@ namespace OsEngine.Logging
             {
                 return;
             }
-            if (!Directory.Exists(@"Engine\Log\"))
+
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string logDir = System.IO.Path.GetDirectoryName(assembly) + @"\Engine\Log\";
+
+            if (!Directory.Exists(logDir))
             {
-                Directory.CreateDirectory(@"Engine\Log\");
+                Directory.CreateDirectory(logDir);
             }
 
             try
@@ -659,7 +664,7 @@ namespace OsEngine.Logging
                 }
 
                 string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
-                string path = @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt";
+                string path = logDir + _uniqName + @"Log_" + date + ".txt";
 
                 using (StreamWriter writer = new StreamWriter(
                         path, true))
