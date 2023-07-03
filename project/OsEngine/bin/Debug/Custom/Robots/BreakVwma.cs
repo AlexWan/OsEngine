@@ -64,7 +64,7 @@ namespace OsEngine.Robots.Vwma
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            PeriodVwma = CreateParameter("Period Simple Moving Average", 20, 10, 200, 10, "indicator");
+            PeriodVwma = CreateParameter("Period Simple Moving Average", 20, 10, 200, 10, "Indicator");
 
             // Create indicator
             _Vwma = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "VWMA", false);
