@@ -70,10 +70,10 @@ namespace OsEngine.Robots.Vwma
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            PeriodEmaFast = CreateParameter("Period Ema Fast", 100, 10, 300, 10, "indicator");
-            PeriodEmaSlow = CreateParameter("Period Ema Slow", 200, 10, 300, 10, "indicator");
-            PeriodVwmaFast = CreateParameter("Period Vwma Fast", 100, 10, 300, 10, "indicator");
-            PeriodVwmaSlow = CreateParameter("Period Vwma Slow", 200, 10, 300, 10, "indicator");
+            PeriodEmaFast = CreateParameter("Period Ema Fast", 100, 10, 300, 10, "Indicator");
+            PeriodEmaSlow = CreateParameter("Period Ema Slow", 200, 10, 300, 10, "Indicator");
+            PeriodVwmaFast = CreateParameter("Period Vwma Fast", 100, 10, 300, 10, "Indicator");
+            PeriodVwmaSlow = CreateParameter("Period Vwma Slow", 200, 10, 300, 10, "Indicator");
 
             // Create indicator EmaFast
             _EmaFast = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EmaFast", false);
