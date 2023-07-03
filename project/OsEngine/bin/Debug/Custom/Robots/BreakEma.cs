@@ -59,7 +59,7 @@ namespace OsEngine.Robots.MyRobots
             TimeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
             
             // Indicator Settings
-            _emaPeriod = CreateParameter("Moving period", 15, 50, 300, 1, "Robot parameters");
+            _emaPeriod = CreateParameter("Moving period", 15, 50, 300, 1, "Indicator");
 
             // Creating an indicator
             _ema = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "EMA", canDelete: false);
