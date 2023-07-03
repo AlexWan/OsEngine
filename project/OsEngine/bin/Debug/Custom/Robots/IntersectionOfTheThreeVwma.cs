@@ -64,9 +64,9 @@ namespace OsEngine.Robots.Vwma
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            PeriodVwmaFast = CreateParameter("Period VWMA Fast", 100, 10, 300, 1, "indicator");
-            PeriodVwmaMiddle = CreateParameter("Period VWMA Middle", 200, 10, 300, 1, "indicator");
-            PeriodVwmaSlow = CreateParameter("Period VWMA Slow", 300, 10, 300, 1, "indicator");
+            PeriodVwmaFast = CreateParameter("Period VWMA Fast", 100, 10, 300, 1, "Indicator");
+            PeriodVwmaMiddle = CreateParameter("Period VWMA Middle", 200, 10, 300, 1, "Indicator");
+            PeriodVwmaSlow = CreateParameter("Period VWMA Slow", 300, 10, 300, 1, "Indicator");
 
             // Create indicator VWMAFast
             _VwmaFast = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "VWMAFast", false);
