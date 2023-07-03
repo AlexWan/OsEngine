@@ -66,9 +66,9 @@ namespace OsEngine.Robots.MyRobots
             TimeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator Settings
-            _periodEmaFast = CreateParameter("fast Ema1 period", 250, 50, 500, 50, "indicator");
-            _periodEmaSlow = CreateParameter("slow Ema2 period", 1000, 500, 1500, 100, "indicator");
-            _periodOffset = CreateParameter("offset Ema2 period", 0, 3, 10, 11, "indicator");
+            _periodEmaFast = CreateParameter("fast Ema1 period", 250, 50, 500, 50, "Indicator");
+            _periodEmaSlow = CreateParameter("slow Ema2 period", 1000, 500, 1500, 100, "Indicator");
+            _periodOffset = CreateParameter("offset Ema2 period", 0, 3, 10, 11, "Indicator");
 
             // Creating an indicator EmaFast
             _ema1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "EMA1", canDelete: false);
