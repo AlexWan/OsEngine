@@ -57,15 +57,15 @@ namespace OsEngine.Robots.MyRobots
            
             // Basic Settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency", "% of the total portfolio" }, "Base");
+            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
             VolumeOnPosition = CreateParameter("Volume", 10, 1.0m, 50, 4, "Base");
             Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             TimeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             TimeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
            
             // Indicator Settings
-            _periodEmaFast = CreateParameter("fast EMA1 period", 250, 50, 500, 50, "Robot parameters");
-            _periodEmaSlow = CreateParameter("slow EMA2 period", 1000, 500, 1500, 100, "Robot parameters");
+            _periodEmaFast = CreateParameter("fast EMA1 period", 250, 50, 500, 50, "indicator");
+            _periodEmaSlow = CreateParameter("slow EMA2 period", 1000, 500, 1500, 100, "indicator");
 
             // Creating indicator Ema1
             _ema1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "EMA1", canDelete: false);
