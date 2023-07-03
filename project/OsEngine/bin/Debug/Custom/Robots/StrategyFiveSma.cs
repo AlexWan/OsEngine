@@ -86,11 +86,11 @@ namespace OsEngine.Robots.SMA
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            PeriodSma1 = CreateParameter("Period SMA1", 50, 10, 300, 1, "indicator");
-            PeriodSma2 = CreateParameter("Period SMA2", 100, 10, 300, 1, "indicator");
-            PeriodSma3 = CreateParameter("Period SMA3", 150, 10, 300, 1, "indicator");
-            PeriodSma4 = CreateParameter("Period SMA4", 200, 10, 300, 1, "indicator");
-            PeriodSma5 = CreateParameter("Period SMA5", 250, 10, 300, 1, "indicator");
+            PeriodSma1 = CreateParameter("Period SMA1", 50, 10, 300, 1, "Indicator");
+            PeriodSma2 = CreateParameter("Period SMA2", 100, 10, 300, 1, "Indicator");
+            PeriodSma3 = CreateParameter("Period SMA3", 150, 10, 300, 1, "Indicator");
+            PeriodSma4 = CreateParameter("Period SMA4", 200, 10, 300, 1, "Indicator");
+            PeriodSma5 = CreateParameter("Period SMA5", 250, 10, 300, 1, "Indicator");
 
             // Create indicator Sma1
             _Sma1 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma1", false);
