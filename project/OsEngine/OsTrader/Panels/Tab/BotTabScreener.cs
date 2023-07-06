@@ -1773,7 +1773,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < Tabs.Count; i++)
                 {
-                    List<Position> posOnThisTab = Tabs[i].PositionsOpenAll;
+                    List<Position> posOnThisTab = Tabs[i].PositionsAll;
 
                     for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
                     {

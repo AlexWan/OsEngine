@@ -11,7 +11,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 namespace OsEngine.Robots.Engines
 {
     [Bot("EnginePair")]
-    internal class EnginePair : BotPanel
+    public class EnginePair : BotPanel
     {
        
         public EnginePair(string name, StartProgram startProgram)

@@ -37,9 +37,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             LabelSecurity1.Content = OsLocalization.Trader.Label102 + " 1";
             LabelSecurity2.Content = OsLocalization.Trader.Label102 + " 2";
 
-            LabelOrderType1.Content = OsLocalization.Trader.Label103;
-            LabelOrderType2.Content = OsLocalization.Trader.Label103;
-
             LabelSlippage1.Content = OsLocalization.Trader.Label92;
             LabelSlippage2.Content = OsLocalization.Trader.Label92;
 
@@ -48,7 +45,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             ButtonPositionSupport.Content = OsLocalization.Trader.Label47;
 
-            CheckBoxSecondByMarket.Content = OsLocalization.Trader.Label245;
+            LabelRegime1.Content = OsLocalization.Trader.Label115;
+            LabelRegime2.Content = OsLocalization.Trader.Label115;
 
             LabelCorrelation.Content = OsLocalization.Trader.Label242;
             LabelCointegration.Content = OsLocalization.Trader.Label238;
@@ -61,24 +59,42 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             ButtonSave.Content = OsLocalization.Trader.Label246;
             ButtonApply.Content = OsLocalization.Trader.Label247;
-            
+
             // стартовые значения
 
-            ComboBoxOrderType1.Items.Add(OrderPriceType.Limit.ToString());
-            ComboBoxOrderType1.Items.Add(OrderPriceType.Market.ToString());
-            ComboBoxOrderType1.SelectedItem = _tabPair.Sec1OrderPriceType.ToString();
+            ComboBoxSlippageTypeSec1.Items.Add(PairTraderSlippageType.Absolute.ToString());
+            ComboBoxSlippageTypeSec1.Items.Add(PairTraderSlippageType.Percent.ToString());
+            ComboBoxSlippageTypeSec1.SelectedItem = _tabPair.Sec1SlippageType.ToString();
 
-            ComboBoxOrderType2.Items.Add(OrderPriceType.Limit.ToString());
-            ComboBoxOrderType2.Items.Add(OrderPriceType.Market.ToString());
-            ComboBoxOrderType2.SelectedItem = _tabPair.Sec2OrderPriceType.ToString();
+            ComboBoxVolumeTypeSec1.Items.Add(PairTraderVolumeType.Contract.ToString());
+            ComboBoxVolumeTypeSec1.Items.Add(PairTraderVolumeType.Currency.ToString());
+            ComboBoxVolumeTypeSec1.SelectedItem = _tabPair.Sec1VolumeType.ToString();
 
-            TextBoxSlippage1.Text = _tabPair.Sec1SlippagePercent.ToString();
-            TextBoxSlippage2.Text = _tabPair.Sec2SlippagePercent.ToString();
+            ComboBoxSlippageTypeSec2.Items.Add(PairTraderSlippageType.Absolute.ToString());
+            ComboBoxSlippageTypeSec2.Items.Add(PairTraderSlippageType.Percent.ToString());
+            ComboBoxSlippageTypeSec2.SelectedItem = _tabPair.Sec2SlippageType.ToString();
+
+            ComboBoxVolumeTypeSec2.Items.Add(PairTraderVolumeType.Contract.ToString());
+            ComboBoxVolumeTypeSec2.Items.Add(PairTraderVolumeType.Currency.ToString());
+            ComboBoxVolumeTypeSec2.SelectedItem = _tabPair.Sec2VolumeType.ToString();
+
+            ComboBoxRegime1.Items.Add(PairTraderSecurityTradeRegime.Off.ToString());
+            ComboBoxRegime1.Items.Add(PairTraderSecurityTradeRegime.Limit.ToString());
+            ComboBoxRegime1.Items.Add(PairTraderSecurityTradeRegime.Market.ToString());
+            ComboBoxRegime1.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
+            ComboBoxRegime1.SelectedItem = _tabPair.Sec1TradeRegime.ToString();
+
+            ComboBoxRegime2.Items.Add(PairTraderSecurityTradeRegime.Off.ToString());
+            ComboBoxRegime2.Items.Add(PairTraderSecurityTradeRegime.Limit.ToString());
+            ComboBoxRegime2.Items.Add(PairTraderSecurityTradeRegime.Market.ToString());
+            ComboBoxRegime2.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
+            ComboBoxRegime2.SelectedItem = _tabPair.Sec2TradeRegime.ToString();
+
+            TextBoxSlippage1.Text = _tabPair.Sec1Slippage.ToString();
+            TextBoxSlippage2.Text = _tabPair.Sec2Slippage.ToString();
 
             TextBoxVolume1.Text = _tabPair.Sec1Volume.ToString();
             TextBoxVolume2.Text = _tabPair.Sec2Volume.ToString();
-
-            CheckBoxSecondByMarket.IsChecked = _tabPair.SecondByMarket;
 
             TextBoxCorrelationLookBack.Text = _tabPair.CorrelationLookBack.ToString();
             TextBoxCointegrationLookBack.Text = _tabPair.CointegrationLookBack.ToString();
@@ -92,48 +108,87 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabPairCommonSettingsUi_Closed(object sender, EventArgs e)
         {
-            ButtonSave.Click -= ButtonSave_Click;
-            ButtonApply.Click -= ButtonApply_Click;
-            Closed -= BotTabPairCommonSettingsUi_Closed;
-            ButtonPositionSupport.Click -= ButtonPositionSupport_Click;
-            _tabPair = null;
+            try
+            {
+                ButtonSave.Click -= ButtonSave_Click;
+                ButtonApply.Click -= ButtonApply_Click;
+                Closed -= BotTabPairCommonSettingsUi_Closed;
+                ButtonPositionSupport.Click -= ButtonPositionSupport_Click;
+                _tabPair = null;
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
         }
 
         private void ButtonApply_Click(object sender, RoutedEventArgs e)
         {
-            SaveSettingsFromUi();
-            _tabPair.ApplySettingsFromStandartToAll();
+            try
+            {
+                SaveSettingsFromUi();
+                _tabPair.ApplySettingsFromStandartToAll();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            SaveSettingsFromUi();
-            Close();
+            try
+            {
+                SaveSettingsFromUi();
+                Close();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
         }
 
         private void ButtonPositionSupport_Click(object sender, RoutedEventArgs e)
         {
-            _tabPair.StandartManualControl.ShowDialog();
+            try
+            {
+                _tabPair.StandartManualControl.ShowDialog();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
         }
 
         private void SaveSettingsFromUi()
         {
-            Enum.TryParse(ComboBoxOrderType1.SelectedItem.ToString(), out _tabPair.Sec1OrderPriceType);
-            Enum.TryParse(ComboBoxOrderType2.SelectedItem.ToString(), out _tabPair.Sec2OrderPriceType);
+            try
+            {
+                Enum.TryParse(ComboBoxSlippageTypeSec1.SelectedItem.ToString(), out _tabPair.Sec1SlippageType);
+                Enum.TryParse(ComboBoxVolumeTypeSec1.SelectedItem.ToString(), out _tabPair.Sec1VolumeType);
 
-            _tabPair.Sec1SlippagePercent = TextBoxSlippage1.Text.ToDecimal();
-            _tabPair.Sec2SlippagePercent = TextBoxSlippage2.Text.ToDecimal();
+                Enum.TryParse(ComboBoxSlippageTypeSec2.SelectedItem.ToString(), out _tabPair.Sec2SlippageType);
+                Enum.TryParse(ComboBoxVolumeTypeSec2.SelectedItem.ToString(), out _tabPair.Sec2VolumeType);
 
-            _tabPair.Sec1Volume = TextBoxVolume1.Text.ToDecimal();
-            _tabPair.Sec2Volume = TextBoxVolume2.Text.ToDecimal();
+                Enum.TryParse(ComboBoxRegime1.SelectedItem.ToString(), out _tabPair.Sec1TradeRegime);
+                Enum.TryParse(ComboBoxRegime2.SelectedItem.ToString(), out _tabPair.Sec2TradeRegime);
 
-            _tabPair.SecondByMarket = CheckBoxSecondByMarket.IsChecked.Value;
+                _tabPair.Sec1Slippage = TextBoxSlippage1.Text.ToDecimal();
+                _tabPair.Sec2Slippage = TextBoxSlippage2.Text.ToDecimal();
 
-            _tabPair.CorrelationLookBack = Convert.ToInt32(TextBoxCorrelationLookBack.Text);
-            _tabPair.CointegrationLookBack = Convert.ToInt32(TextBoxCointegrationLookBack.Text);
-            _tabPair.CointegrationDeviation = TextBoxCointegrationDeviation.Text.ToDecimal();
+                _tabPair.Sec1Volume = TextBoxVolume1.Text.ToDecimal();
+                _tabPair.Sec2Volume = TextBoxVolume2.Text.ToDecimal();
 
-            _tabPair.SaveStandartSettings();
+                _tabPair.CorrelationLookBack = Convert.ToInt32(TextBoxCorrelationLookBack.Text);
+                _tabPair.CointegrationLookBack = Convert.ToInt32(TextBoxCointegrationLookBack.Text);
+                _tabPair.CointegrationDeviation = TextBoxCointegrationDeviation.Text.ToDecimal();
+
+                _tabPair.SaveStandartSettings();
+            }
+            catch(Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
         }
     }
 }

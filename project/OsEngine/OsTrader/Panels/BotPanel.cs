@@ -1750,11 +1750,24 @@ position => position.State != PositionStateType.OpeningFail
                     }
                 }
 
-                if (tabWithPosition != null)
+                if (tabWithPosition == null)
                 {
                     for (int i = 0; i < _tabsScreener.Count; i++)
                     {
                         tabWithPosition = _tabsScreener[i].GetTabWithThisPosition(position.Number);
+
+                        if (tabWithPosition != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (tabWithPosition == null)
+                {
+                    for (int i = 0; i < _tabsPair.Count; i++)
+                    {
+                        tabWithPosition = _tabsPair[i].GetTabWithThisPosition(position.Number);
 
                         if (tabWithPosition != null)
                         {

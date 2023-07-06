@@ -135,19 +135,16 @@ namespace OsEngine.Journal
 
             if (_allPositions != null)
             {
-                _allPositions.Clear();
                 _allPositions = null;
             }
 
             if (_longPositions != null)
             {
-                _longPositions.Clear();
                 _longPositions = null;
             }
 
             if (_shortPositions != null)
             {
-                _shortPositions.Clear();
                 _shortPositions = null;
             }
 

@@ -978,6 +978,7 @@
     <Compile Include="Robots\OnScriptIndicators\BollingerRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\BollingerTrailing.cs" />
     <Compile Include="Robots\OnScriptIndicators\CciTrade.cs" />
+    <Compile Include="Robots\PairArbitrage\PairCointegrationSideTrader.cs" />
     <Compile Include="Robots\TechSapmles\BlockIndicatorsSample.cs" />
     <Compile Include="Robots\TechSapmles\CustomParamsUseBotSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />

@@ -6,11 +6,20 @@
 using System;
 using System.Collections.Generic;
 
-
 namespace OsEngine.Entity
 {
+    /// <summary>
+    /// Object responsible for the calculation of the correlation
+    /// </summary>
     public class CorrelationBuilder
     {
+        /// <summary>
+        /// A method that calculates the correlation between two arrays of candlesticks. 
+        /// </summary>
+        /// <param name="candles1">Candles security 1</param>
+        /// <param name="candles2">Candles security 2</param>
+        /// <param name="correlationLookBack">For how many candles the correlation is calculated</param>
+        /// <returns>An array containing correlation values. The last one is the actual</returns>
         public List<PairIndicatorValue> ReloadCorrelation(List<Candle> candles1, List<Candle> candles2, int correlationLookBack)
         {
             _correlationList = new List<PairIndicatorValue>();
@@ -120,10 +129,19 @@ namespace OsEngine.Entity
 
     }
 
+    /// <summary>
+    /// The object representing one indicator unit for paired indicators
+    /// </summary>
     public class PairIndicatorValue
     {
+        /// <summary>
+        /// Candle time for which the value is calculated
+        /// </summary>
         public DateTime Time;
 
+        /// <summary>
+        /// Indicator value
+        /// </summary>
         public decimal Value;
 
     }

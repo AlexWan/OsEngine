@@ -5,46 +5,51 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab"
         mc:Ignorable="d"
- Title="Pair Trader"  Height="828" Width="1263" MinHeight="550" MinWidth="700" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+ Title="Pair Trader"  Height="690" Width="1263" MinHeight="550" MinWidth="700" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Grid Margin="0,0,0,235" HorizontalAlignment="Right" Width="305">
+        <Grid Name="GridTradePanel" Margin="0,0,0,235" HorizontalAlignment="Right" Width="305">
             <Rectangle Stroke="Black" Margin="0,0,0,0"/>
-            <Label x:Name="LabelCorrelationLookBack_Copy" Content="BTCUSDT ByBit" HorizontalAlignment="Right" Margin="0,10,0,0" VerticalAlignment="Top" FontSize="18" Width="305"/>
-            <Label x:Name="LabelCorrelationLookBack_Copy1" Content="ETHUSDT Binance" HorizontalAlignment="Right" Margin="0,216,0,0" VerticalAlignment="Top" FontSize="18" Width="305"/>
-            <Label Content="Volume" HorizontalAlignment="Left" Margin="10,116,0,0" VerticalAlignment="Top"/>
-            <TextBox Margin="220,116,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
-            <Label Content="Slippage" HorizontalAlignment="Left" Margin="10,139,0,0" VerticalAlignment="Top"/>
-            <TextBox Margin="220,139,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
-            <Button Content="Buy 1 Sell 2" HorizontalAlignment="Center" Margin="0,421,0,0" VerticalAlignment="Top" Width="285" />
-            <Button Content="Sell 1 Buy 2" HorizontalAlignment="Center" Margin="0,446,0,0" VerticalAlignment="Top" Width="285"/>
-            <Button Content="Close all poses" HorizontalAlignment="Center" Margin="0,471,0,0" VerticalAlignment="Top" Width="285"/>
-            <Label Content="Current position: " HorizontalAlignment="Left" Margin="10,163,0,0" VerticalAlignment="Top"/>
-            <TextBox Margin="220,163,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
-            <Label Content="Volume" HorizontalAlignment="Left" Margin="10,329,0,0" VerticalAlignment="Top"/>
-            <Label Content="Slippage" HorizontalAlignment="Left" Margin="10,352,0,0" VerticalAlignment="Top"/>
-            <Label Content="Current position: " HorizontalAlignment="Left" Margin="10,376,0,0" VerticalAlignment="Top"/>
-            <CheckBox Content="Second by market" HorizontalAlignment="Center" Margin="0,527,0,0" VerticalAlignment="Top"/>
-            <CheckBox Content="All by market" HorizontalAlignment="Center" Margin="0,504,0,0" VerticalAlignment="Top" />
-            <TextBox HorizontalAlignment="Center" Margin="0,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-            <TextBox HorizontalAlignment="Center" Margin="0,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-            <Label Content="Best sell " HorizontalAlignment="Left" Margin="30,48,0,0" VerticalAlignment="Top"/>
-            <Label Content="Best buy " HorizontalAlignment="Left" Margin="218,71,0,0" VerticalAlignment="Top"/>
-            <TextBox HorizontalAlignment="Center" Margin="0,259,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-            <TextBox HorizontalAlignment="Center" Margin="0,282,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-            <Label Content="Best sell " HorizontalAlignment="Left" Margin="32,259,0,0" VerticalAlignment="Top"/>
-            <Label Content="Best buy " HorizontalAlignment="Left" Margin="220,282,0,0" VerticalAlignment="Top"/>
-            <ComboBox HorizontalAlignment="Left" Margin="106,116,0,0" VerticalAlignment="Top" Width="106"/>
-            <ComboBox HorizontalAlignment="Left" Margin="106,139,0,0" VerticalAlignment="Top" Width="106"/>
-            <TextBox Margin="220,329,9,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
-            <TextBox Margin="220,352,9,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
-            <TextBox Margin="220,376,9,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
-            <ComboBox HorizontalAlignment="Left" Margin="106,329,0,0" VerticalAlignment="Top" Width="106"/>
-            <ComboBox HorizontalAlignment="Left" Margin="106,352,0,0" VerticalAlignment="Top" Width="106"/>
+
+            <Label Name="LabelSec1Volume" Content="Volume" HorizontalAlignment="Left" Margin="11,30,0,0" VerticalAlignment="Top"/>
+            <ComboBox Name="ComboBoxSec1Volume" HorizontalAlignment="Left" Margin="107,30,0,0" VerticalAlignment="Top" Width="106"/>
+            <TextBox Name="TextBoxSec1Volume" Margin="221,30,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+            <Label Name="LabelSec1Slippage" Content="Slippage" HorizontalAlignment="Left" Margin="11,53,0,0" VerticalAlignment="Top"/>
+            <ComboBox Name="ComboBoxSec1Slippage"  HorizontalAlignment="Left" Margin="107,53,0,0" VerticalAlignment="Top" Width="106"/>
+            <TextBox Name="TextBoxSec1Slippage" Margin="221,53,9,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+
+            <Label Name="LabelSec1Position" Content="Position" HorizontalAlignment="Left" Margin="11,99,0,0" VerticalAlignment="Top"/>
+            <TextBox Name="TextBoxSec1Position" Margin="108,99,93,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+
+            <Label Name="LabelSec2Volume" Content="Volume" HorizontalAlignment="Left" Margin="10,177,0,0" VerticalAlignment="Top"/>
+            <ComboBox Name="ComboBoxSec2Volume" HorizontalAlignment="Left" Margin="106,177,0,0" VerticalAlignment="Top" Width="106"/>
+            <TextBox Name="TextBoxSec2Volume" Margin="220,177,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+            <Label Name="LabelSec2Slippage" Content="Slippage" HorizontalAlignment="Left" Margin="10,200,0,0" VerticalAlignment="Top"/>
+            <ComboBox Name="ComboBoxSec2Slippage" HorizontalAlignment="Left" Margin="106,200,0,0" VerticalAlignment="Top" Width="106"/>
+            <TextBox Name="TextBoxSec2Slippage"  Margin="220,200,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+            <Label Name="LabelSec2Position" Content="Position" HorizontalAlignment="Left" Margin="10,247,0,0" VerticalAlignment="Top"/>
+            <TextBox Name="TextBoxSec2Position" Margin="107,247,93,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+            <Button Name="ButtonBuy1Sell2" Content="Buy 1 Sell 2" HorizontalAlignment="Center" VerticalAlignment="Top" Width="285" Margin="0,283,0,0" />
+            <Button Name="ButtonBuy2Sell1" Content="Sell 1 Buy 2" HorizontalAlignment="Center" Margin="0,308,0,0" VerticalAlignment="Top" Width="285"/>
+            <Button Name="ButtonClosePositions" Content="Close all poses" HorizontalAlignment="Center" Margin="0,333,0,0" VerticalAlignment="Top" Width="285"/>
+
+            <Button Name="ButtonSec1Connection" Content="Security 1. BTCUSDT. 1Min. BinanceFutures" VerticalAlignment="Top" Margin="10,0,10,0"/>
+            <Button Name="ButtonSec2Connection" Content="Security 2. ETHUSDT. 1Min. BitGet" VerticalAlignment="Top" Margin="11,147,9,0"/>
+            <Label Name="LabelSec1Regime" Content="Regime" HorizontalAlignment="Left" Margin="11,76,0,0" VerticalAlignment="Top"/>
+            <ComboBox Name="ComboBoxSec1Regime"  HorizontalAlignment="Left" Margin="107,76,0,0" VerticalAlignment="Top" Width="106"/>
+            <Label Name="LabelSec2Regime" Content="Regime" HorizontalAlignment="Left" Margin="10,224,0,0" VerticalAlignment="Top"/>
+            <ComboBox Name="ComboBoxSec2Regime"  HorizontalAlignment="Left" Margin="106,224,0,0" VerticalAlignment="Top" Width="106"/>
+            <Button Name="ButtonPairJournal" Content="Journal" HorizontalAlignment="Center" Margin="0,358,0,0" VerticalAlignment="Top" Width="285"/>
+
+
         </Grid>
-        <Grid Height="233" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="305">
+        <Grid Name="GridIndicatorsSettings" Height="233" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="305">
             <Rectangle Stroke="Black" Margin="0,0,0,0"/>
             <Label Name="LabelCorrelation" Content="Correlation" HorizontalAlignment="Left" Margin="32,10,0,0" VerticalAlignment="Top" FontSize="18"/>
             <TextBox Name="TextBoxCorrelationLookBack" HorizontalAlignment="Left" Margin="151,38,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
@@ -56,6 +61,7 @@
             <Label Name="LabelCointegrationDeviation" Content="Deviation" HorizontalAlignment="Left" Margin="65,137,0,0" VerticalAlignment="Top"/>
 
             <TextBox Name="TextBoxCointegrationLookBack" HorizontalAlignment="Left" Margin="151,165,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
             <Label Name="LabelCointegrationLookBack" Content="Look back" HorizontalAlignment="Left" Margin="65,165,0,0" VerticalAlignment="Top"/>
             <Button Name="ButtonCointegrationReload" Content="Reload" HorizontalAlignment="Left" Margin="151,193,0,0" VerticalAlignment="Top" Width="120"/>
         </Grid>
@@ -83,5 +89,6 @@
                 <WindowsFormsHost Name="HostCointegration" Grid.Row="1" Margin="0,0,0,0"/>
             </Grid>
         </Grid>
+        <Button Name="ButtonHideShowRightPanel" Content=">" Margin="0,40,0,40" Height="NaN" HorizontalAlignment="Right" Width="15"/>
     </Grid>
 </Window>

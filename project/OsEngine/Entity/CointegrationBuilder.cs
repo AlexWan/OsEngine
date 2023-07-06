@@ -8,27 +8,49 @@ using System.Collections.Generic;
 
 namespace OsEngine.Entity
 {
+    /// <summary>
+    /// Object responsible for the calculation of the cointegration
+    /// </summary>
     public class CointegrationBuilder
     {
-
+        /// <summary>
+        /// Length of cointegration calculation
+        /// </summary>
         public int CointegrationLookBack = 50;
 
+        /// <summary>
+        /// Deviation for calculating lines on cointegration
+        /// </summary>
         public decimal CointegrationDeviation = 1;
 
+        /// <summary>
+        /// An array with cointegration values. The actual value is the last
+        /// </summary>
         public List<PairIndicatorValue> Cointegration = new List<PairIndicatorValue>();
 
+        /// <summary>
+        /// Multiplier for multiplication of the second instrument to obtain minimal deviations on the Cointegration graph
+        /// </summary>
         public decimal CointegrationMult
         {
             get { return _cointegrationMult; }
         }
         private decimal _cointegrationMult;
 
+        /// <summary>
+        /// Standard deviation on the cointegration deviation graph
+        /// </summary>
         public decimal CointegrationStandartDeviation
         {
             get { return _cointegrationStandartDeviation; }
         }
         private decimal _cointegrationStandartDeviation;
 
+        /// <summary>
+        /// The side in which the current value of the deviation between the instruments is located, 
+        /// relative to the lines on the cointegration graph. 
+        /// No - on the middle. Up - above the top line. Down - below the bottom line. 
+        /// </summary>
         public CointegrationLineSide SideCointegrationValue
         {
             get
@@ -38,18 +60,33 @@ namespace OsEngine.Entity
         }
         private CointegrationLineSide _sideCointegrationValue;
 
+        /// <summary>
+        /// Value of the upper line on the deviation graph
+        /// </summary>
         public decimal LineUpCointegration
         {
             get { return _lineUpCointegration; }
         }
         private decimal _lineUpCointegration;
 
+        /// <summary>
+        /// The value of the bottom line on the deviation graph 
+        /// </summary>
         public decimal LineDownCointegration
         {
             get { return _lineDownCointegration; }
         }
         private decimal _lineDownCointegration;
 
+        /// <summary>
+        /// A method that calculates between two arrays of candlesticks an array of differences with multiplication of the second by a multiplier. 
+        /// In this case, the resulting array contains the results with the minimum deviation of differences from zero.
+        /// </summary>
+        /// <param name="candles1">Candles security 1</param>
+        /// <param name="candles2">Candles security 1</param>
+        /// <param name="neadToRoundValues">Whether values need to be rounded. false - no need. 
+        /// true - we round up by discarding the irrelevant values and everything becomes prettier, 
+        /// but we waste a lot of resources on it.</param>
         public void ReloadCointegration(List<Candle> candles1, List<Candle> candles2, bool neadToRoundValues)
         {
             Cointegration = new List<PairIndicatorValue>();
@@ -422,10 +459,25 @@ namespace OsEngine.Entity
 
     }
 
+    /// <summary>
+    /// The side in which the current value of the deviation between the instruments is located, 
+    /// relative to the lines on the cointegration graph. 
+    /// </summary>
     public enum CointegrationLineSide
     {
+        /// <summary>
+        /// No - on the middle
+        /// </summary>
         No,
+
+        /// <summary>
+        /// Up - above the top line.
+        /// </summary>
         Up,
+
+        /// <summary>
+        /// Down - below the bottom line.
+        /// </summary>
         Down
     }
 }

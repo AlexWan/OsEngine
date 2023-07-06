@@ -13,9 +13,10 @@ using System.Windows.Controls;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Collections.Generic;
 using System.Drawing;
-using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.Journal;
+using OsEngine.Logging;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -32,6 +33,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             _pair = pair;
 
             Name = pair.Name;
+
+            // indicators
 
             TextBoxCorrelationLookBack.Text = _pair.CorrelationLookBack.ToString();
             TextBoxCointegrationLookBack.Text = _pair.CointegrationLookBack.ToString();
@@ -53,7 +56,90 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextBoxCointegrationDeviation.TextChanged += TextBoxCointegrationDeviation_TextChanged;
             ButtonCorrelationReload.Click += ButtonCorrelationReload_Click;
             ButtonCointegrationReload.Click += ButtonCointegrationReload_Click;
-            Closed += BotTabPairUi_Closed;
+
+            // trade Logic labels
+
+            LabelSec1Volume.Content = OsLocalization.Trader.Label30;
+            LabelSec1Slippage.Content = OsLocalization.Trader.Label92;
+            LabelSec1Position.Content = OsLocalization.Trader.Label253;
+            LabelSec2Volume.Content = OsLocalization.Trader.Label30;
+            LabelSec2Slippage.Content = OsLocalization.Trader.Label92;
+            LabelSec2Position.Content = OsLocalization.Trader.Label253;
+
+            ButtonBuy1Sell2.Content = OsLocalization.Trader.Label254;
+            ButtonBuy2Sell1.Content = OsLocalization.Trader.Label255;
+            ButtonClosePositions.Content = OsLocalization.Trader.Label100;
+            ButtonPairJournal.Content = OsLocalization.Trader.Label40;
+            LabelSec1Regime.Content = OsLocalization.Trader.Label115;
+            LabelSec2Regime.Content = OsLocalization.Trader.Label115;
+
+            UpdateButtonSecConnectionContent();
+
+            // trade Logic settings
+
+            ComboBoxSec1Volume.Items.Add(PairTraderVolumeType.Contract.ToString());
+            ComboBoxSec1Volume.Items.Add(PairTraderVolumeType.Currency.ToString());
+            ComboBoxSec1Volume.SelectedItem = _pair.Sec1VolumeType.ToString();
+            ComboBoxSec1Volume.SelectionChanged += ComboBoxSec1Volume_SelectionChanged;
+
+            ComboBoxSec1Slippage.Items.Add(PairTraderSlippageType.Absolute.ToString());
+            ComboBoxSec1Slippage.Items.Add(PairTraderSlippageType.Percent.ToString());
+            ComboBoxSec1Slippage.SelectedItem = _pair.Sec1SlippageType.ToString();
+            ComboBoxSec1Slippage.SelectionChanged += ComboBoxSec1Slippage_SelectionChanged;
+
+            ComboBoxSec2Volume.Items.Add(PairTraderVolumeType.Contract.ToString());
+            ComboBoxSec2Volume.Items.Add(PairTraderVolumeType.Currency.ToString());
+            ComboBoxSec2Volume.SelectedItem = _pair.Sec2VolumeType.ToString();
+            ComboBoxSec2Volume.SelectionChanged += ComboBoxSec2Volume_SelectionChanged;
+
+            ComboBoxSec2Slippage.Items.Add(PairTraderSlippageType.Absolute.ToString());
+            ComboBoxSec2Slippage.Items.Add(PairTraderSlippageType.Percent.ToString());
+            ComboBoxSec2Slippage.SelectedItem = _pair.Sec2SlippageType.ToString();
+            ComboBoxSec2Slippage.SelectionChanged += ComboBoxSec2Slippage_SelectionChanged;
+
+            ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Off.ToString());
+            ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Limit.ToString());
+            ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Market.ToString());
+            ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
+            ComboBoxSec1Regime.SelectedItem = _pair.Sec1TradeRegime.ToString();
+            ComboBoxSec1Regime.SelectionChanged += ComboBoxSec1Regime_SelectionChanged;
+
+            ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Off.ToString());
+            ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Limit.ToString());
+            ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Market.ToString());
+            ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
+            ComboBoxSec2Regime.SelectedItem = _pair.Sec2TradeRegime.ToString();
+            ComboBoxSec2Regime.SelectionChanged += ComboBoxSec2Regime_SelectionChanged;
+
+            UpdateCurPositionInTextBox();
+           
+            TextBoxSec1Volume.Text = _pair.Sec1Volume.ToString();
+            TextBoxSec1Slippage.Text = _pair.Sec1Slippage.ToString();
+
+            TextBoxSec1Volume.TextChanged += TextBoxSec1Volume_TextChanged;
+            TextBoxSec1Slippage.TextChanged += TextBoxSec1Slippage_TextChanged;
+
+            TextBoxSec2Volume.Text = _pair.Sec2Volume.ToString();
+            TextBoxSec2Slippage.Text = _pair.Sec2Slippage.ToString();
+
+            TextBoxSec2Volume.TextChanged += TextBoxSec2Volume_TextChanged;
+            TextBoxSec2Slippage.TextChanged += TextBoxSec2Slippage_TextChanged;
+
+            _pair.Tab1.PositionNetVolumeChangeEvent += Tab_PositionNetVolumeChangeEvent;
+            _pair.Tab2.PositionNetVolumeChangeEvent += Tab_PositionNetVolumeChangeEvent;
+            
+
+            ButtonSec1Connection.Click += ButtonSec1Connection_Click;
+            ButtonSec2Connection.Click += ButtonSec2Connection_Click;
+
+            ButtonBuy1Sell2.Click += ButtonBuy1Sell2_Click;
+            ButtonBuy2Sell1.Click += ButtonBuy2Sell1_Click;
+            ButtonClosePositions.Click += ButtonClosePositions_Click;
+            ButtonPairJournal.Click += ButtonPairJournal_Click;
+            ButtonHideShowRightPanel.Click += ButtonHideShowRightPanel_Click;
+           // остальное
+
+           Closed += BotTabPairUi_Closed;
 
             GlobalGUILayout.Listen(this, "botTabPairUi_" + pair.Name);
 
@@ -62,7 +148,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             _pair.Tab1.CandleUpdateEvent += Tab1_CandleUpdateEvent;
             _pair.Tab2.CandleUpdateEvent += Tab2_CandleUpdateEvent;
 
-            if(pair.Tab1.StartProgram == StartProgram.IsTester)
+            _pair.Tab1.Connector.ConnectorStartedReconnectEvent += Connector_ConnectorStartedReconnectEvent;
+            _pair.Tab2.Connector.ConnectorStartedReconnectEvent += Connector_ConnectorStartedReconnectEvent;
+
+            if (pair.Tab1.StartProgram == StartProgram.IsTester)
             {
                 _pair.Tab1.CandleFinishedEvent += Tab1_CandleUpdateEvent;
                 _pair.Tab2.CandleFinishedEvent += Tab2_CandleUpdateEvent;
@@ -86,15 +175,21 @@ namespace OsEngine.OsTrader.Panels.Tab
                 server.TestingFastEvent += Server_TestingFastEvent;
                 server.TestingStartEvent += Server_TestingStartEvent;
                 server.TestRegimeChangeEvent += Server_TestRegimeChangeEvent;
-
             }
 
             _pair.PairDeletedEvent += _pair_PairDeletedEvent;
-        }
 
-        private void _pair_PairDeletedEvent()
-        {
-            Close();
+            _pair.Tab1.PositionOpeningSuccesEvent += Tab_PositionOpeningSuccesEvent;
+            _pair.Tab1.PositionOpeningFailEvent += Tab_PositionOpeningSuccesEvent;
+            _pair.Tab1.PositionClosingFailEvent += Tab_PositionOpeningSuccesEvent;
+            _pair.Tab1.PositionClosingSuccesEvent += Tab_PositionOpeningSuccesEvent;
+
+            _pair.Tab2.PositionOpeningSuccesEvent += Tab_PositionOpeningSuccesEvent;
+            _pair.Tab2.PositionOpeningFailEvent += Tab_PositionOpeningSuccesEvent;
+            _pair.Tab2.PositionClosingFailEvent += Tab_PositionOpeningSuccesEvent;
+            _pair.Tab2.PositionClosingSuccesEvent += Tab_PositionOpeningSuccesEvent;
+
+            UpdatePositionsOnChart();
         }
 
         private void BotTabPairUi_Closed(object sender, EventArgs e)
@@ -102,16 +197,38 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextBoxCorrelationLookBack.TextChanged -= TextBoxCorrelationLookBack_TextChanged;
             TextBoxCointegrationLookBack.TextChanged -= TextBoxCointegrationLookBack_TextChanged;
             TextBoxCointegrationDeviation.TextChanged -= TextBoxCointegrationDeviation_TextChanged;
+
             ButtonCorrelationReload.Click -= ButtonCorrelationReload_Click;
             ButtonCointegrationReload.Click -= ButtonCointegrationReload_Click;
+            ButtonBuy1Sell2.Click -= ButtonBuy1Sell2_Click;
+            ButtonBuy2Sell1.Click -= ButtonBuy2Sell1_Click;
+            ButtonClosePositions.Click -= ButtonClosePositions_Click;
+            ButtonPairJournal.Click -= ButtonPairJournal_Click;
+            ButtonHideShowRightPanel.Click -= ButtonHideShowRightPanel_Click;
+
             _pair.Tab1.CandleUpdateEvent -= Tab1_CandleUpdateEvent;
             _pair.Tab2.CandleUpdateEvent -= Tab2_CandleUpdateEvent;
             _pair.Tab1.CandleFinishedEvent -= Tab1_CandleUpdateEvent;
             _pair.Tab2.CandleFinishedEvent -= Tab2_CandleUpdateEvent;
+            _pair.Tab1.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+            _pair.Tab2.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+
+            _pair.Tab1.PositionNetVolumeChangeEvent -= Tab_PositionNetVolumeChangeEvent;
+            _pair.Tab2.PositionNetVolumeChangeEvent -= Tab_PositionNetVolumeChangeEvent;
 
             _pair.CorrelationChangeEvent -= _pair_CorrelationChangeEvent;
             _pair.CointegrationChangeEvent -= _pair_CointegrationChangeEvent;
             _pair.PairDeletedEvent -= _pair_PairDeletedEvent;
+
+            _pair.Tab1.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+            _pair.Tab1.PositionOpeningFailEvent -= Tab_PositionOpeningSuccesEvent;
+            _pair.Tab1.PositionClosingFailEvent -= Tab_PositionOpeningSuccesEvent;
+            _pair.Tab1.PositionClosingSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+
+            _pair.Tab2.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+            _pair.Tab2.PositionOpeningFailEvent -= Tab_PositionOpeningSuccesEvent;
+            _pair.Tab2.PositionClosingFailEvent -= Tab_PositionOpeningSuccesEvent;
+            _pair.Tab2.PositionClosingSuccesEvent -= Tab_PositionOpeningSuccesEvent;
 
             Closed -= BotTabPairUi_Closed;
 
@@ -151,6 +268,305 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _chartCointegration = null;
             }
 
+            TextBoxSec1Volume.TextChanged -= TextBoxSec1Volume_TextChanged;
+            TextBoxSec1Slippage.TextChanged -= TextBoxSec1Slippage_TextChanged;
+
+            TextBoxSec2Volume.TextChanged -= TextBoxSec2Volume_TextChanged;
+            TextBoxSec2Slippage.TextChanged -= TextBoxSec2Slippage_TextChanged;
+
+            TextBoxSec1Volume.TextChanged -= TextBoxSec1Volume_TextChanged;
+            TextBoxSec1Slippage.TextChanged -= TextBoxSec1Slippage_TextChanged;
+
+            TextBoxSec2Volume.TextChanged -= TextBoxSec2Volume_TextChanged;
+            TextBoxSec2Slippage.TextChanged -= TextBoxSec2Slippage_TextChanged;
+        }
+
+        private void ButtonHideShowRightPanel_Click(object sender, RoutedEventArgs e)
+        {
+            if (GridTradePanel.Width == 0)
+            {
+                GridIndicatorsSettings.Visibility = Visibility.Visible;
+                GridTradePanel.Visibility = Visibility.Visible;
+                GridIndicatorsSettings.Width = 305;
+                GridTradePanel.Width = 305;
+                ButtonHideShowRightPanel.Content = ">";
+                GreedChartPanel.Margin = new Thickness(0, 0, 308, 0);
+            }
+            else
+            {
+                GridIndicatorsSettings.Visibility = Visibility.Hidden;
+                GridTradePanel.Visibility = Visibility.Hidden;
+                GridIndicatorsSettings.Width = 0;
+                GridTradePanel.Width = 0;
+                ButtonHideShowRightPanel.Content = "<";
+                GreedChartPanel.Margin = new Thickness(0, 0, 15, 0);
+            }
+        }
+
+        JournalUi2 _journalUi2;
+
+        private void ButtonPairJournal_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_journalUi2 != null)
+                {
+                    _journalUi2.Activate();
+                    return;
+                }
+
+                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
+                List<Journal.Journal> journals = new List<Journal.Journal>();
+
+                journals.Add(_pair.Tab1.GetJournal());
+                journals.Add(_pair.Tab2.GetJournal());
+
+                BotPanelJournal botPanel = new BotPanelJournal();
+                botPanel.BotName = _pair.Name + " sec1 " + _pair.Tab1.Connector.SecurityName;
+                botPanel.BotClass = "PairTrader";
+                botPanel._Tabs = new List<BotTabJournal>();
+
+                BotTabJournal botTabJournal = new BotTabJournal();
+                botTabJournal.TabNum = 1;
+                botTabJournal.Journal = journals[0];
+
+                botPanel._Tabs.Add(botTabJournal);
+                panelsJournal.Add(botPanel);
+
+
+                botPanel = new BotPanelJournal();
+                botPanel.BotName = _pair.Name + " sec2 " + _pair.Tab2.Connector.SecurityName;
+                botPanel.BotClass = "PairTrader";
+                botPanel._Tabs = new List<BotTabJournal>();
+
+                botTabJournal = new BotTabJournal();
+                botTabJournal.TabNum = 1;
+                botTabJournal.Journal = journals[1];
+
+                botPanel._Tabs.Add(botTabJournal);
+                panelsJournal.Add(botPanel);
+
+                _journalUi2 = new JournalUi2(panelsJournal, _pair.Tab1.StartProgram);
+                _journalUi2.Closed += _journalUi_Closed;
+
+                _journalUi2.Show();
+
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.Message);
+            }
+        }
+
+        private void _journalUi_Closed(object sender, EventArgs e)
+        {
+            _journalUi2 = null;
+        }
+
+        private void ComboBoxSec2Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Enum.TryParse(ComboBoxSec2Regime.SelectedItem.ToString(), out _pair.Sec2TradeRegime);
+            _pair.Save();
+        }
+
+        private void ComboBoxSec1Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Enum.TryParse(ComboBoxSec1Regime.SelectedItem.ToString(), out _pair.Sec1TradeRegime);
+            _pair.Save();
+        }
+
+        private void ButtonClosePositions_Click(object sender, RoutedEventArgs e)
+        {
+            _pair.ClosePositions();
+        }
+
+        private void ButtonBuy2Sell1_Click(object sender, RoutedEventArgs e)
+        {
+            if(_pair.HavePositions)
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label256);
+
+                ui.ShowDialog();
+
+                if(ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+            }
+
+            _pair.SellSec1BuySec2();
+        }
+
+        private void ButtonBuy1Sell2_Click(object sender, RoutedEventArgs e)
+        {
+            if (_pair.HavePositions)
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label256);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+            }
+
+            _pair.BuySec1SellSec2();
+        }
+
+        private void ButtonSec1Connection_Click(object sender, RoutedEventArgs e)
+        {
+            _pair.Tab1.ShowConnectorDialog();
+        }
+
+        private void ButtonSec2Connection_Click(object sender, RoutedEventArgs e)
+        {
+            _pair.Tab2.ShowConnectorDialog();
+        }
+
+        private void TextBoxSec2Slippage_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                _pair.Sec2Slippage = TextBoxSec2Slippage.Text.ToString().ToDecimal();
+                _pair.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxSec2Volume_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                _pair.Sec2Volume = TextBoxSec2Volume.Text.ToString().ToDecimal();
+                _pair.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxSec1Slippage_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                _pair.Sec1Slippage = TextBoxSec1Slippage.Text.ToString().ToDecimal();
+                _pair.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxSec1Volume_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                _pair.Sec1Volume = TextBoxSec1Volume.Text.ToString().ToDecimal();
+                _pair.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ComboBoxSec2Slippage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Enum.TryParse(ComboBoxSec2Slippage.SelectedItem.ToString(), out _pair.Sec2SlippageType);
+            _pair.Save();
+        }
+
+        private void ComboBoxSec2Volume_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Enum.TryParse(ComboBoxSec2Volume.SelectedItem.ToString(), out _pair.Sec2VolumeType);
+            _pair.Save();
+        }
+
+        private void ComboBoxSec1Slippage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Enum.TryParse(ComboBoxSec1Slippage.SelectedItem.ToString(), out _pair.Sec1SlippageType);
+            _pair.Save();
+        }
+
+        private void ComboBoxSec1Volume_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Enum.TryParse(ComboBoxSec1Volume.SelectedItem.ToString(), out _pair.Sec1VolumeType);
+            _pair.Save();
+        }
+
+        private void Connector_ConnectorStartedReconnectEvent(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, ServerType arg5)
+        {
+            UpdateButtonSecConnectionContent();
+        }
+
+        private void _pair_PairDeletedEvent()
+        {
+            Close();
+        }
+
+        private void UpdateButtonSecConnectionContent()
+        {
+            if(ButtonSec1Connection.Dispatcher.CheckAccess() == false)
+            {
+                ButtonSec1Connection.Dispatcher.Invoke(UpdateButtonSecConnectionContent);
+                return;
+            }
+
+            ButtonSec1Connection.Content =
+                OsLocalization.Trader.Label102 + " 1. "
+                + _pair.Tab1.Connector.SecurityName + ". "
+                + _pair.Tab1.Connector.TimeFrame + ". "
+                + _pair.Tab1.Connector.ServerType + ".";
+
+            ButtonSec2Connection.Content =
+                OsLocalization.Trader.Label102 + " 2. "
+                + _pair.Tab2.Connector.SecurityName + ". "
+                + _pair.Tab2.Connector.TimeFrame + ". "
+                + _pair.Tab2.Connector.ServerType + ".";
+
+            Title = OsLocalization.Trader.Label249 + "  " 
+                + _pair.Tab1.Connector.SecurityName + " / " + _pair.Tab2.Connector.SecurityName;
+        }
+
+        private void Tab_PositionNetVolumeChangeEvent(Position obj)
+        {
+            UpdateCurPositionInTextBox();
+        }
+
+        private void Tab_PositionOpeningSuccesEvent(Position pos)
+        {
+            UpdateCurPositionInTextBox();
+            UpdatePositionsOnChart();
+        }
+
+        private void UpdateCurPositionInTextBox()
+        {
+            if (ButtonSec1Connection.Dispatcher.CheckAccess() == false)
+            {
+                ButtonSec1Connection.Dispatcher.Invoke(UpdateCurPositionInTextBox);
+                return;
+            }
+
+            TextBoxSec1Position.Text = _pair.Tab1.VolumeNetto.ToString();
+            TextBoxSec2Position.Text = _pair.Tab2.VolumeNetto.ToString();
+        }
+
+        private void UpdatePositionsOnChart()
+        {
+            if (ButtonSec1Connection.Dispatcher.CheckAccess() == false)
+            {
+                ButtonSec1Connection.Dispatcher.Invoke(UpdatePositionsOnChart);
+                return;
+            }
+
+            _chartSec1.SetPosition(_pair.Tab1.PositionsAll);
+            _chartSec2.SetPosition(_pair.Tab2.PositionsAll);
         }
 
         // изменение значений пользователем
@@ -314,12 +730,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void Tab1_CandleUpdateEvent(System.Collections.Generic.List<Candle> candles)
         {
-            _chartSec1.SetCandles(candles);
+            _chartSec1?.SetCandles(candles);
         }
 
         private void Tab2_CandleUpdateEvent(System.Collections.Generic.List<Candle> candles)
         {
-            _chartSec2.SetCandles(candles);
+            _chartSec2?.SetCandles(candles);
         }
 
         // прорисовка корреляции
@@ -514,8 +930,18 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < values.Count; i++)
                 {
-                    decimal val = values[i].Value;
+                    decimal val = 0;
+                    DateTime time = DateTime.MinValue;
 
+                    try
+                    {
+                        val = values[i].Value;
+                        time = values[i].Time;
+                    }
+                    catch
+                    {
+                        continue;
+                    }
 
                     series.Points.AddXY(i + 1, val);
 
@@ -534,7 +960,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     string toolTip = "";
 
-                    toolTip = "Time " + values[i].Time + "\n" +
+                    toolTip = "Time " + time + "\n" +
                          "Value: " + val.ToStringWithNoEndZero();
 
                     series.Points[series.Points.Count - 1].ToolTip = toolTip;
@@ -570,6 +996,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 System.Windows.MessageBox.Show(ex.ToString());
             }
         }
+
 
     }
 }

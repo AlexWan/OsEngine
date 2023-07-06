@@ -379,7 +379,7 @@ namespace OsEngine.Language
 
         public string Label92 => OsLocalization.ConvertToLocString(
             "Eng:Slippage_" +
-            "Ru:Проскальзывание_");
+            "Ru:Проскальз._");
 
         public string Label93 => OsLocalization.ConvertToLocString(
             "Eng:From entry to stop_" +
@@ -1017,6 +1017,26 @@ namespace OsEngine.Language
           "Eng:Indicators_" +
           "Ru:Индикаторы_");
 
+        public string Label252 => OsLocalization.ConvertToLocString(
+          "Eng:All by market_" +
+          "Ru:Все по маркету_");
+
+        public string Label253 => OsLocalization.ConvertToLocString(
+          "Eng:Position_" +
+          "Ru:Позиция_");
+
+        public string Label254 => OsLocalization.ConvertToLocString(
+          "Eng:Buy 1, Sell 2_" +
+          "Ru:Купить 1, продать 2_");
+
+        public string Label255 => OsLocalization.ConvertToLocString(
+          "Eng:Sell 1, Buy 2 _" +
+          "Ru:Продать 1, Купить 2_");
+
+        public string Label256 => OsLocalization.ConvertToLocString(
+          "Eng:There are already open positions on the pair. Maybe you should close them first?_" +
+          "Ru:По паре уже есть открытые позиции.Возможно нужно их сначала закрыть?_");
+
         public string Label290 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Market depth data is missing!_" +
           "Ru:Не возможно открыть сделку! Нет данных по стакану!_");
@@ -1024,7 +1044,6 @@ namespace OsEngine.Language
         public string Label291 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Price can`t be zero!_" +
           "Ru:Не возможно открыть сделку! Цена не может быть ноль!_");
-
 
     }
 }

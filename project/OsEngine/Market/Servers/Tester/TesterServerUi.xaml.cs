@@ -325,6 +325,10 @@ namespace OsEngine.Market.Servers.Tester
 
             try
             {
+                if(_server == null)
+                {
+                    return;
+                }
                 ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
             }
             catch (Exception error)

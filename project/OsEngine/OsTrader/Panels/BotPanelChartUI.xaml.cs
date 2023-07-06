@@ -392,7 +392,7 @@ namespace OsEngine.OsTrader.Panels
             ((BotTabSimple)_panel.ActivTab).CloseAllOrderInSystem();
         }
 
-        private JournalUi _journalUi;
+        private JournalUi2 _journalUi;
 
         private void ButtonJournalCommunity_Click(object sender, RoutedEventArgs e)
         {
@@ -425,7 +425,7 @@ namespace OsEngine.OsTrader.Panels
 
                 panelsJournal.Add(botPanel);
 
-                _journalUi = new JournalUi(panelsJournal, _panel.StartProgram);
+                _journalUi = new JournalUi2(panelsJournal, _panel.StartProgram);
                 _journalUi.Closed += _journalUi_Closed;
                 _journalUi.Show();
             }

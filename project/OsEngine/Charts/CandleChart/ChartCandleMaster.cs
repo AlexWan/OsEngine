@@ -489,7 +489,6 @@ namespace OsEngine.Charts.CandleChart
                 
                 if(_myPosition != null)
                 {
-                    _myPosition.Clear();
                     _myPosition = null;
                 }
 
@@ -547,7 +546,8 @@ namespace OsEngine.Charts.CandleChart
         private void ChartCandle_LastXIndexChangeEvent(int curXFromRight)
         {
 
-            if(_bindChart == null)
+            if(_bindChart == null &&
+                ChartCandle != null)
             {
                 ChartCandle.LastXIndexChangeEvent -= ChartCandle_LastXIndexChangeEvent;
                 return;
