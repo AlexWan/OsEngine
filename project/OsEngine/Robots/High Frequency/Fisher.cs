@@ -74,28 +74,35 @@ namespace OsEngine.Robots.High_Frequency
         {
             while(true)
             {
-                Thread.Sleep(TimeRebuildOrder.ValueInt * 1000);
-
-                if (_isDisposed)
+                try
                 {
-                    return;
-                }
+                    Thread.Sleep(TimeRebuildOrder.ValueInt * 1000);
 
-                if (Regime.ValueString == "Off")
+                    if (_isDisposed)
+                    {
+                        return;
+                    }
+
+                    if (Regime.ValueString == "Off")
+                    {
+                        continue;
+                    }
+
+                    if (_sma.DataSeries[0].Values == null ||
+                        _sma.ParametersDigit[0].Value + 3 > _sma.DataSeries[0].Values.Count)
+                    {
+                        continue;
+                    }
+
+                    CanselAllOrders();
+                    CloseAllPositions();
+                    OpenOrders();
+                }
+                catch (Exception e) 
                 {
-                   continue;
+                    _tab.SetNewLogMessage(e.ToString(),Logging.LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
-
-                if (_sma.DataSeries[0].Values == null ||
-                    _sma.ParametersDigit[0].Value + 3 > _sma.DataSeries[0].Values.Count)
-                {
-                    continue;
-                }
-
-                CanselAllOrders();
-                CloseAllPositions();
-                OpenOrders();
-
             }
         }
 
@@ -190,6 +197,14 @@ namespace OsEngine.Robots.High_Frequency
             decimal lastMa = _sma.DataSeries[0].Last;
             decimal lastBestBuy = _tab.PriceBestBid;
             decimal lastBestSell = _tab.PriceBestAsk;
+
+            if(lastMa == 0
+                || lastBestBuy == 0
+                || lastBestSell == 0)
+            {
+                return;
+            }
+
 
             // проверяем чтобы цены были не дальше 1% от машки
 

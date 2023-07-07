@@ -16,7 +16,6 @@ using System.Drawing;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Journal;
-using OsEngine.Logging;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -688,6 +687,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _chartCorrelation.Invoke(new Action(Server_TestingEndEvent));
                 return;
             }
+
             _chartSec1.StartPaint(null, HostSec1, null);
             _chartSec1.BindOn();
             _chartSec2.StartPaint(null, HostSec2, null);

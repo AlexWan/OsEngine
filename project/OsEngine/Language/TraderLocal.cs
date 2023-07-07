@@ -1037,6 +1037,38 @@ namespace OsEngine.Language
           "Eng:There are already open positions on the pair. Maybe you should close them first?_" +
           "Ru:По паре уже есть открытые позиции.Возможно нужно их сначала закрыть?_");
 
+        public string Label257 => OsLocalization.ConvertToLocString(
+          "Eng:Auto-select pairs_" +
+          "Ru:Авто-выбор пар_");
+
+        public string Label258 => OsLocalization.ConvertToLocString(
+          "Eng:Save already created pairs_" +
+          "Ru:Сохранять уже созданные пары_");
+
+        public string Label259 => OsLocalization.ConvertToLocString(
+          "Eng:Max pairs to one security_" +
+          "Ru:Макс. кол-во пар на бумагу_");
+
+        public string Label260 => OsLocalization.ConvertToLocString(
+          "Eng:Final pairs_" +
+          "Ru:Последние пары_");
+
+        public string Label261 => OsLocalization.ConvertToLocString(
+          "Eng:Create pairs table_" +
+          "Ru:Составить список пар_");
+
+        public string Label262 => OsLocalization.ConvertToLocString(
+          "Eng:Create pairs table_" +
+          "Ru:Составить список пар_");
+
+        public string Label263 => OsLocalization.ConvertToLocString(
+          "Eng:Pair creation settings_" +
+          "Ru:Настройки создания пар_");
+
+        public string Label264 => OsLocalization.ConvertToLocString(
+          "Eng:Create pairs in robot_" +
+          "Ru:Создать эти пары в роботе_");
+
         public string Label290 => OsLocalization.ConvertToLocString(
           "Eng:It is not possible to open a deal! Market depth data is missing!_" +
           "Ru:Не возможно открыть сделку! Нет данных по стакану!_");

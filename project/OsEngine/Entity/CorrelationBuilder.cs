@@ -88,8 +88,16 @@ namespace OsEngine.Entity
 
             PairIndicatorValue value = new PairIndicatorValue();
             value.Time = candles1[index1].TimeStart;
-            value.Value = Convert.ToDecimal(lastCorrelation);
 
+            try
+            {
+                value.Value = Convert.ToDecimal(lastCorrelation);
+            }
+            catch
+            {
+                // ignore
+            }
+            
             _correlationList.Add(value);
         }
 
