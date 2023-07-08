@@ -209,7 +209,7 @@ namespace OsEngine.Robots.MyRobots
                 decimal contractPrice = _tab.PriceBestAsk;
                 volume = VolumeOnPosition.ValueDecimal / contractPrice;
             }
-            else if (VolumeRegime.ValueString == "")
+            else if (VolumeRegime.ValueString == "Number of contracts")
             {
                 volume = VolumeOnPosition.ValueDecimal;
             }
