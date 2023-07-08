@@ -8,6 +8,27 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+
+/*
+Description
+
+Trading robot for osengine
+
+The robot trades on a chart of deviations of one instrument from another, calculated through their difference with the multiplier. 
+Two lines, calculated from the standard deviation multiplied by the multiplier, are superimposed on this graph (Cointegration). Above and below zero.
+
+When the current deviation is higher than the upper line on the deviation chart - we enter a position expecting the instruments to converge. We close the previous position.
+When the current deviation is below the bottom line on the Deviation chart - enter the position, counting on the instruments convergence. Closing the previous position.
+
+Ru
+Робот торгующий по графику отклонений одного инструмента от другого, рассчитанного через их разницу с мультипликатором. 
+На данный график (Коинтеграция) накладывается две линии, рассчитанные из стандартного отклонение умноженного на мультипликатор. Выше и ниже нуля.
+
+Когда текущее отклонение выше верхней линии на графике отклонений - входим в позицию рассчитывая на схождение инструментов. Закрываем предыдущую позицию.
+Когда текущее отклонение ниже нижней линии на графике отклонений  - входим в позицию рассчитывая на схождение инструментов. Закрываем предыдущую позицию.
+
+*/
+
 namespace OsEngine.Robots.PairArbitrage
 {
     [Bot("PairCointegrationSideTrader")]
