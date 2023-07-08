@@ -193,7 +193,7 @@ namespace OsEngine.Robots.MyRobots
                    
                     if (lastPrice > _lastSsma)
                     {
-                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
                     }
                 }
             }
