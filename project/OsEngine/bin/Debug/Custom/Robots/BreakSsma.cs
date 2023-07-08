@@ -193,7 +193,7 @@ namespace OsEngine.Robots.MyRobots
                    
                     if (lastPrice > _lastSsma)
                     {
-                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
                     }
                 }
             }
@@ -209,7 +209,7 @@ namespace OsEngine.Robots.MyRobots
                 decimal contractPrice = _tab.PriceBestAsk;
                 volume = VolumeOnPosition.ValueDecimal / contractPrice;
             }
-            else if (VolumeRegime.ValueString == "")
+            else if (VolumeRegime.ValueString == "Number of contracts")
             {
                 volume = VolumeOnPosition.ValueDecimal;
             }
