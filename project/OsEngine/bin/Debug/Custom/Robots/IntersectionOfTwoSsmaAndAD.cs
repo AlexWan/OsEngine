@@ -1,35 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
+using System.Drawing;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System.Linq;
 
 /* Description
 trading robot for osengine
 
-The trend robot on intersection of the Alligator, Bears Power and Bulls Power Strategy
-1. Fast line (lips) above the middle line (teeth), medium above the slow line (jaw)
-2. Bears Power columns should be below 0, but constantly growing
-3. Bulls Power columns should be above 0 and grow - enter into a long position
-1. fast line (lips) below the midline (teeth), medium below the slow line (jaw)
-2. Bulls Power columns should be above 0, but decrease
-3. Bears Power columns should be below 0 and decrease - enter short position
+The trend robot on strategy for two Ssma and Accumulation Distribution.
 
-Exit from the purchase: the fast line is lower than the slow one
-Exit from sale: fast line above slow line
- 
+Buy: fast Ssma above slow Ssma and AD rising.
+
+Sell: fast Ssma below slow Ssma and AD falling.
+
+Exit:
+From purchase: fast Ssma below slow Ssma;
+
+From sale: fast Ssma is higher than slow Ssma.
+
  */
 
 
-namespace OsEngine.Robots.Aligator
+namespace OsEngine.Robots.AO
 {
-    // We create an attribute so that we don't write anything to the BotFactory
-    [Bot("AlligatorBearsPowerandBullsPowerStrategy")] 
-    public class AlligatorBearsPowerandBullsPowerStrategy : BotPanel
+    [Bot("IntersectionOfTwoSsmaAndAD")] // We create an attribute so that we don't write anything to the BotFactory
+    public class IntersectionOfTwoSsmaAndAD : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -42,27 +43,23 @@ namespace OsEngine.Robots.Aligator
         private StrategyParameterTimeOfDay EndTradeTime;
 
         // Setting indicator
-        private StrategyParameterInt AlligatorFastLineLength;
-        private StrategyParameterInt AlligatorMiddleLineLength;
-        private StrategyParameterInt AlligatorSlowLineLength;
-        private StrategyParameterInt BearsPeriod;
-        private StrategyParameterInt BullsPeriod;
+        private StrategyParameterInt PeriodSsmaFast ;
+        private StrategyParameterInt PeriodSsmaSlow;
 
         // Indicator
-        private Aindicator _Alligator;
-        private Aindicator _BullsPower;
-        private Aindicator _BearsPower;
+        Aindicator _AD;
+        Aindicator _FastSsma;
+        Aindicator _SlowSsma;
 
         // The last value of the indicators
-        private decimal _lastFast;
-        private decimal _lastMiddle;
-        private decimal _lastSlow;
-        private decimal _lastBears;
-        private decimal _lastBulls;
-        private decimal _prevBears;
-        private decimal _prevBulls;
+        private decimal _lastFastSsma;
+        private decimal _lastSlowSsma;
+        private decimal _lastAD;
 
-        public AlligatorBearsPowerandBullsPowerStrategy(string name, StartProgram startProgram) : base(name, startProgram)
+        // The prevlast value of the indicator
+        private decimal _prevAD;
+
+        public IntersectionOfTwoSsmaAndAD(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -76,59 +73,51 @@ namespace OsEngine.Robots.Aligator
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            AlligatorFastLineLength = CreateParameter("Period Simple Moving Average Fast", 20, 10, 300, 10, "Indicator");
-            AlligatorMiddleLineLength = CreateParameter("Period Simple Moving Middle", 20, 10, 300, 10, "Indicator");
-            AlligatorSlowLineLength = CreateParameter("Period Simple Moving Slow", 20, 10, 300, 10, "Indicator");
-            BearsPeriod = CreateParameter("Bears Period", 20, 10, 300, 10, "Indicator");
-            BullsPeriod = CreateParameter("Bulls Period", 20, 10, 300, 10, "Indicator");
+            PeriodSsmaFast = CreateParameter("Period Ssma Fast", 13, 10, 300, 10, "Indicator");
+            PeriodSsmaSlow = CreateParameter("Period Ssma Slow", 26, 10, 300, 10, "Indicator");
 
-            // Create indicator Alligator
-            _Alligator = IndicatorsFactory.CreateIndicatorByName("Alligator", name + "Alligator", false);
-            _Alligator = (Aindicator)_tab.CreateCandleIndicator(_Alligator, "Prime");
-            ((IndicatorParameterInt)_Alligator.Parameters[0]).ValueInt = AlligatorSlowLineLength.ValueInt;
-            ((IndicatorParameterInt)_Alligator.Parameters[1]).ValueInt = AlligatorFastLineLength.ValueInt;
-            ((IndicatorParameterInt)_Alligator.Parameters[2]).ValueInt = AlligatorMiddleLineLength.ValueInt;
-            _Alligator.Save();
+            // Create indicator AD
+            _AD = IndicatorsFactory.CreateIndicatorByName("AccumulationDistribution", name + "AD", false);
+            _AD = (Aindicator)_tab.CreateCandleIndicator(_AD, "NewArea");
+            _AD.Save();
 
-            // Create indicator BullsPower
-            _BullsPower = IndicatorsFactory.CreateIndicatorByName("BullsPower", name + "BullsPower", false);
-            _BullsPower = (Aindicator)_tab.CreateCandleIndicator(_BullsPower, "NewArea0");
-            ((IndicatorParameterInt)_BullsPower.Parameters[0]).ValueInt = BullsPeriod.ValueInt;
+            // Create indicator FastSsma
+            _FastSsma = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma Fast", false);
+            _FastSsma = (Aindicator)_tab.CreateCandleIndicator(_FastSsma, "Prime");
+            ((IndicatorParameterInt)_FastSsma.Parameters[0]).ValueInt = PeriodSsmaFast.ValueInt;
+            _FastSsma.DataSeries[0].Color = Color.Yellow;
+            _FastSsma.Save();
 
-            // Create indicator BearsPower
-            _BearsPower = IndicatorsFactory.CreateIndicatorByName("BearsPower", name + "BearsPower", false);
-            _BearsPower = (Aindicator)_tab.CreateCandleIndicator(_BearsPower, "NewArea1");
-            ((IndicatorParameterInt)_BearsPower.Parameters[0]).ValueInt = BearsPeriod.ValueInt;
+            // Create indicator SlowSsma
+            _SlowSsma = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma Slow", false);
+            _SlowSsma = (Aindicator)_tab.CreateCandleIndicator(_SlowSsma, "Prime");
+            ((IndicatorParameterInt)_SlowSsma.Parameters[0]).ValueInt = PeriodSsmaSlow.ValueInt;
+            _SlowSsma.DataSeries[0].Color = Color.Green;
+            _SlowSsma.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += AlligatorBearsPowerandBullsPowerStrategy_ParametrsChangeByUser;
+            ParametrsChangeByUser += IntersectionOfTwoSsmaAndAD_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
         }
 
         // Indicator Update event
-        private void AlligatorBearsPowerandBullsPowerStrategy_ParametrsChangeByUser()
+        private void IntersectionOfTwoSsmaAndAD_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_Alligator.Parameters[0]).ValueInt = AlligatorSlowLineLength.ValueInt;
-            ((IndicatorParameterInt)_Alligator.Parameters[1]).ValueInt = AlligatorFastLineLength.ValueInt;
-            ((IndicatorParameterInt)_Alligator.Parameters[2]).ValueInt = AlligatorMiddleLineLength.ValueInt;
-            _Alligator.Save();
-            _Alligator.Reload();
+            ((IndicatorParameterInt)_FastSsma.Parameters[0]).ValueInt = PeriodSsmaFast.ValueInt;
+            _FastSsma.Save();
+            _FastSsma.Reload();
 
-            ((IndicatorParameterInt)_BearsPower.Parameters[0]).ValueInt = BearsPeriod.ValueInt;
-            _BearsPower.Save();
-            _BearsPower.Reload();
-
-            ((IndicatorParameterInt)_BullsPower.Parameters[0]).ValueInt = BullsPeriod.ValueInt;
-            _BullsPower.Save();
-            _BullsPower.Reload();
+            ((IndicatorParameterInt)_SlowSsma.Parameters[0]).ValueInt = PeriodSsmaSlow.ValueInt;
+            _SlowSsma.Save();
+            _SlowSsma.Reload();
         }
 
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "AlligatorBearsPowerandBullsPowerStrategy";
+            return "IntersectionOfTwoSsmaAndAD";
         }
         public override void ShowIndividualSettingsDialog()
         {
@@ -145,7 +134,7 @@ namespace OsEngine.Robots.Aligator
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < AlligatorSlowLineLength.ValueInt)
+            if (candles.Count < PeriodSsmaSlow.ValueInt)
             {
                 return;
             }
@@ -185,20 +174,20 @@ namespace OsEngine.Robots.Aligator
             if (openPositions == null || openPositions.Count == 0)
             {
                 // The last value of the indicators
-                _lastFast = _Alligator.DataSeries[2].Last;
-                _lastMiddle = _Alligator.DataSeries[1].Last;
-                _lastSlow = _Alligator.DataSeries[0].Last;
-                _lastBulls = _BullsPower.DataSeries[0].Last;
-                _lastBears = _BearsPower.DataSeries[0].Last;
-                _prevBulls = _BullsPower.DataSeries[0].Values[_BullsPower.DataSeries[0].Values.Count - 2];
-                _prevBears = _BearsPower.DataSeries[0].Values[_BearsPower.DataSeries[0].Values.Count - 2];
+                _lastFastSsma = _FastSsma.DataSeries[0].Last;
+                _lastSlowSsma = _SlowSsma.DataSeries[0].Last;
+                _lastAD = _AD.DataSeries[0].Last;
 
+                // The prevlast value of the indicator
+                _prevAD = _AD.DataSeries[0].Values[_AD.DataSeries[0].Values.Count - 2];
+
+                // Slippage
                 decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
-                decimal lastPrice = candles[candles.Count - 1].Close;
+
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (_lastFast > _lastMiddle && _lastMiddle > _lastSlow && _lastBears < 0 && _lastBears > _prevBears && _lastBulls > 0 && _lastBulls > _prevBulls)
+                    if (_lastFastSsma > _lastSlowSsma && _lastAD > _prevAD)
                     {
                         _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
                     }
@@ -208,11 +197,12 @@ namespace OsEngine.Robots.Aligator
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
 
-                    if(_lastFast < _lastMiddle && _lastMiddle < _lastSlow && _lastBulls > 0 && _lastBulls < _prevBulls && _lastBears < 0 && _lastBears < _prevBears)
+                    if (_lastFastSsma < _lastSlowSsma && _lastAD < _prevAD)
                     {
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
                 }
+                return;
             }
         }
 
@@ -220,39 +210,39 @@ namespace OsEngine.Robots.Aligator
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            Position pos = openPositions[0];
 
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             // The last value of the indicators
-            _lastFast = _Alligator.DataSeries[2].Last;
-            _lastSlow = _Alligator.DataSeries[0].Last;
+            _lastFastSsma = _FastSsma.DataSeries[0].Last;
+            _lastSlowSsma = _SlowSsma.DataSeries[0].Last;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                if (openPositions[i].State != PositionStateType.Open)
+                Position positions = openPositions[i];
+
+                if (positions.State != PositionStateType.Open)
                 {
                     continue;
                 }
 
-
-                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
+                if (positions.Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    if (_lastFast < _lastSlow)
+                    if (_lastFastSsma < _lastSlowSsma)
                     {
                         _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
                 {
-                    if (_lastFast > _lastSlow)
+                    if (_lastFastSsma > _lastSlowSsma)
                     {
                         _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
                     }
-
                 }
+
             }
         }
 

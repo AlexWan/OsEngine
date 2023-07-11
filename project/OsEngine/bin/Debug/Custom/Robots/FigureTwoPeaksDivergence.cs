@@ -198,7 +198,6 @@ namespace OsEngine.Robots.ZZAO
                     }
 
                 }
-                return;
             }
         }
         //  logic close position

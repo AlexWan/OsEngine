@@ -185,9 +185,7 @@ namespace OsEngine.Robots.AO
                     {
                         var time = candles.Last().TimeStart;
 
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage, time.ToString());
-
-                        
+                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage, time.ToString());      
                     }
                 }
 
@@ -202,7 +200,6 @@ namespace OsEngine.Robots.AO
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage, time.ToString());
                     }
                 }
-                return;
             }
         }
 
