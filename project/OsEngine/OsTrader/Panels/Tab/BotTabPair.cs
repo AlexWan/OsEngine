@@ -1785,16 +1785,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         public int PairNum;
 
         /// <summary>
-        /// Trading Security source 1
-        /// </summary>
-        public BotTabSimple Tab1;
-
-        /// <summary>
-        /// Trading Security source 2
-        /// </summary>
-        public BotTabSimple Tab2;
-
-        /// <summary>
         /// Download the settings
         /// </summary>
         private void Load()
@@ -1958,6 +1948,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         #endregion
 
         #region Properties and settings
+
+        /// <summary>
+        /// Trading Security source 1
+        /// </summary>
+        public BotTabSimple Tab1;
+
+        /// <summary>
+        /// Trading Security source 2
+        /// </summary>
+        public BotTabSimple Tab2;
 
         /// <summary>
         /// Security 1. Trade Mode

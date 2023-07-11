@@ -153,68 +153,77 @@ namespace OsEngine.OsTrader.Gui
             {
                 return;
             }
-            int coluIndex = _grid.SelectedCells[0].ColumnIndex;
 
-            int rowIndex = _grid.SelectedCells[0].RowIndex;
 
-            /*
-colum0.HeaderText = "Num";
-colum01.HeaderText = "Name";
-colum02.HeaderText = "Type";
-colum03.HeaderText = "First Security";
-colum04.HeaderText = "Position";
-colum05.HeaderText = "On/off";
-colum06.HeaderText = "Emulator on/off";
-colum07.HeaderText = "Chart";
-colum08.HeaderText = "Parameters";
-colum9.HeaderText = "Journal";
-colum10.HeaderText = "Action";
-*/
-
-            int botsCount = 0;
-
-            if (_master.PanelsArray != null)
+            try
             {
-                botsCount = _master.PanelsArray.Count;
+                int coluIndex = _grid.SelectedCells[0].ColumnIndex;
+
+                int rowIndex = _grid.SelectedCells[0].RowIndex;
+
+                /*
+    colum0.HeaderText = "Num";
+    colum01.HeaderText = "Name";
+    colum02.HeaderText = "Type";
+    colum03.HeaderText = "First Security";
+    colum04.HeaderText = "Position";
+    colum05.HeaderText = "On/off";
+    colum06.HeaderText = "Emulator on/off";
+    colum07.HeaderText = "Chart";
+    colum08.HeaderText = "Parameters";
+    colum9.HeaderText = "Journal";
+    colum10.HeaderText = "Action";
+    */
+
+                int botsCount = 0;
+
+                if (_master.PanelsArray != null)
+                {
+                    botsCount = _master.PanelsArray.Count;
+                }
+
+                BotPanel bot = null;
+
+                if (rowIndex < botsCount)
+                {
+                    bot = _master.PanelsArray[rowIndex];
+                }
+
+                if (coluIndex == 7 &&
+                    rowIndex < botsCount)
+                { // вызываем чарт робота
+                    bot.ShowChartDialog();
+                }
+                else if (coluIndex == 8 &&
+       rowIndex < botsCount)
+                { // вызываем параметры
+                    bot.ShowParametrDialog();
+                }
+                else if (coluIndex == 9 &&
+        rowIndex < botsCount)
+                { // вызываем окно удаление робота
+                    _master.DeleteByNum(rowIndex);
+                }
+
+                if (coluIndex == 8 &&
+         rowIndex == botsCount + 1)
+                { // вызываем общий журнал
+                    _master.ShowCommunityJournal(2, 0, 0);
+                }
+                else if (coluIndex == 9 &&
+        rowIndex == botsCount + 1)
+                { // вызываем добавление нового бота
+                    _master.CreateNewBot();
+                }
+
+                _grid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                _grid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+                prevActiveRow = rowIndex;
             }
-
-            BotPanel bot = null;
-
-            if(rowIndex < botsCount)
+            catch(Exception error)
             {
-                bot = _master.PanelsArray[rowIndex];
+                _master.SendNewLogMessage(error.ToString(),Logging.LogMessageType.Error);
             }
-
-            if (coluIndex == 7 &&
-                rowIndex < botsCount)
-            { // вызываем чарт робота
-                bot.ShowChartDialog();
-            }
-            else if (coluIndex == 8 &&
-   rowIndex < botsCount)
-            { // вызываем параметры
-                bot.ShowParametrDialog();
-            }
-            else if (coluIndex == 9 &&
-    rowIndex < botsCount)
-            { // вызываем окно удаление робота
-                _master.DeleteByNum(rowIndex);
-            }
-
-            if (coluIndex == 8 &&
-     rowIndex == botsCount + 1)
-            { // вызываем общий журнал
-                _master.ShowCommunityJournal(2, 0, 0);
-            }
-            else if (coluIndex == 9 &&
-    rowIndex == botsCount + 1)
-            { // вызываем добавление нового бота
-                _master.CreateNewBot();
-            }
-						
-            _grid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
-            _grid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-            prevActiveRow = rowIndex;
         }
 
         #region работа с чек-боксами включений и отключений

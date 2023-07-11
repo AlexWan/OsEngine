@@ -46,8 +46,6 @@ namespace OsEngine.Robots.PairArbitrage
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
 
             MaxPositionsCount = CreateParameter("max poses count", 5, 5, 5, 5);
-            
-
         }
 
         BotTabPair _pairTrader;

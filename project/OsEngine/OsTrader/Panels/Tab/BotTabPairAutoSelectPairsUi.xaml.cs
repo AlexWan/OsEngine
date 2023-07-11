@@ -112,7 +112,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 CheckBoxSaveAlreadyCreatedPairs.IsChecked = true;
 
-                Title = OsLocalization.Market.TitleConnectorCandle;
+                Title = OsLocalization.Trader.Label257;
                 Label1.Content = OsLocalization.Market.Label1;
                 Label2.Content = OsLocalization.Market.Label2;
                 Label3.Content = OsLocalization.Market.Label3;
