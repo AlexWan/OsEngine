@@ -149,6 +149,30 @@ namespace OsEngine.OsTrader.Panels.Tab
                     // ignore
                 }
 
+                try
+                {
+                    if (File.Exists(@"Engine\" + TabName + @"StrategSettings.txt"))
+                    {
+                        File.Delete(@"Engine\" + TabName + @"StrategSettings.txt");
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                try
+                {
+                    if (File.Exists(@"Engine\" + TabName + @"PairsNamesToLoad.txt"))
+                    {
+                        File.Delete(@"Engine\" + TabName + @"PairsNamesToLoad.txt");
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 for (int i = 0; i < Pairs.Count; i++)
                 {
                     Pairs[i].Delete();
