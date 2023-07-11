@@ -799,10 +799,19 @@ namespace OsEngine.Robots
 
                     if (bot.Parameters.Count != 0)
                     {
-                        if (bot.TabsScreener == null || bot.TabsScreener.Count == 0)
+                        if (bot.TabsScreener != null && bot.TabsScreener.Count > 0)
                         {
-                            _namesWithParam.Add(names[i]);
+                            bot.Delete();
+                            continue;
                         }
+
+                        if (bot.TabsPair != null && bot.TabsPair.Count > 0)
+                        {
+                            bot.Delete();
+                            continue;
+                        }
+
+                        _namesWithParam.Add(names[i]);
                     }
                     
                     bot.Delete();
