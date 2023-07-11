@@ -174,7 +174,6 @@ namespace OsEngine.Robots.Aligator
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
                 }
-                return;
             }
         }
 

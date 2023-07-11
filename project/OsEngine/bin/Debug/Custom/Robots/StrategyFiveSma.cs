@@ -260,7 +260,6 @@ namespace OsEngine.Robots.SMA
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestAsk - _slippage);
                     }
                 }
-                return;
             }
         }
 

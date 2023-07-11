@@ -177,7 +177,6 @@ namespace OsEngine.Robots.Vwma
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestAsk - _slippage);
                     }
                 }
-                return;
             }
         }
 

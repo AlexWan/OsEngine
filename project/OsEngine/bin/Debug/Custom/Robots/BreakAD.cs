@@ -168,7 +168,6 @@ namespace OsEngine.Robots.AO
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
                 }
-                return;
             }
         }
 
