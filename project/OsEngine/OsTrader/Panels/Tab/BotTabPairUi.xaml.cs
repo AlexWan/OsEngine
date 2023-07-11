@@ -189,6 +189,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             _pair.Tab2.PositionClosingSuccesEvent += Tab_PositionOpeningSuccesEvent;
 
             UpdatePositionsOnChart();
+
+            if(_pair.ShowTradePanelOnChart == false)
+            {
+                ButtonHideShowRightPanel_Click(null, null);
+            }
         }
 
         private void BotTabPairUi_Closed(object sender, EventArgs e)
@@ -282,6 +287,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ButtonHideShowRightPanel_Click(object sender, RoutedEventArgs e)
         {
+            bool showTradePanel = false;
+
             if (GridTradePanel.Width == 0)
             {
                 GridIndicatorsSettings.Visibility = Visibility.Visible;
@@ -290,6 +297,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 GridTradePanel.Width = 305;
                 ButtonHideShowRightPanel.Content = ">";
                 GreedChartPanel.Margin = new Thickness(0, 0, 308, 0);
+                showTradePanel = true;
             }
             else
             {
@@ -299,6 +307,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 GridTradePanel.Width = 0;
                 ButtonHideShowRightPanel.Content = "<";
                 GreedChartPanel.Margin = new Thickness(0, 0, 15, 0);
+            }
+
+            if(sender != null)
+            {
+                _pair.ShowTradePanelOnChart = showTradePanel;
             }
         }
 

@@ -1837,7 +1837,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Enum.TryParse(reader.ReadLine(), out Sec1TradeRegime);
                     Enum.TryParse(reader.ReadLine(), out Sec2TradeRegime);
                     Enum.TryParse(reader.ReadLine(), out _lastEntryCointegrationSide);
-                    
+                    _showTradePanelOnChart = Convert.ToBoolean(reader.ReadLine());
+
                     reader.Close();
                 }
             }
@@ -1872,6 +1873,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(Sec1TradeRegime);
                     writer.WriteLine(Sec2TradeRegime);
                     writer.WriteLine(_lastEntryCointegrationSide);
+                    writer.WriteLine(_showTradePanelOnChart);
 
                     writer.Close();
                 }
@@ -1968,6 +1970,27 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Source removed
         /// </summary>
         public event Action PairDeletedEvent;
+
+        /// <summary>
+        /// Show Trade Panel On Chart Ui
+        /// </summary>
+        public bool ShowTradePanelOnChart
+        {
+            get 
+            { 
+                return _showTradePanelOnChart;
+            }
+            set 
+            { 
+                if(_showTradePanelOnChart == value)
+                {
+                    return;
+                }
+                _showTradePanelOnChart = value;
+                Save();
+            }
+        }
+        private bool _showTradePanelOnChart = true;
 
         #endregion
 
