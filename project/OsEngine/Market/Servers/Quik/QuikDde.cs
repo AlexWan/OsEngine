@@ -85,7 +85,9 @@ namespace OsEngine.Market.Servers.Quik
             }
             if (messageType.Split('_')[0] == "marketDepth")
             {
-                GlassUpdated(l, table, messageType.Split('_')[1]);
+                string sec = messageType.Replace("marketDepth_","");
+
+                GlassUpdated(l, table, sec);
             }
             if (messageType.Split('_')[0] == "message")
             {
