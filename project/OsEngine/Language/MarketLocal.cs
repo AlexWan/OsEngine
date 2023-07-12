@@ -412,6 +412,10 @@ namespace OsEngine.Language
           "Eng:If true - full size marketDepths will be fed from the connector. Recommendation - false._" +
           "Ru:Если true - из коннектора будут подаваться полноразмерные стаканы заявок в роботов. Рекомендация - false._");
 
+        public string Label95 => OsLocalization.ConvertToLocString(
+          "Eng:If true - trades with price change will be fed from the server to the robots. Deals with the same price will not be transmitted. It greatly facilitates the work of the program. Recommendation - true._" +
+          "Ru:Если true - из сервера в роботов будут подаваться сделки с изменением цены. Сделки с одинаковой ценой транслироваться не будут. Сильно облегчает работу программы. Рекомендовано - true._");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
@@ -919,6 +923,10 @@ namespace OsEngine.Language
         public string ServerParam10 => OsLocalization.ConvertToLocString(
            "Eng:Use Full Market Depth_" +
            "Ru:Использовать полный стакан_");
+
+        public string ServerParam11 => OsLocalization.ConvertToLocString(
+          "Eng:Skip trades with the same price_" +
+          "Ru:Пропускать сделки с одинаковой ценой_");
 
         public string UseStock => OsLocalization.ConvertToLocString(
             "Eng:Stock_" +

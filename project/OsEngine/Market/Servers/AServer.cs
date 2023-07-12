@@ -75,6 +75,10 @@ namespace OsEngine.Market.Servers
                 _needToUseFullMarketDepth = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 ServerParameters[7].Comment = OsLocalization.Market.Label94;
 
+                CreateParameterBoolean(OsLocalization.Market.ServerParam11, true);
+                _needToUpdateOnlyTradesWithNewPrice = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+                ServerParameters[8].Comment = OsLocalization.Market.Label95;
+
                 _serverRealization.ServerParameters = ServerParameters;
 
                 _tickStorage = new ServerTickStorage(this);
@@ -251,6 +255,8 @@ namespace OsEngine.Market.Servers
 
         public ServerParameterBool _needToUseFullMarketDepth;
 
+        public ServerParameterBool _needToUpdateOnlyTradesWithNewPrice;
+
         public bool NeedToHideParams = false;
 
         /// <summary>
@@ -272,7 +278,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterString)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
             else
             {
@@ -295,7 +301,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterInt)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
             else
             {
@@ -315,7 +321,7 @@ namespace OsEngine.Market.Servers
 
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
             else
             {
@@ -338,7 +344,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterDecimal)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
             else
             {
@@ -361,7 +367,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterBool)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
             else
             {
@@ -385,7 +391,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPassword)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
             else
             {
@@ -407,7 +413,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPath)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
             else
             {
@@ -429,7 +435,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterButton)LoadParam(newParam);
             if (_serverIsStart)
             {
-                ServerParameters.Insert(ServerParameters.Count - 8, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
             else
             {
@@ -1843,6 +1849,17 @@ namespace OsEngine.Market.Servers
                             if (trade.Time < curList[curList.Count - 1].Time)
                             {
                                 return;
+                            }
+
+                            if(_needToUpdateOnlyTradesWithNewPrice.Value == true)
+                            {
+                                Trade lastTrade = curList[curList.Count - 1];
+
+                                if(lastTrade == null 
+                                    || lastTrade.Price == trade.Price)
+                                {
+                                    return;
+                                }
                             }
 
                             curList.Add(trade);
