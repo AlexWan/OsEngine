@@ -1,0 +1,15 @@
+﻿<Window x:Class="OsEngine.Entity.CustomMessageBoxUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Entity"
+        mc:Ignorable="d"
+         Title="Message box" Height="206" Width="482" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Rectangle Margin="5,5,5,40"/>
+        <Button Name="ButtonAccept" Content="Accept" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="235" Click="ButtonAccept_Click" />
+        <TextBox Name="TextBoxMessage" Margin="5,5,6,40" TextWrapping="Wrap" Text="TextBox" Height="NaN" FontStretch="Expanded" IsReadOnly="True" TextAlignment="Center" FontSize="15" FontWeight="Bold"/>
+    </Grid>
+</Window>
+

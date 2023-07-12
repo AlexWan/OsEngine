@@ -108,34 +108,66 @@ namespace OsEngine.Market.Servers
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _paramsGrid.DefaultCellStyle;
 
-            DataGridViewColumn colum0 = new DataGridViewColumn();
-            colum0.CellTemplate = cell0;
-            colum0.HeaderText = OsLocalization.Market.GridColumn1;
-            colum0.ReadOnly = true;
-            colum0.Width = 300;
-            _paramsGrid.Columns.Add(colum0);
-
-            DataGridViewColumn colu = new DataGridViewColumn();
-            colu.CellTemplate = cell0;
-            colu.HeaderText = OsLocalization.Market.GridColumn2;
-            colu.ReadOnly = false;
-
-            colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _paramsGrid.Columns.Add(colu);
-
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
-            colum1.HeaderText = @"";
+            colum1.HeaderText = OsLocalization.Market.GridColumn1;
             colum1.ReadOnly = true;
-            colum1.Width = 100;
-
+            colum1.Width = 300;
             _paramsGrid.Columns.Add(colum1);
+
+            DataGridViewColumn colum2 = new DataGridViewColumn();
+            colum2.CellTemplate = cell0;
+            colum2.HeaderText = OsLocalization.Market.GridColumn2;
+            colum2.ReadOnly = false;
+
+            colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            _paramsGrid.Columns.Add(colum2);
+
+            DataGridViewColumn colum3 = new DataGridViewColumn();
+            colum3.CellTemplate = cell0;
+            colum3.HeaderText = @"";
+            colum3.ReadOnly = true;
+            colum3.Width = 100;
+
+            _paramsGrid.Columns.Add(colum3);
+
+            DataGridViewColumn colum4 = new DataGridViewColumn();
+            colum4.CellTemplate = cell0;
+            colum4.HeaderText = @"";
+            colum4.ReadOnly = true;
+            colum4.Width = 100;
+
+            _paramsGrid.Columns.Add(colum4);
+
             HostSettings.Child = _paramsGrid;
-
             _paramsGrid.CellValueChanged += _newGrid_CellValueChanged;
-
             _paramsGrid.Click += _newGrid_Click;
+            _paramsGrid.CellClick += _paramsGrid_CellClick;
+        }
+
+        private void _paramsGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int row = e.RowIndex;
+            int col = e.ColumnIndex;
+
+            if(col != 3)
+            {
+                return;
+            }
+
+            if (row >= _paramsGrid.Rows.Count)
+            {
+                return;
+            }
+
+            if(string.IsNullOrEmpty(_server.ServerParameters[row].Comment))
+            {
+                return;
+            }
+
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(_server.ServerParameters[row].Comment);
+            ui.ShowDialog();
         }
 
         public void UpdateParamDataGrid()
@@ -193,6 +225,18 @@ namespace OsEngine.Market.Servers
             nRow.Cells.Add(comboBox);
             nRow.Cells[1].Value = param.Name;
 
+            if(param.Comment != null)
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[2].Value = "";
+
+                DataGridViewButtonCell button = new DataGridViewButtonCell();
+                button.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                button.Value = OsLocalization.Market.Label86;
+
+                nRow.Cells.Add(button);
+            }
+
             return nRow;
         }
 
@@ -213,6 +257,18 @@ namespace OsEngine.Market.Servers
             nRow.Cells.Add(comboBox);
             nRow.Cells[1].Value = param.Value;
 
+            if (param.Comment != null)
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[2].Value = "";
+
+                DataGridViewButtonCell button = new DataGridViewButtonCell();
+                button.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                button.Value = OsLocalization.Market.Label86;
+
+                nRow.Cells.Add(button);
+            }
+
             return nRow;
         }
 
@@ -225,6 +281,18 @@ namespace OsEngine.Market.Servers
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[1].Value = param.Value;
+
+            if (param.Comment != null)
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[2].Value = "";
+
+                DataGridViewButtonCell button = new DataGridViewButtonCell();
+                button.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                button.Value = OsLocalization.Market.Label86;
+
+                nRow.Cells.Add(button);
+            }
 
             return nRow;
         }
@@ -240,10 +308,19 @@ namespace OsEngine.Market.Servers
             nRow.Cells[1].Value = param.Value;
 
             DataGridViewButtonCell button = new DataGridViewButtonCell();
-            button.Value = "Настроить";
+            button.Value = OsLocalization.Market.Label85;
 
             nRow.Cells.Add(button);
             nRow.Cells[1].Value = param.Value;
+
+            if (param.Comment != null)
+            {
+                DataGridViewButtonCell button2 = new DataGridViewButtonCell();
+                button2.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                button2.Value = OsLocalization.Market.Label86;
+
+                nRow.Cells.Add(button2);
+            }
 
             return nRow;
         }
@@ -258,6 +335,18 @@ namespace OsEngine.Market.Servers
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[1].Value = param.Value;
 
+            if (param.Comment != null)
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[2].Value = "";
+
+                DataGridViewButtonCell button = new DataGridViewButtonCell();
+                button.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                button.Value = OsLocalization.Market.Label86;
+
+                nRow.Cells.Add(button);
+            }
+
             return nRow;
         }
 
@@ -270,6 +359,18 @@ namespace OsEngine.Market.Servers
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[1].Value = param.Value;
+
+            if (param.Comment != null)
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[2].Value = "";
+
+                DataGridViewButtonCell button = new DataGridViewButtonCell();
+                button.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                button.Value = OsLocalization.Market.Label86;
+
+                nRow.Cells.Add(button);
+            }
 
             return nRow;
         }
@@ -296,7 +397,18 @@ namespace OsEngine.Market.Servers
 
 
             nRow.Cells.Add(checkBox);
-            // nRow.Cells[1].Value = param.Value;
+
+            if (param.Comment != null)
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[2].Value = "";
+
+                DataGridViewButtonCell button = new DataGridViewButtonCell();
+                button.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                button.Value = OsLocalization.Market.Label86;
+
+                nRow.Cells.Add(button);
+            }
 
             return nRow;
         }

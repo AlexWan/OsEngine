@@ -372,6 +372,46 @@ namespace OsEngine.Language
           "Eng:Server is not active! The operation is not possible!_" +
           "Ru:Сервер не активен! Операция не возможна!_");
 
+        public string Label85 => OsLocalization.ConvertToLocString(
+          "Eng:Set_" +
+          "Ru:Настроить_");
+
+        public string Label86 => OsLocalization.ConvertToLocString(
+          "Eng:Info_" +
+          "Ru:Подробнее_");
+
+        public string Label87 => OsLocalization.ConvertToLocString(
+         "Eng:If true - then OsEngine stores in the OsData folder all the deal feed it receives. It's very resource intensive! Recommendation - false._" +
+         "Ru:Если true - то OsEngine хранит в папке OsData всю ленту сделок которую получает. Это очень ресурсоёмко! Рекомендация - false._");
+
+        public string Label88 => OsLocalization.ConvertToLocString(
+         "Eng:Adjusts the number of trades that will be loaded from the file system. It works if the storage of trades is enabled. The more - the harder it will be for the program._" +
+         "Ru:Регулирует количество трейдов которые будут загружены из файловой системы. Работает если включено хранение трейдов. Чем больше - тем труднее будет программе._");
+
+        public string Label89 => OsLocalization.ConvertToLocString(
+         "Eng:If true - then OsEngine stores in the OsData folder the candlesticks it receives and generates in the process of work. Recommendation - true._" +
+         "Ru:Если true - то OsEngine хранит в папке OsData свечи которые получает и формирует в процессе работы. Рекомендация - true._");
+
+        public string Label90 => OsLocalization.ConvertToLocString(
+         "Eng:Adjusts the number of candlesticks that will be loaded from the file system. Works if candles storage is enabled. It is recommended to keep at least 200_" +
+         "Ru:Регулирует количество свечек которые будут загружены из файловой системы. Работает если включено хранение свечек. Рекомендутся оставлять не менее 200_");
+
+        public string Label91 => OsLocalization.ConvertToLocString(
+         "Eng:If true - deals in the deals feed contain the best buy and sell price and their volumes. Loads CPU. Recommendation - false._" +
+         "Ru:Если true - сделки в ленте сделок содержат лучшую цену покупки и продажи и их объёмы. Нагружает ЦП. Рекомендация - false._");
+
+        public string Label92 => OsLocalization.ConvertToLocString(
+          "Eng:If true - arrays with deals will be automatically cleared inside the program. Recommendation - true._" +
+          "Ru:Если true - массивы со сделками будут автоматически очищаться внутри программы. Рекомендация - true._");
+
+        public string Label93 => OsLocalization.ConvertToLocString(
+          "Eng:If true - arrays with candlesticks will be automatically cleared inside the program. Recommendation - false._" +
+          "Ru:Если true - массивы со свечками будут автоматически очищаться внутри программы. Рекомендация - false._");
+
+        public string Label94 => OsLocalization.ConvertToLocString(
+          "Eng:If true - full size marketDepths will be fed from the connector. Recommendation - false._" +
+          "Ru:Если true - из коннектора будут подаваться полноразмерные стаканы заявок в роботов. Рекомендация - false._");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");

@@ -378,6 +378,9 @@
       <DependentUpon>ColorCustomDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Entity\CorrelationBuilder.cs" />
+    <Compile Include="Entity\CustomMessageBoxUi.xaml.cs">
+      <DependentUpon>CustomMessageBoxUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Entity\DataGridFactory.cs" />
     <Compile Include="Entity\DateTimeSelectionDialog.xaml.cs">
       <DependentUpon>DateTimeSelectionDialog.xaml</DependentUpon>
@@ -1313,6 +1316,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Entity\ColorCustomDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Entity\CustomMessageBoxUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

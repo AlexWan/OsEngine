@@ -18,6 +18,8 @@ namespace OsEngine.Market.Servers.Entity
 
         ServerParameterType Type { get; }
 
+        string Comment { get; set; }
+
         event Action ValueChange;
     }
 
@@ -87,6 +89,8 @@ namespace OsEngine.Market.Servers.Entity
             get { return ServerParameterType.String; }
         }
 
+        public string Comment{ get; set; }
+
         public event Action ValueChange;
     }
 
@@ -139,6 +143,8 @@ namespace OsEngine.Market.Servers.Entity
         {
             get { return ServerParameterType.Decimal; }
         }
+
+        public string Comment { get; set; }
 
         public event Action ValueChange;
     }
@@ -193,6 +199,8 @@ namespace OsEngine.Market.Servers.Entity
             get { return ServerParameterType.Int; }
         }
 
+        public string Comment { get; set; }
+
         public event Action ValueChange;
     }
 
@@ -246,6 +254,8 @@ namespace OsEngine.Market.Servers.Entity
             get { return ServerParameterType.Bool; }
         }
 
+        public string Comment { get; set; }
+
         public event Action ValueChange;
     }
 
@@ -298,6 +308,8 @@ namespace OsEngine.Market.Servers.Entity
         {
             get { return ServerParameterType.Password; }
         }
+
+        public string Comment { get; set; }
 
         public event Action ValueChange;
     }
@@ -366,6 +378,8 @@ namespace OsEngine.Market.Servers.Entity
             get { return ServerParameterType.Path; }
         }
 
+        public string Comment { get; set; }
+
         public event Action ValueChange;
     }
 
@@ -429,6 +443,8 @@ namespace OsEngine.Market.Servers.Entity
             get { return ServerParameterType.Enum; }
         }
 
+        public string Comment { get; set; }
+
         public event Action ValueChange;
 
     }
@@ -469,6 +485,8 @@ namespace OsEngine.Market.Servers.Entity
         {
             UserClickButton?.Invoke();
         }
+
+        public string Comment { get; set; }
 
         public event Action UserClickButton;
     }

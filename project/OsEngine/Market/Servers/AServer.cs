@@ -42,30 +42,38 @@ namespace OsEngine.Market.Servers
                 CreateParameterBoolean(OsLocalization.Market.ServerParam1, false);
                 _neadToSaveTicksParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 _neadToSaveTicksParam.ValueChange += SaveTradesHistoryParam_ValueChange;
+                ServerParameters[0].Comment = OsLocalization.Market.Label87;
 
                 CreateParameterInt(OsLocalization.Market.ServerParam2, 5);
                 _neadToSaveTicksDaysCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
                 _neadToSaveTicksDaysCountParam.ValueChange += _neadToSaveTicksDaysCountParam_ValueChange;
+                ServerParameters[1].Comment = OsLocalization.Market.Label88;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam5, true);
                 _neadToSaveCandlesParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 _neadToSaveCandlesParam.ValueChange += SaveCandleHistoryParam_ValueChange;
+                ServerParameters[2].Comment = OsLocalization.Market.Label89;
 
                 CreateParameterInt(OsLocalization.Market.ServerParam6, 300);
                 _neadToSaveCandlesCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
                 _neadToSaveCandlesCountParam.ValueChange += _neadToSaveCandlesCountParam_ValueChange;
+                ServerParameters[3].Comment = OsLocalization.Market.Label90;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam7, false);
                 _needToLoadBidAskInTrades = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+                ServerParameters[4].Comment = OsLocalization.Market.Label91;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam8, true);
                 _needToRemoveTradesFromMemory = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+                ServerParameters[5].Comment = OsLocalization.Market.Label92;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam9, false);
                 _needToRemoveCandlesFromMemory = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
-               
+                ServerParameters[6].Comment = OsLocalization.Market.Label93;
+
                 CreateParameterBoolean(OsLocalization.Market.ServerParam10, true);
                 _needToUseFullMarketDepth = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+                ServerParameters[7].Comment = OsLocalization.Market.Label94;
 
                 _serverRealization.ServerParameters = ServerParameters;
 
