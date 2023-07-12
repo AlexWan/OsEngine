@@ -124,6 +124,7 @@ function log(msg, level)
     if logfile then
         pcall(logfile.write, logfile, os.date("%Y-%m-%d %H:%M:%S").."."..msecs.." "..logLine.."\n")
         pcall(logfile.flush, logfile)
+        pcall(logfile.close, logfile)
     end
 end
 

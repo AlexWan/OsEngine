@@ -476,6 +476,12 @@ function qsfunctions.calc_buy_sell(msg)
     return msg
 end
 
+-- функция для получения даты торговой сессии
+function qsfunctions.getTradeDate(msg)
+    msg.data = getTradeDate()
+    return msg
+end
+
 --- отправляет транзакцию на сервер и возвращает пустое сообщение, которое
 -- будет проигноировано. Вместо него, отправитель будет ждать события
 -- OnTransReply, из которого по TRANS_ID он получит результат отправленной транзакции
