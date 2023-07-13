@@ -811,73 +811,77 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         public static decimal GetMaxDownPersent(Position[] deals) 
         {
-            decimal maxDown = decimal.MaxValue;
+            decimal maxDownAbs = decimal.MaxValue;
+            decimal maxDownPersent = decimal.MaxValue;
 
             if (GetProfitDial(deals) == 0)
             {
                 return 0;
             }
-            decimal thisSumm = 0;
-            decimal thisPik = decimal.MinValue;
+            decimal firsValue = deals[0].PortfolioValueOnOpenPosition;
+
+            for(int i = 0;i < deals.Length;i++)
+            {
+                if(firsValue != 0)
+                {
+                    break;
+                }
+                firsValue = deals[i].PortfolioValueOnOpenPosition;
+            }
+
+            if(firsValue == 0)
+            {
+                firsValue = 1;
+            }
+
+            decimal thisSumm = firsValue;
+            decimal thisPik = firsValue;
 
             for (int i = 0; i < deals.Length; i++)
             {
-                thisSumm += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
+                thisSumm += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
 
                 decimal thisDown;
+
                 if (thisSumm > thisPik)
                 {
                     thisPik = thisSumm;
                 }
                 else
                 {
-                    if (thisPik > 0 && thisSumm < 0)
+                    if (thisSumm < 0)
                     {
-                        // if the last peak is above zero and the current sum is less than zero
-                        // если последний пик выше нуля и текущая сумма меньше нуля
+                        // уже ушли ниже нулевой отметки по счёту
 
                         thisDown = -thisPik + thisSumm;
 
-                        if (maxDown > thisDown)
+                        if (maxDownAbs > thisDown)
                         {
-                            maxDown = thisDown;
+                            maxDownAbs = thisDown;
+                            maxDownPersent = maxDownAbs / (thisPik / 100);
                         }
-
                     }
-                    else if (thisPik < 0 && thisSumm < 0)
+                    else if (thisSumm > 0)
                     {
-                        // if the last peak is below zero and the current sum is less than zero
-                        // если последний пик ниже нуля и текущая сумма меньше нуля
-                        thisDown = thisPik + thisSumm;
-
-                        if (maxDown > thisDown)
-                        {
-                            maxDown = thisDown;
-                        }
-
-                    }
-                    else if (thisPik > 0 && thisSumm > 0)
-                    {
-                        // if the last peak is above zero and the current sum is above zero
-                        // если последний пик выше нуля и текущая сумма выше нуля
+                        // выше нулевой отметки по счёту
                         thisDown = -(thisPik - thisSumm);
 
-
-                        if (maxDown > thisDown)
+                        if (maxDownAbs > thisDown)
                         {
-                            maxDown = thisDown;
+                            maxDownAbs = thisDown;
+                            maxDownPersent = maxDownAbs / (thisPik / 100);
                         }
 
                     }
                 }
             }
 
-            if (maxDown == decimal.MaxValue)
+            if (maxDownPersent == decimal.MaxValue)
             {
                 return 0;
             }
 
-            return Round(maxDown);
+            return Round(maxDownPersent);
         }
 
         /// <summary>

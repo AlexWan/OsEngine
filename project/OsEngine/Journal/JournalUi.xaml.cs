@@ -1564,22 +1564,50 @@ namespace OsEngine.Journal
             // дд в %
 
             List<decimal> ddPepcent = new decimal[positionsAll.Count].ToList();
-            lastMax = 0;
-            currentProfit = 0;
+
+            decimal firsValue = positionsAll[0].PortfolioValueOnOpenPosition;
 
             for (int i = 0; i < positionsAll.Count; i++)
             {
-                currentProfit += positionsAll[i].ProfitPortfolioPersent;
-
-                if (lastMax < currentProfit)
+                if (firsValue != 0)
                 {
-                    lastMax = currentProfit;
+                    break;
+                }
+                firsValue = positionsAll[i].PortfolioValueOnOpenPosition;
+            }
+
+            if (firsValue == 0)
+            {
+                firsValue = 1;
+            }
+
+            decimal thisSumm = firsValue;
+            decimal thisPik = firsValue;
+
+            for (int i = 0; i < positionsAll.Count; i++)
+            {
+                thisSumm += positionsAll[i].ProfitPortfolioPunkt * (positionsAll[i].MultToJournal / 100);
+
+                if (thisSumm > thisPik)
+                {
+                    thisPik = thisSumm;
                 }
 
-                if (currentProfit - lastMax < 0)
+                decimal thisDown = 0;
+
+                if (thisSumm < 0)
                 {
-                    ddPepcent[i] = Math.Round(currentProfit - lastMax,4);
+                    // уже ушли ниже нулевой отметки по счёту
+
+                    thisDown = -thisPik + thisSumm;
                 }
+                else if (thisSumm > 0)
+                {
+                    // выше нулевой отметки по счёту
+                    thisDown = -(thisPik - thisSumm);
+                }
+
+                ddPepcent[i] = (thisDown / (thisPik / 100));
             }
 
             Series drowDownPersent = new Series("SeriesDdPercent");
