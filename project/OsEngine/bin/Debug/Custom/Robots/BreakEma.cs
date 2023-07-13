@@ -21,9 +21,9 @@ Exit: on the opposite signal.
 namespace OsEngine.Robots.MyRobots
 
 {
-    [Bot("BreakEMA")] //We create an attribute so that we don't write anything in the Boot factory
+    [Bot("BreakEma")] //We create an attribute so that we don't write anything in the Boot factory
 
-    public class BreakEMA : BotPanel
+    public class BreakEma : BotPanel
     {
         BotTabSimple _tab;
        
@@ -44,7 +44,7 @@ namespace OsEngine.Robots.MyRobots
         //The last value of the indicators
         private decimal _lastMa;
 
-        public BreakEMA(string name, StartProgram startProgram) : base(name, startProgram)
+        public BreakEma(string name, StartProgram startProgram) : base(name, startProgram)
         {
             
             TabCreate(BotTabType.Simple);
@@ -68,14 +68,14 @@ namespace OsEngine.Robots.MyRobots
             _ema.Save();
             
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += BreakEMA_ParametrsChangeByUser;
+            ParametrsChangeByUser += BreakEma_ParametrsChangeByUser;
            
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;                      
         }
 
         // Indicator Update event
-        private void BreakEMA_ParametrsChangeByUser()
+        private void BreakEma_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _emaPeriod.ValueInt;
             _ema.Save();
@@ -227,7 +227,7 @@ namespace OsEngine.Robots.MyRobots
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "BreakEMA";
+            return "BreakEma";
         }
 
         public override void ShowIndividualSettingsDialog()
