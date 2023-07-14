@@ -11,6 +11,8 @@ namespace CustomIndicators.Scripts
     {
         public IndicatorParameterInt _length;
         public IndicatorDataSeries _series;
+        public IndicatorDataSeries _seriesPlus;
+        public IndicatorDataSeries _seriesMinus;
 
         public override void OnStateChange(IndicatorState state)
         {
@@ -18,7 +20,9 @@ namespace CustomIndicators.Scripts
             {
                 _length = CreateParameterInt("Length", 14);
 
-                _series = CreateSeries("ADX", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
+                _series = CreateSeries("ADX", Color.ForestGreen, IndicatorChartPaintType.Line, true);
+                _seriesPlus = CreateSeries("Plus", Color.Blue, IndicatorChartPaintType.Line, true);
+                _seriesMinus = CreateSeries("Minus",Color.Red, IndicatorChartPaintType.Line, true);
             }
             else if (state == IndicatorState.Dispose)
             {
@@ -34,13 +38,27 @@ namespace CustomIndicators.Scripts
                 _adX = null;
             }
         }
+        
+        private List<decimal> _dmjPlus;
+        private List<decimal> _dmjPlusAverage;
+        private List<decimal> _dmjMinus;
+        private List<decimal> _dmjMinusAverage;
+        private List<decimal> _trueRange;
+        private List<decimal> _trueRangeAverage;
+        private List<decimal> _sDIjPlus;
+        private List<decimal> _sDIjMinus;
+        private List<decimal> _dX;
+        private List<decimal> _adX;
+
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if(index >= _series.Values.Count)
+            if (index >= _series.Values.Count)
             {
                 return;
             }
             _series.Values[index] = GetValueStandart(candles, index);
+            _seriesPlus.Values[index] = GetValuePlus(candles, index);
+            _seriesMinus.Values[index] = GetValueMinus(candles, index);
         }
 
         public List<decimal> ValuesDiPlus
@@ -59,16 +77,7 @@ namespace CustomIndicators.Scripts
             }
         }
 
-        private List<decimal> _dmjPlus;
-        private List<decimal> _dmjPlusAverage;
-        private List<decimal> _dmjMinus;
-        private List<decimal> _dmjMinusAverage;
-        private List<decimal> _trueRange;
-        private List<decimal> _trueRangeAverage;
-        private List<decimal> _sDIjPlus;
-        private List<decimal> _sDIjMinus;
-        private List<decimal> _dX;
-        private List<decimal> _adX;
+        
 
         public decimal GetValueStandart(List<Candle> candles, int index)
         {
@@ -120,6 +129,87 @@ namespace CustomIndicators.Scripts
                 // рассчитываем
                 _adX = MovingAverageWild(_dX, _adX, _length.ValueInt, index);
                 return Math.Round(_adX[_adX.Count - 1], 4);
+            }
+        }
+
+        public decimal GetValuePlus(List<Candle> candles, int index)
+        {
+            if (index == 0)
+            {
+                _dmjPlus = null;
+                _dmjMinus = null;
+                _trueRange = null;
+                _sDIjPlus = null;
+                _sDIjMinus = null;
+                _dX = null;
+                _adX = null;
+            }
+            DmjReload(candles, index);
+
+            _dmjPlusAverage = MovingAverageWild(_dmjPlus, _dmjPlusAverage, _length.ValueInt, index);
+            _dmjMinusAverage = MovingAverageWild(_dmjMinus, _dmjMinusAverage, _length.ValueInt, index);
+
+            TrueRangeReload(candles, index);
+
+            _trueRangeAverage = MovingAverageWild(_trueRange, _trueRangeAverage, _length.ValueInt, index);
+
+            SdijReload(index);
+
+            DxReload(index);
+
+            if (_length.ValueInt == 0 || _length.ValueInt > _dmjPlusAverage.Count)
+            {
+                // if it's not possible to calculate
+                // если рассчёт не возможен
+                return 0;
+            }
+            else
+            {
+                // calculating
+                // рассчитываем
+                _dmjPlusAverage = MovingAverageWild(_dmjPlus, _dmjPlusAverage, _length.ValueInt, index);
+                return Math.Round(_dmjPlusAverage[_dmjPlusAverage.Count - 1], 4);
+            }
+        }
+
+        public decimal GetValueMinus(List<Candle> candles, int index)
+        {
+            if (index == 0)
+            {
+                _dmjPlus = null;
+                _dmjMinus = null;
+                _trueRange = null;
+                _sDIjPlus = null;
+                _sDIjMinus = null;
+                _dX = null;
+                _adX = null;
+            }
+
+            DmjReload(candles, index);
+
+            _dmjPlusAverage = MovingAverageWild(_dmjPlus, _dmjPlusAverage, _length.ValueInt, index);
+            _dmjMinusAverage = MovingAverageWild(_dmjMinus, _dmjMinusAverage, _length.ValueInt, index);
+
+            TrueRangeReload(candles, index);
+
+            _trueRangeAverage = MovingAverageWild(_trueRange, _trueRangeAverage, _length.ValueInt, index);
+
+            SdijReload(index);
+
+            DxReload(index);
+
+            if (_length.ValueInt == 0 || _length.ValueInt > _dmjMinusAverage.Count)
+            {
+                // if it's not possible to calculate
+                // если рассчёт не возможен
+                return 0;
+            }
+            else
+            {
+                // calculating
+                // рассчитываем
+                _dmjMinusAverage = MovingAverageWild(_dmjMinus, _dmjMinusAverage, _length.ValueInt, index);
+                return Math.Round(_dmjMinusAverage[_dmjMinusAverage.Count - 1], 4);
             }
         }
 
