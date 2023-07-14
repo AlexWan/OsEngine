@@ -873,6 +873,10 @@ namespace OsEngine.Market.Servers.Transaq
                     newCandle = new Candle();
                     newCandle.Open = oldCandles[i].Open;
                     newCandle.TimeStart = oldCandles[i].TimeStart;
+                    if (needTf <=60 && newCandle.TimeStart.Minute % needTf !=0)  //AVP, если свечка пришла в некратное ТФ время, например, был пропуск свечи, то ТФ правим на кратное. на MOEX  в пропущенные на клиринге свечках, на 10 минутках давало сбой - сдвиг свечек на 5 минут.
+                    {
+                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes((newCandle.TimeStart.Minute % needTf) * -1);        
+                    }
                     newCandle.Low = Decimal.MaxValue;
                 }
 
@@ -886,7 +890,9 @@ namespace OsEngine.Market.Servers.Transaq
 
                 newCandle.Volume += oldCandles[i].Volume;
 
-                if (counter == count)
+               
+
+                if (counter == count || (needTf <= 60 && i < oldCandles.Count-2 && oldCandles[i+1].TimeStart.Minute % needTf == 0) )    // AVP добавил проверку "или", что следующая свечка в мелком ТФ, должна войти в следующую свечу более крупного ТФ
                 {
                     newCandle.Close = oldCandles[i].Close;
                     newCandle.State = CandleState.Finished;
@@ -899,6 +905,7 @@ namespace OsEngine.Market.Servers.Transaq
                     newCandle.Close = oldCandles[i].Close;
                     newCandle.State = CandleState.Started;
                     newCandles.Add(newCandle);
+                   
                 }
             }
 

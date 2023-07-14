@@ -25,7 +25,37 @@ namespace OsEngine.Market.Servers.QuikLua
         public QuikLuaServer()
         {
             ServerRealization = new QuikLuaServerRealization();
+            
+            //AVP новые параметры и обработка изменений
+            CreateParameterBoolean(OsLocalization.Market.UseStock, true);
+            CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
+            CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
+            CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
+            CreateParameterBoolean(OsLocalization.Market.UseOther, false);
+
+            ServerParameters[3].Comment = OsLocalization.Market.Label96;
+            ServerParameters[4].Comment = OsLocalization.Market.Label97; 
+
+            ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
+            ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
+            ((ServerParameterBool)ServerParameters[2]).ValueChange += QuikLuaServer_ParametrValueChange;
+            ((ServerParameterBool)ServerParameters[3]).ValueChange += QuikLuaServer_ParametrValueChange;
+            ((ServerParameterBool)ServerParameters[4]).ValueChange += QuikLuaServer_ParametrValueChange;
+
+
+
         }
+
+        /// <summary>
+        /// контроль изменения списка классов используемых в коннекторе 
+        /// </summary>
+        private void QuikLuaServer_ParametrValueChange()
+        {
+            ((QuikLuaServerRealization)ServerRealization)._changeClassUse = true;
+            Securities?.Clear();    // AVP  изменили список классов для работы, старый удалим и в коннекторе заново перечитаем
+        }
+
+       
 
         /// <summary>
         /// tame candles by instrument
@@ -85,10 +115,24 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private static readonly string SecuritiesCachePath = @"Engine\QuikLuaSecuritiesCache.txt";
 
+        private ServerParameterBool _useStock ; //AVP 6 строк для контроля изменения набора классов инструментов
+        private ServerParameterBool _useFutures;
+        private ServerParameterBool _useOptions;
+        private ServerParameterBool _useCurrency;
+        private ServerParameterBool _useOther ;
+        public bool _changeClassUse = false;
+
         public void Connect()
         {
             if (QuikLua == null)
             {
+                
+                _useStock = (ServerParameterBool)ServerParameters[0];   // AVP линкуем параметры в локальные переменные
+                _useFutures = (ServerParameterBool)ServerParameters[1];
+                _useCurrency = (ServerParameterBool)ServerParameters[2];
+                _useOptions = (ServerParameterBool)ServerParameters[3];
+                _useOther = (ServerParameterBool)ServerParameters[4];
+
                 QuikLua = new QuikSharp.Quik(QuikSharp.Quik.DefaultPort, new InMemoryStorage());
                 QuikLua.Events.OnConnected += EventsOnOnConnected;
                 QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
@@ -147,7 +191,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                _securities = IsLoadSecuritiesFromCache() ? LoadSecuritiesFromCache() : LoadSecuritiesFromQuik();
+                _securities = !_changeClassUse && IsLoadSecuritiesFromCache() ? LoadSecuritiesFromCache() : LoadSecuritiesFromQuik();   //AVP добавил !_changeClassUse, если набор классов поменяли, то надо кэш обновить
 
                 SendLogMessage(OsLocalization.Market.Message52 + _securities.Count, LogMessageType.System);
                 if (SecurityEvent != null)
@@ -172,6 +216,57 @@ namespace OsEngine.Market.Servers.QuikLua
 
             return DateTime.Now < lastWriteTime.AddHours(1);
         }
+      
+        /// <summary>
+        /// Проверяем какие классы выбраны то и грузим
+        /// </summary>
+        /// <param name="classesSec"></param>
+        /// <returns></returns>
+        private bool CheckFilter(string classesSec) //AVP
+        {
+        
+            {
+                
+                if (classesSec.EndsWith ("TQBR") || classesSec.EndsWith("TQOB"))
+                {
+                    if (_useStock.Value)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (classesSec.Contains("FUT"))
+                {
+                    if (_useFutures.Value)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (classesSec.Contains("OPT"))
+                {
+                    if (_useOptions.Value)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (classesSec.Contains("CETS") || classesSec == "CURRENCY")
+                {
+                    if (_useCurrency.Value)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (_useOther.Value)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
 
         private List<Security> LoadSecuritiesFromQuik()
         {
@@ -190,6 +285,12 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     continue;
                 }
+
+                if (!CheckFilter (classesList[i]))  // AVP фильтр выбранных классов для загрузки инструментов
+                {
+                    continue;
+                }
+
 
                 string[] secCodes = QuikLua.Class.GetClassSecurities(classesList[i]).Result;
                 for (int j = 0; j < secCodes.Length; j++)
@@ -415,7 +516,13 @@ namespace OsEngine.Market.Servers.QuikLua
                         myPortfolio.Number = accaunts[i].TrdaccId;
 
                         PortfolioInfo qPortfolio =
-                            QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
+                            QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, accaunts[i].TrdaccId).Result;   //AVP сделал accaunts[i].TrdaccId, для финама , БКС, когда в квике несколько клиенткодов,  было clientCode 
+
+                        if (qPortfolio  == null)    // AVP для тех брокеров у которых через accaunts[i].TrdaccId портфель не находит, и клиент-код всего один.
+                        {
+                            qPortfolio =
+                            QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;   
+                        }
 
                         if (qPortfolio.Assets == null ||
                             qPortfolio.Assets.ToDecimal() == 0)
