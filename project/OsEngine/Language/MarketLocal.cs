@@ -416,6 +416,15 @@ namespace OsEngine.Language
           "Eng:If true - trades with price change will be fed from the server to the robots. Deals with the same price will not be transmitted. It greatly facilitates the work of the program. Recommendation - true._" +
           "Ru:Если true - из сервера в роботов будут подаваться сделки с изменением цены. Сделки с одинаковой ценой транслироваться не будут. Сильно облегчает работу программы. Рекомендовано - true._");
 
+        public string Label96 => OsLocalization.ConvertToLocString(
+          "Eng: It takes up to 15 minutes to download tickets via LUA QUIK for all options of all assets in all terms. Until the end of the download, the instruments will not appear in the data settings. Wait for them._" +
+          "Ru:На загрузку через LUA QUIK  тикетов для всех опционов всех активов во всех сроках необходимо до 15 минут.До окончания загрузки инструменты в настройках данных не появятся.Ждите их._");
+
+        public string Label97 => OsLocalization.ConvertToLocString(
+          "Eng:It takes up to 5 minutes to download other assets via LUA QUIK. Until the download is completed, the tools will not appear in the data settings. Wait for them._" +
+          "Ru:На загрузку прочих активов через LUA QUIK необходимо до 5 минут.До окончания загрузки инструменты в настройках данных не появятся.Ждите их._");
+
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
