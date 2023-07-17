@@ -479,6 +479,7 @@ namespace OsEngine.OsOptimizer
                 }
 
                 DataGridViewRow row = new DataGridViewRow();
+                row.Height = 30;
                 row.Cells.Add(new DataGridViewTextBoxCell());
 
                 //if (report.TabsReports.Count == 1)
