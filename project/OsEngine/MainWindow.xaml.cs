@@ -192,7 +192,6 @@ namespace OsEngine
             return true;
         }
 
-
         /// <summary>
         /// check the permission of the program to create files in the directory
         /// проверяем разрешение программы создавать файлы в директории

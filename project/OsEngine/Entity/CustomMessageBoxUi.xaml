@@ -9,7 +9,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,40"/>
         <Button Name="ButtonAccept" Content="Accept" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="235" Click="ButtonAccept_Click" />
-        <TextBox Name="TextBoxMessage" Margin="5,5,6,40" TextWrapping="Wrap" Text="TextBox" Height="NaN" FontStretch="Expanded" IsReadOnly="True" TextAlignment="Center" FontSize="15" FontWeight="Bold"/>
+        <TextBox Name="TextBoxMessage" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="5,5,6,40" TextWrapping="Wrap" Text="TextBox" Height="NaN" FontStretch="Expanded" IsReadOnly="True" TextAlignment="Center" FontSize="15" FontWeight="Bold"/>
     </Grid>
 </Window>
 

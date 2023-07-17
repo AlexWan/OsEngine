@@ -106,7 +106,6 @@ namespace OsEngine.Robots
             TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
             ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
-
         }
 
         private List<string> _botsIncluded;
@@ -253,7 +252,9 @@ namespace OsEngine.Robots
                             }
                         }
 
-                        string path = description.PathToFolder;
+                        string path =
+                            System.Windows.Forms.Application.ExecutablePath.Replace("OsEngine.exe", "") 
+                            + "Custom\\Robots\\";
 
                         string filePath = path + className + ".cs";
 
@@ -666,7 +667,6 @@ namespace OsEngine.Robots
             if (isScript)
             {
                 description.Location = BotCreationType.Script;
-                description.PathToFolder = System.Windows.Forms.Application.ExecutablePath.Replace("OsEngine.exe", "") + "Custom\\Robots\\";
             }
             else
             {
