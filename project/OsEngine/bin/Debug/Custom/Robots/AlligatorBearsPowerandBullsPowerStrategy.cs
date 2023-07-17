@@ -105,6 +105,17 @@ namespace OsEngine.Robots.Aligator
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on intersection of the Alligator, Bears Power and Bulls Power Strategy " +
+                "1. Fast line (lips) above the middle line (teeth), medium above the slow line (jaw) " +
+                "2. Bears Power columns should be below 0, but constantly growing " +
+                "3. Bulls Power columns should be above 0 and grow - enter into a long position " +
+                "1. fast line (lips) below the midline (teeth), medium below the slow line (jaw) " +
+                "2. Bulls Power columns should be above 0, but decrease " +
+                "3. Bears Power columns should be below 0 and decrease - enter short position " +
+                "Exit from the purchase: the fast line is lower than the slow one " +
+                "Exit from sale: fast line above slow line";
         }
 
         // Indicator Update event

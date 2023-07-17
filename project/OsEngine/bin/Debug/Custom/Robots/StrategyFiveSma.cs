@@ -132,6 +132,17 @@ namespace OsEngine.Robots.SMA
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on of five Sma " +
+                "Buy: " +
+                "All Smas are rising (when all five moving averages are larger than they were one bar ago) +  " +
+                "half of the difference between the high and low of the previous bar. " +
+                "Sell:" +
+                "All Smas fall (when all five moving averages are less than they were one bar ago) - " +
+                "half the difference between the high and low of the previous bar. " +
+                "Exit from the purchase: Sma1, Sma2 and Sma3 are falling. " +
+                "Exit from sale: Sma1, Sma2 and Sma3 are growing.";
         }
 
         // Indicator Update event

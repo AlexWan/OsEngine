@@ -94,6 +94,12 @@ namespace OsEngine.Robots.SMA
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on intersection of three SMA " +
+                "Buy: Fast Sma is above average Sma and medium is above slow " +
+                "Sell: Fast Sma is below average Sma and average is below slow " +
+                "Exit: on the opposite signal";
         }
 
         // Indicator Update event

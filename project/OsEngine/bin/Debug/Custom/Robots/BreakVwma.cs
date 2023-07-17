@@ -80,6 +80,13 @@ namespace OsEngine.Robots.Vwma
 
             // Exit
             TrailingValue = CreateParameter("TrailingValue", 1, 1, 10, 1, "Exit");
+
+            Description = "trading robot for osengine " +
+                "The trend robot on intersection Vwma with price " +
+                "Buy: the price of the instrument is above Vwma " +
+                "Sale: the price of the instrument is below Vwma " +
+                "Exit from the purchase: trailing stop in % of the loy of the candle on which you entered. " +
+                "Exit from sale: trailing stop in % of the high of the candle on which you entered.";
         }
 
         // Indicator Update event

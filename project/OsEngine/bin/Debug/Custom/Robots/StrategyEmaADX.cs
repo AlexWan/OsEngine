@@ -99,6 +99,17 @@ namespace OsEngine.Robots.AO
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on strategy Ema with ADX. " +
+                "Buy: " +
+                "The previous candle was above Ema, the last candle was lower or equal to Ema,  " +
+                "and Adx must be above 25. We set a litka for purchase at the price of the high of this candle. " +
+                "Sale: " +
+                "The previous candle was below Ema, the last high candle is higher than or equal to Ema, " +
+                "and Adx must be above 25. We set a litka for purchase at the price of this candle's loy. " +
+                "Buy exit: trailing stop in % of the line of the candle on which you entered. " +
+                "Sell ​​exit: trailing stop in % of the high of the candle where you entered.";
         }
 
         private void StrategyEmaADX_ParametrsChangeByUser()

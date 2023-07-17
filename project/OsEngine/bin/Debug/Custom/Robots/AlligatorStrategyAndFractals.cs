@@ -102,6 +102,19 @@ namespace OsEngine.Robots.Aligator
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on intersection of the Alligator indicator with Fractal. " +
+                "Fast line (lips) above the middle line (teeth), medium above the slow line (jaw) and" +
+                " the price is higher than the last ascending fractal - enter into a long position." +
+                "Fast line (lips) below the midline (teeth), medium below the slow line (jaw) and " +
+                "the price is lower than the last descending fractal.- enter short position " +
+                "Exit from a long position: The trailing stop is placed at the minimum for the period " +
+                "specified for the trailing stop and is transferred, (slides), to new price lows, also " +
+                "for the specified period. " +
+                "Exit from the short position: The trailing stop is placed at the maximum for the period " +
+                "specified for the trailing stop and is transferred (slides) to the new maximum of the  " +
+                "price, also for the specified period.";
         }
 
         // Indicator Update event
