@@ -745,8 +745,14 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Order> _myOrdersInMarket = new List<Order>();
 
+        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
         public void SendOrder(Order order)
         {
+            _rateGateSendOrder.WaitToProceed();
+
             QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
             qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
@@ -808,6 +814,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public void CancelOrder(Order order)
         {
+            _rateGateCancelOrder.WaitToProceed();
+
             _ordersAllReadyCanseled.Add(order);
 
             QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
