@@ -155,6 +155,21 @@ namespace OsEngine.Robots.AO
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on strategy for 4 Ema, Awesome Oscillator and Macd Histogram. " +
+                "Buy: " +
+                " 1. EmaFastLoc above EmaSlowLoc; " +
+                " 2. EmaFastGlob above EmaSlowGlob; " +
+                " 3. AO growing; " +
+                " 4. Macd > 0. " +
+                "Sale: " +
+                " 1. EmaFastLoc below EmaSlowLoc; " +
+                " 2. EmaFastGlob below EmaSlowGlob; " +
+                " 3. AO falling; " +
+                " 4. Macd < 0. " +
+                "Exit from the buy:trailing stop in % of the loy of the candle on which you entered. " +
+                "Exit from sale: trailing stop in % of the high of the candle on which you entered.";
         }
 
         // Indicator Update event

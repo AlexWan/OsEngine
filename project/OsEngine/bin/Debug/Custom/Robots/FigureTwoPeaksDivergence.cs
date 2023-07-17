@@ -97,6 +97,21 @@ namespace OsEngine.Robots.ZZAO
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on Divergence " +
+                "Buy: " +
+                "1. The lows of the Awesome histogram are gradually increasing. " +
+                "2. The lows of the chart, on the contrary, gradually decrease. " +
+                "Sale: " +
+                "1. The extreme points AO decrease successively. " +
+                "2. Extremes of the price chart, on the contrary, are rising. " +
+                "Buy Exit: " +
+                "1. Stop behind the minimum for a certain number of candles " +
+                "2. Profit - for the maximum for a certain number of candles " +
+                "Sale Exit: " +
+                "1. Stop behind the maximum for a certain number of candles " +
+                "2. Profit - for a minimum for a certain number of candles";
         }
 
         // Indicator Update event

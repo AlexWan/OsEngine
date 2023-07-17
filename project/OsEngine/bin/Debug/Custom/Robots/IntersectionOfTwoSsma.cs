@@ -88,6 +88,12 @@ namespace OsEngine.Robots.MyRobots
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
             StopValue = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
             ProfitValue = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
+
+            Description = "Trading robot for osengine " +
+                "Trend robot at the intersection of two smoothed averages. " +
+                "Buy: the fast Ssma is higher than the slow Ssma and the value of the last candle is greater than the fast Ssma. " +
+                "Sale: the fast Ssma is lower than the slow Ssma and the value of the last candle is less than the slow Ssma. " +
+                "Exit: on the opposite signal";
         }
 
         // Indicator Update event

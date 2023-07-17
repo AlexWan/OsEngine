@@ -141,6 +141,19 @@ namespace OsEngine.Robots.MyRobots
            
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description "Trading robot for osengine. " +
+                "Trend strategy on 4 EMAS and a channel of two EMAS (any slips and different output). " +
+                "The channel consists of two Emas of the same length with a closing price of high and loy. " +
+                "Buy: " +
+                "1. Ema 1 is growing (i.e. the value of 2 candles ago was lower than 1 candle ago); " +
+                "2. Ema2 is higher than Ema3; " +
+                "3. The price is above Ema4 and above the upper line of the Ema channel. " +
+                "Sale: " +
+                "1. Ema1 falling (i.e. the value of 2 candles ago was higher than 1 candle ago); " +
+                "2. Ema2 is lower than Ema3; " +
+                "3. The price is below Ema4 and below the lower line of the Ema channel. " +
+                "Exit from the purchase: The price is lower than Ema4.\r\nExit from sale: The price is higher than Ema4.";
         }
         // Indicator Update event
         private void IntersectionOfFourEma_ParametrsChangeByUser()

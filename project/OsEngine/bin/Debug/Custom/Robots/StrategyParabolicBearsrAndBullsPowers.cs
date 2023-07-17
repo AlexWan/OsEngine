@@ -5,7 +5,24 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+/*Discription
+Trading robot for osengine.
 
+Trend strategy on Bears Power, Bulls Power and Parabolic SAR.
+
+Buy:
+1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up.
+2. Bears Power columns must be higher than 0.
+3. Bulls Power columns must be above 0.
+
+Sale:
+1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom.
+2. Bulls Power columns must be below 0.
+3. Bears Power columns must be below 0.
+
+Exit:
+On the opposite signal of the parabolic.
+*/
 namespace OsEngine.Robots.myRobots
 {  
     // We create an attribute so that we don't write anything to the BotFactory
@@ -83,6 +100,19 @@ namespace OsEngine.Robots.myRobots
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "Trading robot for osengine. " +
+                "Trend strategy on Bears Power, Bulls Power and Parabolic SAR. " +
+                "Buy: " +
+                "1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up. " +
+                "2. Bears Power columns must be higher than 0. " +
+                "3. Bulls Power columns must be above 0. " +
+                "Sale: " +
+                "1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. " +
+                "2. Bulls Power columns must be below 0. " +
+                "3. Bears Power columns must be below 0. " +
+                "Exit: " +
+                "On the opposite signal of the parabolic.";
         }
 
         // Indicator Update event

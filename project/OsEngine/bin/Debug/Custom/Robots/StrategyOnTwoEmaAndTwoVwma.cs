@@ -105,6 +105,13 @@ namespace OsEngine.Robots.Vwma
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on strategy on two Ema and two Vwma " +
+                "Buy: Fast Vwma and slow Vwma punch up (above) both Emas (also fast and slow). " +
+                "Sale: Fast Vwma and slow Vwma punch down (below) both Emas (also fast and slow). " +
+                "Exit from purchase: Fast Vwma below slow Vwma. " +
+                "Exit from sale: Fast Vwma above slow Vwma.";
         }
 
         // Indicator Update event

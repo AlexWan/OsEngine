@@ -96,6 +96,18 @@ namespace OsEngine.Robots.AO
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on strategy for Awesome Oscillator. " +
+                "Buy: " +
+                "1. Indicator values ​​above 0; " +
+                "2. The second column is below the first; " +
+                "3. The third column is higher than the second. " +
+                "Sale: " +
+                "1. Indicator values ​​below 0; " +
+                "2. The second column is higher than the first; " +
+                "3. The third column is lower than the second. " +
+                "Exit: after a certain number of candles";
         }
 
         // Indicator Update event

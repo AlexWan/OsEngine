@@ -5,7 +5,24 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+/*Discription
+Trading robot for osengine.
 
+Trend strategy on Bears Power, Bulls Power and Ema.
+
+Buy:
+1. The price crosses the Ema from bottom to top.
+2. Bears Power columns should be below 0, but constantly growing.
+3. Bulls Power columns should be above 0 and grow.
+
+Sale:
+1. The price crosses the Ema from top to bottom.
+2. Bulls Power columns should be above 0, but decrease.
+3. Bears Power columns should be below 0 and decrease.
+
+Exit from the buy: trailing stop in % of the loy of the candle on which you entered.
+Exit from sale: trailing stop in % of the high of the candle on which you entered.
+*/
 namespace OsEngine.Robots.myRobots
 {
     // We create an attribute so that we don't write anything to the BotFactory
@@ -84,6 +101,19 @@ namespace OsEngine.Robots.myRobots
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             TrailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, "Exit settings");
+
+            Description = "Trading robot for osengine. " +
+                "Trend strategy on Bears Power, Bulls Power and Ema. " +
+                "Buy: " +
+                "1. The price crosses the Ema from bottom to top. " +
+                "2. Bears Power columns should be below 0, but constantly growing. " +
+                "3. Bulls Power columns should be above 0 and grow. " +
+                "Sale: " +
+                "1. The price crosses the Ema from top to bottom. " +
+                "2. Bulls Power columns should be above 0, but decrease. " +
+                "3. Bears Power columns should be below 0 and decrease. " +
+                "Exit from the buy: trailing stop in % of the loy of the candle on which you entered. " +
+                "Exit from sale: trailing stop in % of the high of the candle on which you entered.";
         }
 
         // Indicator Update event

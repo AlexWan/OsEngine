@@ -96,6 +96,14 @@ namespace OsEngine.Robots.ZZAO
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "trading robot for osengine " +
+                "The trend robot on AD indicator divergence and price. " +
+                "Buy: at the price, the minimum for a certain period of time is below the previous minimum," +
+                " and on the indicator, the minimum is higher than the previous one. " +
+                "Sale: on the price the maximum for a certain period of time is higher than the previous maximum," +
+                " and on the indicator the maximum is lower than the previous one." +
+                "Exit: after n number of candles.";
         }
 
         // Indicator Update event

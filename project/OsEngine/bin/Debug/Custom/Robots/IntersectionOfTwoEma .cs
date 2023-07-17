@@ -91,6 +91,12 @@ namespace OsEngine.Robots.MyRobots
             // Exit
             StopValue = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
             ProfitValue = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
+
+            Description = "Trading robot for osengine " +
+                "Trend robot at the intersection of two exponential averages " +
+                "Buy: the fast Ema is higher than the slow Ema and the value of the last candle is greater than the fast Ema. " +
+                "Sale: The fast Ema is lower than the slow Ema and the value of the last candle is less than the slow Ema. " +
+                "Exit: stop and profit in % of the entry price.";
             
         }
 
