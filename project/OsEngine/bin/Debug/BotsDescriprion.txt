@@ -1,0 +1,91 @@
+BbPowerTrade&&Include&&Simple 1*&BearsPower*BullsPower*&
+BollingerRevers&&Include&&Simple 1*&Bollinger*&
+BollingerTrailing&&Include&&Simple 1*&Bollinger*&
+BlockIndicatorsSample&&Include&&Simple 1*&Bollinger*Sma*PriceChannel*&
+Bollinger&&Include&&Simple 1*&Bollinger*MovingAverage*&
+ClusterEngine&&Include&&Cluster 1*&&
+ClusterCountertrend&&Include&&Simple 1*Cluster 1*&&
+CciTrade&&Include&&Simple 1*&CCI*&
+CustomParamsUseBotSample&&Include&&Simple 1*&Sma*Sma*ATR*&
+Engine&&Include&&Simple 1*&&
+EnvelopTrend&&Include&&Simple 1*&Envelops*&
+ElementsOnChartSampleBot&&Include&&Simple 1*&MACD*&
+EnginePair&&Include&&Pair 1*&&
+Fisher&&Include&&Simple 1*&Sma*&
+FundBalanceDivergenceBot&&Include&&Simple 1*&FBD*&
+GridSample&&Include&&Simple 1*&&
+HighFrequencyTrader&&Include&&Simple 1*&&
+MomentumMACD&&Include&&Simple 1*&MacdLine*Momentum*&
+MarketMakerBot&&Include&&Simple 1*&&
+MacdRevers&&Include&&Simple 1*&MACD*&
+MacdTrail&&Include&&Simple 1*&MacdLine*&
+OneLegArbitrage&&Include&&Simple 1*Index 1*&Sma*&
+PairTraderSimple&&Include&&Simple 2*&&
+PatternTrader&&Include&&Simple 1*&&
+PriceChannelTrade&&Include&&Simple 1*&PriceChannel*&
+PairTraderSpreadSma&&Include&&Simple 2*Index 1*&MovingAverage*MovingAverage*&
+ParabolicSarTrade&&Include&&Simple 1*&ParabolicSaR*&
+PivotPointsRobot&&Include&&Simple 1*&PivotPoints*&
+PinBarTrade&&Include&&Simple 1*&MovingAverage*&
+PairRsiTrade&&Include&&Simple 2*&RSI*RSI*&
+PriceChannelBreak&&Include&&Simple 1*&PriceChannel*&
+PriceChannelVolatility&&Include&&Simple 1*&PriceChannel*ATR*&
+PairCointegrationSideTrader&&Include&&Pair 1*&&
+PairCorrelationNegative&&Include&&Pair 1*&&
+PairCorrelationTrader&&Include&&Pair 1*&&
+RsiContrtrend&Robot based on RSI indicator and moving average, trading by counter-trend logic. Short entry - when RSI is above the signal line and SMA is above the current price&Include&&Simple 1*&MovingAverage*Rsi*&
+RsiTrade&&Include&&Simple 1*&RSI*&
+RviTrade&&Include&&Simple 1*&RVI*&
+SmaScreener&&Include&&Screener 1*&Sma*&
+ScreenerEngine&&Include&&Screener 1*&Sma*&
+SmaTrendSample&&Include&&Simple 1*&Sma*Envelops*&
+SmaStochastic&&Include&&Simple 1*&MovingAverage*StochasticOscillator*&
+TwoLegArbitrage&&Include&&Simple 2*Index 1*&Rsi*&
+ThreeSoldier&&Include&&Simple 1*&&
+TimeOfDayBot&&Include&&Simple 1*&&
+TinkoffGetRealCandlesSample&&Include&&Simple 1*&&
+TestBotCandlesComparison&&Include&&&&
+TestBotConnection&&Include&&Screener 1*&Sma*&
+TestBotOpenAndCanselOrders&&Include&&&&
+TestBotTradesInCandlesTest&&Include&&Screener 1*&Sma*&
+Williams Band&&Include&&Simple 1*&Alligator*Fractal*AwesomeOscillator*&
+WilliamsRangeTrade&&Include&&Simple 1*&WilliamsRange*&
+WServerTester&&Include&&&&
+ADDivergence&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&ZigZagAD*ZigZag*&
+AlligatorBearsPowerandBullsPowerStrategy&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Alligator*BullsPower*BearsPower*&
+AlligatorStrategyAndFractals&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Alligator*Fractal*&
+BearsPowerDivergence &&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&ZigZag*ZigZagBP*&
+BreakAD&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&AccumulationDistribution*&
+BreakADXChannel&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*Ema*ADX*&
+BreakAlligator&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Alligator*&
+BreakEma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*&
+BreakSma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Sma*&
+BreakSsma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ssma*&
+BreakVwma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&VWMA*&
+FigureTwoPeaksDivergence&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&ZigZagAO*ZigZag*&
+IntersectionOfEmaAndEmaOffset&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*OffsetEma*&
+IntersectionOfSsmaAndSsmaOffset&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ssma*OffsetEma*&
+IntersectionOfTheThreeVwma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&VWMA*VWMA*VWMA*&
+IntersectionOfTheTwoVwma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&VWMA*VWMA*&
+IntersectionOfThreeEma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*Ema*Ema*&
+IntersectionOfThreeSma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Sma*Sma*Sma*&
+IntersectionOfThreeSsma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ssma*Ssma*Ssma*&
+IntersectionOfTwoEma &&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*Ema*&
+IntersectionOfTwoSma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Sma*Sma*&
+IntersectionOfTwoSsma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ssma*Ssma*&
+IntersectionOfTwoSsmaAndAD&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&AccumulationDistribution*Ssma*Ssma*&
+StochasticTrade&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Stochastic*&
+SaucerPatternOnAwesomeOscillator&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&AO*&
+SmaWithAShift&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Sma*OffsetSma*&
+StrategyEmaADX&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*ADX*&
+StrategyEmaBearsrAndBullsPowers&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*BullsPower*BearsPower*&
+StrategyFiveSma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Sma*Sma*Sma*Sma*Sma*&
+StrategyForFourEmaAOAndMacdHistogram&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*Ema*Ema*Ema*MACD*AO*&
+StrategyLevermor&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Sma*PriceChannel*&
+StrategyOfFourEma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*Ema*Ema*Ema*Ema*Ema*&
+StrategyOfFourSsma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ssma*Ssma*Ssma*Ssma*&
+StrategyOnAOAndStoh&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&AO*Stochastic*&
+StrategyOnAwesomeOscillatorAndParabolicSAR&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&AO*ParabolicSAR*&
+StrategyOnTwoEmaAndTwoVwma&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&Ema*Ema*VWMA*VWMA*&
+StrategyParabolicBearsrAndBullsPowers&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&ParabolicSAR*BullsPower*BearsPower*&
+VwmaWithAShift&&Script&F:\OsEngine\project\OsEngine\bin\Debug\Custom\Robots\&Simple 1*&VWMA*OffsetVwma*&

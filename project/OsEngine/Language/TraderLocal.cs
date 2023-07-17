@@ -1077,5 +1077,60 @@ namespace OsEngine.Language
           "Eng:It is not possible to open a deal! Price can`t be zero!_" +
           "Ru:Не возможно открыть сделку! Цена не может быть ноль!_");
 
+        public string Label292 => OsLocalization.ConvertToLocString(
+          "Eng:Script_" +
+          "Ru:Скрипт_");
+
+        public string Label293 => OsLocalization.ConvertToLocString(
+          "Eng:Include_" +
+          "Ru:Встроенный_");
+
+        public string Label294 => OsLocalization.ConvertToLocString(
+          "Eng:All_" +
+          "Ru:Все_");
+
+        public string Label295 => OsLocalization.ConvertToLocString(
+          "Eng:Location_" +
+          "Ru:Расположение_");
+
+        public string Label296 => OsLocalization.ConvertToLocString(
+          "Eng:Sources_" +
+          "Ru:Источники_");
+
+        public string Label297 => OsLocalization.ConvertToLocString(
+          "Eng:Description_" +
+          "Ru:Описание_");
+
+        public string Label298 => OsLocalization.ConvertToLocString(
+          "Eng:Indicators_" +
+          "Ru:Индикаторы_");
+
+        public string Label299 => OsLocalization.ConvertToLocString(
+          "Eng:Robot based on RSI indicator and moving average, trading by counter-trend logic. Short entry - when RSI is above the signal line and SMA is above the current price_" +
+          "Ru:Робот на основе индикатора RSI и скользящей средней, торгующего по контр-трендовой логике. Вход в шорт - при RSI выше сигнальной линии и SMA выше текущей цены_");
+
+        public string Label300 => OsLocalization.ConvertToLocString(
+          "Eng:The process of analyzing the robots_" +
+          "Ru:Идёт процесс анализа роботов_");
+
+        public string Label301 => OsLocalization.ConvertToLocString(
+         "Eng:You need to enter a unique name for the robot. It will be reflected across the entire platform without the possibility to change it_" +
+         "Ru:Нужно ввести уникальное имя для робота. Оно будет отражаться по всей платформе без возможности изменения_");
+
+        public string Label302 => OsLocalization.ConvertToLocString(
+         "Eng:There are several ways to create robots in OsEngine. Inside the library and as scripts_" +
+         "Ru:В OsEngine существует несколько способов создания роботов. Внутри библиотеки и в виде скриптов_");
+
+        public string Label303 => OsLocalization.ConvertToLocString(
+         "Eng:Update robots info_" +
+         "Ru:Обновить информацию_");
+
+        public string Label304 => OsLocalization.ConvertToLocString(
+         "Eng:You have not selected a strategy type. You need to click on the table. It will turn orange_" +
+         "Ru:Вы не выбрали тип стратегии. Нужно клацнуть по таблице. Загориться оранжевым_");
+
+        public string Label305 => OsLocalization.ConvertToLocString(
+         "Eng:Updating the robots involves building and testing them one by one. This will take some time_" +
+         "Ru:Обновление роботов предполагает их поочерёдное создание и проверку. Это займёт некоторое время_");
     }
 }

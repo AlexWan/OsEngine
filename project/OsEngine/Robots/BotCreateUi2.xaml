@@ -1,0 +1,28 @@
+﻿<Window x:Class="OsEngine.Robots.BotCreateUi2"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Robots"
+        mc:Ignorable="d"
+           Title="Add robot" Height="468" Width="571" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
+    <Grid>
+        <Rectangle  Margin="2,2,2,32"/>
+        <Button Name="ButtonAccept" Content="Accept" Height="22" Margin="0,0,5,5" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="280" Click="ButtonAccept_Click"/>
+        <TextBox Name="TextBoxName" Height="23" Margin="111,5,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="104"/>
+        <Label Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="12,5,0,0" VerticalAlignment="Top"/>
+        <WindowsFormsHost Name="HostBots" Margin="2,67,2,33"/>
+        <Label x:Name="LabelLocation" Content="Location" HorizontalAlignment="Left" Margin="12,33,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxLockation" HorizontalAlignment="Left" Margin="111,33,0,0" VerticalAlignment="Top" Width="104"/>
+        <Button Name="ButtonWhyNeadName" Content="?" HorizontalAlignment="Left" Margin="220,5,0,0" VerticalAlignment="Top" Height="23" Width="25" Click="ButtonWhyNeadName_Click"/>
+        <Button Name="ButtonWhyLocation" Content="?" HorizontalAlignment="Left" Margin="220,33,0,0" VerticalAlignment="Top" Height="23" Width="25" Click="ButtonWhyLocation_Click"/>
+        <TextBox x:Name="TextBoxSearchSecurity" HorizontalAlignment="Left" Margin="342,33,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="208"/>
+        <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="506,5,0,0" VerticalAlignment="Top" Width="44" Height="23"/>
+        <Button x:Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="342,6,0,0" VerticalAlignment="Top" Width="44" Height="24"/>
+        <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="424,9,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="439,9,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="458,9,0,0" VerticalAlignment="Top" Height="20"/>
+        <Button x:Name="ButtonUpdateRobots" Content="Update Robots Info" Height="22" Margin="2,0,0,5" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="279" Click="ButtonUpdateRobots_Click"/>
+
+    </Grid>
+</Window>

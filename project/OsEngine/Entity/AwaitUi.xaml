@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Entity"
         mc:Ignorable="d"
-        Title="AwaitUi" Height="111.067" Width="358.4" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize">
+        Title="AwaitUi" Height="111.067" Width="358.4" Icon="/Images/OsLogo.ico" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize">
     <Grid>
         <ProgressBar Name="ProgressBarAwait" Height="30" Margin="10,10,9.8,0" VerticalAlignment="Top"/>
         <Label Name="LabelAwaitString" Content="Await label" Margin="10,45,10.4,0" VerticalAlignment="Top"/>

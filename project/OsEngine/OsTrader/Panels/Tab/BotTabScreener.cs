@@ -1462,7 +1462,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// индикаторы на вкладках
         /// </summary>
-        private List<IndicatorOnTabs> _indicators = new List<IndicatorOnTabs>();
+        public List<IndicatorOnTabs> _indicators = new List<IndicatorOnTabs>();
 
         /// <summary>
         /// активировать индикаторы

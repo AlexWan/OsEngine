@@ -10,6 +10,7 @@ using System.IO;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
@@ -38,8 +39,6 @@ namespace OsEngine.Robots.CounterTrend
             {
                 Color = Color.Green,
                 Value = 0,
-
-
             };
             _tab.SetChartElement(Upline);
 
@@ -68,6 +67,8 @@ namespace OsEngine.Robots.CounterTrend
             Downline.TimeEnd = DateTime.Now;
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = OsLocalization.Trader.Label299;
         }
 
         /// <summary>

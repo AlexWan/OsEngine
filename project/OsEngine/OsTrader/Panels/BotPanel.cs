@@ -126,6 +126,11 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         public bool IsScript;
 
+        /// <summary>
+        /// a description of the robot's operating logic. Displayed in the menu for selecting a robot to create
+        /// </summary>
+        public string Description;
+
         // control
 
         /// <summary>
