@@ -28,6 +28,9 @@ public class OneLegArbitrage : BotPanel
         _tab2 = TabsSimple[0];
 
         _tab2.CandleFinishedEvent += Strateg_CandleFinishedEvent;
+
+        Description = "Trading robot on the index. " +
+            "The intersection of MA on the index from the bottom up long, with the reverse intersection of shorts";
     }
 
     /// <summary>

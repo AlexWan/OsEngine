@@ -42,6 +42,9 @@ namespace OsEngine.Robots.MarketMaker
             Load();
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = "robot for pair trading. trading two papers" +
+                " based on their acceleration to each other by candle";
         }
 
         /// <summary>

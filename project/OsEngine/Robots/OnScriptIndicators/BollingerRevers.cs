@@ -33,6 +33,14 @@ public class BollingerRevers : BotPanel
 
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+        Description = "Trend Strategy Based on Breaking Bollinger Lines " +
+                "Buy: " +
+                "1. The price is more than BollingerUpLine. " +
+                "Sell: " +
+                "1. Price below BollingerDownLine." +
+                "Exit: " +
+                "1. At the intersection of Sma with the price";
     }
 
     void Event_ParametrsChangeByUser()

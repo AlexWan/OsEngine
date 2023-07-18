@@ -58,6 +58,8 @@ namespace OsEngine.Robots.Patterns
             {
                 GetPatterns();
             }
+
+            Description = "Pattern trading robot";
         }
 
         /// <summary>

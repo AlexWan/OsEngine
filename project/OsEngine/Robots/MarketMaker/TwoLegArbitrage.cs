@@ -11,7 +11,15 @@ using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
+/* Description 
+Pair trading based on index analysis.
 
+Buy: when the RSI indicator built on the index goes below the oversold level.
+
+Sell: when the RSI indicator built on the index goes above the oversold level.
+
+Exit: by reverse system.
+*/
 namespace OsEngine.Robots.MarketMaker
 {
     public class TwoLegArbitrage : BotPanel
@@ -44,6 +52,11 @@ namespace OsEngine.Robots.MarketMaker
             _rsi.Save();
 
             ParametrsChangeByUser += TwoLegArbitrage_ParametrsChangeByUser;
+
+            Description = "Pair trading based on index analysis. " +
+                "Buy: when the RSI indicator built on the index goes below the oversold level. " +
+                "Sell: when the RSI indicator built on the index goes above the oversold level. " +
+                "Exit: by reverse system.";
         }
 
         /// <summary>

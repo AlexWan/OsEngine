@@ -26,6 +26,12 @@ public class MacdTrail : BotPanel
         _macd.Save();
 
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
+
+        Description = "Trend strategy based on the Macd indicator and trail stop " +
+            "Logic Enter: " +
+            "lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy " +
+            "lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell " +
+            "Exit: By TralingStop";
     }
 
     /// <summary>

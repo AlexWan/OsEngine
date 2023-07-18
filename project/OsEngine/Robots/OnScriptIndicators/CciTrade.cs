@@ -51,6 +51,13 @@ public class CciTrade : BotPanel
 
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+        Description = "Counter Trend Strategy Based on CCI Indicator. Max - 3 poses " +
+            "Buy: " +
+            "1. CCI is less than DownLine. " +
+            "Sell: " +
+            "1. CCI more UpLine. " +
+            "Exit: on the return signal.";
     }
 
     void Event_ParametrsChangeByUser()

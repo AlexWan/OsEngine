@@ -42,6 +42,10 @@ namespace OsEngine.Robots.Trend
             Load();
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = "Trend strategy on interseption PriceChannel indicator. " +
+                "if PriceLow < _lastPriceChDown - close position and open Short. " +
+                "if PriceHigh > _lastPriceChUp - close position and open Long.";
         }
 
         /// <summary>

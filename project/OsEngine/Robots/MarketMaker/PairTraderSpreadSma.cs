@@ -12,7 +12,15 @@ using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
+/*
+pair trading robot building spread and trading based on the intersection of MA on the spread chart
 
+SmaLong crossed SmaShort from top to bottom - the first tab sells, the second one buys.
+
+SmaLong crossed SmaShort from the bottom up - the first one is buying, the second one is selling.
+
+Exit: on the opposite signal
+*/
 namespace OsEngine.Robots.MarketMaker
 {
     /// <summary>
@@ -53,6 +61,11 @@ namespace OsEngine.Robots.MarketMaker
             Load();
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = "pair trading robot building spread and trading based on the intersection of MA on the spread chart " +
+                "SmaLong crossed SmaShort from top to bottom - the first tab sells, the second one buys. " +
+                "SmaLong crossed SmaShort from the bottom up - the first one is buying, the second one is selling. " +
+                "Exit: on the opposite signal";
         }
 
         /// <summary>
@@ -309,7 +322,7 @@ namespace OsEngine.Robots.MarketMaker
             decimal smaShortNow = _smaShort.Values[_smaShort.Values.Count - 1];
             decimal smaShortLast = _smaShort.Values[_smaShort.Values.Count - 2];
             decimal smaLong = _smaLong.Values[_smaLong.Values.Count - 1];
-            decimal smaLongLast = _smaLong.Values[_smaLong.Values.Count - 1];
+            decimal smaLongLast = _smaLong.Values[_smaLong.Values.Count - 2];
 
             if (smaShortNow == 0 || smaLong == 0
                 || smaShortLast == 0 || smaLongLast == 0)
@@ -352,7 +365,7 @@ namespace OsEngine.Robots.MarketMaker
             decimal smaShortNow = _smaShort.Values[_smaShort.Values.Count - 1];
             decimal smaShortLast = _smaShort.Values[_smaShort.Values.Count - 2];
             decimal smaLong = _smaLong.Values[_smaLong.Values.Count - 1];
-            decimal smaLongLast = _smaLong.Values[_smaLong.Values.Count - 1];
+            decimal smaLongLast = _smaLong.Values[_smaLong.Values.Count - 2];
 
             if (smaShortNow == 0 || smaLong == 0
                 || smaShortLast == 0 || smaLongLast == 0)

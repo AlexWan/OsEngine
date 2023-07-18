@@ -34,6 +34,14 @@ public class BollingerTrailing : BotPanel
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
         _tab.PositionOpeningSuccesEvent += ReloadTrailingPosition;
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+        Description = "Bollinger Bands trading bargaining robot with pull-up Trailing-Stop through Bollinger Bands " +
+        "Buy: " +
+        "1. The price is more than BollingerUpLine. " +
+        "Sell: " +
+        "1. Price below BollingerDownLine." +
+        "Exit: " +
+        "1. Trailing-Stop through Bollinger Bands";
     }
 
     void Event_ParametrsChangeByUser()

@@ -31,6 +31,13 @@ namespace OsEngine.Robots.OnScriptIndicators
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+            Description = "The countertrend bots " +
+                "Buy: " +
+                "1. FBD more Indicator Divergence. " +
+                "Sell: " +
+                "1. FBD is less than negative Indicator Divergence. " +
+                "Exit: after N number of days.";
         }
 
         void Event_ParametrsChangeByUser()

@@ -44,6 +44,11 @@ public class PairRsiTrade : BotPanel
         ParamGuiSettings.Height = 300;
         ParamGuiSettings.Width = 500;
         ParamGuiSettings.Title = "Pair Rsi Bot Settings";
+
+        Description = "Pair trading based on the RSI indicator " +
+            "Logic: if RsiOne > RsiTwo + RsiSpread - then we are Sell on the first instrument and Buy on the second one. " +
+            "Logic: if RsiTwo > RsiOne + RsiSpread - then we are Buy on the first instrument and Sell on the second one. " +
+            "Exit: on the return signal.";
     }
 
     void Event_ParametrsChangeByUser()

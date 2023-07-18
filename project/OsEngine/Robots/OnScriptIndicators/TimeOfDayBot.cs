@@ -27,6 +27,10 @@ namespace OsEngine.Robots.OnScriptIndicators
 
             _tab.NewTickEvent += TabOnNewTickEvent;
             _tab.PositionOpeningSuccesEvent += TabOnPositionOpeningSuccesEvent;
+
+            Description = "TimeOfDayBot. " +
+                "We choose which position we want to open Sell and Buy and set the entry time. " +
+                "Exit: by stop and profit %.";
         }
 
         /// <summary>

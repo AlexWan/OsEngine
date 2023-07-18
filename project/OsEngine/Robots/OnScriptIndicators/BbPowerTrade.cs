@@ -36,6 +36,10 @@ public class BbPowerTrade : BotPanel
 
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+        Description = "Trend strategy based on two indicators BullsPower and BearsPower" +
+            "Bulls + Bears is less than negative Step - close the position and enter Short. " +
+            "Bulls + Bears more than Step - close the position and enter Long.";
     }
 
     void Event_ParametrsChangeByUser()

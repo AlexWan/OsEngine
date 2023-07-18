@@ -45,6 +45,11 @@ namespace OsEngine.Robots.PairArbitrage
 
             MinCorrelationToExit = CreateParameter("Min Correlation To Exit", 0.8m, 0.1m, 1, 0.1m);
 
+            Description = "Bot - trading pairs in the trend " +
+                "If the correlation is below -0.8 and we are on some side of the cointegration -" +
+                " enter counting on a further spread. " +
+                "Exit - when correlation rises above 0.8";
+
         }
 
         BotTabPair _pairTrader;
