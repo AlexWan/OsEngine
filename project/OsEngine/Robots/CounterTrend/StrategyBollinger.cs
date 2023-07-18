@@ -12,7 +12,15 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-
+/* Description
+The Countertrend robot
+Buy:
+1. Price below BollingerDownLine.
+Sell:
+1. The price is more than BollingerUpLine.
+Exit:
+1. At the intersection of Sma with the price
+*/
 namespace OsEngine.Robots.CounterTrend
 {
 
@@ -40,6 +48,14 @@ namespace OsEngine.Robots.CounterTrend
             DeleteEvent += Strategy_DeleteEvent;
 
             Load();
+
+            Description = "The Countertrend robot " +
+                "Buy: " +
+                "1. Price below BollingerDownLine. " +
+                "Sell: " +
+                "1. The price is more than BollingerUpLine. " +
+                "Exit: " +
+                "1. At the intersection of Sma with the price";
         }
 
         /// <summary>

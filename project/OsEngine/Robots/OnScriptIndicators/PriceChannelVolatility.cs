@@ -48,6 +48,10 @@ public class PriceChannelVolatility : BotPanel
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+        Description = "Breakthrough of the channel built by PriceChannel + -ATR * coefficient," +
+            " additional input when the price leaves below the channel line by ATR * coefficient." +
+            " Trailing stop on the bottom line of the PriceChannel channel";
     }
 
     void Event_ParametrsChangeByUser()

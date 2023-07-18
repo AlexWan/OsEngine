@@ -57,6 +57,10 @@ public class RsiTrade : BotPanel
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
         DeleteEvent += Strategy_DeleteEvent;
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+        Description = "RSI's concurrent overbought and oversold strategy " +
+        "Logic: if RsiSecond <= DownLine - close position and open Long. " +
+        "Logic: if RsiSecond >= UpLine - close position and open Short.";
     }
 
     void Event_ParametrsChangeByUser()

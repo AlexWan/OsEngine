@@ -35,6 +35,8 @@ namespace OsEngine.Robots.AutoTestBots
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
+
+            Description = "Do not enable - robot for testing the opening and closing of orders";
         }
 
         BotTabSimple _tab;

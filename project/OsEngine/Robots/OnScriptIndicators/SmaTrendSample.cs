@@ -39,6 +39,11 @@ namespace OsEngine.Robots.OnScriptIndicators
             ParametrsChangeByUser += SmaTrendSample_ParametrsChangeByUser;
 
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            Description = "Trend robot SmaTrendSample " +
+                "Buy: lastCandlePrice > smaValue and lastCandlePrice > upChannel." +
+                "Sell: lastCandlePrice < smaValue and lastCandlePrice < downChannel." +
+                "Exit: By TralingStop";
         }
 
         private void SmaTrendSample_ParametrsChangeByUser()

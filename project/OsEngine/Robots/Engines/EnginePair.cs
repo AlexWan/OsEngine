@@ -18,6 +18,8 @@ namespace OsEngine.Robots.Engines
             : base(name, startProgram)
         {
             TabCreate(BotTabType.Pair);
+
+            Description = "blank strategy for manual trading";
         }
 
         /// <summary>

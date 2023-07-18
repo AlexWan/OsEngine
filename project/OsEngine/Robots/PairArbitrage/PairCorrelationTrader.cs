@@ -37,6 +37,11 @@ namespace OsEngine.Robots.PairArbitrage
 
             MaxPositionsCount = CreateParameter("max poses count", 5, 5, 5, 5);
 
+            Description = "if the correlation is higher than 0.9 and we are " +
+                "on some side of the cointegration - enter," +
+                " counting on the pair convergence " +
+                "Exit by the inverse cointegration signal";
+
         }
 
         BotTabPair _pairTrader;

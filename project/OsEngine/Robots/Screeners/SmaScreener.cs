@@ -31,6 +31,9 @@ namespace OsEngine.Robots.Screeners
             TrailStop = CreateParameter("Trail Stop", 0.7m, 0.5m, 5, 0.1m);
             CandlesLookBack = CreateParameter("Candles Look Back count", 10, 5, 100, 1);
 
+            Description = "If there is a position, exit by trailing stop. " +
+                "If there is no position. Open long if the last N candles " +
+                "we were above the moving average";
         }
 
         public override string GetNameStrategyType()

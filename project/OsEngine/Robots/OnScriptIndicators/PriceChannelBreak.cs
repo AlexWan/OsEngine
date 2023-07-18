@@ -38,6 +38,10 @@ public class PriceChannelBreak : BotPanel
         _tab.PositionOpeningSuccesEvent += Strateg_PositionOpen;
 
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+        Description = "When the candle is closed outside the PriceChannel channel," +
+            " we enter the position, the stop loss is at the extremum of the last candle from the entry candle," +
+            " take profit by the channel size from the close of the candle at which the entry occurred";
     }
 
     void Event_ParametrsChangeByUser()

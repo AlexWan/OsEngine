@@ -36,6 +36,8 @@ namespace OsEngine.Robots.TechSapmles
             StopOrActivateIndicators();
 
             ParametrsChangeByUser += BlockIndicatorsSample_ParametrsChangeByUser;
+
+            Description = "Example showing the blocking of indicators for calculation";
         }
 
         private void BlockIndicatorsSample_ParametrsChangeByUser()

@@ -33,6 +33,8 @@ namespace OsEngine.Robots.AutoTestBots
             Thread thread = new Thread(UpdatingConnectStatus);
             thread.IsBackground = true;
             thread.Start();
+
+            Description = "Do not turn on - robot for connection testing";
         }
 
 

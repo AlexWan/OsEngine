@@ -21,6 +21,8 @@ namespace OsEngine.Robots.Engines
         {
             //создание вкладки
             TabCreate(BotTabType.Simple);
+
+            Description = "blank strategy for manual trading";
         }
 
         /// <summary>

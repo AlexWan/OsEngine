@@ -13,7 +13,15 @@ using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
-
+/* Description
+Counter Trend Strategy Based on Willams% R Indicator
+Buy:
+1. Williams Range is smaller than DownLine.
+sell:
+1. Williams Range is larger than UpLine.
+exit:
+1. On the return signal
+*/
 namespace OsEngine.Robots.CounterTrend
 {
     /// <summary>
@@ -63,6 +71,14 @@ namespace OsEngine.Robots.CounterTrend
             Downline.TimeEnd = DateTime.Now;
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = "Counter Trend Strategy Based on Willams% R Indicator " +
+                "Buy: " +
+                "1. Williams Range is smaller than DownLine. " +
+                "sell: " +
+                "1. Williams Range is larger than UpLine. " +
+                "exit: " +
+                "1. On the return signal";
         }
 
         /// <summary>

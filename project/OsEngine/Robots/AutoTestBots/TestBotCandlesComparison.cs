@@ -37,6 +37,9 @@ namespace OsEngine.Robots.AutoTestBots
 
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
+
+            Description = "Do not turn on - a robot for testing the synchronism of " +
+                "candles created inside OsEngine and requested from the exchange";
         }
 
         BotTabSimple _tab;

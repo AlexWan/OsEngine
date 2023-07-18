@@ -45,6 +45,11 @@ namespace OsEngine.Robots.OnScriptIndicators
             _tab = TabsSimple[0];
 
             _tab.CandleUpdateEvent += _tab_CandleUpdateEvent;
+
+            Description = "Logic of the first Buy: " +
+                "if there are N candles falling down, we place the first order according to the close of the last candle. " +
+                "Next: buy if the price is greater than entryUpPrice or less than entryDownPrice. " +
+                "Exit: by stop";
         }
 
         BotTabSimple _tab;

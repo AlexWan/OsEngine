@@ -29,6 +29,11 @@ public class RviTrade : BotPanel
 
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
         ParametrsChangeByUser += RviTrade_ParametrsChangeByUser;
+
+        Description = "Trend strategy at the intersection of the indicator RVI" +
+            "Buy: lastRviDown < 0 and lastRviUp > lastRviDown. " +
+            "Sell: lastRviDown > 0 and lastRviUp < lastRviDown. " +
+            "Exit: By return signal";
     }
 
     void RviTrade_ParametrsChangeByUser()

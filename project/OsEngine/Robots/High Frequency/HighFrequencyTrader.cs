@@ -42,6 +42,7 @@ namespace OsEngine.Robots.High_Frequency
             Task task = new Task(ClosePositionThreadArea);
             task.Start();
 
+            Description = "robot analyzing the density of the market depth";
         }
 
         /// <summary>

@@ -14,6 +14,8 @@ namespace OsEngine.Robots.Engines
         public ScreenerEngine(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
+
+            Description = "blank strategy for manual trading";
         }
 
         public override string GetNameStrategyType()

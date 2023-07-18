@@ -14,7 +14,17 @@ using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
-
+/* Description
+Overbought / Oversold RSI Contrand Strategy with Trend Filtering via MovingAverage
+Buy:
+1. Sma more price.
+2. Rsi is higher than UpLine.
+Sale:
+1. Sma less price.
+2. Rsi is less than DownLine.
+Exit:
+By return signal
+*/
 namespace OsEngine.Robots.CounterTrend
 {
     /// <summary>

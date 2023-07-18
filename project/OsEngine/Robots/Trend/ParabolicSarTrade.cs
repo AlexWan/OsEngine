@@ -38,6 +38,10 @@ namespace OsEngine.Robots.Trend
             Load();
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = "Trend strategy at the intersection of the ParabolicSar indicator. " +
+                "if Price < lastSar - close position and open Short. " +
+                "if Price > lastSar - close position and open Long.";
         }
 
         /// <summary>

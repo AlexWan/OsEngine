@@ -39,6 +39,10 @@ namespace OsEngine.Robots.Patterns
             Load();
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = "Trading robot Three Soldiers. " +
+                "When forming a pattern of three growing / falling candles, " +
+                "the entrance to the countertrend with a fixation on a profit or a stop";
         }
 
         /// <summary>
