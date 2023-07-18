@@ -506,7 +506,6 @@ namespace OsEngine.Robots.Patterns
 
         void CreateGridPatternsGrid(DataGridView grid, WindowsFormsHost host)
         {
-
             grid.AllowUserToOrderColumns = true;
             grid.AllowUserToResizeRows = true;
             grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
@@ -537,21 +536,21 @@ namespace OsEngine.Robots.Patterns
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Тип";
+            column1.HeaderText = OsLocalization.Trader.Label167;
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column1);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = @"Вес";
+            column2.HeaderText = OsLocalization.Trader.Label307;
             column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column2);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
-            column4.HeaderText = @"Узнаваемость";
+            column4.HeaderText = OsLocalization.Trader.Label308;
             column4.ReadOnly = false;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column4);

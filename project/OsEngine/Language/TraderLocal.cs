@@ -1132,5 +1132,13 @@ namespace OsEngine.Language
         public string Label305 => OsLocalization.ConvertToLocString(
          "Eng:Updating the robots involves building and testing them one by one. This will take some time_" +
          "Ru:Обновление роботов предполагает их поочерёдное создание и проверку. Это займёт некоторое время_");
+
+        public string Label307 => OsLocalization.ConvertToLocString(
+         "Eng:Weight_" +
+         "Ru:Вес_");
+
+        public string Label308 => OsLocalization.ConvertToLocString(
+         "Eng:Recognizability_" +
+         "Ru:Узнаваемость_");
     }
 }
