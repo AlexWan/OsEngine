@@ -83,8 +83,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Descriptoin = "trading robot for osengine " +
-                "The trend robot on strategy break Accumulation/Distribution. " +
+            Descriptoin = "The trend robot on strategy break Accumulation/Distribution. " +
                 "Buy: The value of the A/D indicator broke through the maximum for a certain number of candles and closed higher. " +
                 "Sell: The value of the A/D indicator broke the low for a certain number of candles and closed lower. " +
                 "Exiting a long position: Trailing stop is placed at the minimum for the period specified for the trailing " +

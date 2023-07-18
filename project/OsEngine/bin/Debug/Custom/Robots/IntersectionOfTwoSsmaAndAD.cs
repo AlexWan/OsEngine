@@ -101,8 +101,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "trading robot for osengine " +
-                "The trend robot on strategy for two Ssma and Accumulation Distribution. " +
+            Description = "The trend robot on strategy for two Ssma and Accumulation Distribution. " +
                 "Buy: fast Ssma above slow Ssma and AD rising. " +
                 "Sell: fast Ssma below slow Ssma and AD falling. " +
                 "Exit: " +

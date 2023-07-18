@@ -71,8 +71,7 @@ namespace OsEngine.Robots.MyRobots
             // subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trading robot for osengine. " +
-                "Trend robot on the Ssma indicator. " +
+            Description = "Trend robot on the Ssma indicator. " +
                 "Buy: the price of the instrument is higher than the Ssma. " +
                 "Sale: the price of the instrument is below the Ssma. " +
                 "Exit: on the opposite signal.";

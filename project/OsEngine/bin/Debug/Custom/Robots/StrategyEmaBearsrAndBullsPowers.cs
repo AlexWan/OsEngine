@@ -102,8 +102,7 @@ namespace OsEngine.Robots.myRobots
 
             TrailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, "Exit settings");
 
-            Description = "Trading robot for osengine. " +
-                "Trend strategy on Bears Power, Bulls Power and Ema. " +
+            Description = "Trend strategy on Bears Power, Bulls Power and Ema. " +
                 "Buy: " +
                 "1. The price crosses the Ema from bottom to top. " +
                 "2. Bears Power columns should be below 0, but constantly growing. " +

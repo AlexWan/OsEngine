@@ -122,8 +122,7 @@ namespace OsEngine.Robots.MyRobots
             CoefProfit = CreateParameter("Coef Profit", 1, 1m, 10, 1, "Exit settings");
             StopCandles = CreateParameter("Stop Candles", 1, 2, 10, 1, "Exit settings");
 
-            Description = "Trading robot for osengine " +
-                "Trend robot at the stratege  with two Ssma channels. " +
+            Description = "Trend robot at the stratege  with two Ssma channels. " +
                 "Buy: " +
                 "1. The price is above the slow channel (above the upper line) and above the fast (upper line); " +
                 "2. The bottom line of the fast channel is higher than the top line of the slow channel. " +

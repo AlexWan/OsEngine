@@ -97,8 +97,7 @@ namespace OsEngine.Robots.MyRobots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trading robot for osengine. " +
-                "Trend robot at the intersection of three exponential averages. " +
+            Description = "Trend robot at the intersection of three exponential averages. " +
                 "Buy: Fast Ema is higher than slow Ema. " +
                 "Sale: Fast Ema is lower than slow Ema. " +
                 "Exit from the buy: trailing stop in % of the loy of the candle on which you entered. " +

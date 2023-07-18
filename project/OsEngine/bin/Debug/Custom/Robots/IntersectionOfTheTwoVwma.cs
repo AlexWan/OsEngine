@@ -83,8 +83,7 @@ namespace OsEngine.Robots.Vwma
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "trading robot for osengine " +
-                "The trend robot on intersection of two VWMA " +
+            Description = "The trend robot on intersection of two VWMA " +
                 "Buy: Fast Sma is higher than slow Vwma " +
                 "Sell: Fast Sma below slow Vwma " +
                 "Exit: on the opposite signal";

@@ -142,8 +142,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "trading robot for osengine " +
-                "The trend robot on strategy ADX, Stochastic and three Ema. " +
+            Description = "The trend robot on strategy ADX, Stochastic and three Ema. " +
                 "Buy: " +
                 "1. fast Ema is higher than the average Ema and the average is higher than the slow one. " +
                 "2. Stochastic crosses the level 50 and is growing (from bottom to top). " +

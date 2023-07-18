@@ -117,8 +117,7 @@ namespace OsEngine.Robots.Aligator
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "trading robot for osengine " +
-                "Trend robot on Awesome Oscillator and Stochastic Oscillator " +
+            Description = "Trend robot on Awesome Oscillator and Stochastic Oscillator " +
                 "Buy: " +
                 "1. Stochastic above 50 but below 80. " +
                 "2. Column Awesome previous above preprevious. " +

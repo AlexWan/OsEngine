@@ -98,8 +98,7 @@ namespace OsEngine.Robots.ZZAO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "trading robot for osengine " +
-                "The trend robot on Divergence " +
+            Description = "The trend robot on Divergence " +
                 "Buy: " +
                 "1. The lows of the Awesome histogram are gradually increasing. " +
                 "2. The lows of the chart, on the contrary, gradually decrease. " +
