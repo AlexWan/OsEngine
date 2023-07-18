@@ -1,6 +1,6 @@
 ﻿/*
- * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
- * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+* Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+* Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -45,8 +45,8 @@ namespace OsEngine.Robots.Patterns
             _chartSingleClosePattern = new WinFormsChartPainter("CloseSinglePattern", bot.StartProgram);
             _chartSingleClosePattern.IsPatternChart = true;
 
-            _chartSingleOpenPattern.StartPaintPrimeChart(null,HostSinglePatternToOpen, new Rectangle());
-            _chartSingleClosePattern.StartPaintPrimeChart(null,HostSinglePatternToClose, new Rectangle());
+            _chartSingleOpenPattern.StartPaintPrimeChart(null, HostSinglePatternToOpen, new Rectangle());
+            _chartSingleClosePattern.StartPaintPrimeChart(null, HostSinglePatternToClose, new Rectangle());
 
             InitializePrimeSettings();
             InitializePattarnsToOpenTab();
@@ -87,7 +87,7 @@ namespace OsEngine.Robots.Patterns
 
         private PatternTrader _bot;
 
-// pattern selection and basic settings выбор паттерна и базовые настройки
+        // pattern selection and basic settings выбор паттерна и базовые настройки
 
         private void InitializePrimeSettings()
         {
@@ -98,11 +98,11 @@ namespace OsEngine.Robots.Patterns
 
             List<string> setsNames = _bot.GetListSetsName();
 
-            for (int i = 0;setsNames != null && i < setsNames.Count; i++)
+            for (int i = 0; setsNames != null && i < setsNames.Count; i++)
             {
                 ComboBoxSets.Items.Add(setsNames[i]);
             }
-           
+
             ComboBoxSets.SelectionChanged += ComboBoxSets_SelectionChanged;
             ComboBoxSets.SelectedItem = _bot.NameSetToTrade;
 
@@ -193,7 +193,7 @@ namespace OsEngine.Robots.Patterns
             ComboBoxPatternsGroups.SelectedItem = _bot.NameGroupPatternsToTrade;
         }
 
-// work with the first tab работа с первой вкладкой
+        // work with the first tab работа с первой вкладкой
 
         private void InitializePattarnsToOpenTab()
         {
@@ -247,7 +247,7 @@ namespace OsEngine.Robots.Patterns
             _bot.Save();
         }
 
-//work with the second tab  работа со второй вкладкой
+        //work with the second tab  работа со второй вкладкой
 
 
         void InitializeTabClosePosition()
@@ -368,7 +368,7 @@ namespace OsEngine.Robots.Patterns
             {
                 return;
             }
-            
+
             try
             {
                 _bot.WeigthToExit = TextBoxWeigthToExit.Text.ToDecimal();
@@ -488,7 +488,7 @@ namespace OsEngine.Robots.Patterns
             _bot.Save();
         }
 
-//WORK WITH GRID РАБОТА С ГРИДАМИ
+        //WORK WITH GRID РАБОТА С ГРИДАМИ
 
         private DataGridView _gridPatternsToOpen;
 
@@ -506,7 +506,6 @@ namespace OsEngine.Robots.Patterns
 
         void CreateGridPatternsGrid(DataGridView grid, WindowsFormsHost host)
         {
-
             grid.AllowUserToOrderColumns = true;
             grid.AllowUserToResizeRows = true;
             grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
@@ -537,21 +536,21 @@ namespace OsEngine.Robots.Patterns
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Тип";
+            column1.HeaderText = OsLocalization.Trader.Label167;
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column1);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = @"Вес";
+            column2.HeaderText = OsLocalization.Trader.Label307;
             column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column2);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
-            column4.HeaderText = @"Узнаваемость";
+            column4.HeaderText = OsLocalization.Trader.Label308;
             column4.ReadOnly = false;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             grid.Columns.Add(column4);
