@@ -92,8 +92,7 @@ namespace OsEngine.Robots.myRobots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Desctiption = "Trading robot for osengine. " +
-                "Trend strategy on Bears Power Divergence. " +
+            Desctiption = "Trend strategy on Bears Power Divergence. " +
                 "Buy: " +
                 "1. Bears Power columns must be below 0. " +
                 "2. The minimums on the chart are decreasing, but on the indicator they are growing. " +

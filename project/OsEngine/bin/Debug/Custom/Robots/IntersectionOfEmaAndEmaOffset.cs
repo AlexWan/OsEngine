@@ -93,8 +93,7 @@ namespace OsEngine.Robots.MyRobots
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
             TrailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, "Exit settings");
 
-            Description = "Trading robot for osengine. " +
-                "Trend robot at the Intersection of Ema and  Ema offset. " +
+            Description = "Trend robot at the Intersection of Ema and  Ema offset. " +
                 "Buy: Fast Ema is higher than slow Ema. " +
                 "Sale: Fast Ema is lower than slow Ema. " +
                 "Exit from the buy: trailing stop in % of the loy of the candle on which you entered. " +

@@ -73,8 +73,7 @@ namespace OsEngine.Robots.MyRobots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trading robot for osengine " +
-                "Trend robot on the EMA indicator " +
+            Description = "Trend robot on the EMA indicator " +
                 "Buy: the price of the instrument is higher than the Ema. " +
                 "Sale: the price of the instrument is below the Ema. " +
                 "Exit: on the opposite signal.";

@@ -81,8 +81,7 @@ namespace OsEngine.Robots.SMA
             StopValue = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
             ProfitValue = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
 
-            Description = "trading robot for osengine " +
-                "The trend robot on intersection SMA with price " +
+            Description = "The trend robot on intersection SMA with price " +
                 "Buy: the price of the instrument is above Sma " +
                 "Sale: the price of the instrument is below Sma " +
                 "Exit: stop and profit in % of the entry price";

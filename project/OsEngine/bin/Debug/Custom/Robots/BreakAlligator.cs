@@ -79,8 +79,7 @@ namespace OsEngine.Robots.Aligator
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "trading robot for osengine " +
-                "The trend robot on intersection of the Alligator indicator with the price. " +
+            Description = "The trend robot on intersection of the Alligator indicator with the price. " +
                 "The price is above the fast (lips) line, the fast is above the average line (teeth), the average is above the slow (jaw) - enter into a long position. " +
                 "The price is below the fast (lips) line, the fast is below the average line (teeth), the average is below the slow (jaw) - enter short position " +
                 "Exit the position the price crosses the middle line.";

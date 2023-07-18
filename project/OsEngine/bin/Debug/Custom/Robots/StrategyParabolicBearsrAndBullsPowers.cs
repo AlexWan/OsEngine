@@ -101,8 +101,7 @@ namespace OsEngine.Robots.myRobots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trading robot for osengine. " +
-                "Trend strategy on Bears Power, Bulls Power and Parabolic SAR. " +
+            Description = "Trend strategy on Bears Power, Bulls Power and Parabolic SAR. " +
                 "Buy: " +
                 "1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up. " +
                 "2. Bears Power columns must be higher than 0. " +

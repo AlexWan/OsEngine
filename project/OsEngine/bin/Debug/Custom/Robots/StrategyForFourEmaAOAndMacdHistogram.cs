@@ -156,8 +156,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "trading robot for osengine " +
-                "The trend robot on strategy for 4 Ema, Awesome Oscillator and Macd Histogram. " +
+            Description = "The trend robot on strategy for 4 Ema, Awesome Oscillator and Macd Histogram. " +
                 "Buy: " +
                 " 1. EmaFastLoc above EmaSlowLoc; " +
                 " 2. EmaFastGlob above EmaSlowGlob; " +

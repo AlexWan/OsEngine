@@ -100,8 +100,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "trading robot for osengine " +
-                "The trend robot on strategy Ema with ADX. " +
+            Description = "The trend robot on strategy Ema with ADX. " +
                 "Buy: " +
                 "The previous candle was above Ema, the last candle was lower or equal to Ema,  " +
                 "and Adx must be above 25. We set a litka for purchase at the price of the high of this candle. " +
