@@ -47,6 +47,16 @@ public class StrategyLevermor : BotPanel
         DeleteEvent += Strategy_DeleteEvent;
 
         ParametrsChangeByUser += StrategyLevermor_ParametrsChangeByUser;
+
+        Description = "Buy: " +
+            "1) Close exits PriceChannel up and Close is above the moving average. " +
+            "2) We buy more every N percent in the direction of travel. (Pyramid). " +
+            "Sale: " +
+            "1) Close exits PriceChannel down and Close is below the moving average. " +
+            "2) We buy more every N percent in the direction of travel. " +
+            "Closure: " +
+            "1) Fixed Stop Loss. " +
+            "2) Crossing the moving average";
     }
 
     void StrategyLevermor_ParametrsChangeByUser()
