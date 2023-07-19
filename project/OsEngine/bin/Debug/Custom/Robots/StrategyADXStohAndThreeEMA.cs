@@ -94,12 +94,12 @@ namespace OsEngine.Robots.AO
 
             // Indicator setting
             PeriodEmaFast = CreateParameter("Period Ema Fast", 10, 10, 100, 10, "Indicator");
-            PeriodEmaMiddle = CreateParameter("Period Ema Middle", 10, 10, 300, 10, "Indicator");
-            PeriodEmaSlow = CreateParameter("Period Ema Slow", 10, 10, 100, 10, "Indicator");
+            PeriodEmaMiddle = CreateParameter("Period Ema Middle", 20, 10, 300, 10, "Indicator");
+            PeriodEmaSlow = CreateParameter("Period Ema Slow", 30, 10, 100, 10, "Indicator");
             PeriodADX = CreateParameter("Period ADX", 10, 10, 300, 10, "Indicator");
             StochasticPeriod1 = CreateParameter("StochasticPeriod One", 10, 10, 300, 10, "Indicator");
-            StochasticPeriod2 = CreateParameter("StochasticPeriod Two", 10, 10, 300, 10, "Indicator");
-            StochasticPeriod3 = CreateParameter("StochasticPeriod Three", 10, 10, 300, 10, "Indicator");
+            StochasticPeriod2 = CreateParameter("StochasticPeriod Two", 3, 10, 300, 10, "Indicator");
+            StochasticPeriod3 = CreateParameter("StochasticPeriod Three", 3, 10, 300, 10, "Indicator");
 
             // Create indicator EmaFast
             _EmaFast = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EmaFast", false);

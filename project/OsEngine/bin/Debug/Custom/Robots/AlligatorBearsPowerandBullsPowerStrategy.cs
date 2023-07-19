@@ -76,9 +76,9 @@ namespace OsEngine.Robots.Aligator
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            AlligatorFastLineLength = CreateParameter("Period Simple Moving Average Fast", 20, 10, 300, 10, "Indicator");
+            AlligatorFastLineLength = CreateParameter("Period Simple Moving Average Fast", 10, 10, 300, 10, "Indicator");
             AlligatorMiddleLineLength = CreateParameter("Period Simple Moving Middle", 20, 10, 300, 10, "Indicator");
-            AlligatorSlowLineLength = CreateParameter("Period Simple Moving Slow", 20, 10, 300, 10, "Indicator");
+            AlligatorSlowLineLength = CreateParameter("Period Simple Moving Slow", 30, 10, 300, 10, "Indicator");
             BearsPeriod = CreateParameter("Bears Period", 20, 10, 300, 10, "Indicator");
             BullsPeriod = CreateParameter("Bulls Period", 20, 10, 300, 10, "Indicator");
 
