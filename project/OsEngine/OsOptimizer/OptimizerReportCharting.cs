@@ -364,6 +364,7 @@ namespace OsEngine.OsOptimizer
                     }
 
                     DataGridViewRow row = new DataGridViewRow();
+                    row.Height = 30;
                     row.Cells.Add(new DataGridViewTextBoxCell());
                     row.Cells[0].Value = curReport.Faze.TypeFaze.ToString();
 
