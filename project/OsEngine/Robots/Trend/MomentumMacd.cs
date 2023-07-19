@@ -45,8 +45,8 @@ namespace OsEngine.Robots.Trend
             DeleteEvent += Strategy_DeleteEvent;
 
             Description = "Trend strategy based on 2 indicators Momentum and Macd. " +
-                "if lastMacdUp < lastMacdDown && lastMom < 100 - close position and open Short. " +
-                "if lastMacdUp > lastMacdDown && lastMom > 100 - close position and open Long.";
+                "if lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short. " +
+                "if lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.";
         }
 
         /// <summary>

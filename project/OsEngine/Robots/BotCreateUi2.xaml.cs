@@ -306,6 +306,52 @@ namespace OsEngine.Robots
         {
             List<BotDescription> descriptions = GetBotDescriptions();
 
+            for(int i = 0;i < _botsFromScript.Count;i++)
+            {
+                bool isInArray = false;
+
+                for(int i2 = 0;i2 < descriptions.Count;i2++)
+                {
+                    if (descriptions[i2].ClassName == _botsFromScript[i])
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                    
+                }
+
+                if(isInArray == false)
+                {
+                    BotDescription newDesk = new BotDescription();
+                    newDesk.ClassName = _botsFromScript[i];
+                    newDesk.Description = "Script";
+                    descriptions.Insert(0, newDesk);
+                }
+            }
+
+            for (int i = 0; i < _botsIncluded.Count; i++)
+            {
+                bool isInArray = false;
+
+                for (int i2 = 0; i2 < descriptions.Count; i2++)
+                {
+                    if (descriptions[i2].ClassName == _botsIncluded[i])
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    BotDescription newDesk = new BotDescription();
+                    newDesk.ClassName = _botsIncluded[i];
+                    newDesk.Description = "Include";
+                    descriptions.Insert(0, newDesk);
+                }
+            }
+
+
             _grid.Rows.Clear();
 
             string lockation = ComboBoxLockation.SelectedItem.ToString();

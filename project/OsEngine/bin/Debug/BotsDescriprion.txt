@@ -1,59 +1,63 @@
-BbPowerTrade&&Include&&Simple 1*&BearsPower*BullsPower*&
-BollingerRevers&&Include&&Simple 1*&Bollinger*&
-BollingerTrailing&&Include&&Simple 1*&Bollinger*&
-BlockIndicatorsSample&&Include&&Simple 1*&Bollinger*Sma*PriceChannel*&
-Bollinger&&Include&&Simple 1*&Bollinger*MovingAverage*&
-ClusterEngine&&Include&&Cluster 1*&&
-ClusterCountertrend&&Include&&Simple 1*Cluster 1*&&
-CciTrade&&Include&&Simple 1*&CCI*&
+BbPowerTrade&Trend strategy based on two indicators BullsPower and BearsPowerBulls + Bears is less than negative Step - close the position and enter Short. Bulls + Bears more than Step - close the position and enter Long.&Include&&Simple 1*&BearsPower*BullsPower*&
+BollingerRevers&Trend Strategy Based on Breaking Bollinger Lines Buy: 1. The price is more than BollingerUpLine. Sell: 1. Price below BollingerDownLine.Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*&
+BollingerTrailing&Bollinger Bands trading bargaining robot with pull-up Trailing-Stop through Bollinger Bands Buy: 1. The price is more than BollingerUpLine. Sell: 1. Price below BollingerDownLine.Exit: 1. Trailing-Stop through Bollinger Bands&Include&&Simple 1*&Bollinger*&
+BlockIndicatorsSample&Example showing the blocking of indicators for calculation&Include&&Simple 1*&Bollinger*Sma*PriceChannel*&
+Bollinger&The Countertrend robot Buy: 1. Price below BollingerDownLine. Sell: 1. The price is more than BollingerUpLine. Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*MovingAverage*&
+ClusterEngine&blank strategy for manual trading&Include&&Cluster 1*&&
+ClusterCountertrend&The Countertrend robot Buy: we buy if we are under the largest volume for sale in the last 10 candles. Sell: sell if we are above the largest purchase volume for the last 10 candles. Exit logic: By return signal.&Include&&Simple 1*Cluster 1*&&
+CciTrade&Counter Trend Strategy Based on CCI Indicator. Max - 3 poses Buy: 1. CCI is less than DownLine. Sell: 1. CCI more UpLine. Exit: on the return signal.&Include&&Simple 1*&CCI*&
 CustomParamsUseBotSample&&Include&&Simple 1*&Sma*Sma*ATR*&
-Engine&&Include&&Simple 1*&&
+Engine&blank strategy for manual trading&Include&&Simple 1*&&
 EnvelopTrend&&Include&&Simple 1*&Envelops*&
 ElementsOnChartSampleBot&&Include&&Simple 1*&MACD*&
-EnginePair&&Include&&Pair 1*&&
-Fisher&&Include&&Simple 1*&Sma*&
-FundBalanceDivergenceBot&&Include&&Simple 1*&FBD*&
-GridSample&&Include&&Simple 1*&&
-HighFrequencyTrader&&Include&&Simple 1*&&
-MomentumMACD&&Include&&Simple 1*&MacdLine*Momentum*&
+EnginePair&blank strategy for manual trading&Include&&Pair 1*&&
+Fisher&Fisher based on multithreading Entering a position - we are waiting for a sharp price deviation  by the specified number of percent from the edge of the order book. Exit a position when the price rolls back by 50 percent or more of the entry price. Those. if the price has returned half or more of the original movement.&Include&&Simple 1*&Sma*&
+FundBalanceDivergenceBot&The countertrend bots Buy: 1. FBD more Indicator Divergence. Sell: 1. FBD is less than negative Indicator Divergence. Exit: after N number of days.&Include&&Simple 1*&FBD*&
+GridSample&Logic of the first Buy: if there are N candles falling down, we place the first order according to the close of the last candle. Next: buy if the price is greater than entryUpPrice or less than entryDownPrice. Exit: by stop&Include&&Simple 1*&&
+HighFrequencyTrader&robot analyzing the density of the market depth&Include&&Simple 1*&&
+MomentumMACD&Trend strategy based on 2 indicators Momentum and Macd. if lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short. if lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.&Include&&Simple 1*&MacdLine*Momentum*&
 MarketMakerBot&&Include&&Simple 1*&&
-MacdRevers&&Include&&Simple 1*&MACD*&
-MacdTrail&&Include&&Simple 1*&MacdLine*&
-OneLegArbitrage&&Include&&Simple 1*Index 1*&Sma*&
-PairTraderSimple&&Include&&Simple 2*&&
-PatternTrader&&Include&&Simple 1*&&
-PriceChannelTrade&&Include&&Simple 1*&PriceChannel*&
-PairTraderSpreadSma&&Include&&Simple 2*Index 1*&MovingAverage*MovingAverage*&
-ParabolicSarTrade&&Include&&Simple 1*&ParabolicSaR*&
+MacdRevers&Trend strategy at the intersection of the MACD indicator Logic of the first Enter: lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell Next: lastMacdDown > 0 and lastMacdUp < lastMacdDown close position and open Short. lastMacdDown < 0 and lastMacdUp > lastMacdDown close position and open Long.&Include&&Simple 1*&MACD*&
+MacdTrail&Trend strategy based on the Macd indicator and trail stop Logic Enter: lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell Exit: By TralingStop&Include&&Simple 1*&MacdLine*&
+OneLegArbitrage&Trading robot on the index. The intersection of MA on the index from the bottom up long, with the reverse intersection of shorts&Include&&Simple 1*Index 1*&Sma*&
+PairTraderSimple&robot for pair trading. trading two papers based on their acceleration to each other by candle&Include&&Simple 2*&&
+PatternTrader&Pattern trading robot&Include&&Simple 1*&&
+PriceChannelTrade&Trend strategy on interseption PriceChannel indicator. if PriceLow < _lastPriceChDown - close position and open Short. if PriceHigh > _lastPriceChUp - close position and open Long.&Include&&Simple 1*&PriceChannel*&
+PairTraderSpreadSma&pair trading robot building spread and trading based on the intersection of MA on the spread chart SmaLong crossed SmaShort from top to bottom - the first tab sells, the second one buys. SmaLong crossed SmaShort from the bottom up - the first one is buying, the second one is selling. Exit: on the opposite signal&Include&&Simple 2*Index 1*&MovingAverage*MovingAverage*&
+ParabolicSarTrade&Trend strategy at the intersection of the ParabolicSar indicator. if Price < lastSar - close position and open Short. if Price > lastSar - close position and open Long.&Include&&Simple 1*&ParabolicSaR*&
 PivotPointsRobot&&Include&&Simple 1*&PivotPoints*&
 PinBarTrade&&Include&&Simple 1*&MovingAverage*&
-PairRsiTrade&&Include&&Simple 2*&RSI*RSI*&
-PriceChannelBreak&&Include&&Simple 1*&PriceChannel*&
-PriceChannelVolatility&&Include&&Simple 1*&PriceChannel*ATR*&
-PairCointegrationSideTrader&&Include&&Pair 1*&&
-PairCorrelationNegative&&Include&&Pair 1*&&
-PairCorrelationTrader&&Include&&Pair 1*&&
+PairRsiTrade&Pair trading based on the RSI indicator Logic: if RsiOne > RsiTwo + RsiSpread - then we are Sell on the first instrument and Buy on the second one. Logic: if RsiTwo > RsiOne + RsiSpread - then we are Buy on the first instrument and Sell on the second one. Exit: on the return signal.&Include&&Simple 2*&RSI*RSI*&
+PriceChannelBreak&When the candle is closed outside the PriceChannel channel, we enter the position, the stop loss is at the extremum of the last candle from the entry candle, take profit by the channel size from the close of the candle at which the entry occurred&Include&&Simple 1*&PriceChannel*&
+PriceChannelVolatility&Breakthrough of the channel built by PriceChannel + -ATR * coefficient, additional input when the price leaves below the channel line by ATR * coefficient. Trailing stop on the bottom line of the PriceChannel channel&Include&&Simple 1*&PriceChannel*ATR*&
+PairCointegrationSideTrader&The robot trades on a chart of deviations of one instrument from another, calculated through their difference with the multiplier. Two lines, calculated from the standard deviation multiplied by the multiplier, are superimposed on this graph (Cointegration). Above and below zero. When the current deviation is higher than the upper line on the deviation chart - we enter a position expecting the instruments to converge. We close the previous position. When the current deviation is below the bottom line on the Deviation chart - enter the position, counting on the instruments convergence. Closing the previous position.&Include&&Pair 1*&&
+PairCorrelationNegative&Bot - trading pairs in the trend If the correlation is below -0.8 and we are on some side of the cointegration - enter counting on a further spread. Exit - when correlation rises above 0.8&Include&&Pair 1*&&
+PairCorrelationTrader&if the correlation is higher than 0.9 and we are on some side of the cointegration - enter, counting on the pair convergence Exit by the inverse cointegration signal&Include&&Pair 1*&&
 RsiContrtrend&Robot based on RSI indicator and moving average, trading by counter-trend logic. Short entry - when RSI is above the signal line and SMA is above the current price&Include&&Simple 1*&MovingAverage*Rsi*&
-RsiTrade&&Include&&Simple 1*&RSI*&
-RviTrade&&Include&&Simple 1*&RVI*&
-SmaScreener&&Include&&Screener 1*&Sma*&
-ScreenerEngine&&Include&&Screener 1*&Sma*&
-SmaTrendSample&&Include&&Simple 1*&Sma*Envelops*&
+RsiTrade&RSI's concurrent overbought and oversold strategy Logic: if RsiSecond <= DownLine - close position and open Long. Logic: if RsiSecond >= UpLine - close position and open Short.&Include&&Simple 1*&RSI*&
+RviTrade&Trend strategy at the intersection of the indicator RVIBuy: lastRviDown < 0 and lastRviUp > lastRviDown. Sell: lastRviDown > 0 and lastRviUp < lastRviDown. Exit: By return signal&Include&&Simple 1*&RVI*&
+SmaScreener&If there is a position, exit by trailing stop. If there is no position. Open long if the last N candles we were above the moving average&Include&&Screener 1*&Sma*&
+ScreenerEngine&blank strategy for manual trading&Include&&Screener 1*&Sma*&
+SmaTrendSample&Trend robot SmaTrendSample Buy: lastCandlePrice > smaValue and lastCandlePrice > upChannel.Sell: lastCandlePrice < smaValue and lastCandlePrice < downChannel.Exit: By TralingStop&Include&&Simple 1*&Sma*Envelops*&
 SmaStochastic&&Include&&Simple 1*&MovingAverage*StochasticOscillator*&
-TwoLegArbitrage&&Include&&Simple 2*Index 1*&Rsi*&
-ThreeSoldier&&Include&&Simple 1*&&
-TimeOfDayBot&&Include&&Simple 1*&&
+TwoLegArbitrage&Pair trading based on index analysis. Buy: when the RSI indicator built on the index goes below the oversold level. Sell: when the RSI indicator built on the index goes above the oversold level. Exit: by reverse system.&Include&&Simple 2*Index 1*&Rsi*&
+ThreeSoldier&Trading robot Three Soldiers. When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop&Include&&Simple 1*&&
+TimeOfDayBot&TimeOfDayBot. We choose which position we want to open Sell and Buy and set the entry time. Exit: by stop and profit %.&Include&&Simple 1*&&
 TinkoffGetRealCandlesSample&&Include&&Simple 1*&&
 TestBotCandlesComparison&&Include&&&&
-TestBotConnection&&Include&&Screener 1*&Sma*&
+TestBotConnection&Do not turn on - robot for connection testing&Include&&Screener 1*&Sma*&
 TestBotOpenAndCanselOrders&&Include&&&&
-TestBotTradesInCandlesTest&&Include&&Screener 1*&Sma*&
+TestBotTradesInCandlesTest&Do not enable - a robot for testing the synchronism of the array of trades in the candle and the candles themselves&Include&&Screener 1*&Sma*&
 Williams Band&&Include&&Simple 1*&Alligator*Fractal*AwesomeOscillator*&
-WilliamsRangeTrade&&Include&&Simple 1*&WilliamsRange*&
+WilliamsRangeTrade&Counter Trend Strategy Based on Willams% R Indicator Buy: 1. Williams Range is smaller than DownLine. sell: 1. Williams Range is larger than UpLine. exit: 1. On the return signal&Include&&Simple 1*&WilliamsRange*&
 WServerTester&&Include&&&&
 ADDivergence&The trend robot on AD indicator divergence and price. Buy: at the price, the minimum for a certain period of time is below the previous minimum, and on the indicator, the minimum is higher than the previous one. Sale: on the price the maximum for a certain period of time is higher than the previous maximum, and on the indicator the maximum is lower than the previous one.Exit: after n number of candles.&Script&&Simple 1*&ZigZagAD*ZigZag*&
+ADXBreakPlusMinus&The trend robot on strategy ADX Break Plus Minus. Buy: 1. DM+ crossed DM- from bottom to top. 2. ADX is more than DM-. 3. ADX rising. Sell: 1. DM+ crossed DM- from top to bottom. 2. ADX is more than DM+. 3. ADX rising. Exit: by DM reverse intersection.&Script&&Simple 1*&ADX*&
 AlligatorBearsPowerandBullsPowerStrategy&The trend robot on intersection of the Alligator, Bears Power and Bulls Power Strategy 1. Fast line (lips) above the middle line (teeth), medium above the slow line (jaw) 2. Bears Power columns should be below 0, but constantly growing 3. Bulls Power columns should be above 0 and grow - enter into a long position 1. fast line (lips) below the midline (teeth), medium below the slow line (jaw) 2. Bulls Power columns should be above 0, but decrease 3. Bears Power columns should be below 0 and decrease - enter short position Exit from the purchase: the fast line is lower than the slow one Exit from sale: fast line above slow line&Script&&Simple 1*&Alligator*BullsPower*BearsPower*&
 AlligatorStrategyAndFractals&The trend robot on intersection of the Alligator indicator with Fractal. Fast line (lips) above the middle line (teeth), medium above the slow line (jaw) and the price is higher than the last ascending fractal - enter into a long position.Fast line (lips) below the midline (teeth), medium below the slow line (jaw) and the price is lower than the last descending fractal.- enter short position Exit from a long position: The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred, (slides), to new price lows, also for the specified period. Exit from the short position: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the  price, also for the specified period.&Script&&Simple 1*&Alligator*Fractal*&
+BearsPowerDivergence &Trend strategy on Bears Power Divergence. Buy: 1. Bears Power columns must be below 0. 2. The minimums on the chart are decreasing, but on the indicator they are growing. Sale: 1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. 2. Bulls Power columns must be below 0. 3. Bears Power columns must be below 0. Exit: The Bears Power indicator has become higher than 0.&Script&&Simple 1*&ZigZag*ZigZagBP*&
+BreakAD&The trend robot on strategy break Accumulation/Distribution. Buy: The value of the A/D indicator broke through the maximum for a certain number of candles and closed higher. Sell: The value of the A/D indicator broke the low for a certain number of candles and closed lower. Exiting a long position: Trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred (sliding) to new price lows, also for the specified period. Exit from a short position: Trailing stop is placed on the maximum for the period specified for the trailing stop and is transferred (sliding) to a new price maximum, also for the specified period.&Script&&Simple 1*&AccumulationDistribution*&
+BreakADXChannel&The trend robot on strategy break Channel Ema with ADX. Buy: the price is above EmaHigh and Adx is growing and not above the critical value. Sell: the price is below EmaLow and Adx is growing and not above the critical value. Exit: stop and profit in % of the entry price.&Script&&Simple 1*&Ema*Ema*ADX*&
 BreakAlligator&The trend robot on intersection of the Alligator indicator with the price. The price is above the fast (lips) line, the fast is above the average line (teeth), the average is above the slow (jaw) - enter into a long position. The price is below the fast (lips) line, the fast is below the average line (teeth), the average is below the slow (jaw) - enter short position Exit the position the price crosses the middle line.&Script&&Simple 1*&Alligator*&
 BreakEma&Trend robot on the EMA indicator Buy: the price of the instrument is higher than the Ema. Sale: the price of the instrument is below the Ema. Exit: on the opposite signal.&Script&&Simple 1*&Ema*&
 BreakSma&The trend robot on intersection SMA with price Buy: the price of the instrument is above Sma Sale: the price of the instrument is below Sma Exit: stop and profit in % of the entry price&Script&&Simple 1*&Sma*&
@@ -79,7 +83,8 @@ StrategyEmaADX&The trend robot on strategy Ema with ADX. Buy: The previous candl
 StrategyEmaBearsrAndBullsPowers&Trend strategy on Bears Power, Bulls Power and Ema. Buy: 1. The price crosses the Ema from bottom to top. 2. Bears Power columns should be below 0, but constantly growing. 3. Bulls Power columns should be above 0 and grow. Sale: 1. The price crosses the Ema from top to bottom. 2. Bulls Power columns should be above 0, but decrease. 3. Bears Power columns should be below 0 and decrease. Exit from the buy: trailing stop in % of the loy of the candle on which you entered. Exit from sale: trailing stop in % of the high of the candle on which you entered.&Script&&Simple 1*&Ema*BullsPower*BearsPower*&
 StrategyFiveSma&The trend robot on of five Sma Buy: All Smas are rising (when all five moving averages are larger than they were one bar ago) +  half of the difference between the high and low of the previous bar. Sell:All Smas fall (when all five moving averages are less than they were one bar ago) - half the difference between the high and low of the previous bar. Exit from the purchase: Sma1, Sma2 and Sma3 are falling. Exit from sale: Sma1, Sma2 and Sma3 are growing.&Script&&Simple 1*&Sma*Sma*Sma*Sma*Sma*&
 StrategyForFourEmaAOAndMacdHistogram&The trend robot on strategy for 4 Ema, Awesome Oscillator and Macd Histogram. Buy:  1. EmaFastLoc above EmaSlowLoc;  2. EmaFastGlob above EmaSlowGlob;  3. AO growing;  4. Macd > 0. Sale:  1. EmaFastLoc below EmaSlowLoc;  2. EmaFastGlob below EmaSlowGlob;  3. AO falling;  4. Macd < 0. Exit from the buy:trailing stop in % of the loy of the candle on which you entered. Exit from sale: trailing stop in % of the high of the candle on which you entered.&Script&&Simple 1*&Ema*Ema*Ema*Ema*MACD*AO*&
-StrategyLevermor&&Script&&Simple 1*&Sma*PriceChannel*&
+StrategyLevermor&Buy: 1) Close exits PriceChannel up and Close is above the moving average. 2) We buy more every N percent in the direction of travel. (Pyramid). Sale: 1) Close exits PriceChannel down and Close is below the moving average. 2) We buy more every N percent in the direction of travel. Closure: 1) Fixed Stop Loss. 2) Crossing the moving average&Script&&Simple 1*&Sma*PriceChannel*&
+StrategyOfFourEma&Trend strategy on 4 EMAS and a channel of two EMAS (any slips and different output). The channel consists of two Emas of the same length with a closing price of high and loy. Buy: 1. Ema 1 is growing (i.e. the value of 2 candles ago was lower than 1 candle ago); 2. Ema2 is higher than Ema3; 3. The price is above Ema4 and above the upper line of the Ema channel. Sale: 1. Ema1 falling (i.e. the value of 2 candles ago was higher than 1 candle ago); 2. Ema2 is lower than Ema3; 3. The price is below Ema4 and below the lower line of the Ema channel. Exit from the purchase: The price is lower than Ema4. Exit from sale: The price is higher than Ema4.&Script&&Simple 1*&Ema*Ema*Ema*Ema*Ema*Ema*&
 StrategyOfFourSsma&Trend robot at the stratege  with two Ssma channels. Buy: 1. The price is above the slow channel (above the upper line) and above the fast (upper line); 2. The bottom line of the fast channel is higher than the top line of the slow channel. Sale: 1. The price is below the slow channel (below the lower line) and below the fast channel (below the lower line); 2. The upper line of the fast channel is lower than the lower line of the slow channel. Exit: stop and profit.&Script&&Simple 1*&Ssma*Ssma*Ssma*Ssma*&
 StrategyOnAOAndStoh&Trend robot on Awesome Oscillator and Stochastic Oscillator Buy: 1. Stochastic above 50 but below 80. 2. Column Awesome previous above preprevious. Sale: 1. Stochastic below 50 but above 20. 2. Column Awesome previous below preprevious. Exit from a long position: Stop and profit. The stop is placed behind the minimum for the period specified for the stop (StopCandles). Profit is equal to the size of the stop * CoefProfit (CoefProfit - how many times the size of the profit is greater than the size of the stop). Exit from a short position: Stop and profit. The stop is placed behind the maximum for the period specified for the stop (StopCandles). Profit is equal to the size of the stop * CoefProfit (CoefProfit - how many times the size of the profit is greater than the size of the stop).&Script&&Simple 1*&AO*Stochastic*&
 StrategyOnAwesomeOscillatorAndParabolicSAR&The trend robot on Awesome Oscillator and Parabolic SAR Buy: 1. Price is higher than Parabolic 2. AO above 0. Sale: 1. Price below Parabolic 2. AO below 0. Exit: on the return signal of the parabolic&Script&&Simple 1*&AO*ParabolicSAR*&
