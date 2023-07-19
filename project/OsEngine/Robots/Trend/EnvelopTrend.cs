@@ -43,6 +43,12 @@ namespace OsEngine.Robots.Trend
             _envelop.MovingAverage.Lenght = EnvelopMovingLength.ValueInt;
 
             ParametrsChangeByUser += EnvelopTrend_ParametrsChangeByUser;
+
+            Description = "Trend strategy based on indicator Envelop. " +
+                "Entrance to Long: entry when the price crosses the upper border of the channel. " +
+                "Entrance to Short: entry when the price crosses the lower border of the channel. " +
+                "Exiting a Long position: by trailing stop. " +
+                "Exit from a Short position: by trailing stop.";
         }
 
         private void EnvelopTrend_ParametrsChangeByUser()
