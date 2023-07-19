@@ -1504,6 +1504,7 @@ namespace OsEngine.Market.Servers.Tester
             // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
 
             SetToSecuritiesDopSettings();
+            LoadSecurityTestSettings();
 
             if (TestingNewSecurityEvent != null)
             {
