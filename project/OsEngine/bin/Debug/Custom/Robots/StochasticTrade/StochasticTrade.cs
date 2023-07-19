@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Charts.CandleChart.Elements;
@@ -9,7 +9,7 @@ using OsEngine.OsTrader.Panels;
 
 /// <summary>
 /// counter trend strategy stochastic
-/// конттрендовая стратегия Stochastic
+/// РєРѕРЅС‚С‚СЂРµРЅРґРѕРІР°СЏ СЃС‚СЂР°С‚РµРіРёСЏ Stochastic
 /// </summary>
 public class StochasticTrade : BotPanel
 {
@@ -65,6 +65,13 @@ public class StochasticTrade : BotPanel
         Downline.TimeEnd = DateTime.Now;
 
         ParametrsChangeByUser += RviTrade_ParametrsChangeByUser;
+
+        Description = "counter trend strategy stochastic. " +
+            "The strategy is reverse. " +
+            "Long entry: Crossing the lower horizontal line (default 20) by two values вЂ‹вЂ‹of the Stochastic indicator. " +
+            "Short Entry: Crossing the upper horizontal line (default 80) by two values вЂ‹вЂ‹of the Stochastic indicator. " +
+            "Exit Long: Crossing the upper horizontal line (80 by default) by two values вЂ‹вЂ‹of the Stochastic indicator. " +
+            "Exit Short: Crossing the lower horizontal line (default 20) by two values вЂ‹вЂ‹of the Stochastic indicator.";
     }
 
     void RviTrade_ParametrsChangeByUser()
@@ -82,7 +89,7 @@ public class StochasticTrade : BotPanel
 
     /// <summary>
     /// uniq name
-    /// взять уникальное имя
+    /// РІР·СЏС‚СЊ СѓРЅРёРєР°Р»СЊРЅРѕРµ РёРјСЏ
     /// </summary>
     public override string GetNameStrategyType()
     {
@@ -91,7 +98,7 @@ public class StochasticTrade : BotPanel
 
     /// <summary>
     /// settings GUI
-    /// показать окно настроек
+    /// РїРѕРєР°Р·Р°С‚СЊ РѕРєРЅРѕ РЅР°СЃС‚СЂРѕРµРє
     /// </summary>
     public override void ShowIndividualSettingsDialog()
     {
@@ -100,7 +107,7 @@ public class StochasticTrade : BotPanel
 
     /// <summary>
     /// tab to trade
-    /// вкладка для торговли
+    /// РІРєР»Р°РґРєР° РґР»СЏ С‚РѕСЂРіРѕРІР»Рё
     /// </summary>
     private BotTabSimple _tab;
 
@@ -130,11 +137,11 @@ public class StochasticTrade : BotPanel
     private decimal _stocLastUp;
     private decimal _stocLastDown;
 
-    // logic логика
+    // logic Р»РѕРіРёРєР°
 
     /// <summary>
     /// candle finished event
-    /// событие завершения свечи
+    /// СЃРѕР±С‹С‚РёРµ Р·Р°РІРµСЂС€РµРЅРёСЏ СЃРІРµС‡Рё
     /// </summary>
     private void Strateg_CandleFinishedEvent(List<Candle> candles)
     {
@@ -178,7 +185,7 @@ public class StochasticTrade : BotPanel
 
     /// <summary>
     /// logic open position
-    /// логика открытия первой позиции
+    /// Р»РѕРіРёРєР° РѕС‚РєСЂС‹С‚РёСЏ РїРµСЂРІРѕР№ РїРѕР·РёС†РёРё
     /// </summary>
     private void LogicOpenPosition(List<Candle> candles, List<Position> position)
     {
@@ -201,7 +208,7 @@ public class StochasticTrade : BotPanel
 
     /// <summary>
     /// logic close position
-    /// логика зыкрытия позиции и открытие по реверсивной системе
+    /// Р»РѕРіРёРєР° Р·С‹РєСЂС‹С‚РёСЏ РїРѕР·РёС†РёРё Рё РѕС‚РєСЂС‹С‚РёРµ РїРѕ СЂРµРІРµСЂСЃРёРІРЅРѕР№ СЃРёСЃС‚РµРјРµ
     /// </summary>
     private void LogicClosePosition(List<Candle> candles, Position position)
     {

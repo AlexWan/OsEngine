@@ -47,6 +47,12 @@ namespace OsEngine.Robots.Trend
 
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = "Trend strategy based on 2 indicators Sma and RSI. " +
+                "if lastClose > lastSma + Step and secondLastRsi <= Downline and firstLastRsi >= Downline - Enter Long. " +
+                "if lastClose < lastSma - Step and secondLastRsi >= Upline and firstLastRsi <= Upline - Enter Short. " +
+                "Exit Long: lastClose < lastSma - Step. " +
+                "Exit Short: lastClose > lastSma + Step.";
         }
 
         /// <summary>
