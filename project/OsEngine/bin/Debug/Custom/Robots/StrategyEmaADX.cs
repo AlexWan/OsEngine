@@ -75,7 +75,7 @@ namespace OsEngine.Robots.AO
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator setting
-            PeriodEma = CreateParameter("Period Ema", 10, 10, 300, 10, "Indicator");
+            PeriodEma = CreateParameter("Period Ema", 100, 10, 300, 10, "Indicator");
             PeriodADX = CreateParameter("Period ADX", 10, 10, 300, 10, "Indicator");
 
             // Create indicator Ema
