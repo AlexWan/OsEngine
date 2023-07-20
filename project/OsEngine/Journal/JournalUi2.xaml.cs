@@ -27,6 +27,7 @@ using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using System.Threading;
 using OsEngine.Layout;
 using System.Security.Cryptography;
+using RestSharp.Extensions;
 
 namespace OsEngine.Journal
 {
@@ -479,7 +480,7 @@ namespace OsEngine.Journal
         /// creating an empty Statistics form for the ItemStatistics tab
         /// создание пустой формы Статистики для вкладки ItemStatistics
         /// </summary>
-        public void CreateTableToStatistic()
+        public void CreateTableToStatistic(out int ReportRows)
         {
             try
             {
@@ -530,48 +531,103 @@ namespace OsEngine.Journal
                 column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 _gridStatistics.Columns.Add(column3);
 
-                for (int i = 0; i < 31; i++)
+                var _gridStatisticRowsName = new List<string>();
+
+                //наполняем форму отчета строками в нужном порядке как хотим их видеть включая пустые строки (больше пустые строки добавлять не нужно).
+                //данные берутся из DealStatisticGenerator.cs
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow1);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow2);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow3);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow17);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow18);
+                _gridStatisticRowsName.Add(" ");
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow4);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow5);
+                _gridStatisticRowsName.Add(" ");
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow6);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow7);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow8);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow9);
+                _gridStatisticRowsName.Add(" ");
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow10);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow11);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow6);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow7);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow8);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow9);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow12);
+                _gridStatisticRowsName.Add(" ");
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow13);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow14);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow6);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow7);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow8);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow9);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow12);
+                _gridStatisticRowsName.Add(" ");
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow15);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRow16);
+                _gridStatisticRowsName.Add(" ");
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRowClosedByStopPrice);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRowClosedByProfitPrice);
+                _gridStatisticRowsName.Add(OsLocalization.Journal.GridRowClosedByOtherPrice);
+
+                //считаем количество строк в отчете: 
+                ReportRows = _gridStatisticRowsName.Count;
+                
+                for (int i = 0; i < ReportRows; i++)
                 {
-                    _gridStatistics.Rows.Add(); //string addition/ добавление строки
+                    _gridStatistics.Rows.Add(); //string addition/ добавление строк
+                }
+                //создаем форму отчета только один раз: 
+                for (int i = 0; i < ReportRows; i++)
+                {
+                    _gridStatistics.Rows[i].Cells[0].Value = _gridStatisticRowsName[i]; //string addition/ именуем строки отчета
                 }
 
-                _gridStatistics.Rows[0].Cells[0].Value = OsLocalization.Journal.GridRow1;
-                _gridStatistics.Rows[1].Cells[0].Value = OsLocalization.Journal.GridRow2;
-                _gridStatistics.Rows[2].Cells[0].Value = OsLocalization.Journal.GridRow3;
-                _gridStatistics.Rows[3].Cells[0].Value = OsLocalization.Journal.GridRow17;
-                _gridStatistics.Rows[4].Cells[0].Value = OsLocalization.Journal.GridRow18;
+                //_gridStatistics.Rows[1].Cells[0].Value = OsLocalization.Journal.GridRow2;
+                //_gridStatistics.Rows[2].Cells[0].Value = OsLocalization.Journal.GridRow3;
+                //_gridStatistics.Rows[3].Cells[0].Value = OsLocalization.Journal.GridRow17;
+                //_gridStatistics.Rows[4].Cells[0].Value = OsLocalization.Journal.GridRow18;
 
-                _gridStatistics.Rows[5].Cells[0].Value = OsLocalization.Journal.GridRow4;
-                _gridStatistics.Rows[6].Cells[0].Value = OsLocalization.Journal.GridRow5;
+                //_gridStatistics.Rows[5].Cells[0].Value = OsLocalization.Journal.GridRow4;
+                //_gridStatistics.Rows[6].Cells[0].Value = OsLocalization.Journal.GridRow5;
 
-                _gridStatistics.Rows[8].Cells[0].Value = OsLocalization.Journal.GridRow6;
-                _gridStatistics.Rows[9].Cells[0].Value = OsLocalization.Journal.GridRow7;
-                _gridStatistics.Rows[10].Cells[0].Value = OsLocalization.Journal.GridRow8;
-                _gridStatistics.Rows[11].Cells[0].Value = OsLocalization.Journal.GridRow9;
+                //_gridStatistics.Rows[8].Cells[0].Value = OsLocalization.Journal.GridRow6;
+                //_gridStatistics.Rows[9].Cells[0].Value = OsLocalization.Journal.GridRow7;
+                //_gridStatistics.Rows[10].Cells[0].Value = OsLocalization.Journal.GridRow8;
+                //_gridStatistics.Rows[11].Cells[0].Value = OsLocalization.Journal.GridRow9;
 
 
-                _gridStatistics.Rows[13].Cells[0].Value = OsLocalization.Journal.GridRow10;
-                _gridStatistics.Rows[14].Cells[0].Value = OsLocalization.Journal.GridRow11;
-                _gridStatistics.Rows[15].Cells[0].Value = OsLocalization.Journal.GridRow6;
-                _gridStatistics.Rows[16].Cells[0].Value = OsLocalization.Journal.GridRow7;
-                _gridStatistics.Rows[17].Cells[0].Value = OsLocalization.Journal.GridRow8;
-                _gridStatistics.Rows[18].Cells[0].Value = OsLocalization.Journal.GridRow9;
-                _gridStatistics.Rows[19].Cells[0].Value = OsLocalization.Journal.GridRow12;
+                //_gridStatistics.Rows[13].Cells[0].Value = OsLocalization.Journal.GridRow10;
+                //_gridStatistics.Rows[14].Cells[0].Value = OsLocalization.Journal.GridRow11;
+                //_gridStatistics.Rows[15].Cells[0].Value = OsLocalization.Journal.GridRow6;
+                //_gridStatistics.Rows[16].Cells[0].Value = OsLocalization.Journal.GridRow7;
+                //_gridStatistics.Rows[17].Cells[0].Value = OsLocalization.Journal.GridRow8;
+                //_gridStatistics.Rows[18].Cells[0].Value = OsLocalization.Journal.GridRow9;
+                //_gridStatistics.Rows[19].Cells[0].Value = OsLocalization.Journal.GridRow12;
 
-                _gridStatistics.Rows[21].Cells[0].Value = OsLocalization.Journal.GridRow13;
-                _gridStatistics.Rows[22].Cells[0].Value = OsLocalization.Journal.GridRow14;
-                _gridStatistics.Rows[23].Cells[0].Value = OsLocalization.Journal.GridRow6;
-                _gridStatistics.Rows[24].Cells[0].Value = OsLocalization.Journal.GridRow7;
-                _gridStatistics.Rows[25].Cells[0].Value = OsLocalization.Journal.GridRow8;
-                _gridStatistics.Rows[26].Cells[0].Value = OsLocalization.Journal.GridRow9;
-                _gridStatistics.Rows[27].Cells[0].Value = OsLocalization.Journal.GridRow12;
-                _gridStatistics.Rows[28].Cells[0].Value = "";
-                _gridStatistics.Rows[29].Cells[0].Value = OsLocalization.Journal.GridRow15;
-                _gridStatistics.Rows[30].Cells[0].Value = OsLocalization.Journal.GridRow16;
+                //_gridStatistics.Rows[21].Cells[0].Value = OsLocalization.Journal.GridRow13;
+                //_gridStatistics.Rows[22].Cells[0].Value = OsLocalization.Journal.GridRow14;
+                //_gridStatistics.Rows[23].Cells[0].Value = OsLocalization.Journal.GridRow6;
+                //_gridStatistics.Rows[24].Cells[0].Value = OsLocalization.Journal.GridRow7;
+                //_gridStatistics.Rows[25].Cells[0].Value = OsLocalization.Journal.GridRow8;
+                //_gridStatistics.Rows[26].Cells[0].Value = OsLocalization.Journal.GridRow9;
+                //_gridStatistics.Rows[27].Cells[0].Value = OsLocalization.Journal.GridRow12;
+
+                //_gridStatistics.Rows[28].Cells[0].Value = "";
+                //_gridStatistics.Rows[29].Cells[0].Value = OsLocalization.Journal.GridRow15;
+                //_gridStatistics.Rows[30].Cells[0].Value = OsLocalization.Journal.GridRow16;
+
+                //_gridStatistics.Rows[21].Cells[0].Value = "";
+                //_gridStatistics.Rows[32].Cells[0].Value = OsLocalization.Journal.GridRowClosedByStopPrice;
+                //_gridStatistics.Rows[33].Cells[0].Value = OsLocalization.Journal.GridRowClosedByProfitPrice;
+                //_gridStatistics.Rows[34].Cells[0].Value = OsLocalization.Journal.GridRowClosedByOtherPrice;
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                ReportRows = 0;
             }
         }
 
@@ -581,9 +637,15 @@ namespace OsEngine.Journal
         /// </summary>
         private void PaintStatTable(List<Position> positionsAll, List<Position> positionsLong, List<Position> positionsShort, bool neadShowTickState)
         {
+            //инициализируем количество строк в отчете
+            int ReportRows = 0;
+
             if (_gridStatistics == null)
             {
-                CreateTableToStatistic();
+                //Создаем таблицу статистики и возвращаем количество строк в отчете чтобы не править вручную
+                //Создаем таблицу статистики и возвращаем количество строк в отчете чтобы не править вручную
+
+                CreateTableToStatistic(out ReportRows);
             }
 
             List<string> positionsAllState = PositionStaticticGenerator.GetStatisticNew(positionsAll);
@@ -592,44 +654,93 @@ namespace OsEngine.Journal
 
             if (positionsAllState == null)
             {
-                for (int i = 0; i < 31; i++)
+                for (int i = 0; i < ReportRows; i++)
                 {
                     _gridStatistics.Rows[i].Cells[1].Value = "";
                 }
             }
             if (positionsLongState == null)
             {
-                for (int i = 0; i < 31; i++)
+                for (int i = 0; i < ReportRows; i++)
                 {
                     _gridStatistics.Rows[i].Cells[2].Value = "";
                 }
             }
             if (positionsShortState == null)
             {
-                for (int i = 0; i < 31; i++)
+                for (int i = 0; i < ReportRows; i++)
                 {
                     _gridStatistics.Rows[i].Cells[3].Value = "";
                 }
             }
+
+            //если в статистике длинных сделок есть данные - заполняем отчет
             if (positionsLongState != null)
             {
-                for (int i = 0; i < 31; i++)
+                //инициализируем счетчик строк в статистике
+                int a = 0;
+                // заполняем форму отчета
+                for (int i = 0; i < ReportRows; i++)
                 {
-                    _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
+                    //если заголовок строки формы отчета не null
+                    if (_gridStatistics.Rows[i].Cells[0].Value != null)
+                    {
+                        //если заголовок строки формы отчета не пуст *пробел
+                        if (!_gridStatistics.Rows[i].Cells[0].Value.ToString().Equals(" "))
+                        {
+                            {
+                                //заполняем форму данными из статистики
+                                _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[a].ToString();
+                                //и увеличиваем счетчик строки статистики для следующего прохода - важно для пропуска пустых строк формы отчета. 
+                                a++;
+                            }
+                        }
+                    }
                 }
             }
+            //если в статистике коротких сделок есть данные - заполняем отчет
             if (positionsShortState != null)
             {
-                for (int i = 0; i < 31; i++)
+                //инициализируем счетчик строк в статистике
+                int a = 0;
+                // заполняем форму отчета
+                for (int i = 0; i < ReportRows; i++)
                 {
-                    _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
+                    //если заголовок строки формы отчета не null
+                    if (_gridStatistics.Rows[i].Cells[0].Value != null)
+                    {
+                        //если заголовок строки формы отчета не пуст *пробел
+                        if (!_gridStatistics.Rows[i].Cells[0].Value.ToString().Equals(" "))
+                        {
+                            //заполняем форму данными из статистики
+                            _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[a].ToString();
+                            //и увеличиваем счетчик строки статистики для следующего прохода - важно для пропуска пустых строк формы отчета. 
+                            a++;
+                        }
+                    }
+                        
                 }
             }
+            //если в статистике всех сделок есть данные - заполняем отчет
             if (positionsAllState != null)
             {
-                for (int i = 0; i < 31; i++)
+                //инициализируем счетчик строк в статистике
+                int a = 0;
+                // заполняем форму отчета
+                for (int i = 0; i < ReportRows; i++)
                 {
-                    _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
+                    //если заголовок строки формы отчета не null
+                    if (_gridStatistics.Rows[i].Cells[0].Value != null)
+                    {
+                        //если заголовок строки формы отчета не пуст *пробел
+                        if (!_gridStatistics.Rows[i].Cells[0].Value.ToString().Equals(" "))
+                        {
+                            //заполняем форму данными из статистики
+                            _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[a].ToString();
+                            //и увеличиваем счетчик строки статистики для следующего прохода - важно для пропуска пустых строк формы отчета. 
+                            a++;
+                        }
+                    }
                 }
             }
         }

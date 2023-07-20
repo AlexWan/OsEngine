@@ -229,8 +229,19 @@ namespace OsEngine.Language
 
         public string GridRow18 => OsLocalization.ConvertToLocString(
             "Eng:Sharp ratio_" +
-            "Ru:Sharp ratio_");
+            "Ru:Коэффициент Шарпа_");
 
+        public string GridRowClosedByStopPrice => OsLocalization.ConvertToLocString(
+            "Eng:Closed by Stop Price_" +
+            "Ru:Закрыто по цене СтопОрдер");
+
+        public string GridRowClosedByProfitPrice => OsLocalization.ConvertToLocString(
+            "Eng:Closed by Profit Price_" +
+            "Ru:Закрыто по цене ПрофитОрдер");
+
+        public string GridRowClosedByOtherPrice => OsLocalization.ConvertToLocString(
+            "Eng:Closed by other Price_" +
+            "Ru:Закрыто по другой цене");
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to save!_" +
             "Ru:Необходимо выбрать файл для сохранения!_");

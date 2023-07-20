@@ -69,6 +69,9 @@ namespace OsEngine.Journal.Internal
 
                  Макс просадка %
                  Размер комиссии
+                //AO: закрыто по стопу
+                //AO: закрыто по профиту
+                //АО: закрыто по другому сигналу
             */
 
 
@@ -77,17 +80,17 @@ namespace OsEngine.Journal.Internal
             report.Add(deals.Length.ToString(new CultureInfo("ru-RU")));// Number of transactions
             report.Add(GetAverageTimeOnPoses(deals));
             report.Add(GetSharpRatio(deals,7).ToString());
-            
+            //report.Add("");//20.07 более не требуется
             report.Add(Math.Round(GetProfitFactor(deals), 6).ToString(new CultureInfo("ru-RU")));   //Profit Factor
             report.Add(Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")));   // Recovery
-            report.Add("");
+            //report.Add("");//20.07 более не требуется
 
             report.Add(Convert.ToDouble(GetMidleProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //average profit in 1 contract
             report.Add(Math.Round(GetMidleProfitInPersentOneContract(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in % 1 contract
             report.Add(Convert.ToDouble(GetMidleProfitInPunktToDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //average profit
             report.Add(Math.Round(GetMidleProfitInPersentToDepozit(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in %
 
-            report.Add(""); // 11
+            //report.Add(""); // 11 //20.07 более не требуется
             report.Add(GetProfitDial(deals).ToString(new CultureInfo("ru-RU"))); //wining trades/выигрышных сделок
             report.Add(Math.Round(GetProfitDialPersent(deals), 6).ToString(new CultureInfo("ru-RU")));//wining trade in %/выигрышных сделок в %
             //report += Convert.ToDouble(GetAllProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //total profit margins/общий профит выигрышных сделок
@@ -97,7 +100,7 @@ namespace OsEngine.Journal.Internal
             report.Add(Math.Round(GetAllMidleProfitInProfitInPersentOnDepozit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
             report.Add(GetMaxProfitSeries(deals).ToString(new CultureInfo("ru-RU"))); //maximum series of winning trades/максимальная серия выигрышных сделок
 
-            report.Add("");
+            //report.Add(""); //20.07 более не требуется
             report.Add(GetLossDial(deals).ToString(new CultureInfo("ru-RU"))); //losing trades/проигрышных сделок
             report.Add(Math.Round(GetLossDialPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //losing deals in/проигрышных сделок в %
             //report += Convert.ToDouble(GetAllLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //loss-making total profit/общий профит проигрышных сделок
@@ -106,9 +109,13 @@ namespace OsEngine.Journal.Internal
             report.Add(Convert.ToDouble(GetAllMidleLossInLossInPunktOnDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
             report.Add(Math.Round(GetAllMidleLossInLossInPersentOnDepozit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
             report.Add(GetMaxLossSeries(deals).ToString(new CultureInfo("ru-RU")));//maximum series of winning trades/максимальная серия выигрышных сделок
-            report.Add("");
+            //report.Add("");//20.07 более не требуется
             report.Add(Math.Round(GetMaxDownPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
             report.Add(Math.Round(GetCommissionAmount(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
+            //report.Add(""); //20.07 более не требуется
+            report.Add(Math.Round(GetCloseAllSignalTypeStopLoss(deals), 6).ToString(new CultureInfo("ru-RU"))); //closed by StopLoss/закрыто по СтопЛосс
+            report.Add(Math.Round(GetCloseAllSignalTypeTakeProfit(deals), 6).ToString(new CultureInfo("ru-RU"))); //closed by TakeProfit/закрыто по ТейкПрофит
+            report.Add(Math.Round(GetCloseAllSignalTypeOther(deals), 6).ToString(new CultureInfo("ru-RU"))); //closed by noTakeProfit and noStopLoss/закрыто не по ТейкПрофит или СтопЛосс
 
             /*report += Math.Round(GetSharp(), 2).ToString(new CultureInfo("ru-RU"));
             */
@@ -991,6 +998,71 @@ namespace OsEngine.Journal.Internal
             return Round(recovery);
         }
 
+        /// <summary>
+        /// take orders with close signal type StopLoss
+        /// взять сделки с сигналом закрытия СтопЛосс
+        /// </summary>
+
+        public static decimal GetCloseAllSignalTypeStopLoss(Position[] deals) {
+
+            int closeAllSignalType = 0;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                if (deals[i].StopOrderRedLine == deals[i].ClosePrice)
+                {
+                    closeAllSignalType++;
+                }
+            }
+
+            return closeAllSignalType;
+        }
+
+        /// <summary>
+        /// take orders with close signal TakeProfit
+        /// взять сделки с сигналом закрытия ТейкПрофит
+        /// </summary>
+
+        public static decimal GetCloseAllSignalTypeTakeProfit(Position[] deals)
+        {
+
+            int closeAllSignalType = 0;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                if (deals[i].ProfitOrderRedLine == deals[i].ClosePrice)
+                {
+                    closeAllSignalType++;
+                }
+            }
+
+            return closeAllSignalType;
+        }
+
+        /// <summary>
+        /// take orders with close signal No Stop and No Profit
+        /// взять сделки с сигналом закрытия НЕ ТейкПрофит и НЕ СтопЛосс
+        /// </summary>
+
+        public static decimal GetCloseAllSignalTypeOther(Position[] deals)
+        {
+
+            int closeAllSignalType = 0;
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                if (deals[i].ProfitOrderRedLine != deals[i].ClosePrice && deals[i].StopOrderRedLine != deals[i].ClosePrice)
+                {
+                    closeAllSignalType++;
+                }
+            }
+
+            return closeAllSignalType;
+        }
+
+
+        /// <param name="positionsAll"></param>
+        /// <returns></returns>
         public static List<Position> SortByTime(List<Position> positionsAll)
         {
             List<Position> newPositionsAll = new List<Position>();
