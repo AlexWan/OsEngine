@@ -56,6 +56,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonCorrelationReload.Click += ButtonCorrelationReload_Click;
             ButtonCointegrationReload.Click += ButtonCointegrationReload_Click;
 
+            CheckBoxCointegrationAutoIsOn.Content = OsLocalization.Trader.Label309;
+            CheckBoxCorrelationAutoIsOn.Content = OsLocalization.Trader.Label309;
+
             // trade Logic labels
 
             LabelSec1Volume.Content = OsLocalization.Trader.Label30;
@@ -136,9 +139,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonClosePositions.Click += ButtonClosePositions_Click;
             ButtonPairJournal.Click += ButtonPairJournal_Click;
             ButtonHideShowRightPanel.Click += ButtonHideShowRightPanel_Click;
-           // остальное
 
-           Closed += BotTabPairUi_Closed;
+            CheckBoxCorrelationAutoIsOn.IsChecked = pair.AutoRebuildCorrelation;
+            CheckBoxCointegrationAutoIsOn.IsChecked = pair.AutoRebuildCointegration;
+            CheckBoxCorrelationAutoIsOn.Click += CheckBoxCorrelationAutoIsOn_Click;
+            CheckBoxCointegrationAutoIsOn.Click += CheckBoxCointegrationAutoIsOn_Click;
+
+            // остальное
+
+            Closed += BotTabPairUi_Closed;
 
             GlobalGUILayout.Listen(this, "botTabPairUi_" + pair.Name);
 
@@ -209,6 +218,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonClosePositions.Click -= ButtonClosePositions_Click;
             ButtonPairJournal.Click -= ButtonPairJournal_Click;
             ButtonHideShowRightPanel.Click -= ButtonHideShowRightPanel_Click;
+
+            CheckBoxCorrelationAutoIsOn.Click -= CheckBoxCorrelationAutoIsOn_Click;
+            CheckBoxCointegrationAutoIsOn.Click -= CheckBoxCointegrationAutoIsOn_Click;
 
             _pair.Tab1.CandleUpdateEvent -= Tab1_CandleUpdateEvent;
             _pair.Tab2.CandleUpdateEvent -= Tab2_CandleUpdateEvent;
@@ -313,6 +325,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _pair.ShowTradePanelOnChart = showTradePanel;
             }
+        }
+
+        private void CheckBoxCointegrationAutoIsOn_Click(object sender, RoutedEventArgs e)
+        {
+            _pair.AutoRebuildCointegration = CheckBoxCointegrationAutoIsOn.IsChecked.Value;
+            _pair.Save();
+        }
+
+        private void CheckBoxCorrelationAutoIsOn_Click(object sender, RoutedEventArgs e)
+        {
+            _pair.AutoRebuildCorrelation = CheckBoxCorrelationAutoIsOn.IsChecked.Value;
+            _pair.Save();
         }
 
         JournalUi2 _journalUi2;

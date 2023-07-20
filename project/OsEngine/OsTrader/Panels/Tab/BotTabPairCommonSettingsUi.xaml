@@ -27,19 +27,19 @@
         <Label Name="LabelVolume2" Content="Volume" HorizontalAlignment="Left" Margin="297,108,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxVolume2" HorizontalAlignment="Left" Margin="500,108,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="47"/>
 
-        <Button Name="ButtonPositionSupport" Content="Position support" Margin="198,216,174,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonPositionSupport" Content="Position support" Margin="186,223,186,0" VerticalAlignment="Top"/>
 
         <Label Name="LabelCorrelation" Content="Correlation" HorizontalAlignment="Left" Margin="106,307,0,0" VerticalAlignment="Top"/>
         <Label Name="LabelCointegration" Content="Cointegration" HorizontalAlignment="Left" Margin="379,307,0,0" VerticalAlignment="Top"/>
 
-        <Label Name="LabelCorrelationLookBack" Content="Look Back" HorizontalAlignment="Left" Margin="10,351,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxCorrelationLookBack" HorizontalAlignment="Left" Margin="138,351,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label Name="LabelCorrelationLookBack" Content="Look Back" HorizontalAlignment="Left" Margin="10,362,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxCorrelationLookBack" HorizontalAlignment="Left" Margin="138,362,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 
-        <Label Name="LabelCointegrationLookBack" Content="Look Back" HorizontalAlignment="Left" Margin="299,351,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxCointegrationLookBack" HorizontalAlignment="Left" Margin="427,351,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label Name="LabelCointegrationLookBack" Content="Look Back" HorizontalAlignment="Left" Margin="299,362,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxCointegrationLookBack" HorizontalAlignment="Left" Margin="427,362,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 
-        <Label Name="LabelCointegrationDeviation" Content="Deviation" HorizontalAlignment="Left" Margin="299,379,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxCointegrationDeviation" HorizontalAlignment="Left" Margin="427,379,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Label Name="LabelCointegrationDeviation" Content="Deviation" HorizontalAlignment="Left" Margin="299,390,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxCointegrationDeviation" HorizontalAlignment="Left" Margin="427,390,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 
         <Button Name="ButtonSave" Content="Save" HorizontalAlignment="Right" Margin="0,0,4,5" VerticalAlignment="Bottom" Width="220"/>
         <Button Name="ButtonApply" Content="Apply to all" HorizontalAlignment="Left" Margin="4,0,0,5" VerticalAlignment="Bottom" Width="220"/>
@@ -52,6 +52,8 @@
         <ComboBox Name="ComboBoxRegime1" HorizontalAlignment="Left" Margin="83,164,0,0" VerticalAlignment="Top" Width="123"/>
         <Label x:Name="LabelRegime2" Content="Regime" HorizontalAlignment="Left" Margin="297,164,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxRegime2" HorizontalAlignment="Left" Margin="375,164,0,0" VerticalAlignment="Top" Width="123"/>
+        <CheckBox x:Name="CheckBoxCorrelationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="106,330,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxCointegrationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="379,330,0,0" VerticalAlignment="Top"/>
 
 
     </Grid>

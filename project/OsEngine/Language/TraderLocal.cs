@@ -1140,5 +1140,9 @@ namespace OsEngine.Language
         public string Label308 => OsLocalization.ConvertToLocString(
          "Eng:Recognizability_" +
          "Ru:Узнаваемость_");
+
+        public string Label309 => OsLocalization.ConvertToLocString(
+         "Eng:Auto-calculation_" +
+         "Ru:Авто расчёт_");
     }
 }

@@ -60,6 +60,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonSave.Content = OsLocalization.Trader.Label246;
             ButtonApply.Content = OsLocalization.Trader.Label247;
 
+            CheckBoxCointegrationAutoIsOn.Content = OsLocalization.Trader.Label309;
+            CheckBoxCorrelationAutoIsOn.Content = OsLocalization.Trader.Label309;
+
             // стартовые значения
 
             ComboBoxSlippageTypeSec1.Items.Add(PairTraderSlippageType.Absolute.ToString());
@@ -100,6 +103,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextBoxCointegrationLookBack.Text = _tabPair.CointegrationLookBack.ToString();
             TextBoxCointegrationDeviation.Text = _tabPair.CointegrationDeviation.ToString();
 
+            CheckBoxCorrelationAutoIsOn.IsChecked = _tabPair.AutoRebuildCorrelation;
+            CheckBoxCointegrationAutoIsOn.IsChecked = _tabPair.AutoRebuildCointegration;
+
             ButtonSave.Click += ButtonSave_Click;
             ButtonApply.Click += ButtonApply_Click;
             ButtonPositionSupport.Click += ButtonPositionSupport_Click;
@@ -114,6 +120,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ButtonApply.Click -= ButtonApply_Click;
                 Closed -= BotTabPairCommonSettingsUi_Closed;
                 ButtonPositionSupport.Click -= ButtonPositionSupport_Click;
+
                 _tabPair = null;
             }
             catch (Exception error)
@@ -182,6 +189,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _tabPair.CorrelationLookBack = Convert.ToInt32(TextBoxCorrelationLookBack.Text);
                 _tabPair.CointegrationLookBack = Convert.ToInt32(TextBoxCointegrationLookBack.Text);
                 _tabPair.CointegrationDeviation = TextBoxCointegrationDeviation.Text.ToDecimal();
+
+                _tabPair.AutoRebuildCointegration = CheckBoxCointegrationAutoIsOn.IsChecked.Value;
+                _tabPair.AutoRebuildCorrelation = CheckBoxCorrelationAutoIsOn.IsChecked.Value;
 
                 _tabPair.SaveStandartSettings();
             }
