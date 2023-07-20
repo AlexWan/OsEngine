@@ -43,6 +43,38 @@ namespace OsEngine.Entity
             return _correlationList;
         }
 
+        /// <summary>
+        /// A method that calculates the correlation between two arrays of candlesticks. 
+        /// </summary>
+        /// <param name="candles1">Candles security 1</param>
+        /// <param name="candles2">Candles security 2</param>
+        /// <param name="correlationLookBack">For how many candles the correlation is calculated</param>
+        /// <returns>An array containing correlation values. The last one is the actual</returns>
+        public PairIndicatorValue ReloadCorrelationLast(List<Candle> candles1, List<Candle> candles2, int correlationLookBack)
+        {
+            _correlationList = new List<PairIndicatorValue>();
+
+            if (candles1 == null || candles1.Count < 1 ||
+                candles2 == null || candles2.Count < 1)
+            {
+                return null;
+            }
+
+            ReloadCorrelationByIndex(
+                candles1,
+                candles2,
+                candles1.Count - 1,
+                candles2.Count - 1,
+                correlationLookBack);
+
+            if (_correlationList.Count == 0)
+            {
+                return null;
+            }
+
+            return _correlationList[0];
+        }
+
         private List<PairIndicatorValue> _correlationList = new List<PairIndicatorValue>();
 
         private void ReloadCorrelationByIndex(List<Candle> candles1, List<Candle> candles2, int index1, int index2, int correlationLookBack)
