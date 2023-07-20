@@ -562,11 +562,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void Pair_CandlesInPairSyncFinishedEvent(List<Candle> arg1, BotTabSimple arg2, List<Candle> arg3, BotTabSimple arg4, PairToTrade arg5)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Move the default position tracking settings to the pair
         /// </summary>
@@ -1012,6 +1007,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void Pair_CandlesInPairSyncFinishedEvent(List<Candle> arg1, BotTabSimple arg2, List<Candle> arg3, BotTabSimple arg4, PairToTrade arg5)
+        {
+            if (CandlesInPairSyncFinishedEvent != null)
+            {
+                CandlesInPairSyncFinishedEvent(arg1, arg2, arg3, arg4, arg5);
             }
         }
 
