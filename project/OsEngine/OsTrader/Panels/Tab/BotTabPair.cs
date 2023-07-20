@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Threading;
 using OsEngine.Market;
+using Kraken.WebSockets.Messages;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -176,10 +177,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                 for (int i = 0; i < Pairs.Count; i++)
                 {
                     Pairs[i].Delete();
+
                     Pairs[i].CointegrationPositionSideChangeEvent -= Pair_CointegrationPositionSideChangeEvent;
                     Pairs[i].CorrelationChangeEvent -= NewPair_CorrelationChangeEvent;
                     Pairs[i].CointegrationChangeEvent -= Pair_CointegrationChangeEvent;
+                    Pairs[i].CandlesInPairSyncFinishedEvent -= Pair_CandlesInPairSyncFinishedEvent;
+                    Pairs[i].LogMessageEvent -= SendNewLogMessage;
+                }
 
+                if(Pairs != null)
+                {
+                    Pairs.Clear();
+                    Pairs = null;
                 }
 
                 if (_grid != null)
@@ -540,6 +549,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 pair.CorrelationChangeEvent += NewPair_CorrelationChangeEvent;
                 pair.CointegrationChangeEvent += Pair_CointegrationChangeEvent;
                 pair.LogMessageEvent += SendNewLogMessage;
+                pair.CandlesInPairSyncFinishedEvent += Pair_CandlesInPairSyncFinishedEvent;
 
                 if (PairToTradeCreateEvent != null)
                 {
@@ -550,6 +560,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
+        }
+
+        private void Pair_CandlesInPairSyncFinishedEvent(List<Candle> arg1, BotTabSimple arg2, List<Candle> arg3, BotTabSimple arg4, PairToTrade arg5)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -600,6 +615,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Pairs[i].CorrelationChangeEvent -= NewPair_CorrelationChangeEvent;
                         Pairs[i].CointegrationChangeEvent -= Pair_CointegrationChangeEvent;
                         Pairs[i].LogMessageEvent -= SendNewLogMessage;
+                        Pairs[i].CandlesInPairSyncFinishedEvent -= Pair_CandlesInPairSyncFinishedEvent;
                         Pairs[i].Delete();
                         Pairs.RemoveAt(i);
                         SavePairNames();
@@ -659,6 +675,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         newPair.CorrelationChangeEvent += NewPair_CorrelationChangeEvent;
                         newPair.CointegrationChangeEvent += Pair_CointegrationChangeEvent;
                         newPair.LogMessageEvent += SendNewLogMessage;
+                        newPair.CandlesInPairSyncFinishedEvent += Pair_CandlesInPairSyncFinishedEvent;
                         Pairs.Add(newPair);
                     }
 
@@ -1025,6 +1042,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// The source has a new pair for trading
         /// </summary>
         public event Action<PairToTrade> PairToTradeCreateEvent;
+
+        /// <summary>
+        /// Candlesticks on the instruments in the pair have completed and have the same times
+        /// 1. List<Candle> - candles of first security
+        /// 2. BotTabSimple - source of first security
+        /// 3. List<Candle> - candles of second security
+        /// 4. BotTabSimple - source of second security
+        /// 5. PairToTrade - the pair on which the event occurred
+        /// </summary>
+        public event Action<List<Candle>, BotTabSimple, List<Candle>, BotTabSimple, PairToTrade> CandlesInPairSyncFinishedEvent;
 
         #endregion
 
