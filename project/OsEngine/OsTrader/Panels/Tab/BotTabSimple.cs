@@ -1274,8 +1274,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-
-
         /// <summary>
         /// Show profit order window
         /// </summary>
@@ -3805,10 +3803,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                             position.StopOrderRedLine
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
-                        if (IsMarketStopOrderSupport())
-                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
-                        else
-                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+
+                        CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
                         PositionStopActivateEvent?.Invoke(position);
                         return true;
                     }
@@ -3825,10 +3821,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        if (IsMarketStopOrderSupport())
-                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
-                        else
-                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
                         PositionStopActivateEvent?.Invoke(position);
                         return true;
                     }
@@ -4149,7 +4142,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (neadSave == true)
             {
-                UpdateStopLimits(); ;
+                UpdateStopLimits();
             }
         }
 
