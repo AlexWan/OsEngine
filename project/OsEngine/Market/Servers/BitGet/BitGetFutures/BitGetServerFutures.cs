@@ -1059,7 +1059,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #endregion
 
-        #region Querys
+        #region Queries
 
         private void CreateQueryPortfolio()
         {

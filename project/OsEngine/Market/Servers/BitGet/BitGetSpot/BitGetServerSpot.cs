@@ -36,21 +36,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
     public class BitGetServerSpotRealization : IServerRealization
     {
-        public ServerType ServerType
-        {
-            get { return ServerType.BitGetSpot; }
-        }
-
-        public ServerConnectStatus ServerStatus { get; set; }
-
-        public List<IServerParameter> ServerParameters { get; set; }
-
-        public DateTime ServerTime { get; set; }
+        #region 1 Constructor, Status, Connection
 
         public BitGetServerSpotRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
         }
+
+        public DateTime ServerTime { get; set; }
 
         public void Connect()
         {
@@ -66,7 +59,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 try
                 {
-                    TimeToSendPing = DateTime.Now;
+                    TimeLastSendPing = DateTime.Now;
                     TimeToUprdatePortfolio = DateTime.Now;
                     FIFOListWebSocketMessage = new ConcurrentQueue<string>();
                     StartCheckAliveWebSocket();
@@ -111,13 +104,24 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        HttpClient _httpPublicClient = new HttpClient();
+        private bool IsDispose;
 
-        #region Properties
+        public ServerType ServerType
+        {
+            get { return ServerType.BitGetSpot; }
+        }
 
-        private string BaseUrl = "https://api.bitget.com";
+        public ServerConnectStatus ServerStatus { get; set; }
 
-        private string WebSocketUrl = "wss://ws.bitget.com/spot/v1/stream";
+        public event Action ConnectEvent;
+
+        public event Action DisconnectEvent;
+
+        #endregion
+
+        #region 2 Properties
+
+        public List<IServerParameter> ServerParameters { get; set; }
 
         private string PublicKey;
 
@@ -125,42 +129,248 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private string Passphrase;
 
-        private bool IsDispose;
-
-        private string _socketLocker = "webSocketLockerBitGet";
-
-        private WebSocket webSocket;
-
-        private ConcurrentQueue<string> FIFOListWebSocketMessage = new ConcurrentQueue<string>();
-
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
-
-        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
-
-        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
-
-        private RateGate rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(200));
-
-        private DateTime TimeToSendPing = DateTime.Now;
-
-        private DateTime TimeToUprdatePortfolio = DateTime.Now;
-
         #endregion
 
-        #region WebSocketConnection
+        #region 3 Securities
 
-        public void Subscrible(Security security)
+        public void GetSecurities()
         {
             try
             {
-                rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + "/api/spot/v1/public/products").Result;
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    if (stateResponse.code.Equals("00000") == true)
+                    {
+                        UpdateSecurity(json);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    if (stateResponse != null && stateResponse.code != null)
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                HandlerExeption(exeption);
+                HandlerExeption(exception);
             }
         }
+
+        private void UpdateSecurity(string json)
+        {
+            ResponseMessageRest<List<ResposeSymbol>> symbols = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<List<ResposeSymbol>>());
+
+            List<Security> securities = new List<Security>();
+
+            for (int i = 0; i < symbols.data.Count; i++)
+            {
+                var item = symbols.data[i];
+
+                if (item.status.Equals("online"))
+                {
+                    Security newSecurity = new Security();
+
+                    newSecurity.Exchange = ServerType.BitGetSpot.ToString();
+                    newSecurity.DecimalsVolume = Convert.ToInt32(item.quantityScale);
+                    newSecurity.Lot = GetPriceStep(Convert.ToInt32(item.quantityScale));
+                    newSecurity.Name = item.symbolName;
+                    newSecurity.NameFull = item.symbol;
+                    newSecurity.NameClass = item.quoteCoin;
+                    newSecurity.NameId = item.symbol;
+                    newSecurity.SecurityType = SecurityType.CurrencyPair;
+                    newSecurity.Decimals = Convert.ToInt32(item.priceScale);
+                    newSecurity.PriceStep = GetPriceStep(Convert.ToInt32(item.priceScale));
+                    newSecurity.PriceStepCost = newSecurity.PriceStep;
+                    newSecurity.State = SecurityStateType.Activ;
+                    securities.Add(newSecurity);
+                }
+            }
+
+            SecurityEvent(securities);
+        }
+
+        private decimal GetPriceStep(int ScalePrice)
+        {
+            if (ScalePrice == 0)
+            {
+                return 1;
+            }
+            string priceStep = "0,";
+            for (int i = 0; i < ScalePrice - 1; i++)
+            {
+                priceStep += "0";
+            }
+
+            priceStep += "1";
+
+            return Convert.ToDecimal(priceStep);
+        }
+
+        public event Action<List<Security>> SecurityEvent;
+
+        #endregion
+
+        #region 4 Portfolios
+
+        private DateTime TimeToUprdatePortfolio = DateTime.Now;
+
+        public void GetPortfolios()
+        {
+            CreateQueryPortfolio(true);
+        }
+
+        private void StartUpdatePortfolio()
+        {
+            Thread thread = new Thread(UpdatingPortfolio);
+            thread.IsBackground = true;
+            thread.Name = "UpdatingPortfolio";
+            thread.Start();
+        }
+
+        private void UpdatingPortfolio()
+        {
+            while (IsDispose == false)
+            {
+                Thread.Sleep(100);
+
+                if (TimeToUprdatePortfolio.AddSeconds(30) < DateTime.Now)
+                {
+                    CreateQueryPortfolio(false);
+                    TimeToUprdatePortfolio = DateTime.Now;
+                }
+            }
+        }
+
+        public event Action<List<Portfolio>> PortfolioEvent;
+
+        #endregion
+
+        #region 5 Data
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            int countNeedToLoad = GetCountCandlesFromSliceTime(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+            return GetCandleHistory(security.NameFull, timeFrameBuilder.TimeFrameTimeSpan, true, countNeedToLoad, endTime);
+        }
+
+        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
+        {
+            string stringInterval = GetStringInterval(tf);
+            int CountToLoadCandle = GetCountCandlesToLoad();
+
+
+            List<Candle> candles = new List<Candle>();
+            DateTime TimeToRequest = DateTime.UtcNow;
+
+            if (IsOsData == true)
+            {
+                CountToLoadCandle = CountToLoad;
+                TimeToRequest = timeEnd;
+            }
+
+            do
+            {
+                int limit = CountToLoadCandle;
+                if (CountToLoadCandle > 1000)
+                {
+                    limit = 1000;
+                }
+
+                List<Candle> rangeCandles = new List<Candle>();
+
+                rangeCandles = CreateQueryCandles(nameSec + "_SPBL", stringInterval, limit, TimeToRequest.AddSeconds(10));
+
+                rangeCandles.Reverse();
+
+                candles.AddRange(rangeCandles);
+
+                if (candles.Count != 0)
+                {
+                    TimeToRequest = candles[candles.Count - 1].TimeStart;
+                }
+
+                CountToLoadCandle -= limit;
+
+            } while (CountToLoadCandle > 0);
+
+            candles.Reverse();
+            return candles;
+        }
+
+        private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
+        {
+            if (tf.Hours != 0)
+            {
+                var totalHour = tf.TotalHours;
+                TimeSpan TimeSlice = endTime - startTime;
+
+                return Convert.ToInt32(TimeSlice.TotalHours / totalHour);
+            }
+            else
+            {
+                var totalMinutes = tf.Minutes;
+                TimeSpan TimeSlice = endTime - startTime;
+                return Convert.ToInt32(TimeSlice.TotalMinutes / totalMinutes);
+            }
+        }
+
+        private int GetCountCandlesToLoad()
+        {
+            var server = (AServer)ServerMaster.GetServers().Find(server => server.ServerType == ServerType.BitGetSpot);
+
+            for (int i = 0; i < server.ServerParameters.Count; i++)
+            {
+                if (server.ServerParameters[i].Name.Equals("Candles to load"))
+                {
+                    var Param = (ServerParameterInt)server.ServerParameters[i];
+                    return Param.Value;
+                }
+            }
+
+            return 300;
+        }
+
+        private string GetStringInterval(TimeSpan tf)
+        {
+            if (tf.Minutes != 0)
+            {
+                return $"{tf.Minutes}min";
+            }
+            else
+            {
+                return $"{tf.Hours}h";
+            }
+        }
+
+        #endregion
+
+        #region 6 WebSocket creation
+
+        private WebSocket webSocket;
+
+        private string WebSocketUrl = "wss://ws.bitget.com/spot/v1/stream";
+
+        private string _socketLocker = "webSocketLockerBitGet";
 
         private void CreateWebSocketConnection()
         {
@@ -190,6 +400,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 webSocket = null;
             }
         }
+
+        #endregion
+
+        #region 7 WebSocket events
 
         private void WebSocket_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
         {
@@ -248,13 +462,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             ConnectEvent();
         }
 
-        private void StartMessageReader()
-        {
-            Thread thread = new Thread(MessageReader);
-            thread.IsBackground = true;
-            thread.Name = "MessageReaderBitGet";
-            thread.Start();
-        }
+        #endregion
+
+        #region 8 WebSocket check alive
+
+        private DateTime TimeLastSendPing = DateTime.Now;
 
         private void StartCheckAliveWebSocket()
         {
@@ -275,12 +487,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     webSocket.State == WebSocketState.Connecting)
                     )
                 {
-                    if (TimeToSendPing.AddSeconds(30) < DateTime.Now)
+                    if (TimeLastSendPing.AddSeconds(30) < DateTime.Now)
                     {
-                        lock(_socketLocker)
+                        lock (_socketLocker)
                         {
                             webSocket.Send("ping");
-                            TimeToSendPing = DateTime.Now;
+                            TimeLastSendPing = DateTime.Now;
                         }
                     }
                 }
@@ -290,6 +502,39 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
             }
         }
+
+        #endregion
+
+        #region 9 WebSocket security subscrible
+
+        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+
+        public void Subscrible(Security security)
+        {
+            try
+            {
+                rateGateSubscrible.WaitToProceed();
+                CreateSubscribleSecurityMessageWebSocket(security);
+            }
+            catch (Exception exeption)
+            {
+                HandlerExeption(exeption);
+            }
+        }
+
+        #endregion
+
+        #region 10 WebSocket parsing the messages
+
+        private void StartMessageReader()
+        {
+            Thread thread = new Thread(MessageReader);
+            thread.IsBackground = true;
+            thread.Name = "MessageReaderBitGet";
+            thread.Start();
+        }
+
+        private ConcurrentQueue<string> FIFOListWebSocketMessage = new ConcurrentQueue<string>();
 
         private void MessageReader()
         {
@@ -309,7 +554,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                     FIFOListWebSocketMessage.TryDequeue(out message);
 
-                    if(message == null)
+                    if (message == null)
                     {
                         continue;
                     }
@@ -373,385 +618,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     HandlerExeption(exeption);
                 }
             }
-        }
-
-        #endregion
-
-        #region Trade
-
-        public void SendOrder(Order order)
-        {
-            rateGateSendOrder.WaitToProceed();
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                symbol = order.SecurityNameCode + "_SPBL",
-                side = order.Side.ToString().ToLower(),
-                orderType = OrderPriceType.Limit.ToString().ToLower(),
-                force = "normal",
-                price = order.Price.ToString().Replace(",", "."),
-                quantity = order.Volume.ToString().Replace(",", "."),
-                clientOrderId = order.NumberUser
-            });
-
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/spot/v1/trade/orders", "POST", null, jsonRequest);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
-
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                if (stateResponse.code.Equals("00000") == true)
-                {
-                    // ignore
-                }
-                else
-                {
-                    CreateOrderFail(order);
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
-            }
-            else
-            {
-                CreateOrderFail(order);
-                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                if (stateResponse != null && stateResponse.code != null)
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
-            }
-
-        }
-
-        public void GetOrdersState(List<Order> orders)
-        {
-
-        }
-
-        public void CancelAllOrders()
-        {
-
-        }
-
-        public void CancelAllOrdersToSecurity(Security security)
-        {
-            rateGateCancelOrder.WaitToProceed();
-
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                symbol = security.Name + "_SPBL"
-            });
-
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/spot/v1/trade/cancel-order-v2", "POST", null, jsonRequest);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
-
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                if (stateResponse.code.Equals("00000") == true)
-                {
-                    // ignore
-                }
-                else
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
-            }
-            else
-            {
-                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                if (stateResponse != null && stateResponse.code != null)
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
-            }
-
-
-        }
-
-        public void CancelOrder(Order order)
-        {
-            rateGateCancelOrder.WaitToProceed();
-
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                symbol = order.SecurityNameCode + "_SPBL",
-                orderId = order.NumberMarket
-            });
-
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/spot/v1/trade/cancel-order", "POST", null, jsonRequest);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
-
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                if (stateResponse.code.Equals("00000") == true)
-                {
-                    // ignore
-                }
-                else
-                {
-                    CreateOrderFail(order);
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
-            }
-            else
-            {
-                CreateOrderFail(order);
-                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                if (stateResponse != null && stateResponse.code != null)
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
-            }
-        }
-
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
-        }
-
-        #endregion
-
-        #region Data
-
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
-        }
-
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            int countNeedToLoad = GetCountCandlesFromSliceTime(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
-            return GetCandleHistory(security.NameFull, timeFrameBuilder.TimeFrameTimeSpan, true, countNeedToLoad, endTime);
-        }
-
-        #endregion
-
-        #region TradesEnities
-
-        private void StartUpdatePortfolio()
-        {
-            Thread thread = new Thread(UpdatingPortfolio);
-            thread.IsBackground = true;
-            thread.Name = "UpdatingPortfolio";
-            thread.Start();
-        }
-
-        private void UpdatingPortfolio()
-        {
-            while (IsDispose == false)
-            {
-                Thread.Sleep(100);
-
-                if (TimeToUprdatePortfolio.AddSeconds(30) < DateTime.Now)
-                {
-                    CreateQueryPortfolio(false);
-                    TimeToUprdatePortfolio = DateTime.Now;
-                }
-
-            }
-        }
-
-        public void GetPortfolios()
-        {
-            CreateQueryPortfolio(true);
-        }
-
-        public void GetSecurities()
-        {
-            try
-            {
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + "/api/spot/v1/public/products").Result;
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
-
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    if (stateResponse.code.Equals("00000") == true)
-                    {
-                        UpdateSecurity(json);
-                    }
-                    else
-                    {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                    }
-                }
-                else
-                {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                    if (stateResponse != null && stateResponse.code != null)
-                    {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                HandlerExeption(exception);
-            }
-        }
-
-        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
-        {
-            string stringInterval = GetStringInterval(tf);
-            int CountToLoadCandle = GetCountCandlesToLoad();
-
-
-            List<Candle> candles = new List<Candle>();
-            DateTime TimeToRequest = DateTime.UtcNow;
-
-            if (IsOsData == true)
-            {
-                CountToLoadCandle = CountToLoad;
-                TimeToRequest = timeEnd;
-            }
-
-            do
-            {
-                int limit = CountToLoadCandle;
-                if (CountToLoadCandle > 1000)
-                {
-                    limit = 1000;
-                }
-
-                List<Candle> rangeCandles = new List<Candle>();
-
-                rangeCandles = CreateQueryCandles(nameSec + "_SPBL", stringInterval, limit, TimeToRequest.AddSeconds(10));
-
-                rangeCandles.Reverse();
-
-                candles.AddRange(rangeCandles);
-
-                if (candles.Count != 0)
-                {
-                    TimeToRequest = candles[candles.Count - 1].TimeStart;
-                }
-
-                CountToLoadCandle -= limit;
-
-            } while (CountToLoadCandle > 0);
-
-            candles.Reverse();
-            return candles;
-        }
-
-        #endregion
-
-        #region Events
-
-        public event Action<Order> MyOrderEvent;
-
-        public event Action<MyTrade> MyTradeEvent;
-
-        public event Action<List<Portfolio>> PortfolioEvent;
-
-        public event Action<List<Security>> SecurityEvent;
-
-        public event Action<MarketDepth> MarketDepthEvent;
-
-        public event Action<Trade> NewTradesEvent;
-
-        public event Action ConnectEvent;
-
-        public event Action DisconnectEvent;
-
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        private void SendLogMessage(string message, LogMessageType messageType)
-        {
-            LogMessageEvent(message, messageType);
-        }
-
-        private void UpdatePorfolio(string json, bool IsUpdateValueBegin)
-        {
-            ResponseMessageRest<List<ResponseAsset>> assets = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<List<ResponseAsset>>());
-
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "BitGetSpot";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            foreach (var item in assets.data)
-            {
-                var pos = new PositionOnBoard()
-                {
-                    PortfolioName = "BitGetSpot",
-                    SecurityNameCode = item.coinName,
-                    ValueBlocked = item.frozen.ToDecimal(),
-                    ValueCurrent = item.available.ToDecimal()
-                };
-
-                if (IsUpdateValueBegin)
-                {
-                    pos.ValueBegin = item.available.ToDecimal();
-                }
-
-                portfolio.SetNewPosition(pos);
-            }
-
-            PortfolioEvent(new List<Portfolio> { portfolio });
-        }
-
-        private void UpdateSecurity(string json)
-        {
-            ResponseMessageRest<List<ResposeSymbol>> symbols = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<List<ResposeSymbol>>());
-
-            List<Security> securities = new List<Security>();
-
-            for (int i = 0; i < symbols.data.Count; i++)
-            {
-                var item = symbols.data[i];
-
-                if (item.status.Equals("online"))
-                {
-                    Security newSecurity = new Security();
-
-                    newSecurity.Exchange = ServerType.BitGetSpot.ToString();
-                    newSecurity.DecimalsVolume = Convert.ToInt32(item.quantityScale);
-                    newSecurity.Lot = GetPriceStep(Convert.ToInt32(item.quantityScale));
-                    newSecurity.Name = item.symbolName;
-                    newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.quoteCoin;
-                    newSecurity.NameId = item.symbol;
-                    newSecurity.SecurityType = SecurityType.CurrencyPair;
-                    newSecurity.Decimals = Convert.ToInt32(item.priceScale);
-                    newSecurity.PriceStep = GetPriceStep(Convert.ToInt32(item.priceScale));
-                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.State = SecurityStateType.Activ;
-                    securities.Add(newSecurity);
-                }
-            }
-
-            SecurityEvent(securities);
-        }
-
-        private decimal GetPriceStep(int ScalePrice)
-        {
-            if (ScalePrice == 0)
-            {
-                return 1;
-            }
-            string priceStep = "0,";
-            for (int i = 0; i < ScalePrice - 1; i++)
-            {
-                priceStep += "0";
-            }
-
-            priceStep += "1";
-
-            return Convert.ToDecimal(priceStep);
         }
 
         private void UpdateTrade(string message)
@@ -942,9 +808,207 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
+        private OrderStateType GetOrderState(string orderStateResponse)
+        {
+            OrderStateType stateType;
+
+            switch (orderStateResponse)
+            {
+                case ("init"):
+                case ("new"):
+                    stateType = OrderStateType.Activ;
+                    break;
+                case ("partial-fill"):
+                    stateType = OrderStateType.Patrial;
+                    break;
+                case ("full-fill"):
+                    stateType = OrderStateType.Done;
+                    break;
+                case ("cancelled"):
+                    stateType = OrderStateType.Cancel;
+                    break;
+                default:
+                    stateType = OrderStateType.None;
+                    break;
+            }
+
+            return stateType;
+        }
+
+        public event Action<Order> MyOrderEvent;
+
+        public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<MarketDepth> MarketDepthEvent;
+
+        public event Action<Trade> NewTradesEvent;
+
         #endregion
 
-        #region Querys
+        #region 11 Trade
+
+        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        public void SendOrder(Order order)
+        {
+            rateGateSendOrder.WaitToProceed();
+            string jsonRequest = JsonConvert.SerializeObject(new
+            {
+                symbol = order.SecurityNameCode + "_SPBL",
+                side = order.Side.ToString().ToLower(),
+                orderType = OrderPriceType.Limit.ToString().ToLower(),
+                force = "normal",
+                price = order.Price.ToString().Replace(",", "."),
+                quantity = order.Volume.ToString().Replace(",", "."),
+                clientOrderId = order.NumberUser
+            });
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/spot/v1/trade/orders", "POST", null, jsonRequest);
+            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
+
+            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                if (stateResponse.code.Equals("00000") == true)
+                {
+                    // ignore
+                }
+                else
+                {
+                    CreateOrderFail(order);
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+            else
+            {
+                CreateOrderFail(order);
+                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                if (stateResponse != null && stateResponse.code != null)
+                {
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+
+        }
+
+        public void GetOrdersState(List<Order> orders)
+        {
+
+        }
+
+        public void CancelAllOrders()
+        {
+
+        }
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+            rateGateCancelOrder.WaitToProceed();
+
+            string jsonRequest = JsonConvert.SerializeObject(new
+            {
+                symbol = security.Name + "_SPBL"
+            });
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/spot/v1/trade/cancel-order-v2", "POST", null, jsonRequest);
+            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
+
+            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                if (stateResponse.code.Equals("00000") == true)
+                {
+                    // ignore
+                }
+                else
+                {
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+            else
+            {
+                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                if (stateResponse != null && stateResponse.code != null)
+                {
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+
+
+        }
+
+        public void CancelOrder(Order order)
+        {
+            rateGateCancelOrder.WaitToProceed();
+
+            string jsonRequest = JsonConvert.SerializeObject(new
+            {
+                symbol = order.SecurityNameCode + "_SPBL",
+                orderId = order.NumberMarket
+            });
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/spot/v1/trade/cancel-order", "POST", null, jsonRequest);
+            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
+
+            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                if (stateResponse.code.Equals("00000") == true)
+                {
+                    // ignore
+                }
+                else
+                {
+                    CreateOrderFail(order);
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+            else
+            {
+                CreateOrderFail(order);
+                SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                if (stateResponse != null && stateResponse.code != null)
+                {
+                    SendLogMessage($"Code: {stateResponse.code}\n"
+                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                }
+            }
+        }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
+
+        private void CreateOrderFail(Order order)
+        {
+            order.State = OrderStateType.Fail;
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(order);
+            }
+        }
+
+        #endregion
+
+        #region 12 Queries
+
+        private string BaseUrl = "https://api.bitget.com";
+
+        private RateGate rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        HttpClient _httpPublicClient = new HttpClient();
 
         private List<string> _subscribledSecutiries = new List<string>();
 
@@ -1033,6 +1097,36 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 HandlerExeption(exception);
             }
+        }
+
+        private void UpdatePorfolio(string json, bool IsUpdateValueBegin)
+        {
+            ResponseMessageRest<List<ResponseAsset>> assets = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<List<ResponseAsset>>());
+
+            Portfolio portfolio = new Portfolio();
+            portfolio.Number = "BitGetSpot";
+            portfolio.ValueBegin = 1;
+            portfolio.ValueCurrent = 1;
+
+            foreach (var item in assets.data)
+            {
+                var pos = new PositionOnBoard()
+                {
+                    PortfolioName = "BitGetSpot",
+                    SecurityNameCode = item.coinName,
+                    ValueBlocked = item.frozen.ToDecimal(),
+                    ValueCurrent = item.available.ToDecimal()
+                };
+
+                if (IsUpdateValueBegin)
+                {
+                    pos.ValueBegin = item.available.ToDecimal();
+                }
+
+                portfolio.SetNewPosition(pos);
+            }
+
+            PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
         private void CreateQueryMyTrade(string nameSec, string OrdId)
@@ -1144,33 +1238,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        #endregion
-
-        private void HandlerExeption(Exception exception)
-        {
-            if (exception is AggregateException)
-            {
-                AggregateException httpError = (AggregateException)exception;
-
-                foreach (var item in httpError.InnerExceptions)
-
-                {
-                    if (item is NullReferenceException == false)
-                    {
-                        SendLogMessage(item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                    }
-                    
-                }
-            }
-            else
-            {
-                if (exception is NullReferenceException == false)
-                {
-                    SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                }
-            }
-        }
-
         private string GenerateSignature(string timestamp, string method, string requestPath, string queryString, string body, string secretKey)
         {
             method = method.ToUpper();
@@ -1187,88 +1254,42 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
-        {
-            if (tf.Hours != 0)
-            {
-                var totalHour = tf.TotalHours;
-                TimeSpan TimeSlice = endTime - startTime;
+        #endregion
 
-                return Convert.ToInt32(TimeSlice.TotalHours / totalHour);
-            }
-            else
-            {
-                var totalMinutes = tf.Minutes;
-                TimeSpan TimeSlice = endTime - startTime;
-                return Convert.ToInt32(TimeSlice.TotalMinutes / totalMinutes);
-            }
+        #region 13 Log
+
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        private void SendLogMessage(string message, LogMessageType messageType)
+        {
+            LogMessageEvent(message, messageType);
         }
 
-        private int GetCountCandlesToLoad()
+        private void HandlerExeption(Exception exception)
         {
-            var server = (AServer)ServerMaster.GetServers().Find(server => server.ServerType == ServerType.BitGetSpot);
-
-            for (int i = 0; i < server.ServerParameters.Count; i++)
+            if (exception is AggregateException)
             {
-                if (server.ServerParameters[i].Name.Equals("Candles to load"))
+                AggregateException httpError = (AggregateException)exception;
+
+                foreach (var item in httpError.InnerExceptions)
+
                 {
-                    var Param = (ServerParameterInt)server.ServerParameters[i];
-                    return Param.Value;
+                    if (item is NullReferenceException == false)
+                    {
+                        SendLogMessage(item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                    }
+
                 }
             }
-
-            return 300;
-        }
-
-     
-
-        private OrderStateType GetOrderState(string orderStateResponse)
-        {
-            OrderStateType stateType;
-
-            switch (orderStateResponse)
-            {
-                case ("init"):
-                case ("new"):
-                    stateType = OrderStateType.Activ;
-                    break;
-                case ("partial-fill"):
-                    stateType = OrderStateType.Patrial;
-                    break;
-                case ("full-fill"):
-                    stateType = OrderStateType.Done;
-                    break;
-                case ("cancelled"):
-                    stateType = OrderStateType.Cancel;
-                    break;
-                default:
-                    stateType = OrderStateType.None;
-                    break;
-            }
-
-            return stateType;
-        }
-
-        private string GetStringInterval(TimeSpan tf)
-        {
-            if (tf.Minutes != 0)
-            {
-                return $"{tf.Minutes}min";
-            }
             else
             {
-                return $"{tf.Hours}h";
+                if (exception is NullReferenceException == false)
+                {
+                    SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                }
             }
         }
 
-        private void CreateOrderFail(Order order)
-        {
-            order.State = OrderStateType.Fail;
-
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
-        }
+        #endregion
     }
 }
