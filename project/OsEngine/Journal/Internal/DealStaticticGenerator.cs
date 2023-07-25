@@ -858,7 +858,12 @@ namespace OsEngine.Journal.Internal
                         if (maxDownAbs > thisDown)
                         {
                             maxDownAbs = thisDown;
-                            maxDownPersent = maxDownAbs / (thisPik / 100);
+                            decimal curDownPersent = maxDownAbs / (thisPik / 100);
+
+                            if (maxDownPersent > curDownPersent)
+                            {
+                                maxDownPersent = curDownPersent;
+                            }
                         }
                     }
                     else if (thisSumm > 0)
@@ -869,7 +874,12 @@ namespace OsEngine.Journal.Internal
                         if (maxDownAbs > thisDown)
                         {
                             maxDownAbs = thisDown;
-                            maxDownPersent = maxDownAbs / (thisPik / 100);
+                            decimal curDownPersent = maxDownAbs / (thisPik / 100);
+
+                            if(maxDownPersent > curDownPersent)
+                            {
+                                maxDownPersent = curDownPersent;
+                            }
                         }
 
                     }
