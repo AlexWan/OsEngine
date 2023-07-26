@@ -189,7 +189,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     if (webSocket != null)
                     {
-                        webSocket.Close();
+                        try
+                        {
+                            webSocket.Close();
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                      
                         webSocket.Opened -= WebSocket_Opened;
                         webSocket.Closed -= WebSocket_Closed;
                         webSocket.MessageReceived -= WebSocket_MessageReceived;
