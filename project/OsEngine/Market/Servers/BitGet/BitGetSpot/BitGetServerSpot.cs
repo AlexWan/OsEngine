@@ -95,12 +95,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 HandlerExeption(exeption);
             }
-            finally
+
+            IsDispose = true;
+            FIFOListWebSocketMessage = new ConcurrentQueue<string>();
+
+            if (ServerStatus != ServerConnectStatus.Disconnect)
             {
-                IsDispose = true;
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
-                FIFOListWebSocketMessage = new ConcurrentQueue<string>();
             }
         }
 
@@ -391,12 +393,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             if (webSocket != null)
             {
-                webSocket.Close();
-
-                webSocket.Opened += WebSocket_Opened;
-                webSocket.Closed += WebSocket_Closed;
-                webSocket.MessageReceived += WebSocket_MessageReceived;
-                webSocket.Error += WebSocket_Error;
+                try
+                {
+                    webSocket.Close();
+                }
+                catch
+                {
+                    // ignore
+                }
+               
+                webSocket.Opened -= WebSocket_Opened;
+                webSocket.Closed -= WebSocket_Closed;
+                webSocket.MessageReceived -= WebSocket_MessageReceived;
+                webSocket.Error -= WebSocket_Error;
                 webSocket = null;
             }
         }

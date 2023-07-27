@@ -113,11 +113,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 HandlerExeption(exeption);
             }
-            finally
+
+            FIFOListWebSocketMessage = new ConcurrentQueue<string>();
+
+            if (ServerStatus != ServerConnectStatus.Disconnect)
             {
-                FIFOListWebSocketMessage = new ConcurrentQueue<string>();
                 ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
+
         }
 
         public void Subscrible(Security security)
@@ -189,7 +193,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     if (webSocket != null)
                     {
-                        webSocket.Close();
+                        try
+                        {
+                            webSocket.Close();
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+
                         webSocket.Opened -= WebSocket_Opened;
                         webSocket.Closed -= WebSocket_Closed;
                         webSocket.MessageReceived -= WebSocket_MessageReceived;
