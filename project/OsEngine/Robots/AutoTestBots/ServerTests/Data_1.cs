@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
-    internal class Data_1_IntegrityOfData : AServerTester
+    internal class Data_1 : AServerTester
     {
         public string SecName;
 

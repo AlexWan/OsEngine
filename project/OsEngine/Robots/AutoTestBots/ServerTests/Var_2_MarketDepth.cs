@@ -9,7 +9,7 @@ using OsEngine.Market.Servers.Hitbtc;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
-    public class Various_2_MarketDepth : AServerTester
+    public class Var_2_MarketDepth : AServerTester
     {
 
         public int CountSecuritiesToConnect;

@@ -141,7 +141,7 @@ namespace OsEngine.Robots
             colum1.CellTemplate = cell0;
             colum1.HeaderText = "#";
             colum1.ReadOnly = true;
-            colum1.Width = 25;
+            colum1.Width = 30;
             _grid.Columns.Add(colum1);
 
             DataGridViewColumn colum2 = new DataGridViewColumn();

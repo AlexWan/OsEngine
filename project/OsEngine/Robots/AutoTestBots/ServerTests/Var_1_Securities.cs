@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
-    public class SecuritiesTester : AServerTester
+    public class Var_1_Securities : AServerTester
     {
         public override void Process()
         {

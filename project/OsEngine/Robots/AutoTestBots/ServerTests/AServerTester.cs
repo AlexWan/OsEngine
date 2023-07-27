@@ -15,21 +15,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         public WServerTester(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            StrategyParameterButton buttonSecTests = CreateParameterButton("Start test sec1", "T1");
+            StrategyParameterButton buttonSecTests = CreateParameterButton("Start test sec", "V1");
             buttonSecTests.UserClickOnButtonEvent += ButtonSecTests_UserClickOnButtonEvent;
 
-            StrategyParameterButton buttonMarketDepth = CreateParameterButton("Start test md1", "T2");
+            StrategyParameterButton buttonMarketDepth = CreateParameterButton("Start test md", "V2");
             buttonMarketDepth.UserClickOnButtonEvent += ButtonMarketDepth_UserClickOnButtonEvent;
-            MarketDepthSecToTestCount = CreateParameter("Securities count", 5, 5, 5, 1, "T2");
-            MarketDepthMinutesToTest = CreateParameter("Md tester work time minutes", 5, 5, 5, 1, "T2");
+            MarketDepthSecToTestCount = CreateParameter("Securities count", 5, 5, 5, 1, "V2");
+            MarketDepthMinutesToTest = CreateParameter("Md tester work time minutes", 5, 5, 5, 1, "V2");
 
-            StrategyParameterButton buttonDataTest1 = CreateParameterButton("Start test data1", "T3");
+            StrategyParameterButton buttonDataTest1 = CreateParameterButton("Start test data 1", "D1");
             buttonDataTest1.UserClickOnButtonEvent += ButtonDataTest1_UserClickOnButtonEvent;
-            SecurityNameDataTest1 = CreateParameter("Sec name data test 1", "ADAUSDT","T3");
+            SecurityNameDataTest1 = CreateParameter("Sec name data test 1", "ADAUSDT","D1");
 
-            StrategyParameterButton buttonDataTest2 = CreateParameterButton("Start test data2", "T4");
+            StrategyParameterButton buttonDataTest2 = CreateParameterButton("Start test data 2", "D2");
             buttonDataTest2.UserClickOnButtonEvent += ButtonDataTest2_UserClickOnButtonEvent;
-            SecurityNameDataTest2 = CreateParameter("Sec name data test 2", "ADAUSDT", "T4");
+            SecurityNameDataTest2 = CreateParameter("Sec name data test 2", "ADAUSDT", "D2");
         }
 
         StrategyParameterInt MarketDepthSecToTestCount;
@@ -54,7 +54,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            CurTestType = ServerTestType.DataTest2;
+            CurTestType = ServerTestType.Data_2;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -67,7 +67,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            CurTestType = ServerTestType.DataTest1;
+            CurTestType = ServerTestType.Data_1;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -80,7 +80,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            CurTestType = ServerTestType.MarketDepth;
+            CurTestType = ServerTestType.Var_2_MarketDepth;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -93,7 +93,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            CurTestType = ServerTestType.Security;
+            CurTestType = ServerTestType.Var_1_Securities;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -124,48 +124,48 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     continue;
                 }
 
-                if(CurTestType == ServerTestType.Security)
+                if(CurTestType == ServerTestType.Var_1_Securities)
                 {
-                    SecuritiesTester tester = new SecuritiesTester();
+                    Var_1_Securities tester = new Var_1_Securities();
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
                     tester.Server = (AServer)servers[i];
-                    SendNewLogMessage("Securities tests started " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " +  servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
-                else if(CurTestType == ServerTestType.MarketDepth)
+                else if(CurTestType == ServerTestType.Var_2_MarketDepth)
                 {
-                    MarketDepthTester tester = new MarketDepthTester();
+                    Var_2_MarketDepth tester = new Var_2_MarketDepth();
                     tester.MinutesToTest = MarketDepthMinutesToTest.ValueInt;
                     tester.CountSecuritiesToConnect = MarketDepthSecToTestCount.ValueInt;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
                     tester.Server = (AServer)servers[i];
-                    SendNewLogMessage("Market depth tests started " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
-                else if (CurTestType == ServerTestType.DataTest1)
+                else if (CurTestType == ServerTestType.Data_1)
                 {
-                    DataTest1_IntegrityOfData tester = new DataTest1_IntegrityOfData();
+                    Data_1 tester = new Data_1();
                     tester.SecName = SecurityNameDataTest1.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
                     tester.Server = (AServer)servers[i];
-                    SendNewLogMessage("Data test 1 started " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
-                else if (CurTestType == ServerTestType.DataTest2)
+                else if (CurTestType == ServerTestType.Data_2)
                 {
-                    DataTest2_StrangeRequests tester = new DataTest2_StrangeRequests();
+                    Data_2 tester = new Data_2();
                     tester.SecName = SecurityNameDataTest2.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
                     tester.Server = (AServer)servers[i];
-                    SendNewLogMessage("Data test 2 started " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
             }
@@ -211,10 +211,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
     public enum ServerTestType
     {
-        Security,
-        MarketDepth,
-        DataTest1,
-        DataTest2,
+        Var_1_Securities,
+        Var_2_MarketDepth,
+        Data_1,
+        Data_2,
     }
 
     public abstract class AServerTester
