@@ -82,7 +82,7 @@ namespace OsEngine.Robots.MyRobots
             _ssma2.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += Break_EMA_ParametrsChangeByUser;
+            ParametrsChangeByUser += IntersectionOfTwoSsma_ParametrsChangeByUser;
 
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -96,7 +96,7 @@ namespace OsEngine.Robots.MyRobots
         }
 
         // Indicator Update event
-        private void Break_EMA_ParametrsChangeByUser()
+        private void IntersectionOfTwoSsma_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
             _ssma1.Save();
