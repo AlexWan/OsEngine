@@ -27,8 +27,8 @@ namespace OsEngine.Robots.myRobots
 {
     // We create an attribute so that we don't write anything to the BotFactory
    
-    [Bot("StrategyEmaBearsrAndBullsPowers")]
-    public class StrategyEmaBearsrAndBullsPowers:BotPanel
+    [Bot("StrategyEmaBearsAndBullsPowers")]
+    public class StrategyEmaBearsAndBullsPowers:BotPanel
     {
         private BotTabSimple _tab;
 
@@ -58,7 +58,7 @@ namespace OsEngine.Robots.myRobots
         private decimal _prevBears;
         private decimal _prevBulls;
 
-        public StrategyEmaBearsrAndBullsPowers(string name, StartProgram startProgram) : base(name, startProgram)
+        public StrategyEmaBearsAndBullsPowers(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -95,7 +95,7 @@ namespace OsEngine.Robots.myRobots
             _bearsPower.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyEmaBearsrAndBullsPowers_ParametrsChangeByUser;
+            ParametrsChangeByUser += StrategyEmaBearsAndBullsPowers_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -116,7 +116,7 @@ namespace OsEngine.Robots.myRobots
         }
 
         // Indicator Update event
-        private void StrategyEmaBearsrAndBullsPowers_ParametrsChangeByUser()
+        private void StrategyEmaBearsAndBullsPowers_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _emaPeriod.ValueInt;           
             _ema.Save();
@@ -134,7 +134,7 @@ namespace OsEngine.Robots.myRobots
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "StrategyEmaBearsrAndBullsPowers";
+            return "StrategyEmaBearsAndBullsPowers";
         }
         public override void ShowIndividualSettingsDialog()
         {

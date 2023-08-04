@@ -26,9 +26,9 @@ On the opposite signal of the parabolic.
 namespace OsEngine.Robots.myRobots
 {  
     // We create an attribute so that we don't write anything to the BotFactory
-    [Bot("StrategyParabolicBearsrAndBullsPowers")]
+    [Bot("StrategyParabolicBearsAndBullsPowers")]
    
-    public class StrategyParabolicBearsrAndBullsPowers : BotPanel
+    public class StrategyParabolicBearsAndBullsPowers : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -58,7 +58,7 @@ namespace OsEngine.Robots.myRobots
         private decimal _lastBulls;
        
 
-        public StrategyParabolicBearsrAndBullsPowers(string name, StartProgram startProgram) : base(name, startProgram)
+        public StrategyParabolicBearsAndBullsPowers(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -96,7 +96,7 @@ namespace OsEngine.Robots.myRobots
             ((IndicatorParameterInt)_bearsPower.Parameters[0]).ValueInt = BearsPeriod.ValueInt;
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyParabolicBearsrAndBullsPowers_ParametrsChangeByUser;
+            ParametrsChangeByUser += StrategyParabolicBearsAndBullsPowers_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -115,7 +115,7 @@ namespace OsEngine.Robots.myRobots
         }
 
         // Indicator Update event
-        private void StrategyParabolicBearsrAndBullsPowers_ParametrsChangeByUser()
+        private void StrategyParabolicBearsAndBullsPowers_ParametrsChangeByUser()
         {
             ((IndicatorParameterDecimal)_PS.Parameters[0]).ValueDecimal = Step.ValueDecimal;
             ((IndicatorParameterDecimal)_PS.Parameters[1]).ValueDecimal = MaxStep.ValueDecimal;
@@ -134,7 +134,7 @@ namespace OsEngine.Robots.myRobots
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "StrategyParabolicBearsrAndBullsPowers";
+            return "StrategyParabolicBearsAndBullsPowers";
         }
         public override void ShowIndividualSettingsDialog()
         {
