@@ -52,8 +52,8 @@ namespace OsEngine.Robots.AO
         private StrategyParameterInt EntryCandlesShort;
 
         // Exit
-        private StrategyParameterInt StopValue;
-        private StrategyParameterInt ProfitValue;
+        private StrategyParameterDecimal StopValue;
+        private StrategyParameterDecimal ProfitValue;
 
         // The last value of the indicator
         private decimal _lastChOs;
@@ -87,8 +87,8 @@ namespace OsEngine.Robots.AO
             EntryCandlesShort = CreateParameter("Entry Candles Short", 10, 5, 200, 5, "Enter");
 
             // Exit
-            StopValue = CreateParameter("Stop Value", 1, 5, 200, 5, "Exit");
-            ProfitValue = CreateParameter("Profit Value", 1, 5, 200, 5, "Exit");
+            StopValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
+            ProfitValue = CreateParameter("Profit Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakExtremumsChaikin_ParametrsChangeByUser; ;
@@ -226,16 +226,16 @@ namespace OsEngine.Robots.AO
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    decimal profitActivation = pos.EntryPrice + pos.EntryPrice * ProfitValue.ValueInt / 100;
-                    decimal stopActivation = pos.EntryPrice - pos.EntryPrice * StopValue.ValueInt / 100;
+                    decimal profitActivation = pos.EntryPrice + pos.EntryPrice * ProfitValue.ValueDecimal / 100;
+                    decimal stopActivation = pos.EntryPrice - pos.EntryPrice * StopValue.ValueDecimal / 100;
 
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
                 }
                 else // If the direction of the position is sale
                 {
-                    decimal profitActivation = pos.EntryPrice - pos.EntryPrice * ProfitValue.ValueInt / 100;
-                    decimal stopActivation = pos.EntryPrice + pos.EntryPrice * StopValue.ValueInt / 100;
+                    decimal profitActivation = pos.EntryPrice - pos.EntryPrice * ProfitValue.ValueDecimal / 100;
+                    decimal stopActivation = pos.EntryPrice + pos.EntryPrice * StopValue.ValueDecimal / 100;
 
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation - _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation + _slippage);

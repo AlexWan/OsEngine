@@ -47,6 +47,7 @@ namespace OsEngine.Robots.Vwma
         // The last value of the indicators
         private decimal _lastVWMAFast;
         private decimal _lastVWMASlow;
+
         public IntersectionOfTheTwoVwma(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);

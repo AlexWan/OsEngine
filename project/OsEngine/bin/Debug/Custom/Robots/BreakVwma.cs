@@ -48,7 +48,7 @@ namespace OsEngine.Robots.Vwma
         private decimal _lastVwma;
 
         // Exit
-        private StrategyParameterInt TrailingValue;
+        private StrategyParameterDecimal TrailingValue;
 
         public BreakVwma(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -79,7 +79,7 @@ namespace OsEngine.Robots.Vwma
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             // Exit
-            TrailingValue = CreateParameter("TrailingValue", 1, 1, 10, 1, "Exit");
+            TrailingValue = CreateParameter("TrailingValue", 1.0m, 1, 10, 1, "Exit");
 
             Description = "The trend robot on intersection Vwma with price " +
                 "Buy: the price of the instrument is above Vwma " +
@@ -201,12 +201,12 @@ namespace OsEngine.Robots.Vwma
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     decimal lov = candles[candles.Count - 1].Low;
-                    stopPrice = lov - lov * TrailingValue.ValueInt / 100;
+                    stopPrice = lov - lov * TrailingValue.ValueDecimal / 100;
                 }
                 else // If the direction of the position is sale
                 {
                     decimal high = candles[candles.Count - 1].High;
-                    stopPrice = high + high * TrailingValue.ValueInt / 100;
+                    stopPrice = high + high * TrailingValue.ValueDecimal / 100;
                 }
                 _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
             }
