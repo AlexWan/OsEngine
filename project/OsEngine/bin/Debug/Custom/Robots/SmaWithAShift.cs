@@ -48,6 +48,7 @@ namespace OsEngine.Robots.SMA
         // The last value of the indicators
         private decimal _lastSmaFast;
         private decimal _lastOsmaSlow;
+
         public SmaWithAShift(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);

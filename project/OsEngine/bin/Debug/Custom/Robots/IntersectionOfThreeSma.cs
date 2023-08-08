@@ -50,6 +50,7 @@ namespace OsEngine.Robots.SMA
         private decimal _lastSmaFast;
         private decimal _lastSmaMiddle;
         private decimal _lastSmaSlow;
+
         public IntersectionOfThreeSma(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);

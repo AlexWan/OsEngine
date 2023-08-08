@@ -50,6 +50,7 @@ namespace OsEngine.Robots.Vwma
         private decimal _lastVwmaFast;
         private decimal _lastVwmaMiddle;
         private decimal _lastVwmaSlow;
+
         public IntersectionOfTheThreeVwma(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);

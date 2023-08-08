@@ -26,30 +26,30 @@ namespace OsEngine.Robots.myRobots
     {
         private BotTabSimple _tab;
 
-    // Basic Settings
-    private StrategyParameterString Regime;
-    private StrategyParameterString VolumeRegime;
-    private StrategyParameterDecimal VolumeOnPosition;
-    private StrategyParameterDecimal Slippage;
-    private StrategyParameterTimeOfDay StartTradeTime;
-    private StrategyParameterTimeOfDay EndTradeTime;
+        // Basic Settings
+        private StrategyParameterString Regime;
+        private StrategyParameterString VolumeRegime;
+        private StrategyParameterDecimal VolumeOnPosition;
+        private StrategyParameterDecimal Slippage;
+        private StrategyParameterTimeOfDay StartTradeTime;
+        private StrategyParameterTimeOfDay EndTradeTime;
 
 
-    // Indicator Settings
-    private StrategyParameterInt PeriodVwmaFast;
-    private StrategyParameterInt PeriodVwmaSlow;
-    private StrategyParameterInt PeriodALB;
-    private StrategyParameterDecimal CoefEntryALB;
+        // Indicator Settings
+        private StrategyParameterInt PeriodVwmaFast;
+        private StrategyParameterInt PeriodVwmaSlow;
+        private StrategyParameterInt PeriodALB;
+        private StrategyParameterDecimal CoefEntryALB;
 
-    // Indicator
-    private Aindicator ALB;
-    private Aindicator Vwma1;
-    private Aindicator Vwma2;
+        // Indicator
+        private Aindicator ALB;
+        private Aindicator Vwma1;
+        private Aindicator Vwma2;
 
-    // The last value of the indicators      
-    private decimal _lastALB;
-    private decimal _lastVwmaFasts;
-    private decimal _lastVwmaSlow;
+        // The last value of the indicators      
+        private decimal _lastALB;
+        private decimal _lastVwmaFasts;
+        private decimal _lastVwmaSlow;
    
 
 

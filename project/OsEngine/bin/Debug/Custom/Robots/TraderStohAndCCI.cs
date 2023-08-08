@@ -61,7 +61,7 @@ namespace OsEngine.Robots.AO
         private decimal _prevStoh;
 
         // Exit
-        private StrategyParameterInt TrailingValue;
+        private StrategyParameterDecimal TrailingValue;
 
         public TraderStohAndCCI(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -97,7 +97,7 @@ namespace OsEngine.Robots.AO
             _Stoh.Save();
 
             // Exit
-            TrailingValue = CreateParameter("Stop Value", 1, 5, 200, 5, "Exit");
+            TrailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += TraderStohAndCCI_ParametrsChangeByUser; ;
@@ -250,12 +250,12 @@ namespace OsEngine.Robots.AO
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     decimal lov = candles[candles.Count - 1].Low;
-                    stopPrice = lov - lov * TrailingValue.ValueInt / 100;
+                    stopPrice = lov - lov * TrailingValue.ValueDecimal / 100;
                 }
                 else // If the direction of the position is sale
                 {
                     decimal high = candles[candles.Count - 1].High;
-                    stopPrice = high + high * TrailingValue.ValueInt / 100;
+                    stopPrice = high + high * TrailingValue.ValueDecimal / 100;
                 }
                 _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
 
