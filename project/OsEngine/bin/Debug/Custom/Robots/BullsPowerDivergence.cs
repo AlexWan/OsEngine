@@ -87,8 +87,8 @@ namespace OsEngine.Robots.My_bots
                 "Buy:" +
                 "1.Bulls Power columns must be higher than 0;" +
                 "2.The highs on the chart are rising, and on the indicator they are decreasing" +
-                "Exit:
-            The Bulls Power indicator has gone below 0.";
+                "Exit:" +
+                "The Bulls Power indicator has gone below 0.";
         }
 
         // Indicator Update event
