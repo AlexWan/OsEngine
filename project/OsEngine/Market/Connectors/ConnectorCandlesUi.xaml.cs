@@ -1047,9 +1047,28 @@ namespace OsEngine.Market.Connectors
 
         private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            _gridSecurities.ClearSelection(); 
+			
             int columnInd = e.ColumnIndex;
-
             int rowInd = e.RowIndex;
+
+            for (int i = 0; i < _gridSecurities.RowCount; i++)
+            {
+                if (i == rowInd)
+                {
+                    for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                    {
+                        _gridSecurities.Rows[rowInd].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#ffffff");
+                    }
+                }
+                else
+                {
+                    for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                    {
+                        _gridSecurities.Rows[i].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#FFA1A1A1");
+                    }
+                }
+            }
 
             if(columnInd != 4)
             {
