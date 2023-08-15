@@ -246,6 +246,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
 
+            _gridSecurities.CellClick -= _gridSecurities_CellClick;
 
             Closed -= BotTabScreenerUi_Closed;
 
@@ -877,9 +878,33 @@ namespace OsEngine.OsTrader.Panels.Tab
             colum6.Width = 50;
             newGrid.Columns.Add(colum6);
 
-
             _gridSecurities = newGrid;
             SecuritiesHost.Child = _gridSecurities;
+
+            _gridSecurities.CellClick += _gridSecurities_CellClick;			
+        }
+
+        private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            _gridSecurities.ClearSelection();
+
+            for (int i = 0; i < _gridSecurities.RowCount; i++)
+            {
+                if (i == e.RowIndex)
+                {
+                    for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                    {
+                        _gridSecurities.Rows[e.RowIndex].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#ffffff");
+                    }
+                }
+                else
+                {
+                    for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                    {
+                        _gridSecurities.Rows[i].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#FFA1A1A1");
+                    }
+                }
+            }
         }
 
         /// <summary>
