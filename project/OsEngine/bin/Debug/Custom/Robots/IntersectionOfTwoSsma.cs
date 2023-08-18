@@ -45,10 +45,6 @@ namespace OsEngine.Robots.MyRobots
         private decimal _lastSsmaSlow;
         private decimal _lastSsmaFast;
 
-        // Exit
-        private StrategyParameterDecimal StopValue;
-        private StrategyParameterDecimal ProfitValue;
-
         public IntersectionOfTwoSsma(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
@@ -86,8 +82,6 @@ namespace OsEngine.Robots.MyRobots
 
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
-            StopValue = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
-            ProfitValue = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
 
             Description = "Trend robot at the intersection of two smoothed averages. " +
                 "Buy: the fast Ssma is higher than the slow Ssma and the value of the last candle is greater than the fast Ssma. " +
