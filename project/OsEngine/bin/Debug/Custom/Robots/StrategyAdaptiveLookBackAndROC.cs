@@ -25,8 +25,8 @@ Exit: by the reverse signal of the RoC indicator.
 
 namespace OsEngine.Robots.My_bots
 {
-    [Bot("IntersectionOfROCAndAdaptiveLookBack")] //We create an attribute so that we don't write anything in the Boot factory
-    public class IntersectionOfROCAndAdaptiveLookBack : BotPanel
+    [Bot("StrategyAdaptiveLookBackAndROC")] //We create an attribute so that we don't write anything in the Boot factory
+    public class StrategyAdaptiveLookBackAndROC : BotPanel
 
     {
         BotTabSimple _tab;
@@ -59,7 +59,7 @@ namespace OsEngine.Robots.My_bots
 
 
 
-        public IntersectionOfROCAndAdaptiveLookBack(string name, StartProgram startProgram) : base(name, startProgram)
+        public StrategyAdaptiveLookBackAndROC(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -94,7 +94,7 @@ namespace OsEngine.Robots.My_bots
             ((IndicatorParameterInt)ROC.Parameters[0]).ValueInt = LengthROC.ValueInt;
             ROC.DataSeries[0].Color = Color.Red;
             ROC.Save();
-            ParametrsChangeByUser += IntersectionOfROCAndAdaptiveLookBack_ParametrsChangeByUser;
+            ParametrsChangeByUser += StrategyAdaptiveLookBackAndROC_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -108,7 +108,7 @@ namespace OsEngine.Robots.My_bots
         }
            
         // Indicator Update event
-        private void IntersectionOfROCAndAdaptiveLookBack_ParametrsChangeByUser()
+        private void StrategyAdaptiveLookBackAndROC_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)ALB.Parameters[0]).ValueInt = PeriodALB.ValueInt;
             ALB.Save();
@@ -121,7 +121,7 @@ namespace OsEngine.Robots.My_bots
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "IntersectionOfROCAndAdaptiveLookBack";
+            return "StrategyAdaptiveLookBackAndROC";
         }
         public override void ShowIndividualSettingsDialog()
         {
