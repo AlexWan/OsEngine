@@ -1,201 +1,82 @@
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
+BASE END-USER LICENSE AGREEMENT.
 
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+1. SUBJECT OF THE AGREEMENT.
+1.1 Limited Liability Company "VAN TECHNOLOGIES", registered in accordance with the legislation of the Russian Federation (OGRN 1232300013593, INN 2373023082, hereinafter referred to as the Rights Holder), is the developer and exclusive right holder of a complex of software programs for computerized exchange trading called Open Source Engine (hereinafter referred to as the Software).
+1.2 The current version of the Software is posted by the Rights Holder on the webpage o-s-a.net on the Internet - https://o-s-a.net/os-engine.html (hereinafter referred to as the Official Source) and on the webpage github.com - https://github.com/AlexWan/OsEngine.
+1.3 This base end-user license agreement applies to individuals acting without the formation of a legal entity and non-profit organizations intending to use the Software and meeting the criteria set forth in section 2 ("Scope of the License") of this agreement (hereinafter referred to as the User).
+1.4 The Rights Holder grants the User a simple (non-exclusive) license to use the Software under the terms of this base end-user license agreement (hereinafter referred to as the Agreement).
+1.5 The Agreement is considered concluded, and its terms are deemed fully and unconditionally accepted by the User at the moment when the User records the Software from the Official Source into the memory of any computer.
 
-   1. Definitions.
+2. SCOPE OF THE LICENSE.
+2.1 The following categories of individuals have the right to use the Software under the terms of the Agreement:
+(1) Individuals whose total income in the last 12 months does not exceed the equivalent of 10 million Russian rubles, using the Software for automating the process of participation in exchange trading, as well as for other purposes at their discretion;
+(2) Individuals using the Software for educational purposes within the framework of their middle or higher education, including when writing graduation papers;
+(3) Non-profit organizations using the Software for non-profit projects, provided that the non-profit organization does not generate income from the use of the Software.
+2.2 For the purposes of this section of the Agreement, the User's income is understood as any income (revenue) received by the User as an individual or legal entity from any type of economic activity (including, but not limited to, any type of entrepreneurial activity, sale of property or property rights, receipt of dividends) in any countries in accordance with applicable legislation.
+2.3 If, when using the Software under this basic license agreement, there comes a point where the aggregate income of the User - an individual for the last 12 months exceeds the amount equivalent to 10 million Russian rubles, such User is obligated to immediately enter into an extended license agreement with the Right holder and use the Software under the terms of such agreement.
+2.4 Continuing to use the Software when the User - an individual reaches the specified revenue threshold without entering into an extended license agreement is a violation of the exclusive right of the Right holder.
+2.5 This basic license agreement does not apply to:
+(1) Any types of commercial organizations;
+(2) An individual whose aggregate income for the last 12 months exceeds the amount equivalent to 10 million Russian rubles;
+(3) Any types of non-profit organizations planning to generate revenue from the use of the Software;
+(4) Other persons not directly listed in clause 2.1 of the Agreement.
+2.6 The categories of individuals listed in clause 2.5 of the Agreement are entitled to use the Software only upon entering into an extended license Agreement with the Right holder. Otherwise, it would be a violation of the exclusive right of the Right holder.
+2.7 To enter into an extended license agreement, the User must visit the following web page: https://o-s-a.net/os-engine-license-about
 
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
+3.  PURPOSE AND FUNCTIONALITY OF THE SOFTWARE.
+3.1 The software is designed for participants in exchange trading of financial assets (traders). It allows for the automation of the trading process by processing historical trading data, searching for optimal trading strategies based on them, and executing buying and selling operations on the exchange through programmatic robots.
+3.2 The software includes the following programs for computer systems:
+(1) Data - a program for downloading historical trading data from various sources;
+(2) Optimizer - a program for selecting optimal parameters for a strategy;
+(3) Tester - a program for testing multiple strategies simultaneously using historical data (an exchange emulator);
+(4) Miner - a program for finding profitable patterns on a chart;
+(5) Botstation - a program for launching robots in trading.
+3.3 The Right holder has the right to make any changes to the Software at its discretion and without prior notice to the User. Updated versions of the Software with the changes made are posted by the Right holder in the Official source.
+3.4 The Right holder has the right to limit the scope of functionality of the Software in order to provide access to the Software for the maximum number of Users, at its own discretion.
 
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
+4.  METHODS OF USING THE SOFTWARE.
+4.1 The User is entitled to use the Software only in the ways provided for in this section of the Agreement.
+4.2 The Software may be used in accordance with its functional capabilities for the purposes established for the respective categories of Users in clause 2.1 of the Agreement. To do this, the User has the right to reproduce the Software (create copies) in an unlimited number of instances.
+4.3 The User has the right to make changes to the source code of the Software and use the derived software obtained in this way for the purposes established for the respective categories of Users in clause 2.1 of the Agreement.
+4.4 The User has the right to distribute an unlimited number of copies of the Software and derivative programs among third parties who fall into the categories of Users specified in clause 2.1 of the Agreement. In doing so, the User grants (sub-licenses) the right to use the Software and derivative programs in accordance with the terms of this Agreement.
+4.5 The User has the right to use the Software for the entire duration of the exclusive right to the Software, and worldwide.
 
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
+5.  LIMITATIONS ON THE USE OF THE SOFTWARE.
+5.1 The User is prohibited from using the Software for unlawful purposes or in violation of the lawful rights and interests of third parties.
+5.2 The User is prohibited from modifying or removing copyright information accompanying the Software.
+5.3 The User is prohibited from bypassing technical protection measures used by the Right holder in the Software without the permission of the Right holder.
+5.4 When distributing copies of the Software and derivative software, the User is required to accompany the relevant copies with a copy of the text of this Agreement.
+5.5 When distributing derivative software, the User is required to indicate the names of the Right holder and the Software as the original source on which the derivative software is based.
+5.6 The User is not entitled to transfer their rights under the Agreement to third parties.
 
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
+6. EXCLUSIVE RIGHTS OF THE RIGHTHOLDER.
+6.1 The right holder assures the User that they are the legitimate owner of the exclusive right to the Software and that granting the right to use the Software under the Agreement does not infringe upon the lawful rights and interests of third parties.
+6.2 When executing the Agreement, the right holder retains the exclusive right to the Software. This includes, but is not limited to, the right to use, modify the Software, grant licenses for its use to third parties, and transfer the exclusive right to the Software.
+6.3 If the User makes modifications to the source code of the Software and publishes the resulting derivative Software on the right holder's page at https://github.com/AlexWan/OsEngine, the exclusive right to the corresponding derivative Software belongs to the right holder.
+6.4 The right holder, at their own discretion, implements measures provided by law to protect their exclusive right to the Software and to hold violators civilly, administratively, or criminally liable.
 
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
+7. DISCLAIMER OF LIABILITY BY THE RIGHTHOLDER.
+7.1 The Software is provided by the right holder "as is," meaning in the condition in which it is at the time of entering into the Agreement, and the User accepts the Software with all possible defects that may arise during its use.
+7.2 The right holder does not provide any warranties to the User regarding the Software, including the following:
+(1) The Software will meet the User's requirements and expectations;
+(2) The Software will function continuously, quickly, reliably, and without errors;
+(3) The results that may be obtained using the Software will be accurate and reliable;
+(4) All errors in the Software will be corrected by the right holder.
+7.3 The User is solely responsible for any consequences of using the Software. The right holder shall not be liable to the User for any losses incurred through the use of the Software, including the following cases:
+(1) Suspension of the User's activities;
+(2) Damage to or loss of the User's property;
+(3) Failure to obtain income by the User;
+(4) Holding the User civilly, administratively, or criminally liable.
+7.4 The User is solely responsible for complying with applicable laws when using the Software for exchange trading and, if necessary, obtaining the relevant permissions from the authorized government bodies.
 
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
+8. AMENDMENT AND TERMINATION OF THE AGREEMENT.
+8.1 The right holder has the right to make changes to the Agreement without prior notice to the User.
+8.2 The changes shall come into effect from the moment the new version of the Agreement is brought to public attention through the Official Source.
+8.3 The User who disagrees with the current or new version of the Agreement must immediately cease using the Software. The use of the Software in violation of the terms of the current or new version of the Agreement constitutes a violation of the right holder's exclusive rights.
+8.4 The right holder has the right to terminate the Agreement at any time without prior notice to the User and without payment of any penalties.
 
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
+9. APPLICABLE LAW AND DISPUTE RESOLUTION.
+9.1 The relationships and obligations arising from the Agreement are governed by the laws of the Russian Federation.
+9.2 To settle a dispute arising from the Agreement, a mandatory pre-trial procedure is established by sending a written claim by the respective Party. The Party receiving the claim must provide a written response within one month from the date of receipt.
+9.3 If the claim is not satisfied or left unanswered within the specified period, the Parties resolve the dispute in court at the location of the right holder in accordance with the applicable procedural law of the Russian Federation.
 
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "{}"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright Feb 28, 2017 Alex Wan (Алексей Ван)
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.

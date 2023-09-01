@@ -68,7 +68,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         }
         public bool DataFeedTf2HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTf4HourCanLoad
         {

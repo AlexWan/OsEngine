@@ -411,7 +411,8 @@ namespace OsEngine.Charts.CandleChart
                             }
                         }
                     }
-                    if (ChartCandle.AreaIsCreate("TradeArea") == true)
+                    if (ChartCandle != null && 
+                        ChartCandle.AreaIsCreate("TradeArea") == true)
                     {
                         writer.WriteLine("Trades");
                     }

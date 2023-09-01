@@ -40,7 +40,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 catch (Exception ex)
                 {
-                    SetNewError(serverType + " Security Error Unknown" + ex.ToString());
+                    SetNewError(serverType + " Security Error Unknown " + ex.ToString());
                 }
             }
         }

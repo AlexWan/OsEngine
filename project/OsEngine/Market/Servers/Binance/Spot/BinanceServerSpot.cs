@@ -222,7 +222,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 if (newCandles.Count == 0)
                 {
-                    return candles;
+                    break;
                 }
 
                 candles.AddRange(newCandles);
@@ -246,6 +246,31 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 if (candles[i].TimeStart > endTime)
                 {
                     candles.RemoveAt(i);
+                }
+            }
+
+            for (int i = 1; i < candles.Count; i++)
+            {
+                Candle candleNow = candles[i];
+                Candle candleLast = candles[i - 1];
+
+                if (candleLast.TimeStart == candleNow.TimeStart)
+                {
+                    candles.RemoveAt(i);
+                    i --;
+                    continue;
+                }
+            }
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                Candle candleNow = candles[i];
+
+                if (candleNow.Volume == 0)
+                {
+                    candles.RemoveAt(i);
+                    i --;
+                    continue;
                 }
             }
 
@@ -370,6 +395,18 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
             }
 
+            for (int i = 1; i < trades.Count; i++)
+            {
+                Trade tradeNow = trades[i];
+                Trade tradeLast = trades[i - 1];
+
+                if (tradeLast.Time == tradeNow.Time)
+                {
+                    trades.RemoveAt(i);
+                    i = 0;
+                    continue;
+                }
+            }
 
             return trades;
         }
@@ -739,11 +776,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         void _client_Disconnected()
         {
+            ServerStatus = ServerConnectStatus.Disconnect;
+
             if (DisconnectEvent != null)
             {
                 DisconnectEvent();
             }
-            ServerStatus = ServerConnectStatus.Disconnect;
         }
 
         private List<Security> _securities;
@@ -814,11 +852,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         void _client_Connected()
         {
+            ServerStatus = ServerConnectStatus.Connect;
+
             if (ConnectEvent != null)
             {
                 ConnectEvent();
             }
-            ServerStatus = ServerConnectStatus.Connect;
+            
         }
 
         // outgoing messages

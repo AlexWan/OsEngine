@@ -1,6 +1,6 @@
 ﻿# OsEngine
 
-![oslogo250](https://cloud.githubusercontent.com/assets/26077466/23395381/5545b688-fd9f-11e6-8db9-c8e8944a8cc2.png)
+![oslogo250](https://user-images.githubusercontent.com/26077466/264690708-54b9eca1-09ef-4e6c-b9cf-442e4c1b7dc3.png)
 
 # Open Source Algo Trading Platform
 
@@ -79,7 +79,10 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 3) Arbitrage strategies for trading divergences of correlating instruments, including one-legged arbitrage.
 
-![oslogo250](https://cloud.githubusercontent.com/assets/26077466/23395381/5545b688-fd9f-11e6-8db9-c8e8944a8cc2.png)
+Until August 2023, the project was distributed under the Apache 2 licence. Since September 2023 it is distributed under a commercial licence. All rights belong to Wang Technologies Ltd. In order to use any part of the project in your commercial projects, you need to obtain an extended licence on the site of the right holder.
+
+
+![oslogo250](https://user-images.githubusercontent.com/26077466/264690708-54b9eca1-09ef-4e6c-b9cf-442e4c1b7dc3.png)
 
 ## Что такое OsEngine?
 
@@ -154,6 +157,10 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 3) арбитражные стратегии для торговли расхождения коррелирующих инструментов, в том числе одноногие арбитражи.
 
-Как пользоваться и писать ботов смотрите на канале: https://www.youtube.com/channel/UCLmOUsdFs48mo37hgXmIJTQ/videos
+FAQ: https://o-s-a.net/os-engine-faq
 
-Форум: http://o-s-a.net/forum
+Телеграмм группа поддержки: https://t.me/osengine_official_support
+
+До августа 2023 года проект распространялся под лицензией Apache 2. С сентября 2023 года распространяется под коммерческой лицензией. Все права принадлежат ООО "Ван Технологии". Для того чтобы использовать любую часть проекта, добавленного в репозиторий начиная с сентября 2023 года в своих коммерческих проектах, Вам необходимо получить расширенную лицензию на сайте правообладателя.
+
+Разьяснения относительно лицензионного соглашения: https://o-s-a.net/os-engine-license-about 

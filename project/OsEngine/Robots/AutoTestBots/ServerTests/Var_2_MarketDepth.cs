@@ -16,6 +16,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public int MinutesToTest;
 
+        private List<Security> _secToSubscrible = new List<Security>();
+
         public override void Process()
         {
             List<Security> securities = Server.Securities;
@@ -29,6 +31,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 for(int i = 0;i < securities.Count;i++)
                 {
                     Server.ServerRealization.Subscrible(securities[i]);
+                    _secToSubscrible.Add(securities[i]);
                     _securities.Add(securities[i]);
                     SetNewServiceInfo("Start sec: " + securities[i].Name);
                     i += step - 1;
@@ -37,6 +40,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             else
             {
                 SetNewError("MD Error 0. No securities found");
+                TestEnded();
+                return;
             }
 
             DateTime timeEndTest = DateTime.Now.AddMinutes(MinutesToTest);
@@ -49,6 +54,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             SetNewServiceInfo("md сount analyzed: " + mdCount);
             SetNewServiceInfo("test time minutes: " + MinutesToTest);
+
+            for(int i = 0;i < _secToSubscrible.Count;i++)
+            {
+                SetNewError("MD Error 1. No MD to Security: " + _secToSubscrible[i].Name);
+            }
 
             TestEnded();
         }
@@ -86,31 +96,39 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 5.2.6. Находясь в массиве bids - Ask должен быть равен 0
 5.2.7. Находясь в массиве asks - Bid должен быть равен 0
 */
+            for(int i = 0;i < _secToSubscrible.Count;i++)
+            {
+                if (_secToSubscrible[i].Name == md.SecurityNameCode)
+                {
+                    _secToSubscrible.RemoveAt(i);
+                    break;
+                }
+            }
 
             // Базовые проверки
             if (md.Bids == null ||
                 md.Asks == null)
             {
-                SetNewError("MD Error 1. null in bids or asks array");
+                SetNewError("MD Error 2. null in bids or asks array");
                 return;
             }
             if (md.Bids.Count == 0 ||
                 md.Asks.Count == 0)
             {
-                SetNewError("MD Error 2. Zero count in bids or asks array");
+                SetNewError("MD Error 3. Zero count in bids or asks array");
                 return;
             }
 
             if (md.Bids.Count > 25 ||
                 md.Asks.Count > 25)
             {
-                SetNewError("MD Error 3. Count in bids or asks more 25 lines");
+                SetNewError("MD Error 4. Count in bids or asks more 25 lines");
                 return;
             }
 
             if (string.IsNullOrEmpty(md.SecurityNameCode))
             {
-                SetNewError("MD Error 4. Security name is null or empty");
+                SetNewError("MD Error 5. Security name is null or empty");
                 return;
             }
 
@@ -118,17 +136,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (md.Bids[i] == null)
                 {
-                    SetNewError("MD Error 5. Bids array have null level");
+                    SetNewError("MD Error 6. Bids array have null level");
                     return;
                 }
                 if (md.Bids[i].Ask != 0)
                 {
-                    SetNewError("MD Error 6. Ask in bids array is note zero");
+                    SetNewError("MD Error 7. Ask in bids array is note zero");
                     return;
                 }
                 if (md.Bids[i].Bid == 0)
                 {
-                    SetNewError("MD Error 7. Bid in bids array is zero");
+                    SetNewError("MD Error 8. Bid in bids array is zero");
                     return;
                 }
             }
@@ -137,17 +155,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (md.Asks[i] == null)
                 {
-                    SetNewError("MD Error 8. Asks array have null level");
+                    SetNewError("MD Error 9. Asks array have null level");
                     return;
                 }
                 if (md.Asks[i].Bid != 0)
                 {
-                    SetNewError("MD Error 9. Bid in asks array is note zero");
+                    SetNewError("MD Error 10. Bid in asks array is note zero");
                     return;
                 }
                 if (md.Asks[i].Ask == 0)
                 {
-                    SetNewError("MD Error 10. Ask in asks array is zero");
+                    SetNewError("MD Error 11. Ask in asks array is zero");
                     return;
                 }
             }
@@ -156,7 +174,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (md.Time == DateTime.MinValue)
             {
-                SetNewError("MD Error 11. Time is min value");
+                SetNewError("MD Error 12. Time is min value");
             }
 
             MarketDepth oldDepth = null;
@@ -171,7 +189,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (oldDepth != null && oldDepth.Time == md.Time)
             {
-                SetNewError("MD Error 12. Time in md is note change");
+                SetNewError("MD Error 13. Time in md is note change");
             }
 
             bool isSaved = false;
@@ -195,7 +213,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (md.Bids[i].Price == 0)
                 {
-                    SetNewError("MD Error 13. Bibs[i] price == 0");
+                    SetNewError("MD Error 14. Bibs[i] price == 0");
                     return;
                 }
             }
@@ -204,7 +222,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (md.Asks[i].Price == 0)
                 {
-                    SetNewError("MD Error 14. Asks[i] price == 0");
+                    SetNewError("MD Error 15. Asks[i] price == 0");
                     return;
                 }
             }
@@ -213,7 +231,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (md.Bids[0].Price >= md.Asks[0].Price)
             {
-                SetNewError("MD Error 15. Bib price >= Ask price");
+                SetNewError("MD Error 16. Bib price >= Ask price");
                 return;
             }
 
@@ -224,12 +242,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (md.Bids[i].Price == md.Bids[i - 1].Price)
                 {
-                    SetNewError("MD Error 16. Bibs[i] price == Bibs[i-1] price");
+                    SetNewError("MD Error 17. Bibs[i] price == Bibs[i-1] price");
                 }
 
                 if (md.Bids[i].Price > md.Bids[i - 1].Price)
                 {
-                    SetNewError("MD Error 17. Bibs[i] price > Bibs[i-1] price");
+                    SetNewError("MD Error 18. Bibs[i] price > Bibs[i-1] price");
                 }
             }
 
@@ -240,12 +258,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (md.Asks[i].Price == md.Asks[i - 1].Price)
                 {
-                    SetNewError("MD Error 18. Asks[i] price == Asks[i-1] price");
+                    SetNewError("MD Error 19. Asks[i] price == Asks[i-1] price");
                 }
 
                 if (md.Asks[i].Price < md.Asks[i - 1].Price)
                 {
-                    SetNewError("MD Error 19. Asks[i] price < Asks[i-1] price");
+                    SetNewError("MD Error 20. Asks[i] price < Asks[i-1] price");
                 }
             }
 
@@ -264,7 +282,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                     if (curLevel.Price == md.Bids[j].Price)
                     {
-                        SetNewError("MD Error 20. bids with same price");
+                        SetNewError("MD Error 21. bids with same price");
                     }
                 }
             }
@@ -284,7 +302,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                     if (curLevel.Price == md.Asks[j].Price)
                     {
-                        SetNewError("MD Error 21. Asks with same price");
+                        SetNewError("MD Error 22. Asks with same price");
                     }
                 }
             }

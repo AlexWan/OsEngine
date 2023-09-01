@@ -1380,7 +1380,13 @@ namespace OsEngine.Market.Servers
                             continue;
                         }
                         if (_securities[i].Name == securityName &&
-                            _securities[i].NameClass == securityClass)
+                            (_securities[i].NameClass == securityClass))
+                        {
+                            security = _securities[i];
+                            break;
+                        }
+                        if (_securities[i].Name == securityName &&
+                            (securityClass == null))
                         {
                             security = _securities[i];
                             break;

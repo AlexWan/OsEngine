@@ -93,9 +93,15 @@ namespace OsEngine.Entity
                 Candle first = candles1[indFirstSec];
                 Candle second = candles2[indSecondSec];
 
-                if (first.TimeStart != second.TimeStart)
+                if (first.TimeStart > second.TimeStart)
                 { // в случае если время не равно
-                    break;
+                    indFirstSec--;
+                    continue;
+                }
+                if (second.TimeStart > first.TimeStart)
+                { // в случае если время не равно
+                    indSecondSec--;
+                    continue;
                 }
 
                 movesOne.Insert(0, Convert.ToDouble(first.Close));

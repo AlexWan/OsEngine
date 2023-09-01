@@ -783,11 +783,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         void _client_Disconnected()
         {
+            ServerStatus = ServerConnectStatus.Disconnect;
+
             if (DisconnectEvent != null)
             {
                 DisconnectEvent();
             }
-            ServerStatus = ServerConnectStatus.Disconnect;
+            
         }
 
         private List<Security> _securities;
@@ -936,7 +938,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         void _client_Connected()
         {
-
+            ServerStatus = ServerConnectStatus.Connect;
             //Выставить HedgeMode
             _client.SetPositionMode();
 
@@ -944,7 +946,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 ConnectEvent();
             }
-            ServerStatus = ServerConnectStatus.Connect;
+            
         }
 
         // outgoing messages

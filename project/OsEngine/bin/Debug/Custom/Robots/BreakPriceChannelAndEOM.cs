@@ -10,7 +10,6 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Logging;
-using System.Data.SqlClient;
 
 /* Description
 trading robot for osengine

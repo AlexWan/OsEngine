@@ -44,6 +44,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 return;
             }
 
+            if(IsConnected)
+            {
+                return;
+            }
+
             // check server availability for HTTP communication with it / проверяем доступность сервера для HTTP общения с ним
             Uri uri = new Uri(_baseUrl + "/v1/time");
             try
@@ -58,14 +63,14 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 return;
             }
 
+            CreateDataStreams();
+
             IsConnected = true;
 
             if (Connected != null)
             {
                 Connected();
             }
-
-            CreateDataStreams();
 
             _timeStart = DateTime.Now;
         }
@@ -80,33 +85,32 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private void CreateDataStreams()
         {
-            _spotSocketClient = CreateUserDataStream("api/v1/userDataStream", BinanceExchangeType.SpotExchange);
-            _wsStreams.Add("userDataStream", _spotSocketClient);
-
-            if (_spotSocketClient == null)
+            if(_spotSocketClient == null)
             {
-                Thread.Sleep(5000);
-                return;
+                _spotSocketClient = CreateUserDataStream("api/v1/userDataStream", BinanceExchangeType.SpotExchange);
+
+                if (_spotSocketClient == null)
+                {
+                    Thread.Sleep(5000);
+                    return;
+                }
+
+                _spotSocketClient.MessageReceived += _spotSocketClient_MessageReceived;
             }
-            _spotSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
-            {
-                UserDataMessageHandler(sender, args, BinanceExchangeType.SpotExchange);
-            };
 
+            
             try
             {
-                _marginSocketClient = CreateUserDataStream("/sapi/v1/userDataStream", BinanceExchangeType.MarginExchange);
-                _wsStreams.Add("userDataStreamMargine", _marginSocketClient);
-                _marginSocketClient.MessageReceived += delegate (object sender, MessageReceivedEventArgs args)
+                if(_marginSocketClient == null)
                 {
-                    UserDataMessageHandler(sender, args, BinanceExchangeType.MarginExchange);
-                };
+                    _marginSocketClient = CreateUserDataStream("/sapi/v1/userDataStream", BinanceExchangeType.MarginExchange);
+                    _marginSocketClient.MessageReceived += _marginSocketClient_MessageReceived;
+                }
             }
             catch
             {
                 _notMargineAccount = true;
             }
-
 
             Thread keepalive = new Thread(KeepaliveUserDataStream);
             keepalive.CurrentCulture = new CultureInfo("ru-RU");
@@ -124,6 +128,16 @@ namespace OsEngine.Market.Servers.Binance.Spot
             converterUserData.Start();
         }
 
+        private void _marginSocketClient_MessageReceived(object sender, MessageReceivedEventArgs args)
+        {
+            UserDataMessageHandler(sender, args, BinanceExchangeType.MarginExchange);
+        }
+
+        private void _spotSocketClient_MessageReceived(object sender, MessageReceivedEventArgs args)
+        {
+            UserDataMessageHandler(sender, args, BinanceExchangeType.SpotExchange);
+        }
+
         private bool _notMargineAccount;
 
         /// <summary>
@@ -137,6 +151,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.POST, url, null, false);
                 string urlStr = "";
+
+                if(string.IsNullOrEmpty(res))
+                {
+                    return null;
+                }
 
                 if (exType == BinanceExchangeType.SpotExchange)
                 {
@@ -173,8 +192,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             try
             {
-                foreach (var ws in _wsStreams)
+                foreach (var ws in _wsStreamsSecurityData)
                 {
+                    if(ws.Value == null)
+                    {
+                        continue;
+                    }
                     ws.Value.Opened -= new EventHandler(Connect);
                     ws.Value.Closed -= new EventHandler(Disconnect);
                     ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(WsError);
@@ -183,19 +206,41 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     ws.Value.Close();
                     ws.Value.Dispose();
                 }
+
+                _wsStreamsSecurityData.Clear();
             }
-            catch
+            catch (Exception exception)
             {
-                // ignore
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
 
             try
             {
-                CloseUserDataStream();
+                if (_spotSocketClient != null)
+                {
+                    _spotSocketClient.Opened -= Connect;
+                    _spotSocketClient.Closed -= Disconnect;
+                    _spotSocketClient.Error -= WsError;
+                    _spotSocketClient.MessageReceived -= _spotSocketClient_MessageReceived;
+                    _spotSocketClient.Close();
+                    _spotSocketClient.Dispose();
+                    _spotSocketClient = null;
+                }
+
+                if (_marginSocketClient != null)
+                {
+                    _marginSocketClient.Opened -= Connect;
+                    _marginSocketClient.Closed -= Disconnect;
+                    _marginSocketClient.Error -= WsError;
+                    _marginSocketClient.MessageReceived -= _marginSocketClient_MessageReceived;
+                    _marginSocketClient.Close();
+                    _marginSocketClient.Dispose();
+                    _marginSocketClient = null;
+                }
             }
-            catch
+            catch (Exception exception)
             {
-                // ignore
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
 
             IsConnected = false;
@@ -239,22 +284,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
             _newUserDataMessage.Enqueue(message);
         }
 
-        /// <summary>
-        /// close user data stream
-        /// закрыть поток пользовательских данных
-        /// </summary>
-        private void CloseUserDataStream()
-        {
-            if (_spotListenKey != "")
-            {
-                CreateQuery(BinanceExchangeType.SpotExchange, Method.DELETE, "api/v1/userDataStream", new Dictionary<string, string>() { { "listenKey=", _spotListenKey } }, false);
-            }
-            if (_marginListenKey != "")
-            {
-                CreateQuery(BinanceExchangeType.MarginExchange, Method.DELETE, "sapi/v1/userDataStream", new Dictionary<string, string>() { { "listenKey=", _marginListenKey } }, false);
-            }
-        }
-
         private DateTime _timeStart;
 
         /// <summary>
@@ -266,7 +295,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
             while (true)
             {
                 Thread.Sleep(30000);
-
 
                 if (_spotListenKey == "" &&
                     _marginListenKey == "")
@@ -524,6 +552,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 case 120:
                     needTf = "2h";
                     break;
+            }
+
+            if(needTf == "")
+            {
+                return null; 
             }
 
             string endPoint = "api/v1/klines";
@@ -1463,8 +1496,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 IsConnected = false;
 
-                _wsStreams.Clear();
-
                 if (Disconnected != null)
                 {
                     Disconnected();
@@ -1491,8 +1522,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 IsConnected = false;
 
-                _wsStreams.Clear();
-
                 if (Disconnected != null)
                 {
                     Disconnected();
@@ -1510,7 +1539,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// data stream collection
         /// коллекция потоков данных
         /// </summary>
-        private Dictionary<string, WebSocket> _wsStreams = new Dictionary<string, WebSocket>();
+        private Dictionary<string, WebSocket> _wsStreamsSecurityData = new Dictionary<string, WebSocket>();
 
         /// <summary>
         /// subscribe this security to get depths and trades
@@ -1518,7 +1547,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         /// </summary>
         public void SubscribleTradesAndDepths(Security security)
         {
-            if (!_wsStreams.ContainsKey(security.Name))
+            if (!_wsStreamsSecurityData.ContainsKey(security.Name))
             {
                 string urlStr = "wss://stream.binance.com:9443/stream?streams="
                                 + security.Name.ToLower()
@@ -1537,7 +1566,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 _wsClient.Open();
 
-                _wsStreams.Add(security.Name, _wsClient);
+                _wsStreamsSecurityData.Add(security.Name, _wsClient);
             }
 
         }
@@ -1627,6 +1656,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = "Binance";
 
+                                    if(order.o == "MARKET")
+                                    {
+                                        newOrder.TypeOrder = OrderPriceType.Market;
+                                    }
+                                    else
+                                    {
+                                        newOrder.TypeOrder = OrderPriceType.Limit;
+                                    }
+
                                     if (MyOrderEvent != null)
                                     {
                                         MyOrderEvent(newOrder);
@@ -1648,6 +1686,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = "Binance";
 
+                                    if (order.o == "MARKET")
+                                    {
+                                        newOrder.TypeOrder = OrderPriceType.Market;
+                                    }
+                                    else
+                                    {
+                                        newOrder.TypeOrder = OrderPriceType.Limit;
+                                    }
+
                                     if (MyOrderEvent != null)
                                     {
                                         MyOrderEvent(newOrder);
@@ -1666,6 +1713,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = "Binance";
+
+                                    if (order.o == "MARKET")
+                                    {
+                                        newOrder.TypeOrder = OrderPriceType.Market;
+                                    }
+                                    else
+                                    {
+                                        newOrder.TypeOrder = OrderPriceType.Limit;
+                                    }
 
                                     if (MyOrderEvent != null)
                                     {
@@ -1696,6 +1752,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                         newOrder.Price = order.p.ToDecimal();
                                         newOrder.ServerType = ServerType.Binance;
                                         newOrder.PortfolioNumber = "Binance";
+
+                                        if (order.o == "MARKET")
+                                        {
+                                            newOrder.TypeOrder = OrderPriceType.Market;
+                                        }
+                                        else
+                                        {
+                                            newOrder.TypeOrder = OrderPriceType.Limit;
+                                        }
 
                                         if (MyOrderEvent != null)
                                         {
@@ -1759,6 +1824,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                     newOrder.Price = order.p.ToDecimal();
                                     newOrder.ServerType = ServerType.Binance;
                                     newOrder.PortfolioNumber = "Binance";
+
+                                    if (order.o == "MARKET")
+                                    {
+                                        newOrder.TypeOrder = OrderPriceType.Market;
+                                    }
+                                    else
+                                    {
+                                        newOrder.TypeOrder = OrderPriceType.Limit;
+                                    }
 
                                     if (MyOrderEvent != null)
                                     {

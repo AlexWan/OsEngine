@@ -60,7 +60,7 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Images\OsLogo.ico</ApplicationIcon>
+    <ApplicationIcon>OsLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="cgate_net64, Version=5.10.0.36987, Culture=neutral, processorArchitecture=AMD64">
@@ -955,8 +955,21 @@
       <DependentUpon>PositionOpenUi2.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\AutoTestBots\ServerTests\AServerTester.cs" />
-    <Compile Include="Robots\AutoTestBots\ServerTests\Data_1.cs" />
-    <Compile Include="Robots\AutoTestBots\ServerTests\Data_2.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_1_Status.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_2_Spam_Subscr.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_3_SubscrAllSec.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_4_Stress_Memory.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_5_Validation_Candles.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Data_1_Integrity.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Data_2_Validation_Candles.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Data_3_Validation_Trades.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Data_4_Stress_Candles.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Data_5_Stress_Trades.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_1_FakeOrders.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_2_LimitsExecute.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_3_MarketOrders.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_4_LimitCancel.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Portfolio_1_Validation.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_2_MarketDepth.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_1_Securities.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotCandlesComparison.cs" />
@@ -1796,6 +1809,9 @@
     <Resource Include="Images\Support\No.png" />
     <Resource Include="Images\Support\Prime.png" />
     <Resource Include="Images\Support\Standart.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="OsLogo.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

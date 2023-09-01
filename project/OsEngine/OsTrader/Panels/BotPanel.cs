@@ -1203,6 +1203,7 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         BotTabSimple bot = (BotTabSimple)_botTabs[i];
                         bot.CloseAllAtMarket();
+                        bot.EventsIsOn = false;
                         bot.Portfolio = null;
 
                         if (bot.Connector.ServerType == ServerType.Tester)
