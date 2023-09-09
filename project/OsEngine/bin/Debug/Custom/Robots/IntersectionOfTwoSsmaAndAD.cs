@@ -20,9 +20,9 @@ Buy: fast Ssma above slow Ssma and AD rising.
 Sell: fast Ssma below slow Ssma and AD falling.
 
 Exit:
-From purchase: fast Ssma below slow Ssma;
+From buy: fast Ssma below slow Ssma;
 
-From sale: fast Ssma is higher than slow Ssma.
+From sell: fast Ssma is higher than slow Ssma.
 
  */
 
@@ -105,8 +105,8 @@ namespace OsEngine.Robots.AO
                 "Buy: fast Ssma above slow Ssma and AD rising. " +
                 "Sell: fast Ssma below slow Ssma and AD falling. " +
                 "Exit: " +
-                "From purchase: fast Ssma below slow Ssma; " +
-                "From sale: fast Ssma is higher than slow Ssma.";
+                "From buy: fast Ssma below slow Ssma; " +
+                "From sell: fast Ssma is higher than slow Ssma.";
         }
 
         // Indicator Update event

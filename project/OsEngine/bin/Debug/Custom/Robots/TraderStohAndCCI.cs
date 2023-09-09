@@ -16,7 +16,7 @@ Buy:
 1. The CCI line is in the range between levels 100 and -100, and is directed upwards.
 2. Stochastic crosses level 20 from bottom to top.
 
-Sale:
+Sell:
 1. The CCI line is in the range between levels 100 and -100, and is directed downwards.
 2. Stochastic crosses the level 80 from top to bottom.
 
@@ -109,7 +109,7 @@ namespace OsEngine.Robots.AO
                 "Buy: " +
                 "1. The CCI line is in the range between levels 100 and -100, and is directed upwards. " +
                 "2. Stochastic crosses level 20 from bottom to top. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The CCI line is in the range between levels 100 and -100, and is directed downwards. " +
                 "2. Stochastic crosses the level 80 from top to bottom. " +
                 "Buy exit: trailing stop in % of the line of the candle on which you entered. " +

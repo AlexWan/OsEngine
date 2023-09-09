@@ -16,7 +16,7 @@ Buy:
 2. Bulls Power columns must be above 0.
 3. The sum of the last values of both indicators should be greater than a certain value.
 
-Sale:
+Sell:
 1. Bulls Power columns must be below 0.
 2. Bears Power columns must be below 0.
 3. The sum of the last values of both indicators should be less than a certain value with a minus sign.
@@ -99,7 +99,7 @@ namespace OsEngine.Robots.My_bots
                 " 1.Bears Power columns must be higher than 0." +
                 "2.Bulls Power columns must be above 0." +
                 "3.The sum of the last values of both indicators should be greater than a certain value." +
-                "Sale:" +
+                "Sell:" +
                 "1.Bulls Power columns must be below 0." +
                 "2.Bears Power columns must be below 0." +
                 "3.The sum of the last values of both indicators should be less than a certain value with a minus sign." +

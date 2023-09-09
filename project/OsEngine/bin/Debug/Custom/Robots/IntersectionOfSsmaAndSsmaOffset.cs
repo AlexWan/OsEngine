@@ -14,7 +14,7 @@ Trend robot at the Intersection of Ssma and  Ssma offset.
 
 Buy: Fast Ssma is higher than slow Ssma.
 
-Sale: Fast Ssma is lower than slow Ssma.
+Sell: Fast Ssma is lower than slow Ssma.
 
 Exit: on the opposite signal.
 */
@@ -89,7 +89,7 @@ namespace OsEngine.Robots.MyRobots
 
             Description = "Trend robot at the Intersection of Ssma and  Ssma offset. " +
                 "Buy: Fast Ssma is higher than slow Ssma. " +
-                "Sale: Fast Ssma is lower than slow Ssma. " +
+                "Sell: Fast Ssma is lower than slow Ssma. " +
                 "Exit: on the opposite signal.";
 
         }

@@ -15,11 +15,11 @@ The trend robot on intersection Vwma with price
 
 Buy: the price of the instrument is above Vwma
 
-Sale: the price of the instrument is below Vwma
+Sell: the price of the instrument is below Vwma
 
-Exit from the purchase: trailing stop in % of the loy of the candle on which you entered.
+Exit from buy: trailing stop in % of the loy of the candle on which you entered.
 
-Exit from sale: trailing stop in % of the high of the candle on which you entered.
+Exit from sell: trailing stop in % of the high of the candle on which you entered.
 
 */
 
@@ -83,9 +83,9 @@ namespace OsEngine.Robots.Vwma
 
             Description = "The trend robot on intersection Vwma with price " +
                 "Buy: the price of the instrument is above Vwma " +
-                "Sale: the price of the instrument is below Vwma " +
-                "Exit from the purchase: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sale: trailing stop in % of the high of the candle on which you entered.";
+                "Sell: the price of the instrument is below Vwma " +
+                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
+                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
         }
 
         // Indicator Update event

@@ -20,7 +20,7 @@ Buy:
 1. The value of the Ease of movement indicator crosses the level 0 from the bottom up.
 2. Candle closed above Sma.
 
-Sale:
+Sell:
 1. The value of the Ease of movement indicator crosses level 0 from top to bottom.
 2. Candle closed below Sma.
 
@@ -98,7 +98,7 @@ namespace OsEngine.Robots.AO
                 "Buy: " +
                 "1. The value of the Ease of movement indicator crosses the level 0 from the bottom up. " +
                 "2. Candle closed above Sma. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The value of the Ease of movement indicator crosses level 0 from top to bottom. " +
                 "2. Candle closed below Sma. " +
                 "Exit: on the opposite signal.";

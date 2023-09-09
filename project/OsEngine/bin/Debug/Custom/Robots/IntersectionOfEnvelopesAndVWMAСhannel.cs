@@ -14,7 +14,7 @@ The trend robot on Envelopes and VWMA channel.
 Buy: 
 The lower line of Envelopes is above the upper line of the Vwma channel.
 
-Sale:
+Sell:
 The upper line Envelopes below the lower line of the Vwma channel.
 
 Exit from the buy: 
@@ -130,7 +130,7 @@ namespace OsEngine.Robots.My_bots
             Description = "The trend robot on Envelopes and VWMA channel." +
                 "Buy:" +
                 " The lower line of Envelopes is above the upper line of the Vwma channel." +
-                "Sale:" +
+                "Sell:" +
                 "The upper line Envelopes below the lower line of the Vwma channel." +
                 "Exit from the buy: " +
                 "The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred" +

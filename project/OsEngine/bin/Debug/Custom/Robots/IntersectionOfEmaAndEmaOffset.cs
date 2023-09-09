@@ -14,11 +14,11 @@ Trend robot at the Intersection of Ema and  Ema offset.
 
 Buy: Fast Ema is higher than slow Ema.
 
-Sale: Fast Ema is lower than slow Ema.
+Sell: Fast Ema is lower than slow Ema.
 
 Exit from the buy: trailing stop in % of the loy of the candle on which you entered.
 
-Exit from sale: trailing stop in % of the high of the candle on which you entered.
+Exit from sell: trailing stop in % of the high of the candle on which you entered.
 */
 namespace OsEngine.Robots.MyRobots
 {
@@ -95,9 +95,9 @@ namespace OsEngine.Robots.MyRobots
 
             Description = "Trend robot at the Intersection of Ema and  Ema offset. " +
                 "Buy: Fast Ema is higher than slow Ema. " +
-                "Sale: Fast Ema is lower than slow Ema. " +
+                "Sell: Fast Ema is lower than slow Ema. " +
                 "Exit from the buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sale: trailing stop in % of the high of the candle on which you entered.";
+                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
 
         }
 

@@ -14,7 +14,7 @@ Trend robot at the intersection of two exponential averages
 
 Buy: the fast Ema is higher than the slow Ema and the value of the last candle is greater than the fast Ema.
 
-Sale: The fast Ema is lower than the slow Ema and the value of the last candle is less than the slow Ema.
+Sell: The fast Ema is lower than the slow Ema and the value of the last candle is less than the slow Ema.
 
 Exit: stop and profit in % of the entry price.
 */
@@ -94,7 +94,7 @@ namespace OsEngine.Robots.MyRobots
 
             Description = "Trend robot at the intersection of two exponential averages " +
                 "Buy: the fast Ema is higher than the slow Ema and the value of the last candle is greater than the fast Ema. " +
-                "Sale: The fast Ema is lower than the slow Ema and the value of the last candle is less than the slow Ema. " +
+                "Sell: The fast Ema is lower than the slow Ema and the value of the last candle is less than the slow Ema. " +
                 "Exit: stop and profit in % of the entry price.";
             
         }

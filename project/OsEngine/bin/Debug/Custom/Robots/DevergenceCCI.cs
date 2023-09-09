@@ -19,7 +19,7 @@ The trend robot on strategy DevergenceCCI.
 Buy:
 1. The lows on the chart are decreasing, while the indicators are growing.
 
-Sale:
+Sell:
 1. highs on the chart rise, and on the indicator fall.
 
 Exit: stop and profit in % of the entry price.
@@ -97,7 +97,7 @@ namespace OsEngine.Robots.AO
             Description = "The trend robot on strategy DevergenceCCI. " +
                 "Buy: " +
                 "1. The lows on the chart are decreasing, while the indicators are growing. " +
-                "Sale: " +
+                "Sell: " +
                 "1. highs on the chart rise, and on the indicator fall. " +
                 "Exit: stop and profit in % of the entry price.";
         }

@@ -23,9 +23,9 @@ Sell:
 All Smas fall (when all five moving averages are less than they were one bar ago) - 
 half the difference between the high and low of the previous bar.
 
-Exit from the purchase: Sma1, Sma2 and Sma3 are falling.
+Exit from buy: Sma1, Sma2 and Sma3 are falling.
 
-Exit from sale: Sma1, Sma2 and Sma3 are growing.
+Exit from sell: Sma1, Sma2 and Sma3 are growing.
 
 */
 
@@ -140,8 +140,8 @@ namespace OsEngine.Robots.SMA
                 "Sell:" +
                 "All Smas fall (when all five moving averages are less than they were one bar ago) - " +
                 "half the difference between the high and low of the previous bar. " +
-                "Exit from the purchase: Sma1, Sma2 and Sma3 are falling. " +
-                "Exit from sale: Sma1, Sma2 and Sma3 are growing.";
+                "Exit from buy: Sma1, Sma2 and Sma3 are falling. " +
+                "Exit from sell: Sma1, Sma2 and Sma3 are growing.";
         }
 
         // Indicator Update event

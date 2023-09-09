@@ -14,7 +14,7 @@ Trend robot at the intersection of three smoothed averages.
 
 Buy: Fast Ssma is higher than slow Ssma.
 
-Sale: Fast Ssma is lower than slow Ssma.
+Sell: Fast Ssma is lower than slow Ssma.
 
 Exit: on the opposite signal.
 */
@@ -96,7 +96,7 @@ Exit: on the opposite signal.
 
         Description = "Trend robot at the intersection of three smoothed averages. " +
             "Buy: Fast Ssma is higher than slow Ssma. " +
-            "Sale: Fast Ssma is lower than slow Ssma. " +
+            "Sell: Fast Ssma is lower than slow Ssma. " +
             "Exit: on the opposite signal.";
     }
 

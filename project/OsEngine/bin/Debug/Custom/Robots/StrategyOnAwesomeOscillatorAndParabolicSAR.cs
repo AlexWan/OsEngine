@@ -17,7 +17,7 @@ Buy:
 1. Price is higher than Parabolic
 2. AO above 0.
 
-Sale:
+Sell:
 1. Price below Parabolic
 2. AO below 0.
 
@@ -101,7 +101,7 @@ namespace OsEngine.Robots.Aligator
                 "Buy: " +
                 "1. Price is higher than Parabolic " +
                 "2. AO above 0. " +
-                "Sale: " +
+                "Sell: " +
                 "1. Price below Parabolic " +
                 "2. AO below 0. " +
                 "Exit: on the return signal of the parabolic";

@@ -20,15 +20,15 @@ Buy:
  3. AO growing;
  4. Macd > 0.
 
-Sale:
+Sell:
  1. EmaFastLoc below EmaSlowLoc;
  2. EmaFastGlob below EmaSlowGlob;
  3. AO falling;
  4. Macd < 0.
 
-Exit from the buy:trailing stop in % of the loy of the candle on which you entered.
+Exit from buy:trailing stop in % of the loy of the candle on which you entered.
 
-Exit from sale: trailing stop in % of the high of the candle on which you entered.
+Exit from sell: trailing stop in % of the high of the candle on which you entered.
  
  */
 
@@ -162,13 +162,13 @@ namespace OsEngine.Robots.AO
                 " 2. EmaFastGlob above EmaSlowGlob; " +
                 " 3. AO growing; " +
                 " 4. Macd > 0. " +
-                "Sale: " +
+                "Sell: " +
                 " 1. EmaFastLoc below EmaSlowLoc; " +
                 " 2. EmaFastGlob below EmaSlowGlob; " +
                 " 3. AO falling; " +
                 " 4. Macd < 0. " +
-                "Exit from the buy:trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sale: trailing stop in % of the high of the candle on which you entered.";
+                "Exit from buy:trailing stop in % of the loy of the candle on which you entered. " +
+                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
         }
 
         // Indicator Update event

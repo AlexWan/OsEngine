@@ -22,7 +22,7 @@ Buy:
 1. The value of the CMO indicator crosses the level 0 from the bottom up.
 2. fast line (lips) above the middle line (teeth), middle line above the slow line (jaw).
 
-Sale:
+Sell:
 1. The value of the CMO indicator crosses level 0 from top to bottom.
 2. fast line (lips) below the midline (teeth), middle line below the slow one (jaw).
 
@@ -115,7 +115,7 @@ namespace OsEngine.Robots.CMO
                 "Buy: " +
                 "1. The value of the CMO indicator crosses the level 0 from the bottom up. " +
                 "2. fast line (lips) above the middle line (teeth), middle line above the slow line (jaw). " +
-                "Sale: " +
+                "Sell: " +
                 "1. The value of the CMO indicator crosses level 0 from top to bottom. " +
                 "2. fast line (lips) below the midline (teeth), middle line below the slow one (jaw). " +
                 "Buy exit: trailing stop in % of the line of the candle on which you entered. " +

@@ -14,20 +14,27 @@ using OsEngine.Logging;
 /* Description
 trading robot for osengine
 
-The trend robot on channel Vwma and ATR.
+The trend robot on Break Fractal, Parabolic And Stoh.
 
-Buy: price above top Vwma + MultAtr * Atr.
+Buy:
+1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up.
+ 2. Stochastic is directed up and below the 80 level.
+ 3. The price is higher than the last ascending fractal.
 
-Sell: price below lower Vwma - MultAtr * Atr.
+Sell:
+ 1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom.
+ 2. Stochastic is directed down and above the level of 20.
+ 3. the price is lower than the last descending fractal.
 
-Exit: opposite channel boundary.
+Exit: by the opposite signal of the parabolic.
+
  */
 
 
 namespace OsEngine.Robots.AO
 {
-    [Bot("BreakChannelVwmaATR")] // We create an attribute so that we don't write anything to the BotFactory
-    public class BreakChannelVwmaATR : BotPanel
+    [Bot("BreakFractalParabolicAndStoh")] // We create an attribute so that we don't write anything to the BotFactory
+    public class BreakFractalParabolicAndStoh : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -40,21 +47,29 @@ namespace OsEngine.Robots.AO
         private StrategyParameterTimeOfDay EndTradeTime;
 
         // Indicator setting 
-        private StrategyParameterInt PeriodVwma;
-        private StrategyParameterInt LengthAtr;
-        private StrategyParameterDecimal MultAtr;
+        private StrategyParameterDecimal Step;
+        private StrategyParameterDecimal MaxStep;
+        private StrategyParameterInt StochPeriod1;
+        private StrategyParameterInt StochPeriod2;
+        private StrategyParameterInt StochPeriod3;
 
         // Indicator
-        Aindicator _VwmaHigh;
-        Aindicator _VwmaLow;
-        Aindicator _ATR;
+        Aindicator _Parabolic;
+        Aindicator _Fractal;
+        Aindicator _Stoh;
 
         // The last value of the indicator
-        private decimal _lastATR;
-        private decimal _lastVwmaHigh;
-        private decimal _lastVwmaLow;
+        private decimal _lastParabolic;
+        private decimal _lastUpFract;
+        private decimal _lastDownFract;
+        private decimal _lastIndexDown;
+        private decimal _lastIndexUp;
+        private decimal _lastStoh;
 
-        public BreakChannelVwmaATR(string name, StartProgram startProgram) : base(name, startProgram)
+        // The prev value of the indicator
+        private decimal _prevStoh;
+
+        public BreakFractalParabolicAndStoh(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -68,59 +83,67 @@ namespace OsEngine.Robots.AO
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator setting
-            PeriodVwma = CreateParameter("Period Vwma", 21, 7, 48, 7, "Indicator");
-            LengthAtr = CreateParameter("Length ATR", 14, 7, 48, 7, "Indicator");
-            MultAtr = CreateParameter("Mult ATR", 0.5m, 0.1m, 2, 0.1m, "Indicator");
+            Step = CreateParameter("Step", 0.1m, 0.01m, 0.1m, 0.01m, "Indicator");
+            MaxStep = CreateParameter("Max Step", 0.1m, 0.01m, 0.1m, 0.01m, "Indicator");
+            StochPeriod1 = CreateParameter("Stoch Period 1", 5, 3, 40, 1, "Indicator");
+            StochPeriod2 = CreateParameter("Stoch Period 2", 3, 2, 40, 1, "Indicator");
+            StochPeriod3 = CreateParameter("Stoch Period 3", 3, 2, 40, 1, "Indicator");
 
-            // Create indicator VwmaHigh
-            _VwmaHigh = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma High", false);
-            _VwmaHigh = (Aindicator)_tab.CreateCandleIndicator(_VwmaHigh, "Prime");
-            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
-            ((IndicatorParameterString)_VwmaHigh.Parameters[1]).ValueString = "High";
-            _VwmaHigh.Save();
+            // Create indicator Parabolic
+            _Parabolic = IndicatorsFactory.CreateIndicatorByName("ParabolicSAR", name + "Par", false);
+            _Parabolic = (Aindicator)_tab.CreateCandleIndicator(_Parabolic, "Prime");
+            ((IndicatorParameterDecimal)_Parabolic.Parameters[0]).ValueDecimal = Step.ValueDecimal;
+            ((IndicatorParameterDecimal)_Parabolic.Parameters[1]).ValueDecimal = MaxStep.ValueDecimal;
+            _Parabolic.Save();
 
-            // Create indicator VwmaLow
-            _VwmaLow = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma Low", false);
-            _VwmaLow = (Aindicator)_tab.CreateCandleIndicator(_VwmaLow, "Prime");
-            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
-            ((IndicatorParameterString)_VwmaLow.Parameters[1]).ValueString = "Low";
-            _VwmaLow.Save();
+            // Create indicator Fractal
+            _Fractal = IndicatorsFactory.CreateIndicatorByName("Fractal", name + "Fractal", false);
+            _Fractal = (Aindicator)_tab.CreateCandleIndicator(_Fractal, "Prime");
+            _Fractal.Save();
 
-            // Create indicator ATR
-            _ATR = IndicatorsFactory.CreateIndicatorByName("ATR", name + "Atr", false);
-            _ATR = (Aindicator)_tab.CreateCandleIndicator(_ATR, "NewArea");
-            ((IndicatorParameterInt)_ATR.Parameters[0]).ValueInt = LengthAtr.ValueInt;
-            _ATR.Save();
+            // Create indicator Stoh
+            _Stoh = IndicatorsFactory.CreateIndicatorByName("Stochastic", name + "Stoh", false);
+            _Stoh = (Aindicator)_tab.CreateCandleIndicator(_Stoh, "NewArea0");
+            ((IndicatorParameterInt)_Stoh.Parameters[0]).ValueInt = StochPeriod1.ValueInt;
+            ((IndicatorParameterInt)_Stoh.Parameters[1]).ValueInt = StochPeriod1.ValueInt;
+            ((IndicatorParameterInt)_Stoh.Parameters[2]).ValueInt = StochPeriod1.ValueInt;
+            _Stoh.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += BreakChannelVwmaATR_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += BreakFractalParabolicAndStoh_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on channel Vwma and ATR. " +
-                "Buy: price above top Vwma + MultAtr * Atr. " +
-                "Sell: price below lower Vwma - MultAtr * Atr. " +
-                "Exit: opposite channel boundary.";
+            Description = "The trend robot on Break Fractal, Parabolic And Stoh. " +
+                "Buy: " +
+                "1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up. " +
+                "2. Stochastic is directed up and below the 80 level. " +
+                "3. The price is higher than the last ascending fractal. " +
+                "Sell: " +
+                "1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. " +
+                "2. Stochastic is directed down and above the level of 20. " +
+                "3. the price is lower than the last descending fractal. " +
+                "Exit: by the opposite signal of the parabolic.";
         }
 
-        private void BreakChannelVwmaATR_ParametrsChangeByUser()
+        private void BreakFractalParabolicAndStoh_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
-            _VwmaHigh.Save();
-            _VwmaHigh.Reload();
-            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
-            _VwmaLow.Save();
-            _VwmaLow.Reload();
-            ((IndicatorParameterInt)_ATR.Parameters[0]).ValueInt = LengthAtr.ValueInt;
-            _ATR.Save();
-            _ATR.Reload();
+            ((IndicatorParameterDecimal)_Parabolic.Parameters[0]).ValueDecimal = Step.ValueDecimal;
+            ((IndicatorParameterDecimal)_Parabolic.Parameters[1]).ValueDecimal = MaxStep.ValueDecimal;
+            _Parabolic.Save();
+            _Parabolic.Reload();
+            ((IndicatorParameterInt)_Stoh.Parameters[0]).ValueInt = StochPeriod1.ValueInt;
+            ((IndicatorParameterInt)_Stoh.Parameters[1]).ValueInt = StochPeriod1.ValueInt;
+            ((IndicatorParameterInt)_Stoh.Parameters[2]).ValueInt = StochPeriod1.ValueInt;
+            _Stoh.Save();
+            _Stoh.Reload();
         }
 
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "BreakChannelVwmaATR";
+            return "BreakFractalParabolicAndStoh";
         }
         public override void ShowIndividualSettingsDialog()
         {
@@ -137,8 +160,11 @@ namespace OsEngine.Robots.AO
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthAtr.ValueInt ||
-                candles.Count < PeriodVwma.ValueInt)
+            if (candles.Count < StochPeriod1.ValueInt ||
+                candles.Count < StochPeriod2.ValueInt ||
+                candles.Count < StochPeriod3.ValueInt ||
+                candles.Count < Step.ValueDecimal ||
+                candles.Count < MaxStep.ValueDecimal)
             {
                 return;
             }
@@ -148,6 +174,26 @@ namespace OsEngine.Robots.AO
                 EndTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
+            }
+
+            for (int i = _Fractal.DataSeries[1].Values.Count - 1; i > -1; i--)
+            {
+                if (_Fractal.DataSeries[1].Values[i] != 0)
+                {
+                    _lastUpFract = _Fractal.DataSeries[1].Values[i];
+                    _lastIndexUp = i;
+                    break;
+                }
+            }
+
+            for (int i = _Fractal.DataSeries[0].Values.Count - 1; i > -1; i--)
+            {
+                if (_Fractal.DataSeries[0].Values[i] != 0)
+                {
+                    _lastDownFract = _Fractal.DataSeries[0].Values[i];
+                    _lastIndexDown = i;
+                    break;
+                }
             }
 
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -174,9 +220,11 @@ namespace OsEngine.Robots.AO
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            _lastVwmaHigh = _VwmaHigh.DataSeries[0].Last;
-            _lastVwmaLow = _VwmaLow.DataSeries[0].Last;
-            _lastATR = _ATR.DataSeries[0].Last;
+            _lastParabolic = _Parabolic.DataSeries[0].Last;
+            _lastStoh = _Stoh.DataSeries[0].Last;
+
+            // The prev value of the indicator
+            _prevStoh = _Stoh.DataSeries[0].Values[_Stoh.DataSeries[0].Values.Count - 2];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -190,7 +238,7 @@ namespace OsEngine.Robots.AO
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (lastPrice > _lastVwmaHigh + MultAtr.ValueDecimal * _lastATR)
+                    if (_lastParabolic < lastPrice && _prevStoh < _lastStoh && _lastStoh < 80 && _lastUpFract < lastPrice)
                     {
                         _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
                     }
@@ -199,7 +247,7 @@ namespace OsEngine.Robots.AO
                 // Short
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (lastPrice < _lastVwmaHigh - MultAtr.ValueDecimal * _lastATR)
+                    if (_lastParabolic > lastPrice && _prevStoh > _lastStoh && _lastStoh > 20 && _lastDownFract > lastPrice)
                     {
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
@@ -214,10 +262,7 @@ namespace OsEngine.Robots.AO
             Position pos = openPositions[0];
 
             // The last value of the indicator
-            _lastVwmaHigh = _VwmaHigh.DataSeries[0].Last;
-            _lastVwmaLow = _VwmaLow.DataSeries[0].Last;
-            _lastATR = _ATR.DataSeries[0].Last;
-
+            _lastParabolic = _Parabolic.DataSeries[0].Last;
 
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
@@ -234,19 +279,18 @@ namespace OsEngine.Robots.AO
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    if (lastPrice < _lastVwmaHigh - MultAtr.ValueDecimal * _lastATR)
+                    if (_lastParabolic > lastPrice)
                     {
                         _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
                 {
-                    if (lastPrice > _lastVwmaHigh + MultAtr.ValueDecimal * _lastATR)
+                    if (_lastParabolic < lastPrice)
                     {
                         _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
                     }
                 }
-
             }
         }
 

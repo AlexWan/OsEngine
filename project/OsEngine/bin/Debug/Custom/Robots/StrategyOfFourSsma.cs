@@ -16,7 +16,7 @@ Buy:
 1. The price is above the slow channel (above the upper line) and above the fast (upper line);
 2. The bottom line of the fast channel is higher than the top line of the slow channel.
 
-Sale:
+Sell:
 1. The price is below the slow channel (below the lower line) and below the fast channel (below the lower line);
 2. The upper line of the fast channel is lower than the lower line of the slow channel.
 
@@ -126,7 +126,7 @@ namespace OsEngine.Robots.MyRobots
                 "Buy: " +
                 "1. The price is above the slow channel (above the upper line) and above the fast (upper line); " +
                 "2. The bottom line of the fast channel is higher than the top line of the slow channel. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The price is below the slow channel (below the lower line) and below the fast channel (below the lower line); " +
                 "2. The upper line of the fast channel is lower than the lower line of the slow channel. " +
                 "Exit: stop and profit.";

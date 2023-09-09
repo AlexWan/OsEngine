@@ -21,14 +21,14 @@ Buy:
 1. Price closes above Ema;
 2. CCI value above +100.
 
-Sale:
+Sell:
 1. Price closes below Ema;
 2. CCI value below -100.
 
-Exiting a long position: Trailing stop is placed at the minimum for the period specified for
+Exit from buy: Trailing stop is placed at the minimum for the period specified for
 the trailing stop and is transferred (sliding) to new price lows, also for the specified period.
 
-Exit from a short position: Trailing stop is placed on the maximum for the period specified 
+Exit from sell: Trailing stop is placed on the maximum for the period specified 
 for the trailing stop and is transferred (sliding) to a new price maximum, also for the specified period.
 
  */
@@ -106,12 +106,12 @@ namespace OsEngine.Robots.AO
                 "Buy: " +
                 "1. Price closes above Ema; " +
                 "2. CCI value above +100. " +
-                "Sale: " +
+                "Sell: " +
                 "1. Price closes below Ema; " +
                 "2. CCI value below -100. " +
-                "Exiting a long position: Trailing stop is placed at the minimum for the period specified for " +
+                "Exit from buy: Trailing stop is placed at the minimum for the period specified for " +
                 "the trailing stop and is transferred (sliding) to new price lows, also for the specified period. " +
-                "Exit from a short position: Trailing stop is placed on the maximum for the period specified  " +
+                "Exit from sell: Trailing stop is placed on the maximum for the period specified  " +
                 "for the trailing stop and is transferred (sliding) to a new price maximum, also for the specified period.";
         }
 

@@ -22,15 +22,15 @@ Buy:
 That is, when the price returned to the channel (closed above the lower Bollinger line), the Volume indicator should be below its highs, and
 Eom and OBV should be above their lows for the CandlesCountLow period.
 
-Sale:
+Sell:
 1. During the CandlesCountHigh period, the high of the candle was above the upper Bollinger line, then the candle closed below the upper line.
 2. During the same period, there was a maximum surge in volumes (Volume), as well as the values of the Eom and OBV indicators were maximum.
 That is, when the price returned to the channel (closed below the upper Bollinger line), the Volume, Eom and OBV indicators should be below 
 their highs for the CandlesCountHigh period.
 
-Exit from a long position: The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred, (slides), to new price lows, also for the specified period.
+Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred, (slides), to new price lows, also for the specified period.
 
-Exit from the short position: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.
+Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.
 
  */
 
@@ -135,13 +135,13 @@ namespace OsEngine.Robots.AO
                 "2. During the same period, there was a maximum surge in volumes (Volume), as well as the values of the Eom and OBV indicators were minimal. " +
                 "That is, when the price returned to the channel (closed above the lower Bollinger line), the Volume indicator should be below its highs, and " +
                 "Eom and OBV should be above their lows for the CandlesCountLow period. " +
-                "Sale: " +
+                "Sell: " +
                 "1. During the CandlesCountHigh period, the high of the candle was above the upper Bollinger line, then the candle closed below the upper line. " +
                 "2. During the same period, there was a maximum surge in volumes (Volume), as well as the values of the Eom and OBV indicators were maximum. " +
                 "That is, when the price returned to the channel (closed below the upper Bollinger line), the Volume, Eom and OBV indicators should be below  " +
                 "their highs for the CandlesCountHigh period. " +
-                "Exit from a long position: The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred, (slides), to new price lows, also for the specified period. " +
-                "Exit from the short position: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+                "Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred, (slides), to new price lows, also for the specified period. " +
+                "Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
         }
 
         private void BreakChannelVwmaATR_ParametrsChangeByUser()

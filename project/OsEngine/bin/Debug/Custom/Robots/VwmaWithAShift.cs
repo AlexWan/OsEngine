@@ -15,7 +15,7 @@ The trend robot on intersection of two Vwma with a shift
 
 Buy: Fast Vwma is higher than slow Vwma.
 
-Sale: Fast Vwma is lower than slow Vwma.
+Sell: Fast Vwma is lower than slow Vwma.
 
 Exit: stop and profit in % of the entry price.
 
@@ -97,7 +97,7 @@ namespace OsEngine.Robots.Vwma
 
             Description = "The trend robot on intersection of two Vwma with a shift " +
                 "Buy: Fast Vwma is higher than slow Vwma. " +
-                "Sale: Fast Vwma is lower than slow Vwma. " +
+                "Sell: Fast Vwma is lower than slow Vwma. " +
                 "Exit: stop and profit in % of the entry price.";
         }
 

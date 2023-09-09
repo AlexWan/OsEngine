@@ -20,7 +20,7 @@ Buy:
 1. The price is higher than ParabolicSar.
 2. The upper Bollinger line is above the upper Envelopes line.
 
-Sale:
+Sell:
 1. The price is below ParabolicSar.
 2. The lower Bollinger line is below the lower Envelopes line.
 
@@ -116,7 +116,7 @@ namespace OsEngine.Robots.AO
                 "Buy: " +
                 "1. The price is higher than ParabolicSar. " +
                 "2. The upper Bollinger line is above the upper Envelopes line. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The price is below ParabolicSar. " +
                 "2. The lower Bollinger line is below the lower Envelopes line. " +
                 "Exit: at the reverse intersection of ParabolicSar.";
