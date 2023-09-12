@@ -1647,7 +1647,7 @@ namespace OsEngine.OsData
                 {
                     for(int i = 0;i < extTrades.Count;i++)
                     {
-                        writer.WriteLine(extTrades[i].ToString());
+                        writer.WriteLine(extTrades[i].GetSaveString());
                     }
                 }
 
