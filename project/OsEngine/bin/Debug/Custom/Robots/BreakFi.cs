@@ -14,20 +14,21 @@ using OsEngine.Logging;
 /* Description
 trading robot for osengine
 
-The trend robot on channel Vwma and ATR.
+The trend robot on Break Force Index.
 
-Buy: price above top Vwma + MultAtr * Atr.
+Buy: the values of the force index indicator crosses the level 0 from bottom to top.
 
-Sell: price below lower Vwma - MultAtr * Atr.
+Sell: The values of the force index indicator crosses the level 0 from top to bottom.
 
-Exit: opposite channel boundary.
+Exit: on the opposite signal.
+
  */
 
 
 namespace OsEngine.Robots.AO
 {
-    [Bot("BreakChannelVwmaATR")] // We create an attribute so that we don't write anything to the BotFactory
-    public class BreakChannelVwmaATR : BotPanel
+    [Bot("BreakFi")] // We create an attribute so that we don't write anything to the BotFactory
+    public class BreakFi : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -40,21 +41,18 @@ namespace OsEngine.Robots.AO
         private StrategyParameterTimeOfDay EndTradeTime;
 
         // Indicator setting 
-        private StrategyParameterInt PeriodVwma;
-        private StrategyParameterInt LengthAtr;
-        private StrategyParameterDecimal MultAtr;
+        private StrategyParameterInt LengthFI;
 
         // Indicator
-        Aindicator _VwmaHigh;
-        Aindicator _VwmaLow;
-        Aindicator _ATR;
+        Aindicator _FI;
 
         // The last value of the indicator
-        private decimal _lastATR;
-        private decimal _lastVwmaHigh;
-        private decimal _lastVwmaLow;
+        private decimal _lastFI;
 
-        public BreakChannelVwmaATR(string name, StartProgram startProgram) : base(name, startProgram)
+        // The prev value of the indicator
+        private decimal _prevFI;
+
+        public BreakFi(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -68,59 +66,37 @@ namespace OsEngine.Robots.AO
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator setting
-            PeriodVwma = CreateParameter("Period Vwma", 21, 7, 48, 7, "Indicator");
-            LengthAtr = CreateParameter("Length ATR", 14, 7, 48, 7, "Indicator");
-            MultAtr = CreateParameter("Mult ATR", 0.5m, 0.1m, 2, 0.1m, "Indicator");
+            LengthFI = CreateParameter("FI Length", 21, 7, 48, 7, "Indicator");
 
-            // Create indicator VwmaHigh
-            _VwmaHigh = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma High", false);
-            _VwmaHigh = (Aindicator)_tab.CreateCandleIndicator(_VwmaHigh, "Prime");
-            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
-            ((IndicatorParameterString)_VwmaHigh.Parameters[1]).ValueString = "High";
-            _VwmaHigh.Save();
-
-            // Create indicator VwmaLow
-            _VwmaLow = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma Low", false);
-            _VwmaLow = (Aindicator)_tab.CreateCandleIndicator(_VwmaLow, "Prime");
-            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
-            ((IndicatorParameterString)_VwmaLow.Parameters[1]).ValueString = "Low";
-            _VwmaLow.Save();
-
-            // Create indicator ATR
-            _ATR = IndicatorsFactory.CreateIndicatorByName("ATR", name + "Atr", false);
-            _ATR = (Aindicator)_tab.CreateCandleIndicator(_ATR, "NewArea");
-            ((IndicatorParameterInt)_ATR.Parameters[0]).ValueInt = LengthAtr.ValueInt;
-            _ATR.Save();
+            // Create indicator FI
+            _FI = IndicatorsFactory.CreateIndicatorByName("ForceIndex", name + "ForceIndex", false);
+            _FI = (Aindicator)_tab.CreateCandleIndicator(_FI, "NewArea");
+            ((IndicatorParameterInt)_FI.Parameters[0]).ValueInt = LengthFI.ValueInt;
+            _FI.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += BreakChannelVwmaATR_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += BreakFi_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on channel Vwma and ATR. " +
-                "Buy: price above top Vwma + MultAtr * Atr. " +
-                "Sell: price below lower Vwma - MultAtr * Atr. " +
-                "Exit: opposite channel boundary.";
+            Description = "The trend robot on Break Force Index. " +
+                "Buy: the values of the force index indicator crosses the level 0 from bottom to top. " +
+                "Sell: The values of the force index indicator crosses the level 0 from top to bottom. " +
+                "Exit: on the opposite signal.";
         }
 
-        private void BreakChannelVwmaATR_ParametrsChangeByUser()
+        private void BreakFi_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
-            _VwmaHigh.Save();
-            _VwmaHigh.Reload();
-            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
-            _VwmaLow.Save();
-            _VwmaLow.Reload();
-            ((IndicatorParameterInt)_ATR.Parameters[0]).ValueInt = LengthAtr.ValueInt;
-            _ATR.Save();
-            _ATR.Reload();
+            ((IndicatorParameterInt)_FI.Parameters[0]).ValueInt = LengthFI.ValueInt;
+            _FI.Save();
+            _FI.Reload();
         }
 
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "BreakChannelVwmaATR";
+            return "BreakFi";
         }
         public override void ShowIndividualSettingsDialog()
         {
@@ -137,8 +113,7 @@ namespace OsEngine.Robots.AO
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthAtr.ValueInt ||
-                candles.Count < PeriodVwma.ValueInt)
+            if (candles.Count < LengthFI.ValueInt)
             {
                 return;
             }
@@ -174,9 +149,10 @@ namespace OsEngine.Robots.AO
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            _lastVwmaHigh = _VwmaHigh.DataSeries[0].Last;
-            _lastVwmaLow = _VwmaLow.DataSeries[0].Last;
-            _lastATR = _ATR.DataSeries[0].Last;
+            _lastFI = _FI.DataSeries[0].Last;
+
+            // The prev value of the indicator
+            _prevFI = _FI.DataSeries[0].Values[_FI.DataSeries[0].Values.Count - 2];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -190,7 +166,7 @@ namespace OsEngine.Robots.AO
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (lastPrice > _lastVwmaHigh + MultAtr.ValueDecimal * _lastATR)
+                    if (_lastFI > 0 && _prevFI < 0)
                     {
                         _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
                     }
@@ -199,7 +175,7 @@ namespace OsEngine.Robots.AO
                 // Short
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (lastPrice < _lastVwmaHigh - MultAtr.ValueDecimal * _lastATR)
+                    if (_lastFI < 0 && _prevFI > 0)
                     {
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
@@ -214,10 +190,10 @@ namespace OsEngine.Robots.AO
             Position pos = openPositions[0];
 
             // The last value of the indicator
-            _lastVwmaHigh = _VwmaHigh.DataSeries[0].Last;
-            _lastVwmaLow = _VwmaLow.DataSeries[0].Last;
-            _lastATR = _ATR.DataSeries[0].Last;
+            _lastFI = _FI.DataSeries[0].Last;
 
+            // The prev value of the indicator
+            _prevFI = _FI.DataSeries[0].Values[_FI.DataSeries[0].Values.Count - 2];
 
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
@@ -234,19 +210,18 @@ namespace OsEngine.Robots.AO
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    if (lastPrice < _lastVwmaHigh - MultAtr.ValueDecimal * _lastATR)
+                    if (_lastFI < 0 && _prevFI > 0)
                     {
                         _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
                 {
-                    if (lastPrice > _lastVwmaHigh + MultAtr.ValueDecimal * _lastATR)
+                    if (_lastFI > 0 && _prevFI < 0)
                     {
                         _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
                     }
                 }
-
             }
         }
 

@@ -19,10 +19,10 @@ Buy: The value of the A/D indicator broke through the maximum for a certain numb
 
 Sell: The value of the A/D indicator broke the low for a certain number of candles and closed lower.
 
-Exiting a long position: Trailing stop is placed at the minimum for the period specified for the trailing
+Exit from buy: Trailing stop is placed at the minimum for the period specified for the trailing
 stop and is transferred (sliding) to new price lows, also for the specified period.
 
-Exit from a short position: Trailing stop is placed on the maximum for the period specified for the trailing
+Exit from sell: Trailing stop is placed on the maximum for the period specified for the trailing
 stop and is transferred (sliding) to a new price maximum, also for the specified period.
  
  */
@@ -86,9 +86,9 @@ namespace OsEngine.Robots.AO
             Description = "The trend robot on strategy break Accumulation/Distribution. " +
                 "Buy: The value of the A/D indicator broke through the maximum for a certain number of candles and closed higher. " +
                 "Sell: The value of the A/D indicator broke the low for a certain number of candles and closed lower. " +
-                "Exiting a long position: Trailing stop is placed at the minimum for the period specified for the trailing " +
+                "Exit from buy: Trailing stop is placed at the minimum for the period specified for the trailing " +
                 "stop and is transferred (sliding) to new price lows, also for the specified period. " +
-                "Exit from a short position: Trailing stop is placed on the maximum for the period specified for the trailing " +
+                "Exit from sell: Trailing stop is placed on the maximum for the period specified for the trailing " +
                 "stop and is transferred (sliding) to a new price maximum, also for the specified period.";
         }
 

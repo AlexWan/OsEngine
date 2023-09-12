@@ -15,7 +15,7 @@ Buy:
 1. Bears Power columns must be below 0.
 2. The minimums on the chart are decreasing, but on the indicator they are growing.
 
-Sale:
+Sell:
 1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom.
 2. Bulls Power columns must be below 0.
 3. Bears Power columns must be below 0.
@@ -96,7 +96,7 @@ namespace OsEngine.Robots.myRobots
                 "Buy: " +
                 "1. Bears Power columns must be below 0. " +
                 "2. The minimums on the chart are decreasing, but on the indicator they are growing. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. " +
                 "2. Bulls Power columns must be below 0. " +
                 "3. Bears Power columns must be below 0. " +

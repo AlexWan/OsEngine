@@ -15,7 +15,7 @@ Buy:
 2. Bears Power columns must be higher than 0.
 3. Bulls Power columns must be above 0.
 
-Sale:
+Sell:
 1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom.
 2. Bulls Power columns must be below 0.
 3. Bears Power columns must be below 0.
@@ -106,7 +106,7 @@ namespace OsEngine.Robots.myRobots
                 "1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up. " +
                 "2. Bears Power columns must be higher than 0. " +
                 "3. Bulls Power columns must be above 0. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. " +
                 "2. Bulls Power columns must be below 0. " +
                 "3. Bears Power columns must be below 0. " +

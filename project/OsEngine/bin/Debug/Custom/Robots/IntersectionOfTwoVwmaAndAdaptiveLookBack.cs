@@ -14,7 +14,7 @@ Trend robot at the intersection of two Vwma (all cars and different outputs) and
 
 Buy: fast Ema is higher than slow Vwma and price is higher than fast Vwma + entry coefficient * Adaptive Look Back.
 
-Sale: fast Ema is lower than average Vvma and price is lower than fast Ma - entry coefficient * Adaptive Look back .
+Sell: fast Ema is lower than average Vvma and price is lower than fast Ma - entry coefficient * Adaptive Look back .
 
 Exit: reverse intersection of Wma.
 */
@@ -99,7 +99,7 @@ namespace OsEngine.Robots.myRobots
 
             Description = "Trend robot at the intersection of two Vwma (all cars and different outputs) and Adaptive Look Back." +
                "Buy: fast Ema is higher than slow Vwma and price is higher than fast Vwma +entry coefficient* Adaptive Look Back." +
-               "Sale: fast Ema is lower than average Vvma and price is lower than fast Ma -entry coefficient* Adaptive Look back ." +
+               "Sell: fast Ema is lower than average Vvma and price is lower than fast Ma -entry coefficient* Adaptive Look back ." +
                "Exit: reverse intersection of Wma.";
         }
 

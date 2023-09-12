@@ -18,7 +18,7 @@ The trend robot on strategy Devergence CMO.
 
 Buy: The lows on the chart are falling, while the lows are rising on the indicator.
 
-Selling: the highs on the chart are rising, while the indicator is falling.
+Sell: the highs on the chart are rising, while the indicator is falling.
 
 Exit: stop and profit in % of the entry price.
  
@@ -94,7 +94,7 @@ namespace OsEngine.Robots.AO
 
             Description = "The trend robot on strategy Devergence CMO. " +
                 "Buy: The lows on the chart are falling, while the lows are rising on the indicator. " +
-                "Selling: the highs on the chart are rising, while the indicator is falling. " +
+                "Sell: the highs on the chart are rising, while the indicator is falling. " +
                 "Exit: stop and profit in % of the entry price.";
         }
 

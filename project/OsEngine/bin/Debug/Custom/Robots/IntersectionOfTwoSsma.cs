@@ -14,7 +14,7 @@ Trend robot at the intersection of two smoothed averages.
 
 Buy: the fast Ssma is higher than the slow Ssma and the value of the last candle is greater than the fast Ssma.
 
-Sale: the fast Ssma is lower than the slow Ssma and the value of the last candle is less than the slow Ssma.
+Sell: the fast Ssma is lower than the slow Ssma and the value of the last candle is less than the slow Ssma.
 
 Exit: on the opposite signal
 */
@@ -85,7 +85,7 @@ namespace OsEngine.Robots.MyRobots
 
             Description = "Trend robot at the intersection of two smoothed averages. " +
                 "Buy: the fast Ssma is higher than the slow Ssma and the value of the last candle is greater than the fast Ssma. " +
-                "Sale: the fast Ssma is lower than the slow Ssma and the value of the last candle is less than the slow Ssma. " +
+                "Sell: the fast Ssma is lower than the slow Ssma and the value of the last candle is less than the slow Ssma. " +
                 "Exit: on the opposite signal";
         }
 

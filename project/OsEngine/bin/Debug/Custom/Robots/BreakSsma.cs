@@ -13,7 +13,7 @@ Trend robot on the Ssma indicator.
 
 Buy: the price of the instrument is higher than the Ssma.
 
-Sale: the price of the instrument is below the Ssma.
+Sell: the price of the instrument is below the Ssma.
 
 Exit: on the opposite signal.
 */
@@ -73,7 +73,7 @@ namespace OsEngine.Robots.MyRobots
 
             Description = "Trend robot on the Ssma indicator. " +
                 "Buy: the price of the instrument is higher than the Ssma. " +
-                "Sale: the price of the instrument is below the Ssma. " +
+                "Sell: the price of the instrument is below the Ssma. " +
                 "Exit: on the opposite signal.";
 
         }

@@ -14,7 +14,7 @@ Trend robot at the strategy on Adaptive Look Back and Bollinger
 
 Buy: the price is above the upper Bollinger band.
 
-Sale: the price is below the lower Bollinger band.
+Sell: the price is below the lower Bollinger band.
 
 Exit the buy: trailing stop in % of the loy of the candle on which the minus exit coefficient entered * Adaptive Look Back.
 Exit the sell: trailing stop in % of the high of the candle on which you entered plus the entry coefficient * Adaptive Look. 
@@ -102,7 +102,7 @@ namespace OsEngine.Robots.My_bots
             Description = "Trend robot on the Ssma indicator. " +
                "Trend robot at the strategy on Adaptive Look Back and Bollinger" +
                "Buy: the price is above the upper Bollinger band." +
-               "Sale: the price is below the lower Bollinger band." +
+               "Sell: the price is below the lower Bollinger band." +
                "Exit the buy: trailing stop in % of the loy of the candle on which the minus exit coefficient entered *Adaptive Look Back." +
                "Exit the sell: trailing stop in % of the high of the candle on which you entered plus the entry coefficient* Adaptive Look. ";
         }

@@ -21,7 +21,7 @@ Buy:
 2. The price has become higher than the lower line of the local bollinger (with a smaller deviation).
 3. The last two candles are growing.
 
-Sale:
+Sell:
 1. The price is in the upper zone between the two upper lines of the bolter.
 2. The price has become below the upper line of the local bollinger (with a smaller deviation).
 3. The last two candles are falling.
@@ -113,7 +113,7 @@ namespace OsEngine.Robots.AO
                 "1. The price is in the lower zone between the two lower Bollinger lines. " +
                 "2. The price has become higher than the lower line of the local bollinger (with a smaller deviation). " +
                 "3. The last two candles are growing. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The price is in the upper zone between the two upper lines of the bolter. " +
                 "2. The price has become below the upper line of the local bollinger (with a smaller deviation). " +
                 "3. The last two candles are falling. " +

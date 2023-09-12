@@ -20,7 +20,7 @@ Buy:
 1. The candle closed above the upper PC line.
 2. Breakdown of the maximum for a certain number of Eom candles.
 
-Sale:
+Sell:
 1. The candle closed below the lower PC line.
 2. Breakdown of the minimum for a certain number of Eom candles.
 
@@ -103,7 +103,7 @@ namespace OsEngine.Robots.AO
                 "Buy: " +
                 "1. The candle closed above the upper PC line. " +
                 "2. Breakdown of the maximum for a certain number of Eom candles. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The candle closed below the lower PC line. " +
                 "2. Breakdown of the minimum for a certain number of Eom candles. " +
                 "Exit: opposite border of the PC channel.";

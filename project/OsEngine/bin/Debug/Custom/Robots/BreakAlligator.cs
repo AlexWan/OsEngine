@@ -12,8 +12,12 @@ using OsEngine.OsTrader.Panels.Tab;
 trading robot for osengine
 
 The trend robot on intersection of the Alligator indicator with the price.
-The price is above the fast (lips) line, the fast is above the average line (teeth), the average is above the slow (jaw) - enter into a long position.
-The price is below the fast (lips) line, the fast is below the average line (teeth), the average is below the slow (jaw) - enter short position
+
+Buy:
+The price is above the fast (lips) line, the fast is above the average line (teeth), the average is above the slow (jaw).
+
+Sell:
+The price is below the fast (lips) line, the fast is below the average line (teeth), the average is below the slow (jaw).
 
 Exit the position the price crosses the middle line. 
  
@@ -80,8 +84,10 @@ namespace OsEngine.Robots.Aligator
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = "The trend robot on intersection of the Alligator indicator with the price. " +
-                "The price is above the fast (lips) line, the fast is above the average line (teeth), the average is above the slow (jaw) - enter into a long position. " +
-                "The price is below the fast (lips) line, the fast is below the average line (teeth), the average is below the slow (jaw) - enter short position " +
+                "Buy: " +
+                "The price is above the fast (lips) line, the fast is above the average line (teeth), the average is above the slow (jaw). " +
+                "Sell: " +
+                "The price is below the fast (lips) line, the fast is below the average line (teeth), the average is below the slow (jaw). " +
                 "Exit the position the price crosses the middle line.";
         }
 

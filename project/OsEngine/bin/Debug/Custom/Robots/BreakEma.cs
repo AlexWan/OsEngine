@@ -13,7 +13,7 @@ Trend robot on the EMA indicator
 
 Buy: the price of the instrument is higher than the Ema.
 
-Sale: the price of the instrument is below the Ema.
+Sell: the price of the instrument is below the Ema.
 
 Exit: on the opposite signal.
 */
@@ -75,7 +75,7 @@ namespace OsEngine.Robots.MyRobots
 
             Description = "Trend robot on the EMA indicator " +
                 "Buy: the price of the instrument is higher than the Ema. " +
-                "Sale: the price of the instrument is below the Ema. " +
+                "Sell: the price of the instrument is below the Ema. " +
                 "Exit: on the opposite signal.";
         }
 

@@ -15,7 +15,7 @@ The trend robot on intersection SMA with price
 
 Buy: the price of the instrument is above Sma
 
-Sale: the price of the instrument is below Sma
+Sell: the price of the instrument is below Sma
 
 Exit: stop and profit in % of the entry price
 
@@ -83,7 +83,7 @@ namespace OsEngine.Robots.SMA
 
             Description = "The trend robot on intersection SMA with price " +
                 "Buy: the price of the instrument is above Sma " +
-                "Sale: the price of the instrument is below Sma " +
+                "Sell: the price of the instrument is below Sma " +
                 "Exit: stop and profit in % of the entry price";
         }
 

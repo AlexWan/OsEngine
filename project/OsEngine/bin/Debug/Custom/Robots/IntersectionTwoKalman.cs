@@ -5,25 +5,26 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 
-/*Discription
-Trading robot for osengine.
+/* Description
+trading robot for osengine
 
-Trend strategy on Bears Power Divergence.
+The trend robot on Intersection Two Kalman.
 
-Sell:
-1. Bulls Power columns must be higher than 0;
-2. The highs on the chart are rising, and on the indicator they are decreasing
+Buy: KalmanFast above KalmanSlow.
 
-Exit:
-The Bulls Power indicator has become lower.
-*/
+Sell: KalmanFast below KalmanSlow.
 
-namespace OsEngine.Robots.My_bots
+Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred, (slides), to new price lows, also for the specified period.
+
+Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.
+ */
+
+
+namespace OsEngine.Robots.AO
 {
-    [Bot("StrategyBollingerBearsrAndBullsPowers")]
-    public class StrategyBollingerBearsrAndBullsPowers : BotPanel
+    [Bot("IntersectionTwoKalman")] // We create an attribute so that we don't write anything to the BotFactory
+    public class IntersectionTwoKalman : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -35,28 +36,29 @@ namespace OsEngine.Robots.My_bots
         private StrategyParameterTimeOfDay StartTradeTime;
         private StrategyParameterTimeOfDay EndTradeTime;
 
-        // Indicator Settings
-        private StrategyParameterInt BollingerLength;
-        private StrategyParameterDecimal BollingerDeviation;
-        private StrategyParameterInt BearsPeriod;
-        private StrategyParameterInt BullsPeriod;      
+        // Indicator setting 
+        private StrategyParameterDecimal SharpnessFast;
+        private StrategyParameterDecimal CoefKFast;
+        private StrategyParameterDecimal SharpnessSlow;
+        private StrategyParameterDecimal CoefKSlow;
 
         // Indicator
-        private Aindicator Bollinger;
-        private Aindicator _bullsPower;
-        private Aindicator _bearsPower;
+        Aindicator _KalmanFast;
+        Aindicator _KalmanSlow;
 
-        //Exit
-        private StrategyParameterInt TrailBars;
+        // Exit
+        private StrategyParameterInt TrailCandlesLong;
+        private StrategyParameterInt TrailCandlesShort;
 
-        // The last value of the indicators      
-        private decimal _lastUpBollinger;
-        private decimal _lastDownBollinger;
-        private decimal _lastBears;
-        private decimal _lastBulls;
+        // The last value of the indicator
+        private decimal _lastKalmanFast;
+        private decimal _lastKalmanSlow;
 
+        // The prev value of the indicator
+        private decimal _prevKalmanFast;
+        private decimal _prevKalmanSlow;
 
-        public StrategyBollingerBearsrAndBullsPowers(string name, StartProgram startProgram) : base(name, startProgram)
+        public IntersectionTwoKalman(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -69,73 +71,59 @@ namespace OsEngine.Robots.My_bots
             StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Indicator Settings
-            BollingerLength = CreateParameter("BollingerLength", 250, 50, 500, 20, "Indicator");
-            BollingerDeviation = CreateParameter("BollingerDeviation", 0.2m, 0.01m, 2, 0.02m, "Indicator");
-            BearsPeriod = CreateParameter("Bears Period", 20, 10, 300, 10, "Indicator");
-            BullsPeriod = CreateParameter("Bulls Period", 20, 10, 300, 10, "Indicator");
-           
+            // Indicator setting
+            SharpnessFast = CreateParameter("Sharpness Fast", 1.0m, 1, 50, 1, "Indicator");
+            CoefKFast = CreateParameter("CoefK Fast", 1.0m, 1, 50, 1, "Indicator");
+            SharpnessSlow = CreateParameter("Sharpness Slow", 2.0m, 1, 50, 1, "Indicator");
+            CoefKSlow = CreateParameter("CoefK Slow", 2.0m, 1, 50, 1, "Indicator");
 
-             // Create indicator Ema
-            Bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
-            Bollinger = (Aindicator)_tab.CreateCandleIndicator(Bollinger, "Prime");
-            ((IndicatorParameterInt)Bollinger.Parameters[0]).ValueInt = BollingerLength.ValueInt;
-            ((IndicatorParameterDecimal)Bollinger.Parameters[1]).ValueDecimal = BollingerDeviation.ValueDecimal;
-            Bollinger.DataSeries[0].Color = Color.Red;
-            Bollinger.DataSeries[1].Color = Color.Red;
-            Bollinger.Save();
+            // Create indicator KalmanFilter Fast
+            _KalmanFast = IndicatorsFactory.CreateIndicatorByName("KalmanFilter", name + "KalmanFilter Fast", false);
+            _KalmanFast = (Aindicator)_tab.CreateCandleIndicator(_KalmanFast, "Prime");
+            ((IndicatorParameterDecimal)_KalmanFast.Parameters[0]).ValueDecimal = SharpnessFast.ValueDecimal;
+            ((IndicatorParameterDecimal)_KalmanFast.Parameters[1]).ValueDecimal = CoefKFast.ValueDecimal;
+            _KalmanFast.Save();
 
-            // Create indicator BullsPower
-            _bullsPower = IndicatorsFactory.CreateIndicatorByName("BullsPower", name + "BullsPower", false);
-            _bullsPower = (Aindicator)_tab.CreateCandleIndicator(_bullsPower, "NewArea0");
-            ((IndicatorParameterInt)_bullsPower.Parameters[0]).ValueInt = BullsPeriod.ValueInt;
-
-            // Create indicator BearsPower
-            _bearsPower = IndicatorsFactory.CreateIndicatorByName("BearsPower", name + "BearsPower", false);
-            _bearsPower = (Aindicator)_tab.CreateCandleIndicator(_bearsPower, "NewArea1");
-            ((IndicatorParameterInt)_bearsPower.Parameters[0]).ValueInt = BearsPeriod.ValueInt;
+            // Create indicator KalmanFilter Slow
+            _KalmanSlow = IndicatorsFactory.CreateIndicatorByName("KalmanFilter", name + "KalmanFilter Slow", false);
+            _KalmanSlow = (Aindicator)_tab.CreateCandleIndicator(_KalmanSlow, "Prime");
+            ((IndicatorParameterDecimal)_KalmanFast.Parameters[0]).ValueDecimal = SharpnessSlow.ValueDecimal;
+            ((IndicatorParameterDecimal)_KalmanFast.Parameters[1]).ValueDecimal = CoefKSlow.ValueDecimal;
+            _KalmanSlow.Save();
 
             // Exit
-            TrailBars = CreateParameter("TrailBars", 1, 1, 10, 1, "Exit settings");
-
+            TrailCandlesLong = CreateParameter("Trail Candles Long", 5, 5, 200, 5, "Exit");
+            TrailCandlesShort = CreateParameter("Trail Candles Short", 5, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyBollingerBearsrAndBullsPowers_ParametrsChangeByUser;
+            ParametrsChangeByUser += IntersectionTwoKalman_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend strategy on Bears Power Divergence." +
-                "Sell:"+
-              
-                "1.Bulls Power columns must be higher than" +
-                "2.The highs on the chart are rising, and on the indicator they are decreasing" +
-               
-                "Exit" +
-                "The Bulls Power indicator has become lower.";
+            Description = "The trend robot on Intersection Two Kalman. " +
+                "Buy: KalmanFast above KalmanSlow. " +
+                "Sell: KalmanFast below KalmanSlow. " +
+                "Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred, (slides), to new price lows, also for the specified period. " +
+                "Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
         }
 
-        // Indicator Update event
-        private void StrategyBollingerBearsrAndBullsPowers_ParametrsChangeByUser()
+        private void IntersectionTwoKalman_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)Bollinger.Parameters[0]).ValueInt = BollingerLength.ValueInt;
-            ((IndicatorParameterDecimal)Bollinger.Parameters[1]).ValueDecimal = BollingerDeviation.ValueDecimal;
-            Bollinger.Save();
-            Bollinger.Reload();
-
-            ((IndicatorParameterInt)_bearsPower.Parameters[0]).ValueInt = BearsPeriod.ValueInt;
-            _bearsPower.Save();
-            _bearsPower.Reload();
-
-            ((IndicatorParameterInt)_bullsPower.Parameters[0]).ValueInt = BullsPeriod.ValueInt;
-            _bullsPower.Save();
-            _bullsPower.Reload();
+            ((IndicatorParameterDecimal)_KalmanFast.Parameters[0]).ValueDecimal = SharpnessFast.ValueDecimal;
+            ((IndicatorParameterDecimal)_KalmanFast.Parameters[1]).ValueDecimal = CoefKFast.ValueDecimal;
+            _KalmanFast.Save();
+            _KalmanFast.Reload();
+            ((IndicatorParameterDecimal)_KalmanFast.Parameters[0]).ValueDecimal = SharpnessSlow.ValueDecimal;
+            ((IndicatorParameterDecimal)_KalmanFast.Parameters[1]).ValueDecimal = CoefKSlow.ValueDecimal;
+            _KalmanSlow.Save();
+            _KalmanSlow.Reload();
         }
 
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "StrategyBollingerBearsrAndBullsPowers";
+            return "IntersectionTwoKalman";
         }
         public override void ShowIndividualSettingsDialog()
         {
@@ -152,7 +140,12 @@ namespace OsEngine.Robots.My_bots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < BollingerLength.ValueInt || candles.Count < BearsPeriod.ValueInt || candles.Count < BullsPeriod.ValueInt)
+            if (candles.Count < CoefKSlow.ValueDecimal ||
+                candles.Count < SharpnessSlow.ValueDecimal ||
+                candles.Count < CoefKFast.ValueDecimal ||
+                candles.Count < SharpnessFast.ValueDecimal ||
+                candles.Count < TrailCandlesLong.ValueInt ||
+                candles.Count < TrailCandlesShort.ValueInt)
             {
                 return;
             }
@@ -187,23 +180,29 @@ namespace OsEngine.Robots.My_bots
         // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
+            // The last value of the indicator
+            _lastKalmanFast = _KalmanFast.DataSeries[0].Last;
+            _lastKalmanSlow = _KalmanSlow.DataSeries[0].Last;
+
+            // The prev value of the indicator
+            _prevKalmanFast = _KalmanFast.DataSeries[0].Values[_KalmanFast.DataSeries[0].Values.Count - 2];
+            _prevKalmanSlow = _KalmanSlow.DataSeries[0].Values[_KalmanSlow.DataSeries[0].Values.Count - 2];
+
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            // The last value of the indicators
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
-            decimal lastPrice = candles[candles.Count - 1].Close;
-
-            // He last value of the indicator           
-            _lastUpBollinger = Bollinger.DataSeries[0].Last;
-            _lastDownBollinger = Bollinger.DataSeries[1].Last; ;
-            _lastBulls = _bullsPower.DataSeries[0].Last;
-            _lastBears = _bearsPower.DataSeries[0].Last;
             if (openPositions == null || openPositions.Count == 0)
             {
+                decimal lastPrice = candles[candles.Count - 1].Close;
+
+                // Slippage
+                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (_lastUpBollinger < lastPrice && _lastBears > 0 && _lastBulls > 0)
+
+
+                    if (_prevKalmanSlow > _prevKalmanFast && _lastKalmanSlow < _lastKalmanFast)
                     {
                         _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
                     }
@@ -213,7 +212,7 @@ namespace OsEngine.Robots.My_bots
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
 
-                    if (_lastDownBollinger > lastPrice && _lastBulls < 0 && _lastBears < 0)
+                    if (_prevKalmanSlow < _prevKalmanFast && _lastKalmanSlow > _lastKalmanFast)
                     {
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
@@ -257,12 +256,12 @@ namespace OsEngine.Robots.My_bots
                     }
                     _tab.CloseAtTrailingStop(openPositions[0], price, price + _slippage);
                 }
-
             }
         }
+
         private decimal GetPriceStop(Side side, List<Candle> candles, int index)
         {
-            if (candles == null || index < TrailBars.ValueInt || index < TrailBars.ValueInt)
+            if (candles == null || index < TrailCandlesLong.ValueInt || index < TrailCandlesShort.ValueInt)
             {
                 return 0;
             }
@@ -271,7 +270,7 @@ namespace OsEngine.Robots.My_bots
             {
                 decimal price = decimal.MaxValue;
 
-                for (int i = index; i > index - TrailBars.ValueInt; i--)
+                for (int i = index; i > index - TrailCandlesLong.ValueInt; i--)
                 {
                     if (candles[i].Low < price)
                     {
@@ -285,7 +284,7 @@ namespace OsEngine.Robots.My_bots
             {
                 decimal price = 0;
 
-                for (int i = index; i > index - TrailBars.ValueInt; i--)
+                for (int i = index; i > index - TrailCandlesShort.ValueInt; i--)
                 {
                     if (candles[i].High > price)
                     {
@@ -297,6 +296,7 @@ namespace OsEngine.Robots.My_bots
             }
             return 0;
         }
+
         // Method for calculating the volume of entry into a position
         private decimal GetVolume()
         {
@@ -323,5 +323,6 @@ namespace OsEngine.Robots.My_bots
             }
             return volume;
         }
+
     }
 }

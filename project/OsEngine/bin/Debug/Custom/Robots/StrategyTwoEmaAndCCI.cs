@@ -20,13 +20,13 @@ Buy:
 1. fast Ema is higher than slow Ema.
 2. CCI crossed level 0 from below.
 
-Sale:
+Sell:
 1. fast Ema is lower than slow Ema.
 2. CCI crossed level 0 from above.
 
-Long Exit: Fast Ema Below Slow Ema.
+Buy Exit: Fast Ema Below Slow Ema.
 
-Short Exit: Fast Ema Above Slow Ema.
+Sell Exit: Fast Ema Above Slow Ema.
 
  */
 
@@ -111,11 +111,11 @@ namespace OsEngine.Robots.AO
                 "Buy: " +
                 "1. fast Ema is higher than slow Ema. " +
                 "2. CCI crossed level 0 from below. " +
-                "Sale: " +
+                "Sell: " +
                 "1. fast Ema is lower than slow Ema. " +
                 "2. CCI crossed level 0 from above. " +
-                "Long Exit: Fast Ema Below Slow Ema. " +
-                "Short Exit: Fast Ema Above Slow Ema.";
+                "Buy Exit: Fast Ema Below Slow Ema. " +
+                "Sell Exit: Fast Ema Above Slow Ema.";
         }
 
         private void StrategyTwoEmaAndCCI_ParametrsChangeByUser()

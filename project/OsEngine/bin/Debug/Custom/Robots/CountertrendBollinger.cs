@@ -19,7 +19,7 @@ The trend robot on Countertrend Bollinger
 
 Buy: the price was below the lower band of the bollinger, and then returned and became above the lower band.
 
-Selling: the price was above the upper bollinger line, and then returned and became below the upper band.
+Sell: the price was above the upper bollinger line, and then returned and became below the upper band.
 
 Exit: at the intersection of the center line with the price.
 
@@ -89,7 +89,7 @@ namespace OsEngine.Robots.AO
 
             Description = "The trend robot on Countertrend Bollinger. " +
                 "Buy: the price was below the lower band of the bollinger, and then returned and became above the lower band. " +
-                "Selling: the price was above the upper bollinger line, and then returned and became below the upper band. " +
+                "Sell: the price was above the upper bollinger line, and then returned and became below the upper band. " +
                 "Exit: at the intersection of the center line with the price.";
         }
 

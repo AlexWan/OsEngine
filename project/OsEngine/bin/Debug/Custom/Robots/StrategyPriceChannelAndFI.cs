@@ -1,41 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
+using System.Drawing;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System.Linq;
+using OsEngine.Logging;
 
 /* Description
 trading robot for osengine
 
-Trend robot on Awesome Oscillator and Stochastic Oscillator
+The trend robot on PriceChannel And Force Index.
 
 Buy:
-1. Stochastic above 50 but below 80.
-2. Column Awesome previous above preprevious.
-
+1. The price is above the top line of the PC.
+ 2. the value of the force index indicator is higher than BuyValue.
 Sell:
-1. Stochastic below 50 but above 20.
-2. Column Awesome previous below preprevious.
+1. The price is below the bottom line of the PC.
+2. the value of the force index indicator is below SellValue.
 
 Exit from buy: Stop and profit.
-The stop is placed behind the minimum for the period specified for the stop (StopCandles).
-Profit is equal to the size of the stop * CoefProfit (CoefProfit - how many times the size of the profit is greater than the size of the stop).
+The stop is placed at the minimum for the period specified for the stop (StopCandles). Profit is equal to the size of the stop * CoefProfit 
+(CoefProfit – how many times the size of the profit is greater than the size of the stop).
 
 Exit from sell: Stop and profit.
-The stop is placed behind the maximum for the period specified for the stop (StopCandles).
-Profit is equal to the size of the stop * CoefProfit (CoefProfit - how many times the size of the profit is greater than the size of the stop).
- 
+The stop is placed at the maximum for the period specified for the stop (StopCandles). Profit is equal to the size of the stop * CoefProfit 
+(CoefProfit – how many times the size of the profit is greater than the size of the stop).
+
  */
 
-namespace OsEngine.Robots.Aligator
+
+namespace OsEngine.Robots.AO
 {
-    // We create an attribute so that we don't write anything to the BotFactory
-    [Bot("StrategyOnAOAndStoh")]
-    public class StrategyOnAOAndStoh : BotPanel
+    [Bot("StrategyPriceChannelAndFI")] // We create an attribute so that we don't write anything to the BotFactory
+    public class StrategyPriceChannelAndFI : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -47,31 +49,29 @@ namespace OsEngine.Robots.Aligator
         private StrategyParameterTimeOfDay StartTradeTime;
         private StrategyParameterTimeOfDay EndTradeTime;
 
-        // Setting indicator
-        private StrategyParameterInt FastLineLengthAO;
-        private StrategyParameterInt SlowLineLengthAO;
-        private StrategyParameterInt StochasticPeriod1;
-        private StrategyParameterInt StochasticPeriod2;
-        private StrategyParameterInt StochasticPeriod3;
+        // Indicator setting 
+        private StrategyParameterInt LengthFI;
+        private StrategyParameterInt PcUpLength;
+        private StrategyParameterInt PcDownLength;
+        private StrategyParameterDecimal BuyValue;
+        private StrategyParameterDecimal SellValue;
 
         // Indicator
-        private Aindicator _AO;
-        private Aindicator _Stochastic;
+        Aindicator _FI;
+        Aindicator _PC;
 
-        // The last value of the indicators
-        private decimal _lastStochastic;
+        // The last value of the indicator
+        private decimal _lastFI;
 
-        // The prevlast value of the indicator
-        private decimal _prevAO;
-
-        // The prevprev value of the indicator
-        private decimal _prevprevAO;
+        // The prev value of the indicator
+        private decimal _prevUpPC;
+        private decimal _prevDownPC;
 
         // Exit
         private StrategyParameterDecimal CoefProfit;
         private StrategyParameterInt StopCandles;
 
-        public StrategyOnAOAndStoh(string name, StartProgram startProgram) : base(name, startProgram)
+        public StrategyPriceChannelAndFI(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -84,72 +84,66 @@ namespace OsEngine.Robots.Aligator
             StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Setting indicator
-            FastLineLengthAO = CreateParameter("Fast Line Length AO", 12, 10, 300, 10, "Indicator");
-            SlowLineLengthAO = CreateParameter("Slow Line Length AO", 24, 10, 300, 10, "Indicator");
-            StochasticPeriod1 = CreateParameter("Stochastic Period One", 10, 10, 300, 10, "Indicator");
-            StochasticPeriod2 = CreateParameter("Stochastic Period Two", 20, 10, 300, 10, "Indicator");
-            StochasticPeriod3 = CreateParameter("Stochastic Period Three", 30, 10, 300, 10, "Indicator");
+            // Indicator setting
+            LengthFI = CreateParameter("FI Length", 21, 7, 48, 7, "Indicator");
+            PcUpLength = CreateParameter("Up Line Length", 21, 7, 48, 7, "Indicator");
+            PcDownLength = CreateParameter("Down Line Length", 21, 7, 48, 7, "Indicator");
+            BuyValue = CreateParameter("Buy Value", 50, 0.1m, 100, 1, "Indicator");
+            SellValue = CreateParameter("Sell Value", 50, 0.1m, 100, 1, "Indicator");
 
+            // Create indicator FI
+            _FI = IndicatorsFactory.CreateIndicatorByName("ForceIndex", name + "ForceIndex", false);
+            _FI = (Aindicator)_tab.CreateCandleIndicator(_FI, "NewArea");
+            ((IndicatorParameterInt)_FI.Parameters[0]).ValueInt = LengthFI.ValueInt;
+            _FI.Save();
 
-            // Create indicator AO
-            _AO = IndicatorsFactory.CreateIndicatorByName("AO", name + "AO", false);
-            _AO = (Aindicator)_tab.CreateCandleIndicator(_AO, "NewArea");
-            ((IndicatorParameterInt)_AO.Parameters[0]).ValueInt = FastLineLengthAO.ValueInt;
-            ((IndicatorParameterInt)_AO.Parameters[1]).ValueInt = SlowLineLengthAO.ValueInt;
-            _AO.Save();
-
-            // Create indicator Stochastic
-            _Stochastic = IndicatorsFactory.CreateIndicatorByName("Stochastic", name + "Stochastic", false);
-            _Stochastic = (Aindicator)_tab.CreateCandleIndicator(_Stochastic, "NewArea0");
-            ((IndicatorParameterInt)_Stochastic.Parameters[0]).ValueInt = StochasticPeriod1.ValueInt;
-            ((IndicatorParameterInt)_Stochastic.Parameters[1]).ValueInt = StochasticPeriod2.ValueInt;
-            ((IndicatorParameterInt)_Stochastic.Parameters[2]).ValueInt = StochasticPeriod3.ValueInt;
-            _Stochastic.Save();
+            // Create indicator PC
+            _PC = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PC", false);
+            _PC = (Aindicator)_tab.CreateCandleIndicator(_PC, "Prime");
+            ((IndicatorParameterInt)_PC.Parameters[0]).ValueInt = PcUpLength.ValueInt;
+            ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = PcDownLength.ValueInt;
+            _PC.Save();
 
             // Exit
             CoefProfit = CreateParameter("Coef Profit", 1, 1m, 10, 1, "Exit settings");
             StopCandles = CreateParameter("Stop Candles", 1, 2, 10, 1, "Exit settings");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyOnAOAndStoh_ParametrsChangeByUser;
+            ParametrsChangeByUser += StrategyPriceChannelAndFI_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on Awesome Oscillator and Stochastic Oscillator " +
+            Description = "The trend robot on PriceChannel And Force Index. " +
                 "Buy: " +
-                "1. Stochastic above 50 but below 80. " +
-                "2. Column Awesome previous above preprevious. " +
+                "1. The price is above the top line of the PC. " +
+                "2. the value of the force index indicator is higher than BuyValue. " +
                 "Sell: " +
-                "1. Stochastic below 50 but above 20. " +
-                "2. Column Awesome previous below preprevious. " +
+                "1. The price is below the bottom line of the PC. " +
+                "2. the value of the force index indicator is below SellValue. " +
                 "Exit from buy: Stop and profit. " +
-                "The stop is placed behind the minimum for the period specified for the stop (StopCandles). " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit - how many times the size of the profit is greater than the size of the stop). " +
+                "The stop is placed at the minimum for the period specified for the stop (StopCandles). Profit is equal to the size of the stop * CoefProfit  " +
+                "(CoefProfit – how many times the size of the profit is greater than the size of the stop). " +
                 "Exit from sell: Stop and profit. " +
-                "The stop is placed behind the maximum for the period specified for the stop (StopCandles). " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit - how many times the size of the profit is greater than the size of the stop).";
+                "The stop is placed at the maximum for the period specified for the stop (StopCandles). Profit is equal to the size of the stop * CoefProfit  " +
+                "(CoefProfit – how many times the size of the profit is greater than the size of the stop).";
         }
 
-        // Indicator Update event
-        private void StrategyOnAOAndStoh_ParametrsChangeByUser()
+        private void StrategyPriceChannelAndFI_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_AO.Parameters[0]).ValueInt = FastLineLengthAO.ValueInt;
-            ((IndicatorParameterInt)_AO.Parameters[1]).ValueInt = SlowLineLengthAO.ValueInt;
-            _AO.Save();
-            _AO.Reload();
-            ((IndicatorParameterInt)_Stochastic.Parameters[0]).ValueInt = StochasticPeriod1.ValueInt;
-            ((IndicatorParameterInt)_Stochastic.Parameters[1]).ValueInt = StochasticPeriod2.ValueInt;
-            ((IndicatorParameterInt)_Stochastic.Parameters[2]).ValueInt = StochasticPeriod3.ValueInt;
-            _Stochastic.Save();
-            _Stochastic.Reload();
+            ((IndicatorParameterInt)_FI.Parameters[0]).ValueInt = LengthFI.ValueInt;
+            _FI.Save();
+            _FI.Reload();
+            ((IndicatorParameterInt)_PC.Parameters[0]).ValueInt = PcUpLength.ValueInt;
+            ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = PcDownLength.ValueInt;
+            _PC.Save();
+            _PC.Reload();
         }
 
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "StrategyOnAOAndStoh";
+            return "StrategyPriceChannelAndFI";
         }
         public override void ShowIndividualSettingsDialog()
         {
@@ -166,7 +160,10 @@ namespace OsEngine.Robots.Aligator
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < SlowLineLengthAO.ValueInt || candles.Count < StochasticPeriod3.ValueInt)
+            if (candles.Count < LengthFI.ValueInt ||
+                candles.Count < StopCandles.ValueInt ||
+                candles.Count < PcUpLength.ValueInt ||
+                candles.Count < PcDownLength.ValueInt)
             {
                 return;
             }
@@ -201,25 +198,26 @@ namespace OsEngine.Robots.Aligator
         // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
+            // The last value of the indicator
+            _lastFI = _FI.DataSeries[0].Last;
+
+            // The prev value of the indicator
+            _prevUpPC = _PC.DataSeries[0].Values[_PC.DataSeries[0].Values.Count - 2];
+            _prevDownPC = _PC.DataSeries[1].Values[_PC.DataSeries[1].Values.Count - 2];
+
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                // The last value of the indicators
-                _lastStochastic = _Stochastic.DataSeries[0].Last;
-
-                // The prevlast value of the indicators
-                _prevAO = _AO.DataSeries[0].Values[_AO.DataSeries[0].Values.Count - 2];
-
-                // The prevprev value of the indicators
-                _prevprevAO = _AO.DataSeries[0].Values[_AO.DataSeries[0].Values.Count - 3];
-
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
                 decimal lastPrice = candles[candles.Count - 1].Close;
+
+                // Slippage
+                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (_lastStochastic > 50 && _lastStochastic < 80 && _prevAO > _prevprevAO)
+                    if (_lastFI > BuyValue.ValueDecimal && _prevUpPC < lastPrice)
                     {
                         _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
                     }
@@ -228,26 +226,25 @@ namespace OsEngine.Robots.Aligator
                 // Short
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-
-                    if (_lastStochastic < 50 && _lastStochastic > 20 && _prevAO < _prevprevAO)
+                    if (_lastFI < -SellValue.ValueDecimal && _prevDownPC > lastPrice)
                     {
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
                 }
-                return;
             }
         }
 
-        //  logic close position
+        //  Logic close position
         private void LogicClosePosition(List<Candle> candles)
         {
+
             List<Position> openPositions = _tab.PositionsOpenAll;
             Position pos = openPositions[0];
 
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
-            decimal profitActivation = 0;
-            decimal price = 0;
+            decimal profitActivation;
+            decimal price;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -269,6 +266,7 @@ namespace OsEngine.Robots.Aligator
                     price = stopActivation;
                     profitActivation = pos.EntryPrice + (pos.EntryPrice - price) * CoefProfit.ValueDecimal;
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
+
                     _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
                 }
                 else // If the direction of the position is sale
@@ -283,11 +281,92 @@ namespace OsEngine.Robots.Aligator
                     price = stopActivation;
                     profitActivation = pos.EntryPrice - (price - pos.EntryPrice) * CoefProfit.ValueDecimal;
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation - _slippage);
+
+
                     _tab.CloseAtStop(pos, stopActivation, stopActivation + _slippage);
                 }
 
             }
 
+        }
+
+        private decimal GetPriceStop(DateTime positionCreateTime, Side side, List<Candle> candles, int index)
+        {
+            if (candles == null || index < StopCandles.ValueInt)
+            {
+                return 0;
+            }
+
+            if (side == Side.Buy)
+            {
+                // We calculate the stop price at Long
+                // We find the minimum for the time from the opening of the transaction to the current one
+                decimal price = decimal.MaxValue; ;
+                int indexIntro = 0;
+                DateTime openPositionTime = positionCreateTime;
+
+                if (openPositionTime == DateTime.MinValue)
+                {
+                    openPositionTime = candles[index - 2].TimeStart;
+                }
+
+                for (int i = index; i > 0; i--)
+                {
+                    // Look at the index of the candle, after which the opening of the pose occurred
+                    if (candles[i].TimeStart <= openPositionTime)
+                    {
+                        indexIntro = i;
+                        break;
+                    }
+                }
+
+                for (int i = indexIntro; i > 0 && i > indexIntro - StopCandles.ValueInt; i--)
+                {
+                    // Looking at the minimum after opening
+                    if (candles[i].Low < price)
+                    {
+                        price = candles[i].Low;
+                    }
+                }
+
+                return price;
+            }
+
+            if (side == Side.Sell)
+            {
+                //  We find the maximum for the time from the opening of the transaction to the current one
+                decimal price = 0;
+                int indexIntro = 0;
+                DateTime openPositionTime = positionCreateTime;
+
+                if (openPositionTime == DateTime.MinValue)
+                {
+                    openPositionTime = candles[index - 1].TimeStart;
+                }
+
+                for (int i = index; i > 0; i--)
+                {
+                    // Look at the index of the candle, after which the opening of the pose occurred
+                    if (candles[i].TimeStart <= openPositionTime)
+                    {
+                        indexIntro = i;
+                        break;
+                    }
+                }
+
+                for (int i = indexIntro; i > 0 && i > indexIntro - StopCandles.ValueInt; i--)
+                {
+                    // Looking at the maximum high
+                    if (candles[i].High > price)
+                    {
+                        price = candles[i].High;
+                    }
+                }
+
+                return price;
+            }
+
+            return 0;
         }
 
         // Method for calculating the volume of entry into a position
@@ -315,82 +394,6 @@ namespace OsEngine.Robots.Aligator
                 volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
             }
             return volume;
-        }
-        private decimal GetPriceStop(DateTime positionCreateTime, Side side, List<Candle> candles, int index)
-        {
-            if (candles == null || index < StopCandles.ValueInt)
-            {
-                return 0;
-            }
-
-            if (side == Side.Buy)
-            {
-                // calculate the stop price at Long
-                // 1 find the minimum for the time from the opening of the transaction to the current
-                decimal price = decimal.MaxValue; ;
-                int indexIntro = 0;
-                DateTime openPositionTime = positionCreateTime;
-
-                if (openPositionTime == DateTime.MinValue)
-                {
-                    openPositionTime = candles[index - 2].TimeStart;
-                }
-
-                for (int i = index; i > 0; i--)
-                { // look at the index of the candle after which the position was opened
-                    if (candles[i].TimeStart <= openPositionTime)
-                    {
-                        indexIntro = i;
-                        break;
-                    }
-                }
-
-                for (int i = indexIntro; i > 0 && i > indexIntro - StopCandles.ValueInt; i--)
-                { // look at the minimum after the opening
-
-                    if (candles[i].Low < price)
-                    {
-                        price = candles[i].Low;
-                    }
-                }
-
-                return price;
-            }
-
-            if (side == Side.Sell)
-            {
-                // 1 find the maximum for the time from the opening of the transaction to the current
-                decimal price = 0;
-                int indexIntro = 0;
-                DateTime openPositionTime = positionCreateTime;
-
-                if (openPositionTime == DateTime.MinValue)
-                {
-                    openPositionTime = candles[index - 1].TimeStart;
-                }
-
-                for (int i = index; i > 0; i--)
-                { // look at the index of the candle after which the position was opened
-                    if (candles[i].TimeStart <= openPositionTime)
-                    {
-                        indexIntro = i;
-                        break;
-                    }
-                }
-
-                for (int i = indexIntro; i > 0 && i > indexIntro - StopCandles.ValueInt; i--)
-                { // watch the maximum high
-
-                    if (candles[i].High > price)
-                    {
-                        price = candles[i].High;
-                    }
-                }
-
-                return price;
-            }
-
-            return 0;
         }
     }
 }

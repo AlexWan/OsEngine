@@ -20,13 +20,13 @@ Buy:
 2. Ema2 is higher than Ema3;
 3. The price is above Ema4 and above the upper line of the Ema channel.
 
-Sale:
+Sell:
 1. Ema1 falling (i.e. the value of 2 candles ago was higher than 1 candle ago);
 2. Ema2 is lower than Ema3;
 3. The price is below Ema4 and below the lower line of the Ema channel.
 
-Exit from the purchase: The price is lower than Ema4.
-Exit from sale: The price is higher than Ema4.
+Exit from buy: The price is lower than Ema4.
+Exit from sell: The price is higher than Ema4.
 */
 
 namespace OsEngine.Robots.MyRobots
@@ -148,12 +148,12 @@ namespace OsEngine.Robots.MyRobots
                 "1. Ema 1 is growing (i.e. the value of 2 candles ago was lower than 1 candle ago); " +
                 "2. Ema2 is higher than Ema3; " +
                 "3. The price is above Ema4 and above the upper line of the Ema channel. " +
-                "Sale: " +
+                "Sell: " +
                 "1. Ema1 falling (i.e. the value of 2 candles ago was higher than 1 candle ago); " +
                 "2. Ema2 is lower than Ema3; " +
                 "3. The price is below Ema4 and below the lower line of the Ema channel. " +
-                "Exit from the purchase: The price is lower than Ema4. " +
-                "Exit from sale: The price is higher than Ema4.";
+                "Exit from buy: The price is lower than Ema4. " +
+                "Exit from sell: The price is higher than Ema4.";
         }
         // Indicator Update event
         private void IntersectionOfFourEma_ParametrsChangeByUser()

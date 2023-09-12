@@ -21,7 +21,7 @@ Buy:
 1. The price was below the lower Bollinger line, and then returned and became above the lower line.
 2. Rsi below 30.
 
-Sale:
+Sell:
 1. The price was above the upper Bollinger line, and then returned and became below the upper line.
 2. Rsi above 70.
 
@@ -111,7 +111,7 @@ namespace OsEngine.Robots.AO
                 "Buy: " +
                 "1. The price was below the lower Bollinger line, and then returned and became above the lower line. " +
                 "2. Rsi below 30. " +
-                "Sale: " +
+                "Sell: " +
                 "1. The price was above the upper Bollinger line, and then returned and became below the upper line. " +
                 "2. Rsi above 70. " +
                 "Buy exit: trailing stop as a % of the Low of the candle where you entered. " +

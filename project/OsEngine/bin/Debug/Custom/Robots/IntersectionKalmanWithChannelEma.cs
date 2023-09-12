@@ -10,24 +10,32 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Logging;
+using System.Data.SqlClient;
 
 /* Description
 trading robot for osengine
 
-The trend robot on channel Vwma and ATR.
+The trend robot on Intersection Kalman With ChannelEma.
 
-Buy: price above top Vwma + MultAtr * Atr.
+Buy:
+1. The price is above the Kalman and above the upper line of the Ema channel.
+2. Kalman is above the upper line of the Ema channel.
 
-Sell: price below lower Vwma - MultAtr * Atr.
+Sell:
+1. The price is below the Kalman and below the lower line of the Ema channel.
+2. The Kalman is below the lower line of the Ema channel.
 
-Exit: opposite channel boundary.
+Exit from buy: the kalman is below the upper line.
+
+Exit from sell: Kalman is above the bottom line.
+
  */
 
 
 namespace OsEngine.Robots.AO
 {
-    [Bot("BreakChannelVwmaATR")] // We create an attribute so that we don't write anything to the BotFactory
-    public class BreakChannelVwmaATR : BotPanel
+    [Bot("IntersectionKalmanWithChannelEma")] // We create an attribute so that we don't write anything to the BotFactory
+    public class IntersectionKalmanWithChannelEma : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -40,21 +48,22 @@ namespace OsEngine.Robots.AO
         private StrategyParameterTimeOfDay EndTradeTime;
 
         // Indicator setting 
-        private StrategyParameterInt PeriodVwma;
-        private StrategyParameterInt LengthAtr;
-        private StrategyParameterDecimal MultAtr;
+        private StrategyParameterDecimal Sharpness;
+        private StrategyParameterDecimal CoefK;
+        private StrategyParameterInt LengthVwmaChannel;
 
         // Indicator
+        Aindicator _Kalman;
         Aindicator _VwmaHigh;
         Aindicator _VwmaLow;
-        Aindicator _ATR;
 
         // The last value of the indicator
-        private decimal _lastATR;
-        private decimal _lastVwmaHigh;
-        private decimal _lastVwmaLow;
+        private decimal _lastKalman;
+        private decimal _lastVWMAHigh;
+        private decimal _lastVWMALow;
 
-        public BreakChannelVwmaATR(string name, StartProgram startProgram) : base(name, startProgram)
+
+        public IntersectionKalmanWithChannelEma(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -68,59 +77,68 @@ namespace OsEngine.Robots.AO
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator setting
-            PeriodVwma = CreateParameter("Period Vwma", 21, 7, 48, 7, "Indicator");
-            LengthAtr = CreateParameter("Length ATR", 14, 7, 48, 7, "Indicator");
-            MultAtr = CreateParameter("Mult ATR", 0.5m, 0.1m, 2, 0.1m, "Indicator");
+            Sharpness = CreateParameter("Sharpness", 1.0m, 1, 50, 1, "Indicator");
+            CoefK = CreateParameter("CoefK", 1.0m, 1, 50, 1, "Indicator");
+            LengthVwmaChannel = CreateParameter("Period VWMA", 100, 10, 300, 1, "Indicator");
+
+            // Create indicator ChaikinOsc
+            _Kalman = IndicatorsFactory.CreateIndicatorByName("KalmanFilter", name + "KalmanFilter", false);
+            _Kalman = (Aindicator)_tab.CreateCandleIndicator(_Kalman, "Prime");
+            ((IndicatorParameterDecimal)_Kalman.Parameters[0]).ValueDecimal = Sharpness.ValueDecimal;
+            ((IndicatorParameterDecimal)_Kalman.Parameters[1]).ValueDecimal = CoefK.ValueDecimal;
+            _Kalman.Save();
 
             // Create indicator VwmaHigh
             _VwmaHigh = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma High", false);
             _VwmaHigh = (Aindicator)_tab.CreateCandleIndicator(_VwmaHigh, "Prime");
-            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
+            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = LengthVwmaChannel.ValueInt;
             ((IndicatorParameterString)_VwmaHigh.Parameters[1]).ValueString = "High";
             _VwmaHigh.Save();
 
             // Create indicator VwmaLow
             _VwmaLow = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma Low", false);
             _VwmaLow = (Aindicator)_tab.CreateCandleIndicator(_VwmaLow, "Prime");
-            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
+            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = LengthVwmaChannel.ValueInt;
             ((IndicatorParameterString)_VwmaLow.Parameters[1]).ValueString = "Low";
             _VwmaLow.Save();
 
-            // Create indicator ATR
-            _ATR = IndicatorsFactory.CreateIndicatorByName("ATR", name + "Atr", false);
-            _ATR = (Aindicator)_tab.CreateCandleIndicator(_ATR, "NewArea");
-            ((IndicatorParameterInt)_ATR.Parameters[0]).ValueInt = LengthAtr.ValueInt;
-            _ATR.Save();
-
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += BreakChannelVwmaATR_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += IntersectionKalmanWithChannelEma_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on channel Vwma and ATR. " +
-                "Buy: price above top Vwma + MultAtr * Atr. " +
-                "Sell: price below lower Vwma - MultAtr * Atr. " +
-                "Exit: opposite channel boundary.";
+            Description = "The trend robot on Intersection Kalman With ChannelEma. " +
+                "Buy: " +
+                "1. The price is above the Kalman and above the upper line of the Ema channel. " +
+                "2. Kalman is above the upper line of the Ema channel. " +
+                "Sell: " +
+                "1. The price is below the Kalman and below the lower line of the Ema channel. " +
+                "2. The Kalman is below the lower line of the Ema channel. " +
+                "Exit from buy: the kalman is below the upper line. " +
+                "Exit from sell: Kalman is above the bottom line.";
         }
 
-        private void BreakChannelVwmaATR_ParametrsChangeByUser()
+        private void IntersectionKalmanWithChannelEma_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
+            ((IndicatorParameterDecimal)_Kalman.Parameters[0]).ValueDecimal = Sharpness.ValueDecimal;
+            ((IndicatorParameterDecimal)_Kalman.Parameters[1]).ValueDecimal = CoefK.ValueDecimal;
+            _Kalman.Save();
+            _Kalman.Reload();
+            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = LengthVwmaChannel.ValueInt;
+            ((IndicatorParameterString)_VwmaHigh.Parameters[1]).ValueString = "High";
             _VwmaHigh.Save();
             _VwmaHigh.Reload();
-            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = PeriodVwma.ValueInt;
+            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = LengthVwmaChannel.ValueInt;
+            ((IndicatorParameterString)_VwmaLow.Parameters[1]).ValueString = "Low";
             _VwmaLow.Save();
             _VwmaLow.Reload();
-            ((IndicatorParameterInt)_ATR.Parameters[0]).ValueInt = LengthAtr.ValueInt;
-            _ATR.Save();
-            _ATR.Reload();
         }
 
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "BreakChannelVwmaATR";
+            return "IntersectionKalmanWithChannelEma";
         }
         public override void ShowIndividualSettingsDialog()
         {
@@ -137,8 +155,9 @@ namespace OsEngine.Robots.AO
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthAtr.ValueInt ||
-                candles.Count < PeriodVwma.ValueInt)
+            if (candles.Count < CoefK.ValueDecimal ||
+                candles.Count < Sharpness.ValueDecimal ||
+                candles.Count < LengthVwmaChannel.ValueInt)
             {
                 return;
             }
@@ -174,9 +193,10 @@ namespace OsEngine.Robots.AO
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            _lastVwmaHigh = _VwmaHigh.DataSeries[0].Last;
-            _lastVwmaLow = _VwmaLow.DataSeries[0].Last;
-            _lastATR = _ATR.DataSeries[0].Last;
+            _lastKalman = _Kalman.DataSeries[0].Last;
+            _lastVWMAHigh = _VwmaHigh.DataSeries[0].Last;
+            _lastVWMALow = _VwmaLow.DataSeries[0].Last;
+
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -190,7 +210,9 @@ namespace OsEngine.Robots.AO
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (lastPrice > _lastVwmaHigh + MultAtr.ValueDecimal * _lastATR)
+
+
+                    if (_lastKalman < lastPrice && _lastVWMAHigh < lastPrice && _lastKalman > _lastVWMAHigh)
                     {
                         _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
                     }
@@ -199,7 +221,8 @@ namespace OsEngine.Robots.AO
                 // Short
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (lastPrice < _lastVwmaHigh - MultAtr.ValueDecimal * _lastATR)
+
+                    if (_lastKalman > lastPrice && _lastVWMALow > lastPrice && _lastKalman < _lastVWMALow)
                     {
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
@@ -213,40 +236,36 @@ namespace OsEngine.Robots.AO
             List<Position> openPositions = _tab.PositionsOpenAll;
             Position pos = openPositions[0];
 
-            // The last value of the indicator
-            _lastVwmaHigh = _VwmaHigh.DataSeries[0].Last;
-            _lastVwmaLow = _VwmaLow.DataSeries[0].Last;
-            _lastATR = _ATR.DataSeries[0].Last;
-
-
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
+            // The last value of the indicator
+            _lastKalman = _Kalman.DataSeries[0].Last;
+            _lastVWMAHigh = _VwmaHigh.DataSeries[0].Last;
+            _lastVWMALow = _VwmaLow.DataSeries[0].Last;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                Position positions = openPositions[i];
-
-                if (positions.State != PositionStateType.Open)
+                if (openPositions[i].State != PositionStateType.Open)
                 {
                     continue;
                 }
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    if (lastPrice < _lastVwmaHigh - MultAtr.ValueDecimal * _lastATR)
+                    if (_lastKalman < _lastVWMAHigh)
                     {
-                        _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
+                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
                 {
-                    if (lastPrice > _lastVwmaHigh + MultAtr.ValueDecimal * _lastATR)
+                    if (_lastKalman > _lastVWMALow)
                     {
-                        _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
+                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
                     }
                 }
-
             }
         }
 
@@ -276,5 +295,6 @@ namespace OsEngine.Robots.AO
             }
             return volume;
         }
+
     }
 }

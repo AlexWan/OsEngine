@@ -22,7 +22,7 @@ Buy:
 
 3. Adx is rising and crosses level 20 upwards (growing).
 
-Sale:
+Sell:
 1. fast Ema is below the average Ema and the average is below the slow one.
 
 2. Stochastic crosses the level 50 and falls (from top to bottom).
@@ -32,7 +32,7 @@ Sale:
 Exit:
 From buy: fast Ema below average Ema.
 
-From sale: fast Ema above average Ema.
+From sell: fast Ema above average Ema.
  
  */
 
@@ -147,13 +147,13 @@ namespace OsEngine.Robots.AO
                 "1. fast Ema is higher than the average Ema and the average is higher than the slow one. " +
                 "2. Stochastic crosses the level 50 and is growing (from bottom to top). " +
                 "3. Adx is rising and crosses level 20 upwards (growing). " +
-                "Sale: " +
+                "Sell: " +
                 "1. fast Ema is below the average Ema and the average is below the slow one. " +
                 "2. Stochastic crosses the level 50 and falls (from top to bottom). " +
                 "3. Adx is rising and crosses level 20 upwards (growing). " +
                 "Exit: " +
                 "From buy: fast Ema below average Ema. " +
-                "From sale: fast Ema above average Ema.";
+                "From sell: fast Ema above average Ema.";
         }
 
         private void StrategyADXStohAndThreeEMA_ParametrsChangeByUser()

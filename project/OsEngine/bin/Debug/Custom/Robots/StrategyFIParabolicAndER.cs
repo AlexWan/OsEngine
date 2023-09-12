@@ -22,13 +22,13 @@ Buy:
 3. The value of the Er indicator is higher than MaxValueEr.
 4. The values of the indicators are valid only if the points of the parabolic are no more than ParabolicCount.
 
-Sale:
+Sell:
 1. The price is lower than the value of the Parabolic indicator. For the next candle, the price crosses the indicator from top to bottom.
 2. The value of the force index indicator is lower than MinValueFi.
 3. The value of the Er indicator is higher than MaxValueEr.
 4. The values of the indicators are valid only if the points of the parabolic are no more than ParabolicCount.
 
-Sell: on the opposite Parabolic signal.
+Exit: on the opposite Parabolic signal.
 
  */
 
@@ -122,12 +122,12 @@ namespace OsEngine.Robots.AO
                 "2. The value of the force index indicator is higher than MaxValueFi. " +
                 "3. The value of the Er indicator is higher than MaxValueEr. " +
                 "4. The values of the indicators are valid only if the points of the parabolic are no more than ParabolicCount. " +
-                "nSale: " +
+                "Sell: " +
                 "1. The price is lower than the value of the Parabolic indicator. For the next candle, the price crosses the indicator from top to bottom. " +
                 "2. The value of the force index indicator is lower than MinValueFi. " +
                 "3. The value of the Er indicator is higher than MaxValueEr. " +
                 "4. The values of the indicators are valid only if the points of the parabolic are no more than ParabolicCount. " +
-                "Sell: on the opposite Parabolic signal.";
+                "Exit: on the opposite Parabolic signal.";
         }
 
         private void StrategyFIParabolicAndER_ParametrsChangeByUser()

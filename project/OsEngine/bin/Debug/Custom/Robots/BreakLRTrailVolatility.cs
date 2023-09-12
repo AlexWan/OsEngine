@@ -14,12 +14,12 @@ The trend robot on BreakLRTrailVolatility.
 
 Buy: the price is above the upper LR line.
 
-Sale: the price is below the lower LR line.
+Sell: the price is below the lower LR line.
 
-Exit from a long position: The trailing stop is placed at the minimum –Atr * Er for the period specified for the
+Exit from buy: The trailing stop is placed at the minimum –Atr * Er for the period specified for the
 trailing stop and is transferred, (slides), to new price lows, also for the specified period.
 
-Exit from the short position: The trailing stop is placed at the maximum +Atr * Er for the period specified for the
+Exit from sell: The trailing stop is placed at the maximum +Atr * Er for the period specified for the
 trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.
 
  */
@@ -114,10 +114,10 @@ namespace OsEngine.Robots.CMO
 
             Description = "The trend robot on BreakLRTrailVolatility. " +
                 "Buy: the price is above the upper LR line. " +
-                "Sale: the price is below the lower LR line. " +
-                "Exit from a long position: The trailing stop is placed at the minimum –Atr * Er for the period specified for the " +
+                "Sell: the price is below the lower LR line. " +
+                "Exit from buy: The trailing stop is placed at the minimum –Atr * Er for the period specified for the " +
                 "trailing stop and is transferred, (slides), to new price lows, also for the specified period. " +
-                "Exit from the short position: The trailing stop is placed at the maximum +Atr * Er for the period specified for the " +
+                "Exit from sell: The trailing stop is placed at the maximum +Atr * Er for the period specified for the " +
                 "trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
         }
 
