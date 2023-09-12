@@ -257,5 +257,9 @@ namespace OsEngine.Language
            "Eng:Do you want to delete a piece of data?_" +
            "Ru:Вы хотите удалить часть данных?_");
 
+        public string Label59 => OsLocalization.ConvertToLocString(
+           "Eng:Data has been downloaded and saved to the hard drive_" +
+           "Ru:Данные загружены и сохранены на жёсткий диск_");
+
     }
 }

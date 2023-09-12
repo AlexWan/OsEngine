@@ -15,7 +15,9 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 using System.Text;
-
+using System.Xml;
+using System.Reflection;
+using OsEngine.Market.Servers.Hitbtc;
 
 namespace OsEngine.OsData
 {
@@ -1639,23 +1641,19 @@ namespace OsEngine.OsData
                 return;
             }
 
-            StringBuilder builder = new StringBuilder();
-
-            for (int i = 0; i < extTrades.Count; i++)
-            {
-                builder.Append(extTrades[i].GetSaveString());
-
-                if (i + 1 != extTrades.Count)
-                {
-                    builder.Append("\n");
-                }
-            }
-
             try
             {
                 using (StreamWriter writer = new StreamWriter(_pathMyTxtFile, false))
                 {
-                    writer.WriteLine(builder.ToString());
+                    for(int i = 0;i < extTrades.Count;i++)
+                    {
+                        writer.WriteLine(extTrades[i].ToString());
+                    }
+                }
+
+                if (NewLogMessageEvent != null)
+                {
+                    NewLogMessageEvent(SecName + " " + TimeFrame + " " + OsLocalization.Data.Label59, LogMessageType.System);
                 }
             }
             catch (Exception error)
