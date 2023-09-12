@@ -151,53 +151,47 @@ namespace OsEngine.Journal
             {
                 return;
             }
+
             // 2 sorting deals on ALL / Long / Short
             // 2 сортируем сделки на ВСЕ / Лонг / Шорт
 
             List<Position> positionsAll = new List<Position>();
-            List<Position> positionsLong = new List<Position>();
-            List<Position> positionsShort = new List<Position>();
 
             for (int i = 0; i < myJournals.Count; i++)
             {
                 if (myJournals[i].AllPosition != null) positionsAll.AddRange(myJournals[i].AllPosition);
-                if (myJournals[i].CloseAllLongPositions != null)
-                    positionsLong.AddRange(myJournals[i].CloseAllLongPositions);
-                if (myJournals[i].CloseAllShortPositions != null)
-                    positionsShort.AddRange(myJournals[i].CloseAllShortPositions);
             }
-
-            positionsLong =
-                positionsLong.FindAll(
-                    pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
-            positionsShort =
-                positionsShort.FindAll(
-                    pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.Opening);
-            // 3 sort transactions by time (this is better in a separate method)
-            // 3 сортируем сделки по времени(это лучше в отдельном методе)
-
 
             List<Position> newPositionsAll = new List<Position>();
 
             for (int i = 0; i < positionsAll.Count; i++)
             {
-                if (newPositionsAll.Count == 0 ||
-                    newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= positionsAll[i].TimeCreate)
+                Position pose = positionsAll[i];
+
+                if (pose.State == PositionStateType.OpeningFail)
                 {
-                    newPositionsAll.Add(positionsAll[i]);
+                    continue;
                 }
-                else if (newPositionsAll[0].TimeCreate >= positionsAll[i].TimeCreate)
+
+                DateTime timeCreate = pose.TimeCreate;
+
+                if (newPositionsAll.Count == 0 ||
+                    newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= timeCreate)
                 {
-                    newPositionsAll.Insert(0, positionsAll[i]);
+                    newPositionsAll.Add(pose);
+                }
+                else if (newPositionsAll[0].TimeCreate >= timeCreate)
+                {
+                    newPositionsAll.Insert(0, pose);
                 }
                 else
                 {
                     for (int i2 = 0; i2 < newPositionsAll.Count - 1; i2++)
                     {
-                        if (newPositionsAll[i2].TimeCreate <= positionsAll[i].TimeCreate &&
-                            newPositionsAll[i2 + 1].TimeCreate >= positionsAll[i].TimeCreate)
+                        if (newPositionsAll[i2].TimeCreate <= timeCreate &&
+                            newPositionsAll[i2 + 1].TimeCreate >= timeCreate)
                         {
-                            newPositionsAll.Insert(i2 + 1, positionsAll[i]);
+                            newPositionsAll.Insert(i2 + 1, pose);
                             break;
                         }
                     }
@@ -205,64 +199,6 @@ namespace OsEngine.Journal
             }
 
             positionsAll = newPositionsAll;
-
-            List<Position> newPositionsLong = new List<Position>();
-
-            for (int i = 0; i < positionsLong.Count; i++)
-            {
-                if (newPositionsLong.Count == 0 ||
-                    newPositionsLong[newPositionsLong.Count - 1].TimeCreate <= positionsLong[i].TimeCreate)
-                {
-                    newPositionsLong.Add(positionsLong[i]);
-                }
-                else if (newPositionsLong[0].TimeCreate > positionsLong[i].TimeCreate)
-                {
-                    newPositionsLong.Insert(0, positionsLong[i]);
-                }
-                else
-                {
-                    for (int i2 = 0; i2 < newPositionsLong.Count - 1; i2++)
-                    {
-                        if (newPositionsLong[i2].TimeCreate <= positionsLong[i].TimeCreate &&
-                            newPositionsLong[i2 + 1].TimeCreate >= positionsLong[i].TimeCreate)
-                        {
-                            newPositionsLong.Insert(i2 + 1, positionsLong[i]);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            positionsLong = newPositionsLong;
-
-            List<Position> newPositionsShort = new List<Position>();
-
-            for (int i = 0; i < positionsShort.Count; i++)
-            {
-                if (newPositionsShort.Count == 0 ||
-                    newPositionsShort[newPositionsShort.Count - 1].TimeCreate <= positionsShort[i].TimeCreate)
-                {
-                    newPositionsShort.Add(positionsShort[i]);
-                }
-                else if (newPositionsShort[0].TimeCreate > positionsShort[i].TimeCreate)
-                {
-                    newPositionsShort.Insert(0, positionsShort[i]);
-                }
-                else
-                {
-                    for (int i2 = 0; i2 < newPositionsShort.Count - 1; i2++)
-                    {
-                        if (newPositionsShort[i2].TimeCreate <= positionsShort[i].TimeCreate &&
-                            newPositionsShort[i2 + 1].TimeCreate >= positionsShort[i].TimeCreate)
-                        {
-                            newPositionsShort.Insert(i2 + 1, positionsShort[i]);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            positionsShort = newPositionsShort;
 
             _allPositions = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
             _longPositions = _allPositions.FindAll(p => p.Direction == Side.Buy);
