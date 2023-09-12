@@ -49,17 +49,17 @@ namespace OsEngine.Robots.AO
         // Indicator setting 
         private StrategyParameterDecimal Sharpness;
         private StrategyParameterDecimal CoefK;
-        private StrategyParameterInt LengthVwmaChannel;
+        private StrategyParameterInt LengthEmaChannel;
 
         // Indicator
         Aindicator _Kalman;
-        Aindicator _VwmaHigh;
-        Aindicator _VwmaLow;
+        Aindicator _EmaHigh;
+        Aindicator _EmaLow;
 
         // The last value of the indicator
         private decimal _lastKalman;
-        private decimal _lastVWMAHigh;
-        private decimal _lastVWMALow;
+        private decimal _lastEmaHigh;
+        private decimal _lastEmaLow;
 
 
         public IntersectionKalmanWithChannelEma(string name, StartProgram startProgram) : base(name, startProgram)
@@ -78,7 +78,7 @@ namespace OsEngine.Robots.AO
             // Indicator setting
             Sharpness = CreateParameter("Sharpness", 1.0m, 1, 50, 1, "Indicator");
             CoefK = CreateParameter("CoefK", 1.0m, 1, 50, 1, "Indicator");
-            LengthVwmaChannel = CreateParameter("Period VWMA", 100, 10, 300, 1, "Indicator");
+            LengthEmaChannel = CreateParameter("Period VWMA", 100, 10, 300, 1, "Indicator");
 
             // Create indicator ChaikinOsc
             _Kalman = IndicatorsFactory.CreateIndicatorByName("KalmanFilter", name + "KalmanFilter", false);
@@ -88,18 +88,18 @@ namespace OsEngine.Robots.AO
             _Kalman.Save();
 
             // Create indicator VwmaHigh
-            _VwmaHigh = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma High", false);
-            _VwmaHigh = (Aindicator)_tab.CreateCandleIndicator(_VwmaHigh, "Prime");
-            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = LengthVwmaChannel.ValueInt;
-            ((IndicatorParameterString)_VwmaHigh.Parameters[1]).ValueString = "High";
-            _VwmaHigh.Save();
+            _EmaHigh = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema High", false);
+            _EmaHigh = (Aindicator)_tab.CreateCandleIndicator(_EmaHigh, "Prime");
+            ((IndicatorParameterInt)_EmaHigh.Parameters[0]).ValueInt = LengthEmaChannel.ValueInt;
+            ((IndicatorParameterString)_EmaHigh.Parameters[1]).ValueString = "High";
+            _EmaHigh.Save();
 
             // Create indicator VwmaLow
-            _VwmaLow = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma Low", false);
-            _VwmaLow = (Aindicator)_tab.CreateCandleIndicator(_VwmaLow, "Prime");
-            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = LengthVwmaChannel.ValueInt;
-            ((IndicatorParameterString)_VwmaLow.Parameters[1]).ValueString = "Low";
-            _VwmaLow.Save();
+            _EmaLow = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema Low", false);
+            _EmaLow = (Aindicator)_tab.CreateCandleIndicator(_EmaLow, "Prime");
+            ((IndicatorParameterInt)_EmaLow.Parameters[0]).ValueInt = LengthEmaChannel.ValueInt;
+            ((IndicatorParameterString)_EmaLow.Parameters[1]).ValueString = "Low";
+            _EmaLow.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += IntersectionKalmanWithChannelEma_ParametrsChangeByUser; ;
@@ -124,14 +124,14 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterDecimal)_Kalman.Parameters[1]).ValueDecimal = CoefK.ValueDecimal;
             _Kalman.Save();
             _Kalman.Reload();
-            ((IndicatorParameterInt)_VwmaHigh.Parameters[0]).ValueInt = LengthVwmaChannel.ValueInt;
-            ((IndicatorParameterString)_VwmaHigh.Parameters[1]).ValueString = "High";
-            _VwmaHigh.Save();
-            _VwmaHigh.Reload();
-            ((IndicatorParameterInt)_VwmaLow.Parameters[0]).ValueInt = LengthVwmaChannel.ValueInt;
-            ((IndicatorParameterString)_VwmaLow.Parameters[1]).ValueString = "Low";
-            _VwmaLow.Save();
-            _VwmaLow.Reload();
+            ((IndicatorParameterInt)_EmaHigh.Parameters[0]).ValueInt = LengthEmaChannel.ValueInt;
+            ((IndicatorParameterString)_EmaHigh.Parameters[1]).ValueString = "High";
+            _EmaHigh.Save();
+            _EmaHigh.Reload();
+            ((IndicatorParameterInt)_EmaLow.Parameters[0]).ValueInt = LengthEmaChannel.ValueInt;
+            ((IndicatorParameterString)_EmaLow.Parameters[1]).ValueString = "Low";
+            _EmaLow.Save();
+            _EmaLow.Reload();
         }
 
         // The name of the robot in OsEngine
@@ -156,7 +156,7 @@ namespace OsEngine.Robots.AO
             // If there are not enough candles to build an indicator, we exit
             if (candles.Count < CoefK.ValueDecimal ||
                 candles.Count < Sharpness.ValueDecimal ||
-                candles.Count < LengthVwmaChannel.ValueInt)
+                candles.Count < LengthEmaChannel.ValueInt)
             {
                 return;
             }
@@ -193,8 +193,8 @@ namespace OsEngine.Robots.AO
         {
             // The last value of the indicator
             _lastKalman = _Kalman.DataSeries[0].Last;
-            _lastVWMAHigh = _VwmaHigh.DataSeries[0].Last;
-            _lastVWMALow = _VwmaLow.DataSeries[0].Last;
+            _lastEmaHigh = _EmaHigh.DataSeries[0].Last;
+            _lastEmaLow = _EmaLow.DataSeries[0].Last;
 
 
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -211,7 +211,7 @@ namespace OsEngine.Robots.AO
                 {
 
 
-                    if (_lastKalman < lastPrice && _lastVWMAHigh < lastPrice && _lastKalman > _lastVWMAHigh)
+                    if (_lastKalman < lastPrice && _lastEmaHigh < lastPrice && _lastKalman > _lastEmaHigh)
                     {
                         _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
                     }
@@ -221,7 +221,7 @@ namespace OsEngine.Robots.AO
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
 
-                    if (_lastKalman > lastPrice && _lastVWMALow > lastPrice && _lastKalman < _lastVWMALow)
+                    if (_lastKalman > lastPrice && _lastEmaLow > lastPrice && _lastKalman < _lastEmaLow)
                     {
                         _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
                     }
@@ -239,8 +239,8 @@ namespace OsEngine.Robots.AO
 
             // The last value of the indicator
             _lastKalman = _Kalman.DataSeries[0].Last;
-            _lastVWMAHigh = _VwmaHigh.DataSeries[0].Last;
-            _lastVWMALow = _VwmaLow.DataSeries[0].Last;
+            _lastEmaHigh = _EmaHigh.DataSeries[0].Last;
+            _lastEmaLow = _EmaLow.DataSeries[0].Last;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -253,14 +253,14 @@ namespace OsEngine.Robots.AO
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    if (_lastKalman < _lastVWMAHigh)
+                    if (_lastKalman < _lastEmaHigh)
                     {
                         _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
                 {
-                    if (_lastKalman > _lastVWMALow)
+                    if (_lastKalman > _lastEmaLow)
                     {
                         _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
                     }
