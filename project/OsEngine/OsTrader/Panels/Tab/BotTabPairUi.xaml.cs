@@ -262,12 +262,22 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (_chartSec1 != null)
             {
+                if(_chartSec1.Indicators != null)
+                {
+                    _chartSec1.Indicators.Clear();
+                }
+
                 _chartSec1.Delete();
                 _chartSec1 = null;
             }
 
             if (_chartSec2 != null)
             {
+                if (_chartSec2.Indicators != null)
+                {
+                    _chartSec2.Indicators.Clear();
+                }
+
                 _chartSec2.Delete();
                 _chartSec2 = null;
             }
@@ -758,9 +768,25 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartSec1.StartPaint(null, HostSec1, null);
             _chartSec1.SetCandles(_pair.Tab1.CandlesAll);
 
+            for(int i = 0;i < _pair.Tab1.Indicators.Count;i++)
+            {
+                if (_chartSec1.IndicatorIsCreate(_pair.Tab1.Indicators[i].Name) == false)
+                {
+                    _chartSec1.CreateIndicator(_pair.Tab1.Indicators[i], _pair.Tab1.Indicators[i].NameArea);
+                }
+            }
+    
             _chartSec2 = new ChartCandleMaster(_pair.Name + "sec2", _pair.Tab2.StartProgram);
             _chartSec2.StartPaint(null, HostSec2, null);
             _chartSec2.SetCandles(_pair.Tab2.CandlesAll);
+
+            for (int i = 0; i < _pair.Tab2.Indicators.Count; i++)
+            {
+                if(_chartSec2.IndicatorIsCreate(_pair.Tab2.Indicators[i].Name) == false)
+                {
+                    _chartSec2.CreateIndicator(_pair.Tab2.Indicators[i], _pair.Tab2.Indicators[i].NameArea);
+                }
+            }
 
             _chartSec1.Bind(_chartSec2);
         }
