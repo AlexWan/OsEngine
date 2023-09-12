@@ -2439,6 +2439,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Add new order to Short position at market 
+        /// </summary>
+        /// <param name="position">position to which the order will be added</param>
+        /// <param name="volume">volume</param>
+        /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen</param>
+        public void SellAtMarketToPosition(Position position, decimal volume, string signalType)
+        {
+            position.SignalTypeOpen = signalType;
+            SellAtMarketToPosition(position, volume);
+        }
+
+        /// <summary>
         /// Add new order to Short position at iceberg
         /// </summary>
         /// <param name="position">position to which the order will be added</param>
