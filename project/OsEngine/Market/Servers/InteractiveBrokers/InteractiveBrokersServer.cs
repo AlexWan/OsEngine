@@ -309,6 +309,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         {
             if (!File.Exists(@"Engine\" + @"IbSecuritiesToWatch.txt"))
             {
+                LoadStartSecurities();
                 return;
             }
 
@@ -358,29 +359,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                     if (_secIB.Count == 0)
                     {
-                        SecurityIb sec1 = new SecurityIb();
-                        sec1.Symbol = "AAPL";
-                        sec1.Exchange = "SMART";
-                        sec1.SecType = "STK";
-                        _secIB.Add(sec1);
-
-                        SecurityIb sec2 = new SecurityIb();
-                        sec2.Symbol = "FB";
-                        sec2.Exchange = "SMART";
-                        sec2.SecType = "STK";
-                        _secIB.Add(sec2);
-
-                        SecurityIb sec3 = new SecurityIb();
-                        sec3.Symbol = "EUR";
-                        sec3.Exchange = "IDEALPRO";
-                        sec3.SecType = "CASH";
-                        _secIB.Add(sec3);
-
-                        SecurityIb sec4 = new SecurityIb();
-                        sec4.Symbol = "GBP";
-                        sec4.Exchange = "IDEALPRO";
-                        sec4.SecType = "CASH";
-                        _secIB.Add(sec4);
+                        LoadStartSecurities();
                     }
                 }
             }
@@ -388,6 +367,37 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             {
                 // ignored
             }
+        }
+
+        private void LoadStartSecurities()
+        {
+            SecurityIb sec1 = new SecurityIb();
+            sec1.LocalSymbol = "AAPL";
+            sec1.Exchange = "SMART";
+            sec1.SecType = "STK";
+            sec1.Currency = "USD";
+
+            _secIB.Add(sec1);
+
+            SecurityIb sec2 = new SecurityIb();
+            sec2.LocalSymbol = "FB";
+            sec2.Exchange = "SMART";
+            sec2.SecType = "STK";
+            sec2.Currency = "USD";
+
+            _secIB.Add(sec2);
+
+            SecurityIb sec3 = new SecurityIb();
+            sec3.LocalSymbol = "EUR.USD";
+            sec3.Exchange = "IDEALPRO";
+            sec3.SecType = "CASH";
+            _secIB.Add(sec3);
+
+            SecurityIb sec4 = new SecurityIb();
+            sec4.LocalSymbol = "GBP.USD";
+            sec4.Exchange = "IDEALPRO";
+            sec4.SecType = "CASH";
+            _secIB.Add(sec4);
         }
 
         void _ibClient_NewContractEvent(SecurityIb contract)

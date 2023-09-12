@@ -211,6 +211,9 @@ namespace OsEngine.Market.Servers.Tester
             barUpdater.IsBackground = true;
             barUpdater.Start();
 
+            Thread profitChartUpdater = new Thread(ResizeWorker);
+            profitChartUpdater.Start();
+
             this.Activate();
             this.Focus();
         }
@@ -579,6 +582,29 @@ namespace OsEngine.Market.Servers.Tester
 
 // chart/чарт
 
+        private void ResizeWorker()
+        {
+            while(true)
+            {
+                Thread.Sleep(3000);
+
+                if (_uiIsClosed)
+                {
+                    return;
+                }
+
+                if(_neadToUpdateChartValue == false)
+                {
+                    continue;
+                }
+
+                _neadToUpdateChartValue = false;
+
+                PaintProfitOnChart();
+                Resize();
+            }
+        }
+
         /// <summary>
         /// report chart
         /// чарт для отчёта
@@ -664,36 +690,58 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void PaintProfitOnChart()
         {
-            List<decimal> portfolio = _server.ProfitArray;
-
-            if (portfolio == null || portfolio.Count == 0)
+            if(_chartReport == null)
             {
                 return;
             }
 
-            for (int i = 0; i < portfolio.Count; i++)
+            try
             {
-                if (portfolio[i] != 0)
+                List<decimal> portfolio = _server.ProfitArray;
+
+                if (portfolio == null || portfolio.Count == 0)
                 {
-                    _chartReport.Series[0].Points.AddXY(i, portfolio[i]);
+                    return;
+                }
 
-                    if (i == 0)
-                    {
-                        _chartReport.Series[1].Points.AddXY(i,  portfolio[i] - 1000000);
-                        continue;
-                    }
+                if (_chartReport.InvokeRequired)
+                {
+                    _chartReport.Invoke(new Action(PaintProfitOnChart));
+                    return;
+                }
 
-                    _chartReport.Series[1].Points.AddXY(i, portfolio[i] - portfolio[i-1]);
+                _chartReport.Series[0].Points.Clear();
+                _chartReport.Series[1].Points.Clear();
 
-                    if (portfolio[i] - portfolio[i - 1] > 0)
+                for (int i = 0; i < portfolio.Count; i++)
+                {
+                    if (portfolio[i] != 0)
                     {
-                        _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Color.DeepSkyBlue;
-                    }
-                    else
-                    {
-                        _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Color.DarkRed;
+                        _chartReport.Series[0].Points.AddXY(i, portfolio[i]);
+
+                        if (i == 0)
+                        {
+                            _chartReport.Series[1].Points.AddXY(i, portfolio[i] - _server.StartPortfolio);
+                            continue;
+                        }
+
+                        _chartReport.Series[1].Points.AddXY(i, portfolio[i] - portfolio[i - 1]);
+
+                        if (portfolio[i] - portfolio[i - 1] > 0)
+                        {
+                            _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Color.DeepSkyBlue;
+                        }
+                        else
+                        {
+                            _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Color.DarkRed;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                _server.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return;
             }
         }
 
@@ -759,6 +807,8 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private bool _chartActive;
 
+        private bool _neadToUpdateChartValue;
+
         /// <summary>
         /// new value of portfolio from the server has come
         /// пришло новое значение портфеля из сервера
@@ -770,7 +820,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            PaintLastPointOnChart();
+            _neadToUpdateChartValue = true;
         }
 
         private void Resize()

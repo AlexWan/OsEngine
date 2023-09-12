@@ -216,6 +216,12 @@ namespace OsEngine.OsTrader.Gui
                     _master.CreateNewBot();
                 }
 
+                if(_grid.Rows.Count <= prevActiveRow)
+                {
+                    prevActiveRow = rowIndex;
+                    return;
+                }
+
                 _grid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
                 _grid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
                 prevActiveRow = rowIndex;
