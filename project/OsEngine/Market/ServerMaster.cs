@@ -1470,6 +1470,11 @@ namespace OsEngine.Market
         /// <summary>
         /// BitGetFutures exchange
         /// </summary>
-        BitGetFutures
+        BitGetFutures,
+        
+        /// <summary>
+        /// Alor OpenAPI & Websocket
+        /// </summary>
+        Alor
     }
 }
