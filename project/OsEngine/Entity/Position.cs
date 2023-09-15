@@ -1055,7 +1055,6 @@ namespace OsEngine.Entity
                 if(OpenOrders[0].ServerType == ServerType.Plaza ||
                     OpenOrders[0].ServerType == ServerType.QuikDde ||
                     OpenOrders[0].ServerType == ServerType.QuikLua ||
-                    OpenOrders[0].ServerType == ServerType.SmartCom ||
                     OpenOrders[0].ServerType == ServerType.Tinkoff ||
                     OpenOrders[0].ServerType == ServerType.Transaq)
                 {

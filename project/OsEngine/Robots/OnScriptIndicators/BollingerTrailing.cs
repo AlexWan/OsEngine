@@ -24,11 +24,9 @@ public class BollingerTrailing : BotPanel
         BollingerDeviation = CreateParameter("Bollinger Deviation", 2, 0.5m, 4, 0.1m);
 
         _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger",name + "Bollinger", false);
-
+        _bollinger = (Aindicator)_tab.CreateCandleIndicator(_bollinger, "Prime");
         _bollinger.ParametersDigit[0].Value = IndLenght.ValueInt;
         _bollinger.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
-
-        _bollinger = (Aindicator)_tab.CreateCandleIndicator(_bollinger, "Prime");
         _bollinger.Save();
 
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
