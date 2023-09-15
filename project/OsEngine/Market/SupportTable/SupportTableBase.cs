@@ -52,16 +52,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(quikLua);
 
-            SupportConnection smartCom = new SupportConnection()
-            {
-                ServerType = ServerType.SmartCom,
-                SupportType = SupportServerType.Standart,
-                LinqToLogo = "\\Images\\Connections\\Moex\\Smartcom.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(smartCom);
-
             SupportConnection plaza = new SupportConnection()
             {
                 ServerType = ServerType.Plaza,

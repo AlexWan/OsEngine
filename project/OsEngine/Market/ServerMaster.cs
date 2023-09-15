@@ -30,7 +30,6 @@ using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Plaza;
 using OsEngine.Market.Servers.Quik;
 using OsEngine.Market.Servers.QuikLua;
-using OsEngine.Market.Servers.SmartCom;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
@@ -80,7 +79,6 @@ namespace OsEngine.Market
 
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
-                serverTypes.Add(ServerType.SmartCom);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
                 serverTypes.Add(ServerType.Tinkoff);
@@ -424,10 +422,6 @@ namespace OsEngine.Market
                 if (type == ServerType.InteractiveBrokers)
                 {
                     newServer = new InteractiveBrokersServer();
-                }
-                else if (type == ServerType.SmartCom)
-                {
-                    newServer = new SmartComServer();
                 }
                 else if (type == ServerType.Plaza)
                 {
@@ -1381,12 +1375,6 @@ namespace OsEngine.Market
         /// Квик
         /// </summary>
         QuikDde,
-
-        /// <summary>
-        /// SmartCom
-        /// Смарт-Ком
-        /// </summary>
-        SmartCom,
 
         /// <summary>
         /// Plaza 2
