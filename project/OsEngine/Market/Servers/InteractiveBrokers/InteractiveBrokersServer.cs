@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.InteractiveBrokers;
 using System.IO;
 
 
@@ -149,14 +146,14 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         /// </summary>
         void _ibClient_ConnectionSucsess()
         {
+            GetSecurities();
+
             ServerStatus = ServerConnectStatus.Connect;
 
             if (ConnectEvent != null)
             {
                 ConnectEvent();
             }
-
-            GetSecurities();
         }
 
         /// <summary>
@@ -196,6 +193,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 return;
             }
 
+            _securitiesIsConnect = false;
+
             if (_namesSubscribleSecurities == null)
             {
                 _namesSubscribleSecurities = new List<string>();
@@ -221,7 +220,11 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                 _client.GetSecurityDetail(_secIB[i]);
             }
+
+            _securitiesIsConnect = true;
         }
+
+        private bool _securitiesIsConnect = false;
 
         // security. What the user enters for the subscription. Storage and management
         // бумаги. То что пользователь вводит для подписки. Хранение и менеджмент
@@ -927,6 +930,11 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         public void Subscrible(Security security)
         {
+
+            while (_securitiesIsConnect == false)
+            {
+                Thread.Sleep(500);
+            }
 
             SecurityIb contractIb =
            _secIB.Find(
