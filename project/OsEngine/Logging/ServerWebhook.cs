@@ -66,12 +66,6 @@ namespace OsEngine.Logging
         public string SlackBotToken;
 
         /// <summary>
-        /// Will send chart screenshots (it supports slack and discord)
-        /// Отправлять скриншоты графика (поддерживаются slack и discord)
-        /// </summary>
-        public bool MustSendChartScreenshots;
-
-        /// <summary>
         /// shows whether the server is ready to work
         /// готов ли сервер к работе
         /// </summary>
@@ -94,7 +88,6 @@ namespace OsEngine.Logging
                 StreamReader reader = new StreamReader(@"Engine\webhookSet.txt");
 
                 SlackBotToken = reader.ReadLine();
-                MustSendChartScreenshots = Convert.ToBoolean(reader.ReadLine());
 
                 IsReady = false;
                 for (int i = 0; !reader.EndOfStream; i++)
@@ -127,7 +120,6 @@ namespace OsEngine.Logging
             else
             {
                 SlackBotToken = string.Empty;
-                MustSendChartScreenshots = false;
                 IsReady = false;
             }
         }
@@ -140,7 +132,6 @@ namespace OsEngine.Logging
         {
             StreamWriter writer = new StreamWriter(@"Engine\webhookSet.txt");
             writer.WriteLine(SlackBotToken);
-            writer.WriteLine(MustSendChartScreenshots);
             IsReady = false;
             if (Webhooks != null && Webhooks[0] != null)
             {
@@ -218,27 +209,6 @@ namespace OsEngine.Logging
                 {
                     Send(ServerWebhook.GetServer().Webhooks[i], Message, NameBot, screenshot);
                 }
-            }
-        }
-
-        /// <summary>
-        /// must send screenshot for the message?
-        /// должны отправить скриншот для сообщения?
-        /// </summary>
-        private bool MustSendScreenshotFor(LogMessage message)
-        {
-            if (!ServerWebhook.GetServer().MustSendChartScreenshots)
-            {
-                return false;
-            }
-
-            switch (message.Type)
-            {
-                case LogMessageType.Trade:
-                case LogMessageType.Signal:
-                    return true;
-                default:
-                    return false;
             }
         }
 
