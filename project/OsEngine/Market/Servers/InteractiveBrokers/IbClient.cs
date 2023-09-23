@@ -1483,7 +1483,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             trade.Price = price;
             trade.Volume = size;
             trade.Time = DateTime.Now;
-            trade.SecurityNameCode = security.LocalSymbol + "_" + security.SecType + "_" + security.Exchange;
+            trade.SecurityNameCode = security.Symbol + "_" + security.SecType + "_" + security.Exchange;
 
             if (tickType == 1)
             {
