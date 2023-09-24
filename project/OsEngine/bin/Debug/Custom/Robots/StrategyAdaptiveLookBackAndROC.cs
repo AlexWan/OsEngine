@@ -44,9 +44,8 @@ namespace OsEngine.Robots.My_bots
         private StrategyParameterInt CandlesCountLow;
         private StrategyParameterInt PeriodALB;
         private StrategyParameterInt LengthROC;
-        private StrategyParameterDecimal CoefExitALB;
-        private StrategyParameterDecimal CoefEntryALB;
-        
+        private StrategyParameterDecimal MultALB;
+
         // Indicator
         private Aindicator ROC;
         private Aindicator ALB;
@@ -73,10 +72,9 @@ namespace OsEngine.Robots.My_bots
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator Settings
-            LengthROC = CreateParameter("Rate of Change", 5, 1, 10, 1, "Indicator");
+            LengthROC = CreateParameter("Rate of Change", 14, 1, 10, 1, "Indicator");
             PeriodALB = CreateParameter("Adaptive Look Back", 5, 1, 10, 1, "Indicator");
-            CoefExitALB = CreateParameter("CoefExitALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
-            CoefEntryALB = CreateParameter("CoefEntrytALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
+            MultALB = CreateParameter("CoefEntrytALB", 0.0002m, 0.0001m, 0.01m, 0.0001m, "Indicator");
             CandlesCountHigh = CreateParameter("CandlesCountHigh", 10, 50, 100, 20, "Indicator");
             CandlesCountLow = CreateParameter("CandlesCountLow", 5, 20, 100, 10, "Indicator");
 
@@ -106,7 +104,7 @@ namespace OsEngine.Robots.My_bots
                 " 2.ROC is below 0." +
                 "Exit: by the reverse signal of the RoC indicator.";
         }
-           
+
         // Indicator Update event
         private void StrategyAdaptiveLookBackAndROC_ParametrsChangeByUser()
         {
@@ -138,7 +136,7 @@ namespace OsEngine.Robots.My_bots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PeriodALB.ValueInt + 100 || candles.Count < CandlesCountHigh.ValueInt||
+            if (candles.Count < PeriodALB.ValueInt + 100 || candles.Count < CandlesCountHigh.ValueInt ||
                 candles.Count < LengthROC.ValueInt || candles.Count < CandlesCountLow.ValueInt)
             {
                 return;
@@ -174,36 +172,36 @@ namespace OsEngine.Robots.My_bots
         // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
-            List<Position> openPositions = _tab.PositionsOpenAll;
-
             _lastROC = ROC.DataSeries[0].Last;
             _lastALB = ALB.DataSeries[0].Last;
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
-
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             _tab.BuyAtStopCancel();
             _tab.SellAtStopCancel();
 
+            decimal openBuy = GetOpenBuy(candles, candles.Count - 1);
+            decimal openSell = GetOpenSell(candles, candles.Count - 1);
+
             // Long
             if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
             {
-                if (lastPrice > GetOupenBuy(candles, candles.Count - 1) + CoefEntryALB.ValueDecimal * _lastALB && _lastROC > 0)
+                if (lastPrice > openBuy  && _lastROC > 0)
                 {
                     _tab.BuyAtStop(GetVolume(),
-                        lastPrice + Slippage.ValueDecimal * _tab.Securiti.PriceStep,
-                        lastPrice, StopActivateType.HigherOrEqual);
+                        lastPrice + MultALB.ValueDecimal * _lastALB/100 + _slippage,
+                        lastPrice + MultALB.ValueDecimal * _lastALB/100, StopActivateType.HigherOrEqual,1);
                 }
             }
 
             // Short
             if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
             {
-                if (lastPrice < GetOupenSell(candles, candles.Count - 1) - CoefEntryALB.ValueDecimal * _lastALB && _lastROC < 0)
+                if (lastPrice < openSell  && _lastROC < 0)
                 {
                     _tab.SellAtStop(GetVolume(),
-                       lastPrice - Slippage.ValueDecimal * _tab.Securiti.PriceStep,
-                       lastPrice, StopActivateType.LowerOrEqyal);
+                       lastPrice - MultALB.ValueDecimal * _lastALB/100 - _slippage,
+                       lastPrice - MultALB.ValueDecimal * _lastALB/100, StopActivateType.LowerOrEqyal,1);
                 }
             }
         }
@@ -216,6 +214,7 @@ namespace OsEngine.Robots.My_bots
             _lastROC = ROC.DataSeries[0].Last;
             decimal lastPrice = candles[candles.Count - 1].Close;
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
                 if (openPositions[i].State != PositionStateType.Open)
@@ -269,7 +268,7 @@ namespace OsEngine.Robots.My_bots
             return volume;
         }
 
-        private decimal GetOupenSell(List<Candle> candles, int index)
+        public decimal GetOpenSell(List<Candle> candles, int index)
         {
             if (candles == null || index < CandlesCountLow.ValueInt)
 
@@ -277,10 +276,9 @@ namespace OsEngine.Robots.My_bots
                 return 0;
             }
 
-
             decimal price = decimal.MaxValue;
 
-            for (int i = index-1; i > 0 && i > index - CandlesCountLow.ValueInt; i--)
+            for (int i = index - 1; i > 0 && i > index - CandlesCountLow.ValueInt; i--)
             {
                 // Looking at the maximum low
                 if (candles[i].Low < price)
@@ -290,33 +288,29 @@ namespace OsEngine.Robots.My_bots
             }
 
             return price;
-
-
-           
         }
-    
-            private decimal GetOupenBuy(List<Candle> candles, int index)
+
+        public decimal GetOpenBuy(List<Candle> candles, int index)
+        {
+            if (candles == null || index < CandlesCountHigh.ValueInt)
             {
-                if (candles == null || index < CandlesCountHigh.ValueInt)
-                {
-                    return 0;
-                }
-
-
-                decimal price = decimal.MinValue;
-                for (int i = index-1; i > 0 && i > index - CandlesCountHigh.ValueInt; i--)
-                {
-                    // Looking at the maximum high
-                    if (candles[i].High > price)
-                    {
-                        price = candles[i].High;
-                    }
-                }
-
-                return price;
-
-
+                return 0;
             }
+
+            decimal price = decimal.MinValue;
+
+            for (int i = index - 1; i > 0 && i > index - CandlesCountHigh.ValueInt; i--)
+            {
+                // Looking at the maximum high
+                if (candles[i].High > price)
+                {
+                    price = candles[i].High;
+                }
+            }
+
+            return price;
         }
     }
+}
+
 
