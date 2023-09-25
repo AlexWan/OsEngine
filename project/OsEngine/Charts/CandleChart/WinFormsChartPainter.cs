@@ -5678,12 +5678,17 @@ namespace OsEngine.Charts.CandleChart
                     // если вещественной части нет
                     int lenght = 1;
 
-                    for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                    try
                     {
-                        lenght = lenght * 10;
+                        for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                        {
+                            lenght = lenght * 10;
+                        }
                     }
-
-
+                    catch
+                    {
+                        break;
+                    }
 
                     int lengthLow = 1;
 

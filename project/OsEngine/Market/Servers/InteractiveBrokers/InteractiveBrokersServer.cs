@@ -1140,34 +1140,24 @@ contract =>
         }
 
         public List<Candle> StraichCandles(Candles series)
-        {/*
-            if (series.CandlesArray != null &&
-    series.CandlesArray.Count > 2)
+        {
+            List<Candle> newArray = new List<Candle>();
+
+            for (int i = 0; i < series.CandlesArray.Count; i++)
             {
-                Candle standart = series.CandlesArray[0];
-                TimeSpan timeBetwenCandles =
-                    series.CandlesArray[series.CandlesArray.Count - 2].TimeStart - series.CandlesArray[series.CandlesArray.Count - 1].TimeStart;
+                Candle curCandle = series.CandlesArray[i];
 
-                DateTime lastTime = series.CandlesArray[0].TimeStart;
-
-                int indexInsert = 0;
-
-                while (series.CandlesArray.Count < 205)
+                if (curCandle.Open == 0
+                    || curCandle.High == 0
+                    || curCandle.Low == 0
+                    || curCandle.Close == 0)
                 {
-                    lastTime = lastTime.Add(timeBetwenCandles);
-
-                    Candle newCandle = new Candle();
-
-                    newCandle.Volume = standart.Volume;
-                    newCandle.Open = standart.Open;
-                    newCandle.High = standart.High;
-                    newCandle.Low = standart.Low;
-                    newCandle.Close = standart.Close;
-                    newCandle.TimeStart = lastTime;
-
-                    series.CandlesArray.Insert(0, newCandle);
+                    continue;
                 }
-            }*/
+                newArray.Add(curCandle);
+            }
+
+            series.CandlesArray = newArray;
 
             return series.CandlesArray;
         }
