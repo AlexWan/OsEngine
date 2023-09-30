@@ -1921,7 +1921,7 @@ namespace OsEngine.Market.Servers.Finam
 
             string urlToSec = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
 
-            string url = ServerPrefics + "/" + urlToSec + ".txt?";
+            string url = ServerPrefics + "/" + "export9.out?";
 
             url += "market=" + SecurityFinam.MarketId + "&";
             url += "em=" + SecurityFinam.Id + "&";
@@ -2170,7 +2170,7 @@ namespace OsEngine.Market.Servers.Finam
 
             string fileName = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
 
-            string url = ServerPrefics + "/" + fileName + ".txt?";
+            string url = ServerPrefics + "/" + "export9.out?";
 
             url += "market=" + SecurityFinam.MarketId + "&";
             url += "em=" + SecurityFinam.Id + "&";
@@ -2200,6 +2200,8 @@ namespace OsEngine.Market.Servers.Finam
             url += "at=" + "0";
 
             WebClient wb = new WebClient();
+
+            //url = "http://export.finam.ru/export9.out?market=1&em=16842&code=GAZP&df=26&mf=8&yf=2023&from=26.09.2023&dt=28&mt=8&yt=2023&to=28.09.2023&p=3&f=GAZP_20230926_20230928&e=.txt&cn=GAZP&dtf=1&tmf=1&MSOR=0&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=0";
 
             string response = wb.DownloadString(url);
 
