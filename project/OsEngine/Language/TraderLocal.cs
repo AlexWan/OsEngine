@@ -3,12 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace OsEngine.Language
 {
     public class TraderLocal
@@ -560,9 +554,9 @@ namespace OsEngine.Language
         public string Label137 => OsLocalization.ConvertToLocString(
             "Eng:Trailing Stop_" +
             "Ru:Трейлинг стоп_");
-          
+
         public string Label138 => OsLocalization.ConvertToLocString(
-            "Eng:RSI difference_" + 
+            "Eng:RSI difference_" +
             "Ru:Разница RSI_");
 
         public string Label139 => OsLocalization.ConvertToLocString(
@@ -643,24 +637,24 @@ namespace OsEngine.Language
 
         public string Label158 => OsLocalization.ConvertToLocString(
             "Eng: Values type_" +
-            "Ru: Тип переменных _"); 
-        
+            "Ru: Тип переменных _");
+
         public string Label159 => OsLocalization.ConvertToLocString(
             "Eng: Update Bot_" +
             "Ru: Обновить Бота _");
-        
+
         public string Label160 => OsLocalization.ConvertToLocString(
             "Eng: Hot update changes from source code_" +
             "Ru: Загрзука изменений исходного кода_");
-        
+
         public string Label161 => OsLocalization.ConvertToLocString(
             "Eng: Start updating changes from the source code_" +
             "Ru: Начинается загрузка изменений исходного кода_");
-        
+
         public string Label162 => OsLocalization.ConvertToLocString(
             "Eng: Bot successfully updated_" +
             "Ru: Робот удачно обновлен_");
-        
+
         public string Label163 => OsLocalization.ConvertToLocString(
             "Eng: Failed to update current bot_" +
             "Ru: Не удалось обновить робота_");
@@ -1144,5 +1138,241 @@ namespace OsEngine.Language
         public string Label309 => OsLocalization.ConvertToLocString(
          "Eng:Auto-calculation_" +
          "Ru:Авто расчёт_");
+
+        public string Label310 => OsLocalization.ConvertToLocString(
+         "Eng:Auto choice_" +
+         "Ru:Авто выбор_");
+
+        public string Label311 => OsLocalization.ConvertToLocString(
+         "Eng:Create deal_" +
+         "Ru:Провести сделку_");
+
+        public string Label312 => OsLocalization.ConvertToLocString(
+         "Eng:Delete securities sequence?_" +
+         "Ru:Вы хотите удалить связку инструментов?_");
+
+        public string Label313 => OsLocalization.ConvertToLocString(
+         "Eng:Pairs sequence_" +
+         "Ru:Торговая последовательность инструментов_");
+
+        public string Label314 => OsLocalization.ConvertToLocString(
+         "Eng:Select_" +
+         "Ru:Выбрать_");
+
+        public string Label315 => OsLocalization.ConvertToLocString(
+         "Eng:Start settings_" +
+         "Ru:Начальные настройки_");
+
+        public string Label316 => OsLocalization.ConvertToLocString(
+         "Eng:Comission settings_" +
+         "Ru:Настроки комиссии_");
+
+        public string Label317 => OsLocalization.ConvertToLocString(
+         "Eng:Base currency_" +
+         "Ru:Базовая валюта_");
+
+        public string Label318 => OsLocalization.ConvertToLocString(
+         "Eng:Value in portfolio_" +
+         "Ru:Объём в портфеле_");
+
+        public string Label319 => OsLocalization.ConvertToLocString(
+         "Eng:Separator_" +
+         "Ru:Разделитель_");
+
+        public string Label320 => OsLocalization.ConvertToLocString(
+         "Eng:Type_" +
+         "Ru:Тип_");
+
+        public string Label321 => OsLocalization.ConvertToLocString(
+         "Eng:Value_" +
+         "Ru:Значение_");
+
+        public string Label322 => OsLocalization.ConvertToLocString(
+         "Eng:Substract comissions in trading_" +
+         "Ru:Вычитать комиссию в торговле_");
+
+        public string Label323 => OsLocalization.ConvertToLocString(
+         "Eng:Limit_" +
+         "Ru:Лимит_");
+
+        public string Label324 => OsLocalization.ConvertToLocString(
+         "Eng:Market_" +
+         "Ru:Маркет_");
+
+        public string Label325 => OsLocalization.ConvertToLocString(
+         "Eng:Qty start_" +
+         "Ru:Объём_");
+
+        public string Label326 => OsLocalization.ConvertToLocString(
+         "Eng:Slippage %_" +
+         "Ru:Проскальз. %_");
+
+        public string Label327 => OsLocalization.ConvertToLocString(
+         "Eng:Buy_" +
+         "Ru:Купить_");
+
+        public string Label328 => OsLocalization.ConvertToLocString(
+         "Eng:Buy market_" +
+         "Ru:Купить маркетом_");
+
+        public string Label329 => OsLocalization.ConvertToLocString(
+         "Eng:Execution orders settings_" +
+         "Ru:Настройки исполнения заявок_");
+
+        public string Label330 => OsLocalization.ConvertToLocString(
+         "Eng:Delay type_" +
+         "Ru:Тип задержки_");
+
+        public string Label331 => OsLocalization.ConvertToLocString(
+         "Eng:Interval MLS_" +
+         "Ru:Задержка MLS_");
+
+        public string Label332 => OsLocalization.ConvertToLocString(
+         "Eng:Log_" +
+         "Ru:Лог_");
+
+        public string Label333 => OsLocalization.ConvertToLocString(
+         "Eng:Base currency is not set_" +
+         "Ru:Базовая валюта не установлена_");
+
+        public string Label334 => OsLocalization.ConvertToLocString(
+         "Eng:Previous security in the sequence is out of tune!_" +
+         "Ru:Предыдущая бумага в связке не настроена!_");
+
+        public string Label335 => OsLocalization.ConvertToLocString(
+         "Eng:Profit to signal %_" +
+         "Ru:Профит сигнала %_");
+
+        public string Label336 => OsLocalization.ConvertToLocString(
+         "Eng:Signal action_" +
+         "Ru:Действие сигнала_");
+
+        public string Label337 => OsLocalization.ConvertToLocString(
+         "Eng:Execution_" +
+         "Ru:Исполнение_");
+
+        public string Label338 => OsLocalization.ConvertToLocString(
+         "Eng:Order type_" +
+         "Ru:Тип ордера_");
+
+        public string Label339 => OsLocalization.ConvertToLocString(
+         "Eng:Profit abs_" +
+         "Ru:Прибыль абс_");
+
+        public string Label340 => OsLocalization.ConvertToLocString(
+         "Eng:Profit %_" +
+         "Ru:Прибыль %_");
+
+        public string Label341 => OsLocalization.ConvertToLocString(
+         "Eng:Step_" +
+         "Ru:Шаг_");
+
+        public string Label342 => OsLocalization.ConvertToLocString(
+         "Eng:Pair_" +
+         "Ru:Пара_");
+
+        public string Label343 => OsLocalization.ConvertToLocString(
+         "Eng:Operation_" +
+         "Ru:Операция_");
+
+        public string Label344 => OsLocalization.ConvertToLocString(
+         "Eng:Bid_" +
+         "Ru:Бид_");
+
+        public string Label345 => OsLocalization.ConvertToLocString(
+         "Eng:Ask_" +
+         "Ru:Аск_");
+
+        public string Label346 => OsLocalization.ConvertToLocString(
+         "Eng:Currency start_" +
+         "Ru:Валюта старт_");
+
+        public string Label347 => OsLocalization.ConvertToLocString(
+         "Eng:Qty start_" +
+         "Ru:Объём старт_");
+
+        public string Label348 => OsLocalization.ConvertToLocString(
+         "Eng:Currency end_" +
+         "Ru:Валюта итог_");
+
+        public string Label349 => OsLocalization.ConvertToLocString(
+         "Eng:Qty end_" +
+         "Ru:Объём итог_");
+
+        public string Label350 => OsLocalization.ConvertToLocString(
+         "Eng:First step securities (buy)_" +
+         "Ru:Пары для первого шага (покупка)_");
+
+        public string Label351 => OsLocalization.ConvertToLocString(
+         "Eng:Second step (sell)_" +
+         "Ru:Второй шаг (продажа)_");
+
+        public string Label352 => OsLocalization.ConvertToLocString(
+         "Eng:Final Sequence_" +
+         "Ru:Итоговая последовательность_");
+
+        public string Label353 => OsLocalization.ConvertToLocString(
+         "Eng:Create Table_" +
+         "Ru:Сгенерировать таблицу_");
+
+        public string Label354 => OsLocalization.ConvertToLocString(
+         "Eng:Create Selected Sequence_" +
+         "Ru:Создать выбранные последовательности_");
+
+        public string Label355 => OsLocalization.ConvertToLocString(
+         "Eng:Auto-creation sequence_" +
+         "Ru:Авто создание последовательностей_");
+
+        public string Label356 => OsLocalization.ConvertToLocString(
+         "Eng:Currency_" +
+         "Ru:Валюта_");
+
+        public string Label357 => OsLocalization.ConvertToLocString(
+         "Eng:Еntry count_" +
+         "Ru:Вход кол-во_");
+
+        public string Label358 => OsLocalization.ConvertToLocString(
+         "Eng:Exit count_" +
+         "Ru:Выход кол-во_");
+
+        public string Label359 => OsLocalization.ConvertToLocString(
+         "Eng:Step_" +
+         "Ru:Шаг_");
+
+        public string Label360 => OsLocalization.ConvertToLocString(
+         "Eng:Portfolio is not set!_" +
+         "Ru:Портфель не выбран!_");
+
+        public string Label361 => OsLocalization.ConvertToLocString(
+         "Eng:The deal is not possible! The base currency is not set up!_" +
+         "Ru:Сделка не возможна! Базовая валюта не настроена!_");
+
+        public string Label362 => OsLocalization.ConvertToLocString(
+         "Eng:The deal is not possible! Overflow sequence is not defined!_" +
+         "Ru:Сделка не возможна! Последовательность перелива не определена!_");
+
+        public string Label363 => OsLocalization.ConvertToLocString(
+         "Eng:The deal is not possible! Sequence is not correct! Exit currency is not equal to the start currency!_" +
+         "Ru:Сделка не возможна! Последовательность не верна! Валюта выхода не равна стартовой валюте!_");
+
+        public string Label364 => OsLocalization.ConvertToLocString(
+         "Eng:The deal is not possible! One of the volume values in the sequence is equal to zero!_" +
+         "Ru:Сделка не возможна! Одно из значений объёмов в последовательности равно нулю!_");
+
+        public string Label365 => OsLocalization.ConvertToLocString(
+         "Eng:The deal is not possible! In one of the sources not closed positions!_" +
+         "Ru:Сделка не возможна! В одном из источников не закрытые позиции!_");
+
+        public string Label366 => OsLocalization.ConvertToLocString(
+         "Eng:Order to open a series of deals_" +
+         "Ru:Приказ на открытие серии сделок_");
+
+        public string Label367 => OsLocalization.ConvertToLocString(
+         "Eng:The series of deals was interrupted due to execution errors_" +
+         "Ru:Серия сделок прервана из-за ошибок исполнения_");
+
+        public string Label368 => OsLocalization.ConvertToLocString(
+         "Eng:Order loss. No execution occurred in 10 seconds!_" +
+         "Ru:Потеря ордера. За 10 секунд не произошло исполнения!_");
     }
 }

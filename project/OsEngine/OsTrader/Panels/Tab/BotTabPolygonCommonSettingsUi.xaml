@@ -1,0 +1,65 @@
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.BotTabPolygonCommonSettingsUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab"
+        mc:Ignorable="d"
+        Title="Polygon common settings" Height="400" Width="574" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize">
+    <Grid Margin="0,0,0,0">
+
+        <Button Name="ButtonSave" Content="Save" HorizontalAlignment="Right" Margin="0,0,4,5" VerticalAlignment="Bottom" Width="220"/>
+        <Button Name="ButtonApply" Content="Apply to all" HorizontalAlignment="Left" Margin="4,0,0,5" VerticalAlignment="Bottom" Width="220"/>
+        <Grid x:Name="GridTradePanel" Height="334" VerticalAlignment="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="166*"/>
+                <RowDefinition Height="183*"/>
+            </Grid.RowDefinitions>
+            <Grid x:Name="GridSettings" >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="453*"/>
+                    <ColumnDefinition Width="451*"/>
+                </Grid.ColumnDefinitions>
+                <Rectangle Margin="1,1,1,1" Stroke="Black"/>
+                <Rectangle Grid.Column="1" Margin="1,2,2,1" Stroke="Black"/>
+
+                <Label Name="LabelStartSecutiySettings" Content="Start security settings" HorizontalAlignment="Left" Margin="2,2,0,0" VerticalAlignment="Top"/>
+                <Label  Name="LabelComissionSettings" Grid.Column="1" Content="Comission settings" HorizontalAlignment="Left" Margin="4,2,0,0" VerticalAlignment="Top"/>
+
+                <TextBox x:Name="TextBoxSeparatorToSecurities" HorizontalAlignment="Left" Margin="127,36,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                <Label  Name="LabelSeparator" Content="Separator" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top"/>
+
+                <Label  Name="LabelComissionType" Grid.Column="1" Content="Type" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top"/>
+                <ComboBox x:Name="ComboBoxComissionType" Grid.Column="1" HorizontalAlignment="Left" Margin="136,36,0,0" VerticalAlignment="Top" Width="120"/>
+
+                <TextBox x:Name="TextBoxComissionValue" Grid.Column="1" HorizontalAlignment="Left" Margin="136,64,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
+                <Label  Name="LabelComissionValue" Grid.Column="1" Content="Value" HorizontalAlignment="Left" Margin="10,64,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="CheckBoxCommisionIsSubstract" Grid.Column="1" Content="Substract comissions" HorizontalAlignment="Left" Margin="9,97,0,0" VerticalAlignment="Top"/>
+                <TextBox x:Name="TextBoxProfitToSignal" HorizontalAlignment="Left" Margin="127,64,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                <Label x:Name="LabelProfitToSignal" Content="Profit to signal %" HorizontalAlignment="Left" Margin="11,64,0,0" VerticalAlignment="Top"/>
+                <ComboBox x:Name="ComboBoxActionOnSignalType" HorizontalAlignment="Left" Margin="128,92,0,0" VerticalAlignment="Top" Width="94"/>
+                <Label x:Name="LabelActionOnSignalType" Content="Signal action" HorizontalAlignment="Left" Margin="10,92,0,0" VerticalAlignment="Top"/>
+            </Grid>
+            <Grid x:Name="GridToTrade" Margin="0,2,0,0" Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="251*"/>
+                    <ColumnDefinition Width="249*"/>
+                </Grid.ColumnDefinitions>
+                <Rectangle Stroke="Black" Margin="2,1,1,1"/>
+                <Rectangle Grid.Column="1" Margin="1,1,1,1" Stroke="Black"/>
+                <Label Name="LabelExecutionSettings" Content="Execution settings" HorizontalAlignment="Left" Margin="1,1,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+                <TextBox Name="TextBoxDelayMls" Grid.Column="1" HorizontalAlignment="Left" Margin="143,69,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="117"/>
+                <Label Name="LabelInterval" Content="Interval MLS" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+                <Label Name="LabelDelay" Grid.Column="1" Content="Delay" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
+                <ComboBox Name="ComboBoxDelayType" Grid.Column="1" HorizontalAlignment="Left" Margin="143,38,0,0" VerticalAlignment="Top" Width="117"/>
+                <TextBox x:Name="TextBoxLimitQtyStart" Margin="144,38,34,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                <Label x:Name="LabelQtyStartLimit" Content="Qty start" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
+                <TextBox x:Name="TextBoxLimitSlippage" Margin="144,66,34,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                <Label x:Name="LabelSlippageLimit" Content="Slippage %" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="LabelExecution" Content="Execution" HorizontalAlignment="Left" Margin="2,1,0,0" VerticalAlignment="Top"/>
+                <Label x:Name="LabelOrderPriceType" Content="Order type" HorizontalAlignment="Left" Margin="10,97,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+                <ComboBox x:Name="ComboBoxOrderPriceType" Grid.Column="1" HorizontalAlignment="Left" Margin="143,97,0,0" VerticalAlignment="Top" Width="117"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

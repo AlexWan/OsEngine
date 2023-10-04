@@ -1,0 +1,106 @@
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.BotTabPolygonUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab"
+        mc:Ignorable="d"
+       Title="Sequence to trade" Height="650" Width="890" MinHeight="680" MinWidth="700" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid Name="GridPrime">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Name="GridTradePanel" Margin="0,0,0,235" HorizontalAlignment="Right" Width="600">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="150*"/>
+                <RowDefinition Height="151*"/>
+                <RowDefinition Height="152*"/>
+            </Grid.RowDefinitions>
+            <Grid Name="GridSettings" >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="453*"/>
+                    <ColumnDefinition Width="451*"/>
+                </Grid.ColumnDefinitions>
+                <Rectangle Margin="2,2,1,1" Stroke="Black"/>
+                <Rectangle Grid.Column="1" Margin="1,2,2,1" Stroke="Black"/>
+
+                <Label Name="LabelStartSecutiySettings" Content="Start settings" HorizontalAlignment="Left" Margin="2,2,0,0" VerticalAlignment="Top"/>
+                <Label Name="LabelComissionSettings" Grid.Column="1" Content="Comission settings" HorizontalAlignment="Left" Margin="4,2,0,0" VerticalAlignment="Top"/>
+
+                <TextBox Name="TextBoxBaseCurrency" HorizontalAlignment="Left" Margin="126,36,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                <Label Name="LabelBaseCurrency" Content="Base currency" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top"/>
+
+                <TextBox Name="TextBoxSeparatorToSecurities" HorizontalAlignment="Left" Margin="126,59,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                <Label Name="LabelSeparator" Content="Separator" HorizontalAlignment="Left" Margin="10,59,0,0" VerticalAlignment="Top"/>
+
+                <Label Name="LabelComissionType" Grid.Column="1" Content="Type" HorizontalAlignment="Left" Margin="23,36,0,0" VerticalAlignment="Top"/>
+                <ComboBox Name="ComboBoxComissionType" Grid.Column="1" HorizontalAlignment="Left" Margin="86,36,0,0" VerticalAlignment="Top" Width="120"/>
+
+                <TextBox Name="TextBoxComissionValue" Grid.Column="1" HorizontalAlignment="Left" Margin="86,59,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
+                <Label Name="LabelComissionValue" Grid.Column="1" Content="Value" HorizontalAlignment="Left" Margin="23,59,0,0" VerticalAlignment="Top"/>
+
+                <CheckBox Name="CheckBoxCommisionIsSubstract" Grid.Column="1" Content="Substract comissions in trading" HorizontalAlignment="Left" Margin="23,82,0,0" VerticalAlignment="Top"/>
+
+                <TextBox Name="TextBoxProfitToSignal" HorizontalAlignment="Left" Margin="126,82,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                <Label Name="LabelProfitToSignal" Content="Profit to signal %" HorizontalAlignment="Left" Margin="10,82,0,0" VerticalAlignment="Top"/>
+
+                <ComboBox Name="ComboBoxActionOnSignalType" HorizontalAlignment="Left" Margin="127,105,0,0" VerticalAlignment="Top" Width="95"/>
+                <Label Name="LabelActionOnSignalType" Content="Signal action" HorizontalAlignment="Left" Margin="10,105,0,0" VerticalAlignment="Top"/>
+            </Grid>
+            <Grid Name="GridToTrade" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="251*"/>
+                    <ColumnDefinition Width="249*"/>
+                </Grid.ColumnDefinitions>
+                <Rectangle Stroke="Black" Margin="2,1,1,1"/>
+                <Rectangle Grid.Column="1" Margin="1,1,10,1" Stroke="Black"/>
+                <Label Name="LabelExecutionSettings" Content="Execution settings" HorizontalAlignment="Left" Margin="1,1,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+                <TextBox Name="TextBoxDelayMls" Grid.Column="1" HorizontalAlignment="Left" Margin="102,69,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="117"/>
+                <Label Name="LabelInterval" Content="Interval MLS" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+                <Label Name="LabelDelay" Grid.Column="1" Content="Delay" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
+                <ComboBox Name="ComboBoxDelayType" Grid.Column="1" HorizontalAlignment="Left" Margin="102,38,0,0" VerticalAlignment="Top" Width="117"/>
+                <Button Name="ButtonBuyLimit" Content="Buy" Margin="62,108,39,0" VerticalAlignment="Top" Height="22"/>
+                <TextBox Name="TextBoxLimitQtyStart" Margin="137,39,16,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                <Label Name="LabelQtyStartLimit" Content="Qty start" HorizontalAlignment="Left" Margin="20,39,0,0" VerticalAlignment="Top"/>
+                <TextBox Name="TextBoxLimitSlippage" Margin="137,67,16,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                <Label Name="LabelSlippageLimit" Content="Slippage %" HorizontalAlignment="Left" Margin="20,67,0,0" VerticalAlignment="Top"/>
+                <Label Name="LabelExecution" Content="Execution" HorizontalAlignment="Left" Margin="2,1,0,0" VerticalAlignment="Top"/>
+                <Label Name="LabelOrderPriceType" Grid.Column="1" Content="Order type" HorizontalAlignment="Left" Margin="10,103,0,0" VerticalAlignment="Top"/>
+                <ComboBox Name="ComboBoxOrderPriceType" Grid.Column="1" HorizontalAlignment="Left" Margin="102,103,0,0" VerticalAlignment="Top" Width="117"/>
+            </Grid>
+            <Rectangle Margin="2,1,10,1" Grid.Row="1" Stroke="Black"/>
+            <WindowsFormsHost Name="HostSequence" Margin="0,0,15,0" Grid.Row="1"/>
+        </Grid>
+        <Grid Name="GridLog" Height="233" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="600">
+            <Rectangle Stroke="Black" Margin="0,0,0,0"/>
+            <Label Name="LabelLog" Content="Log" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <WindowsFormsHost Name="HostLog" Margin="1,22,14,1"/>
+        </Grid>
+        <Grid x:Name="GreedChartPanel" Margin="0,0,600,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="153*"/>
+                <RowDefinition Height="73*"/>
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="GridSecurities">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <WindowsFormsHost Name="HostSec1" Margin="0,21,0,1"/>
+                <WindowsFormsHost Name="HostSec2" Grid.Row="1" Margin="0,20,0,0"/>
+                <Button Name="ButtonSec1" Content="Select" HorizontalAlignment="Left" VerticalAlignment="Top" Height="21" Width="122"/>
+                <Button Name="ButtonSec2" Content="Select" HorizontalAlignment="Left" VerticalAlignment="Top" Height="21" Width="122" Grid.Row="1"/>
+            </Grid>
+
+            <Grid x:Name="GridIndicators" Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <WindowsFormsHost Name="HostSec3" Margin="0,21,0,0"/>
+                <Button Name="ButtonSec3" Content="Select" HorizontalAlignment="Left" VerticalAlignment="Top" Height="21" Width="122"/>
+            </Grid>
+        </Grid>
+        <Button Name="ButtonHideShowRightPanel" Content=">" Margin="0,40,0,40" Height="NaN" HorizontalAlignment="Right" Width="15"/>
+    </Grid>
+</Window>

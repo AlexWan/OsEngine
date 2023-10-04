@@ -14,7 +14,7 @@ OsEngine - это платформа с полностью открытым ко
 2) Скачивание исторических данных: https://youtu.be/j5asX3TqEqw
 3) Как работает тестер: https://youtu.be/xl7_4RxBEBg
 4) Как подключить OsEngine к Binance: https://youtu.be/V1Oa--wmXXI
-5) Как подключить OsEngine к Quik: https://youtu.be/V1Oa--wmXXI
+5) Как подключить OsEngine к Quik: https://youtu.be/PI96l83WMS0?si=jdE4wuncOEG1UeXv
 6) Как подключить OsEngine к Interactive Brokers: https://youtu.be/JvVM9MDKANU
 
 Кроме того на ютубе и нашем сайте(o-s-a.net) вы найдёте огромное кол-во других материалов.
