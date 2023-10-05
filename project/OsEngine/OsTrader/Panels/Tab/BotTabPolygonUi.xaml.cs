@@ -685,14 +685,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void TryRePaintRow(DataGridViewRow rowInGrid, DataGridViewRow rowInArray)
         {
-            if (_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action<DataGridViewRow, DataGridViewRow>(TryRePaintRow), rowInGrid, rowInArray);
-                return;
-            }
-
             try
             {
+                if (_grid.InvokeRequired)
+                {
+                    _grid?.Invoke(new Action<DataGridViewRow, DataGridViewRow>(TryRePaintRow), rowInGrid, rowInArray);
+                    return;
+                }
+
                 if (rowInGrid.Cells[1].Value != null &&
                     rowInGrid.Cells[1].Value.ToString() != rowInArray.Cells[1].Value.ToString())
                 {

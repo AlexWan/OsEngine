@@ -1374,5 +1374,7 @@ namespace OsEngine.Language
         public string Label368 => OsLocalization.ConvertToLocString(
          "Eng:Order loss. No execution occurred in 10 seconds!_" +
          "Ru:Потеря ордера. За 10 секунд не произошло исполнения!_");
+
+
     }
 }

@@ -23,7 +23,7 @@
         <Label x:Name="LabelFirstStepSecurities" Content="First step securities (buy)" HorizontalAlignment="Left" Margin="10,127,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Rectangle Margin="412,5,379,5" />
         <WindowsFormsHost Name="SecuritiesHost" Margin="5,242,805,10"/>
-        <Button x:Name="ButtonCreateSelectedSequence" Content="Create selected sequence" Margin="838,0,5,5" VerticalAlignment="Bottom" Click="ButtonCreateSelectedSequence_Click"/>
+        <Button x:Name="ButtonCreateSelectedSequence" Content="Create selected sequence" Margin="838,0,5,5" VerticalAlignment="Bottom"/>
         <CheckBox x:Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,216,855,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxSearchSecurity" HorizontalAlignment="Right" Margin="0,216,1011,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
         <Label x:Name="LabelSecondStep" Content="Second step (sell)" HorizontalAlignment="Left" Margin="419,5,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
@@ -34,7 +34,7 @@
         <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Right" Margin="0,194,1052,0" VerticalAlignment="Top" Height="20"/>
         <Rectangle Margin="0,5,2,35" HorizontalAlignment="Right" Width="374" />
         <Label x:Name="LabelFinalSequence" Content="Final sequence" Margin="844,7,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18" HorizontalAlignment="Left" Width="370"/>
-        <Button x:Name="ButtonCreateTableFinal" Content="Create table" Margin="849,32,140,0" VerticalAlignment="Top" Click="ButtonCreateTableFinal_Click" />
+        <Button x:Name="ButtonCreateTableFinal" Content="Create table" Margin="849,32,140,0" VerticalAlignment="Top" />
         <WindowsFormsHost Name="HostFirdStep" Margin="840,62,6,35"/>
         <TextBox x:Name="TextBoxBaseCurrency" HorizontalAlignment="Left" Margin="125,158,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
         <Label x:Name="LabelBaseCurrency" Content="Base currency" HorizontalAlignment="Left" Margin="10,158,0,0" VerticalAlignment="Top"/>
@@ -42,7 +42,7 @@
         <Label x:Name="LabelSeparator" Content="Separator" HorizontalAlignment="Left" Margin="235,159,0,0" VerticalAlignment="Top"/>
         <WindowsFormsHost x:Name="SecuritiesSecondStep" Margin="422,64,388,10"/>
         <CheckBox x:Name="CheckBoxSelectAllInSecondStep" Content="Select all" HorizontalAlignment="Right" Margin="0,33,390,0" VerticalAlignment="Top"/>
-        <Button Name="ButtonCreateTableSecondStep" Content="Create table" HorizontalAlignment="Left" Margin="419,32,0,0" VerticalAlignment="Top" Width="283" Click="ButtonCreateTableSecondStep_Click"/>
+        <Button Name="ButtonCreateTableSecondStep" Content="Create table" HorizontalAlignment="Left" Margin="419,32,0,0" VerticalAlignment="Top" Width="283"/>
         <CheckBox x:Name="CheckBoxSelectAllInFinalStep" Content="Select all" HorizontalAlignment="Right" Margin="0,31,10,0" VerticalAlignment="Top"/>
 
     </Grid>

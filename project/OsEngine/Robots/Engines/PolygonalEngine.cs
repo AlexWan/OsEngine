@@ -10,7 +10,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 namespace OsEngine.Robots.Engines
 {
     [Bot("PolygonalEngine")]
-    internal class PolygonalEngine : BotPanel
+    public class PolygonalEngine : BotPanel
     {
         public PolygonalEngine(string name, StartProgram startProgram) : base(name, startProgram)
         {

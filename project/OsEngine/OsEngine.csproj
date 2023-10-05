@@ -992,6 +992,7 @@
     </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
+    <Compile Include="Robots\CurrencyArbitrage\CurrencyArbitrageClassic.cs" />
     <Compile Include="Robots\Engines\EnginePair.cs" />
     <Compile Include="Robots\Engines\PolygonalEngine.cs" />
     <Compile Include="Robots\OnScriptIndicators\GridSample.cs" />
