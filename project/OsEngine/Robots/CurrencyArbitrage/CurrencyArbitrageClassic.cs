@@ -37,6 +37,8 @@ namespace OsEngine.Robots.CurrencyArbitrage
             { DelayPolygonType.ByExecution.ToString(), DelayPolygonType.InMLS.ToString(), DelayPolygonType.Instantly.ToString() });
 
             DelayMls = CreateParameter("Delay MLS", 200, 200, 2000, 100);
+
+            Description = "A robot for classic currency arbitrage";
         }
 
         public override string GetNameStrategyType()

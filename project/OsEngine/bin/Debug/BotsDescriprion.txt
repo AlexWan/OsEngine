@@ -7,10 +7,12 @@ ClusterEngine&blank strategy for manual trading&Include&&Cluster 1*&&
 ClusterCountertrend&The Countertrend robot Buy: we buy if we are under the largest volume for sale in the last 10 candles. Sell: sell if we are above the largest purchase volume for the last 10 candles. Exit logic: By return signal.&Include&&Simple 1*Cluster 1*&&
 CciTrade&Counter Trend Strategy Based on CCI Indicator. Max - 3 poses Buy: 1. CCI is less than DownLine. Sell: 1. CCI more UpLine. Exit: on the return signal.&Include&&Simple 1*&CCI*&
 CustomParamsUseBotSample&&Include&&Simple 1*&Sma*Sma*ATR*&
+CurrencyArbitrageClassic&A robot for classic currency arbitrage&Include&&Polygon 1*&&
+CurrencyMoveExplorer&Robot for research. Saves slices of the situation on the bundle of instruments within 3 seconds after receiving a signal that there is profit on the sequence.&Include&&Polygon 1*&&
 Engine&blank strategy for manual trading&Include&&Simple 1*&&
 EnvelopTrend&Trend strategy based on indicator Envelop. Entrance to Long: entry when the price crosses the upper border of the channel. Entrance to Short: entry when the price crosses the lower border of the channel. Exiting a Long position: by trailing stop. Exit from a Short position: by trailing stop.&Include&&Simple 1*&Envelops*&
 ElementsOnChartSampleBot&&Include&&Simple 1*&MACD*&
-EnginePair&blank strategy for manual trading&Include&&Pair 1*&&
+EnginePair&blank strategy for manual pair trading&Include&&Pair 1*&&
 Fisher&Fisher based on multithreading Entering a position - we are waiting for a sharp price deviation  by the specified number of percent from the edge of the order book. Exit a position when the price rolls back by 50 percent or more of the entry price. Those. if the price has returned half or more of the original movement.&Include&&Simple 1*&Sma*&
 FundBalanceDivergenceBot&The countertrend bots Buy: 1. FBD more Indicator Divergence. Sell: 1. FBD is less than negative Indicator Divergence. Exit: after N number of days.&Include&&Simple 1*&FBD*&
 GridSample&Logic of the first Buy: if there are N candles falling down, we place the first order according to the close of the last candle. Next: buy if the price is greater than entryUpPrice or less than entryDownPrice. Exit: by stop&Include&&Simple 1*&&
@@ -33,7 +35,7 @@ PriceChannelVolatility&Breakthrough of the channel built by PriceChannel + -ATR 
 PairCointegrationSideTrader&The robot trades on a chart of deviations of one instrument from another, calculated through their difference with the multiplier. Two lines, calculated from the standard deviation multiplied by the multiplier, are superimposed on this graph (Cointegration). Above and below zero. When the current deviation is higher than the upper line on the deviation chart - we enter a position expecting the instruments to converge. We close the previous position. When the current deviation is below the bottom line on the Deviation chart - enter the position, counting on the instruments convergence. Closing the previous position.&Include&&Pair 1*&&
 PairCorrelationNegative&Bot - trading pairs in the trend If the correlation is below -0.8 and we are on some side of the cointegration - enter counting on a further spread. Exit - when correlation rises above 0.8&Include&&Pair 1*&&
 PairCorrelationTrader&if the correlation is higher than 0.9 and we are on some side of the cointegration - enter, counting on the pair convergence Exit by the inverse cointegration signal&Include&&Pair 1*&&
-PolygonalEngine&&Include&&&&
+PolygonalEngine&blank strategy for manual currency trading&Include&&Polygon 1*&&
 RsiContrtrend&Robot based on RSI indicator and moving average, trading by counter-trend logic. Short entry - when RSI is above the signal line and SMA is above the current price&Include&&Simple 1*&MovingAverage*Rsi*&
 RsiTrade&RSI's concurrent overbought and oversold strategy Logic: if RsiSecond <= DownLine - close position and open Long. Logic: if RsiSecond >= UpLine - close position and open Short.&Include&&Simple 1*&RSI*&
 RviTrade&Trend strategy at the intersection of the indicator RVIBuy: lastRviDown < 0 and lastRviUp > lastRviDown. Sell: lastRviDown > 0 and lastRviUp < lastRviDown. Exit: By return signal&Include&&Simple 1*&RVI*&

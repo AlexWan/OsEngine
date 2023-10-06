@@ -25,6 +25,8 @@ namespace OsEngine.Robots.CurrencyArbitrage
 
             Thread worker = new Thread(ThreadWorkerArea);
             worker.Start();
+
+            Description = "Robot for research. Saves slices of the situation on the bundle of instruments within 3 seconds after receiving a signal that there is profit on the sequence.";
         }
 
         public override string GetNameStrategyType()
@@ -60,12 +62,9 @@ namespace OsEngine.Robots.CurrencyArbitrage
             DateTime time = DateTime.Now;
 
             string message = "Start watch " + _polygonToWatch.SecuritiesInSequence + "\n";
-            message += time.ToLongTimeString() + "." + time.Millisecond + "\n";
             message += "Start profit  " + profit.ToString();
 
             SendNewLogMessage(message, Logging.LogMessageType.System);
-
-            
         }
 
         PolygonToTrade _polygonToWatch;

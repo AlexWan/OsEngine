@@ -15,6 +15,8 @@ namespace OsEngine.Robots.Engines
         public PolygonalEngine(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Polygon);
+
+            Description = "blank strategy for manual currency trading";
         }
 
         public override string GetNameStrategyType()

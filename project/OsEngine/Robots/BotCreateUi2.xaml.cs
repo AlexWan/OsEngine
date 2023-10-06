@@ -19,11 +19,15 @@ namespace OsEngine.Robots
     /// </summary>
     public partial class BotCreateUi2 : Window
     {
+        StartProgram _startProgram;
+
         public BotCreateUi2(List<string> botsIncluded, List<string> botsFromScript, StartProgram startProgram)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+
+            _startProgram = startProgram;
 
             for (int i = 0; i < botsIncluded.Count; i++)
             {
@@ -435,7 +439,35 @@ namespace OsEngine.Robots
                 SaveDesctiptionsInFile(descriptions);
             }
 
-            return descriptions;
+            List<BotDescription> sortDescription = new List<BotDescription>();
+
+            for (int i = 0;i < descriptions.Count;i++)
+            {
+                BotDescription curBotDescription = descriptions[i];
+
+                bool isNormal = true;
+
+                for(int j = 0;
+                    curBotDescription.Sources != null &&
+                    j < curBotDescription.Sources.Count;
+                    j++)
+                {
+                    if (_startProgram != StartProgram.IsOsTrader &&
+                        curBotDescription.Sources[j].StartsWith("Polygon"))
+                    {
+                        isNormal = false;
+                        break;
+                    }
+                }
+
+                if(isNormal == false)
+                {
+                    continue;
+                }
+                sortDescription.Add(curBotDescription);
+            }
+
+            return sortDescription;
         }
 
         private List<BotDescription> GetBotDescriptionsFromFile()
@@ -619,6 +651,12 @@ namespace OsEngine.Robots
                 bot.TabsScreener.Count > 0)
             {
                 sourcesList.Add(BotTabType.Screener + " " + bot.TabsScreener.Count);
+            }
+
+            if (bot.TabsPolygon != null &&
+                bot.TabsPolygon.Count > 0)
+            {
+                sourcesList.Add(BotTabType.Polygon + " " + bot.TabsPolygon.Count);
             }
 
             return sourcesList;

@@ -790,7 +790,7 @@ namespace OsEngine.OsOptimizer
 
             if (_gridTableTabsSimple.InvokeRequired)
             {
-                _gridTableTabsIndex.Invoke(new Action(PaintTableTabsSimple));
+                _gridTableTabsSimple.Invoke(new Action(PaintTableTabsSimple));
                 return;
             }
 
