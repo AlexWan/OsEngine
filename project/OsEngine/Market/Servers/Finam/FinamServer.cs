@@ -346,14 +346,6 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         private void CheckServer()
         {
-            String pageContent = GetPage("http://" + ServerAdress);
-
-            if (pageContent.Length == 0)
-            { // if there is no content, we exit / если нет контента - выходим
-                SendLogMessage(OsLocalization.Market.Message51, LogMessageType.Error);
-                return;
-            }
-
             ServerStatus = ServerConnectStatus.Connect;
 
             Thread.Sleep(10000);
@@ -361,24 +353,31 @@ namespace OsEngine.Market.Servers.Finam
 
         public static string GetPage(string uri)
         {
-            if (ServicePointManager.SecurityProtocol != SecurityProtocolType.Tls12)
+            try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                if (ServicePointManager.SecurityProtocol != SecurityProtocolType.Tls12)
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                string resultPage = "";
+
+                using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.Default, true))
+                {
+                    resultPage = sr.ReadToEnd();
+                    sr.Close();
+                }
+
+
+                return resultPage;
             }
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-            string resultPage = "";
-
-            using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.Default, true))
+            catch
             {
-                resultPage = sr.ReadToEnd();
-                sr.Close();
+                return null;
             }
-
-
-            return resultPage;
         }
 
         private static string GetSecFromFile()
@@ -413,6 +412,12 @@ namespace OsEngine.Market.Servers.Finam
         public static string GetIchartsPath()
         {
             var response = GetPage("https://www.finam.ru/profile/moex-akcii/gazprom/export/");
+
+            if(response == null)
+            {
+                return null;
+            }
+
             return Regex.Match(response, @"\/cache\/.*\/icharts\/icharts\.js", RegexOptions.IgnoreCase).Value;
         }
 
@@ -442,7 +447,8 @@ namespace OsEngine.Market.Servers.Finam
                 errorOnPage = true;
             }
 
-            if (response == "" 
+            if (response == null 
+                || response == "" 
                 || response.Contains("Страница недоступна")
                 || errorOnPage)
             {
@@ -1930,7 +1936,7 @@ namespace OsEngine.Market.Servers.Finam
             url += "mf=" + (timeStart.Month - 1) + "&";
             url += "yf=" + (timeStart.Year) + "&";
             url += "from=" + timeFrom + "&";
-
+            url += "apply=0&";
             url += "dt=" + (timeEnd.Day) + "&";
             url += "mt=" + (timeEnd.Month - 1) + "&";
             url += "yt=" + (timeEnd.Year) + "&";
@@ -2184,7 +2190,7 @@ namespace OsEngine.Market.Servers.Finam
             url += "mt=" + (timeEnd.Month - 1) + "&";
             url += "yt=" + (timeEnd.Year) + "&";
             url += "to=" + timeTo + "&";
-
+            url += "apply=0&";
             url += "p=" + _timeFrameFinam + "&";
             url += "f=" + fileName + "&";
             url += "e=" + ".txt" + "&";
