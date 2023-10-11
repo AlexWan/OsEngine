@@ -53,11 +53,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ComboBoxTypeServer.Items.Add(servers[i].ServerType.ToString());
             }
 
-            if (_tabPolygon.Pairs.Count != 0 &&
-               _tabPolygon.Pairs[0].Tab1.Connector.ServerType != ServerType.None)
+            if (_tabPolygon.Sequences.Count != 0 &&
+               _tabPolygon.Sequences[0].Tab1.Connector.ServerType != ServerType.None)
             {
-                ComboBoxTypeServer.SelectedItem = _tabPolygon.Pairs[0].Tab1.Connector.ServerType.ToString();
-                _selectedType = _tabPolygon.Pairs[0].Tab1.Connector.ServerType;
+                ComboBoxTypeServer.SelectedItem = _tabPolygon.Sequences[0].Tab1.Connector.ServerType.ToString();
+                _selectedType = _tabPolygon.Sequences[0].Tab1.Connector.ServerType;
             }
             else
             {
@@ -210,9 +210,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ComboBoxPortfolio.Items.Clear();
 
-                if (_tabPolygon.Pairs.Count != 0)
+                if (_tabPolygon.Sequences.Count != 0)
                 {
-                    string portfolio = _tabPolygon.Pairs[0].Tab1.Connector.PortfolioName;
+                    string portfolio = _tabPolygon.Sequences[0].Tab1.Connector.PortfolioName;
 
                     if (string.IsNullOrEmpty(portfolio) == false)
                     {

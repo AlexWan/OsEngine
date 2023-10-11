@@ -26,7 +26,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             TabName = name;
             StartProgram = startProgram;
             LoadStandartSettings();
-            LoadPairs();
+            LoadSequences();
 
             Thread worker = new Thread(WorkerPlace);
             worker.Start();
@@ -70,9 +70,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             set
             {
 
-                for (int i = 0; i < Pairs.Count; i++)
+                for (int i = 0; i < Sequences.Count; i++)
                 {
-                    Pairs[i].EventsIsOn = value;
+                    Sequences[i].EventsIsOn = value;
                 }
 
                 if (_eventsIsOn == value)
@@ -97,9 +97,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             set
             {
 
-                for (int i = 0; i < Pairs.Count; i++)
+                for (int i = 0; i < Sequences.Count; i++)
                 {
-                    Pairs[i].EmulatorIsOn = value;
+                    Sequences[i].EmulatorIsOn = value;
                 }
 
                 if (_emulatorIsOn == value)
@@ -126,11 +126,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void Clear()
         {
-            for (int i = 0; i < Pairs.Count; i++)
+            for (int i = 0; i < Sequences.Count; i++)
             {
-                Pairs[i].Tab1.Clear();
-                Pairs[i].Tab2.Clear();
-                Pairs[i].Tab3.Clear();
+                Sequences[i].Tab1.Clear();
+                Sequences[i].Tab2.Clear();
+                Sequences[i].Tab3.Clear();
             }
         }
 
@@ -179,15 +179,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     // ignore
                 }
 
-                for (int i = 0; i < Pairs.Count; i++)
+                for (int i = 0; i < Sequences.Count; i++)
                 {
-                    Pairs[i].Delete();
+                    Sequences[i].Delete();
                 }
 
-                if (Pairs != null)
+                if (Sequences != null)
                 {
-                    Pairs.Clear();
-                    Pairs = null;
+                    Sequences.Clear();
+                    Sequences = null;
                 }
 
                  if (_grid != null)
@@ -225,11 +225,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<Journal.Journal> journals = new List<Journal.Journal>();
 
-                for (int i = 0; i < Pairs.Count; i++)
+                for (int i = 0; i < Sequences.Count; i++)
                 {
-                    journals.Add(Pairs[i].Tab1.GetJournal());
-                    journals.Add(Pairs[i].Tab2.GetJournal());
-                    journals.Add(Pairs[i].Tab3.GetJournal());
+                    journals.Add(Sequences[i].Tab1.GetJournal());
+                    journals.Add(Sequences[i].Tab2.GetJournal());
+                    journals.Add(Sequences[i].Tab3.GetJournal());
                 }
 
                 return journals;
@@ -247,9 +247,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void ApplyStandartSettingsToAllSequence()
         {
-            for (int i = 0; i < Pairs.Count; i++)
+            for (int i = 0; i < Sequences.Count; i++)
             {
-                SetStandartSettingsInSequence(Pairs[i]);
+                SetStandartSettingsInSequence(Sequences[i]);
             }
         }
 
@@ -258,7 +258,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             pair.SeparatorToSecurities = SeparatorToSecurities;
             pair.ComissionType = ComissionType;
             pair.ComissionValue = ComissionValue;
-            pair.CommisionIsSubstract = CommisionIsSubstract;
+            pair.CommisionIsSubstract = ComissionIsSubstract;
             pair.DelayType = DelayType;
             pair.DelayMls = DelayMls;
             pair.QtyStart = QtyStart;
@@ -289,7 +289,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(SeparatorToSecurities);
                     writer.WriteLine(ComissionType);
                     writer.WriteLine(ComissionValue);
-                    writer.WriteLine(CommisionIsSubstract);
+                    writer.WriteLine(ComissionIsSubstract);
                     writer.WriteLine(DelayType);
                     writer.WriteLine(DelayMls);
                     writer.WriteLine(QtyStart);
@@ -329,7 +329,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     SeparatorToSecurities = reader.ReadLine();
                     Enum.TryParse(reader.ReadLine(), out ComissionType);
                     ComissionValue = reader.ReadLine().ToDecimal();
-                    CommisionIsSubstract = Convert.ToBoolean(reader.ReadLine());
+                    ComissionIsSubstract = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out DelayType);
                     DelayMls = Convert.ToInt32(reader.ReadLine());
                     QtyStart = reader.ReadLine().ToDecimal();
@@ -378,7 +378,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Whether the size of the commission should be subtracted from the volumes at each step
         /// </summary>
-        public bool CommisionIsSubstract;
+        public bool ComissionIsSubstract;
 
         /// <summary>
         /// Type of delay between orders 
@@ -419,36 +419,36 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region Storage, creation and deletion of polygon
+        #region Storage, creation and deletion of Sequences
 
         /// <summary>
         /// Pair array 
         /// </summary>
-        public List<PolygonToTrade> Pairs = new List<PolygonToTrade>();
+        public List<PolygonToTrade> Sequences = new List<PolygonToTrade>();
 
         private string _pairsLocker = "pairsLocker";
 
         /// <summary>
         /// Method sorting array of sequences by profitability
         /// </summary>
-        private void TrySortPairs()
+        private void TrySortSequences()
         {
             lock (_pairsLocker)
             {
                 try
                 {
-                    for (int j = 0; j < Pairs.Count; j++)
+                    for (int j = 0; j < Sequences.Count; j++)
                     {
-                        for (int i = 1; i < Pairs.Count; i++)
+                        for (int i = 1; i < Sequences.Count; i++)
                         {
-                            decimal lastProfit = Pairs[i - 1].ProfitToDealPercent;
-                            decimal curProfit = Pairs[i].ProfitToDealPercent;
+                            decimal lastProfit = Sequences[i - 1].ProfitToDealPercent;
+                            decimal curProfit = Sequences[i].ProfitToDealPercent;
 
                             if (curProfit != 0 && lastProfit < curProfit)
                             {
-                                PolygonToTrade polygonToTrade = Pairs[i];
-                                Pairs[i] = Pairs[i - 1];
-                                Pairs[i - 1] = polygonToTrade;
+                                PolygonToTrade polygonToTrade = Sequences[i];
+                                Sequences[i] = Sequences[i - 1];
+                                Sequences[i - 1] = polygonToTrade;
                             }
                         }
                     }
@@ -463,17 +463,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Create a new trading sequence
         /// </summary>
-        public void CreatePair()
+        public void CreateSequence()
         {
             try
             {
                 int number = 0;
 
-                for (int i = 0; i < Pairs.Count; i++)
+                for (int i = 0; i < Sequences.Count; i++)
                 {
-                    if (Pairs[i].PairNum >= number)
+                    if (Sequences[i].PairNum >= number)
                     {
-                        number = Pairs[i].PairNum + 1;
+                        number = Sequences[i].PairNum + 1;
                     }
                 }
 
@@ -490,9 +490,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 SetStandartSettingsInSequence(pair);
 
-                Pairs.Add(pair);
+                Sequences.Add(pair);
 
-                SavePairNames();
+                SaveSequencesNames();
 
                 if (SequenceToTradeCreateEvent != null)
                 {
@@ -509,21 +509,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Delete a trading sequence
         /// </summary>
         /// <param name="numberInArray"></param>
-        public void DeletePair(int numberInArray)
+        public void DeleteSequence(int numberInArray)
         {
             try
             {
-                for (int i = 0; i < Pairs.Count; i++)
+                for (int i = 0; i < Sequences.Count; i++)
                 {
-                    if (Pairs[i].PairNum == numberInArray)
+                    if (Sequences[i].PairNum == numberInArray)
                     {
-                        Pairs[i].ProfitBySequenceChangeEvent -= Pair_ProfitBySequenceChangeEvent;
-                        Pairs[i].ProfitGreaterThanSignalValueEvent -= Pair_ProfitGreaterThanSignalValueEvent;
-                        Pairs[i].LogMessageEvent -= Pair_LogMessageEvent;
+                        Sequences[i].ProfitBySequenceChangeEvent -= Pair_ProfitBySequenceChangeEvent;
+                        Sequences[i].ProfitGreaterThanSignalValueEvent -= Pair_ProfitGreaterThanSignalValueEvent;
+                        Sequences[i].LogMessageEvent -= Pair_LogMessageEvent;
 
-                        Pairs[i].Delete();
-                        Pairs.RemoveAt(i);
-                        SavePairNames();
+                        Sequences[i].Delete();
+                        Sequences.RemoveAt(i);
+                        SaveSequencesNames();
                         RePaintGrid();
                         return;
                     }
@@ -538,16 +538,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Save sequences
         /// </summary>
-        public void SavePairNames()
+        public void SaveSequencesNames()
         {
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"PolygonsNamesToLoad.txt", false))
                 {
 
-                    for (int i = 0; i < Pairs.Count; i++)
+                    for (int i = 0; i < Sequences.Count; i++)
                     {
-                        writer.WriteLine(Pairs[i].Name);
+                        writer.WriteLine(Sequences[i].Name);
                     }
 
                     writer.Close();
@@ -562,7 +562,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Load sequences
         /// </summary>
-        private void LoadPairs()
+        private void LoadSequences()
         {
             if (!File.Exists(@"Engine\" + TabName + @"PolygonsNamesToLoad.txt"))
             {
@@ -580,7 +580,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         newPair.ProfitGreaterThanSignalValueEvent += Pair_ProfitGreaterThanSignalValueEvent;
                         newPair.LogMessageEvent += Pair_LogMessageEvent;
 
-                        Pairs.Add(newPair);
+                        Sequences.Add(newPair);
                     }
 
                     reader.Close();
@@ -601,11 +601,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<string> list = new List<string>();
 
-                for (int i = 0; i < Pairs.Count; i++)
+                for (int i = 0; i < Sequences.Count; i++)
                 {
-                    if (string.IsNullOrEmpty(Pairs[i].Tab1.Connector.SecurityName) == false)
+                    if (string.IsNullOrEmpty(Sequences[i].Tab1.Connector.SecurityName) == false)
                     {
-                        list.Add(Pairs[i].Tab1.Connector.SecurityName);
+                        list.Add(Sequences[i].Tab1.Connector.SecurityName);
                     }
                 }
 
@@ -628,9 +628,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                         return;
                     }
 
-                    CreatePair();
+                    CreateSequence();
 
-                    PolygonToTrade mySequence = Pairs[Pairs.Count - 1];
+                    PolygonToTrade mySequence = Sequences[Sequences.Count - 1];
                     mySequence.BaseCurrency = baseCurrency;
 
                     if (mySequence.QtyStart == 0)
@@ -745,24 +745,24 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private bool ThisSequenceIsCreated(string sec1, string sec2, string sec3)
         {
-            for (int i = 0; i < Pairs.Count; i++)
+            for (int i = 0; i < Sequences.Count; i++)
             {
-                if (string.IsNullOrEmpty(Pairs[i].Tab1.Connector.SecurityName))
+                if (string.IsNullOrEmpty(Sequences[i].Tab1.Connector.SecurityName))
                 {
                     continue;
                 }
-                if (string.IsNullOrEmpty(Pairs[i].Tab2.Connector.SecurityName))
+                if (string.IsNullOrEmpty(Sequences[i].Tab2.Connector.SecurityName))
                 {
                     continue;
                 }
-                if (string.IsNullOrEmpty(Pairs[i].Tab3.Connector.SecurityName))
+                if (string.IsNullOrEmpty(Sequences[i].Tab3.Connector.SecurityName))
                 {
                     continue;
                 }
 
-                if (Pairs[i].Tab1.Connector.SecurityName.ToLower() == sec1
-                    && Pairs[i].Tab2.Connector.SecurityName.ToLower() == sec2
-                    && Pairs[i].Tab3.Connector.SecurityName.ToLower() == sec3)
+                if (Sequences[i].Tab1.Connector.SecurityName.ToLower() == sec1
+                    && Sequences[i].Tab2.Connector.SecurityName.ToLower() == sec2
+                    && Sequences[i].Tab3.Connector.SecurityName.ToLower() == sec3)
                 {
                     return true;
                 }
@@ -805,7 +805,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
     
-
         /// <summary>
         /// The source has a new sequence for trading
         /// </summary>
@@ -851,7 +850,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         continue;
                     }
 
-                    TrySortPairs();
+                    TrySortSequences();
                     TryRePaintGrid();
                 }
                 catch (Exception error)
@@ -1094,11 +1093,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 rows.Add(GetFirstGridRow());
 
-                for (int i = 0; i < Pairs.Count; i++)
+                for (int i = 0; i < Sequences.Count; i++)
                 {
-                    rows.Add(GetPairRowOne(Pairs[i]));
-                    rows.Add(GetPairRowTwo(Pairs[i]));
-                    rows.Add(GetPairRowThree(Pairs[i]));
+                    rows.Add(GetPairRowOne(Sequences[i]));
+                    rows.Add(GetPairRowTwo(Sequences[i]));
+                    rows.Add(GetPairRowThree(Sequences[i]));
                 }
 
                 rows.Add(GetLastGridRow());
@@ -1266,7 +1265,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (_grid.Rows.Count == row + 1 &&
                     column == 5)
                 { // создание вкладки
-                    CreatePair();
+                    CreateSequence();
                     RePaintGrid();
                 }
                 else if (column == 2)
@@ -1289,11 +1288,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     PolygonToTrade pair = null;
 
-                    for (int i = 0; i < Pairs.Count; i++)
+                    for (int i = 0; i < Sequences.Count; i++)
                     {
-                        if (Pairs[i].PairNum == tabNum)
+                        if (Sequences[i].PairNum == tabNum)
                         {
-                            pair = Pairs[i];
+                            pair = Sequences[i];
                             break;
                         }
                     }
@@ -1345,7 +1344,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (ui.UserAcceptActioin)
                     {
-                        DeletePair(tabNum);
+                        DeleteSequence(tabNum);
                     }
                 }
 
@@ -1391,11 +1390,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     PolygonToTrade pair = null;
 
-                    for (int i = 0; i < Pairs.Count; i++)
+                    for (int i = 0; i < Sequences.Count; i++)
                     {
-                        if (Pairs[i].PairNum == tabNum)
+                        if (Sequences[i].PairNum == tabNum)
                         {
-                            pair = Pairs[i];
+                            pair = Sequences[i];
                             break;
                         }
                     }
@@ -1525,9 +1524,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 try
                 {
-                    for (int i = 0; i < Pairs.Count; i++)
+                    for (int i = 0; i < Sequences.Count; i++)
                     {
-                        Pairs[i].CheckProfitAndSignal();
+                        Sequences[i].CheckProfitAndSignal();
                     }
                 }
                 catch (Exception e)
@@ -1544,6 +1543,8 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public class PolygonToTrade
     {
+        #region Service. Constructor.
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -1701,11 +1702,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             Tab1.Delete();
             Tab2.Delete();
             Tab3.Delete();
-
-            if (PairDeletedEvent != null)
-            {
-                PairDeletedEvent();
-            }
         }
 
         /// <summary>
@@ -1757,11 +1753,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Source removed
-        /// </summary>
-        public event Action PairDeletedEvent;
-
-        /// <summary>
         /// Show Trade Panel On Chart Ui
         /// </summary>
         public bool ShowTradePanelOnChart
@@ -1781,6 +1772,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
         private bool _showTradePanelOnChart = true;
+
+        #endregion
 
         #region Properties and settings
 
@@ -2765,6 +2758,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// With consecutive waiting for previous trades to be posted
         /// </summary>
         ByExecution,
+
         /// <summary>
         /// With delay in placing orders in milliseconds
         /// </summary>

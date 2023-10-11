@@ -97,8 +97,6 @@ namespace OsEngine.Robots.CurrencyArbitrage
                 SendNewLogMessage(message, Logging.LogMessageType.System);
 
             }
-
-
         }
     }
 }

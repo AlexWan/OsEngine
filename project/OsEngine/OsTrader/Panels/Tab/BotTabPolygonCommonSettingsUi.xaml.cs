@@ -32,7 +32,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             ComboBoxComissionType.SelectedItem = _polygon.ComissionType.ToString();
 
             TextBoxComissionValue.Text = _polygon.ComissionValue.ToString();
-            CheckBoxCommisionIsSubstract.IsChecked = _polygon.CommisionIsSubstract;
+            CheckBoxCommisionIsSubstract.IsChecked = _polygon.ComissionIsSubstract;
 
             ComboBoxDelayType.Items.Add(DelayPolygonType.ByExecution.ToString());
             ComboBoxDelayType.Items.Add(DelayPolygonType.InMLS.ToString());
@@ -174,7 +174,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
-                _polygon.CommisionIsSubstract = CheckBoxCommisionIsSubstract.IsChecked.Value;
+                _polygon.ComissionIsSubstract = CheckBoxCommisionIsSubstract.IsChecked.Value;
             }
             catch
             {
