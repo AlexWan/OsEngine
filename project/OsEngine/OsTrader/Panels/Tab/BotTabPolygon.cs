@@ -301,6 +301,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(AutoCreatorSequenceBaseCurrency);
                     writer.WriteLine(AutoCreatorSequenceSeparator);
 
+                    writer.WriteLine(SortingOnOff);
+
                     writer.Close();
                 }
             }
@@ -340,6 +342,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     AutoCreatorSequenceBaseCurrency = reader.ReadLine();
                     AutoCreatorSequenceSeparator = reader.ReadLine();
+
+                    SortingOnOff = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -417,6 +421,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public string AutoCreatorSequenceSeparator;
 
+        /// <summary>
+        /// Whether automatic table sorting is enabled for the user interface
+        /// </summary>
+        public bool SortingOnOff = true;
+
         #endregion
 
         #region Storage, creation and deletion of Sequences
@@ -433,6 +442,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void TrySortSequences()
         {
+            if(SortingOnOff == false)
+            {
+                return;
+            }
             lock (_pairsLocker)
             {
                 try
@@ -1001,6 +1014,31 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TryRePaintRow(_grid.Rows[i], rows[i]);
             }
+
+            if(_grid.Rows.Count == 0)
+            {
+                return;
+            }
+
+            DataGridViewRow firstOldRow = _grid.Rows[0];
+
+            bool sortingOnOffCurrent;
+
+            if (firstOldRow.Cells[3].Value.ToString().EndsWith("on"))
+            {
+                sortingOnOffCurrent = true;
+            }
+            else// if (firstOldRow.Cells[5].Value.ToString().EndsWith("off"))
+            {
+                sortingOnOffCurrent = false;
+            }
+
+            if(sortingOnOffCurrent != SortingOnOff)
+            {
+                SortingOnOff = sortingOnOffCurrent;
+                SaveStandartSettings();
+            }
+
         }
 
         /// <summary>
@@ -1118,7 +1156,21 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            DataGridViewComboBoxCell comboBox = new DataGridViewComboBoxCell();// Сортировка
+            comboBox.Items.Add("Sort on");
+            comboBox.Items.Add("Sort off");
+
+            if(SortingOnOff)
+            {
+                comboBox.Value = "Sort on";
+            }
+            else
+            {
+                comboBox.Value = "Sort off";
+            }
+
+            nRow.Cells.Add(comboBox);
 
             DataGridViewButtonCell button1 = new DataGridViewButtonCell(); // авто создание пар
             button1.Value = OsLocalization.Trader.Label310;
@@ -1127,8 +1179,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             DataGridViewButtonCell button2 = new DataGridViewButtonCell(); // Общие настройки
             button2.Value = OsLocalization.Trader.Label232;
             nRow.Cells.Add(button2);
-
-
 
             return nRow;
         }
