@@ -441,13 +441,25 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
         {
+            if (candles == null || candles.Count == 0)
+            {
+                return;
+            }
+
             LastTimeCandleUpdate = Tabs[0].MarketTime;
+
+            DateTime timeCandle = candles[candles.Count - 1].TimeStart;
 
             for (int i = 0; i < Tabs.Count; i++)
             {
                 List<Candle> myCandles = Tabs[i].Candles(true);
 
                 if (myCandles == null || myCandles.Count < 10)
+                {
+                    return;
+                }
+
+                if (timeCandle != myCandles[myCandles.Count - 1].TimeStart)
                 {
                     return;
                 }
@@ -546,6 +558,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _valuesToFormula = new List<ValueSave>();
                 Candles = new List<Candle>();
                 _chartMaster.Clear();
+
+                if (Tabs == null || Tabs.Count == 0)
+                {
+                    return;
+                }
 
                 ConvertedFormula = ConvertFormula(_userFormula);
 
