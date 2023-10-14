@@ -1483,6 +1483,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                _sorcesCreator.SecuritiesNames.Clear();
 
                 _sorcesCreator.PortfolioName = ComboBoxPortfolio.Text;
                 if (CheckBoxIsEmulator.IsChecked != null)
