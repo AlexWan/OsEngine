@@ -5,22 +5,87 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms.Integration;
 using OsEngine.Entity;
-using OsEngine.Indicators;
-using OsEngine.Logging;
-using OsEngine.Market;
-using System.Windows.Forms;
-using System.Threading;
-using OsEngine.Robots.Engines;
-using OsEngine.Language;
-using OsEngine.Alerts;
+
 
 namespace OsEngine.Market.Connectors
 {
     public class MassSourcesCreator
     {
+        public string GetSaveString()
+        {
+            string result = "";
+            result += PortfolioName + "\n";
+            result += SecuritiesClass + "\n";
+            result += TimeFrame + "\n";
+            result += ServerType + "\n";
+            result += EmulatorIsOn + "\n";
+            result += CandleMarketDataType + "\n";
+            result += CandleCreateMethodType + "\n";
+            result += SetForeign + "\n";
+            result += CountTradeInCandle + "\n";
+            result += VolumeToCloseCandleInVolumeType + "\n";
+            result += RencoPunktsToCloseCandleInRencoType + "\n";
+            result += RencoIsBuildShadows + "\n";
+            result += DeltaPeriods + "\n";
+            result += RangeCandlesPunkts + "\n";
+            result += ReversCandlesPunktsMinMove + "\n";
+            result += ReversCandlesPunktsBackMove + "\n";
+            result += ComissionType + "\n";
+            result += ComissionValue + "\n";
+            result += SaveTradesInCandles + "\n";
+
+            for (int i = 0; i < SecuritiesNames.Count; i++)
+            {
+                result += SecuritiesNames[i].GetSaveStr() + "\n";
+            }
+
+            return result;
+        }
+
+        public void LoadFromString(string saveStr)
+        {
+            string[] values = saveStr.Split('\n');
+
+            PortfolioName = values[0];
+            SecuritiesClass = values[1];
+            Enum.TryParse(values[2], out TimeFrame);
+            Enum.TryParse(values[3], out ServerType);
+            EmulatorIsOn = Convert.ToBoolean(values[4]);
+            Enum.TryParse(values[5], out CandleMarketDataType);
+            Enum.TryParse(values[6], out CandleCreateMethodType);
+            SetForeign = Convert.ToBoolean(values[7]);
+            CountTradeInCandle = Convert.ToInt32(values[8]);
+            VolumeToCloseCandleInVolumeType = values[9].ToDecimal();
+            RencoPunktsToCloseCandleInRencoType = values[10].ToDecimal();
+            RencoIsBuildShadows = Convert.ToBoolean(values[11]);
+            DeltaPeriods = values[12].ToDecimal();
+            RangeCandlesPunkts = values[13].ToDecimal();
+            ReversCandlesPunktsMinMove = values[14].ToDecimal();
+            ReversCandlesPunktsBackMove = values[15].ToDecimal();
+            Enum.TryParse(values[16], out ComissionType);
+            ComissionValue = values[17].ToDecimal();
+            SaveTradesInCandles = Convert.ToBoolean(values[18]);
+
+            for (int i = 19; i < values.Length; i++)
+            {
+                string value = values[i];
+                if (string.IsNullOrEmpty(value))
+                {
+                    continue;
+                }
+
+                if (value == "\r")
+                {
+                    break;
+                }
+
+                ActivatedSecurity curSec = new ActivatedSecurity();
+                curSec.SetFromStr(value);
+
+                SecuritiesNames.Add(curSec);
+            }
+        }
 
         public MassSourcesCreator(StartProgram startProgram)
         {

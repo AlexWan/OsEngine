@@ -12,10 +12,10 @@ using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
-using OsEngine.Market;
 using System.Windows.Forms;
-using OsEngine.OsTrader.Panels.Tab;
 using System.Windows.Input;
+using System.IO;
+
 
 namespace OsEngine.Market.Connectors
 {
@@ -53,125 +53,9 @@ namespace OsEngine.Market.Connectors
 
                 // save connectors
                 // сохраняем коннекторы
-                _sorcesCreator = connectorBot;
+                SourcesCreator = connectorBot;
 
-                // upload settings to controls
-                // загружаем настройки в контролы
-                for (int i = 0; i < servers.Count; i++)
-                {
-                    ComboBoxTypeServer.Items.Add(servers[i].ServerType);
-                }
-
-                if (connectorBot.ServerType != ServerType.None)
-                {
-                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerType;
-                    _selectedType = connectorBot.ServerType;
-                }
-                else
-                {
-                    ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
-                    _selectedType = servers[0].ServerType;
-                }
-
-                if (connectorBot.StartProgram == StartProgram.IsTester)
-                {
-                    ComboBoxTypeServer.IsEnabled = false;
-                    CheckBoxIsEmulator.IsEnabled = false;
-                    CheckBoxSetForeign.IsEnabled = false;
-                    ComboBoxTypeServer.SelectedItem = ServerType.Tester;
-                    //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
-                    //ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
-
-                    connectorBot.ServerType = ServerType.Tester;
-                    _selectedType = ServerType.Tester;
-                }
-
-                CreateGrid();
-
-                LoadClassOnBox();
-
-                LoadSecurityOnBox();
-
-                LoadPortfolioOnBox();
-
-                ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
-
-                CheckBoxIsEmulator.IsChecked = _sorcesCreator.EmulatorIsOn;
-
-                ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
-
-                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick);
-                ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
-                ComboBoxCandleMarketDataType.SelectedItem = _sorcesCreator.CandleMarketDataType;
-
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Simple);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Renko);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.HeikenAshi);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Delta);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Volume);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Ticks);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Range);
-                ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Rеvers);
-
-                ComboBoxCandleCreateMethodType.SelectedItem = _sorcesCreator.CandleCreateMethodType;
-
-                CheckBoxSetForeign.IsChecked = _sorcesCreator.SetForeign;
-
-                LoadTimeFrameBox();
-
-                TextBoxCountTradesInCandle.Text = _sorcesCreator.CountTradeInCandle.ToString();
-                _countTradesInCandle = _sorcesCreator.CountTradeInCandle;
-                TextBoxCountTradesInCandle.TextChanged += TextBoxCountTradesInCandle_TextChanged;
-
-                TextBoxVolumeToClose.Text = _sorcesCreator.VolumeToCloseCandleInVolumeType.ToString();
-                _volumeToClose = _sorcesCreator.VolumeToCloseCandleInVolumeType;
-                TextBoxVolumeToClose.TextChanged += TextBoxVolumeToClose_TextChanged;
-
-                TextBoxRencoPunkts.Text = _sorcesCreator.RencoPunktsToCloseCandleInRencoType.ToString();
-                _rencoPuncts = _sorcesCreator.RencoPunktsToCloseCandleInRencoType;
-                TextBoxRencoPunkts.TextChanged += TextBoxRencoPunkts_TextChanged;
-
-                if (_sorcesCreator.RencoIsBuildShadows)
-                {
-                    CheckBoxRencoIsBuildShadows.IsChecked = true;
-                }
-
-                TextBoxDeltaPeriods.Text = _sorcesCreator.DeltaPeriods.ToString();
-                TextBoxDeltaPeriods.TextChanged += TextBoxDeltaPeriods_TextChanged;
-                _deltaPeriods = _sorcesCreator.DeltaPeriods;
-
-                TextBoxRangeCandlesPunkts.Text = _sorcesCreator.RangeCandlesPunkts.ToString();
-                TextBoxRangeCandlesPunkts.TextChanged += TextBoxRangeCandlesPunkts_TextChanged;
-                _rangeCandlesPunkts = _sorcesCreator.RangeCandlesPunkts;
-
-                TextBoxReversCandlesPunktsMinMove.Text = _sorcesCreator.ReversCandlesPunktsMinMove.ToString();
-                TextBoxReversCandlesPunktsMinMove.TextChanged += TextBoxReversCandlesPunktsMinMove_TextChanged;
-                _reversCandlesPunktsBackMove = _sorcesCreator.ReversCandlesPunktsBackMove;
-
-                TextBoxReversCandlesPunktsBackMove.Text = _sorcesCreator.ReversCandlesPunktsBackMove.ToString();
-                TextBoxReversCandlesPunktsBackMove.TextChanged += TextBoxReversCandlesPunktsBackMove_TextChanged;
-                _reversCandlesPunktsMinMove = _sorcesCreator.ReversCandlesPunktsMinMove;
-
-                ShowDopCandleSettings();
-
-                ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
-
-                ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = _sorcesCreator.ComissionType.ToString();
-
-                TextBoxComissionValue.Text = _sorcesCreator.ComissionValue.ToString();
-
-                CheckBoxSaveTradeArrayInCandle.IsChecked = _sorcesCreator.SaveTradesInCandles;
-
-
-                CheckBoxSaveTradeArrayInCandle.Click += delegate (object sender, RoutedEventArgs args)
-                {
-                    _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
-                };
-
-                _saveTradesInCandles = _sorcesCreator.SaveTradesInCandles;
+                ActivateGui();
 
                 Title = OsLocalization.Market.TitleConnectorCandle;
                 Label1.Content = OsLocalization.Market.Label1;
@@ -215,6 +99,136 @@ namespace OsEngine.Market.Connectors
             this.Focus();
         }
 
+        private void ActivateGui()
+        {
+            List<IServer> servers = ServerMaster.GetServers();
+
+            if (servers == null)
+            {// if connection server to exhange hasn't been created yet / если сервер для подключения к бирже ещё не создан
+                Close();
+                return;
+            }
+
+            // upload settings to controls
+            // загружаем настройки в контролы
+            for (int i = 0; i < servers.Count; i++)
+            {
+                ComboBoxTypeServer.Items.Add(servers[i].ServerType);
+            }
+
+            if (SourcesCreator.ServerType != ServerType.None)
+            {
+                ComboBoxTypeServer.SelectedItem = SourcesCreator.ServerType;
+                _selectedType = SourcesCreator.ServerType;
+            }
+            else
+            {
+                ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
+                _selectedType = servers[0].ServerType;
+            }
+
+            if (SourcesCreator.StartProgram == StartProgram.IsTester)
+            {
+                ComboBoxTypeServer.IsEnabled = false;
+                CheckBoxIsEmulator.IsEnabled = false;
+                CheckBoxSetForeign.IsEnabled = false;
+                ComboBoxTypeServer.SelectedItem = ServerType.Tester;
+                //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
+                //ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
+
+                SourcesCreator.ServerType = ServerType.Tester;
+                _selectedType = ServerType.Tester;
+            }
+
+            CreateGrid();
+
+            LoadClassOnBox();
+
+            LoadSecurityOnBox();
+
+            LoadPortfolioOnBox();
+
+            ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
+
+            CheckBoxIsEmulator.IsChecked = SourcesCreator.EmulatorIsOn;
+
+            ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
+
+            ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick);
+            ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
+            ComboBoxCandleMarketDataType.SelectedItem = SourcesCreator.CandleMarketDataType;
+
+            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Simple);
+            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Renko);
+            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.HeikenAshi);
+            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Delta);
+            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Volume);
+            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Ticks);
+            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Range);
+            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Rеvers);
+
+            ComboBoxCandleCreateMethodType.SelectedItem = SourcesCreator.CandleCreateMethodType;
+
+            CheckBoxSetForeign.IsChecked = SourcesCreator.SetForeign;
+
+            LoadTimeFrameBox();
+
+            TextBoxCountTradesInCandle.Text = SourcesCreator.CountTradeInCandle.ToString();
+            _countTradesInCandle = SourcesCreator.CountTradeInCandle;
+            TextBoxCountTradesInCandle.TextChanged += TextBoxCountTradesInCandle_TextChanged;
+
+            TextBoxVolumeToClose.Text = SourcesCreator.VolumeToCloseCandleInVolumeType.ToString();
+            _volumeToClose = SourcesCreator.VolumeToCloseCandleInVolumeType;
+            TextBoxVolumeToClose.TextChanged += TextBoxVolumeToClose_TextChanged;
+
+            TextBoxRencoPunkts.Text = SourcesCreator.RencoPunktsToCloseCandleInRencoType.ToString();
+            _rencoPuncts = SourcesCreator.RencoPunktsToCloseCandleInRencoType;
+            TextBoxRencoPunkts.TextChanged += TextBoxRencoPunkts_TextChanged;
+
+            if (SourcesCreator.RencoIsBuildShadows)
+            {
+                CheckBoxRencoIsBuildShadows.IsChecked = true;
+            }
+
+            TextBoxDeltaPeriods.Text = SourcesCreator.DeltaPeriods.ToString();
+            TextBoxDeltaPeriods.TextChanged += TextBoxDeltaPeriods_TextChanged;
+            _deltaPeriods = SourcesCreator.DeltaPeriods;
+
+            TextBoxRangeCandlesPunkts.Text = SourcesCreator.RangeCandlesPunkts.ToString();
+            TextBoxRangeCandlesPunkts.TextChanged += TextBoxRangeCandlesPunkts_TextChanged;
+            _rangeCandlesPunkts = SourcesCreator.RangeCandlesPunkts;
+
+            TextBoxReversCandlesPunktsMinMove.Text = SourcesCreator.ReversCandlesPunktsMinMove.ToString();
+            TextBoxReversCandlesPunktsMinMove.TextChanged += TextBoxReversCandlesPunktsMinMove_TextChanged;
+            _reversCandlesPunktsBackMove = SourcesCreator.ReversCandlesPunktsBackMove;
+
+            TextBoxReversCandlesPunktsBackMove.Text = SourcesCreator.ReversCandlesPunktsBackMove.ToString();
+            TextBoxReversCandlesPunktsBackMove.TextChanged += TextBoxReversCandlesPunktsBackMove_TextChanged;
+            _reversCandlesPunktsMinMove = SourcesCreator.ReversCandlesPunktsMinMove;
+
+            ShowDopCandleSettings();
+
+            ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
+
+            ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
+            ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
+            ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
+            ComboBoxComissionType.SelectedItem = SourcesCreator.ComissionType.ToString();
+
+            TextBoxComissionValue.Text = SourcesCreator.ComissionValue.ToString();
+
+            CheckBoxSaveTradeArrayInCandle.IsChecked = SourcesCreator.SaveTradesInCandles;
+
+
+            CheckBoxSaveTradeArrayInCandle.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
+            };
+
+            _saveTradesInCandles = SourcesCreator.SaveTradesInCandles;
+
+        }
+
         private void MassSourcesCreateUi_Closed(object sender, EventArgs e)
         {
             List<IServer> serversAll = ServerMaster.GetServers();
@@ -246,8 +260,7 @@ namespace OsEngine.Market.Connectors
             CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
             ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
-            _sorcesCreator = null;
-			
+
             _gridSecurities.CellClick -= _gridSecurities_CellClick;
 
             Closed -= MassSourcesCreateUi_Closed;
@@ -257,7 +270,7 @@ namespace OsEngine.Market.Connectors
             SecuritiesHost.Child = null;
         }
 
-        MassSourcesCreator _sorcesCreator;
+        public MassSourcesCreator SourcesCreator;
 
         public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
         {
@@ -295,7 +308,7 @@ namespace OsEngine.Market.Connectors
             }
             catch
             {
-                TextBoxReversCandlesPunktsBackMove.Text = _sorcesCreator.ReversCandlesPunktsBackMove.ToString();
+                TextBoxReversCandlesPunktsBackMove.Text = SourcesCreator.ReversCandlesPunktsBackMove.ToString();
             }
         }
 
@@ -320,7 +333,7 @@ namespace OsEngine.Market.Connectors
             }
             catch
             {
-                TextBoxReversCandlesPunktsMinMove.Text = _sorcesCreator.ReversCandlesPunktsMinMove.ToString();
+                TextBoxReversCandlesPunktsMinMove.Text = SourcesCreator.ReversCandlesPunktsMinMove.ToString();
             }
         }
 
@@ -345,7 +358,7 @@ namespace OsEngine.Market.Connectors
             }
             catch
             {
-                TextBoxRangeCandlesPunkts.Text = _sorcesCreator.RangeCandlesPunkts.ToString();
+                TextBoxRangeCandlesPunkts.Text = SourcesCreator.RangeCandlesPunkts.ToString();
             }
         }
 
@@ -635,13 +648,13 @@ namespace OsEngine.Market.Connectors
                 ComboBoxPortfolio.Items.Clear();
 
 
-                string portfolio = _sorcesCreator.PortfolioName;
+                string portfolio = SourcesCreator.PortfolioName;
 
 
                 if (portfolio != null)
                 {
-                    ComboBoxPortfolio.Items.Add(_sorcesCreator.PortfolioName);
-                    ComboBoxPortfolio.Text = _sorcesCreator.PortfolioName;
+                    ComboBoxPortfolio.Items.Add(SourcesCreator.PortfolioName);
+                    ComboBoxPortfolio.Text = SourcesCreator.PortfolioName;
                 }
 
                 List<Portfolio> portfolios = server.Portfolios;
@@ -734,9 +747,9 @@ namespace OsEngine.Market.Connectors
                     if (ComboBoxClass.Items.IndexOf(clas) == -1)
                         ComboBoxClass.Items.Add(clas);
                 }
-                if (string.IsNullOrEmpty(_sorcesCreator.SecuritiesClass) == false)
+                if (string.IsNullOrEmpty(SourcesCreator.SecuritiesClass) == false)
                 {
-                    ComboBoxClass.SelectedItem = _sorcesCreator.SecuritiesClass;
+                    ComboBoxClass.SelectedItem = SourcesCreator.SecuritiesClass;
                 }
 
                 if (ComboBoxClass.SelectedItem == null
@@ -876,8 +889,8 @@ namespace OsEngine.Market.Connectors
 
             _gridSecurities = newGrid;
             SecuritiesHost.Child = _gridSecurities;
-			
-            _gridSecurities.CellClick += _gridSecurities_CellClick;		
+
+            _gridSecurities.CellClick += _gridSecurities_CellClick;
         }
 
         private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -935,12 +948,16 @@ namespace OsEngine.Market.Connectors
                 nRow.Cells.Add(checkBox);
 
                 ActivatedSecurity activatedSecurity =
-                    _sorcesCreator.SecuritiesNames.Find(s => s.SecurityName == securities[indexSecuriti].Name);
+                    SourcesCreator.SecuritiesNames.Find(s => s.SecurityName == securities[indexSecuriti].Name);
 
                 if (activatedSecurity != null &&
                     activatedSecurity.IsOn == true)
                 {
                     checkBox.Value = true;
+                }
+                else
+                {
+
                 }
 
                 _gridSecurities.Rows.Add(nRow);
@@ -1122,7 +1139,7 @@ namespace OsEngine.Market.Connectors
         {
             ComboBoxTimeFrame.Items.Clear();
 
-            if (_sorcesCreator.StartProgram == StartProgram.IsTester)
+            if (SourcesCreator.StartProgram == StartProgram.IsTester)
             {
                 // Timeframe
                 // таймФрейм
@@ -1274,7 +1291,7 @@ namespace OsEngine.Market.Connectors
 
             }
 
-            ComboBoxTimeFrame.SelectedItem = _sorcesCreator.TimeFrame;
+            ComboBoxTimeFrame.SelectedItem = SourcesCreator.TimeFrame;
 
             if (ComboBoxTimeFrame.SelectedItem == null)
             {
@@ -1483,88 +1500,7 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                _sorcesCreator.SecuritiesNames.Clear();
-
-                _sorcesCreator.PortfolioName = ComboBoxPortfolio.Text;
-                if (CheckBoxIsEmulator.IsChecked != null)
-                {
-                    _sorcesCreator.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
-                }
-                TimeFrame timeFrame;
-                Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
-
-                _sorcesCreator.TimeFrame = timeFrame;
-                Enum.TryParse(ComboBoxTypeServer.Text, true, out _sorcesCreator.ServerType);
-
-                CandleMarketDataType createType;
-                Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
-                _sorcesCreator.CandleMarketDataType = createType;
-
-                CandleCreateMethodType methodType;
-                Enum.TryParse(ComboBoxCandleCreateMethodType.Text, true, out methodType);
-
-                ComissionType typeComission;
-                Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-                _sorcesCreator.ComissionType = typeComission;
-
-                if (ComboBoxClass.SelectedItem != null)
-                {
-                    _sorcesCreator.SecuritiesClass = ComboBoxClass.SelectedItem.ToString();
-                }
-
-                try
-                {
-                    _sorcesCreator.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
-                }
-                catch
-                {
-                    // ignore
-                }
-
-                _sorcesCreator.CandleCreateMethodType = methodType;
-
-                if (CheckBoxSetForeign.IsChecked.HasValue)
-                {
-                    _sorcesCreator.SetForeign = CheckBoxSetForeign.IsChecked.Value;
-                }
-
-                _sorcesCreator.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
-                _sorcesCreator.CountTradeInCandle = _countTradesInCandle;
-                _sorcesCreator.VolumeToCloseCandleInVolumeType = _volumeToClose;
-                _sorcesCreator.DeltaPeriods = _deltaPeriods;
-                _sorcesCreator.RangeCandlesPunkts = _rangeCandlesPunkts;
-                _sorcesCreator.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
-                _sorcesCreator.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
-                _sorcesCreator.SaveTradesInCandles = _saveTradesInCandles;
-
-                if (CheckBoxRencoIsBuildShadows.IsChecked != null)
-                {
-                    _sorcesCreator.RencoIsBuildShadows = CheckBoxRencoIsBuildShadows.IsChecked.Value;
-                }
-
-                List<ActivatedSecurity> securities = new List<ActivatedSecurity>();
-
-                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
-                {
-                    DataGridViewCheckBoxCell checkBoxCell = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
-
-                    if (checkBoxCell.Value == null ||
-                        Convert.ToBoolean(checkBoxCell.Value.ToString()) == false)
-                    {
-                        continue;
-                    }
-
-                    ActivatedSecurity sec = GetSecurity(_gridSecurities.Rows[i]);
-
-                    if (sec == null)
-                    {
-                        continue;
-                    }
-
-                    securities.Add(sec);
-                }
-
-                _sorcesCreator.SecuritiesNames = securities;
+                SourcesCreator = GetCurSettings();
 
                 Close();
             }
@@ -1572,6 +1508,94 @@ namespace OsEngine.Market.Connectors
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private MassSourcesCreator GetCurSettings()
+        {
+            MassSourcesCreator curCreator = new MassSourcesCreator(StartProgram.IsTester);
+
+            curCreator.PortfolioName = ComboBoxPortfolio.Text;
+            if (CheckBoxIsEmulator.IsChecked != null)
+            {
+                curCreator.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
+            }
+            TimeFrame timeFrame;
+            Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
+
+            curCreator.TimeFrame = timeFrame;
+            Enum.TryParse(ComboBoxTypeServer.Text, true, out curCreator.ServerType);
+
+            CandleMarketDataType createType;
+            Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
+            curCreator.CandleMarketDataType = createType;
+
+            CandleCreateMethodType methodType;
+            Enum.TryParse(ComboBoxCandleCreateMethodType.Text, true, out methodType);
+
+            ComissionType typeComission;
+            Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
+            curCreator.ComissionType = typeComission;
+
+            if (ComboBoxClass.SelectedItem != null)
+            {
+                curCreator.SecuritiesClass = ComboBoxClass.SelectedItem.ToString();
+            }
+
+            try
+            {
+                curCreator.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            curCreator.CandleCreateMethodType = methodType;
+
+            if (CheckBoxSetForeign.IsChecked.HasValue)
+            {
+                curCreator.SetForeign = CheckBoxSetForeign.IsChecked.Value;
+            }
+
+            curCreator.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
+            curCreator.CountTradeInCandle = _countTradesInCandle;
+            curCreator.VolumeToCloseCandleInVolumeType = _volumeToClose;
+            curCreator.DeltaPeriods = _deltaPeriods;
+            curCreator.RangeCandlesPunkts = _rangeCandlesPunkts;
+            curCreator.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
+            curCreator.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
+            curCreator.SaveTradesInCandles = _saveTradesInCandles;
+
+            if (CheckBoxRencoIsBuildShadows.IsChecked != null)
+            {
+                curCreator.RencoIsBuildShadows = CheckBoxRencoIsBuildShadows.IsChecked.Value;
+            }
+
+            List<ActivatedSecurity> securities = new List<ActivatedSecurity>();
+
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+                DataGridViewCheckBoxCell checkBoxCell = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
+
+                if (checkBoxCell.Value == null ||
+                    Convert.ToBoolean(checkBoxCell.Value.ToString()) == false)
+                {
+                    continue;
+                }
+
+                ActivatedSecurity sec = GetSecurity(_gridSecurities.Rows[i]);
+
+                if (sec == null)
+                {
+                    continue;
+                }
+
+                securities.Add(sec);
+            }
+
+            curCreator.SecuritiesNames = securities;
+
+            return curCreator;
         }
 
         private ActivatedSecurity GetSecurity(DataGridViewRow row)
@@ -1588,5 +1612,82 @@ namespace OsEngine.Market.Connectors
             return sec;
         }
 
+        private void ButtonSaveSet_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+            saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+
+            saveFileDialog.RestoreDirectory = true;
+            saveFileDialog.ShowDialog();
+
+            if (string.IsNullOrEmpty(saveFileDialog.FileName))
+            {
+                return;
+            }
+
+            string filePath = saveFileDialog.FileName;
+
+            if (File.Exists(filePath) == false)
+            {
+                using (FileStream stream = File.Create(filePath))
+                {
+                    // do nothin
+                }
+            }
+
+            MassSourcesCreator curSettings = GetCurSettings();
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(filePath))
+                {
+                    writer.WriteLine(curSettings.GetSaveString());
+                }
+            }
+            catch (Exception error)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                ui.ShowDialog();
+            }
+        }
+
+        private void ButtonLoadSet_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            openFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+            openFileDialog.RestoreDirectory = true;
+            openFileDialog.ShowDialog();
+
+            if (string.IsNullOrEmpty(openFileDialog.FileName))
+            {
+                return;
+            }
+
+            string filePath = openFileDialog.FileName;
+
+            if (File.Exists(filePath) == false)
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(filePath))
+                {
+                    string fileStr = reader.ReadToEnd();
+
+                    SourcesCreator.LoadFromString(fileStr);
+
+                    ActivateGui();
+                }
+            }
+            catch (Exception error)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                ui.ShowDialog();
+            }
+        }
     }
 }

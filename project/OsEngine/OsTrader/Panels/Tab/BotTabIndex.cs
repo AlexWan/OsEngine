@@ -115,6 +115,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
             ui.ShowDialog();
 
+            creator = ui.SourcesCreator;
+
             if (creator.SecuritiesNames != null &&
                 creator.SecuritiesNames.Count != 0)
             {
@@ -125,6 +127,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Save();
             }
+            ui.SourcesCreator = null;
         }
 
         private MassSourcesCreator GetCurrentCreator()
