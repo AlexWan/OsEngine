@@ -424,6 +424,13 @@ namespace OsEngine.Language
           "Eng:It takes up to 5 minutes to download other assets via LUA QUIK. Until the download is completed, the tools will not appear in the data settings. Wait for them._" +
           "Ru:На загрузку прочих активов через LUA QUIK необходимо до 5 минут.До окончания загрузки инструменты в настройках данных не появятся.Ждите их._");
 
+        public string Label98 => OsLocalization.ConvertToLocString(
+          "Eng:Load set_" +
+          "Ru:Загрузить_");
+
+        public string Label99 => OsLocalization.ConvertToLocString(
+          "Eng:Save set_" +
+          "Ru:Сохранить_");
 
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
@@ -964,5 +971,6 @@ namespace OsEngine.Language
         public string ButtonNameChangePassword => OsLocalization.ConvertToLocString(
             "Eng:Change password_" +
             "Ru:Изменить пароль_");
+
     }
 }

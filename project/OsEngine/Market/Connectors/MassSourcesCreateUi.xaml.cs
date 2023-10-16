@@ -83,6 +83,8 @@ namespace OsEngine.Market.Connectors
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
                 LabelSecurities.Content = OsLocalization.Market.Label66;
+                ButtonLoadSet.Content = OsLocalization.Market.Label98;
+                ButtonSaveSet.Content = OsLocalization.Market.Label99;
 
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
                 ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
