@@ -55,8 +55,6 @@ namespace OsEngine.Market.Servers.QuikLua
             Securities?.Clear();    // AVP  изменили список классов для работы, старый удалим и в коннекторе заново перечитаем
         }
 
-       
-
         /// <summary>
         /// tame candles by instrument
         /// взять свечи по инструменту

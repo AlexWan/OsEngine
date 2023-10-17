@@ -432,6 +432,30 @@ namespace OsEngine.Language
           "Eng:Save set_" +
           "Ru:Сохранить_");
 
+        public string Label100 => OsLocalization.ConvertToLocString(
+          "Eng:Old password_" +
+          "Ru:Старый пароль_");
+
+        public string Label101 => OsLocalization.ConvertToLocString(
+          "Eng:New password_" +
+          "Ru:Новый пароль_");
+
+        public string Label102 => OsLocalization.ConvertToLocString(
+          "Eng:No connection to the exchange_" +
+          "Ru:Отсутствует подключение к бирже_");
+
+        public string Label103 => OsLocalization.ConvertToLocString(
+          "Eng:Password successfully changed_" +
+          "Ru:Пароль успешно изменен_");
+
+        public string Label104 => OsLocalization.ConvertToLocString(
+          "Eng:Password reset window for Transaq_" +
+          "Ru:Окно смены пароля для Transaq_");
+
+        public string Label105 => OsLocalization.ConvertToLocString(
+          "Eng:The first time you connect to the transaq, you will be required to change your password to connect. Instructions in FAQ_" +
+          "Ru:При первом подключении к транзак будет необходимо сменить пароль для подключения. Инструкции в FAQ_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");

@@ -1567,7 +1567,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             second.ManualPositionSupport.TypeDoubleExitOrder = first.ManualPositionSupport.TypeDoubleExitOrder;
             second.ManualPositionSupport.ValuesType = first.ManualPositionSupport.ValuesType;
             second.ManualPositionSupport.Save();
-
         }
 
         /// <summary>

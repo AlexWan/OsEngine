@@ -46,6 +46,8 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterBoolean(OsLocalization.Market.UseSecInfoUpdates, false);
             CreateParameterButton(OsLocalization.Market.ButtonNameChangePassword);
 
+            ServerParameters[10].Comment = OsLocalization.Market.Label105;
+
         }
 
         public ServerWorkingTimeSettings WorkingTimeSettings;
@@ -267,29 +269,35 @@ namespace OsEngine.Market.Servers.Transaq
 
         public void ChangePassword(string oldPassword, string newPassword, ChangeTransaqPassword window)
         {
-
-            if (_client == null)
+            try
             {
-                window.TextInfo.Text = "Отсутствует подключение к бирже.";
-                return;
+                if (_client == null)
+                {
+                    window.TextInfo.Text = OsLocalization.Market.Label102;
+                    return;
+                }
+
+                string cmd = $"<command id=\"change_pass\" oldpass=\"{oldPassword}\" newpass=\"{newPassword}\"/>";
+
+                // sending command / отправка команды
+                string res = _client.ConnectorSendCommand(cmd);
+
+                if (res == "<result success=\"true\"/>")
+                {
+                    ((ServerParameterPassword)ServerParameters[1]).Value = newPassword;
+                    window.TextInfo.Text = OsLocalization.Market.Label103;
+                }
+                else
+                {
+                    window.TextInfo.Text = res;
+                }
+
+                Dispose();
             }
-
-            string cmd = $"<command id=\"change_pass\" oldpass=\"{oldPassword}\" newpass=\"{newPassword}\"/>";
-
-            // sending command / отправка команды
-            string res = _client.ConnectorSendCommand(cmd);
-
-            if (res == "<result success=\"true\"/>")
+            catch (Exception ex)
             {
-                ((ServerParameterPassword)ServerParameters[1]).Value = newPassword;
-                window.TextInfo.Text = "Пароль успешно изменен.";
+                window.TextInfo.Text = ex.ToString();
             }
-            else
-            {
-                window.TextInfo.Text = res;
-            }
-
-            Dispose();
         }
 
         private readonly ServerWorkingTimeSettings _workingTimeSettings;
