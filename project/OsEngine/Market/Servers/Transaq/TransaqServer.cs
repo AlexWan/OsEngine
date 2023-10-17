@@ -46,6 +46,12 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterBoolean(OsLocalization.Market.UseSecInfoUpdates, false);
             CreateParameterButton(OsLocalization.Market.ButtonNameChangePassword);
 
+            ServerParameters[4].Comment = OsLocalization.Market.Label107;
+            ServerParameters[5].Comment = OsLocalization.Market.Label107;
+            ServerParameters[6].Comment = OsLocalization.Market.Label107;
+            ServerParameters[7].Comment = OsLocalization.Market.Label107;
+            ServerParameters[8].Comment = OsLocalization.Market.Label107;
+            ServerParameters[9].Comment = OsLocalization.Market.Label108;
             ServerParameters[10].Comment = OsLocalization.Market.Label105;
 
         }

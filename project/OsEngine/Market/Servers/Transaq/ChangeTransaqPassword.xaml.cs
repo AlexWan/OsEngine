@@ -26,6 +26,8 @@ namespace OsEngine.Market.Servers.Transaq
 
             this.Activate();
             this.Focus();
+
+            Closed += ChangeTransaqPassword_Closed;
         }
 
         public ChangeTransaqPassword(TransaqServerRealization server)
@@ -42,6 +44,14 @@ namespace OsEngine.Market.Servers.Transaq
 
             this.Activate();
             this.Focus();
+
+            Closed += ChangeTransaqPassword_Closed;
+        }
+
+        private void ChangeTransaqPassword_Closed(object sender, System.EventArgs e)
+        {
+            _server = null;
+            TextInfo = null;
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

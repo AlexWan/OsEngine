@@ -456,6 +456,18 @@ namespace OsEngine.Language
           "Eng:The first time you connect to the transaq, you will be required to change your password to connect. Instructions in FAQ_" +
           "Ru:При первом подключении к транзак будет необходимо сменить пароль для подключения. Инструкции в FAQ_");
 
+        public string Label106 => OsLocalization.ConvertToLocString(
+          "Eng:The first time you connect to the transaq, you will be required to change your password to connect. Instructions in FAQ_" +
+          "Ru:При первом подключении к транзак будет необходимо сменить пароль для подключения. Инструкции в FAQ_");
+
+        public string Label107 => OsLocalization.ConvertToLocString(
+          "Eng:Disables or enables the trading floor. Very much affects the connection speed._" +
+          "Ru:Отключает или включает площадку для торговли. Очень сильно влияет на скорость подключения._");
+
+        public string Label108 => OsLocalization.ConvertToLocString(
+          "Eng:Update on intraday instrument data. Recommendation: false_" +
+          "Ru:Обновление данных по инструментам внутри дня. Рекомендация: false_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
