@@ -468,6 +468,14 @@ namespace OsEngine.Language
           "Eng:Update on intraday instrument data. Recommendation: false_" +
           "Ru:Обновление данных по инструментам внутри дня. Рекомендация: false_");
 
+        public string Label109 => OsLocalization.ConvertToLocString(
+          "Eng:Client code in the comment_" +
+          "Ru:Код клиента в комментарии_");
+
+        public string Label110 => OsLocalization.ConvertToLocString(
+          "Eng:Brokers Alor and Sber require the client's portfolio code to be additionally embedded in the comment to the order. _" +
+          "Ru:Брокеры Алор и Сбер требуют чтобы в комментарии к ордеру был дополнительно зашит код портфеля клиента. _");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
