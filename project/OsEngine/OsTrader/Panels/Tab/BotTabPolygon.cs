@@ -967,6 +967,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                int showRow = _grid.FirstDisplayedScrollingRowIndex;
+
                 _grid.Rows.Clear();
 
                 List<DataGridViewRow> rows = GetRowsToGrid();
@@ -980,6 +982,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     _grid.Rows.Add(rows[i]);
                 }
+
+                if(showRow > 0 &&
+                    showRow < _grid.Rows.Count)
+                {
+                    _grid.FirstDisplayedScrollingRowIndex = showRow;
+                }
+
             }
             catch (Exception error)
             {

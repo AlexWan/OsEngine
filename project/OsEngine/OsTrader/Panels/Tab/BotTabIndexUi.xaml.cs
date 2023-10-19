@@ -132,6 +132,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
+            int showRow = _sourcesGrid.FirstDisplayedScrollingRowIndex;
+
             _sourcesGrid.Rows.Clear();
 
             for (int i = 0; i < _spread.Tabs.Count; i++)
@@ -163,6 +165,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 row.Cells.Add(button);
 
                 _sourcesGrid.Rows.Add(row);
+            }
+
+
+            if (showRow > 0 &&
+                showRow < _sourcesGrid.Rows.Count)
+            {
+                _sourcesGrid.FirstDisplayedScrollingRowIndex = showRow;
             }
         }
 
