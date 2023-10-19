@@ -46,7 +46,8 @@ namespace OsEngine.Alerts
 
         private void DeleteGrid()
         {
-            if (HostAllert == null)
+            if (HostAllert == null
+                || GridViewBox == null)
             {
                 return;
             }
@@ -57,10 +58,16 @@ namespace OsEngine.Alerts
                 return;
             }
 
-            GridViewBox.Click -= GridViewBox_Click;
-            GridViewBox.DoubleClick -= GridViewBox_DoubleClick;
-            GridViewBox.Rows.Clear();
-            GridViewBox = null;
+            if(GridViewBox != null)
+            {
+                DataGridFactory.ClearLinks(GridViewBox);
+                GridViewBox.Click -= GridViewBox_Click;
+                GridViewBox.DoubleClick -= GridViewBox_DoubleClick;
+                GridViewBox.Rows.Clear();
+                GridViewBox.Columns.Clear();
+                GridViewBox = null;
+            }
+
         }
 
         private void CreateGrid()
@@ -111,6 +118,27 @@ namespace OsEngine.Alerts
             GridViewBox.DoubleClick += GridViewBox_DoubleClick;
         }
 
+        private void ClearGrid()
+        {
+            if (GridViewBox == null)
+            {
+                return;
+            }
+
+            if(GridViewBox.Rows.Count == 0)
+            {
+                return;
+            }
+
+            if (GridViewBox.InvokeRequired)
+            {
+                GridViewBox.Invoke(new Action(ClearGrid));
+                return;
+            }
+
+            GridViewBox.Rows.Clear();
+        }
+
         /// <summary>
         /// storage name
         /// имя хранилища
@@ -159,6 +187,12 @@ namespace OsEngine.Alerts
                 // если нет нужного нам файла. Просто выходим
                 return;
             }
+
+            if(_connector.StartProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
             try
             {
                 _alertArray = new List<IIAlert>();
@@ -217,6 +251,11 @@ namespace OsEngine.Alerts
         {
             try
             {
+                if (_connector.StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + "AlertKeeper.txt", false))
                 {
                     // create file and write settings data to it
@@ -274,6 +313,8 @@ namespace OsEngine.Alerts
                 }
                 _alertArray.Clear();
             }
+
+            ClearGrid();
         }
 
         /// <summary>

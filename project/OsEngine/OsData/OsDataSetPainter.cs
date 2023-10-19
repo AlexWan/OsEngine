@@ -12,7 +12,6 @@ using System.Windows.Forms.Integration;
 using System.Windows.Forms;
 using System.Threading;
 using OsEngine.Charts.CandleChart;
-using System.Globalization;
 
 namespace OsEngine.OsData
 {
