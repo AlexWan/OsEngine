@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Input;
 
 namespace OsEngine.Robots
@@ -135,10 +136,13 @@ namespace OsEngine.Robots
 
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            _grid.DefaultCellStyle.SelectionBackColor = Color.Black;
+            _grid.DefaultCellStyle.SelectionForeColor = Color.FromArgb(255, 85, 0);
+
             cell0.Style = _grid.DefaultCellStyle;
 
             DataGridViewColumn colum1 = new DataGridViewColumn();
@@ -202,15 +206,10 @@ namespace OsEngine.Robots
                 return;
             }
 
-            Color baseColor = Color.FromArgb(154, 156, 158);
-
             for (int i = 0;i < _grid.Rows.Count;i++)
             {
                 if (i == row)
                 {
-                    _grid.Rows[i].Cells[1].Style.ForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[1].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
-
                     NameStrategy = _grid.Rows[i].Cells[1].Value.ToString();
 
                     if(_grid.Rows[i].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
@@ -222,16 +221,9 @@ namespace OsEngine.Robots
                         IsScript = false;
                     }
                 }
-                else
-                {
-                    if (_grid.Rows[i].Cells[1].Style.ForeColor != baseColor)
-                    {
-                        _grid.Rows[i].Cells[1].Style.ForeColor = baseColor;
-                        _grid.Rows[i].Cells[1].Style.SelectionForeColor = baseColor;
-                    }
-
-                }
             }
+
+            ReColorTable();
 
             try
             {
@@ -377,6 +369,48 @@ namespace OsEngine.Robots
             }
 
             _lastLoadDescriptions = descriptions;
+        }
+
+        private void ReColorTable()
+        {
+            Color baseColor = Color.FromArgb(154, 156, 158);
+
+            for (int i = 0; i < _grid.Rows.Count; i++)
+            {
+                if (_grid.Rows[i].Selected)
+                {
+                    _grid.Rows[i].Cells[0].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[0].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[1].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[1].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[2].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[2].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[3].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[3].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[4].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[4].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[5].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[5].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                }
+                else
+                {
+                    if (_grid.Rows[i].Cells[1].Style.ForeColor != baseColor)
+                    {
+                        _grid.Rows[i].Cells[0].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[0].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[1].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[1].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[2].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[2].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[3].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[3].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[4].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[4].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[5].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[5].Style.SelectionForeColor = baseColor;
+                    }
+                }
+            }
         }
 
         private List<BotDescription> _lastLoadDescriptions;
@@ -866,6 +900,20 @@ namespace OsEngine.Robots
             _grid.Rows[firstRow].Selected = true;
             _grid.FirstDisplayedScrollingRowIndex = firstRow;
 
+
+            NameStrategy = _grid.Rows[firstRow].Cells[1].Value.ToString();
+
+            if (_grid.Rows[firstRow].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+            {
+                IsScript = true;
+            }
+            else
+            {
+                IsScript = false;
+            }
+
+            ReColorTable();
+
             if (_searchResults.Count < 2)
             {
                 ButtonRightInSearchResults.Visibility = Visibility.Hidden;
@@ -906,6 +954,19 @@ namespace OsEngine.Robots
 
             _grid.Rows[realInd].Selected = true;
             _grid.FirstDisplayedScrollingRowIndex = realInd;
+
+            NameStrategy = _grid.Rows[realInd].Cells[1].Value.ToString();
+
+            if (_grid.Rows[realInd].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+            {
+                IsScript = true;
+            }
+            else
+            {
+                IsScript = false;
+            }
+
+            ReColorTable();
         }
 
         private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
@@ -928,6 +989,19 @@ namespace OsEngine.Robots
 
             _grid.Rows[realInd].Selected = true;
             _grid.FirstDisplayedScrollingRowIndex = realInd;
+
+            NameStrategy = _grid.Rows[realInd].Cells[1].Value.ToString();
+
+            if (_grid.Rows[realInd].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+            {
+                IsScript = true;
+            }
+            else
+            {
+                IsScript = false;
+            }
+
+            ReColorTable();
         }
 
         #endregion
