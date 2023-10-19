@@ -579,6 +579,8 @@ namespace OsEngine.Market.Servers.MOEX
                 return candlesOld;
             }
 
+            TimeSpan candleMinuteLen = new TimeSpan(0, endTf, 0);
+
             int countOldCandlesInOneNew = endTf / startTf;
 
             List<Candle> candlesNew = new List<Candle>();
@@ -587,6 +589,37 @@ namespace OsEngine.Market.Servers.MOEX
             {
                 Candle newCandle = new Candle();
                 newCandle.TimeStart = candlesOld[i].TimeStart;
+
+                if(startTf == 1 
+                    && (endTf == 5 || endTf == 10 || endTf == 15))
+                {
+                    while(newCandle.TimeStart.Minute != 0
+                        && newCandle.TimeStart.Minute % endTf != 0)
+                    {
+                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(1);
+                    }
+                }
+                if (startTf == 10
+                    && (endTf == 30))
+                {
+                    while (newCandle.TimeStart.Minute != 0
+                        && newCandle.TimeStart.Minute != 30)
+                    {
+                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(1);
+                    }
+                }
+
+                if (startTf == 1
+                    && (endTf == 45))
+                {
+                    while (newCandle.TimeStart.Minute != 0
+                        && newCandle.TimeStart.Minute % 5 != 0)
+                    {
+                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes(1);
+                    }
+                }
+
+
                 newCandle.Open = candlesOld[i].Open;
                 newCandle.High = candlesOld[i].High;
                 newCandle.Low = candlesOld[i].Low;
@@ -597,7 +630,9 @@ namespace OsEngine.Market.Servers.MOEX
 
                 for (int i2 = 0; i2 < countOldCandlesInOneNew - 1 && i < candlesOld.Count; i2++)
                 {
-                    if (candlesOld[i].TimeStart.Hour == 10 &&
+                    if (newCandle.TimeStart.Hour != 10 &&
+                        newCandle.TimeStart.Minute != 0 &&
+                        candlesOld[i].TimeStart.Hour == 10 &&
                         candlesOld[i].TimeStart.Minute == 0)
                     {
                         i--;
@@ -608,6 +643,15 @@ namespace OsEngine.Market.Servers.MOEX
                         i--;
                         break;
                     }
+
+                    DateTime EndCandleTime = newCandle.TimeStart.Add(candleMinuteLen);
+
+                    if (candlesOld[i].TimeStart >= EndCandleTime)
+                    {
+                        i--;
+                        break;
+                    }
+
                     if (candlesOld[i].High > newCandle.High)
                     {
                         newCandle.High = candlesOld[i].High;
