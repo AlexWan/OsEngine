@@ -25,13 +25,16 @@ namespace OsEngine.OsTrader.Panels.Tab
     {
         PolygonToTrade _polygon;
 
+        public string NameElement;
+
         public BotTabPolygonUi(PolygonToTrade polygon)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             GlobalGUILayout.Listen(this, "botTabPairUi_" + polygon.Name);
             _polygon = polygon;
-            Name = polygon.Name;
+
+            NameElement = polygon.Name;
 
             TextBoxBaseCurrency.Text = _polygon.BaseCurrency;
             TextBoxBaseCurrency.TextChanged += TextBoxBaseCurrency_TextChanged;

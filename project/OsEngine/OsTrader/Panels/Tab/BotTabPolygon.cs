@@ -1451,7 +1451,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     for (int i = 0; i < _uiList.Count; i++)
                     {
-                        if (_uiList[i].Name == pair.Name)
+                        if (_uiList[i].NameElement == pair.Name)
                         {
                             _uiList[i].Activate();
                             return;
@@ -1485,11 +1485,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             try
             {
 
-                string name = ((BotTabPolygonUi)sender).Name;
+                string name = ((BotTabPolygonUi)sender).NameElement;
 
                 for (int i = 0; i < _uiList.Count; i++)
                 {
-                    if (_uiList[i].Name == name)
+                    if (_uiList[i].NameElement == name)
                     {
                         _uiList[i].Closed -= Ui_Closed;
                         _uiList.RemoveAt(i);

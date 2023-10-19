@@ -24,6 +24,8 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public partial class BotTabPairUi : Window
     {
+        public string NameElement;
+
         public BotTabPairUi(PairToTrade pair)
         {
             InitializeComponent();
@@ -31,7 +33,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _pair = pair;
 
-            Name = pair.Name;
+            NameElement = pair.Name;
 
             // indicators
 
