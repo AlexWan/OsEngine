@@ -12,6 +12,7 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -1612,5 +1613,224 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         #endregion
+
+        private void ButtonSaveSet_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+            saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+
+            saveFileDialog.RestoreDirectory = true;
+            saveFileDialog.ShowDialog();
+
+            if (string.IsNullOrEmpty(saveFileDialog.FileName))
+            {
+                return;
+            }
+
+            string filePath = saveFileDialog.FileName;
+
+            if (File.Exists(filePath) == false)
+            {
+                using (FileStream stream = File.Create(filePath))
+                {
+                    // do nothin
+                }
+            }
+
+            MassSourcesCreator curSettings = GetCurSettings();
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(filePath))
+                {
+                    writer.WriteLine(curSettings.GetSaveString());
+                }
+            }
+            catch (Exception error)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                ui.ShowDialog();
+            }
+        }
+
+        private void ButtonLoadSet_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            openFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+            openFileDialog.RestoreDirectory = true;
+            openFileDialog.ShowDialog();
+
+            if (string.IsNullOrEmpty(openFileDialog.FileName))
+            {
+                return;
+            }
+
+            string filePath = openFileDialog.FileName;
+
+            if (File.Exists(filePath) == false)
+            {
+                return;
+            }
+
+            try
+            {
+                MassSourcesCreator sourcesCreator = new MassSourcesCreator(StartProgram.IsOsTrader);
+
+                using (StreamReader reader = new StreamReader(filePath))
+                {
+                    string fileStr = reader.ReadToEnd();
+                    sourcesCreator.LoadFromString(fileStr);
+                    LoadSettingsOnGui(sourcesCreator);
+                }
+            }
+            catch (Exception error)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                ui.ShowDialog();
+            }
+        }
+
+        private MassSourcesCreator GetCurSettings()
+        {
+            MassSourcesCreator curCreator = new MassSourcesCreator(StartProgram.IsTester);
+
+            curCreator.PortfolioName = ComboBoxPortfolio.Text;
+            if (CheckBoxIsEmulator.IsChecked != null)
+            {
+                curCreator.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
+            }
+            TimeFrame timeFrame;
+            Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
+
+            curCreator.TimeFrame = timeFrame;
+            Enum.TryParse(ComboBoxTypeServer.Text, true, out curCreator.ServerType);
+
+            CandleMarketDataType createType;
+            Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
+            curCreator.CandleMarketDataType = createType;
+
+            CandleCreateMethodType methodType;
+            Enum.TryParse(ComboBoxCandleCreateMethodType.Text, true, out methodType);
+
+            ComissionType typeComission;
+            Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
+            curCreator.ComissionType = typeComission;
+
+            if (ComboBoxClass.SelectedItem != null)
+            {
+                curCreator.SecuritiesClass = ComboBoxClass.SelectedItem.ToString();
+            }
+
+            try
+            {
+                curCreator.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            curCreator.CandleCreateMethodType = methodType;
+
+            if (CheckBoxSetForeign.IsChecked.HasValue)
+            {
+                curCreator.SetForeign = CheckBoxSetForeign.IsChecked.Value;
+            }
+
+            curCreator.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
+            curCreator.CountTradeInCandle = _countTradesInCandle;
+            curCreator.VolumeToCloseCandleInVolumeType = _volumeToClose;
+            curCreator.DeltaPeriods = _deltaPeriods;
+            curCreator.RangeCandlesPunkts = _rangeCandlesPunkts;
+            curCreator.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
+            curCreator.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
+            curCreator.SaveTradesInCandles = _saveTradesInCandles;
+
+            if (CheckBoxRencoIsBuildShadows.IsChecked != null)
+            {
+                curCreator.RencoIsBuildShadows = CheckBoxRencoIsBuildShadows.IsChecked.Value;
+            }
+
+            List<ActivatedSecurity> securities = new List<ActivatedSecurity>();
+
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+                DataGridViewCheckBoxCell checkBoxCell = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
+
+                if (checkBoxCell.Value == null ||
+                    Convert.ToBoolean(checkBoxCell.Value.ToString()) == false)
+                {
+                    continue;
+                }
+
+                ActivatedSecurity sec = GetSecurity(_gridSecurities.Rows[i]);
+
+                if (sec == null)
+                {
+                    continue;
+                }
+
+                securities.Add(sec);
+            }
+
+            curCreator.SecuritiesNames = securities;
+
+            return curCreator;
+        }
+
+        private void LoadSettingsOnGui(MassSourcesCreator curCreator)
+        {
+            ComboBoxPortfolio.Text = curCreator.PortfolioName;
+            CheckBoxIsEmulator.IsChecked = curCreator.EmulatorIsOn;
+            ComboBoxTimeFrame.Text = curCreator.TimeFrame.ToString();
+            ComboBoxTypeServer.Text = curCreator.ServerType.ToString();
+            ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
+            ComboBoxCandleCreateMethodType.Text = curCreator.CandleCreateMethodType.ToString();
+            ComboBoxComissionType.Text = curCreator.ComissionType.ToString();
+            ComboBoxClass.SelectedItem =  curCreator.SecuritiesClass.ToString();
+            TextBoxComissionValue.Text = curCreator.ComissionValue.ToString();
+
+            CheckBoxSetForeign.IsChecked = curCreator.SetForeign;
+
+            _rencoPuncts = curCreator.RencoPunktsToCloseCandleInRencoType;
+            _countTradesInCandle = curCreator.CountTradeInCandle;
+            _volumeToClose = curCreator.VolumeToCloseCandleInVolumeType;
+            _deltaPeriods = curCreator.DeltaPeriods;
+            _rangeCandlesPunkts = curCreator.RangeCandlesPunkts;
+            _reversCandlesPunktsMinMove = curCreator.ReversCandlesPunktsMinMove;
+            _reversCandlesPunktsBackMove = curCreator.ReversCandlesPunktsBackMove;
+            _saveTradesInCandles = curCreator.SaveTradesInCandles;
+
+            CheckBoxRencoIsBuildShadows.IsChecked = curCreator.RencoIsBuildShadows;
+            
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+                DataGridViewCheckBoxCell checkBoxCell = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
+
+                string securityName = _gridSecurities.Rows[i].Cells[3].Value.ToString();
+
+                bool isInArray = false;
+
+                for(int j = 0; j< curCreator.SecuritiesNames.Count;j++)
+                {
+                    if (curCreator.SecuritiesNames[j].SecurityName == securityName)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if(isInArray)
+                {
+                    checkBoxCell.Value = true;
+                }
+                else
+                {
+                    checkBoxCell.Value = false;
+                }
+            }
+        }
     }
 }
