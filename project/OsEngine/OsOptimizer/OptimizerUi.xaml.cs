@@ -626,7 +626,7 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonStrategySelect_Click(object sender, RoutedEventArgs e)
         {
-            BotCreateUi ui = new BotCreateUi(
+            BotCreateUi2 ui = new BotCreateUi2(
                 BotFactory.GetNamesStrategyWithParametersSync(), BotFactory.GetScriptsNamesStrategy(),
                 StartProgram.IsOsOptimizer);
 

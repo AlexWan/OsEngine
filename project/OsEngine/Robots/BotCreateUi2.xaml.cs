@@ -30,6 +30,17 @@ namespace OsEngine.Robots
 
             _startProgram = startProgram;
 
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                TextBoxName.IsEnabled = false;
+                ButtonWhyNeadName.IsEnabled = false;
+                LabelName.IsEnabled = false;
+
+                TextBoxName.Visibility = Visibility.Collapsed;
+                ButtonWhyNeadName.Visibility = Visibility.Collapsed;
+                LabelName.Visibility = Visibility.Collapsed;
+            }
+
             for (int i = 0; i < botsIncluded.Count; i++)
             {
                 for (int i2 = 0; i2 < botsFromScript.Count; i2++)
@@ -313,7 +324,6 @@ namespace OsEngine.Robots
                         isInArray = true;
                         break;
                     }
-                    
                 }
 
                 if(isInArray == false)
@@ -354,7 +364,62 @@ namespace OsEngine.Robots
 
             for(int i = 0;i < descriptions.Count;i++)
             {
-                if(lockation == BotCreationType.All.ToString())
+                BotDescription curDesc = descriptions[i];
+
+                if (_startProgram == StartProgram.IsTester)
+                {
+                    bool badBot = false;
+
+                    for (int j = 0; curDesc.Sources != null && j < curDesc.Sources.Count; j++)
+                    {
+                        if (curDesc.Sources[j].Contains("Polygon"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                    }
+
+                    if(badBot)
+                    {
+                        continue;
+                    }
+                }
+
+                if (_startProgram == StartProgram.IsOsOptimizer)
+                {
+                    bool badBot = false;
+
+                    for (int j = 0; curDesc.Sources != null && j < curDesc.Sources.Count; j++)
+                    {
+                        if (curDesc.Sources[j].Contains("Polygon"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                        if (curDesc.Sources[j].Contains("Pair"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                        if (curDesc.Sources[j].Contains("Cluster"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                        if (curDesc.Sources[j].Contains("Screener"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                    }
+
+                    if (badBot)
+                    {
+                        continue;
+                    }
+                }
+
+                if (lockation == BotCreationType.All.ToString())
                 {// роботы из всех мест
                     _grid.Rows.Add(GetRow(descriptions[i], i + 1));
                     continue;
