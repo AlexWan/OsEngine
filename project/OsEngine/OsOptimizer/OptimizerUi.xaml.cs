@@ -1152,6 +1152,13 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+            if(_master.SecurityTester == null ||
+                _master.SecurityTester.Count == 0)
+            {
+                _master.SendLogMessage(OsLocalization.Market.Label111, LogMessageType.Error);
+                return;
+            }
+
             if (e.ColumnIndex == 1)
             {
                 TabIndexOptimizerUi ui = new TabIndexOptimizerUi(_master.SecurityTester,

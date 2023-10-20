@@ -476,6 +476,10 @@ namespace OsEngine.Language
           "Eng:Brokers Alor and Sber require the client's portfolio code to be additionally embedded in the comment to the order. _" +
           "Ru:Брокеры Алор и Сбер требуют чтобы в комментарии к ордеру был дополнительно зашит код портфеля клиента. _");
 
+        public string Label111 => OsLocalization.ConvertToLocString(
+          "Eng:You need to set up data broadcasting! Go to the data server._" +
+          "Ru:Вам необходимо настроить трансляцию данных! Идите в дата сервер. _");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
