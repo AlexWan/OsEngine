@@ -35,10 +35,12 @@ namespace OsEngine.Robots
                 TextBoxName.IsEnabled = false;
                 ButtonWhyNeadName.IsEnabled = false;
                 LabelName.IsEnabled = false;
+                ButtonUpdateRobots.IsEnabled = false;
 
                 TextBoxName.Visibility = Visibility.Collapsed;
                 ButtonWhyNeadName.Visibility = Visibility.Collapsed;
                 LabelName.Visibility = Visibility.Collapsed;
+                ButtonUpdateRobots.Visibility = Visibility.Collapsed;
             }
 
             for (int i = 0; i < botsIncluded.Count; i++)
