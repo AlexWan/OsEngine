@@ -43,6 +43,12 @@ namespace OsEngine.Robots
                 ButtonUpdateRobots.Visibility = Visibility.Collapsed;
             }
 
+            if (_startProgram == StartProgram.IsTester)
+            {
+                ButtonUpdateRobots.IsEnabled = false;
+                ButtonUpdateRobots.Visibility = Visibility.Collapsed;
+            }
+
             for (int i = 0; i < botsIncluded.Count; i++)
             {
                 for (int i2 = 0; i2 < botsFromScript.Count; i2++)
@@ -59,7 +65,8 @@ namespace OsEngine.Robots
             _botsIncluded = botsIncluded;
             _botsFromScript = botsFromScript;
 
-            if (startProgram == StartProgram.IsOsTrader)
+            if (startProgram == StartProgram.IsOsTrader
+                || startProgram == StartProgram.IsTester)
             {
                 TextBoxName.Text = "MyNewBot";
             }
@@ -545,26 +552,6 @@ namespace OsEngine.Robots
             for (int i = 0;i < descriptions.Count;i++)
             {
                 BotDescription curBotDescription = descriptions[i];
-
-                bool isNormal = true;
-
-                for(int j = 0;
-                    curBotDescription.Sources != null &&
-                    j < curBotDescription.Sources.Count;
-                    j++)
-                {
-                    if (_startProgram != StartProgram.IsOsTrader &&
-                        curBotDescription.Sources[j].StartsWith("Polygon"))
-                    {
-                        isNormal = false;
-                        break;
-                    }
-                }
-
-                if(isNormal == false)
-                {
-                    continue;
-                }
                 sortDescription.Add(curBotDescription);
             }
 
