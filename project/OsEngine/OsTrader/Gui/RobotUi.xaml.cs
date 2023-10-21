@@ -11,7 +11,6 @@ using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
-using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using OsEngine.Layout;
 
 namespace OsEngine.OsTrader.Gui
@@ -125,7 +124,7 @@ namespace OsEngine.OsTrader.Gui
 
         void RobotUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label76);
             ui.ShowDialog();
 
             if (ui.UserAcceptActioin == false)
