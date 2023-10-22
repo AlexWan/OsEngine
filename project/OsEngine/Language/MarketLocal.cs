@@ -964,5 +964,10 @@ namespace OsEngine.Language
         public string ButtonNameChangePassword => OsLocalization.ConvertToLocString(
             "Eng:Change password_" +
             "Ru:Изменить пароль_");
+
+        public string Exchange => OsLocalization.ConvertToLocString(
+            "Eng:Exchange_" +
+            "Ru:Биржа (MOEX, SPBX)_"
+        );
     }
 }
