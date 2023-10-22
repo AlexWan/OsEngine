@@ -981,7 +981,8 @@ namespace OsEngine.Journal
                 _chartEquity.Series.Add(nullLine);
 
                 if (minYval != decimal.MaxValue &&
-                    maxYVal != 0)
+                    maxYVal != 0 &&
+                    minYval != maxYVal)
                 {
                     decimal chartHeigh = maxYVal - minYval;
 
@@ -992,7 +993,8 @@ namespace OsEngine.Journal
                 }
 
                 if(minYvalBars != decimal.MaxValue &&
-                    maxYValBars != 0)
+                    maxYValBars != 0 &&
+                    minYvalBars != maxYValBars)
                 {
                     decimal chartHeigh = maxYValBars - minYvalBars;
                     maxYValBars = maxYValBars + chartHeigh * 0.05m;

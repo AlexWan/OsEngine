@@ -19,8 +19,15 @@ namespace OsEngine.Market.Servers.Transaq
             _server = server;
             TextInfo.Text = message;
 
+            LabelOldPassword.Content = OsLocalization.Market.Label100;
+            LabelNewPassword.Content = OsLocalization.Market.Label101;
+            ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
+            Title = OsLocalization.Market.Label104;
+
             this.Activate();
             this.Focus();
+
+            Closed += ChangeTransaqPassword_Closed;
         }
 
         public ChangeTransaqPassword(TransaqServerRealization server)
@@ -30,8 +37,21 @@ namespace OsEngine.Market.Servers.Transaq
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
 
+            LabelOldPassword.Content = OsLocalization.Market.Label100;
+            LabelNewPassword.Content = OsLocalization.Market.Label101;
+            ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
+            Title = OsLocalization.Market.Label104;
+
             this.Activate();
             this.Focus();
+
+            Closed += ChangeTransaqPassword_Closed;
+        }
+
+        private void ChangeTransaqPassword_Closed(object sender, System.EventArgs e)
+        {
+            _server = null;
+            TextInfo = null;
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)

@@ -54,6 +54,11 @@ namespace OsEngine.OsTrader.Panels
         ///  tab - for trading pairs
         /// </summary>
         Pair,
+
+        /// <summary>
+        /// tab for tradind Currency Arbitrage
+        /// </summary>
+        Polygon
     }
 
     /// <summary>
@@ -170,7 +175,18 @@ namespace OsEngine.OsTrader.Panels
 
                     journals.AddRange(journalsOnTab);
                 }
+                else if (_botTabs[i].TabType == BotTabType.Polygon)
+                {
+                    List<Journal.Journal> journalsOnTab = ((BotTabPolygon)_botTabs[i]).GetJournals();
 
+                    if (journalsOnTab == null ||
+                        journalsOnTab.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    journals.AddRange(journalsOnTab);
+                }
             }
 
             return journals;
@@ -248,7 +264,7 @@ namespace OsEngine.OsTrader.Panels
                     _tabBotTab.Dispatcher.Invoke(new Action<Grid, WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
                     WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid, TextBox>
                     (StartPaint), gridChart, hostChart, glass, hostOpenDeals, hostCloseDeals,
-                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, gridChartControlPanel,textBoxVolume);
+                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, gridChartControlPanel, textBoxVolume);
                     return;
                 }
 
@@ -468,6 +484,12 @@ namespace OsEngine.OsTrader.Panels
                 {
                     _tabsScreener.Clear();
                     _tabsScreener = null;
+                }
+
+                if (_tabsPolygon != null)
+                {
+                    _tabsPolygon.Clear();
+                    _tabsPolygon = null;
                 }
 
                 if (ParamGuiSettings != null)
@@ -762,7 +784,7 @@ position => position.State != PositionStateType.OpeningFail
 
                 for (int i = 0; i < journals.Count; i++)
                 {
-                    if(journals[i] == null)
+                    if (journals[i] == null)
                     {
                         continue;
                     }
@@ -795,6 +817,10 @@ position => position.State != PositionStateType.OpeningFail
 
                 for (int i = 0; i < journals.Count; i++)
                 {
+                    if (journals[i] == null)
+                    {
+                        continue;
+                    }
                     if (journals[i].AllPosition == null || journals[i].AllPosition.Count == 0)
                     {
                         continue;
@@ -1340,6 +1366,18 @@ position => position.State != PositionStateType.OpeningFail
         private List<BotTabScreener> _tabsScreener = new List<BotTabScreener>();
 
         /// <summary>
+        /// pair tabs
+        /// </summary>
+        public List<BotTabPolygon> TabsPolygon
+        {
+            get
+            {
+                return _tabsPolygon;
+            }
+        }
+        private List<BotTabPolygon> _tabsPolygon = new List<BotTabPolygon>();
+
+        /// <summary>
         /// user toggled tabs
         /// </summary>
         void _tabBotTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1408,6 +1446,11 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     newTab = new BotTabPair(nameTab, StartProgram);
                     _tabsPair.Add((BotTabPair)newTab);
+                }
+                else if (tabType == BotTabType.Polygon)
+                {
+                    newTab = new BotTabPolygon(nameTab, StartProgram);
+                    _tabsPolygon.Add((BotTabPolygon)newTab);
                 }
                 else if (tabType == BotTabType.Screener)
                 {
@@ -1576,6 +1619,10 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     ((BotTabPair)ActivTab).StartPaint(_hostChart);
                 }
+                else if (ActivTab.TabType == BotTabType.Polygon)
+                {
+                    ((BotTabPolygon)ActivTab).StartPaint(_hostChart);
+                }
             }
             catch (Exception error)
             {
@@ -1730,7 +1777,7 @@ position => position.State != PositionStateType.OpeningFail
 
                 // check that the position belongs to this particular robot
 
-                if(position == null)
+                if (position == null)
                 {
                     return;
                 }

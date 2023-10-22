@@ -626,7 +626,7 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonStrategySelect_Click(object sender, RoutedEventArgs e)
         {
-            BotCreateUi ui = new BotCreateUi(
+            BotCreateUi2 ui = new BotCreateUi2(
                 BotFactory.GetNamesStrategyWithParametersSync(), BotFactory.GetScriptsNamesStrategy(),
                 StartProgram.IsOsOptimizer);
 
@@ -790,7 +790,7 @@ namespace OsEngine.OsOptimizer
 
             if (_gridTableTabsSimple.InvokeRequired)
             {
-                _gridTableTabsIndex.Invoke(new Action(PaintTableTabsSimple));
+                _gridTableTabsSimple.Invoke(new Action(PaintTableTabsSimple));
                 return;
             }
 
@@ -1149,6 +1149,13 @@ namespace OsEngine.OsOptimizer
         {
             if (e.RowIndex < 0 || e.RowIndex > _master.TabsIndexNamesAndTimeFrames.Count)
             {
+                return;
+            }
+
+            if(_master.SecurityTester == null ||
+                _master.SecurityTester.Count == 0)
+            {
+                _master.SendLogMessage(OsLocalization.Market.Label111, LogMessageType.Error);
                 return;
             }
 

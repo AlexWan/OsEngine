@@ -1,0 +1,49 @@
+﻿<Window x:Class="OsEngine.OsTrader.Panels.Tab.BotTabPolygonAutoSelectSequenceUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab"
+        mc:Ignorable="d"
+       Title="Screener Securities Setup" Height="660" MinHeight="660" Width="1216" MinWidth="880" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+            <GradientStop Color="#FF323234" Offset="1"/>
+            <GradientStop Color="#FFE0E0EA"/>
+        </LinearGradientBrush>
+    </Window.Background>
+    <Grid>
+        <Rectangle Margin="2,127,0,5" HorizontalAlignment="Left" Width="407" />
+        <Rectangle Margin="2,61,0,0" Height="61" VerticalAlignment="Top" HorizontalAlignment="Left" Width="407" />
+        <Rectangle Margin="2,5,0,0" Height="51" VerticalAlignment="Top" HorizontalAlignment="Left" Width="407" />
+        <Label x:Name="Label1" Content="Server" HorizontalAlignment="Left" Margin="19,19,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxTypeServer" Margin="207,24,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label x:Name="Label3" Content="Portfolio for operations" HorizontalAlignment="Left"  Margin="20,80,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxPortfolio" Margin="207,80,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label x:Name="LabelFirstStepSecurities" Content="First step securities (buy)" HorizontalAlignment="Left" Margin="10,127,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Rectangle Margin="412,5,379,5" />
+        <WindowsFormsHost Name="SecuritiesHost" Margin="5,242,805,10"/>
+        <Button x:Name="ButtonCreateSelectedSequence" Content="Create selected sequence" Margin="838,0,5,5" VerticalAlignment="Bottom"/>
+        <CheckBox x:Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,216,855,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxSearchSecurity" HorizontalAlignment="Right" Margin="0,216,1011,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
+        <Label x:Name="LabelSecondStep" Content="Second step (sell)" HorizontalAlignment="Left" Margin="419,5,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Right" Margin="0,194,1011,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Button x:Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Right" Margin="0,194,1121,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Right" Margin="0,194,1086,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Right" Margin="0,194,1067,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Right" Margin="0,194,1052,0" VerticalAlignment="Top" Height="20"/>
+        <Rectangle Margin="0,5,2,35" HorizontalAlignment="Right" Width="374" />
+        <Label x:Name="LabelFinalSequence" Content="Final sequence" Margin="844,7,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18" HorizontalAlignment="Left" Width="370"/>
+        <Button x:Name="ButtonCreateTableFinal" Content="Create table" Margin="849,32,140,0" VerticalAlignment="Top" />
+        <WindowsFormsHost Name="HostFirdStep" Margin="840,62,6,35"/>
+        <TextBox x:Name="TextBoxBaseCurrency" HorizontalAlignment="Left" Margin="125,158,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+        <Label x:Name="LabelBaseCurrency" Content="Base currency" HorizontalAlignment="Left" Margin="10,158,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBoxSeparatorToSecurities" HorizontalAlignment="Left" Margin="311,159,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+        <Label x:Name="LabelSeparator" Content="Separator" HorizontalAlignment="Left" Margin="235,159,0,0" VerticalAlignment="Top"/>
+        <WindowsFormsHost x:Name="SecuritiesSecondStep" Margin="422,64,388,10"/>
+        <CheckBox x:Name="CheckBoxSelectAllInSecondStep" Content="Select all" HorizontalAlignment="Right" Margin="0,33,390,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonCreateTableSecondStep" Content="Create table" HorizontalAlignment="Left" Margin="419,32,0,0" VerticalAlignment="Top" Width="283"/>
+        <CheckBox x:Name="CheckBoxSelectAllInFinalStep" Content="Select all" HorizontalAlignment="Right" Margin="0,31,10,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>

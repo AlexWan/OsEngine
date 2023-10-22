@@ -248,9 +248,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(5000);
 
-                if (TimeToUprdatePortfolio.AddSeconds(30) < DateTime.Now)
+                if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
                 {
                     CreateQueryPortfolio(false);
                     TimeToUprdatePortfolio = DateTime.Now;
@@ -496,7 +496,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     webSocket.State == WebSocketState.Connecting)
                     )
                 {
-                    if (TimeLastSendPing.AddSeconds(30) < DateTime.Now)
+                    if (TimeLastSendPing.AddSeconds(50) < DateTime.Now)
                     {
                         lock (_socketLocker)
                         {
@@ -516,7 +516,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         #region 9 WebSocket security subscrible
 
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
         public void Subscrible(Security security)
         {
@@ -856,9 +856,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         #region 11 Trade
 
-        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
         public void SendOrder(Order order)
         {

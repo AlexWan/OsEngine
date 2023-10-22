@@ -346,14 +346,6 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         private void CheckServer()
         {
-            String pageContent = GetPage("http://" + ServerAdress);
-
-            if (pageContent.Length == 0)
-            { // if there is no content, we exit / если нет контента - выходим
-                SendLogMessage(OsLocalization.Market.Message51, LogMessageType.Error);
-                return;
-            }
-
             ServerStatus = ServerConnectStatus.Connect;
 
             Thread.Sleep(10000);
@@ -361,24 +353,31 @@ namespace OsEngine.Market.Servers.Finam
 
         public static string GetPage(string uri)
         {
-            if (ServicePointManager.SecurityProtocol != SecurityProtocolType.Tls12)
+            try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                if (ServicePointManager.SecurityProtocol != SecurityProtocolType.Tls12)
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                string resultPage = "";
+
+                using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.Default, true))
+                {
+                    resultPage = sr.ReadToEnd();
+                    sr.Close();
+                }
+
+
+                return resultPage;
             }
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-            string resultPage = "";
-
-            using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.Default, true))
+            catch
             {
-                resultPage = sr.ReadToEnd();
-                sr.Close();
+                return null;
             }
-
-
-            return resultPage;
         }
 
         private static string GetSecFromFile()
@@ -413,6 +412,12 @@ namespace OsEngine.Market.Servers.Finam
         public static string GetIchartsPath()
         {
             var response = GetPage("https://www.finam.ru/profile/moex-akcii/gazprom/export/");
+
+            if(response == null)
+            {
+                return null;
+            }
+
             return Regex.Match(response, @"\/cache\/.*\/icharts\/icharts\.js", RegexOptions.IgnoreCase).Value;
         }
 
@@ -442,7 +447,8 @@ namespace OsEngine.Market.Servers.Finam
                 errorOnPage = true;
             }
 
-            if (response == "" 
+            if (response == null 
+                || response == "" 
                 || response.Contains("Страница недоступна")
                 || errorOnPage)
             {
@@ -1921,7 +1927,7 @@ namespace OsEngine.Market.Servers.Finam
 
             string urlToSec = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
 
-            string url = ServerPrefics + "/" + urlToSec + ".txt?";
+            string url = ServerPrefics + "/" + "export9.out?";
 
             url += "market=" + SecurityFinam.MarketId + "&";
             url += "em=" + SecurityFinam.Id + "&";
@@ -1930,7 +1936,7 @@ namespace OsEngine.Market.Servers.Finam
             url += "mf=" + (timeStart.Month - 1) + "&";
             url += "yf=" + (timeStart.Year) + "&";
             url += "from=" + timeFrom + "&";
-
+            url += "apply=0&";
             url += "dt=" + (timeEnd.Day) + "&";
             url += "mt=" + (timeEnd.Month - 1) + "&";
             url += "yt=" + (timeEnd.Year) + "&";
@@ -2170,7 +2176,7 @@ namespace OsEngine.Market.Servers.Finam
 
             string fileName = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
 
-            string url = ServerPrefics + "/" + fileName + ".txt?";
+            string url = ServerPrefics + "/" + "export9.out?";
 
             url += "market=" + SecurityFinam.MarketId + "&";
             url += "em=" + SecurityFinam.Id + "&";
@@ -2184,7 +2190,7 @@ namespace OsEngine.Market.Servers.Finam
             url += "mt=" + (timeEnd.Month - 1) + "&";
             url += "yt=" + (timeEnd.Year) + "&";
             url += "to=" + timeTo + "&";
-
+            url += "apply=0&";
             url += "p=" + _timeFrameFinam + "&";
             url += "f=" + fileName + "&";
             url += "e=" + ".txt" + "&";
@@ -2200,6 +2206,8 @@ namespace OsEngine.Market.Servers.Finam
             url += "at=" + "0";
 
             WebClient wb = new WebClient();
+
+            //url = "http://export.finam.ru/export9.out?market=1&em=16842&code=GAZP&df=26&mf=8&yf=2023&from=26.09.2023&dt=28&mt=8&yt=2023&to=28.09.2023&p=3&f=GAZP_20230926_20230928&e=.txt&cn=GAZP&dtf=1&tmf=1&MSOR=0&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=0";
 
             string response = wb.DownloadString(url);
 

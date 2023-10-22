@@ -151,9 +151,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         private DateTime TimeToSendPing = DateTime.Now;
         private DateTime TimeToUprdatePortfolio = DateTime.Now;
         private ConcurrentQueue<string> FIFOListWebSocketMessage = new ConcurrentQueue<string>();
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(250));
-        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(250));
-        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(250));
+        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
         #endregion
 
@@ -915,9 +915,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
 
-                if (TimeToUprdatePortfolio.AddSeconds(30) < DateTime.Now)
+                if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
                 {
                     CreateQueryPortfolio();
                     TimeToUprdatePortfolio = DateTime.Now;

@@ -1,4 +1,5 @@
 ﻿
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
 
@@ -25,6 +26,20 @@ namespace OsEngine.OsMiner
             this.Focus();
 
             GlobalGUILayout.Listen(this, "OsMinerUi");
+
+            Closing += OsMinerUi_Closing;
+        }
+
+        private void OsMinerUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
+            ui.ShowDialog();
+
+            if (ui.UserAcceptActioin == false)
+            {
+                e.Cancel = true;
+                return;
+            }
         }
 
         private OsMinerMaster _miner;

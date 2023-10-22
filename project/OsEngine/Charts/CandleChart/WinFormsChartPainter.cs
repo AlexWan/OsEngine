@@ -2868,6 +2868,11 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         void _chartForCandle_MouseMove2ChartElement(object sender, MouseEventArgs e)
         {
+            if (IsPatternChart)
+            {
+                return;
+            }
+
             if (_chart.Cursor != Cursors.SizeAll)
             {
                 // if user hasn't pinched the item
@@ -2971,6 +2976,11 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void _chartForCandle_MouseDown2ChartElement(object sender, MouseEventArgs e) 
         {
+            if (IsPatternChart)
+            {
+                return;
+            }
+
             if (_chartElements == null)
             {
                 return;
@@ -3064,6 +3074,11 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         void _chartForCandle_MouseUp2ChartElement(object sender, MouseEventArgs e)
         {
+            if (IsPatternChart)
+            {
+                return;
+            }
+
             try
             {
                 if (_clickElement == null)
@@ -4411,14 +4426,16 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                if (_chart.Cursor == Cursors.SizeAll)
-                {
-                    return;
-                }
                 if (IsPatternChart)
                 {
                     return;
                 }
+
+                if (_chart.Cursor == Cursors.SizeAll)
+                {
+                    return;
+                }
+
                 if (_myCandles == null ||
                     _myCandles.Count == 0)
                 {
@@ -5156,10 +5173,16 @@ namespace OsEngine.Charts.CandleChart
 
         private void _chart_MouseMove(object sender, MouseEventArgs e)
         {
+            if (IsPatternChart)
+            {
+                return;
+            }
+
             if (_chart.Cursor == Cursors.SizeAll)
             {
                 return;
             }
+
             if (_chart.ChartAreas.Count < 2)
             {
                 return;
@@ -5280,10 +5303,16 @@ namespace OsEngine.Charts.CandleChart
 
         private void _chart_MouseMove2(object sender, MouseEventArgs e)
         {
+            if (IsPatternChart)
+            {
+                return;
+            }
+
             if (_chart.Cursor == Cursors.SizeAll)
             {
                 return;
             }
+
             if (_chart.ChartAreas.Count < 1)
             {
                 return;
@@ -5678,12 +5707,17 @@ namespace OsEngine.Charts.CandleChart
                     // если вещественной части нет
                     int lenght = 1;
 
-                    for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                    try
                     {
-                        lenght = lenght * 10;
+                        for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                        {
+                            lenght = lenght * 10;
+                        }
                     }
-
-
+                    catch
+                    {
+                        break;
+                    }
 
                     int lengthLow = 1;
 
@@ -6002,6 +6036,11 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         void _chartForCandle_MouseUp(object sender, MouseEventArgs e) 
         {
+            if (IsPatternChart)
+            {
+                return;
+            }
+
             _mouseDown = false;
             _chart.Cursor = Cursors.Default;
         }
@@ -6012,15 +6051,16 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void _chartForCandle_MouseDown(object sender, MouseEventArgs e)
         {
+            if (IsPatternChart)
+            {
+                return;
+            }
+
             if (e.Button != MouseButtons.Left)
             {
                 return;
             }
 
-            if (IsPatternChart)
-            {
-                return;
-            }
             _mouseDown = true;
             // accept event on the right side of host
             // принимаем событие в правой части хоста
@@ -6096,6 +6136,11 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                if (IsPatternChart)
+                {
+                    return;
+                }
+
                 if (_chart.Cursor != Cursors.Hand)
                 {
                     return;

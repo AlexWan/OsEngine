@@ -64,6 +64,8 @@
         <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Right" Margin="0,10,91,0" VerticalAlignment="Top" Height="20"/>
         <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Right" Margin="0,10,72,0" VerticalAlignment="Top" Height="20"/>
         <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Right" Margin="0,10,57,0" VerticalAlignment="Top" Height="20"/>
+        <Button Name="ButtonLoadSet" Content="Load set" HorizontalAlignment="Right" Margin="0,0,145,5" VerticalAlignment="Bottom" Width="134" Click="ButtonLoadSet_Click"/>
+        <Button Name="ButtonSaveSet" Content="Save set" HorizontalAlignment="Right" Margin="0,0,284,5" VerticalAlignment="Bottom" Width="135" Click="ButtonSaveSet_Click"/>
 
     </Grid>
 </Window>

@@ -1487,7 +1487,7 @@ namespace OsEngine.OsTrader
             try
             {
                 BotCreateUi2 ui = new BotCreateUi2(BotFactory.GetNamesStrategy(),
-                    BotFactory.GetScriptsNamesStrategy(), StartProgram.IsOsTrader);
+                    BotFactory.GetScriptsNamesStrategy(), _startProgram);
 
                 ui.ShowDialog();
 

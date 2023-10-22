@@ -28,12 +28,12 @@ namespace CustomIndicators.Scripts
             if (state == IndicatorState.Configure)
             {
                 _lengthJaw = CreateParameterInt("Jaw length", 13);
-                _lengthLips = CreateParameterInt("Lips length", 8);
-                _lengthTeeth = CreateParameterInt("Teeth length", 5);
+                _lengthTeeth = CreateParameterInt("Teeth length", 8);
+                _lengthLips = CreateParameterInt("Lips length", 5);
 
                 _shiftJaw = CreateParameterInt("Jaw offset", 8);
-                _shiftLips = CreateParameterInt("Lips offset", 3);
                 _shiftTeeth = CreateParameterInt("Teeth offset", 5);
+                _shiftLips = CreateParameterInt("Lips offset", 3);
 
                 _seriesJaw = CreateSeries("Jaw", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
                 _seriesTeeth = CreateSeries("Teeth", Color.DarkRed, IndicatorChartPaintType.Line, true);

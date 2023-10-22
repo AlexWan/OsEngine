@@ -96,7 +96,7 @@ namespace OsEngine.Language
             "Ru:Сервис_");
 
         public string Label14 => OsLocalization.ConvertToLocString(
-            "Eng:Addressees_" +
+            "Eng:Addresses_" +
             "Ru:Адресаты_");
 
         public string Label15 => OsLocalization.ConvertToLocString(
@@ -118,5 +118,13 @@ namespace OsEngine.Language
         public string Label19 => OsLocalization.ConvertToLocString(
             "Eng:Webhooks_" +
             "Ru:Вебхуки_");
+
+        public string Label20 => OsLocalization.ConvertToLocString(
+           "Eng:Phone number_" +
+           "Ru:Номер_");
+
+        public string Label21 => OsLocalization.ConvertToLocString(
+           "Eng:Webhook server_" +
+           "Ru:Вебхук сервер_");
     }
 }

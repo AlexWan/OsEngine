@@ -7,13 +7,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Media;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
@@ -28,6 +25,7 @@ using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.PrimeSettings;
 
 namespace OsEngine.Logging
@@ -386,6 +384,7 @@ namespace OsEngine.Logging
         List<OptimizerMaster> _optimizers = new List<OptimizerMaster>();
         List<OsMinerServer> _miners = new List<OsMinerServer>();
         List<IServer> _serversToListen = new List<IServer>();
+        List<PolygonToTrade> _polygonsToTrade = new List<PolygonToTrade>();
 
         /// <summary>
         /// start listening to the server
@@ -485,6 +484,12 @@ namespace OsEngine.Logging
         {
             master.LogMessageEvent += ProcessMessage;
             _candleConverters.Add(master);
+        }
+
+        public void Listen(PolygonToTrade master)
+        {
+            master.LogMessageEvent += ProcessMessage;
+            _polygonsToTrade.Add(master);
         }
 
         bool _listenServerMasterAlreadyOn;
@@ -598,7 +603,7 @@ namespace OsEngine.Logging
                     return;
                 }
 
-                if(messageLog.Type != LogMessageType.OldSession)
+                if (messageLog.Type != LogMessageType.OldSession)
                 {
                     _messagesesToSaveInFile.Enqueue(messageLog);
                 }
@@ -705,22 +710,22 @@ namespace OsEngine.Logging
                 using (StreamReader reader = new StreamReader(
                         path))
                 {
-                    
+
                     List<string> messages = new List<string>();
 
-                    while(reader.EndOfStream == false)
+                    while (reader.EndOfStream == false)
                     {
                         messages.Add(reader.ReadLine());
                     }
 
-                    if(messages.Count == 0)
+                    if (messages.Count == 0)
                     {
                         return;
                     }
 
                     int startInd = messages.Count - 10;
 
-                    if(startInd< 0)
+                    if (startInd < 0)
                     {
                         startInd = 0;
                     }
@@ -731,7 +736,7 @@ namespace OsEngine.Logging
 
                         string[] msgArray = msg.Split(';');
 
-                        if(msgArray.Length != 4)
+                        if (msgArray.Length != 4)
                         {
                             continue;
                         }
@@ -742,7 +747,7 @@ namespace OsEngine.Logging
                         {
                             message.Time = Convert.ToDateTime(msgArray[0]);
                             message.Type = LogMessageType.OldSession;
-                            message.Message = msgArray[1] + " " + msgArray[2];   
+                            message.Message = msgArray[1] + " " + msgArray[2];
 
                             _incomingMessages.Enqueue(message);
                         }

@@ -98,13 +98,20 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 _spotSocketClient.MessageReceived += _spotSocketClient_MessageReceived;
             }
 
-            
             try
             {
-                if(_marginSocketClient == null)
+                if (_marginSocketClient == null)
                 {
                     _marginSocketClient = CreateUserDataStream("/sapi/v1/userDataStream", BinanceExchangeType.MarginExchange);
-                    _marginSocketClient.MessageReceived += _marginSocketClient_MessageReceived;
+
+                    if (_marginSocketClient != null)
+                    {
+                        _marginSocketClient.MessageReceived += _marginSocketClient_MessageReceived;
+                    }
+                    else
+                    {
+                        _notMargineAccount = true;
+                    }
                 }
             }
             catch

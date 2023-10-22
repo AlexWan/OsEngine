@@ -406,5 +406,13 @@ namespace OsEngine.Language
         public string Label57 => OsLocalization.ConvertToLocString(
            "Eng:Set Standart Params_" +
            "Ru:Вернуть стандартные параметры_");
+
+        public string Label58 => OsLocalization.ConvertToLocString(
+           "Eng:Number_" +
+           "Ru:Номер_");
+
+        public string Label59 => OsLocalization.ConvertToLocString(
+           "Eng:Security_" +
+           "Ru:Бумага_");
     }
 }

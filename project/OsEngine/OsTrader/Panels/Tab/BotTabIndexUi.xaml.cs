@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Language;
 using OsEngine.Entity;
+using System;
 
 namespace OsEngine.OsTrader.Panels.Tab
 { 
@@ -25,6 +26,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Title = OsLocalization.Trader.Label81;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
+            ButtonClearAllSecurities.Content = OsLocalization.Trader.Label369;
 
             this.Closed += BotTabIndexUi_Closed;
 
@@ -130,6 +132,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
+            int showRow = _sourcesGrid.FirstDisplayedScrollingRowIndex;
+
             _sourcesGrid.Rows.Clear();
 
             for (int i = 0; i < _spread.Tabs.Count; i++)
@@ -162,6 +166,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _sourcesGrid.Rows.Add(row);
             }
+
+
+            if (showRow > 0 &&
+                showRow < _sourcesGrid.Rows.Count)
+            {
+                _sourcesGrid.FirstDisplayedScrollingRowIndex = showRow;
+            }
         }
 
         private void ButtonAddSecurity_Click(object sender, RoutedEventArgs e)
@@ -192,6 +203,38 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             Close();
+        }
+
+        private void ButtonClearAllSecurities_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_sourcesGrid.Rows.Count == 0)
+                {
+                    return;
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label370);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                while (_spread.Tabs.Count > 0)
+                {
+                    _spread.DeleteSecurityTab(0);
+                }
+
+                ReloadSecurityTable();
+                IndexOrSourcesChanged = true;
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.Message);
+                ui.ShowDialog();
+            }
         }
     }
 }

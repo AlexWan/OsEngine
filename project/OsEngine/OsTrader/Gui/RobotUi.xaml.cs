@@ -11,7 +11,6 @@ using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
-using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using OsEngine.Layout;
 
 namespace OsEngine.OsTrader.Gui

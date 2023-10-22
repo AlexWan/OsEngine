@@ -12,7 +12,6 @@ using System.Windows.Forms.Integration;
 using System.Windows.Forms;
 using System.Threading;
 using OsEngine.Charts.CandleChart;
-using System.Globalization;
 
 namespace OsEngine.OsData
 {
@@ -552,6 +551,9 @@ namespace OsEngine.OsData
                 return;
             }
 
+            int lastShowRow = _dataGrid.FirstDisplayedScrollingRowIndex;
+
+
             _dataGrid.Rows.Clear();
 
             List<SecurityToLoad> secs = _set.SecuritiesLoad;
@@ -564,6 +566,12 @@ namespace OsEngine.OsData
                 {
                     _dataGrid.Rows.Add(secRows[i2]);
                 }
+            }
+
+            if(lastShowRow != -1  &&
+                lastShowRow < _dataGrid.Rows.Count)
+            {
+                _dataGrid.FirstDisplayedScrollingRowIndex = lastShowRow;
             }
         }
 

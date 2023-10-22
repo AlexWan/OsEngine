@@ -60,7 +60,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             while (true)
             {
-                await Task.Delay(2000);
+                await Task.Delay(1000);
 
                 for (int i = 0; i < TabsToCheck.Count; i++)
                 {

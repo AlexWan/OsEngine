@@ -32,18 +32,20 @@ namespace OsEngine.Market.Servers.QuikLua
             CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
+            CreateParameterBoolean(OsLocalization.Market.Label109, false);
 
+            ServerParameters[0].Comment = OsLocalization.Market.Label107;
+            ServerParameters[1].Comment = OsLocalization.Market.Label107;
+            ServerParameters[2].Comment = OsLocalization.Market.Label107;
             ServerParameters[3].Comment = OsLocalization.Market.Label96;
-            ServerParameters[4].Comment = OsLocalization.Market.Label97; 
+            ServerParameters[4].Comment = OsLocalization.Market.Label97;
+            ServerParameters[5].Comment = OsLocalization.Market.Label110;
 
             ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[2]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[3]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[4]).ValueChange += QuikLuaServer_ParametrValueChange;
-
-
-
         }
 
         /// <summary>
@@ -54,8 +56,6 @@ namespace OsEngine.Market.Servers.QuikLua
             ((QuikLuaServerRealization)ServerRealization)._changeClassUse = true;
             Securities?.Clear();    // AVP  изменили список классов для работы, старый удалим и в коннекторе заново перечитаем
         }
-
-       
 
         /// <summary>
         /// tame candles by instrument
@@ -761,7 +761,15 @@ namespace OsEngine.Market.Servers.QuikLua
             qOrder.Quantity = Convert.ToInt32(order.Volume);
             qOrder.Operation = order.Side == Side.Buy ? Operation.Buy : Operation.Sell;
             qOrder.Price = order.Price;
-            qOrder.Comment = order.NumberUser.ToString();
+
+            if(((ServerParameterBool)ServerParameters[5]).Value == false)
+            {
+                qOrder.Comment = order.NumberUser.ToString();
+            }
+            else if (((ServerParameterBool)ServerParameters[5]).Value == true)
+            {
+                qOrder.Comment = order.PortfolioNumber + "//" + order.NumberUser.ToString();
+            }
 
             lock (_serverLocker)
             {

@@ -11,6 +11,5 @@
         <TextBox x:Name="TextBoxSlackBotToken" Height="23" Margin="105,158,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Name="Label16" Content="Webhooks" HorizontalAlignment="Left" Margin="19,18,0,0" VerticalAlignment="Top" Width="81" />
         <Label Name="Label17" Content="Slack token" HorizontalAlignment="Left" Margin="19,158,0,0" VerticalAlignment="Top" Width="81" />
-        <CheckBox x:Name="CheckBoxSendScreenshots" Content="Send trading screenshots" VerticalAlignment="Top" Margin="105,130,19,0"/>
     </Grid>
 </Window>

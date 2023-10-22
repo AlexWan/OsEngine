@@ -9,7 +9,7 @@ using OsEngine.OsTrader.Panels.Tab;
 /* Description
 Trading robot for osengine.
 
-The countertrend robot on Envelops and Ema.
+The countertrend robot on Envelops and Sma.
 
 Buy:
 1. The price is below the lower Envelop line.
@@ -30,8 +30,8 @@ Trailing stop in % of the high of the candle on which you entered.
 
 namespace OsEngine.Robots.My_bots
 {
-    [Bot("EnvelopsAndEmaCountertrend")] // We create an attribute so that we don't write anything to the BotFactory
-    public class EnvelopsAndEmaCountertrend : BotPanel
+    [Bot("EnvelopsAndSmaCountertrend")] // We create an attribute so that we don't write anything to the BotFactory
+    public class EnvelopsAndSmaCountertrend : BotPanel
     { 
         private BotTabSimple _tab;
 
@@ -63,7 +63,7 @@ namespace OsEngine.Robots.My_bots
         // Exit
         private StrategyParameterInt TrailCandles;
        
-        public EnvelopsAndEmaCountertrend(string name, StartProgram startProgram) : base(name, startProgram)
+        public EnvelopsAndSmaCountertrend(string name, StartProgram startProgram) : base(name, startProgram)
     {
         TabCreate(BotTabType.Simple);
         _tab = TabsSimple[0];
@@ -99,7 +99,7 @@ namespace OsEngine.Robots.My_bots
             TrailCandles = CreateParameter("Stop Value", 1, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += EnvelopsAndEmaCountertrend_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += EnvelopsAndSmaCountertrend_ParametrsChangeByUser; ;
 
         // Subscribe to the candle finished event
         _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -118,7 +118,7 @@ namespace OsEngine.Robots.My_bots
                 "Exit from the sell:" +
                 "Trailing stop in % of the high of the candle on which you entered.";
     }       
-        private void EnvelopsAndEmaCountertrend_ParametrsChangeByUser()
+        private void EnvelopsAndSmaCountertrend_ParametrsChangeByUser()
     {
         ((IndicatorParameterInt)_Envelops.Parameters[0]).ValueInt = EnvelopsLength.ValueInt;
         ((IndicatorParameterDecimal)_Envelops.Parameters[1]).ValueDecimal = EnvelopsDeviation.ValueDecimal;
@@ -133,7 +133,7 @@ namespace OsEngine.Robots.My_bots
     // The name of the robot in OsEngine
     public override string GetNameStrategyType()
     {
-        return "EnvelopsAndEmaCountertrend";
+        return "EnvelopsAndSmaCountertrend";
     }
     public override void ShowIndividualSettingsDialog()
     {

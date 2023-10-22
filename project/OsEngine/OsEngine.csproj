@@ -956,6 +956,19 @@
     <Compile Include="OsTrader\Panels\Tab\BotTabPairUi.xaml.cs">
       <DependentUpon>BotTabPairUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabPoligonSecurityAddUi.xaml.cs">
+      <DependentUpon>BotTabPoligonSecurityAddUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabPolygon.cs" />
+    <Compile Include="OsTrader\Panels\Tab\BotTabPolygonAutoSelectSequenceUi.xaml.cs">
+      <DependentUpon>BotTabPolygonAutoSelectSequenceUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabPolygonCommonSettingsUi.xaml.cs">
+      <DependentUpon>BotTabPolygonCommonSettingsUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabPolygonUi.xaml.cs">
+      <DependentUpon>BotTabPolygonUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\Panels\Tab\BotTabScreener.cs" />
     <Compile Include="OsTrader\Panels\Tab\BotTabScreenerUi.xaml.cs">
       <DependentUpon>BotTabScreenerUi.xaml</DependentUpon>
@@ -995,7 +1008,10 @@
     </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
+    <Compile Include="Robots\CurrencyArbitrage\CurrencyArbitrageClassic.cs" />
+    <Compile Include="Robots\CurrencyArbitrage\CurrencyMoveExplorer.cs" />
     <Compile Include="Robots\Engines\EnginePair.cs" />
+    <Compile Include="Robots\Engines\PolygonalEngine.cs" />
     <Compile Include="Robots\OnScriptIndicators\GridSample.cs" />
     <Compile Include="Robots\Engines\CandleEngine.cs" />
     <Compile Include="Robots\Engines\ClusterEngine.cs" />
@@ -1562,6 +1578,22 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\Tab\BotTabPairUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\BotTabPoligonSecurityAddUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\BotTabPolygonAutoSelectSequenceUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\BotTabPolygonCommonSettingsUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\BotTabPolygonUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

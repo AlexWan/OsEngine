@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
@@ -109,10 +110,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowNewSecurityDialog()
         {
-            MassSourcesCreator creator = new MassSourcesCreator(_startProgram);
+            MassSourcesCreator creator = GetCurrentCreator();
 
             MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
             ui.ShowDialog();
+
+            creator = ui.SourcesCreator;
 
             if (creator.SecuritiesNames != null &&
                 creator.SecuritiesNames.Count != 0)
@@ -124,6 +127,65 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Save();
             }
+            ui.SourcesCreator = null;
+        }
+
+        private MassSourcesCreator GetCurrentCreator()
+        {
+            MassSourcesCreator creator = new MassSourcesCreator(_startProgram);
+
+            if (Tabs.Count == 0)
+            {
+                return creator;
+            }
+
+            if (Tabs.Count > 0)
+            {
+                if (Tabs[0] == null)
+                {
+                    return creator;
+                }
+                ConnectorCandles connector = Tabs[0];
+                creator.ServerType = connector.ServerType;
+                creator.TimeFrame = connector.TimeFrame;
+                creator.EmulatorIsOn = connector.EmulatorIsOn;
+                creator.CandleCreateMethodType = connector.CandleCreateMethodType;
+                creator.CandleMarketDataType = connector.CandleMarketDataType;
+                creator.SetForeign = connector.SetForeign;
+                creator.CountTradeInCandle = connector.CountTradeInCandle;
+                creator.VolumeToCloseCandleInVolumeType = connector.VolumeToCloseCandleInVolumeType;
+                creator.RencoPunktsToCloseCandleInRencoType = connector.RencoPunktsToCloseCandleInRencoType;
+                creator.RencoIsBuildShadows = connector.RencoIsBuildShadows;
+                creator.DeltaPeriods = connector.DeltaPeriods;
+                creator.RangeCandlesPunkts = connector.RangeCandlesPunkts;
+                creator.ReversCandlesPunktsMinMove = connector.ReversCandlesPunktsMinMove;
+                creator.ReversCandlesPunktsBackMove = connector.ReversCandlesPunktsBackMove;
+                creator.ComissionType = connector.ComissionType;
+                creator.ComissionValue = connector.ComissionValue;
+            }
+
+            for (int i = 0; i < Tabs.Count; i++)
+            {
+                if (Tabs[i] == null)
+                {
+                    continue;
+                }
+
+                ConnectorCandles connector = Tabs[i];
+
+                if (string.IsNullOrEmpty(connector.SecurityName) == true)
+                {
+                    continue;
+                }
+
+                ActivatedSecurity activatedSecurity = new ActivatedSecurity();
+                activatedSecurity.SecurityName = connector.SecurityName;
+                activatedSecurity.SecurityClass = connector.SecurityClass;
+                activatedSecurity.IsOn = true;
+                creator.SecuritiesNames.Add(activatedSecurity);
+            }
+
+            return creator;
         }
 
         /// <summary>
@@ -441,13 +503,25 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
         {
+            if (candles == null || candles.Count == 0)
+            {
+                return;
+            }
+
             LastTimeCandleUpdate = Tabs[0].MarketTime;
+
+            DateTime timeCandle = candles[candles.Count - 1].TimeStart;
 
             for (int i = 0; i < Tabs.Count; i++)
             {
                 List<Candle> myCandles = Tabs[i].Candles(true);
 
                 if (myCandles == null || myCandles.Count < 10)
+                {
+                    return;
+                }
+
+                if (timeCandle != myCandles[myCandles.Count - 1].TimeStart)
                 {
                     return;
                 }
@@ -546,6 +620,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _valuesToFormula = new List<ValueSave>();
                 Candles = new List<Candle>();
                 _chartMaster.Clear();
+
+                if (Tabs == null || Tabs.Count == 0)
+                {
+                    return;
+                }
 
                 ConvertedFormula = ConvertFormula(_userFormula);
 

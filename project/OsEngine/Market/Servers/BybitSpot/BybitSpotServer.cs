@@ -560,6 +560,13 @@ namespace OsEngine.Market.Servers.BybitSpot
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, DateTime timeEnd, int CountToLoad)
         {
             string stringInterval = $"{tf.TotalMinutes}m";
+
+            if(tf.TotalMinutes >= 60)
+            {
+                stringInterval = $"{tf.TotalHours}h";
+            }
+
+
             int CountToLoadCandle = GetCountCandlesToLoad();
 
 

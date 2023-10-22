@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Input;
 
 namespace OsEngine.Robots
@@ -19,11 +20,34 @@ namespace OsEngine.Robots
     /// </summary>
     public partial class BotCreateUi2 : Window
     {
+        StartProgram _startProgram;
+
         public BotCreateUi2(List<string> botsIncluded, List<string> botsFromScript, StartProgram startProgram)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+
+            _startProgram = startProgram;
+
+            if(_startProgram == StartProgram.IsOsOptimizer)
+            {
+                TextBoxName.IsEnabled = false;
+                ButtonWhyNeadName.IsEnabled = false;
+                LabelName.IsEnabled = false;
+                ButtonUpdateRobots.IsEnabled = false;
+
+                TextBoxName.Visibility = Visibility.Collapsed;
+                ButtonWhyNeadName.Visibility = Visibility.Collapsed;
+                LabelName.Visibility = Visibility.Collapsed;
+                ButtonUpdateRobots.Visibility = Visibility.Collapsed;
+            }
+
+            if (_startProgram == StartProgram.IsTester)
+            {
+                ButtonUpdateRobots.IsEnabled = false;
+                ButtonUpdateRobots.Visibility = Visibility.Collapsed;
+            }
 
             for (int i = 0; i < botsIncluded.Count; i++)
             {
@@ -41,7 +65,8 @@ namespace OsEngine.Robots
             _botsIncluded = botsIncluded;
             _botsFromScript = botsFromScript;
 
-            if (startProgram == StartProgram.IsOsTrader)
+            if (startProgram == StartProgram.IsOsTrader
+                || startProgram == StartProgram.IsTester)
             {
                 TextBoxName.Text = "MyNewBot";
             }
@@ -131,10 +156,13 @@ namespace OsEngine.Robots
 
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            _grid.DefaultCellStyle.SelectionBackColor = Color.Black;
+            _grid.DefaultCellStyle.SelectionForeColor = Color.FromArgb(255, 85, 0);
+
             cell0.Style = _grid.DefaultCellStyle;
 
             DataGridViewColumn colum1 = new DataGridViewColumn();
@@ -198,15 +226,10 @@ namespace OsEngine.Robots
                 return;
             }
 
-            Color baseColor = Color.FromArgb(154, 156, 158);
-
             for (int i = 0;i < _grid.Rows.Count;i++)
             {
                 if (i == row)
                 {
-                    _grid.Rows[i].Cells[1].Style.ForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[1].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
-
                     NameStrategy = _grid.Rows[i].Cells[1].Value.ToString();
 
                     if(_grid.Rows[i].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
@@ -218,16 +241,9 @@ namespace OsEngine.Robots
                         IsScript = false;
                     }
                 }
-                else
-                {
-                    if (_grid.Rows[i].Cells[1].Style.ForeColor != baseColor)
-                    {
-                        _grid.Rows[i].Cells[1].Style.ForeColor = baseColor;
-                        _grid.Rows[i].Cells[1].Style.SelectionForeColor = baseColor;
-                    }
-
-                }
             }
+
+            ReColorTable();
 
             try
             {
@@ -317,7 +333,6 @@ namespace OsEngine.Robots
                         isInArray = true;
                         break;
                     }
-                    
                 }
 
                 if(isInArray == false)
@@ -358,7 +373,62 @@ namespace OsEngine.Robots
 
             for(int i = 0;i < descriptions.Count;i++)
             {
-                if(lockation == BotCreationType.All.ToString())
+                BotDescription curDesc = descriptions[i];
+
+                if (_startProgram == StartProgram.IsTester)
+                {
+                    bool badBot = false;
+
+                    for (int j = 0; curDesc.Sources != null && j < curDesc.Sources.Count; j++)
+                    {
+                        if (curDesc.Sources[j].Contains("Polygon"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                    }
+
+                    if(badBot)
+                    {
+                        continue;
+                    }
+                }
+
+                if (_startProgram == StartProgram.IsOsOptimizer)
+                {
+                    bool badBot = false;
+
+                    for (int j = 0; curDesc.Sources != null && j < curDesc.Sources.Count; j++)
+                    {
+                        if (curDesc.Sources[j].Contains("Polygon"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                        if (curDesc.Sources[j].Contains("Pair"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                        if (curDesc.Sources[j].Contains("Cluster"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                        if (curDesc.Sources[j].Contains("Screener"))
+                        {
+                            badBot = true;
+                            break;
+                        }
+                    }
+
+                    if (badBot)
+                    {
+                        continue;
+                    }
+                }
+
+                if (lockation == BotCreationType.All.ToString())
                 {// роботы из всех мест
                     _grid.Rows.Add(GetRow(descriptions[i], i + 1));
                     continue;
@@ -373,6 +443,48 @@ namespace OsEngine.Robots
             }
 
             _lastLoadDescriptions = descriptions;
+        }
+
+        private void ReColorTable()
+        {
+            Color baseColor = Color.FromArgb(154, 156, 158);
+
+            for (int i = 0; i < _grid.Rows.Count; i++)
+            {
+                if (_grid.Rows[i].Selected)
+                {
+                    _grid.Rows[i].Cells[0].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[0].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[1].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[1].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[2].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[2].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[3].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[3].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[4].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[4].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[5].Style.ForeColor = Color.FromArgb(255, 85, 0);
+                    _grid.Rows[i].Cells[5].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
+                }
+                else
+                {
+                    if (_grid.Rows[i].Cells[1].Style.ForeColor != baseColor)
+                    {
+                        _grid.Rows[i].Cells[0].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[0].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[1].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[1].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[2].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[2].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[3].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[3].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[4].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[4].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[5].Style.ForeColor = baseColor;
+                        _grid.Rows[i].Cells[5].Style.SelectionForeColor = baseColor;
+                    }
+                }
+            }
         }
 
         private List<BotDescription> _lastLoadDescriptions;
@@ -435,7 +547,15 @@ namespace OsEngine.Robots
                 SaveDesctiptionsInFile(descriptions);
             }
 
-            return descriptions;
+            List<BotDescription> sortDescription = new List<BotDescription>();
+
+            for (int i = 0;i < descriptions.Count;i++)
+            {
+                BotDescription curBotDescription = descriptions[i];
+                sortDescription.Add(curBotDescription);
+            }
+
+            return sortDescription;
         }
 
         private List<BotDescription> GetBotDescriptionsFromFile()
@@ -619,6 +739,12 @@ namespace OsEngine.Robots
                 bot.TabsScreener.Count > 0)
             {
                 sourcesList.Add(BotTabType.Screener + " " + bot.TabsScreener.Count);
+            }
+
+            if (bot.TabsPolygon != null &&
+                bot.TabsPolygon.Count > 0)
+            {
+                sourcesList.Add(BotTabType.Polygon + " " + bot.TabsPolygon.Count);
             }
 
             return sourcesList;
@@ -828,6 +954,20 @@ namespace OsEngine.Robots
             _grid.Rows[firstRow].Selected = true;
             _grid.FirstDisplayedScrollingRowIndex = firstRow;
 
+
+            NameStrategy = _grid.Rows[firstRow].Cells[1].Value.ToString();
+
+            if (_grid.Rows[firstRow].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+            {
+                IsScript = true;
+            }
+            else
+            {
+                IsScript = false;
+            }
+
+            ReColorTable();
+
             if (_searchResults.Count < 2)
             {
                 ButtonRightInSearchResults.Visibility = Visibility.Hidden;
@@ -868,6 +1008,19 @@ namespace OsEngine.Robots
 
             _grid.Rows[realInd].Selected = true;
             _grid.FirstDisplayedScrollingRowIndex = realInd;
+
+            NameStrategy = _grid.Rows[realInd].Cells[1].Value.ToString();
+
+            if (_grid.Rows[realInd].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+            {
+                IsScript = true;
+            }
+            else
+            {
+                IsScript = false;
+            }
+
+            ReColorTable();
         }
 
         private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
@@ -890,6 +1043,19 @@ namespace OsEngine.Robots
 
             _grid.Rows[realInd].Selected = true;
             _grid.FirstDisplayedScrollingRowIndex = realInd;
+
+            NameStrategy = _grid.Rows[realInd].Cells[1].Value.ToString();
+
+            if (_grid.Rows[realInd].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+            {
+                IsScript = true;
+            }
+            else
+            {
+                IsScript = false;
+            }
+
+            ReColorTable();
         }
 
         #endregion

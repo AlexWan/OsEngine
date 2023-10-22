@@ -117,7 +117,7 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = @"Номер";
+            column0.HeaderText = OsLocalization.Optimizer.Label58; // number
             column0.ReadOnly = true;
             column0.Width = 100;
 
@@ -125,7 +125,7 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = @"Бумага";
+            column1.HeaderText = OsLocalization.Optimizer.Label59; // security
             column1.ReadOnly = false;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 

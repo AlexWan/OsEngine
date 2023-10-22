@@ -304,10 +304,9 @@ namespace OsEngine.OsMiner
             _gridPatternsInSet.Rows.Clear();
             _hostPatternsInSet = null;
 
-            if (Patterns != null &&
-                Patterns.Count > 0)
+            for(int i = 0; Patterns != null && i < Patterns.Count;i++)
             {
-                Patterns[_activPatternNum].StopPaint();
+                Patterns[i].StopPaint();
             }
         }
 

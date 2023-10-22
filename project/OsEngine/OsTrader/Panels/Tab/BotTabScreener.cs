@@ -1210,6 +1210,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
+            int showRow = SecuritiesDataGrid.FirstDisplayedScrollingRowIndex;
+
             SecuritiesDataGrid.Rows.Clear();
 
             for (int i = 0; i < Tabs.Count; i++)
@@ -1220,6 +1222,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (_host != null)
             {
                 _host.Child = SecuritiesDataGrid;
+            }
+
+            if (showRow > 0 &&
+                showRow < SecuritiesDataGrid.Rows.Count)
+            {
+                SecuritiesDataGrid.FirstDisplayedScrollingRowIndex = showRow;
             }
         }
 
@@ -1566,7 +1574,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             second.ManualPositionSupport.StopSlipage = first.ManualPositionSupport.StopSlipage;
             second.ManualPositionSupport.TypeDoubleExitOrder = first.ManualPositionSupport.TypeDoubleExitOrder;
             second.ManualPositionSupport.ValuesType = first.ManualPositionSupport.ValuesType;
-
+            second.ManualPositionSupport.Save();
         }
 
         /// <summary>

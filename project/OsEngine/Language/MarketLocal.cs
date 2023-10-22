@@ -424,6 +424,61 @@ namespace OsEngine.Language
           "Eng:It takes up to 5 minutes to download other assets via LUA QUIK. Until the download is completed, the tools will not appear in the data settings. Wait for them._" +
           "Ru:На загрузку прочих активов через LUA QUIK необходимо до 5 минут.До окончания загрузки инструменты в настройках данных не появятся.Ждите их._");
 
+        public string Label98 => OsLocalization.ConvertToLocString(
+          "Eng:Load set_" +
+          "Ru:Загрузить_");
+
+        public string Label99 => OsLocalization.ConvertToLocString(
+          "Eng:Save set_" +
+          "Ru:Сохранить_");
+
+        public string Label100 => OsLocalization.ConvertToLocString(
+          "Eng:Old password_" +
+          "Ru:Старый пароль_");
+
+        public string Label101 => OsLocalization.ConvertToLocString(
+          "Eng:New password_" +
+          "Ru:Новый пароль_");
+
+        public string Label102 => OsLocalization.ConvertToLocString(
+          "Eng:No connection to the exchange_" +
+          "Ru:Отсутствует подключение к бирже_");
+
+        public string Label103 => OsLocalization.ConvertToLocString(
+          "Eng:Password successfully changed_" +
+          "Ru:Пароль успешно изменен_");
+
+        public string Label104 => OsLocalization.ConvertToLocString(
+          "Eng:Password reset window for Transaq_" +
+          "Ru:Окно смены пароля для Transaq_");
+
+        public string Label105 => OsLocalization.ConvertToLocString(
+          "Eng:The first time you connect to the transaq, you will be required to change your password to connect. Instructions in FAQ_" +
+          "Ru:При первом подключении к транзак будет необходимо сменить пароль для подключения. Инструкции в FAQ_");
+
+        public string Label106 => OsLocalization.ConvertToLocString(
+          "Eng:The first time you connect to the transaq, you will be required to change your password to connect. Instructions in FAQ_" +
+          "Ru:При первом подключении к транзак будет необходимо сменить пароль для подключения. Инструкции в FAQ_");
+
+        public string Label107 => OsLocalization.ConvertToLocString(
+          "Eng:Disables or enables the trading floor. Very much affects the connection speed._" +
+          "Ru:Отключает или включает площадку для торговли. Очень сильно влияет на скорость подключения._");
+
+        public string Label108 => OsLocalization.ConvertToLocString(
+          "Eng:Update on intraday instrument data. Recommendation: false_" +
+          "Ru:Обновление данных по инструментам внутри дня. Рекомендация: false_");
+
+        public string Label109 => OsLocalization.ConvertToLocString(
+          "Eng:Client code in the comment_" +
+          "Ru:Код клиента в комментарии_");
+
+        public string Label110 => OsLocalization.ConvertToLocString(
+          "Eng:Brokers Alor and Sber require the client's portfolio code to be additionally embedded in the comment to the order. _" +
+          "Ru:Брокеры Алор и Сбер требуют чтобы в комментарии к ордеру был дополнительно зашит код портфеля клиента. _");
+
+        public string Label111 => OsLocalization.ConvertToLocString(
+          "Eng:You need to set up data broadcasting! Go to the data server._" +
+          "Ru:Вам необходимо настроить трансляцию данных! Идите в дата сервер. _");
 
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
@@ -964,7 +1019,7 @@ namespace OsEngine.Language
         public string ButtonNameChangePassword => OsLocalization.ConvertToLocString(
             "Eng:Change password_" +
             "Ru:Изменить пароль_");
-
+      
         public string Exchange => OsLocalization.ConvertToLocString(
             "Eng:Exchange_" +
             "Ru:Биржа (MOEX, SPBX)_"
