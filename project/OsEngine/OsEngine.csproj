@@ -450,6 +450,22 @@
     <Compile Include="Market\Connectors\MassSourcesCreator.cs" />
     <Compile Include="Market\ServerMasterOrdersPainter.cs" />
     <Compile Include="Market\ServerMasterSourcesPainter.cs" />
+    <Compile Include="Market\Servers\Alor\AlorServer.cs" />
+    <Compile Include="Market\Servers\Alor\Dto\AlorPortfolioRisk.cs" />
+    <Compile Include="Market\Servers\Alor\Dto\AlorPortfolioRiskForts.cs" />
+    <Compile Include="Market\Servers\Alor\Dto\AlorPortfolioSummary.cs" />
+    <Compile Include="Market\Servers\Alor\Dto\AlorSecurity.cs" />
+    <Compile Include="Market\Servers\Alor\Dto\MessageData.cs" />
+    <Compile Include="Market\Servers\Alor\Dto\Subscription.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\ApiClient.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\Events\ConnectionEventArgs.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\Events\ErrorEventArgs.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\Events\MessageEventArgs.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\SocketErrorEventArgs.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\SocketMessageEventArgs.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\TokenProvider.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\WsClient.cs" />
+    <Compile Include="Market\Servers\Alor\Tools\WsConnectionClient.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>
