@@ -1200,7 +1200,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             High = item.high.ToDecimal(),
                             Low = item.low.ToDecimal(),
                             Open = item.open.ToDecimal(),
-                            Volume = item.quoteVol.ToDecimal(),
+                            Volume = item.baseVol.ToDecimal(),
                             State = CandleState.Finished,
                             TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts))
                         });

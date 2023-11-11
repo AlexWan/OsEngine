@@ -731,6 +731,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                ComboBoxClass.Items.Add("All");
+
                 for (int i1 = 0; i1 < securities.Count; i1++)
                 {
                     if (securities[i1] == null)
@@ -792,7 +794,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                             continue;
                         }
                         string classSec = securities[i].NameClass;
-                        if (ComboBoxClass.SelectedItem != null && ComboBoxClass.SelectedItem.Equals(classSec))
+                        if (ComboBoxClass.SelectedItem != null 
+                            && ComboBoxClass.SelectedItem.Equals(classSec))
+                        {
+                            securitiesToLoad.Add(securities[i]);
+                        }
+                        else if (ComboBoxClass.SelectedItem != null
+                                 && ComboBoxClass.SelectedItem.ToString() == "All")
                         {
                             securitiesToLoad.Add(securities[i]);
                         }

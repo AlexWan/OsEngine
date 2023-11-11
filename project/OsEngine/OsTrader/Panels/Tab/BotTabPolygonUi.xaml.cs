@@ -656,31 +656,37 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void PaintGrid()
         {
-            List<DataGridViewRow> rows = GetRowsToGrid();
-
-            if (rows == null)
+            try
             {
-                return;
-            }
+                List<DataGridViewRow> rows = GetRowsToGrid();
 
-            if (rows.Count != _grid.Rows.Count)
-            {// 1 кол-во строк изменилось - перерисовываем полностью
-                RePaintGrid();
-                return;
-            }
+                if (rows == null)
+                {
+                    return;
+                }
 
-            if (_grid.Rows.Count == 0)
+                if (rows.Count != _grid.Rows.Count)
+                {// 1 кол-во строк изменилось - перерисовываем полностью
+                    RePaintGrid();
+                    return;
+                }
+
+                if (_grid.Rows.Count == 0)
+                {
+                    return;
+                }
+
+                DataGridViewRow firstOldRow = _grid.Rows[0];
+
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    TryRePaintRow(_grid.Rows[i], rows[i]);
+                }
+            }
+            catch (Exception ex)
             {
-                return;
+                // ignore
             }
-
-            DataGridViewRow firstOldRow = _grid.Rows[0];
-
-            for (int i = 0; i < rows.Count; i++)
-            {
-                TryRePaintRow(_grid.Rows[i], rows[i]);
-            }
-
         }
 
         /// <summary>
