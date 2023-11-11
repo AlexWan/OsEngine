@@ -24,6 +24,7 @@ using OsEngine.Market;
 using Color = System.Drawing.Color;
 using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
+using OsEngine.Charts.CandleChart.ChartAddons; //AVP ChartRoulette
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -35,6 +36,8 @@ namespace OsEngine.Charts.CandleChart
     {
         //service сервис
 
+        private ChartRoulette chartRoulette;    //AVP ChartRoulette 
+        
         /// <summary>
         /// constructor
         /// конструктор
@@ -52,6 +55,7 @@ namespace OsEngine.Charts.CandleChart
 
                 CreateChart();
                 _chart.Text = name;
+                chartRoulette = new ChartRoulette(this, _chart);  //AVP ChartRoulette Comment on this line if roulette is buggy
 
                 Task task = new Task(PainterThreadArea);
                 task.Start();               
@@ -117,7 +121,13 @@ namespace OsEngine.Charts.CandleChart
         /// свечки
         /// </summary>
         private List<Candle> _myCandles;
-
+        public List<Candle> myCandles //AVP ChartRoulette 
+        {
+            get
+            {
+                return _myCandles; ;
+            }
+        }
         /// <summary>
         /// Time frame of candles which are drawn in chart in the form of time
         /// таймфрейм свечек которые прорисовываются в чарте в виде времени
@@ -378,6 +388,9 @@ namespace OsEngine.Charts.CandleChart
                 _chart.MouseMove -= _chart_MouseMove2;
                 _chart.ClientSizeChanged -= _chart_ClientSizeChanged;
                 _chart.AxisViewChanging -= _chart_AxisViewChanging;
+
+                chartRoulette?.Dispose(); //AVP ChartRoulette 
+                chartRoulette = null;
 
                 _chart.Series.Clear();
                 _chart.ChartAreas.Clear();
@@ -5355,6 +5368,7 @@ namespace OsEngine.Charts.CandleChart
                  pos.RightPoint > e.X &&
                  e.Y > pos.DownPoint - pos.DownPoint * 0.05 &&
                  e.Y < pos.DownPoint - pos.DownPoint * (0.002 + mult))
+                 && e.X > 20    //AVP ChartRoulette 
                 ||
                 (mouse.Button == MouseButtons.Left && _chart.Cursor == Cursors.SizeWE && pos.LeftPoint < e.X &&
                  pos.RightPoint > e.X &&
@@ -5546,7 +5560,13 @@ namespace OsEngine.Charts.CandleChart
         // axis scaling изменение масштабов осей
 
         private List<ChartAreaSizes> _areaSizes;
-
+        public List<ChartAreaSizes> areaSizes //AVP ChartRoulette 
+        {
+            get
+            {
+                return _areaSizes;
+            }
+        }
         /// <summary>
         /// take current axle multipliers
         /// взять актуальные мультипликаторы осей
