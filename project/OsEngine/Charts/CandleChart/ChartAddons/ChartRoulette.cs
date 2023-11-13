@@ -152,6 +152,10 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
                     RouletteCursorPrice = _painter.GetCursorSelectPrice();
                     decimal pricePercent = (RouletteStartPrice / RouletteCursorPrice - 1) * -1;
                     decimal CandelsRange = RouletteCursorCandleNumber - RouletteStartCandleNumber;
+                    if (RouletteStartCandleNumber >= _painter.myCandles.Count)
+                    {
+                        RouletteStartCandleNumber = _painter.myCandles.Count - 1;
+                    }
                     DateTime StartRouletteDateTime = _painter.myCandles[RouletteStartCandleNumber].TimeStart;
                     DateTime EndRouletteDateTime = _painter.myCandles[RouletteCursorCandleNumber].TimeStart;
                     TimeSpan RouletteRange = EndRouletteDateTime - StartRouletteDateTime;
@@ -164,6 +168,7 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
             }
             catch
             {
+                RouletteOnFaza = 0;
                 //игнор
             }
         }
