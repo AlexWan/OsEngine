@@ -633,7 +633,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 OrderStateType stateType = GetOrderState(item.status);
 
                 if (item.ordType.Equals("market") &&
-                    stateType == OrderStateType.Activ)
+                    stateType != OrderStateType.Done)
                 {
                     continue;
                 }
