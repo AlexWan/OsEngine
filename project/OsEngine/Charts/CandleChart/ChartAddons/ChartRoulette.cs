@@ -1,4 +1,5 @@
 ﻿using OsEngine.Entity;
+using OsEngine.Language;
 
 using System;
 using System.Collections.Generic;
@@ -99,7 +100,7 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
                     TimeSpan RouletteRange = EndRouletteDateTime - StartRouletteDateTime;
                     string message = Convert.ToDecimal(Math.Round(RouletteStartPrice, areaSize.Decimals)) + " -> " + Convert.ToDecimal(Math.Round(RouletteCursorPrice, areaSize.Decimals)) +
                                  "\n" + priceRange.ToString() + "; ( " + pricePercent.ToString("#0.##") +
-                                 " % )\nСвечи: " + CandelsRange.ToString() + "; ( " + RouletteRange.ToString() + " )";
+                                 $" % )\n{TextToChartCandles}: " + CandelsRange.ToString() + "; ( " + RouletteRange.ToString() + " )";
                     e.ChartGraphics.Graphics.DrawString(message, new Font("Courier New", 10),
                         new SolidBrush(Color.White), new PointF() { X = RouletteRectangle.X + RouletteRectangle.Width / 5, Y = RouletteRectangle.Y - 50 > 0 ? RouletteRectangle.Y - 50 : 0 });
                 }
@@ -110,6 +111,10 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
             }
         }
 
+        private string TextToChartCandles
+        {
+            get { return OsLocalization.Charts.LabelRoulette1; }
+        }
 
         private void _chart_ClickRoulette(object sender, EventArgs e)
         {
