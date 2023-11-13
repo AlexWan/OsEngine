@@ -212,5 +212,12 @@ namespace OsEngine.Language
         public string Label9 => OsLocalization.ConvertToLocString(
             "Eng: Go to_" +
             "Ru:Перейти к_");
+
+        public string LabelRoulette1 => OsLocalization.ConvertToLocString(
+            "Eng:Candles_" +
+            "Ru:Свечей_");
+
     }
+
+
 }
