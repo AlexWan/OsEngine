@@ -457,6 +457,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             if (IsDispose == false)
             {
+                if(webSocket != null)
+                {
+                    webSocket.Opened -= WebSocket_Opened;
+                }
+                
                 SendLogMessage("Connection Closed by BitGet. WebSocket Closed Event", LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
