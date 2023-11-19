@@ -1178,7 +1178,7 @@ namespace OsEngine.Market.Servers
         {
             get { return _securities; }
         }
-        private List<Security> _securities;
+        private List<Security> _securities = new List<Security>();
 
         private List<Security> _frequentlyUsedSecurities = new List<Security>();
 

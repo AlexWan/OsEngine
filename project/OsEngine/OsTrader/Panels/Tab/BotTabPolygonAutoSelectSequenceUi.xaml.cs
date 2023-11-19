@@ -69,6 +69,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextBoxBaseCurrency.Text = _tabPolygon.AutoCreatorSequenceBaseCurrency;
             TextBoxBaseCurrency.TextChanged += TextBoxBaseCurrency_TextChanged;
             TextBoxSeparatorToSecurities.Text = _tabPolygon.AutoCreatorSequenceSeparator;
+            TextBoxSeparatorToSecurities.TextChanged += TextBoxSeparatorToSecurities_TextChanged;
 
             CreateGridFirstStep();
             LoadSecurityOnBox();
@@ -170,6 +171,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             _gridFirdStep.Rows.Clear();
             _gridFirdStep.Columns.Clear();
             _gridFirdStep = null;
+        }
+
+        private void TextBoxSeparatorToSecurities_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _tabPolygon.AutoCreatorSequenceSeparator = TextBoxSeparatorToSecurities.Text;
+            _tabPolygon.SaveStandartSettings();
         }
 
         private void TextBoxBaseCurrency_TextChanged(object sender, TextChangedEventArgs e)
@@ -870,9 +877,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (name.StartsWith(currency) &&
                     name.EndsWith(_tabPolygon.AutoCreatorSequenceBaseCurrency) == false)
                 {
-                    if (string.IsNullOrEmpty(_tabPolygon.SeparatorToSecurities) == false)
+                    if (string.IsNullOrEmpty(_tabPolygon.AutoCreatorSequenceSeparator) == false)
                     {
-                        name = name.Replace(_tabPolygon.SeparatorToSecurities, "");
+                        name = name.Replace(_tabPolygon.AutoCreatorSequenceSeparator, "");
                     }
 
                     name = name.Replace(currency, "");
@@ -888,9 +895,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 string exitSecName = result[i].Currency;
 
-                if (string.IsNullOrEmpty(_tabPolygon.SeparatorToSecurities) == false)
+                if (string.IsNullOrEmpty(_tabPolygon.AutoCreatorSequenceSeparator) == false)
                 {
-                    exitSecName += _tabPolygon.SeparatorToSecurities;
+                    exitSecName += _tabPolygon.AutoCreatorSequenceSeparator;
                 }
 
                 exitSecName += _tabPolygon.AutoCreatorSequenceBaseCurrency.ToLower();
