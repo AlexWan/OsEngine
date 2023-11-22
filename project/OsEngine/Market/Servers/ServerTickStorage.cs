@@ -167,7 +167,7 @@ namespace OsEngine.Market.Servers
                             _tradeSaveInfo.Add(tradeInfo);
                         }
 
-                        if (tradeInfo.LastSaveIndex == allTrades[i1].Count)
+                        if (tradeInfo.LastSaveIndex >= allTrades[i1].Count)
                         {
                             continue;
                         }
