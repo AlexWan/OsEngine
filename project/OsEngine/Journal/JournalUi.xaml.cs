@@ -885,6 +885,8 @@ namespace OsEngine.Journal
                 decimal maxYVal = 0;
                 decimal minYval = decimal.MaxValue;
                 decimal curProfit = 0;
+                decimal maxYValBars = 0;
+                decimal minYValBars = decimal.MaxValue;
 
                 string chartType = ComboBoxChartType.SelectedItem.ToString();
 
@@ -909,6 +911,15 @@ namespace OsEngine.Journal
                         positionsAll[i].TimeCreate.ToString(_currentCulture);
 
                     profitBar.Points.AddXY(i, curProfit);
+
+                    if(curProfit > maxYValBars)
+                    {
+                        maxYValBars = curProfit;
+                    }
+                    if (curProfit < minYValBars)
+                    {
+                        minYValBars = curProfit;
+                    }
 
                     if (positionsAll[i].Direction == Side.Buy)
                     {
@@ -946,6 +957,8 @@ namespace OsEngine.Journal
                         minYval = profitSumShort;
                     }
 
+
+
                     profitLong.Points.AddXY(i, profitSumLong);
                     profitShort.Points.AddXY(i, profitSumShort);
 
@@ -981,6 +994,21 @@ namespace OsEngine.Journal
                     _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
                     _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
                 }
+
+                if (maxYValBars != 0 &&
+                    minYValBars != decimal.MaxValue &&
+                    maxYValBars != minYValBars)
+                {
+                    decimal chartHeigh = maxYValBars - minYValBars;
+
+                    maxYValBars = maxYValBars + chartHeigh * 0.05m;
+                    minYValBars = minYValBars - chartHeigh * 0.05m;
+
+                    _chartEquity.ChartAreas[1].AxisY2.Maximum = (double)maxYValBars;
+                    _chartEquity.ChartAreas[1].AxisY2.Minimum = (double)minYValBars;
+
+                }
+
             }
             catch (Exception error)
             {
