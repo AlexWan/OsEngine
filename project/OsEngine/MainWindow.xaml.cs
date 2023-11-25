@@ -55,6 +55,9 @@ namespace OsEngine
             InitializeComponent();
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
+            ImageAlor2.Visibility = Visibility.Collapsed;
+            ImageAlor.Visibility = Visibility.Collapsed;
+
             this.Closed += MainWindow_Closed;
 
             try
@@ -110,7 +113,32 @@ namespace OsEngine
 
             GlobalGUILayout.Listen(this, "mainWindow");
 
-            
+            ImageAlor.MouseEnter += ImageAlor_MouseEnter;
+            ImageAlor2.MouseLeave += ImageAlor_MouseLeave;
+            ImageAlor2.MouseDown += ImageAlor2_MouseDown;
+        }
+
+        private void ImageAlor2_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("https://www.alorbroker.ru/open?pr=L0745") { UseShellExecute = true });
+        }
+
+        private void ImageAlor_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            {
+                ImageAlor2.Visibility = Visibility.Collapsed;
+                ImageAlor.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void ImageAlor_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            {
+                ImageAlor2.Visibility = Visibility.Visible;
+                ImageAlor.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -137,6 +165,18 @@ namespace OsEngine
 
             ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLightName;
             ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLightName;
+
+            if(OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            {
+                this.Height = 415;
+                ImageAlor.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                this.Height = 315;
+                ImageAlor.Visibility = Visibility.Collapsed;
+                ImageAlor2.Visibility = Visibility.Collapsed;
+            }
         }
 
         /// <summary>

@@ -48,7 +48,6 @@ namespace OsEngine.Journal
         private List<Position> _shortPositions;
         List<BotPanelJournal> _botsJournals;
 
-
         /// <summary>
         /// constructor
         /// конструктор
@@ -873,8 +872,6 @@ namespace OsEngine.Journal
             nullLine.YAxisType = AxisType.Secondary;
             nullLine.ChartArea = "ChartAreaProfit";
             nullLine.ShadowOffset = 0;
-
-
 
             try
             {

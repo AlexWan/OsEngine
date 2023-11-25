@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Main menu" Style="{StaticResource WindowStyleNoResize}" Height="315" Width="625" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="Images/OsLogo.ico">
+        Title="Main menu" Style="{StaticResource WindowStyleNoResize}" Height="415" Width="625" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="429,7,10,0" Height="205" VerticalAlignment="Top" />
         <Rectangle Margin="222,7,202,0" Height="205" VerticalAlignment="Top" />
@@ -25,5 +25,7 @@
         </Button>
         <Button  x:Name="ButtonTesterLight" Content="Tester Light" Margin="324,105,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="91" Height="28" Click="ButtonTesterLight_Click"   />
         <Button  x:Name="ButtonRobotLight" Content="Bot Station Light" Margin="448,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonRobotLight_Click" />
+        <Image Name="ImageAlor" Source="/Images/MainWIndow/alor1.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
+        <Image Name="ImageAlor2" Source="/Images/MainWIndow/alor2.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>
