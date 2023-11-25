@@ -2,7 +2,7 @@
 
 # Open Source Algo Trading Platform
 
-[Developer site](http://o-s-a.net/)
+[Developer site](https://os-engine-eng.com)
 
 [Support](https://t.me/osengine_official_support)
 
