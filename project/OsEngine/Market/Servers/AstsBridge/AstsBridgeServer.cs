@@ -1572,6 +1572,11 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// log manager
         /// менеджер лога

@@ -459,7 +459,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Load settings
         /// </summary>
-        private void LoadSettings()
+        public void LoadSettings()
         {
             if (!File.Exists(@"Engine\" + TabName + @"ScreenerSet.txt"))
             {

@@ -498,6 +498,11 @@ namespace OsEngine.OsTrader.Panels
                     MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
+                if(_panel.ActivTab == null)
+                {
+                    return;
+                }
+
                 if (_panel.ActivTab.GetType().Name == "BotTabSimple")
                 {
                     ((BotTabSimple)_panel.ActivTab).ShowConnectorDialog();

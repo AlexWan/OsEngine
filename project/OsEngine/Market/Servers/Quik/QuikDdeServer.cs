@@ -1180,6 +1180,11 @@ namespace OsEngine.Market.Servers.Quik
 
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// send exeptions
         /// отправляет исключения

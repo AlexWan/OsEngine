@@ -4061,8 +4061,13 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
-		/// log manager
+        /// log manager
         /// лог менеджер
         /// </summary>
         /// 

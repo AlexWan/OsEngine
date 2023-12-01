@@ -959,6 +959,11 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             LogMessageEvent(message, logMessageType);
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
         public event Action<List<Portfolio>> PortfolioEvent;

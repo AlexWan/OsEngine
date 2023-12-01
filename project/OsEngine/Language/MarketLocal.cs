@@ -480,6 +480,22 @@ namespace OsEngine.Language
           "Eng:You need to set up data broadcasting! Go to the data server._" +
           "Ru:Вам необходимо настроить трансляцию данных! Идите в дата сервер. _");
 
+        public string Label112 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio Spot_" +
+          "Ru:Портфель Спот_");
+
+        public string Label113 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio FORTS_" +
+          "Ru:Портфель FORTS_");
+
+        public string Label114 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio currency_" +
+          "Ru:Портфель валютный_");
+
+        public string Label115 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio spare_" +
+          "Ru:Портфель запасной_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
@@ -1022,7 +1038,7 @@ namespace OsEngine.Language
       
         public string Exchange => OsLocalization.ConvertToLocString(
             "Eng:Exchange_" +
-            "Ru:Биржа (MOEX, SPBX)_"
+            "Ru:Биржа_"
         );
     }
 }

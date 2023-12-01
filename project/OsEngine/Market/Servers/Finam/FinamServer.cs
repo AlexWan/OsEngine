@@ -1497,6 +1497,11 @@ namespace OsEngine.Market.Servers.Finam
 
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// called when new order appear in the system
         /// вызывается когда в системе появляется новый ордер

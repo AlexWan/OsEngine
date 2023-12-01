@@ -949,6 +949,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
             
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// outgoing log message
         /// исходящее сообщение для лога

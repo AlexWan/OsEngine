@@ -59,7 +59,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
             catch (Exception exception)
             {
-                SendLogMessage("Сервер не доступен. Отсутствует интернет. ", LogMessageType.Error);
+                SendLogMessage("Server connection error. There is no internet or the exchange server is not available.", LogMessageType.Error);
                 return;
             }
 

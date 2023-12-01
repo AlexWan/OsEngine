@@ -452,21 +452,21 @@
     <Compile Include="Market\ServerMasterOrdersPainter.cs" />
     <Compile Include="Market\ServerMasterSourcesPainter.cs" />
     <Compile Include="Market\Servers\Alor\AlorServer.cs" />
-    <Compile Include="Market\Servers\Alor\Dto\AlorPortfolioRisk.cs" />
-    <Compile Include="Market\Servers\Alor\Dto\AlorPortfolioRiskForts.cs" />
-    <Compile Include="Market\Servers\Alor\Dto\AlorPortfolioSummary.cs" />
-    <Compile Include="Market\Servers\Alor\Dto\AlorSecurity.cs" />
-    <Compile Include="Market\Servers\Alor\Dto\MessageData.cs" />
-    <Compile Include="Market\Servers\Alor\Dto\Subscription.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\ApiClient.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\Events\ConnectionEventArgs.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\Events\ErrorEventArgs.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\Events\MessageEventArgs.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\SocketErrorEventArgs.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\SocketMessageEventArgs.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\TokenProvider.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\WsClient.cs" />
-    <Compile Include="Market\Servers\Alor\Tools\WsConnectionClient.cs" />
+    <Compile Include="Market\Servers\Alor\AlorServerPermission.cs" />
+    <Compile Include="Market\Servers\Alor\Json\OrdersAlorRequest.cs" />
+    <Compile Include="Market\Servers\Alor\Json\AlorPortfolioSocket.cs" />
+    <Compile Include="Market\Servers\Alor\Json\AlorPortfolioRest.cs" />
+    <Compile Include="Market\Servers\Alor\Json\AlorSecurity.cs" />
+    <Compile Include="Market\Servers\Alor\Json\CandlesHistoryAlor.cs" />
+    <Compile Include="Market\Servers\Alor\Json\MarketDepthAlor.cs" />
+    <Compile Include="Market\Servers\Alor\Json\MyTradeAlor.cs" />
+    <Compile Include="Market\Servers\Alor\Json\OrderAlor.cs" />
+    <Compile Include="Market\Servers\Alor\Json\PositionOnBoardAlor.cs" />
+    <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscrible.cs" />
+    <Compile Include="Market\Servers\Alor\Json\SoketBaseMessage.cs" />
+    <Compile Include="Market\Servers\Alor\Json\TokenResponse.cs" />
+    <Compile Include="Market\Servers\Alor\Json\QuotesAlor.cs" />
+    <Compile Include="Market\Servers\Alor\Json\TradesHistoryAlor.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>
@@ -1846,9 +1846,6 @@
   <ItemGroup>
     <Resource Include="Images\MainWIndow\alor1.png" />
     <Resource Include="Images\MainWIndow\alor2.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="alor1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

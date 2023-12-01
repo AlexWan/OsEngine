@@ -536,6 +536,11 @@ namespace OsEngine.Market.Servers.Kraken
 
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// outgoing log message
         /// исходящее сообщение для лога

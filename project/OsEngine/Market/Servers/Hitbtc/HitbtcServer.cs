@@ -828,6 +828,11 @@ namespace OsEngine.Market.Servers.Hitbtc
 
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         internal class OrderCoupler
         {
             public int OsOrderNumberUser;

@@ -1063,6 +1063,11 @@ namespace OsEngine.Market.Servers.Huobi.Futures
         {
            
         }
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class WebSocketAuthenticationRequestFutures

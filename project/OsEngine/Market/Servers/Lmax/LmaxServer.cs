@@ -476,6 +476,11 @@ namespace OsEngine.Market.Servers.Lmax
 
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// outgoing log message
         /// исходящее сообщение для лога

@@ -1136,5 +1136,10 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         {
 
         }
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

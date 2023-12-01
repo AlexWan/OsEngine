@@ -1688,6 +1688,11 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// outgoing lom message
         /// исходящее сообщение для лога

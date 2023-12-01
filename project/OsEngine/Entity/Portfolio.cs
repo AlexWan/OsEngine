@@ -54,6 +54,11 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetNewPosition(PositionOnBoard position)
         {
+            if(string.IsNullOrEmpty(position.SecurityNameCode))
+            {
+                return;
+            }
+
             if (_positionOnBoard != null && _positionOnBoard.Count != 0)
             {
                 for (int i = 0; i < _positionOnBoard.Count; i ++)

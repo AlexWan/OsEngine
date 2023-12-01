@@ -1481,6 +1481,52 @@ namespace OsEngine.Market.Servers
         private string _loadDataLocker;
 
         /// <summary>
+        /// Интерфейс для получения последний свечек по инструменту. Используется для активации серий свечей в боевых торгах
+        /// Interface for getting the last candlesticks for a security. Used to activate candlestick series in live trades
+        /// </summary>
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            try
+            {
+                if (Portfolios == null || Securities == null)
+                {
+                    return null;
+                }
+
+                if (LastStartServerTime != DateTime.MinValue &&
+                    LastStartServerTime.AddSeconds(15) > DateTime.Now)
+                {
+                    return null;
+                }
+
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return null;
+                }
+
+                if (_candleManager == null)
+                {
+                    return null;
+                }
+
+                if (ServerRealization == null)
+                {
+                    return null;
+                }
+
+                return ServerRealization.GetLastCandleHistory(security, timeFrameBuilder, candleCount);
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(
+                    "AServer. GetLastCandleHistory method error: " + ex.ToString(), 
+                    LogMessageType.Error);
+
+                return null;
+            }
+        }
+
+        /// <summary>
         /// take the candle history for a period
         /// взять историю свечей за период
         /// </summary>
@@ -2116,6 +2162,12 @@ namespace OsEngine.Market.Servers
             if (UserSetOrderOnCancel != null)
             {
                 UserSetOrderOnCancel(order);
+            }
+
+            if(string.IsNullOrEmpty(order.NumberMarket))
+            {
+                SendLogMessage("You can't revoke an order without a stock exchange number " + order.NumberUser, LogMessageType.System);
+                return;
             }
 
             OrderAserverSender ord = new OrderAserverSender();

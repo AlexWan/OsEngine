@@ -96,6 +96,12 @@ namespace OsEngine.Market.Servers
         void Subscrible(Security security);
 
         /// <summary>
+        /// Интерфейс для получения последний свечек по инструменту. Используется для активации серий свечей в боевых торгах
+        /// Interface for getting the last candlesticks for a security. Used to activate candlestick series in live trades
+        /// </summary>
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount);
+
+        /// <summary>
         /// take candles history for period
         /// взять историю свечей за период
         /// </summary>

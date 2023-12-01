@@ -591,6 +591,11 @@ namespace OsEngine.Market.Servers.ZB
         {
             
         }
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

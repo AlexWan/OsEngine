@@ -10,7 +10,6 @@ using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Binance;
 using OsEngine.Market.Servers.Binance.Futures;
 using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
@@ -35,6 +34,7 @@ using OsEngine.Market.Servers.BitMaxFutures;
 using OsEngine.Market.Servers.BybitSpot;
 using OsEngine.Market.Servers.BitGet.BitGetSpot;
 using OsEngine.Market.Servers.BitGet.BitGetFutures;
+using OsEngine.Market.Servers.Alor;
 
 namespace OsEngine.Entity
 {
@@ -359,6 +359,29 @@ namespace OsEngine.Entity
 
                             series.IsStarted = true;
                         }
+
+                        else if (serverType == ServerType.Alor)
+                        {
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
+                                series.TimeFrameSpan.TotalMinutes < 1)
+                            {
+                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                                series.PreLoad(allTrades);
+                            }
+                            else
+                            {
+                                List<Candle> candles = _server.GetLastCandleHistory(series.Security, series.TimeFrameBuilder, 500);
+
+                                if (candles != null)
+                                {
+                                    series.CandlesAll = candles;
+                                }
+                            }
+
+                            series.UpdateAllCandles();
+                            series.IsStarted = true;
+                        }
+
                         else if (serverType == ServerType.Tinkoff)
                         {
                             TinkoffServer tinkoff = (TinkoffServer)_server;

@@ -964,6 +964,11 @@ namespace OsEngine.Market.Servers.Huobi.Spot
         {
            
         }
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class WebSocketAuthenticationRequestV2

@@ -715,6 +715,11 @@ namespace OsEngine.Market.Servers.BitMaxFutures
 
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 

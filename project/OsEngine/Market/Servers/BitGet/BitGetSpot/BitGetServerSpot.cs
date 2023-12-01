@@ -519,7 +519,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         #endregion
 
-        #region 9 WebSocket security subscrible
+        #region 9 Security subscrible
 
         private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
@@ -1302,6 +1302,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
                 }
             }
+        }
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

@@ -1407,5 +1407,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

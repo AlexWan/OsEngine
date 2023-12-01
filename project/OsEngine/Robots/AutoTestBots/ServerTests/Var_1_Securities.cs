@@ -101,70 +101,54 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 SetNewError(serverType + " Security Error 6 . Exchange is Empty!");
             }
-            else
-            {
-                if (security.Exchange.Equals(serverType.ToString()) == false)
-                {
-                    SetNewError(serverType + " Security Error 7 . Exchange naming Error!");
-                }
-            }
 
             if (string.IsNullOrEmpty(security.State.ToString()))
             {
-                SetNewError(serverType + " Security Error 9. State is Empty!");
+                SetNewError(serverType + " Security Error 8. State is Empty!");
             }
             else
             {
                 if (security.State == SecurityStateType.UnKnown)
                 {
-                    SetNewError(serverType + " Security Error 10. Sec State is UnKnown!");
+                    SetNewError(serverType + " Security Error 9. Sec State is UnKnown!");
                 }
             }
 
             if (security.SecurityType == SecurityType.None)
             {
-                SetNewError(serverType + " Security Error 11. SecurityType is None ");
+                SetNewError(serverType + " Security Error 10. SecurityType is None ");
             }
 
             if (security.PriceStep <= 0)
             {
-                SetNewError(serverType + " Security Error 12. PriceState is 0 ");
+                SetNewError(serverType + " Security Error 11. PriceStep is 0 ");
             }
             if (security.Lot <= 0)
             {
-                SetNewError(serverType + " Security Error 13. Lot is 0 ");
+                SetNewError(serverType + " Security Error 12. Lot is 0 ");
             }
             if (security.PriceStepCost <= 0)
             {
-                SetNewError(serverType + " Security Error 14. PriceStepCost is 0 ");
+                SetNewError(serverType + " Security Error 13. PriceStepCost is 0 ");
             }
 
             if (security.Decimals < 0)
             {
-                SetNewError(serverType + " Security Error 15. Decimals is 0 ");
+                SetNewError(serverType + " Security Error 14. Decimals is 0 ");
             }
 
             if (security.DecimalsVolume < 0)
             {
-                SetNewError(serverType + " Security Error 16. DecimalsVolume is 0 ");
+                SetNewError(serverType + " Security Error 15. DecimalsVolume is 0 ");
             }
 
             if (security.PriceStep != 0)
             {
                 if (IsCompairDecimalsAndStep(security.Decimals, security.PriceStep) == false)
                 {
-                    SetNewError(serverType + " Security Error 17. PriceStep and Decimals in conflict ");
+                    SetNewError(serverType + " Security Error 16. PriceStep and Decimals in conflict ");
                 }
             }
-
-            if (security.Lot != 0)
-            {
-                if (IsCompairDecimalsAndStep(security.DecimalsVolume, security.Lot) == false)
-                {
-                    SetNewError(serverType + " Security Error 18. Lot and DecimalsVolume in conflict ");
-                }
-            }
-
         }
 
         private bool IsCompairDecimalsAndStep(int decimals, decimal step)

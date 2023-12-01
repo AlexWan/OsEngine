@@ -1181,6 +1181,11 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
+
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 }

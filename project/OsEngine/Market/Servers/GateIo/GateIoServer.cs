@@ -859,6 +859,11 @@ namespace OsEngine.Market.Servers.GateIo
         {
             
         }
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class CurrencyPair
