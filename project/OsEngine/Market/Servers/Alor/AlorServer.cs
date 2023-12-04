@@ -3,19 +3,19 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading;
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Alor.Json;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
-using Newtonsoft.Json;
-using OsEngine.Market.Servers.Alor.Json;
-using WebSocket4Net;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading;
+using WebSocket4Net;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -850,11 +850,12 @@ namespace OsEngine.Market.Servers.Alor
 
                 // trades subscription
 
+                //curl - X GET "https://apidev.alor.ru/md/v2/Securities/MOEX/LKOH/alltrades?format=Simple&from=1593430060&to=1593430560&fromId=7796897024&toId=7796897280&take=10" - H "accept: application/json"
+
                 RequestSocketSubscribleTrades subObjTrades = new RequestSocketSubscribleTrades();
                 subObjTrades.code = security.Name;
                 subObjTrades.guid = GetGuid();
                 subObjTrades.token = _apiTokenReal;
-
                 string messageTradeSub = JsonConvert.SerializeObject(subObjTrades);
 
                 AlorSocketSubscription tradeSub = new AlorSocketSubscription();
@@ -1381,16 +1382,16 @@ namespace OsEngine.Market.Servers.Alor
             QuotesAlor baseMessage =
             JsonConvert.DeserializeAnonymousType(data, new QuotesAlor());
 
-            if(string.IsNullOrEmpty(baseMessage.last_price_timestamp))
+            if(string.IsNullOrEmpty(baseMessage.timestamp))
             {
                 return;
             }
 
             Trade trade = new Trade();
-            trade.SecurityNameCode = secName;
-            trade.Price = baseMessage.last_price.ToDecimal();
-            trade.Time = ConvertToDateTimeFromUnixFromSeconds(baseMessage.last_price_timestamp);
-            trade.Id = "";
+            trade.SecurityNameCode = baseMessage.symbol;
+            trade.Price = baseMessage.price.ToDecimal();
+            trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseMessage.timestamp);
+            trade.Id = baseMessage.id;
             trade.Side = Side.Buy;
             trade.Volume = 1;
 

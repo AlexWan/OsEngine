@@ -7,13 +7,16 @@ namespace OsEngine.Market.Servers.Alor.Json
 {
     public class RequestSocketSubscribleTrades
     {
-        public string guid;
         public string token;
+        public string guid;
         public string code;
-        public string opcode = "QuotesSubscribe";
+        public string opcode = "AllTradesGetAndSubscribe";
+        public int depth = 50;
+        public string includeVirtualTrades = "false";
         public string exchange = "MOEX";
         public string format = "Simple";
         public string frequency = "0";
+       
     }
 
     public class RequestSocketSubscribleMarketDepth

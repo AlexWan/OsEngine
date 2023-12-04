@@ -7,26 +7,15 @@ namespace OsEngine.Market.Servers.Alor.Json
 {
     public class QuotesAlor
     {
+        public string id;
+        public string orderno;
         public string symbol;
-        public string exchange;
-        public string description;
-        public string ask;
-        public string bid;
-        public string prev_close_price;
-        public string last_price;
-        public string last_price_timestamp;
-        public string change;
-        public string change_percent;
-        public string high_price;
-        public string low_price;
-        public string accruedInt;
-        public string volume;
-        public string open_interest;
-        public string open_price;
-        public string yield;
-        public string lotsize;
-        public string lotvalue;
-        public string facevalue;
-        public string type;
+        public string qty;
+        public string price;
+        public string time;
+        public string timestamp;
+        public string side;
+        public string oi;
+        public string existing;
     }
 }
