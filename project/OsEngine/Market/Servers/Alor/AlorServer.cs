@@ -1709,9 +1709,10 @@ namespace OsEngine.Market.Servers.Alor
                 return;
             }
 
-            portf.ValueCurrent = baseMessage.buyingPower.ToDecimal();
+            portf.ValueBegin = baseMessage.portfolioLiquidationValue.ToDecimal();
+            portf.ValueCurrent = baseMessage.portfolioLiquidationValue.ToDecimal();
             portf.Profit = baseMessage.profit.ToDecimal();
-            portf.ValueBegin = baseMessage.buyingPowerAtMorning.ToDecimal();
+            
 
             if (PortfolioEvent != null)
             {

@@ -218,6 +218,8 @@ namespace OsEngine.OsData
         void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             ReloadSecurityTable();
+            UpdateSearchResults();
+            UpdateSearchPanel();
         }
 
         /// <summary>
