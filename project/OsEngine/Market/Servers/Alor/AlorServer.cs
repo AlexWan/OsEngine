@@ -206,6 +206,14 @@ namespace OsEngine.Market.Servers.Alor
             _lastGetLiveTimeToketTime = DateTime.MinValue;
 
             DeleteWebSocketConnection();
+
+            SendLogMessage("Connection Closed by Alor. WebSocket Data Closed Event", LogMessageType.Error);
+
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
         }
 
         public DateTime ServerTime { get; set; }
