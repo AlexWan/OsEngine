@@ -305,8 +305,13 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
                 if (_lastTimeUpdateSocket.AddSeconds(60) < DateTime.Now)
                 {
                     SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
+
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
                     Dispose();
-                    DisconnectEvent();
                     return;
                 }
             }
