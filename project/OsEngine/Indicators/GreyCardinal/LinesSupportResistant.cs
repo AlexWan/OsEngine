@@ -9,36 +9,43 @@ using System.Drawing;
 
 namespace OsEngine.Indicators.GreyCardinal
 {
-    [IndicatorAttribute("PriceChannel")]
+    [IndicatorAttribute("LinesSupportResistant")]
 
-    internal class PriceChannel : Aindicator
+    internal class LinesSupportResistant : Aindicator
     {
-       
-        private IndicatorParameterInt _LenghtUpLine;
-        private IndicatorParameterInt _LenghtDownLine;
         private IndicatorDataSeries _seriesUp, _seriesDown;
         public override void OnProcess(List<Candle> candels, int index)
         {
+            int maxBack = 1000;
             decimal upLine = 0,downLine=0 ;
-            if (index - _LenghtUpLine.ValueInt > 0)
+            if (index - maxBack > 0)
             {
-                for (int i = index; i >-1 && i> index-_LenghtUpLine.ValueInt; i--)
+                upLine = candels[1].High;
+                for (int i = index; i >3 && i> index- maxBack.ValueInt; i--)
                 {
                     if (upLine < candels[i].High)
                     {
                         upLine = candels[i].High;
+                    }
+                    else
+                    { 
+                        break;
                     }
 
                 }
             }
             if (index - _LenghtDownLine.ValueInt > 0)
             {
-                downLine = decimal.MaxValue;
-                for (int i = index; i > -1 && i > index - _LenghtDownLine.ValueInt; i--)
+                downLine = candels[1].Low;
+                for (int i = index; i > -1 && i > index - maxBack; i--)
                 {
                     if (downLine > candels[i].Low)
                     {
                         downLine = candels[i].Low;
+                    }
+                    else
+                    {
+                        break
                     }
 
                 }
@@ -51,8 +58,6 @@ namespace OsEngine.Indicators.GreyCardinal
         {
             if(state == IndicatorState.Configure)
             {
-                _LenghtUpLine = CreateParameterInt("Upper line leght", 30);
-                _LenghtDownLine = CreateParameterInt("Down line leght", 30);
                 _seriesUp = CreateSeries("Series up",Color.Aqua,IndicatorChartPaintType.Line,true);
                 _seriesDown = CreateSeries("Series down", Color.BlueViolet, IndicatorChartPaintType.Line, true);
 
@@ -61,7 +66,6 @@ namespace OsEngine.Indicators.GreyCardinal
             {
                 // Clear temp data
             }
-            //throw new NotImplementedException();
         }
     }
 }
