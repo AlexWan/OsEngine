@@ -13,53 +13,55 @@ namespace OsEngine.Indicators.GreyCardinal
 
     internal class LinesSupportResistant : Aindicator
     {
+        private IndicatorParameterInt _lenghtHistory;
+ 
         private IndicatorDataSeries _seriesUp, _seriesDown;
+
         public override void OnProcess(List<Candle> candels, int index)
         {
-            int maxBack = 1000;
-            decimal upLine = 0,downLine=0 ;
-            if (index - maxBack > 0)
+            decimal upLine = 0, downLine = 0;
+            if (index - _lenghtHistory.ValueInt > 0)
             {
-                upLine = candels[1].High;
-                for (int i = index; i >3 && i> index- maxBack.ValueInt; i--)
+                upLine = candels[index].High; 
+                downLine = candels[index].Low; 
+ 
+
+                for (int i = index; i > 3 && i > index - _lenghtHistory.ValueInt; i--)
                 {
-                    if (upLine < candels[i].High)
+                    if (upLine < candels[i-1].High)
                     {
-                        upLine = candels[i].High;
+                        upLine = candels[i - 1].High;
                     }
-                    else
-                    { 
+                    else if(upLine> candels[index].High)
+                    {
                         break;
                     }
 
                 }
-            }
-            if (index - _LenghtDownLine.ValueInt > 0)
-            {
-                downLine = candels[1].Low;
-                for (int i = index; i > -1 && i > index - maxBack; i--)
+                for (int i = index; i > 3 && i > index - _lenghtHistory.ValueInt; i--)
                 {
-                    if (downLine > candels[i].Low)
+                    if (downLine > candels[i-1].Low)
                     {
-                        downLine = candels[i].Low;
+                        downLine = candels[i - 1].Low;
                     }
-                    else
+                    else if(downLine< candels[index].Low)
                     {
-                        break
+                        break;
                     }
 
                 }
+                _seriesUp.Values[index ] = upLine;
+                _seriesDown.Values[index] = downLine;
             }
-            _seriesUp.Values[index] = upLine;
-            _seriesDown.Values[index] = downLine;
         }
 
         public override void OnStateChange(IndicatorState state)
         {
             if(state == IndicatorState.Configure)
             {
-                _seriesUp = CreateSeries("Series up",Color.Aqua,IndicatorChartPaintType.Line,true);
-                _seriesDown = CreateSeries("Series down", Color.BlueViolet, IndicatorChartPaintType.Line, true);
+                _lenghtHistory = CreateParameterInt("History length", 60);
+                _seriesUp = CreateSeries("Resistant line",Color.Red,IndicatorChartPaintType.Line,true);
+                _seriesDown = CreateSeries("Support line", Color.GreenYellow, IndicatorChartPaintType.Line, true);
 
             }
             else if(state== IndicatorState.Dispose)

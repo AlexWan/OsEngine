@@ -404,6 +404,7 @@
       <DependentUpon>AIndicatorUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Indicators\Entity.cs" />
+    <Compile Include="Indicators\GreyCardinal\LinesSupportResistant.cs" />
     <Compile Include="Indicators\IndicatorAttribute.cs" />
     <Compile Include="Indicators\IndicatorParameter.cs" />
     <Compile Include="Indicators\IndicatorsFactory.cs" />
