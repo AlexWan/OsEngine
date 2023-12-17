@@ -287,3 +287,4 @@ __pycache__/
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
+/project/OsEngine/bin/Debug/OsEngine.exe
