@@ -1155,7 +1155,7 @@ namespace OsEngine.Market.Servers.BitMex
                                             Id = quotes.data[i].id
                                         });
                                     }
-                                    else if (j != depth.Bids.Count - 1 && id > depth.Bids[i].Id && id < depth.Bids[j + 1].Id)
+                                    else if (j != depth.Bids.Count - 1 && id > depth.Bids[j].Id && id < depth.Bids[j + 1].Id)
                                     {
                                         depth.Bids.Insert(j + 1, new MarketDepthLevel()
                                         {
