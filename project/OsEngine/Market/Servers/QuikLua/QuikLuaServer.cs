@@ -586,48 +586,56 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 Thread.Sleep(5000);
 
-                if (QuikLua != null)
+                try
                 {
-                    bool quikStateIsActiv = QuikLua.Service.IsConnected().Result;
-                }
-
-                if (QuikLua == null)
-                {
-                    continue;
-                }
-
-
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    continue;
-                }
-
-                List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
-                Portfolio needPortf;
-                foreach (var pos in spotPos)
-                {
-                    if (pos.LimitKind == LimitKind.T0)
+                    if (QuikLua != null)
                     {
-                        needPortf = _portfolios.Find(p => p.Number == pos.TrdAccId);
+                        bool quikStateIsActiv = QuikLua.Service.IsConnected().Result;
+                    }
 
-                        PositionOnBoard position = new PositionOnBoard();
+                    if (QuikLua == null)
+                    {
+                        continue;
+                    }
 
-                        if (needPortf != null)
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        continue;
+                    }
+
+                    List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
+                    Portfolio needPortf;
+                    foreach (var pos in spotPos)
+                    {
+                        if (pos.LimitKind == LimitKind.T0)
                         {
-                            position.PortfolioName = pos.TrdAccId;
-                            position.ValueBegin = pos.OpenBalance;
-                            position.ValueCurrent = pos.CurrentBalance;
-                            position.ValueBlocked = pos.LockedSell;
-                            position.SecurityNameCode = pos.SecCode;
+                            needPortf = _portfolios.Find(p => p.Number == pos.TrdAccId);
 
-                            needPortf.SetNewPosition(position);
+                            PositionOnBoard position = new PositionOnBoard();
+
+                            if (needPortf != null)
+                            {
+                                position.PortfolioName = pos.TrdAccId;
+                                position.ValueBegin = pos.OpenBalance;
+                                position.ValueCurrent = pos.CurrentBalance;
+                                position.ValueBlocked = pos.LockedSell;
+                                position.SecurityNameCode = pos.SecCode;
+
+                                needPortf.SetNewPosition(position);
+                            }
                         }
                     }
-                }
 
-                if (PortfolioEvent != null)
+                    if (PortfolioEvent != null)
+                    {
+                        PortfolioEvent(_portfolios);
+                    }
+                }
+                catch (Exception error)
                 {
-                    PortfolioEvent(_portfolios);
+                    SendLogMessage(error.ToString(),LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
