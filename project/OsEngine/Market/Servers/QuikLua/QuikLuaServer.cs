@@ -122,35 +122,43 @@ namespace OsEngine.Market.Servers.QuikLua
         private ServerParameterBool _useOther ;
         public bool _changeClassUse = false;
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Connect()
         {
-            if (QuikLua == null)
+            try
             {
-                
-                _useStock = (ServerParameterBool)ServerParameters[0];   // AVP линкуем параметры в локальные переменные
-                _useFutures = (ServerParameterBool)ServerParameters[1];
-                _useCurrency = (ServerParameterBool)ServerParameters[2];
-                _useOptions = (ServerParameterBool)ServerParameters[3];
-                _useOther = (ServerParameterBool)ServerParameters[4];
+                if (QuikLua == null)
+                {
+                    _useStock = (ServerParameterBool)ServerParameters[0];   // AVP линкуем параметры в локальные переменные
+                    _useFutures = (ServerParameterBool)ServerParameters[1];
+                    _useCurrency = (ServerParameterBool)ServerParameters[2];
+                    _useOptions = (ServerParameterBool)ServerParameters[3];
+                    _useOther = (ServerParameterBool)ServerParameters[4];
 
-                QuikLua = new QuikSharp.Quik(QuikSharp.Quik.DefaultPort, new InMemoryStorage());
-                QuikLua.Events.OnConnected += EventsOnOnConnected;
-                QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
-                QuikLua.Events.OnConnectedToQuik += EventsOnOnConnectedToQuik;
-                QuikLua.Events.OnDisconnectedFromQuik += EventsOnOnDisconnectedFromQuik;
-                QuikLua.Events.OnTrade += EventsOnOnTrade;
-                QuikLua.Events.OnOrder += EventsOnOnOrder;
-                QuikLua.Events.OnQuote += EventsOnOnQuote;
-                QuikLua.Events.OnFuturesClientHolding += EventsOnOnFuturesClientHolding;
-                QuikLua.Events.OnFuturesLimitChange += EventsOnOnFuturesLimitChange;
-                QuikLua.Events.OnTransReply += Events_OnTransReply;
+                    QuikLua = new QuikSharp.Quik(QuikSharp.Quik.DefaultPort, new InMemoryStorage());
+                    QuikLua.Events.OnConnected += EventsOnOnConnected;
+                    QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
+                    QuikLua.Events.OnConnectedToQuik += EventsOnOnConnectedToQuik;
+                    QuikLua.Events.OnDisconnectedFromQuik += EventsOnOnDisconnectedFromQuik;
+                    QuikLua.Events.OnTrade += EventsOnOnTrade;
+                    QuikLua.Events.OnOrder += EventsOnOnOrder;
+                    QuikLua.Events.OnQuote += EventsOnOnQuote;
+                    QuikLua.Events.OnFuturesClientHolding += EventsOnOnFuturesClientHolding;
+                    QuikLua.Events.OnFuturesLimitChange += EventsOnOnFuturesLimitChange;
+                    QuikLua.Events.OnTransReply += Events_OnTransReply;
 
-                QuikLua.Service.QuikService.Start();
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent?.Invoke();
+                    QuikLua.Service.QuikService.Start();
+                    ServerStatus = ServerConnectStatus.Connect;
+                    ConnectEvent?.Invoke();
+                }
+            }
+            catch(Exception error)
+            {
+                SendLogMessage(error.ToString(),LogMessageType.Error);
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Dispose()
         {
             try
@@ -165,33 +173,46 @@ namespace OsEngine.Market.Servers.QuikLua
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
 
-            if (QuikLua != null)
+            try
             {
-                QuikLua.Events.OnConnected -= EventsOnOnConnected;
-                QuikLua.Events.OnDisconnected -= EventsOnOnDisconnected;
-                QuikLua.Events.OnConnectedToQuik -= EventsOnOnConnectedToQuik;
-                QuikLua.Events.OnDisconnectedFromQuik -= EventsOnOnDisconnectedFromQuik;
-                QuikLua.Events.OnTrade -= EventsOnOnTrade;
-                QuikLua.Events.OnOrder -= EventsOnOnOrder;
-                QuikLua.Events.OnQuote -= EventsOnOnQuote;
-                QuikLua.Events.OnFuturesClientHolding -= EventsOnOnFuturesClientHolding;
-                QuikLua.Events.OnFuturesLimitChange -= EventsOnOnFuturesLimitChange;
-                QuikLua.Events.OnTransReply -= Events_OnTransReply;
-            }
+                if (QuikLua != null)
+                {
+                    QuikLua.Events.OnConnected -= EventsOnOnConnected;
+                    QuikLua.Events.OnDisconnected -= EventsOnOnDisconnected;
+                    QuikLua.Events.OnConnectedToQuik -= EventsOnOnConnectedToQuik;
+                    QuikLua.Events.OnDisconnectedFromQuik -= EventsOnOnDisconnectedFromQuik;
+                    QuikLua.Events.OnTrade -= EventsOnOnTrade;
+                    QuikLua.Events.OnOrder -= EventsOnOnOrder;
+                    QuikLua.Events.OnQuote -= EventsOnOnQuote;
+                    QuikLua.Events.OnFuturesClientHolding -= EventsOnOnFuturesClientHolding;
+                    QuikLua.Events.OnFuturesLimitChange -= EventsOnOnFuturesLimitChange;
+                    QuikLua.Events.OnTransReply -= Events_OnTransReply;
+                }
 
-            ServerStatus = ServerConnectStatus.Disconnect;
-            DisconnectEvent?.Invoke();
-            subscribedBook = new List<string>();
-            QuikLua = null;
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent?.Invoke();
+                subscribedBook = new List<string>();
+                QuikLua = null;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private List<Security> _securities = new List<Security>();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void GetSecurities()
         {
             try
             {
                 _securities = !_changeClassUse && IsLoadSecuritiesFromCache() ? LoadSecuritiesFromCache() : LoadSecuritiesFromQuik();   //AVP добавил !_changeClassUse, если набор классов поменяли, то надо кэш обновить
+
+                if(_securities == null)
+                {
+                    return;
+                }
 
                 SendLogMessage(OsLocalization.Market.Message52 + _securities.Count, LogMessageType.System);
                 if (SecurityEvent != null)
@@ -268,49 +289,60 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private List<Security> LoadSecuritiesFromQuik()
         {
-            string[] classesList;
-
-            lock (_serverLocker)
+            try
             {
-                classesList = QuikLua.Class.GetClassesList().Result;
-            }
+                string[] classesList;
 
-            List<SecurityInfo> allSec = new List<SecurityInfo>();
-
-            for (int i = 0; i < classesList.Length; i++)
-            {
-                if (classesList[i].EndsWith("INFO"))
+                lock (_serverLocker)
                 {
-                    continue;
+                    classesList = QuikLua.Class.GetClassesList().Result;
                 }
 
-                if (!CheckFilter (classesList[i]))  // AVP фильтр выбранных классов для загрузки инструментов
+                List<SecurityInfo> allSec = new List<SecurityInfo>();
+
+                for (int i = 0; i < classesList.Length; i++)
                 {
-                    continue;
+                    if (classesList[i].EndsWith("INFO"))
+                    {
+                        continue;
+                    }
+
+                    if (!CheckFilter(classesList[i]))  // AVP фильтр выбранных классов для загрузки инструментов
+                    {
+                        continue;
+                    }
+
+
+                    string[] secCodes = QuikLua.Class.GetClassSecurities(classesList[i]).Result;
+                    for (int j = 0; j < secCodes.Length; j++)
+                    {
+                        allSec.Add(QuikLua.Class.GetSecurityInfo(classesList[i], secCodes[j]).Result);
+                    }
                 }
 
-
-                string[] secCodes = QuikLua.Class.GetClassSecurities(classesList[i]).Result;
-                for (int j = 0; j < secCodes.Length; j++)
+                List<Security> securities = new List<Security>();
+                foreach (var oneSec in allSec)
                 {
-                    allSec.Add(QuikLua.Class.GetSecurityInfo(classesList[i], secCodes[j]).Result);
+                    BuildSecurity(oneSec, securities);
                 }
-            }
 
-            List<Security> securities = new List<Security>();
-            foreach (var oneSec in allSec)
+                if (securities.Count > 0)
+                {
+                    SaveToCache(securities);
+                }
+
+                return securities;
+
+            }
+            catch (Exception error)
             {
-                BuildSecurity(oneSec, securities);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
 
-            if (securities.Count > 0)
-            {
-                SaveToCache(securities);
-            }
-
-            return securities;
+            return new List<Security>();
         }
 
         private void BuildSecurity(SecurityInfo oneSec, List<Security> securities)
@@ -421,6 +453,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void SaveToCache(List<Security> list)
         {
             if (list == null)
@@ -442,6 +475,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private List<Security> LoadSecuritiesFromCache()
         {
             try
@@ -466,6 +500,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void GetPortfoliosArea()
         {
             try
@@ -580,6 +615,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void UpdateSpotPosition()
         {
             while (true)
@@ -640,6 +676,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private async void ThreadCheckOrdersState()
         {
             while (true)
@@ -673,6 +710,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         List<Order> _nullOrders = new List<Order>();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private async Task CheckOrder(Order ord)
         {
             try
@@ -757,102 +795,134 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SendOrder(Order order)
         {
             _rateGateSendOrder.WaitToProceed();
 
-            QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
-
-            qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
-            qOrder.Account = order.PortfolioNumber;
-            qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
-            qOrder.Quantity = Convert.ToInt32(order.Volume);
-            qOrder.Operation = order.Side == Side.Buy ? Operation.Buy : Operation.Sell;
-            qOrder.Price = order.Price;
-
-            if(((ServerParameterBool)ServerParameters[5]).Value == false)
+            try
             {
-                qOrder.Comment = order.NumberUser.ToString();
-            }
-            else if (((ServerParameterBool)ServerParameters[5]).Value == true)
-            {
-                qOrder.Comment = order.PortfolioNumber + "//" + order.NumberUser.ToString();
-            }
 
-            lock (_serverLocker)
-            {
-                var res = QuikLua.Orders.CreateOrder(qOrder).Result;
+                QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
-                if (res > 0)
+                qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
+                qOrder.Account = order.PortfolioNumber;
+                qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
+                qOrder.Quantity = Convert.ToInt32(order.Volume);
+                qOrder.Operation = order.Side == Side.Buy ? Operation.Buy : Operation.Sell;
+                qOrder.Price = order.Price;
+
+                if (((ServerParameterBool)ServerParameters[5]).Value == false)
                 {
-                    order.NumberUser = Convert.ToInt32(res);
-                    _myOrdersInMarket.Add(order);
-
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    qOrder.Comment = order.NumberUser.ToString();
+                }
+                else if (((ServerParameterBool)ServerParameters[5]).Value == true)
+                {
+                    qOrder.Comment = order.PortfolioNumber + "//" + order.NumberUser.ToString();
                 }
 
-                if (res < 0)
+                lock (_serverLocker)
                 {
-                    order.State = OrderStateType.Fail;
-                    if (MyOrderEvent != null)
+                    var res = QuikLua.Orders.CreateOrder(qOrder).Result;
+
+                    if (res > 0)
                     {
-                        MyOrderEvent(order);
+                        order.NumberUser = Convert.ToInt32(res);
+                        _myOrdersInMarket.Add(order);
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+                    }
+
+                    if (res < 0)
+                    {
+                        order.State = OrderStateType.Fail;
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
                     }
                 }
             }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+                order.State = OrderStateType.Fail;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(order);
+                }
+            }
+
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Events_OnTransReply(TransactionReply transReply)
         {
-            if (transReply.Status != 4 &&
+            try
+            {
+                if (transReply.Status != 4 &&
                 transReply.Status != 6)
-            {
-                return;
+                {
+                    return;
+                }
+
+                Order order = new Order();
+                order.NumberUser = transReply.TransID;
+                order.State = OrderStateType.Fail;
+                order.SecurityNameCode = transReply.SecCode;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(order);
+                }
+
+                SendLogMessage("Transaction  " + order.NumberUser + "  error: " + transReply.ResultMsg, LogMessageType.Error);
+
             }
-
-            Order order = new Order();
-            order.NumberUser = transReply.TransID;
-            order.State = OrderStateType.Fail;
-            order.SecurityNameCode = transReply.SecCode;
-
-            if (MyOrderEvent != null)
+            catch (Exception error)
             {
-                MyOrderEvent(order);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            SendLogMessage("Transaction  " + order.NumberUser + "  error: " + transReply.ResultMsg, LogMessageType.Error);
         }
 
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            _ordersAllReadyCanseled.Add(order);
-
-            QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
-
-            qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
-            qOrder.Account = order.PortfolioNumber;
-            qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
-
-            if (order.NumberMarket == "")
+            try
             {
-                qOrder.OrderNum = 0;
+                _ordersAllReadyCanseled.Add(order);
+                QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
+                qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
+                qOrder.Account = order.PortfolioNumber;
+                qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
+
+                if (order.NumberMarket == "")
+                {
+                    qOrder.OrderNum = 0;
+                }
+                else
+                {
+                    qOrder.OrderNum = Convert.ToInt64(order.NumberMarket);
+                }
+                //qOrder.OrderNum = Convert.ToInt64(order.NumberMarket);
+
+                lock (_serverLocker)
+                {
+                    var res = QuikLua.Orders.KillOrder(qOrder).Result;
+                }
+
             }
-            else
+            catch (Exception error)
             {
-                qOrder.OrderNum = Convert.ToInt64(order.NumberMarket);
-            }
-            //qOrder.OrderNum = Convert.ToInt64(order.NumberMarket);
-
-            lock (_serverLocker)
-            {
-                var res = QuikLua.Orders.KillOrder(qOrder).Result;
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -867,19 +937,27 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<string> subscribedBook = new List<string>();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Subscrible(Security security)
         {
-            if (subscribedBook.Find(s => s == security.Name) != null)
+            try
             {
-                return;
-            }
+                if (subscribedBook.Find(s => s == security.Name) != null)
+                {
+                    return;
+                }
 
-            lock (_serverLocker)
+                lock (_serverLocker)
+                {
+                    QuikLua.OrderBook.Subscribe(security.NameClass, security.Name.Split('+')[0]);
+                    subscribedBook.Add(security.Name);
+                    QuikLua.Events.OnAllTrade -= EventsOnOnAllTrade;
+                    QuikLua.Events.OnAllTrade += EventsOnOnAllTrade;
+                }
+            }
+            catch (Exception error)
             {
-                QuikLua.OrderBook.Subscribe(security.NameClass, security.Name.Split('+')[0]);
-                subscribedBook.Add(security.Name);
-                QuikLua.Events.OnAllTrade -= EventsOnOnAllTrade;
-                QuikLua.Events.OnAllTrade += EventsOnOnAllTrade;
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -890,54 +968,65 @@ namespace OsEngine.Market.Servers.QuikLua
             return null;
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
-            List<Trade> AllHistoricalTrades = new List<Trade>();
-
-            //скачаем новые данные из квика. (доступна только текущая сессия. с 19.00 вчерашнего по 18.45 текущего дня)	
-            List<Trade> newTrades = GetQuikLuaTickHistory(security);
-
-            //сохраним новые данные	
-            if (!Directory.Exists(@"Data\Temp\"))
+            try
             {
-                Directory.CreateDirectory(@"Data\Temp\");
-            }
+                List<Trade> AllHistoricalTrades = new List<Trade>();
 
-            DateTime fileNameDate = DateTime.Now.TimeOfDay.Hours < 19 ? DateTime.Now.Date : DateTime.Now.Date.AddDays(1);
-            string fileName = @"Data\Temp\" + security.Name + "_QuikLuaServer_" + fileNameDate.ToShortDateString() + ".txt";
+                //скачаем новые данные из квика. (доступна только текущая сессия. с 19.00 вчерашнего по 18.45 текущего дня)	
+                List<Trade> newTrades = GetQuikLuaTickHistory(security);
 
-            StreamWriter writer = new StreamWriter(fileName, false);
-            for (int i = 0; i < newTrades.Count; i++)
-            {
-                writer.WriteLine(newTrades[i].GetSaveString());
-            }
-            writer.Close();
-
-            // объединим со старыми данными, если они есть	
-            List<string> files = Directory.GetFiles(@"Data\Temp\", "*").ToList().FindAll(x => x.Contains(security.Name + "_QuikLuaServer_"));
-
-            for (int i = 0; i < files.Count; i++)
-            {
-                StreamReader reader = new StreamReader(files[i]);
-
-                while (!reader.EndOfStream)
+                //сохраним новые данные	
+                if (!Directory.Exists(@"Data\Temp\"))
                 {
-                    try
-                    {
-                        Trade newTrade = new Trade();
-                        newTrade.SetTradeFromString(reader.ReadLine());
-                        newTrade.SecurityNameCode = security.Name;
-                        AllHistoricalTrades.Add(newTrade);
-                    }
-                    catch
-                    {
-                        // ignore	
-                    }
+                    Directory.CreateDirectory(@"Data\Temp\");
                 }
-                reader.Close();
+
+                DateTime fileNameDate = DateTime.Now.TimeOfDay.Hours < 19 ? DateTime.Now.Date : DateTime.Now.Date.AddDays(1);
+                string fileName = @"Data\Temp\" + security.Name + "_QuikLuaServer_" + fileNameDate.ToShortDateString() + ".txt";
+
+                StreamWriter writer = new StreamWriter(fileName, false);
+                for (int i = 0; i < newTrades.Count; i++)
+                {
+                    writer.WriteLine(newTrades[i].GetSaveString());
+                }
+                writer.Close();
+
+                // объединим со старыми данными, если они есть	
+                List<string> files = Directory.GetFiles(@"Data\Temp\", "*").ToList().FindAll(x => x.Contains(security.Name + "_QuikLuaServer_"));
+
+                for (int i = 0; i < files.Count; i++)
+                {
+                    StreamReader reader = new StreamReader(files[i]);
+
+                    while (!reader.EndOfStream)
+                    {
+                        try
+                        {
+                            Trade newTrade = new Trade();
+                            newTrade.SetTradeFromString(reader.ReadLine());
+                            newTrade.SecurityNameCode = security.Name;
+                            AllHistoricalTrades.Add(newTrade);
+                        }
+                        catch
+                        {
+                            // ignore	
+                        }
+                    }
+                    reader.Close();
+                }
+                return AllHistoricalTrades;
+
             }
-            return AllHistoricalTrades;
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            return new List<Trade>();
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -957,6 +1046,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         /// <param name="security"> short security name/короткое название бумаги</param>
         /// <returns>failure will return null/в случае неудачи вернётся null</returns>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Trade> GetQuikLuaTickHistory(Security security)
         {
             try
@@ -1005,6 +1095,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// <param name="security"> short security name/короткое название бумаги</param>
         /// <param name="timeSpan">timeframe/таймФрейм</param>
         /// <returns>failure will return null/в случае неудачи вернётся null</returns>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Candle> GetQuikLuaCandleHistory(Security security, TimeSpan timeSpan)
         {
             try
@@ -1133,6 +1224,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object _newTradesLoker = new object();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnAllTrade(AllTrade allTrade)
         {
             try
@@ -1181,122 +1273,147 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object changeFutPortf = new object();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnFuturesLimitChange(FuturesLimits futLimit)
         {
-            lock (changeFutPortf)
+            try
             {
-                if (_portfolios == null || _portfolios.Count == 0)
+                lock (changeFutPortf)
                 {
-                    return;
-                }
-
-                Portfolio needPortf = _portfolios.Find(p => p.Number == futLimit.TrdAccId);
-
-                if (needPortf != null)
-                {
-                    needPortf.ValueBegin = Convert.ToDecimal(futLimit.CbpPrevLimit);
-                    needPortf.ValueCurrent = Convert.ToDecimal(futLimit.CbpLimit);
-                    needPortf.ValueBlocked =
-                        Convert.ToDecimal(futLimit.CbpLUsedForOrders + futLimit.CbpLUsedForPositions);
-                    needPortf.Profit = Convert.ToDecimal(futLimit.VarMargin);
-
-                    if (PortfolioEvent != null)
+                    if (_portfolios == null || _portfolios.Count == 0)
                     {
-                        PortfolioEvent(_portfolios);
+                        return;
+                    }
+
+                    Portfolio needPortf = _portfolios.Find(p => p.Number == futLimit.TrdAccId);
+
+                    if (needPortf != null)
+                    {
+                        needPortf.ValueBegin = Convert.ToDecimal(futLimit.CbpPrevLimit);
+                        needPortf.ValueCurrent = Convert.ToDecimal(futLimit.CbpLimit);
+                        needPortf.ValueBlocked =
+                            Convert.ToDecimal(futLimit.CbpLUsedForOrders + futLimit.CbpLUsedForPositions);
+                        needPortf.Profit = Convert.ToDecimal(futLimit.VarMargin);
+
+                        if (PortfolioEvent != null)
+                        {
+                            PortfolioEvent(_portfolios);
+                        }
                     }
                 }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
         private object changeFutPosLocker = new object();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnFuturesClientHolding(FuturesClientHolding futPos)
         {
-            lock (changeFutPosLocker)
+            try
             {
-                if (_portfolios != null && _portfolios.Count != 0)
+                lock (changeFutPosLocker)
                 {
-                    Portfolio needPortfolio = _portfolios.Find(p => p.Number == futPos.trdAccId);
-
-                    if (needPortfolio == null)
+                    if (_portfolios != null && _portfolios.Count != 0)
                     {
-                        return;
-                    }
+                        Portfolio needPortfolio = _portfolios.Find(p => p.Number == futPos.trdAccId);
 
-                    PositionOnBoard newPos = new PositionOnBoard();
+                        if (needPortfolio == null)
+                        {
+                            return;
+                        }
 
-                    newPos.PortfolioName = futPos.trdAccId;
-                    newPos.SecurityNameCode = futPos.secCode;
-                    newPos.ValueBegin = Convert.ToDecimal(futPos.startNet);
-                    newPos.ValueCurrent = Convert.ToDecimal(futPos.totalNet);
-                    newPos.ValueBlocked = 0;
+                        PositionOnBoard newPos = new PositionOnBoard();
 
-                    needPortfolio.SetNewPosition(newPos);
+                        newPos.PortfolioName = futPos.trdAccId;
+                        newPos.SecurityNameCode = futPos.secCode;
+                        newPos.ValueBegin = Convert.ToDecimal(futPos.startNet);
+                        newPos.ValueCurrent = Convert.ToDecimal(futPos.totalNet);
+                        newPos.ValueBlocked = 0;
 
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
+                        needPortfolio.SetNewPosition(newPos);
+
+                        if (PortfolioEvent != null)
+                        {
+                            PortfolioEvent(_portfolios);
+                        }
                     }
                 }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
         private object quoteLock = new object();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnQuote(OrderBook orderBook)
         {
-            lock (quoteLock)
+            try
             {
-                string curName = orderBook.sec_code + "+" + orderBook.class_code;
-
-                if (subscribedBook.Find(name => name == curName) == null)
+                lock (quoteLock)
                 {
-                    return;
-                }
+                    string curName = orderBook.sec_code + "+" + orderBook.class_code;
 
-                if (orderBook.bid == null || orderBook.offer == null)
-                {
-                    return;
-                }
-
-                MarketDepth myDepth = new MarketDepth();
-
-                myDepth.SecurityNameCode = curName;
-                myDepth.Time = DateTime.Now;
-
-                myDepth.Bids = new List<MarketDepthLevel>();
-                for (int i = 0; i < orderBook.bid.Length; i++)
-                {
-                    myDepth.Bids.Add(new MarketDepthLevel()
+                    if (subscribedBook.Find(name => name == curName) == null)
                     {
-                        Bid = Convert.ToDecimal(orderBook.bid[i].quantity),
-                        Price = Convert.ToDecimal(orderBook.bid[i].price),
-                        Ask = 0
-                    });
-                }
+                        return;
+                    }
 
-                myDepth.Bids.Reverse();
-
-                myDepth.Asks = new List<MarketDepthLevel>();
-                for (int i = 0; i < orderBook.offer.Length; i++)
-                {
-                    myDepth.Asks.Add(new MarketDepthLevel()
+                    if (orderBook.bid == null || orderBook.offer == null)
                     {
-                        Ask = Convert.ToDecimal(orderBook.offer[i].quantity),
-                        Price = Convert.ToDecimal(orderBook.offer[i].price),
-                        Bid = 0
-                    });
-                }
+                        return;
+                    }
 
-                if (MarketDepthEvent != null)
-                {
-                    MarketDepthEvent(myDepth);
+                    MarketDepth myDepth = new MarketDepth();
+
+                    myDepth.SecurityNameCode = curName;
+                    myDepth.Time = DateTime.Now;
+
+                    myDepth.Bids = new List<MarketDepthLevel>();
+                    for (int i = 0; i < orderBook.bid.Length; i++)
+                    {
+                        myDepth.Bids.Add(new MarketDepthLevel()
+                        {
+                            Bid = Convert.ToDecimal(orderBook.bid[i].quantity),
+                            Price = Convert.ToDecimal(orderBook.bid[i].price),
+                            Ask = 0
+                        });
+                    }
+
+                    myDepth.Bids.Reverse();
+
+                    myDepth.Asks = new List<MarketDepthLevel>();
+                    for (int i = 0; i < orderBook.offer.Length; i++)
+                    {
+                        myDepth.Asks.Add(new MarketDepthLevel()
+                        {
+                            Ask = Convert.ToDecimal(orderBook.offer[i].quantity),
+                            Price = Convert.ToDecimal(orderBook.offer[i].price),
+                            Bid = 0
+                        });
+                    }
+
+                    if (MarketDepthEvent != null)
+                    {
+                        MarketDepthEvent(myDepth);
+                    }
                 }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
         private object orderLocker = new object();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnOrder(QuikSharp.DataStructures.Transaction.Order qOrder)
         {
             lock (orderLocker)
@@ -1378,6 +1495,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private async Task CreateMyTrades(QuikSharp.DataStructures.Transaction.Order qOrder)
         {
             try
@@ -1404,6 +1522,7 @@ namespace OsEngine.Market.Servers.QuikLua
         private List<QuikSharp.DataStructures.Transaction.Trade> _myTradesFromQuik =
             new List<QuikSharp.DataStructures.Transaction.Trade>();
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnTrade(QuikSharp.DataStructures.Transaction.Trade qTrade)
         {
             lock (myTradeLocker)
@@ -1450,29 +1569,59 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnDisconnectedFromQuik()
         {
-            ServerStatus = ServerConnectStatus.Disconnect;
-            DisconnectEvent?.Invoke();
+            try
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent?.Invoke();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnConnectedToQuik(int port)
         {
-            ServerStatus = ServerConnectStatus.Connect;
-            ConnectEvent?.Invoke();
+            try
+            {
+                ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent?.Invoke();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void EventsOnOnDisconnected()
         {
-            ServerStatus = ServerConnectStatus.Disconnect;
-            DisconnectEvent?.Invoke();
+            try
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent?.Invoke();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void EventsOnOnConnected()
         {
-            ServerStatus = ServerConnectStatus.Connect;
-
-            ConnectEvent?.Invoke();
+            try
+            {
+                ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent?.Invoke();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         // outgoing events
@@ -1553,7 +1702,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
         /// <summary>
