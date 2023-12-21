@@ -53,6 +53,11 @@
             <GradientStop Color="#1c2228" Offset="0.864" />
         </LinearGradientBrush>
 
+        <LinearGradientBrush x:Key="ControlBorderBrushLight" StartPoint="0,0.5" EndPoint="1,0.5">
+            <GradientStop Color="#FF686868" Offset="0.204" />
+            <GradientStop Color="#FF686868" Offset="0.864" />
+        </LinearGradientBrush>
+
         <LinearGradientBrush x:Key="ControlActiveBorderBrush" StartPoint="0,0.5" EndPoint="1,0.5">
             <GradientStop Color="#ff5500" Offset="0.204" />
             <GradientStop Color="#ff5500" Offset="0.864" />
@@ -682,8 +687,10 @@
         <!-- CheckBox -->
         <Style TargetType="{x:Type CheckBox}">
             <Setter Property="Background" Value="{StaticResource ControlBackgroundNormal}" />
-            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrushLight}" />
             <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}" />
+            <Setter Property="BorderThickness" Value="1" />
+
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Padding" Value="4,0" />
             <Setter Property="Height" Value="23" />
@@ -709,14 +716,12 @@
                         <BulletDecorator Background="Transparent">
                             <BulletDecorator.Bullet>
                                 <Grid Width="15" Height="23">
-                                    <Rectangle Height="14" Width="14" x:Name="background_checkbox" Stroke="{TemplateBinding BorderBrush}"
-                                           Fill="{TemplateBinding Background}"/>
+                                    <Rectangle Height="14" Width="14" x:Name="background_checkbox" Stroke="{TemplateBinding BorderBrush}" Fill="{TemplateBinding Background}"/>
                                     <Path x:Name="check_icon" Opacity="0" Stretch="Fill" 
                                       Data="M102.03442,598.79645 L105.22962,597.78918 L106.95686,599.19977 C106.95686,599.19977 113.77958,590.53656 113.77958,590.53656 C113.77958,590.53656 107.40649,603.79431 107.40649,603.79431 z" 
                                       Fill="{StaticResource ControlBackgroundOver}" Height="10" Width="11"/>
                                     <Rectangle Height="7" Width="7" x:Name="background_null_checkbox" Fill="{StaticResource ControlBackgroundOver}" Opacity="0"/>
-                                    <Rectangle Height="12" Width="12" x:Name="background_disabled_checkbox" Fill="{StaticResource DisabledBrush}" 
-                                           Stroke="{StaticResource DisabledBorderBrush}" StrokeThickness="1" Opacity="0"/>
+                                    <Rectangle Height="12" Width="12" x:Name="background_disabled_checkbox" Fill="{StaticResource DisabledBrush}" Stroke="{StaticResource DisabledBorderBrush}" StrokeThickness="1" Opacity="0"/>
                                 </Grid>
                             </BulletDecorator.Bullet>
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" 
