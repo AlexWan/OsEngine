@@ -279,9 +279,15 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             int days = 1; // период, за который запрашивать свечи 
 
-            if (tf >= TimeFrame.Hour1)
+            if (tf == TimeFrame.Hour1 ||
+                tf == TimeFrame.Hour2 ||
+                tf == TimeFrame.Hour4)
             {
                 days = 7; // Tinkoff api позволяет запрашивать большие интервалы данных для таймфреймов более 1 часа
+            }
+            else if (tf == TimeFrame.Day)
+            {
+                days = 35;
             }
 
             while (from.Hour > 1)
