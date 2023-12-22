@@ -876,7 +876,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             priceStep += "1";
 
-            return Convert.ToDecimal(priceStep);
+            return priceStep.ToDecimal();
         }
 
         private string GetPriceStep(int PricePlace, int PriceEndStep)
