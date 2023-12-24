@@ -1821,7 +1821,7 @@ namespace OsEngine.Market.Servers.Alor
             }
             requestObj.type = "limit";
             requestObj.quantity = Convert.ToInt32(order.Volume);
-            requestObj.price = Convert.ToDecimal(order.Price);
+            requestObj.price = order.Price;
             requestObj.comment = order.NumberUser.ToString();
             requestObj.instrument = new instrumentAlor();
             requestObj.instrument.symbol = order.SecurityNameCode;
