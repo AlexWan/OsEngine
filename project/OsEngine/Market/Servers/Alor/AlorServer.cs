@@ -9,6 +9,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Alor.Json;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.ZB;
 using RestSharp;
 using System;
 using System.Collections.Concurrent;
@@ -1661,6 +1662,25 @@ namespace OsEngine.Market.Servers.Alor
             }
             else if (baseMessage.status == "canceled")
             {
+                lock (_changePriceOrdersArrayLocker)
+                {
+                    DateTime now = DateTime.Now;
+                    for (int i = 0; i < _changePriceOrders.Count; i++)
+                    {
+                        if (_changePriceOrders[i].TimeChangePriceOrder.AddSeconds(2) < now)
+                        {
+                            _changePriceOrders.RemoveAt(i);
+                            i--;
+                            continue;
+                        }
+
+                        if (_changePriceOrders[i].MarketId == order.NumberMarket)
+                        {
+                            return;
+                        }
+                    }
+                }
+
                 if(string.IsNullOrEmpty(baseMessage.filledQtyUnits))
                 {
                     order.State = OrderStateType.Cancel;
@@ -1745,6 +1765,8 @@ namespace OsEngine.Market.Servers.Alor
         private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
         private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+
+        private RateGate rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
         public void SendOrder(Order order)
         {
@@ -1858,6 +1880,102 @@ namespace OsEngine.Market.Servers.Alor
             requestObj.user.portfolio = order.PortfolioNumber.Split('_')[0];
 
             return requestObj;
+        }
+
+        List<AlorChangePriceOrder> _changePriceOrders = new List<AlorChangePriceOrder>();
+
+        private string _changePriceOrdersArrayLocker = "cangePriceArrayLocker";
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+            try
+            {
+                rateGateChangePriceOrder.WaitToProceed();
+
+                if (order.TypeOrder == OrderPriceType.Market)
+                {
+                    SendLogMessage("Can`t change price to market order", LogMessageType.Error);
+                    return;
+                }
+                
+                string endPoint = "/commandapi/warptrans/TRADE/v2/client/orders/actions/limit/";
+
+                endPoint += order.NumberMarket;
+
+                RestRequest requestRest = new RestRequest(endPoint, Method.PUT);
+                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                requestRest.AddHeader("X-ALOR-REQID", order.NumberUser.ToString() + GetGuid()); ;
+                requestRest.AddHeader("accept", "application/json");
+
+                LimitOrderAlorRequest body = GetLimitRequestObj(order);
+                body.price = newPrice;
+
+                int qty = Convert.ToInt32(order.Volume - order.VolumeExecute);
+
+                if(qty <= 0 ||
+                    order.State != OrderStateType.Activ)
+                {
+                    SendLogMessage("Can`t change price to order. It`s don`t in Activ state", LogMessageType.Error);
+                    return;
+                }
+
+                requestRest.AddJsonBody(body);
+                
+                RestClient client = new RestClient(_restApiHost);
+
+                AlorChangePriceOrder alorChangePriceOrder = new AlorChangePriceOrder();
+                alorChangePriceOrder.MarketId = order.NumberMarket.ToString();
+                alorChangePriceOrder.TimeChangePriceOrder = DateTime.Now;
+
+                lock(_changePriceOrdersArrayLocker)
+                {
+                    _changePriceOrders.Add(alorChangePriceOrder);
+                }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    SendLogMessage("Order change price. New price: " + newPrice
+                        + "  " + order.SecurityNameCode, LogMessageType.System);
+
+                    order.Price = newPrice;
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(order);
+                    }
+
+                    return;
+                }
+                else
+                {
+                    SendLogMessage("Order Fail. Status: "
+                        + response.StatusCode + "  " + order.SecurityNameCode, LogMessageType.Error);
+
+                    if (response.Content != null)
+                    {
+                        SendLogMessage("Fail reasons: "
+                      + response.Content, LogMessageType.Error);
+                    }
+
+                    order.State = OrderStateType.Fail;
+
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(order);
+                    }
+                }
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         List<string> _cancelOrderNums = new List<string>();
@@ -2041,6 +2159,13 @@ namespace OsEngine.Market.Servers.Alor
 
         public string ServiceInfo;
 
+    }
+
+    public class AlorChangePriceOrder
+    {
+        public string MarketId;
+
+        public DateTime TimeChangePriceOrder;
     }
 
     public enum AlorSubType

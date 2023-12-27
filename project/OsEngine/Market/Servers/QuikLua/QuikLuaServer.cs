@@ -859,6 +859,11 @@ namespace OsEngine.Market.Servers.QuikLua
 
         }
 
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void Events_OnTransReply(TransactionReply transReply)
         {

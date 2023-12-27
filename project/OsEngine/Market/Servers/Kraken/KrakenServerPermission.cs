@@ -100,6 +100,11 @@ namespace OsEngine.Market.Servers.Kraken
             get { return true; }
         }
 
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
+        }
+
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }

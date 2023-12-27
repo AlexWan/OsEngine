@@ -96,9 +96,15 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             get { return false; }
         }
+
         public bool IsTradeServer
         {
             get { return true; }
+        }
+
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
         }
 
         public TimeFramePermission TradeTimeFramePermission

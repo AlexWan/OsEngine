@@ -276,6 +276,21 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         private StartProgram _startProgram;
 
         /// <summary>
+        /// Disable all support functions
+        /// </summary>
+        public void DisableManualSupport()
+        {
+            this.DoubleExitIsOn = false;
+            this.ProfitIsOn = false;
+            this.SecondToCloseIsOn = false;
+            this.SecondToOpenIsOn = false;
+            this.SetbackToCloseIsOn = false;
+            this.SetbackToOpenIsOn = false;
+            this.StopIsOn = false;
+            Save();
+        }
+
+        /// <summary>
         /// Stop is enabled
         /// </summary>
         public bool StopIsOn;
@@ -309,7 +324,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// Open orders life time is enabled
         /// </summary>
         public bool SecondToOpenIsOn;
-
 
         /// <summary>
         /// Time to open a position in seconds, after which the order will be recalled

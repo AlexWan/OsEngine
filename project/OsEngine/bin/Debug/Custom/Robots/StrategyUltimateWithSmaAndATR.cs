@@ -4,7 +4,6 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using QuikSharp;
 using System;
 using System.Collections.Generic;
 

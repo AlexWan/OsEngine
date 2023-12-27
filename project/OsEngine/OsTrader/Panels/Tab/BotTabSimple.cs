@@ -23,6 +23,7 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
@@ -1126,6 +1127,38 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Does the server support market orders
+        /// </summary>
+        public bool ServerIsSupportMarketOrders
+        {
+            get
+            {
+                if(_connector == null)
+                {
+                    return false;
+                }
+
+                return _connector.MarketOrdersIsSupport;
+            }
+        }
+
+        /// <summary>
+        /// Does the server support order price change
+        /// </summary>
+        public bool ServerIsSupportChangeOrderPrice
+        {
+            get
+            {
+                if (_connector == null)
+                {
+                    return false;
+                }
+
+                return _connector.IsCanChangeOrderPrice;
+            }
+        }
+
         // call control windows
 
         /// <summary>
@@ -1320,19 +1353,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         // standard public functions for position management
-
-        /// <summary>
-        /// True - if the server supports stop orders
-        /// </summary>
-        private bool IsMarketStopOrderSupport()
-        {
-            if (_connector.ServerType == ServerType.BinanceFutures)
-            {
-                return true;
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Enter a long position at any price
@@ -3181,6 +3201,34 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void CloseOrder(Order order)
         {
             _connector.OrderCancel(order);
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+            if(order == null)
+            {
+                return;
+            }
+
+            if(StartProgram != StartProgram.IsOsTrader)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label371, LogMessageType.Error);
+                return;
+            }
+
+            if(IsConnected == false ||
+                IsReadyToTrade == false)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label372, LogMessageType.Error);
+                return;
+            }
+
+            _connector.ChangeOrderPrice(order, newPrice);
         }
 
         // internal position management functions
