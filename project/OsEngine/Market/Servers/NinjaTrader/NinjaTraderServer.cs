@@ -96,6 +96,11 @@ namespace OsEngine.Market.Servers.NinjaTrader
             _client.ExecuteOrder(order);
         }
 
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         public void CancelOrder(Order order)
         {
             _client.CancelOrder(order);

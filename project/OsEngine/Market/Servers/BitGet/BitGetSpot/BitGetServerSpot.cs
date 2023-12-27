@@ -910,6 +910,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         }
 
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         public void GetOrdersState(List<Order> orders)
         {
 

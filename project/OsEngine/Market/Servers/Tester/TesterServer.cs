@@ -3753,7 +3753,6 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private int _iteratorNumbersMyTrades;
 
-
         /// <summary>
 		/// place order to the exchange
         /// выставить ордер на биржу
@@ -3870,6 +3869,17 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
         }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
 
         /// <summary>
 		/// cancel order from the exchange

@@ -95,7 +95,13 @@ namespace OsEngine.Market.Servers.MFD
         {
             get { return false; }
         }
+
         public bool IsTradeServer
+        {
+            get { return false; }
+        }
+
+        public bool IsCanChangeOrderPrice
         {
             get { return false; }
         }

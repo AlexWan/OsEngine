@@ -989,6 +989,7 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_2_LimitsExecute.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_3_MarketOrders.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_4_LimitCancel.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_5_ChangePrice.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Portfolio_1_Validation.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_2_MarketDepth.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_1_Securities.cs" />
@@ -1025,6 +1026,7 @@
     <Compile Include="Robots\PairArbitrage\PairCorrelationNegative.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationTrader.cs" />
     <Compile Include="Robots\TechSapmles\BlockIndicatorsSample.cs" />
+    <Compile Include="Robots\TechSapmles\ChangePriceBotExtStopMarket.cs" />
     <Compile Include="Robots\TechSapmles\CustomParamsUseBotSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />

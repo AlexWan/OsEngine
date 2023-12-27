@@ -411,6 +411,9 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        /// <summary>
+        /// Does the server support market orders
+        /// </summary>
         public bool MarketOrdersIsSupport
         {
             get
@@ -437,6 +440,29 @@ namespace OsEngine.Market.Connectors
 
 
                 return serverPermision.MarketOrdersIsSupport;
+            }
+        }
+
+        /// <summary>
+        /// Does the server support order price change
+        /// </summary>
+        public bool IsCanChangeOrderPrice
+        {
+            get
+            {
+                if (ServerType == ServerType.None)
+                {
+                    return false;
+                }
+
+                IServerPermission serverPermision = ServerMaster.GetServerPermission(ServerType);
+
+                if (serverPermision == null)
+                {
+                    return false;
+                }
+
+                return serverPermision.IsCanChangeOrderPrice;
             }
         }
 
@@ -1537,6 +1563,65 @@ namespace OsEngine.Market.Connectors
                 else
                 {
                     _myServer.CancelOrder(order);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+            if (order == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_myServer == null)
+                {
+                    return;
+                }
+
+                if (_myServer.ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendNewLogMessage(OsLocalization.Market.Message2, LogMessageType.Error);
+                    return;
+                }
+
+                if(order.Volume == order.VolumeExecute 
+                    || order.State == OrderStateType.Done
+                    || order.State == OrderStateType.Fail)
+                {
+                    return;
+                }
+
+                if(EmulatorIsOn)
+                {
+                    if(_emulator.ChangeOrderPrice(order, newPrice))
+                    {
+                        if (OrderChangeEvent != null)
+                        {
+                            OrderChangeEvent(order);
+                        }
+                    }
+                }
+                else
+                {
+                    if(IsCanChangeOrderPrice == false)
+                    {
+                        SendNewLogMessage(OsLocalization.Trader.Label373, LogMessageType.Error);
+                        return;
+                    }
+
+                     _myServer.ChangeOrderPrice(order, newPrice);
                 }
             }
             catch (Exception error)

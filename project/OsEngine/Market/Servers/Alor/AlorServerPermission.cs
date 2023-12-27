@@ -110,6 +110,11 @@ namespace OsEngine.Market.Servers.Alor
             get { return 30; }
         }
 
+        public bool IsCanChangeOrderPrice
+        {
+            get { return true; }
+        }
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {

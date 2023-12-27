@@ -426,6 +426,11 @@ namespace OsEngine.Market.Servers.ZB
             _wsSource?.SendMessage(jsonContent.ToString());
         }
 
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         public void CancelOrder(Order order)
         {
             JsonObject jsonContent = new JsonObject();
