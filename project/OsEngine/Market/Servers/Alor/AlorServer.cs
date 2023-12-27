@@ -9,7 +9,6 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Alor.Json;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.ZB;
 using RestSharp;
 using System;
 using System.Collections.Concurrent;
@@ -1614,7 +1613,23 @@ namespace OsEngine.Market.Servers.Alor
 
             order.SecurityNameCode = baseMessage.symbol;
             order.Volume = baseMessage.qty.ToDecimal();
-            
+
+            bool securityInArray = false;
+            for(int i = 0;i < _securitiesAndPortfolious.Count;i++)
+            {
+                if (_securitiesAndPortfolious[i].Security == order.SecurityNameCode)
+                {
+                    order.PortfolioNumber = _securitiesAndPortfolious[i].Portfolio;
+                    securityInArray = true;
+                    break;
+                }
+            }
+
+            if(securityInArray == false)
+            {
+                order.PortfolioNumber = baseMessage.exchange;
+            }
+
             if(baseMessage.type == "limit")
             {
                 order.Price = baseMessage.price.ToDecimal();
@@ -1768,6 +1783,8 @@ namespace OsEngine.Market.Servers.Alor
 
         private RateGate rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
+        private List<AlorSecuritiesAndPortfolious> _securitiesAndPortfolious = new List<AlorSecuritiesAndPortfolious>();
+
         public void SendOrder(Order order)
         {
             rateGateSendOrder.WaitToProceed();
@@ -1807,6 +1824,23 @@ namespace OsEngine.Market.Servers.Alor
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
+                    bool isInArray = false;
+                    for(int i = 0;i < _securitiesAndPortfolious.Count;i++)
+                    {
+                        if (_securitiesAndPortfolious[i].Security == order.SecurityNameCode)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+                    if(isInArray == false)
+                    {
+                        AlorSecuritiesAndPortfolious newValue = new AlorSecuritiesAndPortfolious();
+                        newValue.Security = order.SecurityNameCode;
+                        newValue.Portfolio = order.PortfolioNumber;
+                        _securitiesAndPortfolious.Add(newValue);
+                    }
+
                     return;
                 }
                 else
@@ -2166,6 +2200,13 @@ namespace OsEngine.Market.Servers.Alor
         public string MarketId;
 
         public DateTime TimeChangePriceOrder;
+    }
+
+    public class AlorSecuritiesAndPortfolious
+    {
+       public string Security;
+
+       public string Portfolio;
     }
 
     public enum AlorSubType
