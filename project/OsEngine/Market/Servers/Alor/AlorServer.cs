@@ -396,6 +396,10 @@ namespace OsEngine.Market.Servers.Alor
                     {
                         newSecurity.NameClass = "Stock";
                     }
+		    else if (item.type == "CORP")
+                    {
+                        newSecurity.NameClass = "Bond";
+                    }
                     else if (item.type == "PS")
                     {
                         newSecurity.NameClass = "Stock Pref";
@@ -427,6 +431,8 @@ namespace OsEngine.Market.Servers.Alor
             if (cfiCode.StartsWith("F")) return SecurityType.Futures;
             if (cfiCode.StartsWith("O")) return SecurityType.Option;
             if (cfiCode.StartsWith("ES") || cfiCode.StartsWith("EP")) return SecurityType.Stock;
+            if (cfiCode.StartsWith("DB")) return SecurityType.Bond;
+
             var board = security.board;
             if (board == "CETS") return SecurityType.CurrencyPair;
 
