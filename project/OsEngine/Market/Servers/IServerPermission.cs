@@ -50,6 +50,8 @@
 
         bool IsTradeServer { get; }
 
+        bool IsCanChangeOrderPrice { get; }
+
         TimeFramePermission TradeTimeFramePermission { get; }
 
         int WaitTimeAfterFirstStartToSendOrders { get; }

@@ -111,7 +111,6 @@ namespace OsEngine.Market.Servers.Huobi.Spot
 
         private readonly ConcurrentQueue<string> _queueMarketDataReceivedFromExchange = new ConcurrentQueue<string>();
 
-
         public void Connect()
         {
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
@@ -709,6 +708,16 @@ namespace OsEngine.Market.Servers.Huobi.Spot
 
                 MyOrderEvent(order);
             }
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
         }
 
         public void CancelOrder(Order order)

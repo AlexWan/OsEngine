@@ -49,6 +49,8 @@ using OsEngine.Market.Servers.BybitSpot;
 using OsEngine.Market.Servers.BitGet.BitGetSpot;
 using OsEngine.Market.Servers.BitGet.BitGetFutures;
 using OsEngine.Market.Servers.Alor;
+using OsEngine.Market.Servers.GateIo.GateIoSpot;
+using OsEngine.Market.Servers.GateIo.GateIoFutures;
 
 namespace OsEngine.Market
 {
@@ -88,7 +90,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
 
-                serverTypes.Add(ServerType.GateIo);
+                serverTypes.Add(ServerType.GateIoSpot);
                 serverTypes.Add(ServerType.GateIoFutures);
                 serverTypes.Add(ServerType.AscendEx_BitMax);
                 serverTypes.Add(ServerType.Binance);
@@ -356,13 +358,13 @@ namespace OsEngine.Market
                 {
                     newServer = new HitbtcServer();
                 }
-                if (type == ServerType.GateIo)
+                if (type == ServerType.GateIoSpot)
                 {
-                    newServer = new GateIoServer();
+                    newServer = new GateIoServerSpot();
                 }
                 if (type == ServerType.GateIoFutures)
                 {
-                    newServer = new GateIoFuturesServer();
+                    newServer = new GateIoServerFutures();
                 }
                 if (type == ServerType.Bybit)
                 {
@@ -900,7 +902,19 @@ namespace OsEngine.Market
 
                 if (serverPermission == null)
                 {
-                    serverPermission = new GateIoFuturesServerPermission();
+                    serverPermission = new GateIoServerFuturesPermission();
+                    _serversPermissions.Add(serverPermission);
+                }
+
+                return serverPermission;
+            }
+            if (type == ServerType.GateIoSpot)
+            {
+                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+
+                if (serverPermission == null)
+                {
+                    serverPermission = new GateIoSpotServerPermission();
                     _serversPermissions.Add(serverPermission);
                 }
 
@@ -1290,7 +1304,7 @@ namespace OsEngine.Market
         /// cryptocurrency exchange Gate.io
         /// биржа криптовалют Gate.io
         /// </summary>
-        GateIo,
+        GateIoSpot,
 
         /// <summary>
         /// Futures of cryptocurrency exchange Gate.io

@@ -507,8 +507,6 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-
-
         private bool _portfolioStarted = false; // already subscribed to portfolios / уже подписались на портфели
 
         /// <summary>
@@ -1155,7 +1153,7 @@ namespace OsEngine.Market.Servers.BitMex
                                             Id = quotes.data[i].id
                                         });
                                     }
-                                    else if (j != depth.Bids.Count - 1 && id > depth.Bids[i].Id && id < depth.Bids[j + 1].Id)
+                                    else if (j != depth.Bids.Count - 1 && id > depth.Bids[j].Id && id < depth.Bids[j + 1].Id)
                                     {
                                         depth.Bids.Insert(j + 1, new MarketDepthLevel()
                                         {
@@ -2024,6 +2022,16 @@ namespace OsEngine.Market.Servers.BitMex
             _ordersToExecute.Enqueue(order);
 
             _ordersToCheck.Add(order);
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
         }
 
         /// <summary>

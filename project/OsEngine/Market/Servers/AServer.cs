@@ -133,9 +133,32 @@ namespace OsEngine.Market.Servers
         private object trades_locker = new object();
 
         /// <summary>
+        /// Does the server support order price change
+        /// </summary>
+        public bool IsCanChangeOrderPrice
+        {
+            get
+            {
+                if (ServerType == ServerType.None)
+                {
+                    return false;
+                }
+
+                IServerPermission serverPermision = ServerMaster.GetServerPermission(ServerType);
+
+                if (serverPermision == null)
+                {
+                    return false;
+                }
+
+                return serverPermision.IsCanChangeOrderPrice;
+            }
+        }
+
+        /// <summary>
         /// время ожиадания после старта сервера, по прошествии которого можно выставлять ордера
         /// </summary>
-        protected double WaitTimeAfterFirstStart
+        public double WaitTimeAfterFirstStart
         {
             set { _waitTimeAfterFirstStart = value; }
 
@@ -2049,13 +2072,19 @@ namespace OsEngine.Market.Servers
                     await Task.Delay(1000);
                     continue;
                 }
+
                 try
                 {
-                    await Task.Delay(20);
+                    if(_ordersToExecute.IsEmpty == true)
+                    {
+                        await Task.Delay(1);
+                        continue;
+                    }
 
                     if (_ordersToExecute != null && _ordersToExecute.Count != 0)
                     {
                         OrderAserverSender order;
+
                         if (_ordersToExecute.TryDequeue(out order))
                         {
                             if (order.OrderSendType == OrderSendType.Execute)
@@ -2065,6 +2094,11 @@ namespace OsEngine.Market.Servers
                             else if (order.OrderSendType == OrderSendType.Cancel)
                             {
                                 ServerRealization.CancelOrder(order.Order);
+                            }
+                            else if(order.OrderSendType == OrderSendType.ChangePrice 
+                                && IsCanChangeOrderPrice)
+                            {
+                                ServerRealization.ChangeOrderPrice(order.Order, order.NewPrice);
                             }
                         }
                     }
@@ -2150,6 +2184,48 @@ namespace OsEngine.Market.Servers
                            OsLocalization.Market.Message21 + order.Volume +
                            OsLocalization.Market.Message22 + order.SecurityNameCode +
                            OsLocalization.Market.Message23 + order.NumberUser, LogMessageType.System);
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(order.NumberMarket))
+                {
+                    SendLogMessage("You can't change order price an order without a stock exchange number " + order.NumberUser, LogMessageType.System);
+                    return;
+                }
+
+                if(ServerRealization.ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("You can't change order price when server status Disconnect " + order.NumberUser, LogMessageType.System);
+                    return;
+                }
+
+                if(order.Price == newPrice)
+                {
+                    return;
+                }
+
+                OrderAserverSender ord = new OrderAserverSender();
+                ord.Order = order;
+                ord.OrderSendType = OrderSendType.ChangePrice;
+                ord.NewPrice = newPrice;
+
+                _ordersToExecute.Enqueue(ord);
+
+                SendLogMessage(OsLocalization.Market.Message116 + order.NumberUser, LogMessageType.System);
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -2253,11 +2329,14 @@ namespace OsEngine.Market.Servers
         public Order Order;
 
         public OrderSendType OrderSendType;
+
+        public decimal NewPrice;
     }
 
     public enum OrderSendType
     {
         Execute,
-        Cancel
+        Cancel,
+        ChangePrice
     }
 }

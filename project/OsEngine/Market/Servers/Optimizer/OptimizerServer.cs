@@ -1831,6 +1831,16 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
+        /// <summary>
 		/// cancel order from the exchange
         /// отозвать ордер с биржи
         /// </summary>

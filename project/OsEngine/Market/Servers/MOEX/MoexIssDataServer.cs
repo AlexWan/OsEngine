@@ -79,6 +79,11 @@ namespace OsEngine.Market.Servers.MOEX
 
         }
 
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         public void CancelOrder(Order order)
         {
 

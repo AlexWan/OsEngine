@@ -214,6 +214,11 @@ namespace OsEngine.Entity
         public decimal StopOrderRedLine;
 
         /// <summary>
+        /// Whether the position will be closed by a stop using a market order
+        /// </summary>
+        public bool StopIsMarket;
+
+        /// <summary>
         /// Is a profit active order
         /// </summary>
         public bool ProfitOrderIsActiv;
@@ -227,6 +232,11 @@ namespace OsEngine.Entity
         /// Profit - the price, the price after which the order will be entered into the system
         /// </summary>
         public decimal ProfitOrderRedLine;
+
+        /// <summary>
+        /// Whether the position will be closed by a profit using a market order
+        /// </summary>
+        public bool ProfitIsMarket;
 
         /// <summary>
         /// Buy / sell direction
@@ -804,6 +814,8 @@ namespace OsEngine.Entity
                 }
             }
 
+            result.Append("#" + StopIsMarket);
+            result.Append("#" + ProfitIsMarket);
             result.Append("#" + SecurityName);
             
             return result;
@@ -881,6 +893,19 @@ namespace OsEngine.Entity
                     newOrder.SetOrderFromString(saveOrd);
                     AddNewCloseOrder(newOrder);
                 }
+                else
+                {
+                    break;
+                }
+            }
+
+            if(arraySave[arraySave.Length - 3] == "True" 
+                || arraySave[arraySave.Length - 3] == "False"
+                || arraySave[arraySave.Length - 3] == "true"
+                || arraySave[arraySave.Length - 3] == "false")
+            {
+                StopIsMarket = Convert.ToBoolean(arraySave[arraySave.Length - 3]);
+                ProfitIsMarket = Convert.ToBoolean(arraySave[arraySave.Length - 2]);
             }
 
             SecurityName = arraySave[arraySave.Length - 1];

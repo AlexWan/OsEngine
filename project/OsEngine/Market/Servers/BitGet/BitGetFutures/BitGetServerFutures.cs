@@ -876,7 +876,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             priceStep += "1";
 
-            return Convert.ToDecimal(priceStep);
+            return priceStep.ToDecimal();
         }
 
         private string GetPriceStep(int PricePlace, int PriceEndStep)
@@ -1056,6 +1056,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
         }
 
         #endregion

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.SupportTable
 {
@@ -11,6 +7,16 @@ namespace OsEngine.Market.SupportTable
         public static List<SupportConnection> GetMoexSupportList()
         {
             List<SupportConnection> supportList = new List<SupportConnection>();
+
+            SupportConnection alor = new SupportConnection()
+            {
+                ServerType = ServerType.Alor,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Moex\\alor.png",
+                LingSiteUrl = "https://www.alorbroker.ru/open?pr=L0745",
+                Discount = 0
+            };
+            supportList.Add(alor);
 
             SupportConnection quikDDE = new SupportConnection()
             {
@@ -179,7 +185,7 @@ namespace OsEngine.Market.SupportTable
 
             SupportConnection gateIo = new SupportConnection()
             {
-                ServerType = ServerType.GateIo,
+                ServerType = ServerType.GateIoSpot,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\GateIo.png",
                 LingSiteUrl = "https://www.gate.io/signup/13169541",

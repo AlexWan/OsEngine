@@ -369,6 +369,11 @@ namespace OsEngine.Market.Servers.OKX
             _client.ExecuteOrder(order);
         }
 
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         #endregion
 
         #region Ticks

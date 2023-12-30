@@ -220,7 +220,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
             priceStep += "1";
 
-            return Convert.ToDecimal(priceStep);
+            return priceStep.ToDecimal();
         }
 
         public event Action<List<Security>> SecurityEvent;
@@ -665,10 +665,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
             Trade trade = new Trade();
             trade.SecurityNameCode = responseTrade.arg.instId;
-            trade.Price = Convert.ToDecimal(responseTrade.data[0][1].Replace(".", ","));
+            trade.Price = responseTrade.data[0][1].ToDecimal();
             trade.Id = responseTrade.data[0][0];
             trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data[0][0]));
-            trade.Volume = Convert.ToDecimal(responseTrade.data[0][2].Replace('.', ',').Replace(".", ","));
+            trade.Volume = responseTrade.data[0][2].ToDecimal();
             trade.Side = responseTrade.data[0][3].Equals("buy") ? Side.Buy : Side.Sell;
 
             NewTradesEvent(trade);
@@ -907,6 +907,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
+
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
 
         }
 

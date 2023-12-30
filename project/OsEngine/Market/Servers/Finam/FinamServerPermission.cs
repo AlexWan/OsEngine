@@ -91,7 +91,13 @@ namespace OsEngine.Market.Servers.Finam
         {
             get { return false; }
         }
+
         public bool IsTradeServer
+        {
+            get { return false; }
+        }
+
+        public bool IsCanChangeOrderPrice
         {
             get { return false; }
         }

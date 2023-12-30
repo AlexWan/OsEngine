@@ -35,6 +35,8 @@ using OsEngine.Market.Servers.BybitSpot;
 using OsEngine.Market.Servers.BitGet.BitGetSpot;
 using OsEngine.Market.Servers.BitGet.BitGetFutures;
 using OsEngine.Market.Servers.Alor;
+using OsEngine.Market.Servers.GateIo.GateIoSpot;
+using OsEngine.Market.Servers.GateIo.GateIoFutures;
 
 namespace OsEngine.Entity
 {
@@ -641,9 +643,9 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.GateIo)
+                        else if (serverType == ServerType.GateIoSpot)
                         {
-                            GateIoServer gateIoServer = (GateIoServer)_server;
+                            GateIoServerSpot gateIoServer = (GateIoServerSpot)_server;
 
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
@@ -665,7 +667,7 @@ namespace OsEngine.Entity
                         }
                         else if (serverType == ServerType.GateIoFutures)
                         {
-                            GateIoFuturesServer gateIoFutures = (GateIoFuturesServer)_server;
+                            GateIoServerFutures gateIoFutures = (GateIoServerFutures)_server;
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
