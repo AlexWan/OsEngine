@@ -622,6 +622,16 @@ namespace OsEngine.Market.Servers.Bybit
             }
         } // both futures
 
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         public void CancelOrder(Order order)
         {
             Dictionary<string, string> parameters = new Dictionary<string, string>();

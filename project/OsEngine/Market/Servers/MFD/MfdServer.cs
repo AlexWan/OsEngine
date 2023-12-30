@@ -81,6 +81,11 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         public void CancelOrder(Order order)
         {
 

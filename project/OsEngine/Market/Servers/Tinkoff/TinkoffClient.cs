@@ -277,6 +277,19 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             List<Candle> candles = new List<Candle>();
 
+            int days = 1; // период, за который запрашивать свечи 
+
+            if (tf == TimeFrame.Hour1 ||
+                tf == TimeFrame.Hour2 ||
+                tf == TimeFrame.Hour4)
+            {
+                days = 7; // Tinkoff api позволяет запрашивать большие интервалы данных для таймфреймов более 1 часа
+            }
+            else if (tf == TimeFrame.Day)
+            {
+                days = 35;
+            }
+
             while (from.Hour > 1)
             {
                 from = from.AddHours(-1);
@@ -294,15 +307,15 @@ namespace OsEngine.Market.Servers.Tinkoff
 
             while (from <= to)
             {
-                candles.AddRange(GetCandleHistoryFromDay(from, nameId, tf));
+                candles.AddRange(GetCandleHistoryFromDays(from, nameId, tf, days));
 
-                from = from.AddDays(1);
+                from = from.AddDays(days);
             }
 
             return candles;
         }
 
-        private List<Candle> GetCandleHistoryFromDay(DateTime time, string nameSec, TimeFrame tf)
+        private List<Candle> GetCandleHistoryFromDays(DateTime time, string nameSec, TimeFrame tf, int days = 1)
         {
             /* {
                  "figi": "string",
@@ -319,7 +332,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             string dateFrom = ToIso8601(time);
             param.Add("from", dateFrom);
 
-            string dateTo = ToIso8601(time.AddDays(1));
+            string dateTo = ToIso8601(time.AddDays(days));
             param.Add("to", dateTo);
 
             string tfStr = CreateTimeFrameString(tf);

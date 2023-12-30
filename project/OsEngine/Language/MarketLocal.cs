@@ -496,6 +496,10 @@ namespace OsEngine.Language
           "Eng:Portfolio spare_" +
           "Ru:Портфель запасной_");
 
+        public string Message116 => OsLocalization.ConvertToLocString(
+            "Eng: Change order price - _" +
+            "Ru: Меняем цену ордера - _");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");

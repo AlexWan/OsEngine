@@ -1383,5 +1383,16 @@ namespace OsEngine.Language
          "Eng:Clear all securities in the list?_" +
          "Ru:Очистить все инструменты в списке?_");
 
+        public string Label371 => OsLocalization.ConvertToLocString(
+         "Eng:You can only change the price of an order in real trading!_" +
+         "Ru:Менять цену ордера можно только в реальных торгах!_");
+
+        public string Label372 => OsLocalization.ConvertToLocString(
+         "Eng:Order price change operation is not possible. The server is not active!_" +
+         "Ru:Операция смены цены ордера не возможна. Сервер не активен!_");
+
+        public string Label373 => OsLocalization.ConvertToLocString(
+         "Eng:Order price change operation is not possible. This server does not support order price change_" +
+         "Ru:Операция смены цены ордера не возможна. Данный сервер не поддерживает смену цены ордера_");
     }
 }

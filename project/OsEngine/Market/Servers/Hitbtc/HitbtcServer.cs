@@ -211,6 +211,16 @@ namespace OsEngine.Market.Servers.Hitbtc
         }
 
         /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
+        /// <summary>
         /// cancel orders from the trading system
         /// отозвать ордер из торговой системы
         /// </summary>

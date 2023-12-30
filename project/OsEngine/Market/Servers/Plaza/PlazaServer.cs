@@ -81,6 +81,11 @@ namespace OsEngine.Market.Servers.Plaza
             _plazaController.ExecuteOrder(order);
         }
 
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
         public void CancelOrder(Order order)
         {
             _plazaController.CancelOrder(order);

@@ -23,6 +23,7 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
@@ -1126,6 +1127,38 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Does the server support market orders
+        /// </summary>
+        public bool ServerIsSupportMarketOrders
+        {
+            get
+            {
+                if(_connector == null)
+                {
+                    return false;
+                }
+
+                return _connector.MarketOrdersIsSupport;
+            }
+        }
+
+        /// <summary>
+        /// Does the server support order price change
+        /// </summary>
+        public bool ServerIsSupportChangeOrderPrice
+        {
+            get
+            {
+                if (_connector == null)
+                {
+                    return false;
+                }
+
+                return _connector.IsCanChangeOrderPrice;
+            }
+        }
+
         // call control windows
 
         /// <summary>
@@ -1320,19 +1353,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         // standard public functions for position management
-
-        /// <summary>
-        /// True - if the server supports stop orders
-        /// </summary>
-        private bool IsMarketStopOrderSupport()
-        {
-            if (_connector.ServerType == ServerType.BinanceFutures)
-            {
-                return true;
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Enter a long position at any price
@@ -2902,6 +2922,58 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Place a stop market order for a position
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
+        public void CloseAtStopMarket(Position position, decimal priceActivation)
+        {
+            try
+            {
+                if (position == null)
+                {
+                    return;
+                }
+
+                if (position.State == PositionStateType.Done ||
+                    position.State == PositionStateType.OpeningFail)
+                {
+                    return;
+                }
+
+                if (position.StopOrderIsActiv &&
+                    position.StopOrderPrice == priceActivation &&
+                    position.StopOrderRedLine == priceActivation &&
+                    position.StopIsMarket == true)
+                {
+                    return;
+                }
+
+                decimal volume = position.OpenVolume;
+
+                if (volume == 0)
+                {
+                    return;
+                }
+
+                position.StopOrderIsActiv = false;
+
+                position.StopIsMarket = true;
+                position.StopOrderPrice = priceActivation;
+                position.StopOrderRedLine = priceActivation;
+                position.StopOrderIsActiv = true;
+
+                _chartMaster.SetPosition(_journal.AllPosition);
+                _journal.PaintPosition(position);
+                _journal.Save();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// Place a trailing stop order for a position
         /// </summary>
         /// <param name="position">position to be closed</param>
@@ -2961,6 +3033,61 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             position.SignalTypeClose = signalType;
             CloseAtProfit(position, priceActivation, priceOrder);
+        }
+
+        /// <summary>
+        /// Place profit market order for a position
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
+        public void CloseAtProfitMarket(Position position, decimal priceActivation)
+        {
+            try
+            {
+                if (position == null)
+                {
+                    return;
+                }
+
+                if (position.State == PositionStateType.Done ||
+                    position.State == PositionStateType.OpeningFail)
+                {
+                    return;
+                }
+
+                if (position.ProfitOrderIsActiv &&
+                    position.ProfitOrderPrice == priceActivation &&
+                    position.ProfitOrderRedLine == priceActivation &&
+                    position.ProfitIsMarket == true)
+                {
+                    return;
+                }
+
+                decimal volume = position.OpenVolume;
+
+                if (volume == 0)
+                {
+                    return;
+                }
+
+
+                position.ProfitOrderIsActiv = false;
+
+                position.ProfitOrderPrice = priceActivation;
+                position.ProfitOrderRedLine = priceActivation;
+                position.ProfitIsMarket = true;
+                
+                position.ProfitOrderIsActiv = true;
+
+                _chartMaster.SetPosition(_journal.AllPosition);
+                _journal.PaintPosition(position);
+                _journal.Save();
+
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -3074,6 +3201,34 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void CloseOrder(Order order)
         {
             _connector.OrderCancel(order);
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+            if(order == null)
+            {
+                return;
+            }
+
+            if(StartProgram != StartProgram.IsOsTrader)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label371, LogMessageType.Error);
+                return;
+            }
+
+            if(IsConnected == false ||
+                IsReadyToTrade == false)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label372, LogMessageType.Error);
+                return;
+            }
+
+            _connector.ChangeOrderPrice(order, newPrice);
         }
 
         // internal position management functions
@@ -3816,7 +3971,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        if(position.StopIsMarket == false
+                            || StartProgram == StartProgram.IsTester 
+                            || StartProgram == StartProgram.IsOsOptimizer)
+                        {
+                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        }
+                        else
+                        {
+                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        }
+
                         PositionStopActivateEvent?.Invoke(position);
                         return true;
                     }
@@ -3833,7 +3998,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        if (position.StopIsMarket == false
+                           || StartProgram == StartProgram.IsTester
+                           || StartProgram == StartProgram.IsOsOptimizer)
+                        {
+                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        }
+                        else
+                        {
+                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        }
+
                         PositionStopActivateEvent?.Invoke(position);
                         return true;
                     }
@@ -3853,7 +4028,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        if (position.ProfitIsMarket == false
+                            || StartProgram == StartProgram.IsTester
+                            || StartProgram == StartProgram.IsOsOptimizer)
+                        {
+                            CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        }
+                        else
+                        {
+                            CloseDeal(position, OrderPriceType.Market, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        }
+
                         PositionProfitActivateEvent?.Invoke(position);
                         return true;
                     }
@@ -3870,7 +4055,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        if (position.ProfitIsMarket == false
+                           || StartProgram == StartProgram.IsTester
+                           || StartProgram == StartProgram.IsOsOptimizer)
+                        {
+                            CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        }
+                        else
+                        {
+                            CloseDeal(position, OrderPriceType.Market, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                        }
+
                         PositionProfitActivateEvent?.Invoke(position);
                         return true;
                     }

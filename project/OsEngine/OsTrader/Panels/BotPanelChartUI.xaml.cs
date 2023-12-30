@@ -264,6 +264,11 @@ namespace OsEngine.OsTrader.Panels
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
         {
+            if(_panel.ActivTab == null)
+            {
+                return;
+            }
+
             if (_panel.ActivTab.GetType().Name != "BotTabSimple")
             {
                 return;
@@ -285,6 +290,10 @@ namespace OsEngine.OsTrader.Panels
 
         private void buttonSellFast_Click(object sender, RoutedEventArgs e)
         {
+            if (_panel.ActivTab == null)
+            {
+                return;
+            }
             if (_panel.ActivTab.GetType().Name != "BotTabSimple")
             {
                 return;
@@ -306,6 +315,10 @@ namespace OsEngine.OsTrader.Panels
 
         private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
         {
+            if (_panel.ActivTab == null)
+            {
+                return;
+            }
             if (_panel.ActivTab.GetType().Name != "BotTabSimple")
             {
                 return;
@@ -346,6 +359,10 @@ namespace OsEngine.OsTrader.Panels
 
         private void ButtonSellLimit_Click(object sender, RoutedEventArgs e)
         {
+            if (_panel.ActivTab == null)
+            {
+                return;
+            }
             if (_panel.ActivTab.GetType().Name != "BotTabSimple")
             {
                 return;
@@ -384,6 +401,10 @@ namespace OsEngine.OsTrader.Panels
 
         private void ButtonCloseLimit_Click(object sender, RoutedEventArgs e)
         {
+            if (_panel.ActivTab == null)
+            {
+                return;
+            }
             if (_panel.ActivTab.GetType().Name != "BotTabSimple")
             {
                 return;
@@ -464,6 +485,10 @@ namespace OsEngine.OsTrader.Panels
 
         private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)
         {
+            if (_panel.ActivTab == null)
+            {
+                return;
+            }
             if (_panel.ActivTab.GetType().Name == "BotTabSimple")
             {
                 ((BotTabSimple)_panel.ActivTab).ShowManualControlDialog();
@@ -693,6 +718,11 @@ namespace OsEngine.OsTrader.Panels
 
         private void ButtonMoreOpenPositionDetail_Click(object sender, RoutedEventArgs e)
         {
+            if (_panel.ActivTab == null)
+            {
+                return;
+            }
+
             BotTabSimple activTab = null;
 
             try

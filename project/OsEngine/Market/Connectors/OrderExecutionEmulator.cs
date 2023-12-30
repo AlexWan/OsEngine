@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using OsEngine.Entity;
+using OsEngine.Language;
+using OsEngine.Logging;
+using OsEngine.Market.Servers;
 
 namespace OsEngine.Market.Connectors
 {
@@ -88,6 +91,30 @@ namespace OsEngine.Market.Connectors
             }
 
             CheckExecution(true, order);
+        }
+
+        /// <summary>
+        /// Order price change
+        /// </summary>
+        /// <param name="order">An order that will have a new price</param>
+        /// <param name="newPrice">New price</param>
+        public bool ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+            lock (_executorLocker)
+            {
+                for (int i = 0; i < ordersOnBoard.Count; i++)
+                {
+                    if (ordersOnBoard[i].NumberUser == order.NumberUser)
+                    {
+                        ordersOnBoard[i].Price = newPrice;
+                        order.Price = newPrice;
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         /// <summary>

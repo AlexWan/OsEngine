@@ -12,7 +12,6 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using System.Drawing;
 using OsEngine.Language;
-using OsEngine.Market;
 using OsEngine.OsMiner.Patterns;
 
 

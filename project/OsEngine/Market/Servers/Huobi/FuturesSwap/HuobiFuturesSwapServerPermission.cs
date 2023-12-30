@@ -94,9 +94,15 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         {
             get { return true; }
         }
+
         public bool IsTradeServer
         {
             get { return true; }
+        }
+
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
         }
 
         public TimeFramePermission TradeTimeFramePermission
