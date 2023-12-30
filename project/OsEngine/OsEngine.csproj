@@ -404,7 +404,7 @@
       <DependentUpon>AIndicatorUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Indicators\Entity.cs" />
-    <Compile Include="Indicators\GreyCardinal\LinesSupportResistant.cs" />
+    <Compile Include="Indicators\LearnOsE\LinesSupportResistant.cs" />
     <Compile Include="Indicators\IndicatorAttribute.cs" />
     <Compile Include="Indicators\IndicatorParameter.cs" />
     <Compile Include="Indicators\IndicatorsFactory.cs" />
@@ -1014,6 +1014,7 @@
     <Compile Include="Robots\CurrencyArbitrage\CurrencyMoveExplorer.cs" />
     <Compile Include="Robots\Engines\EnginePair.cs" />
     <Compile Include="Robots\Engines\PolygonalEngine.cs" />
+    <Compile Include="Robots\GreyCardinal\TabSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\GridSample.cs" />
     <Compile Include="Robots\Engines\CandleEngine.cs" />
     <Compile Include="Robots\Engines\ClusterEngine.cs" />
