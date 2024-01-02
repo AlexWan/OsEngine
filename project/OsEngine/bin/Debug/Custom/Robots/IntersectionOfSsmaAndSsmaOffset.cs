@@ -74,7 +74,7 @@ namespace OsEngine.Robots.MyRobots
             _ssma1.Save();
 
             // Creating indicator Ssma2
-            _ssma2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "OffsetEma", name: name + "Ssma2", canDelete: false);
+            _ssma2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "OffsetSsma", name: name + "Ssma2", canDelete: false);
             _ssma2 = (Aindicator)_tab.CreateCandleIndicator(_ssma2, nameArea: "Prime");
             _ssma2.ParametersDigit[0].Value = _periodSsmaSlow.ValueInt;
             _ssma2.ParametersDigit[1].Value = _periodOffset.ValueInt;
