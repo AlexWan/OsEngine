@@ -16,6 +16,7 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public interface IServer
     {
+        #region Service
 
         /// <summary>
         /// take server type
@@ -24,17 +25,16 @@ namespace OsEngine.Market.Servers
         /// <returns></returns>
         ServerType ServerType { get;}
 
-//service
-//сервис
-
         /// <summary>
         /// show settings
         /// показать настройки
         /// </summary>
         void ShowDialog();
 
-// connect/disconnect
-// подключение/отключение
+        #endregion
+
+        #region  Connect / disconnect
+
         /// <summary>
         /// start server. Connect to the trading system
         /// запустить сервер. Подключиться к торговой системе
@@ -47,8 +47,6 @@ namespace OsEngine.Market.Servers
         /// </summary>
         void StopServer();
 
-// connect status
-// статус соединения
         /// <summary>
         /// take server status
         /// взять статус сервера
@@ -61,8 +59,16 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<string> ConnectStatusChangeEvent;
 
-// server time
-// время сервера
+        /// <summary>
+        /// need to reconnect data from server
+        /// необходимо перезаказать данные у сервера
+        /// </summary>
+        event Action NeadToReconnectEvent;
+
+        #endregion
+
+        #region Server time
+
         /// <summary>
         /// server time
         /// время сервера
@@ -70,19 +76,21 @@ namespace OsEngine.Market.Servers
         DateTime ServerTime { get; }
 
         /// <summary>
-        /// server time changed
-        /// изменилось время сервера
-        /// </summary>
-        event Action<DateTime> TimeServerChangeEvent;
-
-        /// <summary>
         /// server time of last starting
         /// время последнего старта сервера
         /// </summary>
         DateTime LastStartServerTime { get; }
 
-        // portfolios
-        // портфели
+        /// <summary>
+        /// server time changed
+        /// изменилось время сервера
+        /// </summary>
+        event Action<DateTime> TimeServerChangeEvent;
+
+        #endregion
+
+        #region Portfolios
+
         /// <summary>
         /// take all portfolios
         /// взять все портфели
@@ -101,8 +109,10 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<List<Portfolio>> PortfoliosChangeEvent;
 
-// securities
-// инструменты
+        #endregion
+
+        #region Securities
+
         /// <summary>
         /// take securities
         /// взять инструменты
@@ -121,8 +131,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<List<Security>> SecuritiesChangeEvent;
 
-// data subscribetion
-// Подпись на данные
+        #endregion
+
+        #region Data subscription
 
         /// <summary>
         /// start downloading security
@@ -141,13 +152,31 @@ namespace OsEngine.Market.Servers
         void StopThisSecurity(CandleSeries series);
 
         /// <summary>
-        /// need to reconnect data from server
-        /// необходимо перезаказать данные у сервера
+        /// new candles
+        /// новые свечи
         /// </summary>
-        event Action NeadToReconnectEvent;
+        event Action<CandleSeries> NewCandleIncomeEvent;
 
-        // request data downloading
-        // Запрос данных на выкачивание
+        /// <summary>
+        /// best bid / ask by instrument changed
+        /// изменился лучший бид / аск по инструменту
+        /// </summary>
+        event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
+
+        /// <summary>
+        /// market depth has been updated
+        /// </summary>
+        event Action<MarketDepth> NewMarketDepthEvent;
+
+        /// <summary>
+        /// new tick
+        /// новый тик
+        /// </summary>
+        event Action<List<Trade>> NewTradeEvent;
+
+        #endregion
+
+        #region Data upload
 
         /// <summary>
         /// Интерфейс для получения последний свечек по инструменту. Используется для активации серий свечей в боевых торгах
@@ -169,27 +198,6 @@ namespace OsEngine.Market.Servers
         List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime,
             bool neadToUpdete);
 
-// candles
-// свечи
-
-        /// <summary>
-        /// new candles
-        /// новые свечи
-        /// </summary>
-        event Action<CandleSeries> NewCandleIncomeEvent;
-
-// depths
-// стакан
-        /// <summary>
-        /// best bid / ask by instrument changed
-        /// изменился лучший бид / аск по инструменту
-        /// </summary>
-        event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
-
-        event Action<MarketDepth> NewMarketDepthEvent;
-
-// ticks
-// тики
         /// <summary>
         /// take all trades on the instrument that have in the system
         /// взять все сделки по инстурументу имеющиеся в системе
@@ -204,29 +212,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         List<Trade>[] AllTrades { get; }
 
-        /// <summary>
-        /// new tick
-        /// новый тик
-        /// </summary>
-        event Action<List<Trade>> NewTradeEvent;
+        #endregion
 
-// my new trade
-// новая моя сделка
-
-        /// <summary>
-        /// take my trades
-        /// взять мои сделки
-        /// </summary>
-        List<MyTrade> MyTrades { get; }
-
-        /// <summary>
-        /// my trade updated
-        /// изменилась моя сделка
-        /// </summary>
-        event Action<MyTrade> NewMyTradeEvent;
-
-// work with orders
-// работа с ордерами
+        #region Work with orders
 
         /// <summary>
         /// send order to execute in the trading system
@@ -256,16 +244,30 @@ namespace OsEngine.Market.Servers
         void CancelAllOrders();
 
         /// <summary>
+        /// take my trades
+        /// взять мои сделки
+        /// </summary>
+        List<MyTrade> MyTrades { get; }
+
+        /// <summary>
         /// order changed
         /// изменился ордер
         /// </summary>
         event Action<Order> NewOrderIncomeEvent;
 
-// log messages
-// сообщения для лога
+        /// <summary>
+        /// my trade updated
+        /// изменилась моя сделка
+        /// </summary>
+        event Action<MyTrade> NewMyTradeEvent;
+
+        #endregion
+
+        #region Log messages
 
         event Action<string, LogMessageType> LogMessageEvent;
 
+        #endregion
     }
 
     /// <summary>
