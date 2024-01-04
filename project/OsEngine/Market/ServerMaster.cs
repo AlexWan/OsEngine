@@ -21,7 +21,6 @@ using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.ExMo;
 using OsEngine.Market.Servers.Finam;
-using OsEngine.Market.Servers.GateIo;
 using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Lmax;
@@ -61,18 +60,89 @@ namespace OsEngine.Market
     public class ServerMaster
     {
 
-// service
-// сервис
+        #region Service
+
+        /// <summary>
+        /// show settings
+        /// </summary>
+        public static void ShowDialog(bool isTester)
+        {
+            if (_ui == null)
+            {
+                _ui = new ServerMasterUi(isTester);
+
+                try
+                {
+                    _ui.Show();
+                    _ui.Closing += (sender, args) => { _ui = null; };
+                }
+                catch
+                {
+                    _ui = null;
+                }
+
+            }
+            else
+            {
+                _ui.Activate();
+            }
+        }
+
+        private static ServerMasterUi _ui;
+
+        /// <summary>
+        /// save settings
+        /// </summary>
+        public static void Save()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"ServerMaster.txt", false))
+                {
+                    writer.WriteLine(NeadToConnectAuto);
+                    writer.Close();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// upload settings
+        /// </summary>
+        public static void Load()
+        {
+            if (!File.Exists(@"Engine\" + @"ServerMaster.txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"ServerMaster.txt"))
+                {
+                    NeadToConnectAuto = Convert.ToBoolean(reader.ReadLine());
+                    reader.Close();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Creating and storing servers
 
         /// <summary>
         /// array of deployed servers
-        /// массив развёрнутых серверов
         /// </summary>
         private static List<IServer> _servers;
 
         /// <summary>
         /// take trade server typre from system
-        /// взять типы торговых серверов в системе
         /// </summary>
         public static List<ServerType> ServersTypes
         {
@@ -121,7 +191,7 @@ namespace OsEngine.Market
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
 
-                List<ServerPop> popularity = MostPopularServersWithCount();
+                List<ServerPop> popularity = LoadMostPopularServersWithCount();
 
                 for (int i = 0; i < popularity.Count; i++)
                 {
@@ -182,7 +252,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// take trade server typre from system
-        /// взять типы торговых серверов в системе
         /// </summary>
         public static List<ServerType> ServersTypesToOsData
         {
@@ -215,11 +284,25 @@ namespace OsEngine.Market
             }
         }
 
+        /// <summary>
+        /// are there any active servers
+        /// </summary>
         public static bool HasActiveServers()
         {
             return _servers != null && _servers.Count > 0;
         }
 
+        /// <summary>
+        /// array of active servers
+        /// </summary>
+        public static List<IServer> GetServers()
+        {
+            return _servers;
+        }
+
+        /// <summary>
+        /// array of active servers types
+        /// </summary>
         public static List<ServerType> ActiveServersTypes
         {
             get
@@ -237,7 +320,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// disable all servers
-        /// отключить все сервера
         /// </summary>
         public static void AbortAll()
         {
@@ -255,37 +337,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
-        /// show settings
-        /// показать настройки
-        /// </summary>
-        public static void ShowDialog(bool isTester)
-        {
-            if (_ui == null)
-            {
-                _ui = new ServerMasterUi(isTester);
-
-                try
-                {
-                    _ui.Show();
-                    _ui.Closing += (sender, args) => { _ui = null; };
-                }
-                catch
-                {
-                    _ui = null;
-                }
-
-            }
-            else
-            {
-                _ui.Activate();
-            }
-        }
-
-        private static ServerMasterUi _ui;
-
-        /// <summary>
         /// create server
-        /// создать сервер
         /// </summary>
         /// <param name="type"> server type / тип сервера </param>
         /// <param name="neadLoadTicks"> shows whether upload ticks from storage. this is need for bots with QUIK or Plaza2 servers / нужно ли подгружать тики из хранилища. Актуально в режиме робота для серверов Квик, Плаза 2 </param>
@@ -467,9 +519,12 @@ namespace OsEngine.Market
             }
         }
 
+        /// <summary>
+        /// save the types of servers that are most often run by the user
+        /// </summary>
         private static void SaveMostPopularServers(ServerType type)
         {
-            List<ServerPop> servers = MostPopularServersWithCount();
+            List<ServerPop> servers = LoadMostPopularServersWithCount();
 
             bool isInArray = false;
 
@@ -528,7 +583,10 @@ namespace OsEngine.Market
             }
         }
 
-        public static List<ServerPop> MostPopularServersWithCount()
+        /// <summary>
+        /// load the types of servers that are most often run by the user
+        /// </summary>
+        public static List<ServerPop> LoadMostPopularServersWithCount()
         {
             List<ServerPop> servers = new List<ServerPop>();
 
@@ -592,7 +650,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// create a new optimization server
-        /// создать новый сервер оптимизации
         /// </summary>
         public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
         {
@@ -641,6 +698,9 @@ namespace OsEngine.Market
             }
         }
 
+        /// <summary>
+        /// delete server to optimize by number
+        /// </summary>
         public static void RemoveOptimizerServer(OptimizerServer server)
         {
             server.ClearDelete();
@@ -665,24 +725,164 @@ namespace OsEngine.Market
         }
 
         /// <summary>
-        /// take the server
-        /// взять сервер
-        /// </summary>
-        public static List<IServer> GetServers()
-        {
-            return _servers;
-        }
-
-        /// <summary>
         /// new server created
-        /// создан новый сервер
         /// </summary>
         public static event Action<IServer> ServerCreateEvent;
 
-        // доступ к разрешениям для серверов
+        #endregion
 
+        #region Automatic creation servers
+
+        /// <summary>
+        /// activate automatic server deployment
+        /// </summary>
+        public static void ActivateAutoConnection()
+        {
+            Load();
+
+            Task task = new Task(ThreadStarterWorkArea);
+            task.Start();
+        }
+
+        /// <summary>
+        /// shows whether the server-master can be deployed in automatic mode  
+        /// </summary>
+        public static bool NeadToConnectAuto;
+
+        private static string _startServerLocker = "startServLocker";
+
+        /// <summary>
+        /// select a specific server type for auto connection
+        /// </summary>
+        public static void SetServerToAutoConnection(ServerType type)
+        {
+            lock (_startServerLocker)
+            {
+                if (_needServerTypes == null)
+                {
+                    _needServerTypes = new List<ServerType>();
+                }
+
+                try
+                {
+                    for (int i = 0; i < _needServerTypes.Count; i++)
+                    {
+                        if (_needServerTypes[i] == type)
+                        {
+                            return;
+                        }
+                    }
+
+                    _needServerTypes.Add(type);
+                }
+                catch (Exception error)
+                {
+                    LogMessageEvent(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// selected bot servers for auto connection
+        /// </summary>
+        private static List<ServerType> _needServerTypes;
+
+        /// <summary>
+        /// servers that we have already treid to connect
+        /// </summary>
+        private static List<ServerType> _tryActivateServerTypes;
+
+        /// <summary>
+        /// work place of the thread that connects our servers in auto mode
+        /// </summary>
+        private static async void ThreadStarterWorkArea()
+        {
+            await Task.Delay(20000);
+
+            while (true)
+            {
+                await Task.Delay(5000);
+
+                if (!MainWindow.ProccesIsWorked)
+                {
+                    return;
+                }
+
+                if (NeadToConnectAuto == false)
+                {
+                    continue;
+                }
+
+                if (_tryActivateServerTypes == null)
+                {
+                    _tryActivateServerTypes = new List<ServerType>();
+                }
+
+                for (int i = 0; _needServerTypes != null && i < _needServerTypes.Count; i++)
+                {
+                    if (_needServerTypes[i] == ServerType.Tester ||
+                        _needServerTypes[i] == ServerType.Optimizer ||
+                        _needServerTypes[i] == ServerType.Miner)
+                    {
+                        continue;
+                    }
+                    TryStartThisSevrverInAutoType(_needServerTypes[i]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// try running this server
+        /// </summary>
+        private static void TryStartThisSevrverInAutoType(ServerType type)
+        {
+            for (int i = 0; i < _tryActivateServerTypes.Count; i++)
+            {
+                if (_tryActivateServerTypes[i] == type)
+                {
+                    return;
+                }
+            }
+
+            _tryActivateServerTypes.Add(type);
+
+            if (GetServers() == null || GetServers().Find(server1 => server1.ServerType == type) == null)
+            { // if we don't have our server, create a new one / если у нас нашего сервера нет - создаём его
+                CreateServer(type, true);
+            }
+
+            List<IServer> servers = GetServers();
+
+            if (servers == null)
+            { // something went wrong / что-то пошло не так
+                return;
+            }
+
+            IServer server = servers.Find(server1 => server1.ServerType == type);
+
+            if (server == null)
+            {
+                return;
+            }
+
+            if (server.ServerStatus != ServerConnectStatus.Connect)
+            {
+                server.StartServer();
+            }
+        }
+
+        #endregion
+
+        #region Access to servers permissions
+
+        /// <summary>
+        /// array of previously created permissions for servers
+        /// </summary>
         private static List<IServerPermission> _serversPermissions = new List<IServerPermission>();
 
+        /// <summary>
+        /// request server permissions of the type
+        /// </summary>
         public static IServerPermission GetServerPermission(ServerType type)
         {
             IServerPermission serverPermission = null;
@@ -950,207 +1150,12 @@ namespace OsEngine.Market
             return null;
         }
 
-        
-        // создание серверов автоматически creating servers automatically 
+        #endregion
 
-        /// <summary>
-        /// upload server settings
-        /// загрузить настройки сервера
-        /// </summary>
-        public static void ActivateAutoConnection()
-        {
-            Load();
-
-            Task task = new Task(ThreadStarterWorkArea);
-            task.Start();
-        }
-
-        private static ServerMasterPortfoliosPainter _painterPortfolios;
-
-        private static ServerMasterOrdersPainter _ordersStorage;
-
-        /// <summary>
-        /// save settings
-        /// сохранить настройки
-        /// </summary>
-        public static void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"ServerMaster.txt", false))
-                {
-                    writer.WriteLine(NeadToConnectAuto);
-                    writer.Close();
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// upload settings
-        /// загрузить настройки
-        /// </summary>
-        public static void Load()
-        {
-            if (!File.Exists(@"Engine\" + @"ServerMaster.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + @"ServerMaster.txt"))
-                {
-                    NeadToConnectAuto = Convert.ToBoolean(reader.ReadLine());
-                    reader.Close();
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// shows whether the server-master can be deployed in automatic mode  
-        /// можно ли сервер мастеру разворачивать сервера в автоматическом режиме
-        /// </summary>
-        public static bool NeadToConnectAuto;
-
-        private static string _startServerLocker = "startServLocker";
-
-        /// <summary>
-        /// select a specific server type for connection
-        /// заказать на подключение определённый тип сервера
-        /// </summary>
-        public static void SetNeedServer(ServerType type)
-        {
-            lock (_startServerLocker)
-            {
-                if (_needServerTypes == null)
-                {
-                    _needServerTypes = new List<ServerType>();
-                }
-
-                try
-                {
-                    for (int i = 0; i < _needServerTypes.Count; i++)
-                    {
-                        if (_needServerTypes[i] == type)
-                        {
-                            return;
-                        }
-                    }
-
-                    _needServerTypes.Add(type);
-                }
-                catch (Exception error)
-                {
-                    LogMessageEvent(error.ToString(), LogMessageType.Error);
-                }
-            }
-        }
-
-        /// <summary>
-        /// selected bot servers
-        /// сервера, которые заказали роботы
-        /// </summary>
-        private static List<ServerType> _needServerTypes;
-
-        /// <summary>
-        /// servers that we have already treid to connect
-        /// серверы которые мы уже пытались подключить
-        /// </summary>
-        private static List<ServerType> _tryActivateServerTypes;
-
-        /// <summary>
-        /// work place of the thread that connects our servers in auto mode
-        /// место работы потока который подключает наши сервера в авто режиме
-        /// </summary>
-        private static async void ThreadStarterWorkArea()
-        {
-            await Task.Delay(20000);
-
-            while (true)
-            {
-                await Task.Delay(5000);
-
-                if (!MainWindow.ProccesIsWorked)
-                {
-                    return;
-                }
-
-                if (NeadToConnectAuto == false)
-                {
-                    continue;
-                }
-
-                if (_tryActivateServerTypes == null)
-                {
-                    _tryActivateServerTypes = new List<ServerType>();
-                }
-
-                for (int i = 0; _needServerTypes != null && i < _needServerTypes.Count; i++)
-                {
-                    if (_needServerTypes[i] == ServerType.Tester ||
-                        _needServerTypes[i] == ServerType.Optimizer ||
-                        _needServerTypes[i] == ServerType.Miner)
-                    {
-                        continue;
-                    }
-                    TryStartThisSevrverInAutoType(_needServerTypes[i]);
-                }
-            }
-        }
-        
-        /// <summary>
-        /// try running this server
-        /// Попробовать запустить данный сервер
-        /// </summary>
-        private static void TryStartThisSevrverInAutoType(ServerType type)
-        {
-            for (int i = 0; i < _tryActivateServerTypes.Count; i++)
-            {
-                if (_tryActivateServerTypes[i] == type)
-                {
-                    return;
-                }
-            }
-
-            _tryActivateServerTypes.Add(type);
-
-            if (GetServers() == null || GetServers().Find(server1 => server1.ServerType == type) == null)
-            { // if we don't have our server, create a new one / если у нас нашего сервера нет - создаём его
-                CreateServer(type,true);
-            }
-
-            List<IServer> servers = GetServers();
-
-            if (servers == null)
-            { // something went wrong / что-то пошло не так
-                return;
-            }
-
-            IServer server = servers.Find(server1 => server1.ServerType == type);
-
-            if (server == null)
-            {
-                return;
-            }
-
-            if (server.ServerStatus != ServerConnectStatus.Connect)
-            {
-                server.StartServer();
-            }
-        }
-
-        // доступ к портфелю, ордерам и его прорисовка
+        #region Access to portfolio, orders and its drawing
 
         /// <summary>
         /// start to draw class controls
-        /// начать прорисовывать контролы класса 
         /// </summary>
         public static void StartPaint()
         {
@@ -1160,7 +1165,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// stop to draw class controls
-        /// остановить прорисовку контролов класса 
         /// </summary>
         public static void StopPaint()
         {
@@ -1168,9 +1172,12 @@ namespace OsEngine.Market
             _ordersStorage.StopPaint();
         }
 
+        private static ServerMasterPortfoliosPainter _painterPortfolios;
+
+        private static ServerMasterOrdersPainter _ordersStorage;
+
         /// <summary>
         /// clear the order list in the table
-        /// очистить список ордеров в таблицах
         /// </summary>
         public static void ClearOrders()
         {
@@ -1183,7 +1190,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// add items on which portfolios and orders will be drawn
-        /// добавить элементы, на котором будут прорисовываться портфели и ордера
         /// </summary>
         public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostActiveOrders, WindowsFormsHost hostHistoricalOrders)
         {
@@ -1204,6 +1210,17 @@ namespace OsEngine.Market
             }
         }
 
+        /// <summary>
+        /// add a draw order 
+        /// </summary>
+        public static void InsertOrder(Order order)
+        {
+            if (_ordersStorage != null)
+            {
+                _ordersStorage.InsertOrder(order);
+            }
+        }
+
         private static void _painterPortfolios_ClearPositionOnBoardEvent(string sec, IServer server, string fullName)
         {
             if(ClearPositionOnBoardEvent != null)
@@ -1211,8 +1228,6 @@ namespace OsEngine.Market
                 ClearPositionOnBoardEvent(sec, server, fullName);
             }
         }
-
-        public static event Action<string, IServer, string> ClearPositionOnBoardEvent;
 
         private static void _ordersStorage_RevokeOrderToEmulatorEvent(Order order)
         {
@@ -1222,18 +1237,17 @@ namespace OsEngine.Market
             }
         }
 
-        public static void InsertOrder(Order order)
-        {
-            if (_ordersStorage != null)
-            {
-                _ordersStorage.InsertOrder(order);
-            }
-        }
-
         public static event Action<Order> RevokeOrderToEmulatorEvent;
 
-        // сообщения в лог
+        public static event Action<string, IServer, string> ClearPositionOnBoardEvent;
 
+        #endregion
+
+        #region Log
+
+        /// <summary>
+        /// enable object logging
+        /// </summary>
         public static void ActivateLogging()
         {
             if (Log == null)
@@ -1247,7 +1261,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// send new message to up
-        /// выслать новое сообщение на верх
         /// </summary>
         private static void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -1256,16 +1269,18 @@ namespace OsEngine.Market
                 LogMessageEvent(message, type);
             }
             else if (type == LogMessageType.Error)
-            { // if nobody is subscribled to us and there is a log error / если на нас никто не подписан и в логе ошибка
+            { // if nobody is subscribled to us and there is a log error
+              // если на нас никто не подписан и в логе ошибка
                 MessageBox.Show(message);
             }
         }
 
         /// <summary>
         /// outgoing log message
-        /// исходящее сообщение для лога
         /// </summary>
         public static event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
 
     }
 

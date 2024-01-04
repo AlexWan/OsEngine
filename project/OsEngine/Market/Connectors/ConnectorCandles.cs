@@ -916,7 +916,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (ServerType != ServerType.None)
                         {
-                            ServerMaster.SetNeedServer(ServerType);
+                            ServerMaster.SetServerToAutoConnection(ServerType);
                         }
                         continue;
                     }
@@ -957,7 +957,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (ServerType != ServerType.None)
                         {
-                            ServerMaster.SetNeedServer(ServerType);
+                            ServerMaster.SetServerToAutoConnection(ServerType);
                         }
                         continue;
                     }

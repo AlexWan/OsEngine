@@ -360,7 +360,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (ServerType != ServerType.None)  //AVP so that the server autostart function works
                 {
-                    ServerMaster.SetNeedServer(ServerType); //AVP
+                    ServerMaster.SetServerToAutoConnection(ServerType); //AVP
                 }
                 return;
             }
