@@ -26,7 +26,6 @@ using OsEngine.Market.Servers.Huobi.Futures;
 using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.Tinkoff;
-using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.OKX;
@@ -34,23 +33,21 @@ using OsEngine.Market.Servers.BitMaxFutures;
 using OsEngine.Market.Servers.BybitSpot;
 using OsEngine.Market.Servers.BitGet.BitGetSpot;
 using OsEngine.Market.Servers.BitGet.BitGetFutures;
-using OsEngine.Market.Servers.Alor;
 using OsEngine.Market.Servers.GateIo.GateIoSpot;
 using OsEngine.Market.Servers.GateIo.GateIoFutures;
 
 namespace OsEngine.Entity
 {
     /// <summary>
-    /// /// keeper of a series of candles. It is created in the server and participates in the process of subscribing to candles.
+    /// keeper of a series of candles. It is created in the server and participates in the process of subscribing to candles.
     /// Stores a series of candles, is responsible for their loading with ticks so that candles are formed in them
-    /// хранитель серий свечек. Создаётся в сервере и участвует в процессе подписки на свечки. 
-    /// Хранит в себе серии свечек, отвечает за их прогрузку тиками, чтобы в них формировались свечи
     /// </summary>
     public class CandleManager
     {
+        #region Service
+
         /// <summary>
         /// constructor
-        /// конструктор
         /// </summary>
         /// <param name="server">the server from which the candlestick data will go/сервер из которго будут идти данные для создания свечек</param>
         /// <param name="startProgram">the program that created the class object/программа которая создала объект класса</param>
@@ -66,240 +63,83 @@ namespace OsEngine.Entity
 
             if(startProgram != StartProgram.IsOsOptimizer)
             {
-                Task task = new Task(CandleStarterThread);
+                Task task = new Task(CandleSeriesStarterThread);
                 task.Start();
             }
 
             TypeTesterData = TesterDataType.Unknown;
         }
 
+        /// <summary>
+        /// exchange connection server
+        /// </summary>
+        private IServer _server;
+
+        /// <summary>
+        /// program to which the object CandleManager belongs
+        /// </summary>
         StartProgram _startProgram;
 
         /// <summary>
-        /// server time has changed. Inbound event
-        /// время сервера изменилось. Входящее событие
+        /// clear data from the object
         /// </summary>
-        /// <param name="dateTime">new server time/новое время сервера</param>
-        private void _server_TimeServerChangeEvent(DateTime dateTime)
+        public void Dispose()
         {
+            _isDisposed = true;
+
             try
             {
                 for (int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count; i++)
                 {
-                    _activSeriesBasedOnTrades[i].SetNewTime(dateTime);
+                    _activSeriesBasedOnTrades[i].Clear();
+                    _activSeriesBasedOnTrades[i].Stop();
                 }
+                _activSeriesBasedOnTrades = null;
 
                 for (int i = 0; _activSeriesBasedOnMd != null && i < _activSeriesBasedOnMd.Count; i++)
                 {
-                    _activSeriesBasedOnMd[i].SetNewTime(dateTime);
+                    _activSeriesBasedOnMd[i].Clear();
+                    _activSeriesBasedOnMd[i].Stop();
                 }
+                _activSeriesBasedOnMd = null;
 
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// A new tick appeared in the server. Inbound event
-        /// в сервере появился новый тик. Входящее событие
-        /// </summary>
-        /// <param name="trades">новый тик</param>
-        private void server_NewTradeEvent(List<Trade> trades)
-        {
-            if (_server.ServerType == ServerType.Tester &&
-                TypeTesterData == TesterDataType.Candle)
-            {
-                return;
-            }
-
-            try
-            {
-                if (trades == null ||
-                    trades.Count == 0 ||
-                    trades[0] == null)
+                if (_candleSeriesNeadToStart != null
+                    && _candleSeriesNeadToStart.Count != 0)
                 {
-                    return;
-                }
-
-                if (_activSeriesBasedOnTrades == null)
-                {
-                    return;
-                }
-
-                string secCode = trades[0].SecurityNameCode;
-
-                for (int i = 0; i < _activSeriesBasedOnTrades.Count; i++)
-                {
-                    if(_activSeriesBasedOnTrades[i] == null ||
-                        _activSeriesBasedOnTrades[i].Security == null)
-                    {
-                        continue;
-                    }
-                    if (_activSeriesBasedOnTrades[i].Security.Name == secCode)
-                    {
-                        _activSeriesBasedOnTrades[i].SetNewTicks(trades);
-                    }
+                    _candleSeriesNeadToStart.Clear();
                 }
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                MessageBox.Show(error.ToString());
+            }
+
+            if (_server != null)
+            {
+                _server.NewTradeEvent -= server_NewTradeEvent;
+                _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
+                _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
+                _server = null;
             }
         }
 
-        /// <summary>
-        /// from the server came a new glass
-        /// из сервера пришол новый стакан
-        /// </summary>
-        /// <param name="marketDepth"></param>
-        void _server_NewMarketDepthEvent(MarketDepth marketDepth)
-        {
-            if (_server.ServerType == ServerType.Tester &&
-                TypeTesterData == TesterDataType.Candle)
-            {
-                return;
-            }
+        private bool _isDisposed;
 
-            try
-            {
-                if (_activSeriesBasedOnMd == null)
-                {
-                    return;
-                }
+        #endregion
 
-                for (int i = 0; i < _activSeriesBasedOnMd.Count; i++)
-                {
-                    if (_activSeriesBasedOnMd[i] == null ||
-                        _activSeriesBasedOnMd[i].Security == null)
-                    {
-                        continue;
-                    }
-
-                    if (_activSeriesBasedOnMd[i].Security.Name == marketDepth.SecurityNameCode)
-                    {
-                        _activSeriesBasedOnMd[i].SetNewMarketDepth(marketDepth);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        public CandleSeries GetSeries(TimeFrameBuilder timeFrameBuilder, Security security)
-        {
-            for(int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count;i++)
-            {
-                CandleSeries curSeries = _activSeriesBasedOnTrades[i];
-
-                if(curSeries.Security.Name != security.Name ||
-                    curSeries.Security.NameClass != security.NameClass)
-                {
-                    continue;
-                }
-
-                if(curSeries.TimeFrameBuilder.Specification.Equals(timeFrameBuilder.Specification) == false)
-                {
-                    continue;
-                }
-
-                return _activSeriesBasedOnTrades[i];
-            }
-
-            for (int i = 0; _activSeriesBasedOnMd != null && i < _activSeriesBasedOnMd.Count; i++)
-            {
-                CandleSeries curSeries = _activSeriesBasedOnMd[i];
-
-                if (curSeries.Security.Name != security.Name ||
-                    curSeries.Security.NameClass != security.NameClass)
-                {
-                    continue;
-                }
-
-                if (curSeries.TimeFrameBuilder.Specification.Equals(timeFrameBuilder.Specification) == false)
-                {
-                    continue;
-                }
-
-                return _activSeriesBasedOnMd[i];
-            }
-
-            return null;
-        }
+        #region Candle series storing and activation
 
         /// <summary>
-        /// start creating candles in a new series of candles
-        /// начать создавать свечи в новой серии свечек
+        /// method for operating the thread triggering candle series
         /// </summary>
-        /// <param name="series">CandleSeries который нужно запустить</param>
-        public void StartSeries(CandleSeries series)
-        {
-            try
-            {
-                if (_server.ServerType != ServerType.Tester &&
-                    _server.ServerType != ServerType.Optimizer &&
-                    _server.ServerType != ServerType.Miner)
-                {
-                    series.СandleUpdeteEvent += series_СandleUpdeteEvent;
-                }
-
-                series.TypeTesterData = _typeTesterData;
-                series.СandleFinishedEvent += series_СandleFinishedEvent;
-
-                if (_activSeriesBasedOnTrades == null)
-                {
-                    _activSeriesBasedOnTrades = new List<CandleSeries>();
-                }
-
-                if (_activSeriesBasedOnMd == null)
-                {
-                    _activSeriesBasedOnMd = new List<CandleSeries>();
-                }
-
-                if (_startProgram == StartProgram.IsOsTrader)
-                {
-                    _candleSeriesNeadToStart.Enqueue(series);
-                }
-                else
-                {
-                    if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
-                    {
-                        _activSeriesBasedOnMd.Add(series);
-                    }
-                    else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
-                    {
-                        _activSeriesBasedOnTrades.Add(series);
-                    }
-                    series.IsStarted = true;
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// the turn of the series of candles to be loaded
-        /// очередь серий свечек которую нужно подгрузить
-        /// </summary>
-        private Queue<CandleSeries> _candleSeriesNeadToStart;
-
-        /// <summary>
-        /// the method in which the processing queue _candleSeriesNeadToStart is running
-        /// метод, в котором работает поток обрабатывающий очередь _candleSeriesNeadToStart
-        /// </summary>
-        private async void CandleStarterThread()
+        private async void CandleSeriesStarterThread()
         {
             try
             {
                 while (true)
                 {
 
-                   await Task.Delay(20);
+                    await Task.Delay(20);
 
                     if (_isDisposed == true)
                     {
@@ -324,8 +164,8 @@ namespace OsEngine.Entity
                         {
                             if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
                             {
-                                if(_activSeriesBasedOnMd != null)
-                                _activSeriesBasedOnMd.Add(series);
+                                if (_activSeriesBasedOnMd != null)
+                                    _activSeriesBasedOnMd.Add(series);
                             }
                             else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
                             {
@@ -362,6 +202,8 @@ namespace OsEngine.Entity
                             series.IsStarted = true;
                         }
 
+                        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        // NEW STANDART CANDLE SERIES START 2024
                         else if (serverType == ServerType.Alor)
                         {
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
@@ -418,7 +260,7 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.QuikLua)
                         {
                             QuikLuaServer luaServ = (QuikLuaServer)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = luaServ.GetQuikLuaTickHistory(series.Security);
@@ -443,7 +285,7 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.BitMex)
                         {
                             BitMexServer bitMex = (BitMexServer)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
@@ -486,7 +328,7 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.Binance)
                         {
                             BinanceServer binance = (BinanceServer)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
@@ -571,7 +413,7 @@ namespace OsEngine.Entity
                         else if (serverType == ServerType.Bitfinex)
                         {
                             BitfinexServer bitfinex = (BitfinexServer)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple || 
+                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
                                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
@@ -925,15 +767,63 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// stop loading candles by series
-        /// прекратить загрузку свечек по серии
+        /// start creating candles in a new series of candles
         /// </summary>
-        /// <param name="series">a series of candles to stop/серия свечек которую нужно остановить</param>
+        public void StartSeries(CandleSeries series)
+        {
+            try
+            {
+                if (_server.ServerType != ServerType.Tester &&
+                    _server.ServerType != ServerType.Optimizer &&
+                    _server.ServerType != ServerType.Miner)
+                {
+                    series.СandleUpdeteEvent += series_СandleUpdeteEvent;
+                }
+
+                series.TypeTesterData = _typeTesterData;
+                series.СandleFinishedEvent += series_СandleFinishedEvent;
+
+                if (_activSeriesBasedOnTrades == null)
+                {
+                    _activSeriesBasedOnTrades = new List<CandleSeries>();
+                }
+
+                if (_activSeriesBasedOnMd == null)
+                {
+                    _activSeriesBasedOnMd = new List<CandleSeries>();
+                }
+
+                if (_startProgram == StartProgram.IsOsTrader)
+                {
+                    _candleSeriesNeadToStart.Enqueue(series);
+                }
+                else
+                {
+                    if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                    {
+                        _activSeriesBasedOnMd.Add(series);
+                    }
+                    else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
+                    {
+                        _activSeriesBasedOnTrades.Add(series);
+                    }
+                    series.IsStarted = true;
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// stop loading candles by series
+        /// </summary>
         public void StopSeries(CandleSeries series)
         {
             try
             {
-                if(series == null 
+                if (series == null
                     || series.UID == null)
                 {
                     return;
@@ -942,11 +832,11 @@ namespace OsEngine.Entity
                 series.СandleUpdeteEvent -= series_СandleUpdeteEvent;
                 series.СandleFinishedEvent -= series_СandleFinishedEvent;
 
-                for(int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count;i++)
+                for (int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count; i++)
                 {
                     CandleSeries curSeries = _activSeriesBasedOnTrades[i];
 
-                    if(curSeries == null ||
+                    if (curSeries == null ||
                         curSeries.UID == null)
                     {
                         return;
@@ -954,11 +844,11 @@ namespace OsEngine.Entity
 
                     if (curSeries.UID == series.UID)
                     {
-                        if(_activSeriesBasedOnTrades != null)
+                        if (_activSeriesBasedOnTrades != null)
                         {
                             _activSeriesBasedOnTrades.RemoveAt(i);
                         }
-                        
+
                         break;
                     }
                 }
@@ -992,16 +882,234 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Exchange Connection Server
-        /// сервер подключения к бирже
+        /// the turn of the series of candles to be loaded
         /// </summary>
-        private IServer _server;
-        // For TESTER
-        // Для ТЕСТЕРА
+        private Queue<CandleSeries> _candleSeriesNeadToStart;
 
         /// <summary>
-        /// /// for the tester and Interactiv Brokers. Loading a new candle in the series
-        /// для тестера и Interactiv Brokers. Подгрузка новой свечи в серии
+        /// active series collecting candlesticks from the trade tape
+        /// </summary>
+        private List<CandleSeries> _activSeriesBasedOnTrades;
+
+        /// <summary>
+        /// active series collecting candlesticks from the market depth
+        /// </summary>
+        private List<CandleSeries> _activSeriesBasedOnMd;
+
+        /// <summary>
+        /// Number of active candleSeries
+        /// </summary>
+        public int ActiveSeriesCount
+        {
+            get
+            {
+                int result = 0;
+
+                if (_activSeriesBasedOnTrades != null)
+                {
+                    result += _activSeriesBasedOnTrades.Count;
+                }
+
+                if (_activSeriesBasedOnMd != null)
+                {
+                    result += _activSeriesBasedOnMd.Count;
+                }
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// request a series of candlesticks for an instrument with certain settings
+        /// </summary>
+        public CandleSeries GetSeries(TimeFrameBuilder timeFrameBuilder, Security security)
+        {
+            for (int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count; i++)
+            {
+                CandleSeries curSeries = _activSeriesBasedOnTrades[i];
+
+                if (curSeries.Security.Name != security.Name ||
+                    curSeries.Security.NameClass != security.NameClass)
+                {
+                    continue;
+                }
+
+                if (curSeries.TimeFrameBuilder.Specification.Equals(timeFrameBuilder.Specification) == false)
+                {
+                    continue;
+                }
+
+                return _activSeriesBasedOnTrades[i];
+            }
+
+            for (int i = 0; _activSeriesBasedOnMd != null && i < _activSeriesBasedOnMd.Count; i++)
+            {
+                CandleSeries curSeries = _activSeriesBasedOnMd[i];
+
+                if (curSeries.Security.Name != security.Name ||
+                    curSeries.Security.NameClass != security.NameClass)
+                {
+                    continue;
+                }
+
+                if (curSeries.TimeFrameBuilder.Specification.Equals(timeFrameBuilder.Specification) == false)
+                {
+                    continue;
+                }
+
+                return _activSeriesBasedOnMd[i];
+            }
+
+            return null;
+        }
+
+        #endregion
+
+        #region Events from server
+
+        /// <summary>
+        /// server time has changed. Inbound event
+        /// </summary>
+        private void _server_TimeServerChangeEvent(DateTime dateTime)
+        {
+            try
+            {
+                for (int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count; i++)
+                {
+                    _activSeriesBasedOnTrades[i].SetNewTime(dateTime);
+                }
+
+                for (int i = 0; _activSeriesBasedOnMd != null && i < _activSeriesBasedOnMd.Count; i++)
+                {
+                    _activSeriesBasedOnMd[i].SetNewTime(dateTime);
+                }
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// A new tick appeared in the server. Inbound event
+        /// </summary>
+        private void server_NewTradeEvent(List<Trade> trades)
+        {
+            if (_server.ServerType == ServerType.Tester &&
+                TypeTesterData == TesterDataType.Candle)
+            {
+                return;
+            }
+
+            try
+            {
+                if (trades == null ||
+                    trades.Count == 0 ||
+                    trades[0] == null)
+                {
+                    return;
+                }
+
+                if (_activSeriesBasedOnTrades == null)
+                {
+                    return;
+                }
+
+                string secCode = trades[0].SecurityNameCode;
+
+                for (int i = 0; i < _activSeriesBasedOnTrades.Count; i++)
+                {
+                    if(_activSeriesBasedOnTrades[i] == null ||
+                        _activSeriesBasedOnTrades[i].Security == null)
+                    {
+                        continue;
+                    }
+                    if (_activSeriesBasedOnTrades[i].Security.Name == secCode)
+                    {
+                        _activSeriesBasedOnTrades[i].SetNewTicks(trades);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// from the server came a new market depth
+        /// </summary>
+        private void _server_NewMarketDepthEvent(MarketDepth marketDepth)
+        {
+            if (_server.ServerType == ServerType.Tester &&
+                TypeTesterData == TesterDataType.Candle)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_activSeriesBasedOnMd == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _activSeriesBasedOnMd.Count; i++)
+                {
+                    if (_activSeriesBasedOnMd[i] == null ||
+                        _activSeriesBasedOnMd[i].Security == null)
+                    {
+                        continue;
+                    }
+
+                    if (_activSeriesBasedOnMd[i].Security.Name == marketDepth.SecurityNameCode)
+                    {
+                        _activSeriesBasedOnMd[i].SetNewMarketDepth(marketDepth);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Events from candleSeries
+
+        /// <summary>
+        /// candles were updated in one of the series. Inbound event
+        /// </summary>
+        void series_СandleUpdeteEvent(CandleSeries series)
+        {
+            if (CandleUpdateEvent != null)
+            {
+                CandleUpdateEvent(series);
+            }
+        }
+
+        void series_СandleFinishedEvent(CandleSeries series)
+        {
+            if (CandleUpdateEvent != null)
+            {
+                CandleUpdateEvent(series);
+            }
+        }
+
+        /// <summary>
+        /// candle refreshed
+        /// обновилась свечка
+        /// </summary>
+        public event Action<CandleSeries> CandleUpdateEvent;
+
+        #endregion
+
+        #region Tester
+
+        /// <summary>
+        /// loading a new candle in the series
         /// </summary>
         public void SetNewCandleInSeries(Candle candle, string nameSecurity, TimeSpan timeFrame)
         {
@@ -1024,8 +1132,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// for the tester. Clear series from old data
-        /// для тестера. Очистить серии от старых данных
+        /// clear series from old data
         /// </summary>
         public void Clear()
         {
@@ -1052,51 +1159,8 @@ namespace OsEngine.Entity
             }
         }
 
-        public void Dispose()
-        {
-            _isDisposed = true;
-
-            try
-            {
-                for (int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count; i++)
-                {
-                    _activSeriesBasedOnTrades[i].Clear();
-                    _activSeriesBasedOnTrades[i].Stop();
-                }
-                _activSeriesBasedOnTrades = null;
-
-                for (int i = 0; _activSeriesBasedOnMd != null && i < _activSeriesBasedOnMd.Count; i++)
-                {
-                    _activSeriesBasedOnMd[i].Clear();
-                    _activSeriesBasedOnMd[i].Stop();
-                }
-                _activSeriesBasedOnMd = null;
-
-                if (_candleSeriesNeadToStart != null
-                    && _candleSeriesNeadToStart.Count != 0)
-                {
-                    _candleSeriesNeadToStart.Clear();
-                }
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(error.ToString());
-            }
-
-            if (_server != null)
-            {
-                _server.NewTradeEvent -= server_NewTradeEvent;
-                _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
-                _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
-                _server = null;
-            }
-        }
-
-        private bool _isDisposed;
-
         /// <summary>
-        /// for the tester. Sync Received Data
-        /// для тестера. Синхронизировать получаемые данные
+        /// sync received data
         /// </summary>
         public void SynhSeries(List<string> nameSecurities)
         {
@@ -1118,10 +1182,8 @@ namespace OsEngine.Entity
 
         }
 
-        private TesterDataType _typeTesterData;
         /// <summary>
-        /// .data type that tester ordered
-        /// тип данных которые заказал тестер
+        /// data type that tester ordered
         /// </summary>
         public TesterDataType TypeTesterData
         {
@@ -1141,63 +1203,11 @@ namespace OsEngine.Entity
             }
             
         }
+        private TesterDataType _typeTesterData;
 
-        public int ActiveSeriesCount
-        {
-            get
-            {
-                int result = 0;
+        #endregion
 
-                if (_activSeriesBasedOnTrades != null)
-                {
-                    result += _activSeriesBasedOnTrades.Count;
-                }
-
-                if (_activSeriesBasedOnMd != null)
-                {
-                    result += _activSeriesBasedOnMd.Count;
-                }
-
-                return result;
-            }
-        }
-
-        /// <summary>
-        /// active series
-        /// активные серии
-        /// </summary>
-        private List<CandleSeries> _activSeriesBasedOnTrades;
-
-        private List<CandleSeries> _activSeriesBasedOnMd;
-
-        /// <summary>
-        /// candles were updated in one of the series. Inbound event
-        /// в одной из серий обновились свечки. Входящее событие
-        /// </summary>
-        /// <param name="series">update series/серия по которой прошло обновление</param>
-        void series_СandleUpdeteEvent(CandleSeries series)
-        {
-            if (CandleUpdateEvent != null)
-            {
-                CandleUpdateEvent( series);
-            }
-        }
-
-        void series_СandleFinishedEvent(CandleSeries series)
-        {
-            if (CandleUpdateEvent != null)
-            {
-                CandleUpdateEvent(series);
-            }
-        }
-
-        /// <summary>
-        /// candle refreshed
-        /// обновилась свечка
-        /// </summary>
-        public event Action<CandleSeries> CandleUpdateEvent;
-        // Send messages to the top
-        // Отправка сообщений на верх
+        #region Log
 
         private void SendLogMessage(string message,LogMessageType type)
         {
@@ -1212,5 +1222,7 @@ namespace OsEngine.Entity
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 }
