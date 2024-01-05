@@ -342,7 +342,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
             for (int i = 0; i < server.ServerParameters.Count; i++)
             {
-                if (server.ServerParameters[i].Name.Equals("Candles to load"))
+                if (server.ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
                 {
                     var Param = (ServerParameterInt)server.ServerParameters[i];
                     return Param.Value;
