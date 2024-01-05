@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OsEngine.Entity;
 
 namespace OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema
@@ -39,6 +36,11 @@ namespace OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema
         public string exchange;
         public string countryOfRiskName;
         public string isin;
+
+        // futures
+        public Quotation minPriceIncrementAmount;
+        public Quotation initialMarginOnBuy;
+        public Quotation initialMarginOnSell;
     }
 
 

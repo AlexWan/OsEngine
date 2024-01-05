@@ -267,6 +267,12 @@ namespace OsEngine.Market.Servers.Tinkoff
                 newSecurity.SecurityType = type;
                 newSecurity.Lot = jtSecurity.lot.ToDecimal();
 
+                if(newSecurity.SecurityType == SecurityType.Futures
+                    && jtSecurity.minPriceIncrementAmount != null)
+                {
+                    newSecurity.PriceStepCost = jtSecurity.minPriceIncrementAmount.GetValue();
+                }
+
                 securities.Add(newSecurity);
             }
 
@@ -1560,7 +1566,19 @@ namespace OsEngine.Market.Servers.Tinkoff
                             continue;
                         }
 
-                        Order curOrder = GetOldOrderState(orderFromArray.PortfolioNumber, orderFromArray.NumberMarket, _openedOrders[i]);
+                        Security mySecurity = null;
+
+                        for(int i2 = 0;i2 < _allSecurities.Count;i2++)
+                        {
+                            if (_allSecurities[i2].Name == orderFromArray.SecurityNameCode 
+                                && _allSecurities[i2].NameClass == orderFromArray.SecurityClassCode)
+                            {
+                                mySecurity = _allSecurities[i2];
+                                break;
+                            }
+                        }
+
+                        Order curOrder = GetOldOrderState(orderFromArray.PortfolioNumber, orderFromArray.NumberMarket, _openedOrders[i], mySecurity);
 
                         if (curOrder == null)
                         {
@@ -1583,7 +1601,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             }
         }
 
-        private Order GetOldOrderState(string portfolioId, string orderId, Order oldOrder)
+        private Order GetOldOrderState(string portfolioId, string orderId, Order oldOrder, Security mySecurity)
         {
             if (IsConnected == false)
             {
@@ -1602,7 +1620,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             if (orderResp.stages != null &&
                 orderResp.stages.Count != 0)
             {
-                List<MyTrade> myTrades = GenerateMyTrades(orderResp, oldOrder);
+                List<MyTrade> myTrades = GenerateMyTrades(orderResp, oldOrder, mySecurity);
 
                 if (MyTradeEvent != null)
                 {
@@ -1677,7 +1695,7 @@ namespace OsEngine.Market.Servers.Tinkoff
             return order;
         }
 
-        private List<MyTrade> GenerateMyTrades(OrderStateResponce orderResp, Order oldOrder)
+        private List<MyTrade> GenerateMyTrades(OrderStateResponce orderResp, Order oldOrder, Security mySecurity)
         {
             List<MyTrade> trades = new List<MyTrade>();
 
@@ -1689,7 +1707,19 @@ namespace OsEngine.Market.Servers.Tinkoff
                 trade.NumberOrderParent = orderResp.orderId;
 
                 trade.Volume = orderResp.stages[i].quantity.ToDecimal();
-                trade.Price = orderResp.stages[i].price.GetValue().ToStringWithNoEndZero().ToDecimal();
+
+                if(oldOrder.SecurityClassCode == "Futures")
+                {
+                    //price / min_price_increment * min_price_increment_amount
+                    decimal price = orderResp.stages[i].price.GetValue().ToStringWithNoEndZero().ToDecimal();
+                    decimal realPrice = (price * mySecurity.PriceStep) / mySecurity.PriceStepCost;
+                    trade.Price = realPrice;
+                }
+                else
+                {
+                    trade.Price = orderResp.stages[i].price.GetValue().ToStringWithNoEndZero().ToDecimal();
+                }
+                
                 trade.NumberTrade = orderResp.stages[i].tradeId;
                 trade.Time = FromIso8601(orderResp.orderDate);
                 trades.Add(trade);
