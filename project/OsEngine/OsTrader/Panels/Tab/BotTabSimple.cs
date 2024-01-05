@@ -930,7 +930,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             continue;
                         }
 
-                        if (positionsOnBoard[i].SecurityNameCode.Contains(Securiti.Name))
+                        if (positionsOnBoard[i].SecurityNameCode.Contains(Securiti.Name.Split(new char[] { '+' })[0]))
                         {
                             posesWithMySecurity.Add(positionsOnBoard[i]);
                         }
