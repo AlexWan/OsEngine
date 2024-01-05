@@ -248,7 +248,7 @@ namespace OsEngine.Market.Servers.QuikLua
         
             {
                 
-                if (classesSec.EndsWith ("TQBR") || classesSec.EndsWith("TQOB"))
+                if (classesSec.EndsWith ("TQBR") || classesSec.EndsWith("TQOB") || classesSec.EndsWith("QJSIM"))
                 {
                     if (_useStock.Value)
                     {
