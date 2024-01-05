@@ -846,6 +846,11 @@ namespace OsEngine.OsOptimizer
 
             string nameBot = _master.StrategyName;
 
+            if(string.IsNullOrEmpty(nameBot))
+            {
+                return;
+            }
+
             BotPanel bot = BotFactory.GetStrategyForName(nameBot, "", StartProgram.IsOsOptimizer, _master.IsScript);
 
             if (bot == null)
@@ -1104,6 +1109,11 @@ namespace OsEngine.OsOptimizer
 
             int countTab = 0;
             string nameBot = _master.StrategyName;
+
+            if (string.IsNullOrEmpty(nameBot))
+            {
+                return;
+            }
 
             BotPanel bot = BotFactory.GetStrategyForName(nameBot, "", StartProgram.IsOsOptimizer, _master.IsScript);
 

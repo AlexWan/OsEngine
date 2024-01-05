@@ -107,6 +107,11 @@ namespace OsEngine.Robots
         /// </summary>
         public static BotPanel GetStrategyForName(string nameClass, string name, StartProgram startProgram, bool isScript)
         {
+            if(string.IsNullOrEmpty(nameClass))
+            {
+                return null;
+            }
+
             BotPanel bot = null;
 
             if (isScript && bot == null)

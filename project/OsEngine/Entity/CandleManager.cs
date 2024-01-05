@@ -204,7 +204,9 @@ namespace OsEngine.Entity
 
                         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         // NEW STANDART CANDLE SERIES START 2024
-                        else if (serverType == ServerType.Alor)
+                        else if (serverType == ServerType.Alor
+                            //|| serverType == ServerType.NEWSERVER
+                            )
                         {
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)

@@ -651,7 +651,8 @@ namespace OsEngine.Market
         /// <summary>
         /// create a new optimization server
         /// </summary>
-        public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage, int num, decimal portfolioStartVal)
+        public static OptimizerServer CreateNextOptimizerServer(OptimizerDataStorage storage,
+            int num, decimal portfolioStartVal)
         {
 
             OptimizerServer serv = new OptimizerServer(storage, num, portfolioStartVal);
@@ -1191,7 +1192,8 @@ namespace OsEngine.Market
         /// <summary>
         /// add items on which portfolios and orders will be drawn
         /// </summary>
-        public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostActiveOrders, WindowsFormsHost hostHistoricalOrders)
+        public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostActiveOrders, 
+            WindowsFormsHost hostHistoricalOrders)
         {
             if (_painterPortfolios == null)
             {
