@@ -123,7 +123,7 @@ namespace OsEngine.Market.Servers.Alor
             get { return _tradeTimeFramePermission; }
         }
 
-        public int WaitTimeAfterFirstStartToSendOrders
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 30; }
         }

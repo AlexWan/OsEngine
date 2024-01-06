@@ -111,7 +111,7 @@ namespace OsEngine.Market.Servers.MFD
             get { return _tradeTimeFramePermission; }
         }
 
-        public int WaitTimeAfterFirstStartToSendOrders
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 60; }
         }

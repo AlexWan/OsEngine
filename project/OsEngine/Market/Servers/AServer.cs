@@ -172,7 +172,7 @@ namespace OsEngine.Market.Servers
 
                     if(permission != null)
                     {
-                        _waitTimeAfterFirstStart = permission.WaitTimeAfterFirstStartToSendOrders;
+                        _waitTimeAfterFirstStart = permission.WaitTimeSecondsAfterFirstStartToSendOrders;
                     }
                 }
 

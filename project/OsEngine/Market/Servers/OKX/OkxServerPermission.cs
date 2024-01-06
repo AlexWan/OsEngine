@@ -106,7 +106,7 @@ namespace OsEngine.Market.Servers.OKX
             get { return _tradeTimeFramePermission; }
         }
 
-        public int WaitTimeAfterFirstStartToSendOrders
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 1; }
         }

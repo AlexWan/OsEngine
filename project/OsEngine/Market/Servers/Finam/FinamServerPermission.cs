@@ -107,7 +107,7 @@ namespace OsEngine.Market.Servers.Finam
             get { return _tradeTimeFramePermission; }
         }
 
-        public int WaitTimeAfterFirstStartToSendOrders
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 60; }
         }

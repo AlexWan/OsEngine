@@ -112,7 +112,7 @@ namespace OsEngine.Market.Servers.BybitSpot
             get { return _tradeTimeFramePermission; }
         }
 
-        public int WaitTimeAfterFirstStartToSendOrders
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 1; }
         }

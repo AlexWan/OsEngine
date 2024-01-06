@@ -108,7 +108,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             get { return _tradeTimeFramePermission; }
         }
 
-        public int WaitTimeAfterFirstStartToSendOrders
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 1; }
         }

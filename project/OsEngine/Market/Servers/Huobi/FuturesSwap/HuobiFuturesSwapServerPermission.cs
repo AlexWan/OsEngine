@@ -110,7 +110,7 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             get { return _tradeTimeFramePermission; }
         }
 
-        public int WaitTimeAfterFirstStartToSendOrders
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 1; }
         }

@@ -59,7 +59,7 @@ namespace OsEngine.Market.Servers
 
         TimeFramePermission TradeTimeFramePermission { get; }
 
-        int WaitTimeAfterFirstStartToSendOrders { get; }
+        int WaitTimeSecondsAfterFirstStartToSendOrders { get; }
 
         bool UseStandartCandlesStarter { get; }
 
