@@ -95,7 +95,7 @@ namespace OsEngine.Market.Servers.Alor
         }
 
         public bool DataFeedTfTickCanLoad
-        { 
+        {
             get { return false; }
         }
 
@@ -157,6 +157,41 @@ namespace OsEngine.Market.Servers.Alor
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = true
             };
+
+        public bool UseStandartCandlesStarter
+        {
+            get { return true; }
+        }
+
+        public bool IsUseLotToCalculateProfit
+        {
+            get { return true; }
+        }
+
+        public bool ManuallyClosePositionOnBoard_IsOn
+        {
+            get { return true; }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
+        {
+            get { return null; }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
+        {
+            get
+            {
+                string[] values = new string[]
+                {
+                    "RUB",
+                    "USD",
+                    "EUR"
+                };
+
+                return values;
+            }
+        }
 
         #endregion
     }

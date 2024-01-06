@@ -1259,6 +1259,9 @@ namespace OsEngine.Market
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static Log Log;
 
         /// <summary>
@@ -1278,7 +1281,7 @@ namespace OsEngine.Market
         }
 
         /// <summary>
-        /// outgoing log message
+        /// outgoing log message event
         /// </summary>
         public static event Action<string, LogMessageType> LogMessageEvent;
 

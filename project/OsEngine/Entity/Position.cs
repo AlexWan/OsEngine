@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -1077,20 +1078,35 @@ namespace OsEngine.Entity
         {
             if (OpenOrders != null && OpenOrders.Count > 0)
             {
-                if(OpenOrders[0].ServerType == ServerType.Plaza ||
-                    OpenOrders[0].ServerType == ServerType.QuikDde ||
-                    OpenOrders[0].ServerType == ServerType.QuikLua ||
-                    OpenOrders[0].ServerType == ServerType.Tinkoff ||
-                    OpenOrders[0].ServerType == ServerType.Alor ||
-                    OpenOrders[0].ServerType == ServerType.Transaq)
+                ServerType serverType = OpenOrders[0].ServerType;
+
+                if(serverType == ServerType.Tester ||
+                    serverType == ServerType.None ||
+                    serverType == ServerType.Optimizer ||
+                    serverType == ServerType.Miner)
+                {
+                    return false;
+                }
+
+                if(serverType == ServerType.QuikDde
+                    || serverType == ServerType.QuikLua
+                    || serverType == ServerType.Transaq
+                    || serverType == ServerType.Plaza)
                 {
                     return true;
                 }
 
-                return false;
+                IServerPermission permission = ServerMaster.GetServerPermission(serverType);
+
+                if(permission == null)
+                {
+                    return false;
+                }
+
+                return permission.IsUseLotToCalculateProfit;
 
             }
-            return true;
+            return false;
         }
 
         /// <summary>

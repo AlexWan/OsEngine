@@ -130,5 +130,52 @@
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = false
             };
+
+        public bool UseStandartCandlesStarter
+        {
+            get { return false; }
+        }
+
+        public bool IsUseLotToCalculateProfit
+        {
+            get { return false; }
+        }
+
+        public bool ManuallyClosePositionOnBoard_IsOn
+        {
+            get { return true; }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
+        {
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_long",
+                    "_short",
+                    "_both"
+                };
+
+                return values;
+            }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
+        {
+            get
+            {
+                string[] values = new string[]
+                {
+                    "BGB",
+                    "USDT",
+                    "USD",
+                    "BTC",
+                    "ETH"
+                };
+
+                return values;
+            }
+        }
     }
 }

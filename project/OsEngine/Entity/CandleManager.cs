@@ -183,31 +183,13 @@ namespace OsEngine.Entity
                             series.IsStarted = true;
                         }
 
-                        else if (serverType == ServerType.Plaza ||
-                                 serverType == ServerType.QuikDde ||
-                                 serverType == ServerType.AstsBridge ||
-                                 serverType == ServerType.NinjaTrader ||
-                                 serverType == ServerType.Lmax)
+                        IServerPermission permission = ServerMaster.GetServerPermission(serverType);
+
+                        if (permission != null &&
+                           permission.UseStandartCandlesStarter == true)
                         {
-                            series.CandlesAll = null;
-                            // further, we try to load candles with ticks
-                            // далее, пытаемся пробуем прогрузить свечи при помощи тиков
-                            List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-
-                            series.PreLoad(allTrades);
-                            // if there is a preloading of candles on the server and something is downloaded
-                            // если на сервере есть предзагрузка свечек и что-то скачалось 
-                            series.UpdateAllCandles();
-
-                            series.IsStarted = true;
-                        }
-
-                        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        // NEW STANDART CANDLE SERIES START 2024
-                        else if (serverType == ServerType.Alor
-                            //|| serverType == ServerType.NEWSERVER
-                            )
-                        {
+                            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            // NEW STANDART CANDLE SERIES START 2024
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
                                 series.TimeFrameSpan.TotalMinutes < 1)
                             {
@@ -227,7 +209,24 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
+                        else if (serverType == ServerType.Plaza ||
+                                 serverType == ServerType.QuikDde ||
+                                 serverType == ServerType.AstsBridge ||
+                                 serverType == ServerType.NinjaTrader ||
+                                 serverType == ServerType.Lmax)
+                        {
+                            series.CandlesAll = null;
+                            // further, we try to load candles with ticks
+                            // далее, пытаемся пробуем прогрузить свечи при помощи тиков
+                            List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
 
+                            series.PreLoad(allTrades);
+                            // if there is a preloading of candles on the server and something is downloaded
+                            // если на сервере есть предзагрузка свечек и что-то скачалось 
+                            series.UpdateAllCandles();
+
+                            series.IsStarted = true;
+                        }
                         else if (serverType == ServerType.Tinkoff)
                         {
                             TinkoffServer tinkoff = (TinkoffServer)_server;

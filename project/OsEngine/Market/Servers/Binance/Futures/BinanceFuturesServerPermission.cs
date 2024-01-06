@@ -142,6 +142,53 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 TimeFrameDayIsOn = true
             };
 
+        public bool UseStandartCandlesStarter
+        {
+            get { return false; }
+        }
+
+        public bool IsUseLotToCalculateProfit
+        {
+            get { return false; }
+        }
+
+        public bool ManuallyClosePositionOnBoard_IsOn
+        {
+            get { return true; }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
+        {
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT",
+                    "_BOTH"
+                };
+
+                return values;
+            }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
+        {
+            get
+            {
+                string[] values = new string[]
+                {
+                    "BNB",
+                    "USDT",
+                    "USD",
+                    "BTC",
+                    "ETH"
+                };
+
+                return values;
+            }
+        }
+
         #endregion
     }
 }

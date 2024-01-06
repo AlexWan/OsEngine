@@ -1,4 +1,7 @@
-﻿namespace OsEngine.Market.Servers
+﻿using OsEngine.Entity;
+using System.Windows.Documents;
+
+namespace OsEngine.Market.Servers
 {
     public interface IServerPermission
     {
@@ -46,18 +49,27 @@
 
         #region Trade Permissions
 
-        bool MarketOrdersIsSupport { get; }
-
         bool IsTradeServer { get; }
 
+        bool MarketOrdersIsSupport { get; }
+
         bool IsCanChangeOrderPrice { get; }
+
+        bool IsUseLotToCalculateProfit { get; }
 
         TimeFramePermission TradeTimeFramePermission { get; }
 
         int WaitTimeAfterFirstStartToSendOrders { get; }
 
-        #endregion
+        bool UseStandartCandlesStarter { get; }
 
+        bool ManuallyClosePositionOnBoard_IsOn { get; }
+
+        string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName { get; }
+
+        string[] ManuallyClosePositionOnBoard_ExceptionPositionNames { get; }
+
+        #endregion
 
     }
 

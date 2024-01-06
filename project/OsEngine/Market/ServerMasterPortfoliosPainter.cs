@@ -12,18 +12,20 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Transaq.TransaqEntity;
-using Point = System.Drawing.Point;
 
 namespace OsEngine.Market
 {
 
     /// <summary>
     /// class responsible for drawing all portfolios and all orders open for current session on deployed servers
-    /// класс отвечающий за прорисовку всех портфелей и всех ордеров открытых за текущую сессию на развёрнутых серверах
     /// </summary>
     public class ServerMasterPortfoliosPainter
     {
+        #region Service
+
+        /// <summary>
+        /// constructor
+        /// </summary>
         public ServerMasterPortfoliosPainter()
         {
             ServerMaster.ServerCreateEvent += ServerMaster_ServerCreateEvent;
@@ -34,7 +36,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// incoming events. a new server has been deployed in server-master
-        /// входящее событие. В сервермастере был развёрнут новый сервер
         /// </summary>
         private void ServerMaster_ServerCreateEvent(IServer server)
         {
@@ -71,7 +72,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// start drawing class control
-        /// начать прорисовывать контролы класса 
         /// </summary>
         public void StartPaint()
         {
@@ -91,12 +91,17 @@ namespace OsEngine.Market
             }
         }
 
+        /// <summary>
+        /// stop drawing class control
+        /// </summary>
         public void StopPaint()
         {
             _hostPortfolio.Child = null;
         }
 
-      
+        /// <summary>
+        /// load a control for drawing into the object
+        /// </summary>
         public void SetHostTable(WindowsFormsHost hostPortfolio)
         {
             try
@@ -118,61 +123,13 @@ namespace OsEngine.Market
             }
         }
 
-        /// <summary>
-        /// multi-thread locker to portfolios
-        /// блокиратор многопоточного доступа к портфелям
-        /// </summary>
-        private object lockerPortfolio = new object();
+        #endregion
+
+        #region Work of the flow drawing portfolios and orders
 
         /// <summary>
-        /// portfolios changed in the server
-        /// в сервере изменились портфели
+        /// method in which the thread that draws controls works
         /// </summary>
-        /// <param name="portfolios">портфели</param>
-        private void _server_PortfoliosChangeEvent(List<Portfolio> portfolios)
-        {
-            try
-            {
-                lock (lockerPortfolio)
-                {
-                    if (portfolios == null || portfolios.Count == 0)
-                    {
-                        return;
-                    }
-
-                    if (_portfolios == null)
-                    {
-                        _portfolios = new List<Portfolio>();
-                    }
-
-                    for (int i = 0; i < portfolios.Count; i++)
-                    {
-                        if (portfolios[i] == null)
-                        {
-                            continue;
-                        }
-
-                        Portfolio portf = _portfolios.Find(
-                            portfolio => portfolio != null && portfolio.Number == portfolios[i].Number);
-
-                        if (portf != null)
-                        {
-                            _portfolios.Remove(portf);
-                        }
-
-                        _portfolios.Add(portfolios[i]);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            _neadToPaintPortfolio = true;
-        }
-
-        #region работа потока прорисовывающего портфели и ордера
-
         private async void PainterThreadArea()
         {
             while (true)
@@ -194,29 +151,25 @@ namespace OsEngine.Market
 
         /// <summary>
         /// shows whether state of the portfolio has changed and you need to redraw it
-        /// флаг, означающий что состояние портфеля изменилось и нужно его перерисовать
         /// </summary>
         private bool _neadToPaintPortfolio;
 
         #endregion
 
-        #region прорисовка портфеля
+        #region Portfolio drawing
 
         /// <summary>
         /// table for drawing portfolios
-        /// таблица для прорисовки портфелей
         /// </summary>
         private DataGridView _gridPortfolio;
 
         /// <summary>
         /// area for drawing portfolios
-        /// область для прорисовки портфелей
         /// </summary>
         private WindowsFormsHost _hostPortfolio;
 
         /// <summary>
         /// redraw the portfolio table
-        /// перерисовать таблицу портфелей
         /// </summary>
         private void RePaintPortfolio()
         {
@@ -303,8 +256,6 @@ namespace OsEngine.Market
                     }
                 }
 
-               /* int curUpRow = 0;
-                int curSelectRow = 0;*/
 
                if (curUpRow != 0 && curUpRow != -1)
                {
@@ -327,7 +278,6 @@ namespace OsEngine.Market
 
         /// <summary>
         /// draw portfolio
-        /// прорисовать портфель
         /// </summary>
         private void PaintPortfolio(Portfolio portfolio)
         {
@@ -459,14 +409,66 @@ namespace OsEngine.Market
 
         /// <summary>
         /// all portfolios
-        /// все портфели
         /// </summary>
         private List<Portfolio> _portfolios;
 
+        /// <summary>
+        /// multi-thread locker to portfolios
+        /// </summary>
+        private string _lockerPortfolio = "portfolio_locker";
+
+        /// <summary>
+        /// portfolios changed in the server
+        /// </summary>
+        private void _server_PortfoliosChangeEvent(List<Portfolio> portfolios)
+        {
+            try
+            {
+                lock (_lockerPortfolio)
+                {
+                    if (portfolios == null || portfolios.Count == 0)
+                    {
+                        return;
+                    }
+
+                    if (_portfolios == null)
+                    {
+                        _portfolios = new List<Portfolio>();
+                    }
+
+                    for (int i = 0; i < portfolios.Count; i++)
+                    {
+                        if (portfolios[i] == null)
+                        {
+                            continue;
+                        }
+
+                        Portfolio portf = _portfolios.Find(
+                            portfolio => portfolio != null && portfolio.Number == portfolios[i].Number);
+
+                        if (portf != null)
+                        {
+                            _portfolios.Remove(portf);
+                        }
+
+                        _portfolios.Add(portfolios[i]);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            _neadToPaintPortfolio = true;
+        }
+
         #endregion
 
-        #region кнопка удалить позицию
+        #region Delete a position on the exchange at the press of a button from the interface
 
+        /// <summary>
+        /// Whether closing positions is allowed for this exchange
+        /// </summary>
         private bool HaveClosePosButton(Portfolio portfolio, PositionOnBoard positionOnBoard)
         {
             IServer myServer = GetServerByPortfolioName(portfolio.Number);
@@ -481,29 +483,36 @@ namespace OsEngine.Market
                 return true;
             }
 
-            if(myServer.ServerType == ServerType.BinanceFutures)
-            {
-                if(positionOnBoard.SecurityNameCode.EndsWith("_LONG")
-                    || positionOnBoard.SecurityNameCode.EndsWith("_SHORT")
-                    || positionOnBoard.SecurityNameCode.EndsWith("_BOTH"))
-                {
-                    return true;
-                }
-            }
+            IServerPermission permission = ServerMaster.GetServerPermission(myServer.ServerType);
 
-            if (myServer.ServerType == ServerType.BitGetFutures)
+            if(permission != null )
             {
-                if (positionOnBoard.SecurityNameCode.EndsWith("_long")
-                    || positionOnBoard.SecurityNameCode.EndsWith("_short")
-                    || positionOnBoard.SecurityNameCode.EndsWith("_both"))
+                if(permission.ManuallyClosePositionOnBoard_IsOn == false)
                 {
-                    return true;
+                    return false;
                 }
+
+                string[] exceptionValues = permission.ManuallyClosePositionOnBoard_ExceptionPositionNames;
+
+                for(int i = 0; exceptionValues != null && i < exceptionValues.Length;i++)
+                {
+                    string curName = exceptionValues[i];
+
+                    if(positionOnBoard.SecurityNameCode.Equals(curName))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             return false;
         }
 
+        /// <summary>
+        /// trim the name of the security to what it looks like on the stock exchange
+        /// </summary>
         private string TrimmSecName(string secName, IServer server)
         {
             string trueNameSec = secName;
@@ -512,23 +521,33 @@ namespace OsEngine.Market
             {
                 return trueNameSec;
             }
-            if(server.ServerType == ServerType.BinanceFutures)
-            {
-                trueNameSec = trueNameSec.Replace("_LONG", "");
-                trueNameSec = trueNameSec.Replace("_SHORT", "");
-                trueNameSec = trueNameSec.Replace("_BOTH", "");
-            }
 
-            if (server.ServerType == ServerType.BitGetFutures)
+            IServerPermission permission = ServerMaster.GetServerPermission(server.ServerType);
+
+
+            if(permission != null )
             {
-                trueNameSec = trueNameSec.Replace("_long", "");
-                trueNameSec = trueNameSec.Replace("_short", "");
-                trueNameSec = trueNameSec.Replace("_both", "");
+                string[] trimValues = permission.ManuallyClosePositionOnBoard_ValuesForTrimmingName;
+
+                for(int i = 0; trimValues != null && i < trimValues.Length;i++)
+                {
+                    string value = trimValues[i];
+
+                    if(string.IsNullOrEmpty(value))
+                    {
+                        continue;
+                    }
+
+                    trueNameSec = trueNameSec.Replace(value, "");
+                }
             }
 
             return trueNameSec;
         }
 
+        /// <summary>
+        /// server by portfolio name
+        /// </summary>
         private IServer GetServerByPortfolioName(string portfolioName)
         {
             List<IServer> servers = ServerMaster.GetServers();
@@ -573,6 +592,9 @@ namespace OsEngine.Market
             return myServer;
         }
 
+        /// <summary>
+        /// the user clicked on the table of positions on the exchange
+        /// </summary>
         private void _gridPortfolio_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             int rowInd = e.RowIndex;
@@ -639,22 +661,23 @@ namespace OsEngine.Market
 
             string trimmedSecName = TrimmSecName(secName, myServer);
 
-
             if (ClearPositionOnBoardEvent != null)
             {
                 ClearPositionOnBoardEvent(trimmedSecName, myServer, secName);
             }
         }
 
+        /// <summary>
+        /// outgoing event: it is necessary to close a position on the stock exchange
+        /// </summary>
         public event Action<string, IServer, string> ClearPositionOnBoardEvent;
 
         #endregion
 
-        // log message
+        #region Log
 
         /// <summary>
         /// send a new message to up
-        /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -670,8 +693,9 @@ namespace OsEngine.Market
 
         /// <summary>
         /// outgoing log message
-        /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 }

@@ -139,5 +139,30 @@ namespace OsEngine.Market.Servers.Huobi.Futures
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = true
             };
+
+        public bool UseStandartCandlesStarter
+        {
+            get { return false; }
+        }
+
+        public bool IsUseLotToCalculateProfit
+        {
+            get { return false; }
+        }
+
+        public bool ManuallyClosePositionOnBoard_IsOn
+        {
+            get { return false; }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
+        {
+            get { return null; }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
+        {
+            get { return null; }
+        }
     }
 }
