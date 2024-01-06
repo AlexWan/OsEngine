@@ -882,271 +882,151 @@ namespace OsEngine.Market
         private static List<IServerPermission> _serversPermissions = new List<IServerPermission>();
 
         /// <summary>
+        /// array of servers types for which there are no implementations IserverPermission
+        /// </summary>
+        private static List<ServerType> _noServerPermissionServers = new List<ServerType>();
+
+        /// <summary>
+        /// object blocking multithreaded access to the functions of creating permission objects.
+        /// </summary>
+        private static string _serverPermissionGeterLocker = "serverPermissionLocker";
+
+        /// <summary>
         /// request server permissions of the type
         /// </summary>
         public static IServerPermission GetServerPermission(ServerType type)
         {
-            IServerPermission serverPermission = null;
-
-            if (type == ServerType.Alor)
+            for(int i = 0;i < _serversPermissions.Count;i++)
             {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
+                if (_serversPermissions[i].ServerType == type)
+                {
+                    return _serversPermissions[i];
+                }
+            }
 
-                if (serverPermission == null)
+            for(int i = 0;i < _noServerPermissionServers.Count;i++)
+            {
+                if (_noServerPermissionServers[i] == type)
+                {
+                    return null;
+                }
+            }
+
+            lock(_serverPermissionGeterLocker)
+            {
+                for (int i = 0; i < _serversPermissions.Count; i++)
+                {
+                    if (_serversPermissions[i].ServerType == type)
+                    {
+                        return _serversPermissions[i];
+                    }
+                }
+
+                for (int i = 0; i < _noServerPermissionServers.Count; i++)
+                {
+                    if (_noServerPermissionServers[i] == type)
+                    {
+                        return null;
+                    }
+                }
+
+                IServerPermission serverPermission = null;
+
+                if (type == ServerType.Alor)
                 {
                     serverPermission = new AlorServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-
-            if (type == ServerType.BitGetSpot)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.BitGetSpot)
                 {
                     serverPermission = new BitGetSpotServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-
-            if (type == ServerType.BitGetFutures)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.BitGetFutures)
                 {
                     serverPermission = new BitGetFuturesServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-
-            if (type == ServerType.AscendEx_BitMax)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.AscendEx_BitMax)
                 {
                     serverPermission = new BitmaxServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-
-            if (type == ServerType.OKX)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.OKX)
                 {
                     serverPermission = new OkxServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.Binance)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.Binance)
                 {
                     serverPermission = new BinanceSpotServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.BinanceFutures)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.BinanceFutures)
                 {
                     serverPermission = new BinanceFuturesServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.Bitfinex)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.Bitfinex)
                 {
                     serverPermission = new BitFinexServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.Kraken)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.Kraken)
                 {
                     serverPermission = new KrakenServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-
-            if (type == ServerType.MoexDataServer)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.MoexDataServer)
                 {
                     serverPermission = new MoexIssPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.MfdWeb)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.MfdWeb)
                 {
                     serverPermission = new MfdServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.Finam)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.Finam)
                 {
                     serverPermission = new FinamServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.Tinkoff)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.Tinkoff)
                 {
                     serverPermission = new TinkoffServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.HuobiSpot)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.HuobiSpot)
                 {
                     serverPermission = new HuobiSpotServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.HuobiFutures)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.HuobiFutures)
                 {
                     serverPermission = new HuobiFuturesServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.BybitSpot)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.BybitSpot)
                 {
                     serverPermission = new BybitSpotServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.HuobiFuturesSwap)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.HuobiFuturesSwap)
                 {
                     serverPermission = new HuobiFuturesSwapServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.GateIoFutures)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.GateIoFutures)
                 {
                     serverPermission = new GateIoServerFuturesPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.GateIoSpot)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.GateIoSpot)
                 {
                     serverPermission = new GateIoSpotServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.Bybit)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.Bybit)
                 {
                     serverPermission = new BybitServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
-
-                return serverPermission;
-            }
-            if (type == ServerType.InteractiveBrokers)
-            {
-                serverPermission = _serversPermissions.Find(s => s.ServerType == type);
-
-                if (serverPermission == null)
+                else if (type == ServerType.InteractiveBrokers)
                 {
                     serverPermission = new InteractiveBrokersServerPermission();
-                    _serversPermissions.Add(serverPermission);
                 }
 
-                return serverPermission;
+                if (serverPermission != null)
+                {
+                    _serversPermissions.Add(serverPermission);
+                    return serverPermission;
+                }
+                else
+                {
+                    _noServerPermissionServers.Add(type);
+                }
             }
-
-            
 
             return null;
         }
