@@ -1081,6 +1081,7 @@ namespace OsEngine.Entity
                     OpenOrders[0].ServerType == ServerType.QuikDde ||
                     OpenOrders[0].ServerType == ServerType.QuikLua ||
                     OpenOrders[0].ServerType == ServerType.Tinkoff ||
+                    OpenOrders[0].ServerType == ServerType.Alor ||
                     OpenOrders[0].ServerType == ServerType.Transaq)
                 {
                     return true;
