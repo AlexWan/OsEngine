@@ -555,6 +555,38 @@ namespace OsEngine.Robots
                 sortDescription.Add(curBotDescription);
             }
 
+            for(int i = 0;i < sortDescription.Count;i++)
+            {
+                string curStrategy = sortDescription[i].ClassName;
+
+                bool isInArray = false;
+
+                for(int j = 0;j < _botsFromScript.Count;j++)
+                {
+                    if (_botsFromScript[j] == curStrategy)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                for (int j = 0; j < _botsIncluded.Count; j++)
+                {
+                    if (_botsIncluded[j] == curStrategy)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if(isInArray == false)
+                {
+                    sortDescription.RemoveAt(i);
+                    i--;
+                }
+
+            }
+
             return sortDescription;
         }
 
