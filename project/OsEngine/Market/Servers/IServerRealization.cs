@@ -17,11 +17,13 @@ namespace OsEngine.Market.Servers
     /// </summary>
     public interface IServerRealization
     {
+        #region  Service, Status, Connection
+
         /// <summary>
         /// server type
         /// тип сервера
         /// </summary>
-        ServerType ServerType { get;}
+        ServerType ServerType { get; }
 
         /// <summary>
         /// server state
@@ -30,16 +32,16 @@ namespace OsEngine.Market.Servers
         ServerConnectStatus ServerStatus { get; set; }
 
         /// <summary>
-        /// strategy parameters
-        /// параметры стратегии
-        /// </summary>
-        List<IServerParameter> ServerParameters { get; set; }
-
-        /// <summary>
         /// server time
         /// время сервера
         /// </summary>
         DateTime ServerTime { get; set; }
+
+        /// <summary>
+        /// strategy parameters
+        /// параметры стратегии
+        /// </summary>
+        List<IServerParameter> ServerParameters { get; set; }
 
         /// <summary>
         /// request to connect to the source. guaranteed to be called no more than 60 seconds
@@ -54,16 +56,97 @@ namespace OsEngine.Market.Servers
         void Dispose();
 
         /// <summary>
+        /// API connection established
+        /// соединение с API установлено
+        /// </summary>
+        event Action ConnectEvent;
+
+        /// <summary>
+        /// API connection broke
+        /// соединение с API разорвано
+        /// </summary>
+        event Action DisconnectEvent;
+
+        #endregion
+
+        #region Securities
+
+        /// <summary>
         /// request security
         /// запросить бумаги
         /// </summary>
         void GetSecurities();
 
         /// <summary>
+        /// new securities in the system
+        /// новые бумаги в системе
+        /// </summary>
+        event Action<List<Security>> SecurityEvent;
+
+        #endregion
+
+        #region Portfolios
+
+        /// <summary>
         /// request portfolios
         /// запросить портфели
         /// </summary>
         void GetPortfolios();
+
+        /// <summary>
+        /// portfolios updates
+        /// обновились портфели
+        /// </summary>
+        event Action<List<Portfolio>> PortfolioEvent;
+
+        #endregion
+
+        #region Security subscrible
+
+        /// <summary>
+        /// subscribe to trades and market depth
+        /// подписаться на трейды и стаканы
+        /// </summary>
+        void Subscrible(Security security);
+
+        /// <summary>
+        /// depth updated
+        /// обновился стакан
+        /// </summary>
+        event Action<MarketDepth> MarketDepthEvent;
+
+        /// <summary>
+        /// ticks updated
+        /// обновились тики
+        /// </summary>
+        event Action<Trade> NewTradesEvent;
+
+        #endregion
+
+        #region Data upload
+
+        /// <summary>
+        /// Интерфейс для получения последний свечек по инструменту. Используется для активации серий свечей в боевых торгах
+        /// Interface for getting the last candlesticks for a security. Used to activate candlestick series in live trades
+        /// </summary>
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount);
+
+        /// <summary>
+        /// take candles history for period
+        /// взять историю свечей за период
+        /// </summary>
+        List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime);
+
+        /// <summary>
+        /// take ticks data for period
+        /// взять тиковые данные за период
+        /// </summary>
+        List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime);
+
+        #endregion
+
+        #region Work with orders
 
         /// <summary>
         /// place order
@@ -97,31 +180,6 @@ namespace OsEngine.Market.Servers
         void CancelAllOrdersToSecurity(Security security);
 
         /// <summary>
-        /// subscribe to trades and market depth
-        /// подписаться на трейды и стаканы
-        /// </summary>
-        void Subscrible(Security security);
-
-        /// <summary>
-        /// Интерфейс для получения последний свечек по инструменту. Используется для активации серий свечей в боевых торгах
-        /// Interface for getting the last candlesticks for a security. Used to activate candlestick series in live trades
-        /// </summary>
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount);
-
-        /// <summary>
-        /// take candles history for period
-        /// взять историю свечей за период
-        /// </summary>
-        List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime);
-
-        /// <summary>
-        /// take ticks data for period
-        /// взять тиковые данные за период
-        /// </summary>
-        List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime);
-
-        /// <summary>
         /// take the current orders state
         /// взять текущие состояния ордеров
         /// </summary>
@@ -145,46 +203,16 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<MyTrade> MyTradeEvent;
 
-        /// <summary>
-        /// portfolios updates
-        /// обновились портфели
-        /// </summary>
-        event Action<List<Portfolio>> PortfolioEvent;
+        #endregion
 
-        /// <summary>
-        /// new securities in the system
-        /// новые бумаги в системе
-        /// </summary>
-        event Action<List<Security>> SecurityEvent;
-
-        /// <summary>
-        /// depth updated
-        /// обновился стакан
-        /// </summary>
-        event Action<MarketDepth> MarketDepthEvent;
-
-        /// <summary>
-        /// ticks updated
-        /// обновились тики
-        /// </summary>
-        event Action<Trade> NewTradesEvent;
-
-        /// <summary>
-        /// API connection established
-        /// соединение с API установлено
-        /// </summary>
-        event Action ConnectEvent;
-
-        /// <summary>
-        /// API connection broke
-        /// соединение с API разорвано
-        /// </summary>
-        event Action DisconnectEvent;
+        #region Log messages
 
         /// <summary>
         /// send the message
         /// отправляет сообщение
         /// </summary>
         event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 }

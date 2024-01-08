@@ -79,22 +79,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (string.IsNullOrEmpty(security.Name))
             {
-
                 SetNewError(serverType + " Security Error 2 . Name is Empty!");
             }
             if (string.IsNullOrEmpty(security.NameFull))
             {
-
-                SetNewError(serverType + " Security Error 3 . Security Name is Empty!");
+                SetNewError(serverType + " Security Error 3 . Security NameFull is Empty!");
             }
             if (string.IsNullOrEmpty(security.NameClass))
             {
-
-                SetNewError(serverType + " Security Error 4 . Security Name is Empty!");
+                SetNewError(serverType + " Security Error 4 . Security NameClass is Empty!");
             }
             if (string.IsNullOrEmpty(security.NameId))
             {
-                SetNewError(serverType + " Security Error 5 . Security Name is Empty!");
+                SetNewError(serverType + " Security Error 5 . Security NameId is Empty!");
             }
 
             if (string.IsNullOrEmpty(security.Exchange))
