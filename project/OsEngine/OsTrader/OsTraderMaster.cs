@@ -780,6 +780,11 @@ namespace OsEngine.OsTrader
 
                 List<PositionOnBoard> posesInPortfolio = portf.GetPositionOnBoard();
 
+                if(posesInPortfolio == null)
+                {
+                    continue;
+                }
+
                 for (int j = 0;j < posesInPortfolio.Count;j++)
                 {
                     if (posesInPortfolio[j].SecurityNameCode == fullName)
