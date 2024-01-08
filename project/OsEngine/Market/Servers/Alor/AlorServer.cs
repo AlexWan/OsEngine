@@ -1452,11 +1452,21 @@ namespace OsEngine.Market.Servers.Alor
                 depth.Asks.Add(newAsk);
             }
 
+            if(_lastMdTime != DateTime.MinValue &&
+                _lastMdTime >= depth.Time)
+            {
+                depth.Time = _lastMdTime.AddMilliseconds(1);
+            }
+
+            _lastMdTime = depth.Time;
+
             if (MarketDepthEvent != null)
             {
                 MarketDepthEvent(depth);
             }
         }
+
+        private DateTime _lastMdTime = DateTime.MinValue;
 
         public event Action<Trade> NewTradesEvent;
 

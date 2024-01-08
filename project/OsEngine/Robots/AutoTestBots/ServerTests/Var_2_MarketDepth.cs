@@ -1,18 +1,16 @@
 ﻿using OsEngine.Entity;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using OsEngine.Market.Servers.Hitbtc;
+
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     public class Var_2_MarketDepth : AServerTester
     {
+        public string SecNames;
 
-        public int CountSecuritiesToConnect;
+        public string SecClassCode;
 
         public int MinutesToTest;
 
@@ -20,29 +18,25 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public override void Process()
         {
-            List<Security> securities = Server.Securities;
+            List<Security> securities = GetActivateSecurities(SecNames, SecClassCode);
 
-            if (securities != null &&
-                securities.Count > 0)
+            if (securities == null ||
+                securities.Count == 0)
             {
-                Server.NewMarketDepthEvent += Server_NewMarketDepthEvent;
-                int step = securities.Count / CountSecuritiesToConnect;
-
-                for(int i = 0;i < securities.Count;i++)
-                {
-                    Server.ServerRealization.Subscrible(securities[i]);
-                    _secToSubscrible.Add(securities[i]);
-                    _securities.Add(securities[i]);
-                    SetNewServiceInfo("Start sec: " + securities[i].Name);
-                    i += step - 1;
-                }
-            }
-            else
-            {
-                SetNewError("MD Error 0. No securities found");
-                TestEnded();
+                SetNewError("Error 0. Security set user is not found " + SecNames);
                 return;
             }
+
+            Server.NewMarketDepthEvent += Server_NewMarketDepthEvent;
+
+            for (int i = 0; i < securities.Count; i++)
+            {
+                Server.ServerRealization.Subscrible(securities[i]);
+                _secToSubscrible.Add(securities[i]);
+                _securities.Add(securities[i]);
+                SetNewServiceInfo("Start sec: " + securities[i].Name);
+            }
+
 
             DateTime timeEndTest = DateTime.Now.AddMinutes(MinutesToTest);
 
@@ -55,12 +49,48 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             SetNewServiceInfo("md сount analyzed: " + mdCount);
             SetNewServiceInfo("test time minutes: " + MinutesToTest);
 
-            for(int i = 0;i < _secToSubscrible.Count;i++)
+            for (int i = 0; i < _secToSubscrible.Count; i++)
             {
                 SetNewError("MD Error 1. No MD to Security: " + _secToSubscrible[i].Name);
             }
 
             TestEnded();
+        }
+
+        private List<Security> GetActivateSecurities(string securitiesInStr, string classCode)
+        {
+            string[] secInArray = securitiesInStr.Split('_');
+
+            List<Security> securitiesFromServer = Server.Securities;
+
+            if (secInArray.Length == 0)
+            {
+                return null;
+            }
+            if (securitiesFromServer == null)
+            {
+                return null;
+            }
+
+            List<Security> securitiesActivated = new List<Security>();
+
+            for (int i = 0; i < securitiesFromServer.Count; i++)
+            {
+                string curSec = securitiesFromServer[i].Name;
+                string curClass = securitiesFromServer[i].NameClass;
+
+                for (int j = 0; j < secInArray.Length; j++)
+                {
+                    if (curSec == secInArray[j] &&
+                        curClass == classCode)
+                    {
+                        securitiesActivated.Add(securitiesFromServer[i]);
+                        break;
+                    }
+                }
+            }
+
+            return securitiesActivated;
         }
 
         List<Security> _securities = new List<Security>();

@@ -22,7 +22,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             StrategyParameterButton buttonMarketDepth = CreateParameterButton("Start test md", "V2");
             buttonMarketDepth.UserClickOnButtonEvent += ButtonMarketDepth_UserClickOnButtonEvent;
-            V2_MarketDepthSecToTestCount = CreateParameter("Securities count", 5, 5, 5, 1, "V2");
+            V2_SecurityName = CreateParameter("Md tester Sec names", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "V2");
+            V2_ClassCode = CreateParameter("Md tester Class Code", "Futures", "V2");
             V2_MarketDepthMinutesToTest = CreateParameter("Md tester work time minutes", 5, 5, 5, 1, "V2");
 
             StrategyParameterButton buttonDataTest1 = CreateParameterButton("Start test data 1", "D1");
@@ -114,8 +115,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         }
 
-        StrategyParameterInt V2_MarketDepthSecToTestCount;
+        StrategyParameterString V2_SecurityName;
+        StrategyParameterString V2_ClassCode;
         StrategyParameterInt V2_MarketDepthMinutesToTest;
+
 
         StrategyParameterString D1_SecurityName;
 
@@ -440,7 +443,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     Var_2_MarketDepth tester = new Var_2_MarketDepth();
                     tester.MinutesToTest = V2_MarketDepthMinutesToTest.ValueInt;
-                    tester.CountSecuritiesToConnect = V2_MarketDepthSecToTestCount.ValueInt;
+                    tester.SecNames = V2_SecurityName.ValueString;
+                    tester.SecClassCode = V2_ClassCode.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
