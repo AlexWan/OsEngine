@@ -207,7 +207,7 @@ namespace OsEngine.Market.Servers.Alor
 
             DeleteWebSocketConnection();
 
-            SendLogMessage("Connection Closed by Alor. WebSocket Data Closed Event", LogMessageType.Error);
+            SendLogMessage("Connection Closed by Alor. WebSocket Data Closed Event", LogMessageType.System);
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
