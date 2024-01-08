@@ -180,18 +180,6 @@ namespace OsEngine.Market.Servers
         void CancelAllOrdersToSecurity(Security security);
 
         /// <summary>
-        /// take the current orders state
-        /// взять текущие состояния ордеров
-        /// </summary>
-        void GetOrdersState(List<Order> orders);
-
-        /// <summary>
-        /// checking orders with N frequency
-        /// проверка ордеров с N переодичностью
-        /// </summary>
-        void ResearchTradesToOrders(List<Order> orders);
-
-        /// <summary>
         /// новые мои ордера
         /// my new orders
         /// </summary>

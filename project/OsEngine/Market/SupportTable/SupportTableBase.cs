@@ -168,7 +168,7 @@ namespace OsEngine.Market.SupportTable
                 ServerType = ServerType.HuobiSpot,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Huobi.png",
-                LingSiteUrl = "https://www.huobi-kol.com/ru-ru/v/register/double-invite/?inviter_id=11345710&invite_code=jxbn7223",
+                LingSiteUrl = "https://www.htx.com/ru-ru/v/register/double-invite/web/?inviter_id=11345710&invite_code=jxbn7223",
                 Discount = 30
             };
             supportList.Add(huobi);
@@ -178,7 +178,7 @@ namespace OsEngine.Market.SupportTable
                 ServerType = ServerType.HuobiFutures,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Huobi.png",
-                LingSiteUrl = "https://www.huobi-kol.com/ru-ru/v/register/double-invite/?inviter_id=11345710&invite_code=jxbn7223",
+                LingSiteUrl = "https://www.htx.com/ru-ru/v/register/double-invite/web/?inviter_id=11345710&invite_code=jxbn7223",
                 Discount = 30
             };
             supportList.Add(huobiF);

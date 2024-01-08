@@ -3,22 +3,8 @@ using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace OsEngine.Market.SupportTable
 {
@@ -52,16 +38,22 @@ namespace OsEngine.Market.SupportTable
 
         private void CreateTables()
         {
-            _gridMoex = GetNoDiscountGridSupport();
-            HostMoexConnections.Child = _gridMoex;
+            try
+            {
+                _gridMoex = GetNoDiscountGridSupport();
+                HostMoexConnections.Child = _gridMoex;
 
-            _gridInternational = GetNoDiscountGridSupport();
-            HostInternationalConnections.Child = _gridInternational;
+                _gridInternational = GetNoDiscountGridSupport();
+                HostInternationalConnections.Child = _gridInternational;
 
-            _gridCrypto = GetDiscountGridSupport();
-            HostCryptoConnections.Child = _gridCrypto;
-            _gridCrypto.CellClick += _gridCrypto_CellClick1;
-
+                _gridCrypto = GetDiscountGridSupport();
+                HostCryptoConnections.Child = _gridCrypto;
+                _gridCrypto.CellClick += _gridCrypto_CellClick1;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.Message.ToString());
+            }
 
         }
 
@@ -171,9 +163,16 @@ namespace OsEngine.Market.SupportTable
 
         private void PaintTables()
         {
-            PaintTableNoDiscount(_gridMoex, SupportTableBase.GetMoexSupportList());
-            PaintTableNoDiscount(_gridInternational, SupportTableBase.GetInternationalSupportList());
-            PaintTableWithDiscount(_gridCrypto, SupportTableBase.GetCryptoSupportList());
+            try
+            {
+                PaintTableNoDiscount(_gridMoex, SupportTableBase.GetMoexSupportList());
+                PaintTableNoDiscount(_gridInternational, SupportTableBase.GetInternationalSupportList());
+                PaintTableWithDiscount(_gridCrypto, SupportTableBase.GetCryptoSupportList());
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.Message.ToString());
+            }
         }
 
         private void PaintTableNoDiscount(DataGridView grid, List<SupportConnection> connections)
@@ -325,6 +324,7 @@ namespace OsEngine.Market.SupportTable
             return image;
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void _gridCrypto_CellClick1(object sender, DataGridViewCellEventArgs e)
         {
             try
