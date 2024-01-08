@@ -644,7 +644,9 @@ namespace OsEngine.Market.Servers.QuikLua
                     Portfolio needPortf;
                     foreach (var pos in spotPos)
                     {
-                        if (pos.LimitKind == LimitKind.T0)
+                        Security sec = _securities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
+                        
+                        if (pos.LimitKind == LimitKind.T0 && sec != null)
                         {
                             needPortf = _portfolios.Find(p => p.Number == pos.TrdAccId);
 
@@ -656,7 +658,7 @@ namespace OsEngine.Market.Servers.QuikLua
                                 position.ValueBegin = pos.OpenBalance;
                                 position.ValueCurrent = pos.CurrentBalance;
                                 position.ValueBlocked = pos.LockedSell;
-                                position.SecurityNameCode = pos.SecCode;
+                                position.SecurityNameCode = sec.Name;
 
                                 needPortf.SetNewPosition(position);
                             }
