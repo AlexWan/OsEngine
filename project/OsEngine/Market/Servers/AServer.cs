@@ -2261,7 +2261,26 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void CancelAllOrders()
         {
+            if(ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
             ServerRealization.CancelAllOrders();
+        }
+
+        /// <summary>
+        /// cancel all orders from trading system to security
+        /// отозвать все ордера из торговой системы по названию инструмента
+        /// </summary>
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
+            ServerRealization.CancelAllOrdersToSecurity(security);
         }
 
         /// <summary>

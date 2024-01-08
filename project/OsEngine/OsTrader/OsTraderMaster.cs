@@ -723,7 +723,7 @@ namespace OsEngine.OsTrader
                 if(sec != null)
                 {
                     AServer aServer = (AServer)server;
-                    aServer.ServerRealization.CancelAllOrdersToSecurity(sec);
+                    aServer.CancelAllOrdersToSecurity(sec);
                 }
             }
             catch

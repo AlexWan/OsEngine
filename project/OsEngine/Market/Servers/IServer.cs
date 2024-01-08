@@ -277,15 +277,15 @@ namespace OsEngine.Market.Servers
     public enum ServerConnectStatus
     {
         /// <summary>
-        /// connected
-        /// подключен
-        /// </summary>
-        Connect,
-
-        /// <summary>
         /// disconnected
         /// отключен
         /// </summary>
         Disconnect,
+
+        /// <summary>
+        /// connected
+        /// подключен
+        /// </summary>
+        Connect
     }
 }
