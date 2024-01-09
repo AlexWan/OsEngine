@@ -1332,20 +1332,25 @@ namespace OsEngine.Market.Servers.QuikLua
                         {
                             return;
                         }
+                        
+                        Security sec = _securities.Find(sec => sec.Name.Split('+')[0] == futPos.secCode);
 
-                        PositionOnBoard newPos = new PositionOnBoard();
-
-                        newPos.PortfolioName = futPos.trdAccId;
-                        newPos.SecurityNameCode = futPos.secCode;
-                        newPos.ValueBegin = Convert.ToDecimal(futPos.startNet);
-                        newPos.ValueCurrent = Convert.ToDecimal(futPos.totalNet);
-                        newPos.ValueBlocked = 0;
-
-                        needPortfolio.SetNewPosition(newPos);
-
-                        if (PortfolioEvent != null)
+                        if (sec != null)
                         {
-                            PortfolioEvent(_portfolios);
+                            PositionOnBoard newPos = new PositionOnBoard();
+
+                            newPos.PortfolioName = futPos.trdAccId;
+                            newPos.SecurityNameCode = sec.Name;
+                            newPos.ValueBegin = Convert.ToDecimal(futPos.startNet);
+                            newPos.ValueCurrent = Convert.ToDecimal(futPos.totalNet);
+                            newPos.ValueBlocked = 0;
+
+                            needPortfolio.SetNewPosition(newPos);
+
+                            if (PortfolioEvent != null)
+                            {
+                                PortfolioEvent(_portfolios);
+                            }
                         }
                     }
                 }
