@@ -39,11 +39,11 @@ namespace CustomIndicators.Scripts
             }
             else if (index > _lenght.ValueInt)
             {
-                decimal emaLast = _series.Values[index - 1];
+                decimal ssmaLast = _series.Values[index - 1];
 
                 decimal p = candles[index].GetPoint(_candlePoint.ValueString);
 
-                result = (emaLast * (_lenght.ValueInt - 1) + p) / _lenght.ValueInt;
+                result = (ssmaLast * (_lenght.ValueInt - 1) + p) / _lenght.ValueInt;
             }
 
             _series.Values[index] = result;
