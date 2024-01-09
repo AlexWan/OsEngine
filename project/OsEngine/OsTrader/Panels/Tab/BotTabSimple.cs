@@ -148,11 +148,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="serverType">server type</param>
         void _connector_ConnectorStartedReconnectEvent(string securityName, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, ServerType serverType)
         {
+            _lastTradeTime = DateTime.MinValue;
+            _lastTradeIndex = 0;
+
             if (_chartMaster == null)
             {
                 return;
             }
             _chartMaster.ClearTimePoints();
+
             if (string.IsNullOrEmpty(securityName))
             {
                 return;
@@ -692,6 +696,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (StartProgram == StartProgram.IsOsOptimizer)
                 {
                     return ServerConnectStatus.Connect;
+                }
+
+                if(_connector == null)
+                {
+                    return ServerConnectStatus.Disconnect;
                 }
 
                 IServer myServer = _connector.MyServer;
@@ -4848,6 +4857,22 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _lastTradeIndex = 0;
             }
 
+            if(StartProgram == StartProgram.IsOsTrader)
+            {
+                if(ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if(_lastTradeTime == DateTime.MinValue &&
+                    _lastTradeIndex == 0)
+                {
+                    _lastTradeIndex = trades.Count;
+                    _lastTradeTime = trades[trades.Count - 1].Time;
+                    return;
+                }
+            }
+
             Trade trade = trades[trades.Count - 1];
 
             if (trade != null && _firstTickToDaySend == false && FirstTickToDayEvent != null)
@@ -4965,7 +4990,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             _lastTradeIndex = trades.Count;
-
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
 
             if (StartProgram == StartProgram.IsOsTrader)
