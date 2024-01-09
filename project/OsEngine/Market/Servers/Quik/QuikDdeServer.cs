@@ -25,15 +25,6 @@ namespace OsEngine.Market.Servers.Quik
             CreateParameterPath(OsLocalization.Market.Message82);
             CreateParameterEnum("Number separator", "Dot", new List<string>(){"Dot","Comma"});
         }
-
-        /// <summary>
-        /// override method that gives the server state
-        /// переопределяем метод отдающий состояние сервера
-        /// </summary>
-        public override bool IsTimeToServerWork
-        {
-            get { return ((QuikDdeServerRealization)ServerRealization).ServerInWork; }
-        }
     }
 
     /// <summary>

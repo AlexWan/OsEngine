@@ -19,9 +19,10 @@ namespace OsEngine.Market.Servers
 {
     public abstract class AServer : IServer
     {
+        #region Instead of a constructor
+
         /// <summary>
         /// implementation of connection to the API
-        /// реализация подключения к API
         /// </summary>
         public IServerRealization ServerRealization
         {
@@ -119,82 +120,19 @@ namespace OsEngine.Market.Servers
                 Task task3 = new Task(MyTradesBeepThread);
                 task3.Start();
 
-                _serverIsStart = true;
+                _serverIsCreated = true;
 
             }
             get { return _serverRealization; }
         }
-
-        private void _neadToSaveCandlesCountParam_ValueChange()
-        {
-            _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
-        }
-
-        private object trades_locker = new object();
-
-        /// <summary>
-        /// Does the server support order price change
-        /// </summary>
-        public bool IsCanChangeOrderPrice
-        {
-            get
-            {
-                if (ServerType == ServerType.None)
-                {
-                    return false;
-                }
-
-                IServerPermission serverPermision = ServerMaster.GetServerPermission(ServerType);
-
-                if (serverPermision == null)
-                {
-                    return false;
-                }
-
-                return serverPermision.IsCanChangeOrderPrice;
-            }
-        }
-
-        /// <summary>
-        /// время ожиадания после старта сервера, по прошествии которого можно выставлять ордера
-        /// </summary>
-        public double WaitTimeAfterFirstStart
-        {
-            set { _waitTimeAfterFirstStart = value; }
-
-            get
-            {
-                if(_alreadyLoadAwaitInfoFromServerPermission == false)
-                {
-                    _alreadyLoadAwaitInfoFromServerPermission = true;
-
-                    IServerPermission permission = ServerMaster.GetServerPermission(this.ServerType);
-
-                    if(permission != null)
-                    {
-                        _waitTimeAfterFirstStart = permission.WaitTimeSecondsAfterFirstStartToSendOrders;
-                    }
-                }
-
-                return _waitTimeAfterFirstStart;
-            }
-        }
-
-        private double _waitTimeAfterFirstStart = 60;
-
-        private bool _alreadyLoadAwaitInfoFromServerPermission = false;
-
         private IServerRealization _serverRealization;
 
-        /// <summary>
-        /// server type
-        /// тип сервера
-        /// </summary>
-        public ServerType ServerType { get { return ServerRealization.ServerType; } }
+        #endregion
+
+        #region GUI
 
         /// <summary>
         /// show settings window
-        /// показать окно настроек
         /// </summary>
         public void ShowDialog()
         {
@@ -218,51 +156,25 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// settings window
-        /// окно настроек
         /// </summary>
         private AServerParameterUi _ui;
 
-        void _neadToSaveTicksDaysCountParam_ValueChange()
-        {
-            if (_tickStorage != null)
-            {
-                _tickStorage.DaysToLoad = _neadToSaveTicksDaysCountParam.Value;
-            }
-        }
+        #endregion
 
-        void SaveTradesHistoryParam_ValueChange()
-        {
-            if (_tickStorage != null)
-            {
-                _tickStorage.NeadToSave = _neadToSaveTicksParam.Value;
-            }
-        }
-
-        void SaveCandleHistoryParam_ValueChange()
-        {
-            if (_candleStorage != null)
-            {
-                _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
-            }
-        }
-
-        // parameters / параметры
+        #region Parameters
 
         /// <summary>
-        /// shows whether the server starts working
-        /// запустился ли сервер
+        /// whether a server object has been created
         /// </summary>
-        private bool _serverIsStart;
+        private bool _serverIsCreated;
 
         /// <summary>
         /// parameter that shows whether need to save ticks for server
-        /// параметр с флагом о том, нужно ли сохранять тики для сервера
         /// </summary>
         private ServerParameterBool _neadToSaveTicksParam;
 
         /// <summary>
         /// parameter with the number of days for saving ticks
-        /// параметр с количеством дней которые нужно сохранять тики
         /// </summary>
         private ServerParameterInt _neadToSaveTicksDaysCountParam;
 
@@ -284,13 +196,11 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// server parameters
-        /// параметры сервера
         /// </summary>
         public List<IServerParameter> ServerParameters = new List<IServerParameter>();
 
         /// <summary>
         /// create STRING server parameter
-        /// создать строковый параметр сервера
         /// </summary>
         public void CreateParameterString(string name, string param)
         {
@@ -299,7 +209,7 @@ namespace OsEngine.Market.Servers
             newParam.Value = param;
 
             newParam = (ServerParameterString)LoadParam(newParam);
-            if (_serverIsStart)
+            if (_serverIsCreated)
             {
                 ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
@@ -308,12 +218,11 @@ namespace OsEngine.Market.Servers
                 ServerParameters.Add(newParam);
             }
 
-            newParam.ValueChange += newParam_ValueChange;
+            newParam.ValueChange += userChangeParameter_ValueChange;
         }
 
         /// <summary>
         /// create INT server parameter
-        /// создать интовый параметр сервера
         /// </summary>
         public void CreateParameterInt(string name, int param)
         {
@@ -322,7 +231,7 @@ namespace OsEngine.Market.Servers
             newParam.Value = param;
 
             newParam = (ServerParameterInt)LoadParam(newParam);
-            if (_serverIsStart)
+            if (_serverIsCreated)
             {
                 ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
@@ -331,9 +240,12 @@ namespace OsEngine.Market.Servers
                 ServerParameters.Add(newParam);
             }
 
-            newParam.ValueChange += newParam_ValueChange;
+            newParam.ValueChange += userChangeParameter_ValueChange;
         }
 
+        /// <summary>
+        /// create ENUM server parameter
+        /// </summary>
         public void CreateParameterEnum(string name, string value, List<string> collection)
         {
             ServerParameterEnum newParam = new ServerParameterEnum();
@@ -342,7 +254,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterEnum)LoadParam(newParam);
             newParam.EnumValues = collection;
 
-            if (_serverIsStart)
+            if (_serverIsCreated)
             {
                 ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
@@ -351,12 +263,11 @@ namespace OsEngine.Market.Servers
                 ServerParameters.Add(newParam);
             }
 
-            newParam.ValueChange += newParam_ValueChange;
+            newParam.ValueChange += userChangeParameter_ValueChange;
         }
 
         /// <summary>
         /// create DECIMAL server parameter
-        /// создать десимал параметр сервера
         /// </summary>
         public void CreateParameterDecimal(string name, decimal param)
         {
@@ -365,7 +276,7 @@ namespace OsEngine.Market.Servers
             newParam.Value = param;
 
             newParam = (ServerParameterDecimal)LoadParam(newParam);
-            if (_serverIsStart)
+            if (_serverIsCreated)
             {
                 ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
@@ -374,12 +285,11 @@ namespace OsEngine.Market.Servers
                 ServerParameters.Add(newParam);
             }
 
-            newParam.ValueChange += newParam_ValueChange;
+            newParam.ValueChange += userChangeParameter_ValueChange;
         }
 
         /// <summary>
         /// create BOOL server parameter
-        /// создать булевый параметр сервера
         /// </summary>
         public void CreateParameterBoolean(string name, bool param)
         {
@@ -388,7 +298,7 @@ namespace OsEngine.Market.Servers
             newParam.Value = param;
 
             newParam = (ServerParameterBool)LoadParam(newParam);
-            if (_serverIsStart)
+            if (_serverIsCreated)
             {
                 ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
@@ -398,12 +308,11 @@ namespace OsEngine.Market.Servers
             }
 
 
-            newParam.ValueChange += newParam_ValueChange;
+            newParam.ValueChange += userChangeParameter_ValueChange;
         }
 
         /// <summary>
         /// create PASSWORD server parameter
-        /// создать парольный параметр сервера
         /// </summary>
         public void CreateParameterPassword(string name, string param)
         {
@@ -412,7 +321,7 @@ namespace OsEngine.Market.Servers
             newParam.Value = param;
 
             newParam = (ServerParameterPassword)LoadParam(newParam);
-            if (_serverIsStart)
+            if (_serverIsCreated)
             {
                 ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
@@ -421,12 +330,11 @@ namespace OsEngine.Market.Servers
                 ServerParameters.Add(newParam);
             }
 
-            newParam.ValueChange += newParam_ValueChange;
+            newParam.ValueChange += userChangeParameter_ValueChange;
         }
 
         /// <summary>
         /// create PATH TO FILE server parameter
-        /// создать параметр сервера для пути к папке
         /// </summary>
         public void CreateParameterPath(string name)
         {
@@ -434,7 +342,7 @@ namespace OsEngine.Market.Servers
             newParam.Name = name;
 
             newParam = (ServerParameterPath)LoadParam(newParam);
-            if (_serverIsStart)
+            if (_serverIsCreated)
             {
                 ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
@@ -443,12 +351,11 @@ namespace OsEngine.Market.Servers
                 ServerParameters.Add(newParam);
             }
 
-            newParam.ValueChange += newParam_ValueChange;
+            newParam.ValueChange += userChangeParameter_ValueChange;
         }
 
         /// <summary>
         /// create Button server parameter
-        /// создать параметр сервера типа кнопка
         /// </summary>
         public void CreateParameterButton(string name)
         {
@@ -456,7 +363,7 @@ namespace OsEngine.Market.Servers
             newParam.Name = name;
 
             newParam = (ServerParameterButton)LoadParam(newParam);
-            if (_serverIsStart)
+            if (_serverIsCreated)
             {
                 ServerParameters.Insert(ServerParameters.Count - 9, newParam);
             }
@@ -465,21 +372,48 @@ namespace OsEngine.Market.Servers
                 ServerParameters.Add(newParam);
             }
 
-            newParam.ValueChange += newParam_ValueChange;
+            newParam.ValueChange += userChangeParameter_ValueChange;
         }
 
         /// <summary>
         /// changed parameter state
-        /// изменилось состояние параметра
         /// </summary>
-        void newParam_ValueChange()
+        void userChangeParameter_ValueChange()
         {
             SaveParam();
         }
 
+        private void _neadToSaveCandlesCountParam_ValueChange()
+        {
+            _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
+        }
+
+        private void _neadToSaveTicksDaysCountParam_ValueChange()
+        {
+            if (_tickStorage != null)
+            {
+                _tickStorage.DaysToLoad = _neadToSaveTicksDaysCountParam.Value;
+            }
+        }
+
+        private void SaveTradesHistoryParam_ValueChange()
+        {
+            if (_tickStorage != null)
+            {
+                _tickStorage.NeadToSave = _neadToSaveTicksParam.Value;
+            }
+        }
+
+        private void SaveCandleHistoryParam_ValueChange()
+        {
+            if (_candleStorage != null)
+            {
+                _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
+            }
+        }
+
         /// <summary>
         /// save parameters
-        /// сохранить параметры
         /// </summary>
         private void SaveParam()
         {
@@ -504,7 +438,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// upload parameter
-        /// загрузить параметр
         /// </summary>
         private IServerParameter LoadParam(IServerParameter param)
         {
@@ -593,19 +526,18 @@ namespace OsEngine.Market.Servers
             return param;
         }
 
-        // connect/disconnect / подключение/отключение
+        #endregion
+
+        #region Start / Stop server - user direction
 
         /// <summary>
         /// necessary server status. It needs to thread that listens to connectin
         /// Depending on this field manage the connection 
-        /// нужный статус сервера. Нужен потоку который следит за соединением
-        /// В зависимости от этого поля управляет соединением
         /// </summary>
         private ServerConnectStatus _serverStatusNead;
 
         /// <summary>
         /// run the server. Connect to trade system
-        /// запустить сервер. Подключиться к торговой системе
         /// </summary>
         public void StartServer()
         {
@@ -626,7 +558,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// stop the server
-        /// остановить сервер
         /// </summary>
         public void StopServer()
         {
@@ -638,20 +569,21 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// alert message from client that connection is established
-        /// пришло оповещение от клиента, что соединение установлено
+        /// user requested connect to the API
         /// </summary>
-        void _serverRealization_Connected()
-        {
-            SendLogMessage(OsLocalization.Market.Message6, LogMessageType.System);
-            ServerStatus = ServerConnectStatus.Connect;
-        }
+        public event Action UserWhantConnect;
 
-        // connection status /  статус соединения
+        /// <summary>
+        /// user requested disconnect from the API
+        /// </summary>
+        public event Action UserWhantDisconnect;
+
+        #endregion
+
+        #region Server status
 
         /// <summary>
         /// server status
-        /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus
         {
@@ -672,41 +604,63 @@ namespace OsEngine.Market.Servers
         private ServerConnectStatus _serverConnectStatus;
 
         /// <summary>
-        /// connection state has changed
-        /// изменилось состояние соединения
+        /// server type
         /// </summary>
-        public event Action<string> ConnectStatusChangeEvent;
-
-        // work of main thread / работа основного потока !!!!!!
+        public ServerType ServerType { get { return ServerRealization.ServerType; } }
 
         /// <summary>
-        /// true - server is ready to work 
-        /// true - сервер готов к работе
+        /// alert message from client that connection is established
         /// </summary>
-        public virtual bool IsTimeToServerWork
+        void _serverRealization_Connected()
         {
-            get { return true; }
+            SendLogMessage(OsLocalization.Market.Message6, LogMessageType.System);
+            ServerStatus = ServerConnectStatus.Connect;
         }
 
         /// <summary>
+        /// client connection has broken
+        /// </summary>
+        void _serverRealization_Disconnected()
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+            SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
+            ServerStatus = ServerConnectStatus.Disconnect;
+
+            if (NeadToReconnectEvent != null)
+            {
+                NeadToReconnectEvent();
+            }
+        }
+
+        /// <summary>
+        /// connection state has changed
+        /// </summary>
+        public event Action<string> ConnectStatusChangeEvent;
+
+        /// <summary>
+        /// need to reconnect server and get a new data
+        /// </summary>
+        public event Action NeadToReconnectEvent;
+
+        #endregion
+
+        #region Work of main thread
+
+        /// <summary>
         /// the place where connection is controlled. look at data streams
-        /// место в котором контролируется соединение. опрашиваются потоки данных
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private async void PrimeThreadArea()
         {
             while (true)
             {
-                //await Task.Delay(1000);
                 Thread.Sleep(1000);
                 try
                 {
                     if (ServerRealization == null)
-                    {
-                        continue;
-                    }
-
-                    if (!IsTimeToServerWork)
                     {
                         continue;
                     }
@@ -793,32 +747,11 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// server time of last starting
-        /// время последнего старта сервера
         /// </summary>
         public DateTime LastStartServerTime { get; set; }
 
         /// <summary>
-        /// client connection has broken
-        /// соединение с клиентом разорвано
-        /// </summary>
-        void _serverRealization_Disconnected()
-        {
-            if(ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                return;
-            }
-            SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
-            ServerStatus = ServerConnectStatus.Disconnect;
-
-            if (NeadToReconnectEvent != null)
-            {
-                NeadToReconnectEvent();
-            }
-        }
-
-        /// <summary>
         /// start candle downloading
-        /// запускает скачиватель свечек
         /// </summary>
         private void StartCandleManager()
         {
@@ -841,65 +774,12 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        #region Работа потока рассылки
+        #endregion
+
+        #region Data forwarding flow operation
 
         /// <summary>
-        /// queue of new orders
-        /// очередь новых ордеров
-        /// </summary>
-        private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
-
-        /// <summary>
-        /// queue of ticks
-        /// очередь тиков
-        /// </summary>
-        private ConcurrentQueue<List<Trade>> _tradesToSend = new ConcurrentQueue<List<Trade>>();
-
-        /// <summary>
-        /// queue of new portfolios
-        /// очередь новых портфелей
-        /// </summary>
-        private ConcurrentQueue<List<Portfolio>> _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
-
-        /// <summary>
-        /// queue of new securities
-        /// очередь новых инструментов
-        /// </summary>
-        private ConcurrentQueue<List<Security>> _securitiesToSend = new ConcurrentQueue<List<Security>>();
-
-        /// <summary>
-        /// queue of my new trades
-        /// очередь новых моих сделок
-        /// </summary>
-        private ConcurrentQueue<MyTrade> _myTradesToSend = new ConcurrentQueue<MyTrade>();
-
-        /// <summary>
-        /// queue of new time
-        /// очередь нового времени
-        /// </summary>
-        private ConcurrentQueue<DateTime> _newServerTime = new ConcurrentQueue<DateTime>();
-
-        /// <summary>
-        /// queue of updated candles series
-        /// очередь обновлённых серий свечек
-        /// </summary>
-        private ConcurrentQueue<CandleSeries> _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
-
-        /// <summary>
-        /// queue of new depths 
-        /// очередь новых стаканов
-        /// </summary>
-        private ConcurrentQueue<MarketDepth> _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
-
-        /// <summary>
-        /// queue of updated bid and ask by security
-        /// очередь обновлений бида с аска по инструментам 
-        /// </summary>
-        private ConcurrentQueue<BidAskSender> _bidAskToSend = new ConcurrentQueue<BidAskSender>();
-
-        /// <summary>
-        /// place where the connection is controlled
-        /// место в котором контролируется соединение
+        /// workplace of the thread sending data to the top
         /// </summary>
         private async void SenderThreadArea()
         {
@@ -933,32 +813,30 @@ namespace OsEngine.Market.Servers
                     }
                     else if (!_tradesToSend.IsEmpty)
                     {
-                        lock (trades_locker)
+                        List<Trade> trades;
+
+                        if (_tradesToSend.TryDequeue(out trades))
                         {
-                            List<Trade> trades;
-
-                            if (_tradesToSend.TryDequeue(out trades))
+                            if (NewTradeEvent != null)
                             {
-                                if (NewTradeEvent != null)
-                                {
-                                    NewTradeEvent(trades);
-                                }
-                                if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
+                                NewTradeEvent(trades);
+                            }
+                            if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
 
+                            {
+                                for (int i = 0; i < _allTrades.Length; i++)
                                 {
-                                    for (int i = 0; i < _allTrades.Length; i++)
+                                    List<Trade> curTrades = _allTrades[i];
+
+                                    if (curTrades.Count > 100)
                                     {
-                                        List<Trade> curTrades = _allTrades[i];
-
-                                        if (curTrades.Count > 100)
-                                        {
-                                            curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
-                                            _allTrades[i] = curTrades;
-                                        }
+                                        curTrades = curTrades.GetRange(curTrades.Count - 101, 100);
+                                        _allTrades[i] = curTrades;
                                     }
                                 }
                             }
                         }
+
                     }
 
                     else if (!_portfolioToSend.IsEmpty)
@@ -1053,13 +931,57 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// queue of new orders
+        /// </summary>
+        private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
+
+        /// <summary>
+        /// queue of ticks
+        /// </summary>
+        private ConcurrentQueue<List<Trade>> _tradesToSend = new ConcurrentQueue<List<Trade>>();
+
+        /// <summary>
+        /// queue of new portfolios
+        /// </summary>
+        private ConcurrentQueue<List<Portfolio>> _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
+
+        /// <summary>
+        /// queue of new securities
+        /// </summary>
+        private ConcurrentQueue<List<Security>> _securitiesToSend = new ConcurrentQueue<List<Security>>();
+
+        /// <summary>
+        /// queue of my new trades
+        /// </summary>
+        private ConcurrentQueue<MyTrade> _myTradesToSend = new ConcurrentQueue<MyTrade>();
+
+        /// <summary>
+        /// queue of new time
+        /// </summary>
+        private ConcurrentQueue<DateTime> _newServerTime = new ConcurrentQueue<DateTime>();
+
+        /// <summary>
+        /// queue of updated candles series
+        /// </summary>
+        private ConcurrentQueue<CandleSeries> _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
+
+        /// <summary>
+        /// queue of new depths 
+        /// </summary>
+        private ConcurrentQueue<MarketDepth> _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
+
+        /// <summary>
+        /// queue of updated bid and ask by security
+        /// </summary>
+        private ConcurrentQueue<BidAskSender> _bidAskToSend = new ConcurrentQueue<BidAskSender>();
+
         #endregion
 
-        // server time / время сервера
+        #region Server time
 
         /// <summary>
         /// server time
-        /// время сервера
         /// </summary>
         public DateTime ServerTime
         {
@@ -1085,15 +1007,15 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// server time changed
-        /// изменилось время сервера
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
-        // portfolios / портфели
+        #endregion
+
+        #region Portfolios
 
         /// <summary>
         /// all account in the system
-        /// все счета в системе
         /// </summary>
         public List<Portfolio> Portfolios
         {
@@ -1103,7 +1025,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// take portfolio by number
-        /// взять портфель по номеру
         /// </summary>
         public Portfolio GetPortfolioForName(string name)
         {
@@ -1124,7 +1045,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// portfolio updated
-        /// обновился портфель
         /// </summary>
         private void _serverRealization_PortfolioEvent(List<Portfolio> portf)
         {
@@ -1187,15 +1107,15 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// portfolios changed
-        /// изменились портфели
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
-        // instruments / инструменты
+        #endregion
+
+        #region  Securities
 
         /// <summary>
         /// all instruments in the system
-        /// все инструменты в системе
         /// </summary>
         public List<Security> Securities
         {
@@ -1207,7 +1127,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// take the instrument as a Security by name of instrument
-        /// взять инструмент в виде класса Security, по имени инструмента 
         /// </summary>
         public Security GetSecurityForName(string securityName, string securityClass)
         {
@@ -1247,8 +1166,16 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// show security
+        /// </summary>
+        public void ShowSecuritiesDialog()
+        {
+            SecuritiesUi ui = new SecuritiesUi(this);
+            ui.ShowDialog();
+        }
+
+        /// <summary>
         /// security list updated
-        /// обновился список бумаг
         /// </summary>
         void _serverRealization_SecurityEvent(List<Security> securities)
         {
@@ -1257,13 +1184,13 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            if (_securities == null 
+            if (_securities == null
                 && securities.Count > 5000)
             {
                 _securities = securities;
                 _securitiesToSend.Enqueue(_securities);
 
-                 return;
+                return;
             }
 
             if (_securities == null)
@@ -1312,31 +1239,20 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// instruments changed
-        /// изменились инструменты
         /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
 
-        /// <summary>
-        /// show security
-        /// показать бумаги
-        /// </summary>
-        public void ShowSecuritiesDialog()
-        {
-            SecuritiesUi ui = new SecuritiesUi(this);
-            ui.ShowDialog();
-        }
+        #endregion
 
-        // subcribe to data / Подпись на данные
+        #region  Subcribe to data
 
         /// <summary>
         /// master of dowloading candles
-        /// мастер загрузки свечек
         /// </summary>
         private CandleManager _candleManager;
 
         /// <summary>
         /// multithreaded access locker in StartThisSecurity
-        /// объект блокирующий многопоточный доступ в StartThisSecurity
         /// </summary>
         private string _lockerStarter = "lockerStarterAserver";
 
@@ -1346,12 +1262,11 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// start uploading data on instrument
-        /// Начать выгрузку данных по инструменту. 
         /// </summary>
-        /// <param name="securityName"> security name for running / имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder"> object that has data about timeframe / объект несущий в себе данные о таймФрейме</param>
-        /// <param name="securityClass"> security class for running / класс бумаги которую будем запускать</param>
-        /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
+        /// <param name="securityName"> security name for running</param>
+        /// <param name="timeFrameBuilder"> object that has data about timeframe</param>
+        /// <param name="securityClass"> security class for running</param>
+        /// <returns> returns CandleSeries if successful else null</returns>
         public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
         {
             lock(_lockerStarterByTime)
@@ -1450,9 +1365,8 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// stop the downloading of candles
-        /// остановить скачивание свечек
         /// </summary>
-        /// <param name="series"> candles series that need to stop / серия свечек которую надо остановить </param>
+        /// <param name="series"> candles series that need to stop</param>
         public void StopThisSecurity(CandleSeries series)
         {
             if (series != null && _candleManager != null)
@@ -1468,7 +1382,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// candles series changed
-        /// изменились серии свечек
         /// </summary>
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
         {
@@ -1476,7 +1389,7 @@ namespace OsEngine.Market.Servers
             {
                 series.IsMergedByCandlesFromFile = true;
 
-                if(_neadToSaveCandlesParam.Value == true)
+                if (_neadToSaveCandlesParam.Value == true)
                 {
                     List<Candle> candles = _candleStorage.GetCandles(series.Specification, _neadToSaveCandlesCountParam.Value);
                     series.CandlesAll = series.CandlesAll.Merge(candles);
@@ -1496,16 +1409,18 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// need to reconnect server and get a new data
-        /// необходимо перезаказать данные у сервера
+        /// new candles event
         /// </summary>
-        public event Action NeadToReconnectEvent;
+        public event Action<CandleSeries> NewCandleIncomeEvent;
+
+        #endregion
+
+        #region Data upload
 
         private string _loadDataLocker;
 
         /// <summary>
-        /// Интерфейс для получения последний свечек по инструменту. Используется для активации серий свечей в боевых торгах
-        /// Interface for getting the last candlesticks for a security. Used to activate candlestick series in live trades
+        /// interface for getting the last candlesticks for a security. Used to activate candlestick series in live trades
         /// </summary>
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
@@ -1551,7 +1466,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// take the candle history for a period
-        /// взять историю свечей за период
         /// </summary>
         public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
@@ -1644,7 +1558,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// take ticks data for a period
-        /// взять тиковые данные за период
         /// </summary>
         public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
@@ -1711,28 +1624,22 @@ namespace OsEngine.Market.Servers
             return trades;
         }
 
-        /// <summary>
-        /// new cadles
-        /// новые свечи
-        /// </summary>
-        public event Action<CandleSeries> NewCandleIncomeEvent;
+        #endregion
 
-        // market depth / стакан
+        #region Market depth
 
         /// <summary>
-        /// all depths
-        /// все стаканы
+        /// last market depths by securities
         /// </summary>
         private List<MarketDepth> _depths = new List<MarketDepth>();
 
-        private decimal _currentBestBid;
-        private decimal _currentBestAsk;
+        private string _depthsArrayLocker = "depthsLocker";
         
+        private List<BidAskSender> _lastBidAskValues = new List<BidAskSender>();
+
         /// <summary>
-        /// came a new depth
-        /// пришел обновленный стакан
+        /// new depth event
         /// </summary>
-        /// <param name="myDepth"></param>
         void _serverRealization_MarketDepthEvent(MarketDepth myDepth)
         {
             try
@@ -1746,36 +1653,14 @@ namespace OsEngine.Market.Servers
                     ServerTime = myDepth.Time;
                 }
 
-                if (NewMarketDepthEvent != null)
+                if (myDepth.Asks.Count == 0 && myDepth.Bids.Count == 0)
                 {
-                    if (_needToUseFullMarketDepth.Value == true)
-                    {
-                        _marketDepthsToSend.Enqueue(myDepth);
-                    }
-
-                    if (myDepth.Asks.Count != 0 && myDepth.Bids.Count != 0)
-                    {
-                        decimal besBid = myDepth.Bids[0].Price;
-                        decimal bestAsk = myDepth.Asks[0].Price;
-
-                        if (_currentBestBid != besBid || _currentBestAsk != bestAsk)
-                        {
-                            Security sec = GetSecurityForName(myDepth.SecurityNameCode, "");
-                            if (sec != null)
-                            {
-                                _currentBestBid = besBid;
-                                _currentBestAsk = bestAsk;
-
-                                _bidAskToSend.Enqueue(new BidAskSender
-                                {
-                                    Bid = besBid,
-                                    Ask = bestAsk,
-                                    Security = sec
-                                });
-                            }
-                        }
-                    }
+                    return;
                 }
+
+                TrySendMarketDepthEvent(myDepth);
+                TrySendBidAsk(myDepth);
+
             }
             catch (Exception error)
             {
@@ -1783,29 +1668,122 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        private void TrySendMarketDepthEvent(MarketDepth newMarketDepth)
+        {
+            if (NewMarketDepthEvent == null)
+            {
+                return;
+            }
+
+            if (_needToUseFullMarketDepth.Value == false)
+            {
+                return;
+            }
+
+            _marketDepthsToSend.Enqueue(newMarketDepth);
+
+            if(_needToLoadBidAskInTrades.Value)
+            {
+                bool isInArray = false;
+
+                for(int i = 0;i < _depths.Count;i++)
+                {
+                    if (_depths[i].SecurityNameCode == newMarketDepth.SecurityNameCode)
+                    {
+                        _depths[i] = newMarketDepth;
+                        isInArray = true;
+                    }
+                }
+
+                if(isInArray == false)
+                {
+                    lock (_depthsArrayLocker)
+                    {
+                        _depths.Add(newMarketDepth);
+                    }
+                }
+            }
+        }
+
+        private void TrySendBidAsk(MarketDepth newMarketDepth)
+        {
+            if (NewBidAscIncomeEvent == null)
+            {
+                return;
+            }
+
+            decimal bestBid = newMarketDepth.Bids[0].Price;
+            decimal bestAsk = newMarketDepth.Asks[0].Price;
+
+            if (bestBid == 0 ||
+                bestAsk == 0)
+            {
+                return;
+            }
+
+            Security sec = GetSecurityForName(newMarketDepth.SecurityNameCode, "");
+
+            if (sec == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _lastBidAskValues.Count; i++)
+            {
+                if (_lastBidAskValues[i].Security.Name == sec.Name)
+                {
+                    if (_lastBidAskValues[i].Bid == bestBid &&
+                        _lastBidAskValues[i].Ask == bestAsk)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            BidAskSender newSender = new BidAskSender();
+            newSender.Bid = bestBid;
+            newSender.Ask = bestAsk;
+            newSender.Security = sec;
+
+            _bidAskToSend.Enqueue(newSender);
+
+            bool isInArray = false;
+
+            for (int i = 0; i < _lastBidAskValues.Count; i++)
+            {
+                if (_lastBidAskValues[i].Security.Name == sec.Name)
+                {
+                    _lastBidAskValues[i] = newSender;
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if (isInArray == false)
+            {
+                _lastBidAskValues.Add(newSender);
+            }
+        }
+
         /// <summary>
         /// best bid or ask changed for the instrument
-        /// изменился лучший бид / аск по инструменту
         /// </summary>
         public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
 
         /// <summary>
         /// new depth in the system
-        /// новый стакан в системе
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-        // ticks / тики
+        #endregion
+
+        #region Trades
 
         /// <summary>
         /// ticks storage
-        /// хранилище тиков
         /// </summary>
         private ServerTickStorage _tickStorage;
 
-        /// <summary>
-        /// хранилище свечек
-        /// </summary>
         private ServerCandleStorage _candleStorage;
 
         /// <summary>
@@ -1869,7 +1847,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// came new ticks
-        /// пришли новые тики
         /// </summary>
         void ServerRealization_NewTradesEvent(Trade trade)
         {
@@ -1974,10 +1951,26 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void BathTradeMarketDepthData(Trade trade)
         {
-            MarketDepth depth = _depths.Find(d => d.SecurityNameCode == trade.SecurityNameCode);
+            MarketDepth depth = null;
 
-            if (depth == null ||
-                depth.Asks == null || depth.Asks.Count == 0 ||
+            lock (_depthsArrayLocker)
+            {
+                for (int i = 0; i < _depths.Count; i++)
+                {
+                    if (_depths[i].SecurityNameCode == trade.SecurityNameCode)
+                    {
+                        depth = _depths[i];
+                        break;
+                    }
+                }
+            }
+
+            if(depth == null)
+            {
+                return;
+            }
+
+            if (depth.Asks == null || depth.Asks.Count == 0 ||
                 depth.Bids == null || depth.Bids.Count == 0)
             {
                 return;
@@ -1995,7 +1988,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
-        // my new trade / новая моя сделка
+        #endregion
+
+        #region MyTrade
 
         private List<MyTrade> _myTrades = new List<MyTrade>();
 
@@ -2057,7 +2052,9 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        // work with orders / работа с ордерами
+        #endregion
+
+        #region Work with orders
 
         /// <summary>
         /// work place of thred on the queues of ordr execution and order cancellation 
@@ -2067,7 +2064,7 @@ namespace OsEngine.Market.Servers
         {
             while (true)
             {
-                if (LastStartServerTime.AddSeconds(WaitTimeAfterFirstStart) > DateTime.Now)
+                if (LastStartServerTime.AddSeconds(WaitTimeToTradeAfterFirstStart) > DateTime.Now)
                 {
                     await Task.Delay(1000);
                     continue;
@@ -2113,8 +2110,57 @@ namespace OsEngine.Market.Servers
         private ConcurrentQueue<OrderAserverSender> _ordersToExecute = new ConcurrentQueue<OrderAserverSender>();
 
         /// <summary>
+        /// waiting time after server start, after which it is possible to place orders
+        /// </summary>
+        public double WaitTimeToTradeAfterFirstStart
+        {
+            set { _waitTimeAfterFirstStart = value; }
+
+            get
+            {
+                if (_alreadyLoadAwaitInfoFromServerPermission == false)
+                {
+                    _alreadyLoadAwaitInfoFromServerPermission = true;
+
+                    IServerPermission permission = ServerMaster.GetServerPermission(this.ServerType);
+
+                    if (permission != null)
+                    {
+                        _waitTimeAfterFirstStart = permission.WaitTimeSecondsAfterFirstStartToSendOrders;
+                    }
+                }
+
+                return _waitTimeAfterFirstStart;
+            }
+        }
+        private double _waitTimeAfterFirstStart = 60;
+        private bool _alreadyLoadAwaitInfoFromServerPermission = false;
+
+        /// <summary>
+        /// does the server support order price change
+        /// </summary>
+        public bool IsCanChangeOrderPrice
+        {
+            get
+            {
+                if (ServerType == ServerType.None)
+                {
+                    return false;
+                }
+
+                IServerPermission serverPermision = ServerMaster.GetServerPermission(ServerType);
+
+                if (serverPermision == null)
+                {
+                    return false;
+                }
+
+                return serverPermision.IsCanChangeOrderPrice;
+            }
+        }
+
+        /// <summary>
         /// incoming order from system
-        /// входящий из системы ордер
         /// </summary>
         void _serverRealization_MyOrderEvent(Order myOrder)
         {
@@ -2152,16 +2198,14 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// send order for execution to the trading system
-        /// выслать ордер на исполнение в торговую систему
         /// </summary>
-        /// <param name="order"> order / ордер </param>
         public void ExecuteOrder(Order order)
         {
             if (UserSetOrderOnExecute != null)
             {
                 UserSetOrderOnExecute(order);
             }
-            if (LastStartServerTime.AddSeconds(WaitTimeAfterFirstStart) > DateTime.Now)
+            if (LastStartServerTime.AddSeconds(WaitTimeToTradeAfterFirstStart) > DateTime.Now)
             {
                 order.State = OrderStateType.Fail;
                 _ordersToSend.Enqueue(order);
@@ -2230,9 +2274,7 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// cancel order from the trading system
-        /// отозвать ордер из торговой системы
         /// </summary>
-        /// <param name="order"> order / ордер </param>
         public void CancelOrder(Order order)
         {
             if (UserSetOrderOnCancel != null)
@@ -2257,7 +2299,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// cancel all orders from trading system
-        /// отозвать все ордера из торговой системы
         /// </summary>
         public void CancelAllOrders()
         {
@@ -2271,7 +2312,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// cancel all orders from trading system to security
-        /// отозвать все ордера из торговой системы по названию инструмента
         /// </summary>
         public void CancelAllOrdersToSecurity(Security security)
         {
@@ -2285,15 +2325,25 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// order changed
-        /// изменился ордер
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
-        // log messages / сообщения для лога
+        /// <summary>
+        /// external systems requested order execution
+        /// </summary>
+        public event Action<Order> UserSetOrderOnExecute;
+
+        /// <summary>
+        /// external systems requested order cancellation
+        /// </summary>
+        public event Action<Order> UserSetOrderOnCancel;
+
+        #endregion
+
+        #region Log messages
 
         /// <summary>
         /// add a new message in the log
-        /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
@@ -2305,42 +2355,15 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// log manager
-        /// менеджер лога
         /// </summary>
         public Log Log;
 
         /// <summary>
         /// outgoing messages for the log
-        /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        // outgoing events for automatic testing
-        // исходящие события для автоматического тестирования
-
-        /// <summary>
-        /// external systems requested order execution
-        /// внешние системы запросили исполнение ордера
-        /// </summary>
-        public event Action<Order> UserSetOrderOnExecute;
-
-        /// <summary>
-        /// external systems requested order cancellation
-        /// внешние системы запросили отзыв ордера
-        /// </summary>
-        public event Action<Order> UserSetOrderOnCancel;
-
-        /// <summary>
-        /// user requested connect to the API
-        /// пользователь запросил подключение к АПИ
-        /// </summary>
-        public event Action UserWhantConnect;
-
-        /// <summary>
-        /// user requested disconnect from the API
-        /// пользователь запросил отключение от АПИ
-        /// </summary>
-        public event Action UserWhantDisconnect;
+        #endregion
     }
 
     public class OrderAserverSender

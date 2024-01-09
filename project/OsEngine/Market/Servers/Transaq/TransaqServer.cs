@@ -59,15 +59,6 @@ namespace OsEngine.Market.Servers.Transaq
         public ServerWorkingTimeSettings WorkingTimeSettings;
 
         /// <summary>
-        /// override method that gives server state
-        /// переопределяем метод отдающий состояние сервера
-        /// </summary>
-        public override bool IsTimeToServerWork
-        {
-            get { return ((TransaqServerRealization)ServerRealization).ServerInWork; }
-        }
-
-        /// <summary>
         /// request of history by instrument
         /// запрос истории по инструменту
         /// </summary>

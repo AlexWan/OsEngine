@@ -106,8 +106,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        // for saving in one file
-        // для сохранения в один файл
+        // saving in file
 
         /// <summary>
         /// method with tick saving thread
