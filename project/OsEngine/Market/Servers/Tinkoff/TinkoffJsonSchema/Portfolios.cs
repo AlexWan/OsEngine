@@ -37,7 +37,16 @@ namespace OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema
             }
 
             string unitsWithNoMin = units.Replace("-", "");
+
+            // nano — дробная часть суммы (миллиардные доли / 9 знаков без минуса).
+            // https://tinkoff.github.io/investAPI/faq_custom_types/
+
             string nanoWithNoMin = nano.Replace("-", "");
+
+            while(nanoWithNoMin.Length < 9)
+            {
+                nanoWithNoMin = "0" + nanoWithNoMin;
+            }
 
             string valInStr = unitsWithNoMin + ",";
 
@@ -46,8 +55,7 @@ namespace OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema
                 valInStr += nanoWithNoMin[i].ToString();
             }
 
-            if (unitsWithNoMin.Length != units.Length
-                || nanoWithNoMin.Length != nano.Length)
+            if (unitsWithNoMin.Length != units.Length)
             {
                 valInStr.Insert(0, "-");
             }
