@@ -10,6 +10,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         public string SecName;
 
+        public string SecClass;
+
         public override void Process()
         {
             List<Security> securities = Server.Securities;
@@ -21,7 +23,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 for(int i = 0;i < securities.Count; i++)
                 {
-                    if (securities[i].Name == SecName)
+                    if (securities[i].Name == SecName 
+                        && securities[i].NameClass == SecClass)
                     {
                         mySecurity = securities[i];
                         break;
@@ -91,7 +94,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             else
             {
-                CheckTradeNullData(TimeFrame.Min1, security, startTime, endTime);
+                CheckTradeNullData(TimeFrame.Tick, security, startTime, endTime);
             }
 
             if (permission.DataFeedTf1MinuteCanLoad)

@@ -633,13 +633,20 @@ namespace OsEngine.Market.Servers.Alor
 
                 if (string.IsNullOrEmpty(history.next))
                 {
-                    return candles;
+                    break;
                 }
 
                 DateTime realStart = ConvertToDateTimeFromUnixFromSeconds(history.next);
 
                 startTime = realStart;
                 endTimeReal = realStart.Add(additionTime);
+            }
+
+            while (candles != null &&
+                candles.Count != 0 && 
+                candles[candles.Count - 1].TimeStart > endTime)
+            {
+                candles.RemoveAt(candles.Count - 1);
             }
 
             return candles;
@@ -735,6 +742,10 @@ namespace OsEngine.Market.Servers.Alor
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            return null;
+
+            // blocked
+
             List<Trade> trades = new List<Trade>();
 
             TimeSpan additionTime = TimeSpan.FromMinutes(1440);
