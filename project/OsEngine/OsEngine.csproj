@@ -471,7 +471,6 @@
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\AServerTests.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeWrapper.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsServerUi.xaml.cs">

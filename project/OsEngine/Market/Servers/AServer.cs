@@ -110,13 +110,6 @@ namespace OsEngine.Market.Servers
                 Task task2 = new Task(SenderThreadArea);
                 task2.Start();
 
-                if (PrimeSettings.PrimeSettingsMaster.ServerTestingIsActive)
-                {
-                    AServerTests tester = new AServerTests();
-                    tester.Listen(this);
-                    tester.LogMessageEvent += SendLogMessage;
-                }
-
                 Task task3 = new Task(MyTradesBeepThread);
                 task3.Start();
 

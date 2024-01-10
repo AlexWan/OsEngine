@@ -19,12 +19,10 @@
                     <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="86,113,0,0" VerticalAlignment="Top"/>
                     <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,141,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
                     <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="86,141,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Left" Margin="43,215,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="119" />
-                    <CheckBox x:Name="CheckBoxServerTestingIsActive" Margin="0,169,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-                    <Label x:Name="LabelServerTestingIsActive" Content="Server Testing Is Active" HorizontalAlignment="Left" Margin="86,169,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Left" Margin="43,196,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="138" />
                     <TextBox Name="TextBoxBotHeader" HorizontalAlignment="Left" Margin="190,57,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="127"/>
-                    <Label x:Name="LabelRebootTradeUiLigth" Content="Reboot Ligth on error" HorizontalAlignment="Left" Margin="86,195,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxRebootTradeUiLigth" Margin="0,195,74.2,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+                    <Label x:Name="LabelRebootTradeUiLigth" Content="Reboot Ligth on error" HorizontalAlignment="Left" Margin="86,168,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CheckBoxRebootTradeUiLigth" Margin="0,168,74,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
                 </Grid>
             </TabItem>
             <TabItem Name="AdminItem" Header="Admin panel access" Width="150">

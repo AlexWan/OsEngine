@@ -38,7 +38,6 @@ namespace OsEngine.PrimeSettings
                 }
             };
 
-            CheckBoxServerTestingIsActive.IsChecked = PrimeSettingsMaster.ServerTestingIsActive;
             CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActiv;
             CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActiv;
             CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActiv;
@@ -52,7 +51,6 @@ namespace OsEngine.PrimeSettings
             CheckBoxExtraLogWindow.Click += CheckBoxExtraLogWindow_Click;
             CheckBoxExtraLogSound.Click += CheckBoxExtraLogSound_Click;
             CheckBoxTransactionSound.Click += CheckBoxTransactionSound_Click;
-            CheckBoxServerTestingIsActive.Click += CheckBoxServerTestingIsActive_Click;
             AutoStartChb.Click += AutoStartChb_Click;
             TextBoxBotHeader.TextChanged += TextBoxBotHeader_TextChanged;
             CheckBoxRebootTradeUiLigth.Click += RebootTradeUiLigth_Click;
@@ -72,9 +70,6 @@ namespace OsEngine.PrimeSettings
             ExtraLogSound.Content = OsLocalization.PrimeSettings.ExtraLogSoundLabel;
             TransactionSoundLabel.Content = OsLocalization.PrimeSettings.TransactionSoundLabel;
             TextBoxMessageToUsers.Text = OsLocalization.PrimeSettings.TextBoxMessageToUsers;
-            LabelServerTestingIsActive.Content = OsLocalization.PrimeSettings.LabelServerTestingIsActive;
-            LabelServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
-            CheckBoxServerTestingIsActive.ToolTip = OsLocalization.PrimeSettings.LabelServerTestingToopTip;
             AdminItem.Header = OsLocalization.PrimeSettings.Title2;
 
             LabelState.Content = OsLocalization.PrimeSettings.LblState;
@@ -92,12 +87,6 @@ namespace OsEngine.PrimeSettings
         private void TextBoxBotHeader_TextChanged(object sender, TextChangedEventArgs e)
         {
             PrimeSettingsMaster.LabelInHeaderBotStation = TextBoxBotHeader.Text;
-        }
-
-        private void CheckBoxServerTestingIsActive_Click(object sender, RoutedEventArgs e)
-        {
-            if (CheckBoxServerTestingIsActive.IsChecked != null)
-                PrimeSettingsMaster.ServerTestingIsActive = CheckBoxServerTestingIsActive.IsChecked.Value;
         }
 
         private void CheckBoxTransactionSound_Click(object sender, RoutedEventArgs e)
