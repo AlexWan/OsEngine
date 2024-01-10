@@ -10,6 +10,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         public string SecName;
 
+        public string SecClass;
+
         public override void Process()
         {
             List<Security> securities = Server.Securities;
@@ -21,7 +23,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 for (int i = 0; i < securities.Count; i++)
                 {
-                    if (securities[i].Name == SecName)
+                    if (securities[i].Name == SecName 
+                        && securities[i].NameClass == SecClass)
                     {
                         mySecurity = securities[i];
                         break;
@@ -302,7 +305,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            if (candles != null)
+            if (candles != null 
+                && candles.Count != 0)
             {
                 SetNewError("RequestType: " + typeRequest + ".  Error 4. Array is note null. " + timeFrame.ToString());
                 return;
@@ -504,18 +508,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 Candle candleNow = candles[i];
                 Candle candleLast = candles[i - 1];
 
+                if(candleNow.TimeStart.Date != candleLast.TimeStart.Date)
+                {
+                    continue;
+                }
+
                 TimeSpan span = candleNow.TimeStart - candleLast.TimeStart;
 
-                if(span != goodTimeSpan)
+                if (span != goodTimeSpan)
                 {
-                    if (candleNow.Close < candleNow.Low)
-                    {
-                        SetNewError(
-                            "Error 19. The time distance between the candles is wrong. TimeFrame: " + timeFrame.ToString() +
-                            "Good distance: " + goodTimeSpan.ToString() +
-                            "Real distance: " + span.ToString());
-                        return;
-                    }
+
+                    SetNewError(
+                        "Error 19. The time distance between the candles is wrong. TimeFrame: " + timeFrame.ToString() +
+                        " Good distance: " + goodTimeSpan.ToString() +
+                        " Real distance: " + span.ToString() +
+                        " CandleTime: " + candleNow.TimeStart.ToString());
+                    return;
+
                 }
             }
         }

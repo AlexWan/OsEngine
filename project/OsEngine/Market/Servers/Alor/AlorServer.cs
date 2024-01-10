@@ -605,6 +605,11 @@ namespace OsEngine.Market.Servers.Alor
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         { 
+            if(startTime != actualTime)
+            {
+                startTime = actualTime;
+            }
+
             List<Candle> candles = new List<Candle>();
 
             TimeSpan additionTime = TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 2500);
