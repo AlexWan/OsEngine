@@ -148,16 +148,19 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// settings window
+        /// </summary>
+        private AServerParameterUi _ui;
+
+        /// <summary>
+        /// user has closed the server settings window
+        /// </summary>
         private void _ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _ui.Closing -= _ui_Closing;
             _ui = null;
         }
-
-        /// <summary>
-        /// settings window
-        /// </summary>
-        private AServerParameterUi _ui;
 
         #endregion
 
@@ -169,7 +172,7 @@ namespace OsEngine.Market.Servers
         private bool _serverIsCreated;
 
         /// <summary>
-        /// parameter that shows whether need to save ticks for server
+        /// whether to save the current session's trades to the file system
         /// </summary>
         private ServerParameterBool _neadToSaveTicksParam;
 
@@ -178,20 +181,44 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private ServerParameterInt _neadToSaveTicksDaysCountParam;
 
+        /// <summary>
+        /// whether candles should be saved to the file system
+        /// </summary>
         private ServerParameterBool _neadToSaveCandlesParam;
 
+        /// <summary>
+        /// number of candles for which trades should be loaded at the start of the connector
+        /// </summary>
         public ServerParameterInt _neadToSaveCandlesCountParam;
 
+        /// <summary>
+        /// whether trades should be filled with data on the best bid and ask.
+        /// </summary>
         private ServerParameterBool _needToLoadBidAskInTrades;
 
+        /// <summary>
+        /// whether to delete the transaction feed from memory
+        /// </summary>
         private ServerParameterBool _needToRemoveTradesFromMemory;
 
+        /// <summary>
+        /// whether the candles should be removed from the memory
+        /// </summary>
         public ServerParameterBool _needToRemoveCandlesFromMemory;
 
+        /// <summary>
+        /// whether we use the full stack of market depth or only bid and ask.
+        /// </summary>
         public ServerParameterBool _needToUseFullMarketDepth;
 
+        /// <summary>
+        /// only trades with a new price are submitted to the top.
+        /// </summary>
         public ServerParameterBool _needToUpdateOnlyTradesWithNewPrice;
 
+        /// <summary>
+        /// blocks the display of the default server settings in the settings window. 
+        /// </summary>
         public bool NeedToHideParams = false;
 
         /// <summary>
@@ -376,43 +403,6 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// changed parameter state
-        /// </summary>
-        void userChangeParameter_ValueChange()
-        {
-            SaveParam();
-        }
-
-        private void _neadToSaveCandlesCountParam_ValueChange()
-        {
-            _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
-        }
-
-        private void _neadToSaveTicksDaysCountParam_ValueChange()
-        {
-            if (_tickStorage != null)
-            {
-                _tickStorage.DaysToLoad = _neadToSaveTicksDaysCountParam.Value;
-            }
-        }
-
-        private void SaveTradesHistoryParam_ValueChange()
-        {
-            if (_tickStorage != null)
-            {
-                _tickStorage.NeadToSave = _neadToSaveTicksParam.Value;
-            }
-        }
-
-        private void SaveCandleHistoryParam_ValueChange()
-        {
-            if (_candleStorage != null)
-            {
-                _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
-            }
-        }
-
-        /// <summary>
         /// save parameters
         /// </summary>
         private void SaveParam()
@@ -524,6 +514,55 @@ namespace OsEngine.Market.Servers
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
             return param;
+        }
+
+        /// <summary>
+        /// user has changed the value of the parameter
+        /// </summary>
+        private void userChangeParameter_ValueChange()
+        {
+            SaveParam();
+        }
+
+        /// <summary>
+        /// user has changed the value of the parameter
+        /// </summary>
+        private void _neadToSaveCandlesCountParam_ValueChange()
+        {
+            _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
+        }
+
+        /// <summary>
+        /// user has changed the value of the parameter
+        /// </summary>
+        private void _neadToSaveTicksDaysCountParam_ValueChange()
+        {
+            if (_tickStorage != null)
+            {
+                _tickStorage.DaysToLoad = _neadToSaveTicksDaysCountParam.Value;
+            }
+        }
+
+        /// <summary>
+        /// user has changed the value of the parameter
+        /// </summary>
+        private void SaveTradesHistoryParam_ValueChange()
+        {
+            if (_tickStorage != null)
+            {
+                _tickStorage.NeadToSave = _neadToSaveTicksParam.Value;
+            }
+        }
+
+        /// <summary>
+        /// user has changed the value of the parameter
+        /// </summary>
+        private void SaveCandleHistoryParam_ValueChange()
+        {
+            if (_candleStorage != null)
+            {
+                _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
+            }
         }
 
         #endregion
@@ -647,7 +686,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Work of main thread
+        #region Thread 1. Work whith connection
 
         /// <summary>
         /// the place where connection is controlled. look at data streams
@@ -751,7 +790,7 @@ namespace OsEngine.Market.Servers
         public DateTime LastStartServerTime { get; set; }
 
         /// <summary>
-        /// start candle downloading
+        /// start a candle-collecting device
         /// </summary>
         private void StartCandleManager()
         {
@@ -763,6 +802,9 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// dispose a candle-collecting device
+        /// </summary>
         private void DeleteCandleManager()
         {
             if (_candleManager != null)
@@ -776,7 +818,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Data forwarding flow operation
+        #region Thread 2. Data forwarding flow operation
 
         /// <summary>
         /// workplace of the thread sending data to the top
@@ -942,7 +984,7 @@ namespace OsEngine.Market.Servers
         private ConcurrentQueue<List<Trade>> _tradesToSend = new ConcurrentQueue<List<Trade>>();
 
         /// <summary>
-        /// queue of new portfolios
+        /// queue of new or updated portfolios
         /// </summary>
         private ConcurrentQueue<List<Portfolio>> _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
 
@@ -1006,7 +1048,7 @@ namespace OsEngine.Market.Servers
         private DateTime _serverTime;
 
         /// <summary>
-        /// server time changed
+        /// server time changed event
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
@@ -1106,7 +1148,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// portfolios changed
+        /// portfolios changed event
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
@@ -1123,6 +1165,9 @@ namespace OsEngine.Market.Servers
         }
         private List<Security> _securities = new List<Security>();
 
+        /// <summary>
+        /// often used securities. optimizes access to securities
+        /// </summary>
         private List<Security> _frequentlyUsedSecurities = new List<Security>();
 
         /// <summary>
@@ -1252,12 +1297,23 @@ namespace OsEngine.Market.Servers
         private CandleManager _candleManager;
 
         /// <summary>
+        /// object for accessing candle storage in the file system
+        /// </summary>
+        private ServerCandleStorage _candleStorage;
+
+        /// <summary>
         /// multithreaded access locker in StartThisSecurity
         /// </summary>
         private string _lockerStarter = "lockerStarterAserver";
 
+        /// <summary>
+        /// multi-threaded access blocker for starting securities
+        /// </summary>
         private string _lockerStarterByTime = "lockerStarterByTimeAserver";
 
+        /// <summary>
+        /// the time of the last attempt to run the paper on audition
+        /// </summary>
         private DateTime _lastTrySubCandle = DateTime.MinValue;
 
         /// <summary>
@@ -1417,10 +1473,14 @@ namespace OsEngine.Market.Servers
 
         #region Data upload
 
+        /// <summary>
+        /// blocker of data request methods from multithreaded access
+        /// </summary>
         private string _loadDataLocker;
 
         /// <summary>
-        /// interface for getting the last candlesticks for a security. Used to activate candlestick series in live trades
+        /// interface for getting the last candlesticks for a security. 
+        /// Used to activate candlestick series in live trades
         /// </summary>
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
@@ -1633,41 +1693,19 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private List<MarketDepth> _depths = new List<MarketDepth>();
 
+        /// <summary>
+        /// array blocker with market depths against multithreaded access
+        /// </summary>
         private string _depthsArrayLocker = "depthsLocker";
-        
+
+        /// <summary>
+        /// last bid and ask values by securities
+        /// </summary>
         private List<BidAskSender> _lastBidAskValues = new List<BidAskSender>();
 
         /// <summary>
-        /// new depth event
+        /// send the incoming market depth to the top
         /// </summary>
-        void _serverRealization_MarketDepthEvent(MarketDepth myDepth)
-        {
-            try
-            {
-                if (myDepth.Time == DateTime.MinValue)
-                {
-                    myDepth.Time = ServerTime;
-                }
-                else
-                {
-                    ServerTime = myDepth.Time;
-                }
-
-                if (myDepth.Asks.Count == 0 && myDepth.Bids.Count == 0)
-                {
-                    return;
-                }
-
-                TrySendMarketDepthEvent(myDepth);
-                TrySendBidAsk(myDepth);
-
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
         private void TrySendMarketDepthEvent(MarketDepth newMarketDepth)
         {
             if (NewMarketDepthEvent == null)
@@ -1705,6 +1743,9 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// send the incoming bid ask values to the top
+        /// </summary>
         private void TrySendBidAsk(MarketDepth newMarketDepth)
         {
             if (NewBidAscIncomeEvent == null)
@@ -1766,6 +1807,37 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// new depth event
+        /// </summary>
+        void _serverRealization_MarketDepthEvent(MarketDepth myDepth)
+        {
+            try
+            {
+                if (myDepth.Time == DateTime.MinValue)
+                {
+                    myDepth.Time = ServerTime;
+                }
+                else
+                {
+                    ServerTime = myDepth.Time;
+                }
+
+                if (myDepth.Asks.Count == 0 && myDepth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                TrySendMarketDepthEvent(myDepth);
+                TrySendBidAsk(myDepth);
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// best bid or ask changed for the instrument
         /// </summary>
         public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
@@ -1780,11 +1852,9 @@ namespace OsEngine.Market.Servers
         #region Trades
 
         /// <summary>
-        /// ticks storage
+        /// object for accessing trades storage in the file system
         /// </summary>
         private ServerTickStorage _tickStorage;
-
-        private ServerCandleStorage _candleStorage;
 
         /// <summary>
         /// ticks storage
@@ -1843,6 +1913,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public List<Trade>[] AllTrades { get { return _allTrades; } }
 
+        /// <summary>
+        /// array blocker with trades against multithreaded access
+        /// </summary>
         private string _newTradesLocker = "tradesLocker";
 
         /// <summary>
@@ -1947,7 +2020,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// upload trades by market depth data
-        /// прогрузить трейды данными стакана
         /// </summary>
         private void BathTradeMarketDepthData(Trade trade)
         {
@@ -1983,8 +2055,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// new tick
-        /// новый тик
+        /// new trade event
         /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
@@ -1992,41 +2063,23 @@ namespace OsEngine.Market.Servers
 
         #region MyTrade
 
-        private List<MyTrade> _myTrades = new List<MyTrade>();
-
         /// <summary>
-        /// my trades
-        /// мои сделки
+        /// my trades array
         /// </summary>
         public List<MyTrade> MyTrades
         {
             get { return _myTrades; }
         }
+        private List<MyTrade> _myTrades = new List<MyTrade>();
 
         /// <summary>
-        /// my incoming trades from system 
-        /// входящие из системы мои сделки
+        /// whether a sound must be emitted during a new my trade
         /// </summary>
-        void _serverRealization_MyTradeEvent(MyTrade trade)
-        {
-            if (trade.Time == DateTime.MinValue)
-            {
-                trade.Time = ServerTime;
-            }
-
-            _myTradesToSend.Enqueue(trade);
-            _myTrades.Add(trade);
-            _neadToBeepOnTrade = true;
-        }
-
-        /// <summary>
-        /// my trade changed
-        /// изменилась моя сделка
-        /// </summary>
-        public event Action<MyTrade> NewMyTradeEvent;
-
         private bool _neadToBeepOnTrade;
 
+        /// <summary>
+        /// buzzer mechanism 
+        /// </summary>
         private async void MyTradesBeepThread()
         {
             while (true)
@@ -2052,13 +2105,32 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// my trades incoming from IServerRealization
+        /// </summary>
+        void _serverRealization_MyTradeEvent(MyTrade trade)
+        {
+            if (trade.Time == DateTime.MinValue)
+            {
+                trade.Time = ServerTime;
+            }
+
+            _myTradesToSend.Enqueue(trade);
+            _myTrades.Add(trade);
+            _neadToBeepOnTrade = true;
+        }
+
+        /// <summary>
+        /// my trade changed event
+        /// </summary>
+        public event Action<MyTrade> NewMyTradeEvent;
+
         #endregion
 
-        #region Work with orders
+        #region Thread 3. Work with orders
 
         /// <summary>
         /// work place of thred on the queues of ordr execution and order cancellation 
-        /// место работы потока на очередях исполнения заявок и их отмены
         /// </summary>
         private async void ExecutorOrdersThreadArea()
         {
@@ -2107,6 +2179,9 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// array for storing orders to be sent to the exchange
+        /// </summary>
         private ConcurrentQueue<OrderAserverSender> _ordersToExecute = new ConcurrentQueue<OrderAserverSender>();
 
         /// <summary>
@@ -2156,43 +2231,6 @@ namespace OsEngine.Market.Servers
                 }
 
                 return serverPermision.IsCanChangeOrderPrice;
-            }
-        }
-
-        /// <summary>
-        /// incoming order from system
-        /// </summary>
-        void _serverRealization_MyOrderEvent(Order myOrder)
-        {
-            if (myOrder.TimeCallBack == DateTime.MinValue)
-            {
-                myOrder.TimeCallBack = ServerTime;
-            }
-            if (myOrder.TimeCreate == DateTime.MinValue)
-            {
-                myOrder.TimeCreate = ServerTime;
-            }
-            if (myOrder.State == OrderStateType.Done &&
-                myOrder.TimeDone == DateTime.MinValue)
-            {
-                myOrder.TimeDone = myOrder.TimeCallBack;
-            }
-            if (myOrder.State == OrderStateType.Cancel &&
-                myOrder.TimeDone == DateTime.MinValue)
-            {
-                myOrder.TimeCancel = myOrder.TimeCallBack;
-            }
-
-            myOrder.ServerType = ServerType;
-
-            _ordersToSend.Enqueue(myOrder);
-
-            for (int i = 0; i < _myTrades.Count; i++)
-            {
-                if (_myTrades[i].NumberOrderParent == myOrder.NumberMarket)
-                {
-                    _myTradesToSend.Enqueue(_myTrades[i]);
-                }
             }
         }
 
@@ -2324,6 +2362,43 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// incoming order from system
+        /// </summary>
+        void _serverRealization_MyOrderEvent(Order myOrder)
+        {
+            if (myOrder.TimeCallBack == DateTime.MinValue)
+            {
+                myOrder.TimeCallBack = ServerTime;
+            }
+            if (myOrder.TimeCreate == DateTime.MinValue)
+            {
+                myOrder.TimeCreate = ServerTime;
+            }
+            if (myOrder.State == OrderStateType.Done &&
+                myOrder.TimeDone == DateTime.MinValue)
+            {
+                myOrder.TimeDone = myOrder.TimeCallBack;
+            }
+            if (myOrder.State == OrderStateType.Cancel &&
+                myOrder.TimeDone == DateTime.MinValue)
+            {
+                myOrder.TimeCancel = myOrder.TimeCallBack;
+            }
+
+            myOrder.ServerType = ServerType;
+
+            _ordersToSend.Enqueue(myOrder);
+
+            for (int i = 0; i < _myTrades.Count; i++)
+            {
+                if (_myTrades[i].NumberOrderParent == myOrder.NumberMarket)
+                {
+                    _myTradesToSend.Enqueue(_myTrades[i]);
+                }
+            }
+        }
+
+        /// <summary>
         /// order changed
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
@@ -2343,6 +2418,11 @@ namespace OsEngine.Market.Servers
         #region Log messages
 
         /// <summary>
+        /// log manager
+        /// </summary>
+        public Log Log;
+
+        /// <summary>
         /// add a new message in the log
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -2354,12 +2434,7 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// log manager
-        /// </summary>
-        public Log Log;
-
-        /// <summary>
-        /// outgoing messages for the log
+        /// outgoing messages for the log event
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
