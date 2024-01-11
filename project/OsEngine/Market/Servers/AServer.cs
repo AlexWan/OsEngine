@@ -1697,6 +1697,37 @@ namespace OsEngine.Market.Servers
         private List<BidAskSender> _lastBidAskValues = new List<BidAskSender>();
 
         /// <summary>
+        /// new depth event
+        /// </summary>
+        void _serverRealization_MarketDepthEvent(MarketDepth myDepth)
+        {
+            try
+            {
+                if (myDepth.Time == DateTime.MinValue)
+                {
+                    myDepth.Time = ServerTime;
+                }
+                else
+                {
+                    ServerTime = myDepth.Time;
+                }
+
+                if (myDepth.Asks.Count == 0 && myDepth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                TrySendMarketDepthEvent(myDepth);
+                TrySendBidAsk(myDepth);
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// send the incoming market depth to the top
         /// </summary>
         private void TrySendMarketDepthEvent(MarketDepth newMarketDepth)
@@ -1713,11 +1744,11 @@ namespace OsEngine.Market.Servers
 
             _marketDepthsToSend.Enqueue(newMarketDepth);
 
-            if(_needToLoadBidAskInTrades.Value)
+            if (_needToLoadBidAskInTrades.Value)
             {
                 bool isInArray = false;
 
-                for(int i = 0;i < _depths.Count;i++)
+                for (int i = 0; i < _depths.Count; i++)
                 {
                     if (_depths[i].SecurityNameCode == newMarketDepth.SecurityNameCode)
                     {
@@ -1726,7 +1757,7 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
-                if(isInArray == false)
+                if (isInArray == false)
                 {
                     lock (_depthsArrayLocker)
                     {
@@ -1800,37 +1831,6 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// new depth event
-        /// </summary>
-        void _serverRealization_MarketDepthEvent(MarketDepth myDepth)
-        {
-            try
-            {
-                if (myDepth.Time == DateTime.MinValue)
-                {
-                    myDepth.Time = ServerTime;
-                }
-                else
-                {
-                    ServerTime = myDepth.Time;
-                }
-
-                if (myDepth.Asks.Count == 0 && myDepth.Bids.Count == 0)
-                {
-                    return;
-                }
-
-                TrySendMarketDepthEvent(myDepth);
-                TrySendBidAsk(myDepth);
-
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
         /// best bid or ask changed for the instrument
         /// </summary>
         public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
@@ -1850,27 +1850,19 @@ namespace OsEngine.Market.Servers
         private ServerTickStorage _tickStorage;
 
         /// <summary>
-        /// ticks storage
-        /// хранилище тиков
+        /// all server trades
         /// </summary>
-        /// <param name="trades"></param>
-        void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
-        {
-            _allTrades = trades;
-        }
-
-        /// <summary>
-        /// all ticks
-        /// все тики
-        /// </summary>
+        public List<Trade>[] AllTrades { get { return _allTrades; } }
         private List<Trade>[] _allTrades;
 
         /// <summary>
-        /// take ticks history by instrument
-        /// взять историю тиков по инструменту
+        /// array blocker with trades against multithreaded access
         /// </summary>
-        /// <param name="security"> instrument / инстурмент </param>
-        /// <returns> trades / сделки </returns>
+        private string _newTradesLocker = "tradesLocker";
+
+        /// <summary>
+        /// get trade history by security
+        /// </summary>
         public List<Trade> GetAllTradesToSecurity(Security security)
         {
             try
@@ -1901,18 +1893,15 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// all server ticks
-        /// все тики имеющиеся у сервера
+        /// storage load trades from file system
         /// </summary>
-        public List<Trade>[] AllTrades { get { return _allTrades; } }
+        void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
+        {
+            _allTrades = trades;
+        }
 
         /// <summary>
-        /// array blocker with trades against multithreaded access
-        /// </summary>
-        private string _newTradesLocker = "tradesLocker";
-
-        /// <summary>
-        /// came new ticks
+        /// new trade event from ServerRealization
         /// </summary>
         void ServerRealization_NewTradesEvent(Trade trade)
         {
@@ -2125,6 +2114,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// work place of thred on the queues of ordr execution and order cancellation 
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private async void ExecutorOrdersThreadArea()
         {
             while (true)
