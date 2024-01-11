@@ -413,7 +413,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 if (tradeLast.Time == tradeNow.Time)
                 {
                     trades.RemoveAt(i);
-                    i = 0;
+                    i--;
                     continue;
                 }
             }

@@ -34,6 +34,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if (mySecurity == null)
                 {
                     SetNewError("Error 0. Security set user is not found " + SecName);
+                    TestEnded();
                     return;
                 }
 
