@@ -27,7 +27,6 @@ namespace OsEngine.Market.Servers.Alor
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamToken, "");
-
             CreateParameterString(OsLocalization.Market.Label112, "");
             CreateParameterString(OsLocalization.Market.Label113, "");
             CreateParameterString(OsLocalization.Market.Label114, "");
@@ -37,10 +36,6 @@ namespace OsEngine.Market.Servers.Alor
             CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
-
-            /*CreateParameterEnum(OsLocalization.Market.Exchange, 
-             AlorAvailableExchanges.MOEX.ToString(), 
-             new List<string> { AlorAvailableExchanges.MOEX.ToString(),AlorAvailableExchanges.SPBX.ToString()});*/
         }
     }
 
@@ -2218,7 +2213,6 @@ namespace OsEngine.Market.Servers.Alor
         public AlorSubType SubType;
 
         public string ServiceInfo;
-
     }
 
     public class AlorChangePriceOrder

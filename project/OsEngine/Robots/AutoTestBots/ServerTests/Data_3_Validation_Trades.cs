@@ -185,14 +185,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
         }
 
-        private TimeFrameBuilder GetTfBuilder(Security security, TimeFrame timeFrame)
-        {
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
-            timeFrameBuilder.TimeFrame = timeFrame;
-
-            return timeFrameBuilder;
-        }
-
         // валидация трейдов
 
         private void ValidateTrades(IServerPermission permission, Security security, DateTime lastMidnightTime)

@@ -10,6 +10,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         public string SecNames;
 
+        public string SecClass;
+
         public override void Process()
         {
             List<Security> securities = Server.Securities;
@@ -23,6 +25,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     securitiesActivated.Count == 0)
                 {
                     SetNewError("Error 0. Security set user is not found " + SecNames);
+                    TestEnded();
                     return;
                 }
 
@@ -60,9 +63,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 string curSec = securitiesFromServer[i].Name;
 
+                string curClass = securitiesFromServer[i].NameClass;
+
                 for(int j = 0;j < secInArray.Length;j++)
                 {
-                    if(curSec == secInArray[j])
+                    if(curSec == secInArray[j]
+                        && curClass == SecClass)
                     {
                         securitiesActivated.Add(securitiesFromServer[i]);
                         break;
