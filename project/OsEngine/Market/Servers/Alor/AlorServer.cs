@@ -93,13 +93,6 @@ namespace OsEngine.Market.Servers.Alor
                     return;
                 }
 
-                if (CheckInternet() == false)
-                {
-                    SendLogMessage("Server connection error. There is no internet or the exchange server is not available.",
-                    LogMessageType.Error);
-                    return;
-                }
-
                 if (GetCurSessionToken() == false)
                 {
                     SendLogMessage("Authorization Error. Probably an invalid token is specified. You can see it on the Alor website.",
@@ -114,26 +107,6 @@ namespace OsEngine.Market.Servers.Alor
             {
                 SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
             }
-        }
-
-        private bool CheckInternet()
-        {
-            // check server availability for HTTP communication with it / проверяем доступность сервера для HTTP общения с ним
-            Uri uri = new Uri("https://alorbroker.ru/");
-
-            try
-            {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
-                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage("Server connection error. There is no internet or the exchange server is not available.", LogMessageType.Error);
-                return false;
-            }
-
-            return true;
         }
 
         private void ConnectionCheckThread()

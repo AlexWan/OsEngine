@@ -49,6 +49,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             StrategyParameterButton buttonDataTest5 = CreateParameterButton("Start test data 5", "D5");
             buttonDataTest5.UserClickOnButtonEvent += ButtonDataTest5_UserClickOnButtonEvent;
             D5_SecuritiesNames = CreateParameter("Sec name data test 5", "ADAUSDT_BNBUSDT_ETHUSDT", "D5");
+            D5_SecurityClass = CreateParameter("Sec class data test 5", "Futures", "D5");
 
             StrategyParameterButton buttonConnectionTest1 = CreateParameterButton("Start test connection 1", "C1");
             buttonConnectionTest1.UserClickOnButtonEvent += ButtonConnectionTest1_UserClickOnButtonEvent;
@@ -137,6 +138,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString D4_SecurityClass;
 
         StrategyParameterString D5_SecuritiesNames;
+        StrategyParameterString D5_SecurityClass;
 
         StrategyParameterString C2_SecuritiesNames;
 
@@ -512,6 +514,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     Data_5_Stress_Trades tester = new Data_5_Stress_Trades();
                     tester.SecNames = D5_SecuritiesNames.ValueString;
+                    tester.SecClass = D5_SecurityClass.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);

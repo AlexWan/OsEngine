@@ -94,15 +94,15 @@ namespace OsEngine.Market.Servers
                 _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
                 _candleStorage.LogMessageEvent += SendLogMessage;
 
-                Task task0 = new Task(ExecutorOrdersThreadArea);
-                task0.Start();
-
                 Log = new Log(_serverRealization.ServerType + "Server", StartProgram.IsOsTrader);
                 Log.Listen(this);
 
                 _serverStatusNead = ServerConnectStatus.Disconnect;
 
                 _loadDataLocker = "lockerData_" + ServerType.ToString();
+
+                Task task0 = new Task(ExecutorOrdersThreadArea);
+                task0.Start();
 
                 Task task = new Task(PrimeThreadArea);
                 task.Start();
