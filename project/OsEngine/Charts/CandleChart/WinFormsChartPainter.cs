@@ -2429,6 +2429,10 @@ namespace OsEngine.Charts.CandleChart
                 {
                     PaintHorisiontalLineOnArea((LineHorisontal)element);
                 }
+                if (element.TypeName() == "Circle")
+                {
+                    PaintCircle((Elements.Circle)element);
+                }				
                 if (element.TypeName() == "Line")
                 {
                     PaintLineElemOnArea((Elements.Line)element);
@@ -2836,6 +2840,67 @@ namespace OsEngine.Charts.CandleChart
 
             PaintSeriesSafe(newSeries);
         }
+
+        /// <summary>
+        /// draw a circle on chart
+        /// нарисовать на чарте окружность
+        /// </summary>
+        /// <param name="circle"></param>
+        public void PaintCircle(Circle circle)
+        {
+            if (circle.Y <= 0)
+            {
+                return;
+            }
+            if (_myCandles == null)
+            {
+                return;
+            }
+
+            int index = _myCandles.FindIndex(candle => candle.TimeStart >= circle.TimeCenter);
+
+            if (index < 0 || index >= _myCandles.Count)
+            {
+                return;
+            }
+
+            Series newSeries = new Series(circle.UniqName + "Point");
+
+            DataPoint point = new DataPoint(index, Convert.ToDouble(circle.Y));
+
+            if (circle.Diameter > 1000)
+            {
+                point.MarkerSize = 1000;
+            }
+            else
+            {
+                point.MarkerSize = circle.Diameter;
+            }
+            if (circle.Thickness > 100)
+            {
+                point.MarkerBorderWidth = 100;
+            }
+            else
+            {
+                point.MarkerBorderWidth = circle.Thickness;
+            }
+
+            point.MarkerStyle = MarkerStyle.Circle;               
+            point.Color = Color.FromArgb(0);                      
+            point.MarkerBorderColor = circle.Color;               
+            point.Label = circle.Label;                           
+            point.LabelForeColor = circle.LabelTextColor;         
+            point.LabelBackColor = circle.LabelBackColor;         
+
+            newSeries.Points.Add(point);                    
+
+            newSeries.YAxisType = AxisType.Secondary;         
+            newSeries.XAxisType = AxisType.Primary;
+            newSeries.Font = circle.Font;                    
+
+            PaintSeriesSafe(newSeries);
+        }
+
 
         // Drag and drop Custom items  Перетаскивание Пользовательских элементов
 
