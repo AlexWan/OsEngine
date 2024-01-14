@@ -167,6 +167,7 @@
       <DependentUpon>CandleChartUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Charts\CandleChart\ChartAddons\ChartRoulette.cs" />
+    <Compile Include="Charts\CandleChart\Elements\Circle.cs" />
     <Compile Include="Charts\CandleChart\Elements\IChartElement.cs" />
     <Compile Include="Charts\CandleChart\Elements\Line.cs" />
     <Compile Include="Charts\CandleChart\Elements\PointElement.cs" />

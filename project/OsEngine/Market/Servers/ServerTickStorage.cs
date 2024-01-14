@@ -92,7 +92,6 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<List<Trade>[]> TickLoadedEvent;
 
-
         /// <summary>
         /// service information for saving trades
         /// сервисная информация для сохранения трейдов
@@ -100,7 +99,6 @@ namespace OsEngine.Market.Servers
         private List<TradeSaveInfo> _tradeSaveInfo;
 
         // for saving in one file
-        // для сохранения в один файл
 
         /// <summary>
         /// method with tick saving thread
@@ -336,7 +334,6 @@ namespace OsEngine.Market.Servers
         }
 
         // log messages
-        // сообщения в лог 
 
         /// <summary>
         /// send a new message to up

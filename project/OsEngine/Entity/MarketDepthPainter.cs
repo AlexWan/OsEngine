@@ -369,7 +369,10 @@ namespace OsEngine.Entity
                 _hostGlass.Child = _glassBox;
                 _hostGlass.Child.Refresh();
 
-                ProcessMarketDepth(_lastMarketDepth);
+                if(_lastMarketDepth != null)
+                {
+                    ProcessMarketDepth(_lastMarketDepth);
+                }
             }
             catch (Exception error)
             {
@@ -458,12 +461,14 @@ namespace OsEngine.Entity
             {
                 PaintMarketDepth(depth);
             }
-
-            if (_bid != 0 && _ask != 0)
+            else
             {
-                PaintBidAsk(_bid, _ask);
-                _bid = 0;
-                _ask = 0;
+                if (_bid != 0 && _ask != 0)
+                {
+                    PaintBidAsk(_bid, _ask);
+                    _bid = 0;
+                    _ask = 0;
+                }
             }
         }
 
@@ -472,6 +477,8 @@ namespace OsEngine.Entity
         /// предпоследний стакан
         /// </summary>
         private MarketDepth _lastMarketDepth;
+
+        private DateTime _lastMdTimeEntry;
 
         /// <summary>
         ///  current cup
@@ -486,6 +493,7 @@ namespace OsEngine.Entity
         public void ProcessMarketDepth(MarketDepth depth)
         {
             _currentMaretDepth = depth;
+            _lastMdTimeEntry = DateTime.Now;
         }
 
         /// <summary>
@@ -564,7 +572,6 @@ namespace OsEngine.Entity
                         _glassBox.Rows[24 - i].Cells[0].Value = null;
                         _glassBox.Rows[24 - i].Cells[1].Value = null;
                     }
-
                 }
                 // volume in sticks for ask
                 // объём в палках для аска
@@ -707,6 +714,55 @@ namespace OsEngine.Entity
                 {
                     _glassBox.Rows[25].Cells[2].Value = bid.ToStringWithNoEndZero();
                     _glassBox.Rows[24].Cells[2].Value = ask.ToStringWithNoEndZero();
+                }
+
+                if (_glassBox.Rows[26].Cells[2].Value != null ||
+                         _glassBox.Rows[23].Cells[2].Value != null)
+                {
+                    if(_lastMdTimeEntry.AddSeconds(5) < DateTime.Now)
+                    {
+                        for (int i = 0; i < 25; i++)
+                        {
+                            if(i == 0 &&
+                                _glassBox.Rows[25].Cells[1].Value != null)
+                            {
+                                _glassBox.Rows[25].Cells[0].Value = null;
+                                _glassBox.Rows[25].Cells[1].Value = null;
+                                _glassBox.Rows[25].Cells[3].Value = null;
+                            }
+                            else if (_glassBox.Rows[25 + i].Cells[2].Value != null)
+                            {
+                                _glassBox.Rows[25 + i].Cells[0].Value = null;
+                                _glassBox.Rows[25 + i].Cells[1].Value = null;
+                                _glassBox.Rows[25 + i].Cells[2].Value = null;
+                                _glassBox.Rows[25 + i].Cells[3].Value = null;
+                            }
+                        }
+
+                        for (int i = 0; i < 25; i++)
+                        {
+                            if (i == 0 &&
+                                _glassBox.Rows[24].Cells[1].Value != null)
+                            {
+                                _glassBox.Rows[24].Cells[0].Value = null;
+                                _glassBox.Rows[24].Cells[1].Value = null;
+                                _glassBox.Rows[24].Cells[3].Value = null;
+                            }
+                            else if (_glassBox.Rows[24 - i].Cells[2].Value != null)
+                            {
+                                _glassBox.Rows[24 - i].Cells[2].Value = null;
+                                _glassBox.Rows[24 - i].Cells[3].Value = null;
+                                _glassBox.Rows[24 - i].Cells[0].Value = null;
+                                _glassBox.Rows[24 - i].Cells[1].Value = null;
+                            }
+
+                        }
+
+                        if (_lastMarketDepth != null)
+                        {
+                            _lastMarketDepth = null;
+                        }
+                    }
                 }
             }
             catch (Exception error)

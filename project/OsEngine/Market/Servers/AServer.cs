@@ -679,7 +679,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Thread 1. Work whith connection
+        #region Thread 1. Work with connection
 
         /// <summary>
         /// the place where connection is controlled. look at data streams
@@ -811,7 +811,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Thread 2. Data forwarding flow operation
+        #region Thread 2. Data forwarding operations
 
         /// <summary>
         /// workplace of the thread sending data to the top
@@ -1282,7 +1282,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region  Subcribe to data
+        #region  Subscribe to data
 
         /// <summary>
         /// master of dowloading candles
@@ -1479,23 +1479,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (Portfolios == null || Securities == null)
-                {
-                    return null;
-                }
-
-                if (LastStartServerTime != DateTime.MinValue &&
-                    LastStartServerTime.AddSeconds(15) > DateTime.Now)
-                {
-                    return null;
-                }
-
                 if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    return null;
-                }
-
-                if (_candleManager == null)
                 {
                     return null;
                 }
@@ -1523,23 +1507,18 @@ namespace OsEngine.Market.Servers
         public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
-            if (Portfolios == null || Securities == null)
+            if (Securities == null)
             {
                 return null;
             }
 
             if (LastStartServerTime != DateTime.MinValue &&
-                LastStartServerTime.AddSeconds(15) > DateTime.Now)
+                LastStartServerTime.AddSeconds(5) > DateTime.Now)
             {
                 return null;
             }
 
             if (ServerStatus != ServerConnectStatus.Connect)
-            {
-                return null;
-            }
-
-            if (_candleManager == null)
             {
                 return null;
             }
@@ -1574,39 +1553,19 @@ namespace OsEngine.Market.Servers
                 return null;
             }
 
-            CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsTrader);
-
-            //ServerRealization.Subscrible(security);
+            List<Candle> candles = null;
 
             if (timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
             {
                 lock(_loadDataLocker)
                 {
-                    series.CandlesAll =
+                    candles =
                     ServerRealization.GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime,
                     actualTime);
                 }
             }
 
-           /* if (series.CandlesAll == null)
-            {
-                List<Trade> trades = ServerRealization.GetTickDataToSecurity(security, startTime, endTime, actualTime);
-                if (trades != null &&
-                    trades.Count != 0)
-                {
-                    series.PreLoad(trades);
-                }
-            }*/
-
-            if (series.CandlesAll != null &&
-                series.CandlesAll.Count != 0)
-            {
-                series.IsStarted = true;
-            }
-
-            // _candleManager.StartSeries(series);
-
-            return series.CandlesAll;
+            return candles;
         }
 
         /// <summary>
@@ -1614,13 +1573,13 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
-            if (Portfolios == null || Securities == null)
+            if (Securities == null)
             {
                 return null;
             }
 
             if (LastStartServerTime != DateTime.MinValue &&
-                LastStartServerTime.AddSeconds(15) > DateTime.Now)
+                LastStartServerTime.AddSeconds(5) > DateTime.Now)
             {
                 return null;
             }
@@ -1631,11 +1590,6 @@ namespace OsEngine.Market.Servers
             }
 
             if (ServerStatus != ServerConnectStatus.Connect)
-            {
-                return null;
-            }
-
-            if (_candleManager == null)
             {
                 return null;
             }
@@ -1668,6 +1622,7 @@ namespace OsEngine.Market.Servers
                     return null;
                 }
             }
+
             List<Trade> trades = null;
 
             lock (_loadDataLocker)
