@@ -10,22 +10,19 @@ using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.OsData;
 
 namespace OsEngine.Market.Servers
 {
 
     /// <summary>
     /// server ticks storage
-    /// хранилище тиков для сервера
     /// </summary>
     public class ServerTickStorage
     {
         /// <summary>
         /// constructor
-        /// конструктор
         /// </summary>
-        /// <param name="server"> server for saving ticks / сервер с которого будем сохранять тики </param>
+        /// <param name="server"> server for saving trades</param>
         public ServerTickStorage(IServer server)
         {
             _server = server;
@@ -43,35 +40,33 @@ namespace OsEngine.Market.Servers
             saver.Start();
         }
 
+        /// <summary>
+        /// Serviced connection
+        /// </summary>
         private IServer _server;
 
         /// <summary>
         /// shows whether need to save trades
-        /// нужно ли сохранять сделки
         /// </summary>
         public bool NeadToSave;
 
         /// <summary>
         /// how many days upload from history
-        /// сколько дней надо грузить из истории
         /// </summary>
         public int DaysToLoad;
 
         /// <summary>
         /// directory for saving data
-        /// название папки для хранения данных
         /// </summary>
         private string _pathName;
 
         /// <summary>
         /// securities for saving
-        /// инструменты которые нужно сохранять
         /// </summary>
         private List<Security> _securities;
 
         /// <summary>
         /// save security data 
-        /// сохранять данные по бумаге
         /// </summary>
         public void SetSecurityToSave(Security security)
         {
@@ -88,13 +83,11 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// upload ticks for some instrument
-        /// по какому-то инструменту загрузили тики
         /// </summary>
         public event Action<List<Trade>[]> TickLoadedEvent;
 
         /// <summary>
         /// service information for saving trades
-        /// сервисная информация для сохранения трейдов
         /// </summary>
         private List<TradeSaveInfo> _tradeSaveInfo;
 
@@ -102,7 +95,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// method with tick saving thread
-        /// метод в котором работает поток сохраняющий тики
         /// </summary>
         private void TickSaverSpaceInOneFile()
         {
@@ -206,9 +198,8 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// upload ticks
-        /// загрузить тики
         /// </summary>
-        /// <param name="dayCount"> number of days for uploading / количество дней которые нужно подгрузить </param>
+        /// <param name="dayCount"> number of days for uploading </param>
         public void LoadTick()
         {
             try
@@ -337,7 +328,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// send a new message to up
-        /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -353,34 +343,33 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// outgoing log message
-        /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }
 
     /// <summary>
-    /// information to save trades/информация для сохранения тиков
+    /// information to save trades
     /// </summary>
     public class TradeSaveInfo
     {
         /// <summary>
-        /// Security name/имя бумаги
+        /// Security name
         /// </summary>
         public string NameSecurity;
 
         /// <summary>
-        /// last save time/последнее время сохранения
+        /// last save time
         /// </summary>
         public DateTime LastSaveObjectTime;
 
         /// <summary>
-        /// the last trade Id we saved/последний Id трейда который мы сохранили
+        /// the last trade Id we saved
         /// </summary>
         public string LastTradeId;
 
         /// <summary>
-        /// last stored index/последнее сохранённый индекс
+        /// last stored index
         /// </summary>
         public int LastSaveIndex;
     }

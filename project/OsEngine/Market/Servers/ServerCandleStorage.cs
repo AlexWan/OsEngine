@@ -10,7 +10,6 @@ using System.IO;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.OsData;
 
 namespace OsEngine.Market.Servers
 {
@@ -18,9 +17,8 @@ namespace OsEngine.Market.Servers
     {
         /// <summary>
         /// constructor
-        /// конструктор
         /// </summary>
-        /// <param name="server"> server for saving ticks / сервер с которого будем сохранять тики </param>
+        /// <param name="server"> server for saving candles </param>
         public ServerCandleStorage(IServer server)
         {
 
@@ -39,23 +37,26 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// directory for saving data
-        /// название папки для хранения данных
         /// </summary>
         private string _pathName;
 
+        /// <summary>
+        /// is the service enabled
+        /// </summary>
         public bool NeadToSave;
 
+        /// <summary>
+        /// number of candles to be saved to the file system
+        /// </summary>
         public int CandlesSaveCount;
 
         /// <summary>
         /// securities for saving
-        /// инструменты которые нужно сохранять
         /// </summary>
         private List<CandleSeries> _series = new List<CandleSeries>();
 
         /// <summary>
         /// save security data 
-        /// сохранять данные по бумаге
         /// </summary>
         public void SetSeriesToSave(CandleSeries series)
         {
@@ -90,6 +91,9 @@ namespace OsEngine.Market.Servers
             _series.Add(series);
         }
 
+        /// <summary>
+        /// delete the data series from the save
+        /// </summary>
         public void RemoveSeries(CandleSeries series)
         {
             for (int i = 0; i < _series.Count; i++)
@@ -109,8 +113,7 @@ namespace OsEngine.Market.Servers
         // saving in file
 
         /// <summary>
-        /// method with tick saving thread
-        /// метод в котором работает поток сохраняющий тики
+        /// method with candles saving thread
         /// </summary>
         private void CandleSaverSpaceInOneFile()
         {
@@ -157,10 +160,19 @@ namespace OsEngine.Market.Servers
 
         }
 
+        /// <summary>
+        /// objects storing information on collections of stored data
+        /// </summary>
         private List<CandleSeriesSaveInfo> _candleSeriesSaveInfos = new List<CandleSeriesSaveInfo>();
 
+        /// <summary>
+        /// blocker of multithreaded access to specifications of data stored by the object
+        /// </summary>
         private object _lockerSpec = new object();
 
+        /// <summary>
+        /// request an object that stores information on the data to be saved
+        /// </summary>
         public CandleSeriesSaveInfo GetSpecInfo(string specification)
         {
             lock (_lockerSpec)
@@ -184,6 +196,9 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// save the data series
+        /// </summary>
         private void SaveSeries(CandleSeries series)
         {
             CandleSeriesSaveInfo mySaveInfo = GetSpecInfo(series.Specification);
@@ -226,6 +241,9 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        /// <summary>
+        /// query previously saved security candles
+        /// </summary>
         public List<Candle> GetCandles(string specification, int count)
         {
             CandleSeriesSaveInfo mySaveInfo = GetSpecInfo(specification);
@@ -254,6 +272,9 @@ namespace OsEngine.Market.Servers
             return newArray;
         }
 
+        /// <summary>
+        /// try to load paper candle data from the file system
+        /// </summary>
         public CandleSeriesSaveInfo TryLoadCandle(string specification)
         {
             List<Candle> candlesFromServer = new List<Candle>();
@@ -345,7 +366,6 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// send a new message to up
-        /// выслать новое сообщение на верх
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -361,18 +381,16 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// outgoing log message
-        /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }
 
     /// <summary>
-    /// information to save trades/информация для сохранения тиков
+    /// information to save candles
     /// </summary>
     public class CandleSeriesSaveInfo
     {
-
         private int _lastCandleCount;
 
         private DateTime _lastCandleTime;
