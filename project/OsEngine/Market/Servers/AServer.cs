@@ -1475,6 +1475,7 @@ namespace OsEngine.Market.Servers
         /// interface for getting the last candlesticks for a security. 
         /// Used to activate candlestick series in live trades
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             try
@@ -1504,132 +1505,157 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// take the candle history for a period
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
-            if (Securities == null)
+            try
             {
-                return null;
-            }
-
-            if (LastStartServerTime != DateTime.MinValue &&
-                LastStartServerTime.AddSeconds(5) > DateTime.Now)
-            {
-                return null;
-            }
-
-            if (ServerStatus != ServerConnectStatus.Connect)
-            {
-                return null;
-            }
-
-            Security security = null;
-
-            for (int i = 0; _securities != null && i < _securities.Count; i++)
-            {
-                if(_securities[i].Name == securityName &&
-                    _securities[i].NameClass == securityClass)
+                if (Securities == null)
                 {
-                    security = _securities[i];
-                    break;
+                    return null;
                 }
-            }
 
-            if (security == null)
-            {
+                if (LastStartServerTime != DateTime.MinValue &&
+                    LastStartServerTime.AddSeconds(5) > DateTime.Now)
+                {
+                    return null;
+                }
+
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return null;
+                }
+
+                Security security = null;
+
                 for (int i = 0; _securities != null && i < _securities.Count; i++)
                 {
-                    if (string.IsNullOrEmpty(_securities[i].NameId) == false &&
-                        _securities[i].NameId == securityName)
+                    if (_securities[i].Name == securityName &&
+                        _securities[i].NameClass == securityClass)
                     {
                         security = _securities[i];
                         break;
                     }
                 }
-            }
 
-            if (security == null)
+                if (security == null)
+                {
+                    for (int i = 0; _securities != null && i < _securities.Count; i++)
+                    {
+                        if (string.IsNullOrEmpty(_securities[i].NameId) == false &&
+                            _securities[i].NameId == securityName)
+                        {
+                            security = _securities[i];
+                            break;
+                        }
+                    }
+                }
+
+                if (security == null)
+                {
+                    return null;
+                }
+
+                List<Candle> candles = null;
+
+                if (timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+                {
+                    lock (_loadDataLocker)
+                    {
+                        candles =
+                        ServerRealization.GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime,
+                        actualTime);
+                    }
+                }
+
+                return candles;
+
+            }
+            catch (Exception ex)
             {
+                SendLogMessage(
+                    "AServer. GetCandleDataToSecurity method error: " + ex.ToString(),
+                    LogMessageType.Error);
+
                 return null;
             }
-
-            List<Candle> candles = null;
-
-            if (timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
-            {
-                lock(_loadDataLocker)
-                {
-                    candles =
-                    ServerRealization.GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime,
-                    actualTime);
-                }
-            }
-
-            return candles;
         }
 
         /// <summary>
         /// take ticks data for a period
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
-            if (Securities == null)
+            try
             {
-                return null;
-            }
-
-            if (LastStartServerTime != DateTime.MinValue &&
-                LastStartServerTime.AddSeconds(5) > DateTime.Now)
-            {
-                return null;
-            }
-
-            if (actualTime == DateTime.MinValue)
-            {
-                actualTime = startTime;
-            }
-
-            if (ServerStatus != ServerConnectStatus.Connect)
-            {
-                return null;
-            }
-
-            Security security = null;
-
-            for (int i = 0; _securities != null && i < _securities.Count; i++)
-            {
-                if (_securities[i].Name == securityName &&
-                    _securities[i].NameClass == securityClass)
+                if (Securities == null)
                 {
-                    security = _securities[i];
-                    break;
+                    return null;
                 }
-            }
 
-            if (security == null)
-            {
+                if (LastStartServerTime != DateTime.MinValue &&
+                    LastStartServerTime.AddSeconds(5) > DateTime.Now)
+                {
+                    return null;
+                }
+
+                if (actualTime == DateTime.MinValue)
+                {
+                    actualTime = startTime;
+                }
+
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return null;
+                }
+
+                Security security = null;
+
                 for (int i = 0; _securities != null && i < _securities.Count; i++)
                 {
-                    if (string.IsNullOrEmpty(_securities[i].NameId) == false &&
-                        _securities[i].NameId == securityName)
+                    if (_securities[i].Name == securityName &&
+                        _securities[i].NameClass == securityClass)
                     {
                         security = _securities[i];
                         break;
                     }
                 }
+
                 if (security == null)
                 {
-                    return null;
+                    for (int i = 0; _securities != null && i < _securities.Count; i++)
+                    {
+                        if (string.IsNullOrEmpty(_securities[i].NameId) == false &&
+                            _securities[i].NameId == securityName)
+                        {
+                            security = _securities[i];
+                            break;
+                        }
+                    }
+                    if (security == null)
+                    {
+                        return null;
+                    }
                 }
+
+                List<Trade> trades = null;
+
+                lock (_loadDataLocker)
+                {
+                    trades = ServerRealization.GetTickDataToSecurity(security, startTime, endTime, actualTime);
+                }
+                return trades;
             }
-
-            List<Trade> trades = null;
-
-            lock (_loadDataLocker)
+            catch (Exception ex)
             {
-                trades = ServerRealization.GetTickDataToSecurity(security, startTime, endTime, actualTime);
+                SendLogMessage(
+                    "AServer. GetTickDataToSecurity method error: " + ex.ToString(),
+                    LogMessageType.Error);
+
+                return null;
             }
-            return trades;
         }
 
         #endregion
@@ -2177,33 +2203,41 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void ExecuteOrder(Order order)
         {
-            if (UserSetOrderOnExecute != null)
+            try
             {
-                UserSetOrderOnExecute(order);
+                if (UserSetOrderOnExecute != null)
+                {
+                    UserSetOrderOnExecute(order);
+                }
+                if (LastStartServerTime.AddSeconds(WaitTimeToTradeAfterFirstStart) > DateTime.Now)
+                {
+                    order.State = OrderStateType.Fail;
+                    _ordersToSend.Enqueue(order);
+
+                    SendLogMessage(OsLocalization.Market.Message17 + order.NumberUser +
+                                   OsLocalization.Market.Message18, LogMessageType.Error);
+                    return;
+                }
+
+                order.TimeCreate = ServerTime;
+
+                OrderAserverSender ord = new OrderAserverSender();
+                ord.Order = order;
+                ord.OrderSendType = OrderSendType.Execute;
+
+                _ordersToExecute.Enqueue(ord);
+
+                SendLogMessage(OsLocalization.Market.Message19 + order.Price +
+                               OsLocalization.Market.Message20 + order.Side +
+                               OsLocalization.Market.Message21 + order.Volume +
+                               OsLocalization.Market.Message22 + order.SecurityNameCode +
+                               OsLocalization.Market.Message23 + order.NumberUser, LogMessageType.System);
+
             }
-            if (LastStartServerTime.AddSeconds(WaitTimeToTradeAfterFirstStart) > DateTime.Now)
+            catch (Exception error)
             {
-                order.State = OrderStateType.Fail;
-                _ordersToSend.Enqueue(order);
-
-                SendLogMessage(OsLocalization.Market.Message17 + order.NumberUser +
-                               OsLocalization.Market.Message18, LogMessageType.Error);
-                return;
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            order.TimeCreate = ServerTime;
-
-            OrderAserverSender ord = new OrderAserverSender();
-            ord.Order = order;
-            ord.OrderSendType = OrderSendType.Execute;
-
-            _ordersToExecute.Enqueue(ord);
-
-            SendLogMessage(OsLocalization.Market.Message19 + order.Price +
-                           OsLocalization.Market.Message20 + order.Side +
-                           OsLocalization.Market.Message21 + order.Volume +
-                           OsLocalization.Market.Message22 + order.SecurityNameCode +
-                           OsLocalization.Market.Message23 + order.NumberUser, LogMessageType.System);
         }
 
         /// <summary>
@@ -2253,50 +2287,78 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void CancelOrder(Order order)
         {
-            if (UserSetOrderOnCancel != null)
+            try
             {
-                UserSetOrderOnCancel(order);
-            }
+                if (UserSetOrderOnCancel != null)
+                {
+                    UserSetOrderOnCancel(order);
+                }
 
-            if(string.IsNullOrEmpty(order.NumberMarket))
+                if (string.IsNullOrEmpty(order.NumberMarket))
+                {
+                    SendLogMessage("You can't revoke an order without a stock exchange number " + order.NumberUser, LogMessageType.System);
+                    return;
+                }
+
+                OrderAserverSender ord = new OrderAserverSender();
+                ord.Order = order;
+                ord.OrderSendType = OrderSendType.Cancel;
+
+                _ordersToExecute.Enqueue(ord);
+
+                SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
+
+            }
+            catch (Exception error)
             {
-                SendLogMessage("You can't revoke an order without a stock exchange number " + order.NumberUser, LogMessageType.System);
-                return;
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            OrderAserverSender ord = new OrderAserverSender();
-            ord.Order = order;
-            ord.OrderSendType = OrderSendType.Cancel;
-
-            _ordersToExecute.Enqueue(ord);
-
-            SendLogMessage(OsLocalization.Market.Message24 + order.NumberUser, LogMessageType.System);
         }
 
         /// <summary>
         /// cancel all orders from trading system
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void CancelAllOrders()
         {
-            if(ServerStatus == ServerConnectStatus.Disconnect)
+            try
             {
-                return;
-            }
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
 
-            ServerRealization.CancelAllOrders();
+                ServerRealization.CancelAllOrders();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(
+                    "AServer. CancelAllOrders method error: " + ex.ToString(),
+                    LogMessageType.Error);
+            }
         }
 
         /// <summary>
         /// cancel all orders from trading system to security
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void CancelAllOrdersToSecurity(Security security)
         {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
+            try
             {
-                return;
-            }
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
 
-            ServerRealization.CancelAllOrdersToSecurity(security);
+                ServerRealization.CancelAllOrdersToSecurity(security);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(
+                    "AServer. CancelAllOrdersToSecurity method error: " + ex.ToString(),
+                    LogMessageType.Error);
+            }
         }
 
         /// <summary>
