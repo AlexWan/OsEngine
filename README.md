@@ -4,7 +4,7 @@
 
 [Developer site](https://os-engine-eng.com)
 
-[Support](https://t.me/osengine_official_support)
+[Support](https://t.me/osengine_support_english)
 
 ## What is OsEngine?
 
