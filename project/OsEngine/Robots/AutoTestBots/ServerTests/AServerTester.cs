@@ -54,19 +54,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             StrategyParameterButton buttonConnectionTest1 = CreateParameterButton("Start test connection 1", "C1");
             buttonConnectionTest1.UserClickOnButtonEvent += ButtonConnectionTest1_UserClickOnButtonEvent;
 
-            StrategyParameterButton buttonConnectionTest2 = CreateParameterButton("Start test connection 2", "C2");
-            buttonConnectionTest2.UserClickOnButtonEvent += ButtonConnectionTest2_UserClickOnButtonEvent;
-            C2_SecuritiesNames = CreateParameter("Sec name test spam secs", "ADAUSDT_BNBUSDT_ETHUSDT", "C2");
-
-            StrategyParameterButton buttonConnectionTest3 = CreateParameterButton("Start test connection 3", "C3");
+            StrategyParameterButton buttonConnectionTest3 = CreateParameterButton("Start test connection 2", "C2");
             buttonConnectionTest3.UserClickOnButtonEvent += ButtonConnectionTest3_UserClickOnButtonEvent;
 
-            StrategyParameterButton buttonConnectionTest4 = CreateParameterButton("Start test connection 4", "C4");
+            StrategyParameterButton buttonConnectionTest4 = CreateParameterButton("Start test connection 3", "C3");
             buttonConnectionTest4.UserClickOnButtonEvent += ButtonConnectionTest4_UserClickOnButtonEvent;
 
-            StrategyParameterButton buttonConnectionTest5 = CreateParameterButton("Start test connection 5", "C5");
+            StrategyParameterButton buttonConnectionTest5 = CreateParameterButton("Start test connection 4", "C4");
             buttonConnectionTest5.UserClickOnButtonEvent += ButtonConnectionTest5_UserClickOnButtonEvent;
-            C5_SecuritiesNames = CreateParameter("Sec name connection test 5", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "C5");
+            C5_SecuritiesNames = CreateParameter("Sec name connection test 4", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "C4");
 
             StrategyParameterButton buttonOrdersTest1 = CreateParameterButton("Start test orders 1", "O1");
             buttonOrdersTest1.UserClickOnButtonEvent += ButtonOrdersTest1_UserClickOnButtonEvent;
@@ -139,8 +135,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         StrategyParameterString D5_SecuritiesNames;
         StrategyParameterString D5_SecurityClass;
-
-        StrategyParameterString C2_SecuritiesNames;
 
         StrategyParameterString C5_SecuritiesNames;
 
@@ -280,7 +274,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
-        private void ButtonConnectionTest2_UserClickOnButtonEvent()
+        private void ButtonConnectionTest3_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
             {
@@ -293,7 +287,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
-        private void ButtonConnectionTest3_UserClickOnButtonEvent()
+        private void ButtonConnectionTest4_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
             {
@@ -306,19 +300,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
-        private void ButtonConnectionTest4_UserClickOnButtonEvent()
-        {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
-
-            CurTestType = ServerTestType.Conn_4;
-
-            Thread worker = new Thread(WorkerThreadArea);
-            worker.Start();
-        }
-
         private void ButtonConnectionTest5_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
@@ -326,7 +307,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            CurTestType = ServerTestType.Conn_5;
+            CurTestType = ServerTestType.Conn_4;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -534,8 +515,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 else if (CurTestType == ServerTestType.Conn_2)
                 {
-                    Conn_2_Spam_Subscr tester = new Conn_2_Spam_Subscr();
-                    tester.SecutiesToSubscrible = C2_SecuritiesNames.ValueString;
+                    Conn_2_SubscrAllSec tester = new Conn_2_SubscrAllSec();
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -545,7 +525,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 else if (CurTestType == ServerTestType.Conn_3)
                 {
-                    Conn_3_SubscrAllSec tester = new Conn_3_SubscrAllSec();
+                    Conn_3_Stress_Memory tester = new Conn_3_Stress_Memory();
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -555,17 +535,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 else if (CurTestType == ServerTestType.Conn_4)
                 {
-                    Conn_4_Stress_Memory tester = new Conn_4_Stress_Memory();
-                    tester.LogMessage += SendNewLogMessage;
-                    tester.TestEndEvent += Tester_TestEndEvent;
-                    _testers.Add(tester);
-                    tester.Server = (AServer)servers[i];
-                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
-                    tester.Start();
-                }
-                else if (CurTestType == ServerTestType.Conn_5)
-                {
-                    Conn_5_Validation_Candles tester = new Conn_5_Validation_Candles();
+                    Conn_4_Validation_Candles tester = new Conn_4_Validation_Candles();
                     tester.SecutiesToSubscrible = C5_SecuritiesNames.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
@@ -712,7 +682,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         Conn_2,
         Conn_3,
         Conn_4,
-        Conn_5,
         Order_1,
         Order_2,
         Order_3,

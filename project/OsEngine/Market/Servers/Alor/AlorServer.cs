@@ -826,7 +826,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #region 6 Security subscrible
 
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         List<Security> _subscribledSecurities = new List<Security>();
 

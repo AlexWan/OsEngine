@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
-    public class Conn_4_Stress_Memory : AServerTester
+    public class Conn_3_Stress_Memory : AServerTester
     {
         public override void Process()
         {

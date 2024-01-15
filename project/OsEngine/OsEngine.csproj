@@ -976,10 +976,9 @@
     </Compile>
     <Compile Include="Robots\AutoTestBots\ServerTests\AServerTester.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Conn_1_Status.cs" />
-    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_2_Spam_Subscr.cs" />
-    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_3_SubscrAllSec.cs" />
-    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_4_Stress_Memory.cs" />
-    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_5_Validation_Candles.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_2_SubscrAllSec.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_3_Stress_Memory.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_4_Validation_Candles.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_1_Integrity.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_2_Validation_Candles.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_3_Validation_Trades.cs" />

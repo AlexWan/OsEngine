@@ -295,7 +295,8 @@ namespace OsEngine.Entity
                 }
 
                 if (CandlesAll != null &&
-                   CandlesAll[CandlesAll.Count - 1].TimeStart > trade.Time)
+                    CandlesAll.Count > 0 &&
+                    CandlesAll[CandlesAll.Count - 1].TimeStart > trade.Time)
                 {
                     continue;
                 }
@@ -305,6 +306,7 @@ namespace OsEngine.Entity
                     bool saveInNextCandle = true;
 
                     if (CandlesAll != null &&
+                        CandlesAll.Count > 0 &&
                         TimeFrameBuilder.SaveTradesInCandles &&
                         CandlesAll[CandlesAll.Count - 1].TimeStart.Add(TimeFrameSpan) > trade.Time)
                     {
@@ -1008,7 +1010,8 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (CandlesAll == null)
+            if (CandlesAll == null ||
+                CandlesAll.Count == 0)
             {
                 // пришла первая сделка
                 CandlesAll = new List<Candle>();

@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
-    public class Conn_5_Validation_Candles : AServerTester
+    public class Conn_4_Validation_Candles : AServerTester
     {
         public string SecutiesToSubscrible = "BTCUSDT_BNBUSDT_ETHUSDT_ADAUSDT";
 
