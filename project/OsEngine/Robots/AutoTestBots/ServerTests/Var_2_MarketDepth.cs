@@ -21,9 +21,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             List<Security> securities = GetActivateSecurities(SecNames, SecClassCode);
 
             if (securities == null ||
-                securities.Count == 0)
+                securities.Count == 0 ||
+                securities.Count < 5)
             {
-                SetNewError("Error 0. Security set user is not found " + SecNames);
+                SetNewError("Error 0. Security set user is not found, or securities count < 5" + SecNames);
+                TestEnded();
                 return;
             }
 

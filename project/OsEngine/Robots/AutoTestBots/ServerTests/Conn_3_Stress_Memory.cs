@@ -84,7 +84,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     this.SetNewError(
                         "Error 1. ServerStatus don`t change after 10 seconds before it`s start or stop. Iteration: " + i);
-                    TestEnded();
                     return;
                 }
 
@@ -101,7 +100,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     }
                     else
                     {
-                        TestEnded();
                         return;
                     }
                 }

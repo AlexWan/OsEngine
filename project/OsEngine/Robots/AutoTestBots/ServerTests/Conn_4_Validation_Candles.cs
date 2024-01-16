@@ -11,6 +11,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         public string SecutiesToSubscrible = "BTCUSDT_BNBUSDT_ETHUSDT_ADAUSDT";
 
+        public string SecuritiesClass = "Futures";
+
         public override void Process()
         {
             AServer myServer = Server;
@@ -56,6 +58,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     myServer.StartServer();
                     Thread.Sleep(10000);
                     List<CandleSeries> series = Subscrible();
+
+                    if(series == null ||
+                        series.Count == 0)
+                    {
+                        return;
+                    }
+
                     CheckTfInSeries(series);
                     return;
                 }
@@ -88,7 +97,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 for(int i2 = 0;i2< secsInString.Length;i2++)
                 {
-                    if (secs[i].Name == secsInString[i2])
+                    if (secs[i].Name == secsInString[i2] &&
+                        secs[i].NameClass == SecuritiesClass)
                     {
                         secsToTest.Add(secs[i]);
                         break;
@@ -103,6 +113,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return null;
             }
 
+            if (secsToTest.Count < 5)
+            {
+                this.SetNewError(
+                 "Error 5. Securities count < 5!");
+                return null;
+            }
+
             DateTime endWaitTime = DateTime.Now.AddMinutes(10);
 
             List<CandleSeries> seriesReady = new List<CandleSeries>();
@@ -112,7 +129,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if (endWaitTime < DateTime.Now)
                 {
                     this.SetNewError(
-                      "Error 5. Subscrible time is over! 10 minutes");
+                      "Error 6. Subscrible time is over! 10 minutes");
                     break;
                 }
 
@@ -135,7 +152,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 catch (Exception ex)
                 {
-                    this.SetNewError("Error 6. Error on subscrible: " + ex.ToString());
+                    this.SetNewError("Error 7. Error on subscrible: " + ex.ToString());
                     return null;
                 }
             }
@@ -249,7 +266,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if (endWaitTime < DateTime.Now)
                 {
                     this.SetNewError(
-                      "Error 7. Subscrible time is over! 5 minutes. TF: " + frame.ToString());
+                      "Error 8. Subscrible time is over! 5 minutes. TF: " + frame.ToString());
                     break;
                 }
             }
@@ -320,13 +337,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (candleLast.TimeStart > candleNow.TimeStart)
                 {
-                    SetNewError("Error 8. The time in the old candle is big than in the current candle " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 9. The time in the old candle is big than in the current candle " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
 
                 if (candleLast.TimeStart == candleNow.TimeStart)
                 {
-                    SetNewError("Error 9. Candle time is equal! " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 10. Candle time is equal! " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
             }
@@ -341,143 +358,59 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (candleNow.Open > candleNow.High)
                 {
-                    SetNewError("Error 10. Candle open above the high " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 11. Candle open above the high " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
                 if (candleNow.Open < candleNow.Low)
                 {
-                    SetNewError("Error 11. Candle open below the low " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 12. Candle open below the low " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
 
                 if (candleNow.Close > candleNow.High)
                 {
-                    SetNewError("Error 12. Candle Close above the high " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 13. Candle Close above the high " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
                 if (candleNow.Close < candleNow.Low)
                 {
-                    SetNewError("Error 13. Candle Close below the low " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 14. Candle Close below the low " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
 
                 if (candleNow.Open == 0)
                 {
-                    SetNewError("Error 14. Candle Open is zero " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 15. Candle Open is zero " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
 
                 if (candleNow.High == 0)
                 {
-                    SetNewError("Error 15. Candle High is zero " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 16. Candle High is zero " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
 
                 if (candleNow.Low == 0)
                 {
-                    SetNewError("Error 16. Candle Low is zero " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 17. Candle Low is zero " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
 
                 if (candleNow.Close == 0)
                 {
-                    SetNewError("Error 17. Candle Close is zero " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 18. Candle Close is zero " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
 
                 if (candleNow.Volume == 0)
                 {
-                    SetNewError("Error 18. Candle Volume is zero " + timeFrame.ToString() + "Security: " + sec);
+                    SetNewError("Error 19. Candle Volume is zero " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
 
             }
 
-            // 6 правильное ли расстояние между свечками по времени, учитывая данный ТФ
-
-            TimeSpan goodTimeSpan = GetTimeSpanFromTimeFrame(timeFrame);
-
-            for (int i = 1; i < candles.Count; i++)
-            {
-                Candle candleNow = candles[i];
-                Candle candleLast = candles[i - 1];
-
-                TimeSpan span = candleNow.TimeStart - candleLast.TimeStart;
-
-                if (span != goodTimeSpan)
-                {
-                    if (candleNow.Close < candleNow.Low)
-                    {
-                        SetNewError(
-                            "Error 19. The time distance between the candles is wrong. TimeFrame: " + timeFrame.ToString() +
-                            "Good distance: " + goodTimeSpan.ToString() +
-                            "Real distance: " + span.ToString() + "Security: " + sec);
-                        return false;
-                    }
-                }
-            }
-
             return true;
-        }
-
-        private TimeSpan GetTimeSpanFromTimeFrame(TimeFrame timeFrame)
-        {
-            TimeSpan timeFrameSpan = new TimeSpan();
-
-            if (timeFrame == TimeFrame.Min1)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 1, 0);
-            }
-            else if (timeFrame == TimeFrame.Min2)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 2, 0);
-            }
-            else if (timeFrame == TimeFrame.Min3)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 3, 0);
-            }
-            else if (timeFrame == TimeFrame.Min5)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 5, 0);
-            }
-            else if (timeFrame == TimeFrame.Min10)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 10, 0);
-            }
-            else if (timeFrame == TimeFrame.Min15)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 15, 0);
-            }
-            else if (timeFrame == TimeFrame.Min20)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 20, 0);
-            }
-            else if (timeFrame == TimeFrame.Min30)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 30, 0);
-            }
-            else if (timeFrame == TimeFrame.Min45)
-            {
-                timeFrameSpan = new TimeSpan(0, 0, 45, 0);
-            }
-            else if (timeFrame == TimeFrame.Hour1)
-            {
-                timeFrameSpan = new TimeSpan(0, 1, 0, 0);
-            }
-            else if (timeFrame == TimeFrame.Hour2)
-            {
-                timeFrameSpan = new TimeSpan(0, 2, 0, 0);
-            }
-            else if (timeFrame == TimeFrame.Hour4)
-            {
-                timeFrameSpan = new TimeSpan(0, 4, 0, 0);
-            }
-            else if (timeFrame == TimeFrame.Day)
-            {
-                timeFrameSpan = new TimeSpan(0, 24, 0, 0);
-            }
-
-            return timeFrameSpan;
         }
     }
 }

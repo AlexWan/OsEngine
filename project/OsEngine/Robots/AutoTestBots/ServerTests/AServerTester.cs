@@ -54,15 +54,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             StrategyParameterButton buttonConnectionTest1 = CreateParameterButton("Start test connection 1", "C1");
             buttonConnectionTest1.UserClickOnButtonEvent += ButtonConnectionTest1_UserClickOnButtonEvent;
 
-            StrategyParameterButton buttonConnectionTest3 = CreateParameterButton("Start test connection 2", "C2");
+            StrategyParameterButton buttonConnectionTest2 = CreateParameterButton("Start test connection 2", "C2");
+            buttonConnectionTest2.UserClickOnButtonEvent += ButtonConnectionTest2_UserClickOnButtonEvent;
+
+            StrategyParameterButton buttonConnectionTest3 = CreateParameterButton("Start test connection 3", "C3");
             buttonConnectionTest3.UserClickOnButtonEvent += ButtonConnectionTest3_UserClickOnButtonEvent;
 
-            StrategyParameterButton buttonConnectionTest4 = CreateParameterButton("Start test connection 3", "C3");
+            StrategyParameterButton buttonConnectionTest4 = CreateParameterButton("Start test connection 4", "C4");
             buttonConnectionTest4.UserClickOnButtonEvent += ButtonConnectionTest4_UserClickOnButtonEvent;
-
-            StrategyParameterButton buttonConnectionTest5 = CreateParameterButton("Start test connection 4", "C4");
-            buttonConnectionTest5.UserClickOnButtonEvent += ButtonConnectionTest5_UserClickOnButtonEvent;
-            C5_SecuritiesNames = CreateParameter("Sec name connection test 4", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "C4");
+            C4_SecuritiesNames = CreateParameter("Sec name connection test 4", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "C4");
+            C4_SecuritiesClass = CreateParameter("Sec class connection test 4", "Futures", "C4");
 
             StrategyParameterButton buttonOrdersTest1 = CreateParameterButton("Start test orders 1", "O1");
             buttonOrdersTest1.UserClickOnButtonEvent += ButtonOrdersTest1_UserClickOnButtonEvent;
@@ -136,7 +137,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString D5_SecuritiesNames;
         StrategyParameterString D5_SecurityClass;
 
-        StrategyParameterString C5_SecuritiesNames;
+        StrategyParameterString C4_SecuritiesNames;
+        StrategyParameterString C4_SecuritiesClass;
 
         StrategyParameterString O1_SecurityName;
         StrategyParameterString O1_PortfolioName;
@@ -274,7 +276,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
-        private void ButtonConnectionTest3_UserClickOnButtonEvent()
+        private void ButtonConnectionTest2_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
             {
@@ -287,7 +289,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
-        private void ButtonConnectionTest4_UserClickOnButtonEvent()
+        private void ButtonConnectionTest3_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
             {
@@ -300,7 +302,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
-        private void ButtonConnectionTest5_UserClickOnButtonEvent()
+        private void ButtonConnectionTest4_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
             {
@@ -536,7 +538,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 else if (CurTestType == ServerTestType.Conn_4)
                 {
                     Conn_4_Validation_Candles tester = new Conn_4_Validation_Candles();
-                    tester.SecutiesToSubscrible = C5_SecuritiesNames.ValueString;
+                    tester.SecutiesToSubscrible = C4_SecuritiesNames.ValueString;
+                    tester.SecuritiesClass = C4_SecuritiesClass.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
