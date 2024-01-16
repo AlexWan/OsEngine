@@ -200,6 +200,9 @@ namespace OsEngine.Market.Connectors
 
                 ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
+
+                ComboBoxTypeServer_SelectionChanged(null, null);
+
             }
             catch (Exception error)
             {
@@ -532,7 +535,18 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if (_selectedType == ServerType.None)
+                {
+                    return;
+                }
+
                 List<IServer> serversAll = ServerMaster.GetServers();
+
+                if (serversAll == null ||
+                    serversAll.Count == 0)
+                {
+                    return;
+                }
 
                 IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
 

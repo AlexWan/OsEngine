@@ -1232,13 +1232,20 @@ namespace OsEngine.Market.Servers.Tester
                 // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
                 // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
 
-                string str = reader.ReadLine();
+                string firstRowInFile = reader.ReadLine();
+
+                if(string.IsNullOrEmpty(firstRowInFile))
+                {
+                    security.Remove(security[security.Count - 1]);
+                    reader.Close();
+                    continue;
+                }
 
                 try
                 {
                     // check whether candles are in the file / смотрим свечи ли в файле
                     Candle candle = new Candle();
-                    candle.SetCandleFromString(str);
+                    candle.SetCandleFromString(firstRowInFile);
                     // candles are in the file. We look at which ones / в файле свечи. Смотрим какие именно
 
                     security[security.Count - 1].TimeStart = candle.TimeStart;
@@ -1425,13 +1432,18 @@ namespace OsEngine.Market.Servers.Tester
 
 
                     // last data / последняя дата
-                    string lastString = null;
+                    string lastString = firstRowInFile;
 
                     while (!reader.EndOfStream)
                     {
-                        lastString = reader.ReadLine();
-                    }
+                        string curStr = reader.ReadLine();
 
+                        if(string.IsNullOrEmpty(curStr))
+                        {
+                            continue;
+                        }
+                        lastString = curStr;
+                    }
 
                     Candle candle3 = new Candle();
                     candle3.SetCandleFromString(lastString);
@@ -1552,13 +1564,20 @@ namespace OsEngine.Market.Servers.Tester
                 // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
                 // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
 
-                string str = reader.ReadLine();
+                string firstRowInFile = reader.ReadLine();
+
+                if(string.IsNullOrEmpty(firstRowInFile))
+                {
+                    security.Remove(security[security.Count - 1]);
+                    reader.Close();
+                    continue;
+                }
 
                 try
                 {
                     // check whether ticks are in the file / смотрим тики ли в файле
                     Trade trade = new Trade();
-                    trade.SetTradeFromString(str);
+                    trade.SetTradeFromString(firstRowInFile);
                     // ticks are in the file / в файле тики
 
                     security[security.Count - 1].TimeStart = trade.Time;
@@ -1663,11 +1682,18 @@ namespace OsEngine.Market.Servers.Tester
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
 
                     // last data / последняя дата
-                    string lastString2 = null;
+                    string lastString2 = firstRowInFile;
 
                     while (!reader.EndOfStream)
                     {
-                        lastString2 = reader.ReadLine();
+                        string curRow = reader.ReadLine();
+
+                        if(string.IsNullOrEmpty(curRow))
+                        {
+                            continue;
+                        }
+
+                        lastString2 = curRow;
                     }
 
                     Trade trade2 = new Trade();
@@ -1781,14 +1807,21 @@ namespace OsEngine.Market.Servers.Tester
                 // Bids: level*level*level
                 // level: Bid&Ask&Price
 
-                string str = reader.ReadLine();
+                string firstRowInFile = reader.ReadLine();
+
+                if(string.IsNullOrEmpty(firstRowInFile))
+                {
+                    security.Remove(security[security.Count - 1]);
+                    reader.Close();
+                    continue;
+                }
 
                 try
                 {
                     // check whether depth is in the file / смотрим стакан ли в файле
 
                     MarketDepth trade = new MarketDepth();
-                    trade.SetMarketDepthFromString(str);
+                    trade.SetMarketDepthFromString(firstRowInFile);
 
                     // depth is in the file / в файле стаканы
 
@@ -1898,11 +1931,18 @@ namespace OsEngine.Market.Servers.Tester
                     security[security.Count - 1].Security.PriceStepCost = minPriceStep;
 
                     // last data / последняя дата
-                    string lastString2 = null;
+                    string lastString2 = firstRowInFile;
 
                     while (!reader.EndOfStream)
                     {
-                        lastString2 = reader.ReadLine();
+                        string curRow = reader.ReadLine();
+
+                        if(string.IsNullOrEmpty(curRow))
+                        {
+                            continue;
+                        }
+
+                        lastString2 = curRow;
                     }
 
                     MarketDepth trade2 = new MarketDepth();

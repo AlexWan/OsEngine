@@ -90,6 +90,8 @@ namespace OsEngine.Market.Connectors
                 ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
 
+                ComboBoxTypeServer_SelectionChanged(null, null);
+
                 Closed += MassSourcesCreateUi_Closed;
             }
             catch (Exception error)
@@ -557,7 +559,18 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if (_selectedType == ServerType.None)
+                {
+                    return;
+                }
+
                 List<IServer> serversAll = ServerMaster.GetServers();
+
+                if (serversAll == null ||
+                    serversAll.Count == 0)
+                {
+                    return;
+                }
 
                 IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
 
@@ -578,9 +591,14 @@ namespace OsEngine.Market.Connectors
                     server2.SecuritiesChangeEvent += server_SecuritiesCharngeEvent;
                     server2.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
                 }
+
                 LoadPortfolioOnBox();
                 LoadClassOnBox();
                 LoadSecurityOnBox();
+
+                UpdateSearchResults();
+                UpdateSearchPanel();
+                CheckBoxSelectAllCheckBox.IsChecked = false;
             }
             catch (Exception error)
             {
@@ -815,7 +833,9 @@ namespace OsEngine.Market.Connectors
                 // грузим уже запущенные инструменты
 
                 UpdateGrid(securitiesToLoad);
-
+                UpdateSearchResults();
+                UpdateSearchPanel();
+                CheckBoxSelectAllCheckBox.IsChecked = false;
             }
             catch (Exception error)
             {

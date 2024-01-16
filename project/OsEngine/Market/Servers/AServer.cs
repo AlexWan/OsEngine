@@ -97,7 +97,7 @@ namespace OsEngine.Market.Servers
                 Log = new Log(_serverRealization.ServerType + "Server", StartProgram.IsOsTrader);
                 Log.Listen(this);
 
-                _serverStatusNead = ServerConnectStatus.Disconnect;
+                _serverStatusNeed = ServerConnectStatus.Disconnect;
 
                 _loadDataLocker = "lockerData_" + ServerType.ToString();
 
@@ -566,7 +566,7 @@ namespace OsEngine.Market.Servers
         /// necessary server status. It needs to thread that listens to connectin
         /// Depending on this field manage the connection 
         /// </summary>
-        private ServerConnectStatus _serverStatusNead;
+        private ServerConnectStatus _serverStatusNeed;
 
         /// <summary>
         /// run the server. Connect to trade system
@@ -578,14 +578,14 @@ namespace OsEngine.Market.Servers
                 UserWhantConnect();
             }
 
-            if (_serverStatusNead == ServerConnectStatus.Connect)
+            if (_serverStatusNeed == ServerConnectStatus.Connect)
             {
                 return;
             }
 
             LastStartServerTime = DateTime.Now.AddSeconds(-300);
 
-            _serverStatusNead = ServerConnectStatus.Connect;
+            _serverStatusNeed = ServerConnectStatus.Connect;
         }
 
         /// <summary>
@@ -597,7 +597,7 @@ namespace OsEngine.Market.Servers
             {
                 UserWhantDisconnect();
             }
-            _serverStatusNead = ServerConnectStatus.Disconnect;
+            _serverStatusNeed = ServerConnectStatus.Disconnect;
         }
 
         /// <summary>
@@ -698,7 +698,7 @@ namespace OsEngine.Market.Servers
                     }
 
                     if ((ServerRealization.ServerStatus != ServerConnectStatus.Connect)
-                        && _serverStatusNead == ServerConnectStatus.Connect &&
+                        && _serverStatusNeed == ServerConnectStatus.Connect &&
                        LastStartServerTime.AddSeconds(100) < DateTime.Now)
                     {
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
@@ -720,7 +720,7 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if (ServerRealization.ServerStatus == ServerConnectStatus.Connect && _serverStatusNead == ServerConnectStatus.Disconnect)
+                    if (ServerRealization.ServerStatus == ServerConnectStatus.Connect && _serverStatusNeed == ServerConnectStatus.Disconnect)
                     {
                         SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                         ServerRealization.Dispose();
