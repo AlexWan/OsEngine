@@ -9,7 +9,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     public class Orders_5_ChangePrice : AServerTester
     {
-        public string SecurityToTrade = "ETHUSDT";
+        public string SecurityNameToTrade = "ETHUSDT";
+
+        public string SecurityClassToTrade = "Futures";
 
         public decimal VolumeToTrade;
 
@@ -40,7 +42,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for (int i = 0; i < securities.Count; i++)
             {
-                if (securities[i].Name == SecurityToTrade)
+                if (securities[i].Name == SecurityNameToTrade &&
+                    securities[i].NameClass == SecurityClassToTrade)
                 {
                     mySecurity = securities[i];
                     break;
@@ -65,7 +68,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if(serverPermission.IsCanChangeOrderPrice == false)
             {
-                SetNewError("Error 5. Server can`t change order price. Test over");
+                SetNewServiceInfo("No permission. Server can`t change order price. Test over");
+                TestEnded();
+                return;
+            }
+
+            if(CountOrders < 5)
+            {
+                SetNewError("Error 5. CountOrders < 5");
                 TestEnded();
                 return;
             }

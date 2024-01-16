@@ -8,7 +8,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     public class Orders_3_MarketOrders : AServerTester
     {
-        public string SecurityToTrade = "ETHUSDT";
+        public string SecurityNameToTrade = "ETHUSDT";
+
+        public string SecurityClassToTrade = "Futures";
 
         public decimal VolumeToTrade;
 
@@ -37,7 +39,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for (int i = 0; i < securities.Count; i++)
             {
-                if (securities[i].Name == SecurityToTrade)
+                if (securities[i].Name == SecurityNameToTrade
+                    && securities[i].NameClass == SecurityClassToTrade)
                 {
                     mySecurity = securities[i];
                     break;

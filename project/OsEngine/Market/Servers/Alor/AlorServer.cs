@@ -1724,6 +1724,23 @@ namespace OsEngine.Market.Servers.Alor
                 order.State = OrderStateType.Fail;
             }
 
+            lock (_sendOrdersArrayLocker)
+            {
+                for (int i = 0; i < _sendOrders.Count; i++)
+                {
+                    if (_sendOrders[i] == null)
+                    {
+                        continue;
+                    }
+
+                    if (_sendOrders[i].NumberUser == order.NumberUser)
+                    {
+                        order.TypeOrder = _sendOrders[i].TypeOrder;
+                        break;
+                    }
+                }
+            }
+
             if (MyOrderEvent != null)
             {
                 MyOrderEvent(order);
@@ -1779,12 +1796,29 @@ namespace OsEngine.Market.Servers.Alor
 
         private List<AlorSecuritiesAndPortfolious> _securitiesAndPortfolious = new List<AlorSecuritiesAndPortfolious>();
 
+        private List<Order> _sendOrders = new List<Order>();
+
+        private string _sendOrdersArrayLocker = "alorSendOrdersArrayLocker";
+
         public void SendOrder(Order order)
         {
             rateGateSendOrder.WaitToProceed();
 
             try
             {
+                if(order.TypeOrder == OrderPriceType.Market)
+                {
+                    lock (_sendOrdersArrayLocker)
+                    {
+                        _sendOrders.Add(order);
+
+                        while (_sendOrders.Count > 100)
+                        {
+                            _sendOrders.RemoveAt(0);
+                        }
+                    }
+                }
+
                 string endPoint = "";
 
                 if(order.TypeOrder == OrderPriceType.Limit)

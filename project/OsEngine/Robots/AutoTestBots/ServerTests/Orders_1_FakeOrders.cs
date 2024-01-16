@@ -8,7 +8,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     public class Orders_1_FakeOrders : AServerTester
     {
-        public string SecurityToTrade = "ETHUSDT";
+        public string SecurityNameToTrade = "ETHUSDT";
+
+        public string SecurityClassToTrade = "Futures";
 
         public decimal VolumeMin;
 
@@ -30,7 +32,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (securities == null &&
                 securities.Count == 0)
             {
-                SetNewError("Error 2. No securities found");
+                SetNewError("Error 2. No securities in server found");
                 TestEnded();
                 return;
             }
@@ -39,7 +41,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for(int i = 0;i < securities.Count;i++)
             {
-                if (securities[i].Name == SecurityToTrade)
+                if (securities[i].Name == SecurityNameToTrade 
+                    && securities[i].NameClass == SecurityClassToTrade)
                 {
                     mySecurity = securities[i];
                     break;

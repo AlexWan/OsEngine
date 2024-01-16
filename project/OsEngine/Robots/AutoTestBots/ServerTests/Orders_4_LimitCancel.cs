@@ -8,7 +8,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     public class Orders_4_LimitCancel : AServerTester
     {
-        public string SecurityToTrade = "ETHUSDT";
+        public string SecurityNameToTrade = "ETHUSDT";
+
+        public string SecurityClassToTrade = "Futures";
 
         public decimal VolumeToTrade;
 
@@ -20,7 +22,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (Server.ServerStatus != ServerConnectStatus.Connect)
             {
-                this.SetNewError("Error 1. Server Status Disconnect");
+                this.SetNewError("Error 0. Server Status Disconnect");
+                TestEnded();
+                return;
+            }
+
+            if(CountOrders < 20)
+            {
+                this.SetNewError("Error 1. Iteration Count < 20.");
                 TestEnded();
                 return;
             }
@@ -39,7 +48,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for (int i = 0; i < securities.Count; i++)
             {
-                if (securities[i].Name == SecurityToTrade)
+                if (securities[i].Name == SecurityNameToTrade &&
+                    securities[i].NameClass == SecurityClassToTrade)
                 {
                     mySecurity = securities[i];
                     break;
@@ -147,7 +157,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.05m, mySec.Decimals);
+            price = Math.Round(price - price * 0.02m, mySec.Decimals);
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
             _whaitSide = Side.Buy;
@@ -163,13 +173,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 8. No Active order from server BuyMarket");
+                    this.SetNewError("Error 8. No Active order from server BuyLimit");
                     return null;
                 }
 
                 if (_ordersActive.Count != 0)
                 {
-                    this.SetNewServiceInfo("BuyMarket Active order income Check!");
+                    this.SetNewServiceInfo("BuyLimit Active order income Check!");
                     order = _ordersActive[0];
                     break;
                 }
@@ -188,7 +198,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price + price * 0.05m, mySec.Decimals);
+            price = Math.Round(price + price * 0.02m, mySec.Decimals);
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
             _whaitSide = Side.Sell;
@@ -204,13 +214,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 9. No reject order from server SellMarket");
+                    this.SetNewError("Error 9. No reject order from server SellLimit");
                     return null;
                 }
 
                 if (_ordersActive.Count != 0)
                 {
-                    this.SetNewServiceInfo("SellMarket Active order income Check!");
+                    this.SetNewServiceInfo("SellLimit Active order income Check!");
                     order = _ordersActive[0];
                     break;
                 }
