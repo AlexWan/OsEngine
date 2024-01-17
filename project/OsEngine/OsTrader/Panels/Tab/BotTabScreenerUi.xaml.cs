@@ -16,7 +16,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using WebSocketSharp;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.OsTrader.Panels.Tab

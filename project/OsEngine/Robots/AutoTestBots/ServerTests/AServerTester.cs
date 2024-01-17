@@ -107,6 +107,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             buttonPortfolioTest1.UserClickOnButtonEvent += ButtonPortfolioTest1_UserClickOnButtonEvent;
             P1_PortfolioName = CreateParameter("Portfolio.  portfolio 1", "BinanceFutures", "P1");
             P1_SecurityName = CreateParameter("Sec name.  portfolio 1", "ETHUSDT", "P1");
+            P1_SecurityClass = CreateParameter("Sec class.  portfolio 1", "Futures", "P1");
             P1_AssetInPortfolioName = CreateParameter("Asset In portfolio 1", "ETH", "P1");
             P1_Volume = CreateParameter("Volume.  portfolio 1", 0.01m, 1, 1, 1, "P1");
 
@@ -173,6 +174,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterInt O5_CountOrders;
 
         StrategyParameterString P1_SecurityName;
+        StrategyParameterString P1_SecurityClass;
         StrategyParameterString P1_AssetInPortfolioName;
         StrategyParameterString P1_PortfolioName;
         StrategyParameterDecimal P1_Volume;
@@ -632,7 +634,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 else if (CurTestType == ServerTestType.Portfolio_1)
                 {
                     Portfolio_1_Validation tester = new Portfolio_1_Validation();
-                    tester.SecurityToTrade = P1_SecurityName.ValueString;
+                    tester.SecurityNameToTrade = P1_SecurityName.ValueString;
+                    tester.SecurityClassToTrade = P1_SecurityClass.ValueString;
                     tester.PortfolioName = P1_PortfolioName.ValueString;
                     tester.VolumeToTrade = P1_Volume.ValueDecimal;
                     tester.AssetInPortfolio = P1_AssetInPortfolioName.ValueString;

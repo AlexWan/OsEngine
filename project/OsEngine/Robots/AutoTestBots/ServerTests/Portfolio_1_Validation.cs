@@ -7,7 +7,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     public class Portfolio_1_Validation : AServerTester
     {
-        public string SecurityToTrade = "ETHUSDT";
+        public string SecurityNameToTrade = "ETHUSDT";
+
+        public string SecurityClassToTrade = "Futures";
 
         public string AssetInPortfolio = "ETH";
 
@@ -31,6 +33,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for(int i = 0;i < portfolious.Count; i++)
             {
+                if (portfolious[i].Number != PortfolioName)
+                {
+                    continue;
+                }
+
                 CheckPortfolio(portfolious[i]);
             }
 
@@ -50,7 +57,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for (int i = 0; i < securities.Count; i++)
             {
-                if (securities[i].Name == SecurityToTrade)
+                if (securities[i].Name == SecurityNameToTrade &&
+                    securities[i].NameClass == SecurityClassToTrade)
                 {
                     mySecurity = securities[i];
                     break;
@@ -109,13 +117,31 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            // 4 берём текущее состояние портфеля
+
+            if(OpenAndCloseLongPositionLogicTest(mySecurity,md) == false)
+            {
+                TestEnded();
+                return;
+            }
+
+            if(OpenAndCloseShortPositionLogicTest(mySecurity,md) == false)
+            {
+                TestEnded();
+                return;
+            }
+
+            TestEnded();
+        }
+
+        private bool OpenAndCloseLongPositionLogicTest(Security mySecurity, MarketDepth md)
+        {
+            // 1 берём текущее состояние портфеля
 
             decimal currentValue = GetCurValueBySecurity(mySecurity);
 
-            this.SetNewServiceInfo("Start asset value: " + currentValue.ToString());
+            this.SetNewServiceInfo("LONG POS. Start asset value: " + currentValue.ToString());
 
-            // 5 ордер на покупку
+            // 2 ордер на покупку
 
             decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
 
@@ -124,46 +150,49 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (this._errors != null &&
                 this._errors.Count > 0)
             {
-                TestEnded();
-                return;
+                return false;
             }
 
-            // 6 ждём когда состояние портфеля изменится
+            // 3 ждём когда состояние портфеля изменится
 
             DateTime endWhaitTime = DateTime.Now.AddSeconds(15);
 
-            while(true)
+            while (true)
             {
-                if(endWhaitTime < DateTime.Now)
+                if (endWhaitTime < DateTime.Now)
                 {
                     SetNewError("Error 8. Portfolio not change");
-                    TestEnded();
-                    return;
+                    return false;
                 }
 
                 decimal value = GetCurValueBySecurity(mySecurity);
 
-                if(value != currentValue)
+                if (value != currentValue)
                 {
                     currentValue = value;
                     break;
                 }
             }
 
+            if(currentValue <= 0)
+            {
+                SetNewError("Error 9. Current volume <= 0");
+                return false;
+            }
+
             this.SetNewServiceInfo("Value asset after Buy order: " + currentValue.ToString());
 
-            // 7 ордер на продажу
+            // 4 ордер на продажу
 
             if (this._errors != null &&
                 this._errors.Count > 0)
             {
-                TestEnded();
-                return;
+                return false;
             }
 
             SendSellOrder(mySecurity, price);
 
-            // 8 ждём когда состояние портфеля изменится
+            // 5 ждём когда состояние портфеля изменится
 
             endWhaitTime = DateTime.Now.AddSeconds(15);
 
@@ -171,8 +200,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (endWhaitTime < DateTime.Now)
                 {
-                    SetNewError("Error 9. Portfolio not change");
-                    return;
+                    SetNewError("Error 10. Portfolio not change");
+                    return false;
                 }
 
                 decimal value = GetCurValueBySecurity(mySecurity);
@@ -186,7 +215,96 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             this.SetNewServiceInfo("Value asset after Sell order: " + currentValue.ToString());
 
-            TestEnded();
+            this.SetNewServiceInfo("LONG POS. test was successful");
+
+            return true;
+        }
+
+        private bool OpenAndCloseShortPositionLogicTest(Security mySecurity, MarketDepth md)
+        {
+            // 1 берём текущее состояние портфеля
+
+            decimal currentValue = GetCurValueBySecurity(mySecurity);
+
+            this.SetNewServiceInfo("SHORT POS. Start asset value: " + currentValue.ToString());
+
+            // 2 ордер на покупку
+
+            decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
+
+            SendSellOrder(mySecurity, price);
+            
+            if (this._errors != null &&
+                this._errors.Count > 0)
+            {
+                return false;
+            }
+
+            // 3 ждём когда состояние портфеля изменится
+
+            DateTime endWhaitTime = DateTime.Now.AddSeconds(15);
+
+            while (true)
+            {
+                if (endWhaitTime < DateTime.Now)
+                {
+                    SetNewError("Error 11. Portfolio not change");
+                    return false;
+                }
+
+                decimal value = GetCurValueBySecurity(mySecurity);
+
+                if (value != currentValue)
+                {
+                    currentValue = value;
+                    break;
+                }
+            }
+
+            if(currentValue >= 0)
+            {
+                SetNewError("Error 12. Value in portfolio >= 0");
+                return false;
+            }
+
+            this.SetNewServiceInfo("Value asset after Sell order: " + currentValue.ToString());
+
+            // 4 ордер на продажу
+
+            if (this._errors != null &&
+                this._errors.Count > 0)
+            {
+                return false;
+            }
+
+            SendBuyOrder(mySecurity, price);
+
+            // 5 ждём когда состояние портфеля изменится
+
+            endWhaitTime = DateTime.Now.AddSeconds(15);
+
+            while (true)
+            {
+                if (endWhaitTime < DateTime.Now)
+                {
+                    SetNewError("Error 13. Portfolio not change");
+                    return false;
+                }
+
+                decimal value = GetCurValueBySecurity(mySecurity);
+
+                if (value != currentValue)
+                {
+                    currentValue = value;
+                    break;
+                }
+            }
+
+            this.SetNewServiceInfo("Value asset after Buy order: " + currentValue.ToString());
+
+            this.SetNewServiceInfo("SHORT POS. test was successful");
+
+            return true;
         }
 
         private decimal GetCurValueBySecurity(Security sec)
@@ -196,7 +314,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (portfolious == null ||
                 portfolious.Count == 0)
             {
-                SetNewError("Error 10. No Portfolio found");
+                SetNewError("Error 14. No Portfolio found");
                 TestEnded();
             }
 
@@ -213,7 +331,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if(myPorftolio == null)
             {
-                SetNewError("Error 11. Portfolio not found");
+                SetNewError("Error 15. Portfolio not found");
                 return 0;
             }
 
@@ -223,7 +341,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for(int i = 0;i < myPositions.Count;i++)
             {
-                if (myPositions[i].SecurityNameCode.Equals(SecurityToTrade) 
+                if (myPositions[i].SecurityNameCode.Equals(SecurityNameToTrade) 
                     || myPositions[i].SecurityNameCode == AssetInPortfolio)
                 {
                     myPositionOnBoard = myPositions[i];
@@ -257,13 +375,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 12. No Active order from server BuyLimit");
+                    this.SetNewError("Error 16. No Active order from server BuyLimit");
                     return;
                 }
 
                 if (_ordersFail.Count != 0)
                 {
-                    this.SetNewError("Error 13. Order FAIL found from server BuyLimit");
+                    this.SetNewError("Error 17. Order FAIL found from server BuyLimit");
                     return;
                 }
 
@@ -285,13 +403,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 14. No Done order from server BuyLimit");
+                    this.SetNewError("Error 18. No Done order from server BuyLimit");
                     return;
                 }
 
                 if (_ordersFail.Count != 0)
                 {
-                    this.SetNewError("Error 15. Order FAIL found from server BuyLimit");
+                    this.SetNewError("Error 19. Order FAIL found from server BuyLimit");
                     return;
                 }
 
@@ -313,7 +431,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 16. No MyTrade BuyLimit");
+                    this.SetNewError("Error 20. No MyTrade BuyLimit");
                     return;
                 }
 
@@ -349,13 +467,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 17. No reject order from server SellLimit");
+                    this.SetNewError("Error 21. No reject order from server SellLimit");
                     return;
                 }
 
                 if (_ordersFail.Count != 0)
                 {
-                    this.SetNewError("Error 18. Order FAIL found from server SellLimit");
+                    this.SetNewError("Error 22. Order FAIL found from server SellLimit");
                     return;
                 }
 
@@ -377,13 +495,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 19. No reject order from server SellLimit");
+                    this.SetNewError("Error 23. No reject order from server SellLimit");
                     return;
                 }
 
                 if (_ordersFail.Count != 0)
                 {
-                    this.SetNewError("Error 20. Order FAIL found from server SellLimit");
+                    this.SetNewError("Error 24. Order FAIL found from server SellLimit");
                     return;
                 }
 
@@ -406,7 +524,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 21. No MyTrade SellLimit");
+                    this.SetNewError("Error 25. No MyTrade SellLimit");
                     return;
                 }
 
@@ -444,13 +562,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if(string.IsNullOrEmpty(portfolio.Number))
             {
-                SetNewError("Error 22. Number portfolio is null");
+                SetNewError("Error 26. Number portfolio is null");
                 return;
             }
 
             if (portfolio.ValueBegin == 0)
             {
-                SetNewError("Error 23. Number portfolio is null");
+                SetNewError("Error 27. Number portfolio is null");
                 return;
             }
 
@@ -474,7 +592,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if(string.IsNullOrEmpty(position.SecurityNameCode) == true)
             {
-                SetNewError("Error 24. Name security position on board is null");
+                SetNewError("Error 28. Name security position on board is null");
                 return;
             }
         }
@@ -520,7 +638,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (order.State == OrderStateType.None)
             {
-                this.SetNewError("Error 25. Order whith state NONE");
+                this.SetNewError("Error 29. Order whith state NONE");
                 return;
             }
 
@@ -574,72 +692,72 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.Side != _whaitSide)
             {
-                this.SetNewError("Error 26. Whait side note equal. Whait: " + _whaitSide
+                this.SetNewError("Error 30. Whait side note equal. Whait: " + _whaitSide
                     + " Side in order: " + order.Side);
                 return false;
             }
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-                this.SetNewError("Error 27. Order Type is note LIMIT. Real type: " + order.TypeOrder);
+                this.SetNewError("Error 31. Order Type is note LIMIT. Real type: " + order.TypeOrder);
                 return false;
             }
 
             if (order.TimeCallBack == DateTime.MinValue)
             {
-                this.SetNewError("Error 28. TimeCallBack is MinValue");
+                this.SetNewError("Error 32. TimeCallBack is MinValue");
                 return false;
             }
 
             if (order.TimeDone == DateTime.MinValue &&
                 order.State == OrderStateType.Done)
             {
-                this.SetNewError("Error 29. Order Done, buy TimeDone is MinValue");
+                this.SetNewError("Error 33. Order Done, buy TimeDone is MinValue");
                 return false;
             }
 
             if (order.TimeCancel == DateTime.MinValue &&
                 order.State == OrderStateType.Cancel)
             {
-                this.SetNewError("Error 30. Order Cancel, buy TimeCancel is MinValue");
+                this.SetNewError("Error 34. Order Cancel, buy TimeCancel is MinValue");
                 return false;
             }
 
             if (order.NumberUser == 0)
             {
-                this.SetNewError("Error 31. NumberUser is zero");
+                this.SetNewError("Error 35. NumberUser is zero");
                 return false;
             }
 
             if (order.State != OrderStateType.Fail
                 && string.IsNullOrEmpty(order.NumberMarket))
             {
-                this.SetNewError("Error 32. NumberMarket is null or empty");
+                this.SetNewError("Error 36. NumberMarket is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.SecurityNameCode))
             {
-                this.SetNewError("Error 33. SecurityNameCode is null or empty");
+                this.SetNewError("Error 37. SecurityNameCode is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.PortfolioNumber))
             {
-                this.SetNewError("Error 34. PortfolioNumber is null or empty");
+                this.SetNewError("Error 38. PortfolioNumber is null or empty");
                 return false;
             }
 
             if (order.Side == Side.None)
             {
-                this.SetNewError("Error 35. Side is None");
+                this.SetNewError("Error 39. Side is None");
                 return false;
             }
 
             if (order.State != OrderStateType.Fail
                 && order.Price <= 0)
             {
-                this.SetNewError("Error 36. Price is zero");
+                this.SetNewError("Error 40. Price is zero");
                 return false;
             }
 
@@ -647,7 +765,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 order.State != OrderStateType.Cancel &&
                 order.Volume <= 0)
             {
-                this.SetNewError("Error 37. Volume is zero");
+                this.SetNewError("Error 41. Volume is zero");
                 return false;
             }
 
@@ -681,44 +799,44 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (myTrade.Side != _whaitSide)
             {
-                this.SetNewError("Error 38. MyTrade. Whait side note equal. Whait: " + _whaitSide
+                this.SetNewError("Error 42. MyTrade. Whait side note equal. Whait: " + _whaitSide
                   + " Side in order: " + myTrade.Side);
                 return false;
             }
 
             if (myTrade.Volume <= 0)
             {
-                this.SetNewError("Error 39. MyTrade. Volume is zero");
+                this.SetNewError("Error 43. MyTrade. Volume is zero");
                 return false;
             }
 
             if (myTrade.Price <= 0)
             {
-                this.SetNewError("Error 40. MyTrade. Price is zero");
+                this.SetNewError("Error 44. MyTrade. Price is zero");
                 return false;
             }
 
             if (string.IsNullOrEmpty(myTrade.SecurityNameCode))
             {
-                this.SetNewError("Error 41. MyTrade. SecurityNameCode is null or empty");
+                this.SetNewError("Error 45. MyTrade. SecurityNameCode is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(myTrade.NumberOrderParent))
             {
-                this.SetNewError("Error 42. MyTrade. NumberOrderParent is null or empty");
+                this.SetNewError("Error 46. MyTrade. NumberOrderParent is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(myTrade.NumberTrade))
             {
-                this.SetNewError("Error 43. MyTrade. NumberTrade is null or empty");
+                this.SetNewError("Error 47. MyTrade. NumberTrade is null or empty");
                 return false;
             }
 
             if (myTrade.Time == DateTime.MinValue)
             {
-                this.SetNewError("Error 44. MyTrade. Time is min value");
+                this.SetNewError("Error 48. MyTrade. Time is min value");
                 return false;
             }
 
