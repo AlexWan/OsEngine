@@ -67,8 +67,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             Thread.Sleep(10000);
 
             Process proc = System.Diagnostics.Process.GetCurrentProcess();
-            long startMamory = proc.PrivateMemorySize64;
-            this.SetNewServiceInfo("Memory on start: " + startMamory);
+            long startMemory = proc.PrivateMemorySize64;
+            this.SetNewServiceInfo("Memory on start: " + startMemory);
 
             List<long> memoryList = new List<long>();
 
@@ -114,7 +114,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for(int i = 0;i < memoryList.Count;i++)
             {
-                if (memoryList[i] / (startMamory/100) > 110)
+                if (memoryList[i] / (startMemory/100) > 120)
                 {
                     this.SetNewError("Error 2. Iteration: " + i + " Memory up more 20 %. Actual: " + memoryList[i]);
                 }
