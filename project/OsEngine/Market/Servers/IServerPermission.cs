@@ -49,8 +49,6 @@ namespace OsEngine.Market.Servers
 
         #region Trade Permissions
 
-        bool IsTradeServer { get; }
-
         bool MarketOrdersIsSupport { get; }
 
         bool IsCanChangeOrderPrice { get; }

@@ -49,6 +49,16 @@ namespace OsEngine.Market.Servers.Alor
             get { return false; }
         }
 
+        public bool DataFeedTfTickCanLoad
+        {
+            get { return false; }
+        }
+
+        public bool DataFeedTfMarketDepthCanLoad
+        {
+            get { return true; }
+        }
+
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return true; }
@@ -94,16 +104,6 @@ namespace OsEngine.Market.Servers.Alor
             get { return true; }
         }
 
-        public bool DataFeedTfTickCanLoad
-        {
-            get { return false; }
-        }
-
-        public bool DataFeedTfMarketDepthCanLoad
-        {
-            get { return false; }
-        }
-
         #endregion
 
         #region Trade permission
@@ -111,16 +111,6 @@ namespace OsEngine.Market.Servers.Alor
         public bool MarketOrdersIsSupport
         {
             get { return true; }
-        }
-
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
-        public TimeFramePermission TradeTimeFramePermission
-        {
-            get { return _tradeTimeFramePermission; }
         }
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
@@ -133,31 +123,6 @@ namespace OsEngine.Market.Servers.Alor
             get { return true; }
         }
 
-        private TimeFramePermission _tradeTimeFramePermission
-            = new TimeFramePermission()
-            {
-                TimeFrameSec1IsOn = true,
-                TimeFrameSec2IsOn = true,
-                TimeFrameSec5IsOn = true,
-                TimeFrameSec10IsOn = true,
-                TimeFrameSec15IsOn = true,
-                TimeFrameSec20IsOn = true,
-                TimeFrameSec30IsOn = true,
-                TimeFrameMin1IsOn = true,
-                TimeFrameMin2IsOn = true,
-                TimeFrameMin3IsOn = false,
-                TimeFrameMin5IsOn = true,
-                TimeFrameMin10IsOn = true,
-                TimeFrameMin15IsOn = true,
-                TimeFrameMin20IsOn = true,
-                TimeFrameMin30IsOn = true,
-                TimeFrameMin45IsOn = false,
-                TimeFrameHour1IsOn = true,
-                TimeFrameHour2IsOn = true,
-                TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = true
-            };
-
         public bool UseStandartCandlesStarter
         {
             get { return true; }
@@ -167,6 +132,36 @@ namespace OsEngine.Market.Servers.Alor
         {
             get { return true; }
         }
+
+        public TimeFramePermission TradeTimeFramePermission
+        {
+            get { return _tradeTimeFramePermission; }
+        }
+        private TimeFramePermission _tradeTimeFramePermission
+    = new TimeFramePermission()
+    {
+        TimeFrameSec1IsOn = true,
+        TimeFrameSec2IsOn = true,
+        TimeFrameSec5IsOn = true,
+        TimeFrameSec10IsOn = true,
+        TimeFrameSec15IsOn = true,
+        TimeFrameSec20IsOn = true,
+        TimeFrameSec30IsOn = true,
+        TimeFrameMin1IsOn = true,
+        TimeFrameMin2IsOn = true,
+        TimeFrameMin3IsOn = false,
+        TimeFrameMin5IsOn = true,
+        TimeFrameMin10IsOn = true,
+        TimeFrameMin15IsOn = true,
+        TimeFrameMin20IsOn = true,
+        TimeFrameMin30IsOn = true,
+        TimeFrameMin45IsOn = false,
+        TimeFrameHour1IsOn = true,
+        TimeFrameHour2IsOn = true,
+        TimeFrameHour4IsOn = true,
+        TimeFrameDayIsOn = true
+    };
+
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {

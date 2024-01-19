@@ -23,7 +23,6 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
