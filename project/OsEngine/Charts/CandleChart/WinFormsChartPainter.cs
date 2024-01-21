@@ -2432,7 +2432,11 @@ namespace OsEngine.Charts.CandleChart
                 if (element.TypeName() == "Circle")
                 {
                     PaintCircle((Elements.Circle)element);
-                }				
+                }
+                if (element.TypeName() == "RectangleElement")
+                {
+                    PaintRectangleElement((Elements.RectangleElement)element);
+                }
                 if (element.TypeName() == "Line")
                 {
                     PaintLineElemOnArea((Elements.Line)element);
@@ -2897,6 +2901,147 @@ namespace OsEngine.Charts.CandleChart
             newSeries.YAxisType = AxisType.Secondary;         
             newSeries.XAxisType = AxisType.Primary;
             newSeries.Font = circle.Font;                    
+
+            PaintSeriesSafe(newSeries);
+        }
+
+        /// <summary>
+        /// draw a rectangle on chart
+        /// нарисовать на чарте прямоугольник
+        /// </summary>
+        /// <param name="rectangle"></param>
+        public void PaintRectangleElement(RectangleElement rectangle)
+        {
+            if ((rectangle.ValueYStart <= 0) || (rectangle.ValueYEnd <= 0))
+            {
+                return;
+            }
+            if (_myCandles == null)
+            {
+                return;
+            }
+            if (_chart == null)
+            {
+                return;
+            }
+            if (_chart.InvokeRequired)
+            {
+                _chart.Invoke(new Action<RectangleElement>(PaintRectangleElement), rectangle);
+                return;
+            }
+
+            Series newSeries = FindSeriesByNameSafe(rectangle.UniqName + "Points");
+
+            if (newSeries == null)
+            {
+                newSeries = new Series(rectangle.UniqName + "Points");
+                newSeries.ChartType = SeriesChartType.Line;
+                newSeries.BorderWidth = rectangle.Thickness;
+                newSeries.Color = rectangle.Color;
+                newSeries.ChartArea = rectangle.Area;
+                newSeries.YAxisType = AxisType.Secondary;
+                newSeries.XAxisType = AxisType.Primary;
+            }
+
+            if (!string.IsNullOrWhiteSpace(rectangle.Label))
+            {
+                // устанавливаем шрифт для всей серии, но Label добавим позже только одной точке
+                newSeries.LabelForeColor = rectangle.LabelTextColor.Name == "0" ? Color.White : rectangle.LabelTextColor;
+                newSeries.Font = rectangle.Font ?? new Font("Arial", 7);
+                newSeries.LabelBackColor = rectangle.LabelBackColor.Name == "0" ? Color.Transparent : rectangle.LabelBackColor;
+            }
+
+            int firstIndex = 0;
+            int secondIndex = _myCandles.Count - 1;
+
+            if (rectangle.TimeStart != DateTime.MinValue)
+            {
+                int index = _myCandles.FindIndex(candle => candle.TimeStart >= rectangle.TimeStart);
+                if (index >= 0)
+                {
+                    firstIndex = index;
+                }
+            }
+
+            if (rectangle.TimeEnd != DateTime.MaxValue)
+            {
+                int index = _myCandles.FindIndex(candle => candle.TimeStart >= rectangle.TimeEnd);
+
+                if (index > 0)
+                {
+                    secondIndex = index;
+                }
+            }
+
+            if (firstIndex > secondIndex)
+            {
+                return;
+            }
+
+            if (firstIndex < 0 || firstIndex >= _myCandles.Count ||
+                secondIndex < 0 || secondIndex >= _myCandles.Count)
+            {
+                return;
+            }
+
+            if (newSeries.Points == null || newSeries.Points.Count == 0)
+            {
+                newSeries.Points.AddXY(firstIndex, rectangle.ValueYEnd);
+                newSeries.Points.AddXY(firstIndex, rectangle.ValueYStart);
+                newSeries.Points.AddXY(secondIndex, rectangle.ValueYStart);
+                newSeries.Points.AddXY(secondIndex, rectangle.ValueYEnd);
+                newSeries.Points.AddXY(firstIndex, rectangle.ValueYEnd);
+
+                // label one point | подпись одной точки
+                if (!string.IsNullOrWhiteSpace(rectangle.Label) && rectangle.LabelCorner > 0 && rectangle.LabelCorner < 5)
+                {
+                    newSeries.Points[rectangle.LabelCorner - 1].Label = rectangle.Label;
+                }
+            }
+            else
+            {
+                // проверяем актуальность Y значений
+                if (newSeries.Points[0].YValues[0] != (double)rectangle.ValueYEnd ||
+                    newSeries.Points[1].YValues[0] != (double)rectangle.ValueYStart ||
+                    newSeries.Points[2].YValues[0] != (double)rectangle.ValueYStart ||
+                    newSeries.Points[3].YValues[0] != (double)rectangle.ValueYEnd ||
+                    newSeries.Points[4].YValues[0] != (double)rectangle.ValueYEnd
+                    )
+                {
+                    ClearLabelOnY2(newSeries.Name + "Label", newSeries.ChartArea, newSeries.Color);
+
+                    newSeries.Points[0].YValues[0] = (double)rectangle.ValueYEnd;
+                    newSeries.Points[1].YValues[0] = (double)rectangle.ValueYStart;
+                    newSeries.Points[2].YValues[0] = (double)rectangle.ValueYStart;
+                    newSeries.Points[3].YValues[0] = (double)rectangle.ValueYEnd;
+                    newSeries.Points[4].YValues[0] = (double)rectangle.ValueYEnd;
+
+                    // устанавливаем подпись для одной точки прямоугольника
+                    for (int i = 0; i < newSeries.Points.Count - 1; i++)
+                    {
+                        if ((rectangle.LabelCorner - 1 == i) && (!string.IsNullOrWhiteSpace(rectangle.Label)))
+                            newSeries.Points[i].Label = rectangle.Label;
+                        else
+                            newSeries.Points[i].Label = "";
+                    }
+
+                    RePaintRightLebels();
+                }
+
+                // проверяем актуальность X значений
+                if (newSeries.Points[0].XValue != firstIndex ||
+                    newSeries.Points[1].XValue != firstIndex ||
+                    newSeries.Points[2].XValue != secondIndex ||
+                    newSeries.Points[3].XValue != secondIndex ||
+                    newSeries.Points[4].XValue != firstIndex)
+                {
+                    newSeries.Points[0].XValue = firstIndex;
+                    newSeries.Points[1].XValue = firstIndex;
+                    newSeries.Points[2].XValue = secondIndex;
+                    newSeries.Points[3].XValue = secondIndex;
+                    newSeries.Points[4].XValue = firstIndex;
+                }
+            }
 
             PaintSeriesSafe(newSeries);
         }
