@@ -5,7 +5,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
-namespace OsEngine.Robots.TechSapmles
+namespace OsEngine.Robots.TechSamples
 {
     // пример показывающий блокировку индикаторов для расчёта
     // пригодиться при оптимизации роботов, в которых нужны не все индикаторы

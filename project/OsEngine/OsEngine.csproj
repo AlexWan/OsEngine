@@ -1025,9 +1025,9 @@
     <Compile Include="Robots\PairArbitrage\PairCointegrationSideTrader.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationNegative.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationTrader.cs" />
-    <Compile Include="Robots\TechSapmles\BlockIndicatorsSample.cs" />
-    <Compile Include="Robots\TechSapmles\ChangePriceBotExtStopMarket.cs" />
-    <Compile Include="Robots\TechSapmles\CustomParamsUseBotSample.cs" />
+    <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
+    <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
+    <Compile Include="Robots\TechSamples\CustomParamsUseBotSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdTrail.cs" />
@@ -1040,8 +1040,8 @@
     <Compile Include="Robots\OnScriptIndicators\SmaTrendSample.cs" />
     <Compile Include="Robots\OnScriptIndicators\TimeOfDayBot.cs" />
     <Compile Include="Robots\Screeners\SmaScreener.cs" />
-    <Compile Include="Robots\TechSapmles\ElementsOnChartSampleBot.cs" />
-    <Compile Include="Robots\TechSapmles\TinkoffGetRealCandlesSample.cs" />
+    <Compile Include="Robots\TechSamples\ElementsOnChartSampleBot.cs" />
+    <Compile Include="Robots\TechSamples\TinkoffGetRealCandlesSample.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotTradesInCandlesTest.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />
     <Compile Include="Robots\Trend\MomentumMacd.cs" />

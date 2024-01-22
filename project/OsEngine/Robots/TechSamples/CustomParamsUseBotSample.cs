@@ -9,7 +9,7 @@ using System.Windows.Forms.Integration;
 using System;
 
 
-namespace OsEngine.Robots.TechSapmles
+namespace OsEngine.Robots.TechSamples
 {
     [Bot("CustomParamsUseBotSample")]
     public class CustomParamsUseBotSample : BotPanel

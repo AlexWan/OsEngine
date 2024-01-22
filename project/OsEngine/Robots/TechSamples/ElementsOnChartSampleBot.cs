@@ -8,7 +8,7 @@ using System.Drawing;
 using OsEngine.Charts.CandleChart.Elements;
 
 
-namespace OsEngine.Robots.TechSapmles
+namespace OsEngine.Robots.TechSamples
 {
     [Bot("ElementsOnChartSampleBot")]
     public class ElementsOnChartSampleBot : BotPanel

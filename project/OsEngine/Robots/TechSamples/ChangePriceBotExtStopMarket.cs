@@ -10,7 +10,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using System;
 
-namespace OsEngine.Robots.TechSapmles
+namespace OsEngine.Robots.TechSamples
 {
     [Bot("ChangePriceBotExtStopMarket")]
     public class ChangePriceBotExtStopMarket : BotPanel

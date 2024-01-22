@@ -824,73 +824,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 6 Security subscrible
-
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
-
-        List<Security> _subscribledSecurities = new List<Security>();
-
-        public void Subscrible(Security security)
-        {
-            try
-            {
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
-                {
-                    if (_subscribledSecurities[i].Name == security.Name)
-                    {
-                        return;
-                    }
-                }
-
-                rateGateSubscrible.WaitToProceed();
-
-                _subscribledSecurities.Add(security);
-
-                // trades subscription
-
-                //curl - X GET "https://apidev.alor.ru/md/v2/Securities/MOEX/LKOH/alltrades?format=Simple&from=1593430060&to=1593430560&fromId=7796897024&toId=7796897280&take=10" - H "accept: application/json"
-
-                RequestSocketSubscribleTrades subObjTrades = new RequestSocketSubscribleTrades();
-                subObjTrades.code = security.Name;
-                subObjTrades.guid = GetGuid();
-                subObjTrades.token = _apiTokenReal;
-                string messageTradeSub = JsonConvert.SerializeObject(subObjTrades);
-
-                AlorSocketSubscription tradeSub = new AlorSocketSubscription();
-                tradeSub.SubType = AlorSubType.Trades;
-                tradeSub.ServiceInfo = security.Name;
-                tradeSub.Guid = subObjTrades.guid;
-                _subscriptionsData.Add(tradeSub);
-
-                _webSocketData.Send(messageTradeSub);
-
-                // market depth subscription
-
-                RequestSocketSubscribleMarketDepth subObjMarketDepth = new RequestSocketSubscribleMarketDepth();
-                subObjMarketDepth.code = security.Name;
-                subObjMarketDepth.guid = GetGuid();
-                subObjMarketDepth.token = _apiTokenReal;
-
-                AlorSocketSubscription mdSub = new AlorSocketSubscription();
-                mdSub.SubType = AlorSubType.MarketDepth;
-                mdSub.ServiceInfo = security.Name;
-                mdSub.Guid = subObjMarketDepth.guid;
-                _subscriptionsData.Add(mdSub);
-
-                string messageMdSub = JsonConvert.SerializeObject(subObjMarketDepth);
-
-                _webSocketData.Send(messageMdSub);
-
-            }
-            catch (Exception exeption)
-            {
-                SendLogMessage(exeption.ToString(),LogMessageType.Error);
-            }
-        }
-
-        #endregion
-
-        #region 7 WebSocket creation
+        #region 6 WebSocket creation
 
         private readonly string _wsHost = "wss://api.alor.ru/ws";
 
@@ -898,7 +832,7 @@ namespace OsEngine.Market.Servers.Alor
 
         private string GetGuid()
         {
-            lock(_guidLocker)
+            lock (_guidLocker)
             {
                 iterator++;
                 return iterator.ToString();
@@ -1013,12 +947,12 @@ namespace OsEngine.Market.Servers.Alor
 
         private void CheckActivationSockets()
         {
-            if( _socketDataIsActive  == false)
+            if (_socketDataIsActive == false)
             {
                 return;
             }
 
-            if(_socketPortfolioIsActive == false)
+            if (_socketPortfolioIsActive == false)
             {
                 return;
             }
@@ -1037,88 +971,6 @@ namespace OsEngine.Market.Servers.Alor
         }
 
         private WebSocket _webSocketData;
-
-        private void WebSocketData_Opened(object sender, EventArgs e)
-        {
-            SendLogMessage("Socket Data activated", LogMessageType.System);
-            _socketDataIsActive = true;
-            CheckActivationSockets();
-        }
-
-        private void WebSocketData_Closed(object sender, EventArgs e)
-        {
-            try
-            {
-                SendLogMessage("Connection Closed by Alor. WebSocket Data Closed Event", LogMessageType.Error);
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void WebSocketData_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
-        {
-            try
-            {
-                var error = e;
-
-                if (error.Exception != null)
-                {
-                    SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void WebSocketData_MessageReceived(object sender, MessageReceivedEventArgs e)
-        {
-            try
-            {
-                if (e == null)
-                {
-                    return;
-                }
-                if (string.IsNullOrEmpty(e.Message))
-                {
-                    return;
-                }
-                if (e.Message.Length == 4)
-                { // pong message
-                    return;
-                }
-
-                if (e.Message.StartsWith("{\"requestGuid"))
-                {
-                    return;
-                }
-
-                if (WebSocketDataMessage == null)
-                {
-                    return;
-                }
-
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                WebSocketDataMessage.Enqueue(e.Message);
-            }
-            catch (Exception error)
-            {
-                SendLogMessage("Trade socket error. " + error.ToString(), LogMessageType.Error);
-            }
-        }
 
         private WebSocket _webSocketPortfolio;
 
@@ -1217,6 +1069,92 @@ namespace OsEngine.Market.Servers.Alor
             _webSocketPortfolio.Send(messagePositionsSub);
         }
 
+        #endregion
+
+        #region 7 WebSocket events
+
+        private void WebSocketData_Opened(object sender, EventArgs e)
+        {
+            SendLogMessage("Socket Data activated", LogMessageType.System);
+            _socketDataIsActive = true;
+            CheckActivationSockets();
+        }
+
+        private void WebSocketData_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                SendLogMessage("Connection Closed by Alor. WebSocket Data Closed Event", LogMessageType.Error);
+
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketData_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        {
+            try
+            {
+                var error = e;
+
+                if (error.Exception != null)
+                {
+                    SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketData_MessageReceived(object sender, MessageReceivedEventArgs e)
+        {
+            try
+            {
+                if (e == null)
+                {
+                    return;
+                }
+                if (string.IsNullOrEmpty(e.Message))
+                {
+                    return;
+                }
+                if (e.Message.Length == 4)
+                { // pong message
+                    return;
+                }
+
+                if (e.Message.StartsWith("{\"requestGuid"))
+                {
+                    return;
+                }
+
+                if (WebSocketDataMessage == null)
+                {
+                    return;
+                }
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                WebSocketDataMessage.Enqueue(e.Message);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage("Trade socket error. " + error.ToString(), LogMessageType.Error);
+            }
+        }
+
         private void _webSocketPortfolio_Opened(object sender, EventArgs e)
         {
             SendLogMessage("Socket Portfolio activated", LogMessageType.System);
@@ -1301,7 +1239,73 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 8 WebSocket parsing the messages
+        #region 8 WebSocket Security subscrible
+
+        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
+
+        List<Security> _subscribledSecurities = new List<Security>();
+
+        public void Subscrible(Security security)
+        {
+            try
+            {
+                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                {
+                    if (_subscribledSecurities[i].Name == security.Name)
+                    {
+                        return;
+                    }
+                }
+
+                rateGateSubscrible.WaitToProceed();
+
+                _subscribledSecurities.Add(security);
+
+                // trades subscription
+
+                //curl - X GET "https://apidev.alor.ru/md/v2/Securities/MOEX/LKOH/alltrades?format=Simple&from=1593430060&to=1593430560&fromId=7796897024&toId=7796897280&take=10" - H "accept: application/json"
+
+                RequestSocketSubscribleTrades subObjTrades = new RequestSocketSubscribleTrades();
+                subObjTrades.code = security.Name;
+                subObjTrades.guid = GetGuid();
+                subObjTrades.token = _apiTokenReal;
+                string messageTradeSub = JsonConvert.SerializeObject(subObjTrades);
+
+                AlorSocketSubscription tradeSub = new AlorSocketSubscription();
+                tradeSub.SubType = AlorSubType.Trades;
+                tradeSub.ServiceInfo = security.Name;
+                tradeSub.Guid = subObjTrades.guid;
+                _subscriptionsData.Add(tradeSub);
+
+                _webSocketData.Send(messageTradeSub);
+
+                // market depth subscription
+
+                RequestSocketSubscribleMarketDepth subObjMarketDepth = new RequestSocketSubscribleMarketDepth();
+                subObjMarketDepth.code = security.Name;
+                subObjMarketDepth.guid = GetGuid();
+                subObjMarketDepth.token = _apiTokenReal;
+
+                AlorSocketSubscription mdSub = new AlorSocketSubscription();
+                mdSub.SubType = AlorSubType.MarketDepth;
+                mdSub.ServiceInfo = security.Name;
+                mdSub.Guid = subObjMarketDepth.guid;
+                _subscriptionsData.Add(mdSub);
+
+                string messageMdSub = JsonConvert.SerializeObject(subObjMarketDepth);
+
+                _webSocketData.Send(messageMdSub);
+
+            }
+            catch (Exception exeption)
+            {
+                SendLogMessage(exeption.ToString(),LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region 9 WebSocket parsing the messages
 
         private List<AlorSocketSubscription> _subscriptionsData = new List<AlorSocketSubscription>();
 
@@ -1786,7 +1790,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 9 Trade
+        #region 10 Trade
 
         private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
@@ -2131,7 +2135,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 10 Helpers
+        #region 11 Helpers
 
         public long ConvertToUnixTimestamp(DateTime date)
         {
@@ -2195,7 +2199,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 11 Log
+        #region 12 Log
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

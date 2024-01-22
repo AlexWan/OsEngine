@@ -12,7 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Market.Servers.Tinkoff;
 using OsEngine.Market.Servers;
 
-namespace OsEngine.Robots.TechSapmles
+namespace OsEngine.Robots.TechSamples
 {
     [Bot("TinkoffGetRealCandlesSample")]
     public class TinkoffGetRealCandlesSample : BotPanel
