@@ -355,6 +355,8 @@ namespace OsEngine.Market.Servers.Alor
                     else if (newSecurity.SecurityType == SecurityType.Futures)
                     {
                         newSecurity.NameClass = "Futures";
+                        decimal go = item.marginbuy.ToDecimal();
+                        newSecurity.Go = go;
                     }
                     else if (newSecurity.SecurityType == SecurityType.CurrencyPair)
                     {
