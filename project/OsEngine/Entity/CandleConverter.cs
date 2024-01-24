@@ -2,6 +2,7 @@
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,47 +14,44 @@ using OsEngine.OsTrader.Panels.Tab;
 using ComboBox = System.Windows.Controls.ComboBox;
 using TextBox = System.Windows.Controls.TextBox;
 
-
 namespace OsEngine.Entity
 {
     /// <summary>
     /// candle converter
-    /// конвертер для свечек
     /// </summary>
     public class CandleConverter
     {
         /// <summary>
         /// the vaults of already converted candlesticks
-        /// хранилища уже конвертированных свечек
         /// </summary>
         private static List<ValueSave> _valuesToFormula = new List<ValueSave>();
         /// <summary>
-        /// the path to the source file from which we take the data/путь к исходному файлу из которого берём данные
+        /// the path to the source file from which we take the data
         /// </summary>
         private string _sourceFile;
 
         /// <summary>
-        /// outgoing file path/путь к исходящему файлу
+        /// outgoing file path
         /// </summary>
         private string _exitFile;
 
         /// <summary>
-        /// timeframe molded candles/таймФрейм формируемых свечей
+        /// timeframe molded candles
         /// </summary>
         public TimeFrame TimeFrame;
 
         /// <summary>
-        /// control for source file path/контрол для пути исходного файла
+        /// control for source file path
         /// </summary>
         private TextBox _textBoxSourceFile;
 
         /// <summary>
-        /// control for outgoing file path/контрол для пути исходящего файла
+        /// control for outgoing file path
         /// </summary>
         private TextBox _textBoxExitFile;
 
         /// <summary>
-        /// control with tf/контрол с ТФ
+        /// control with tf
         /// </summary>
         private ComboBox _comboBoxTimeFrame;
 
@@ -167,7 +165,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// create new file/сохдать новый файл
+        /// create new file
         /// </summary>
         public void CreateExitFile()
         {
@@ -190,10 +188,9 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// dump candles
-        /// слить свечи 
         /// </summary>
-        /// <param name="candles">candles/свечи</param>
-        /// <param name="countMerge">Number of folds for the initial TF/количество складывания для начального ТФ</param>
+        /// <param name="candles">candles</param>
+        /// <param name="countMerge">Number of folds for the initial TF</param>
         /// <returns></returns>
         public List<Candle> Merge(List<Candle> candles, int countMerge)
         {
@@ -301,11 +298,10 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// candle connection
-        /// соединить свечи
         /// </summary>
-        /// <param name="candles">original candles/изначальные свечи</param>
-        /// <param name="index">start index/индекс начала</param>
-        /// <param name="count">candle count for connection/количество свечек для соединения</param>
+        /// <param name="candles">original candles</param>
+        /// <param name="index">start index</param>
+        /// <param name="count">candle count for connection</param>
         /// <returns></returns>
         private Candle Concate(List<Candle> candles, int index, int count)
         {
@@ -343,7 +339,6 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// clean up old data
-        /// очистить старые данные
         /// </summary>
         public void Clear()
         {
@@ -375,7 +370,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// save settings to file/сохранить настройки в файл
+        /// save settings to file
         /// </summary>
         public void Save()
         {
@@ -396,11 +391,10 @@ namespace OsEngine.Entity
             }
         }
 
-
-        // logging/логирование
+        // logging
 
         /// <summary>
-        /// send new message to log/выслать новое сообщение в лог
+        /// send new message to log
         /// </summary>
         void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -411,7 +405,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// new message event to log/событие нового сообщения в лог
+        /// new message event to log
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }

@@ -1,30 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using OsEngine.Language;
 
 namespace OsEngine.Entity
 {
-    /// <summary>
-    /// Логика взаимодействия для AwaitUi.xaml
-    /// </summary>
     public partial class AwaitUi : Window
     {
         /// <summary>
-        /// 
+        /// Creating a program standby window
         /// </summary>
-        /// <param name="label">подпись на окне</param>
-        /// <param name="externalManagement">true - нужно управлять бегунком снаружи. false - неизвестно сколько осталось время до конца</param>
+        /// <param name="label">window message</param>
+        /// <param name="externalManagement">
+        /// true - you have to operate the slider from the outside. 
+        /// false - unknown amount of time left until the end</param>
         public AwaitUi(AwaitObject master)
         {
             InitializeComponent();
@@ -130,8 +123,6 @@ namespace OsEngine.Entity
             {
                 // ignore
             }
-
-
         }
     }
 }

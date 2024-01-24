@@ -11,12 +11,11 @@ namespace OsEngine.Entity
 {
 
     /// <summary>
-    /// class that stores the time frame settings for the robot
-    /// класс хранящий настройки таймФрейма для робота
+    /// time frame settings storage
     /// </summary>
     public class TimeFrameBuilder
     {
-        private string _name;
+
         public TimeFrameBuilder(string name, StartProgram startProgram)
         {
             _name = name;
@@ -48,9 +47,10 @@ namespace OsEngine.Entity
             _canSave = true;
         }
 
+        private string _name;
+
         /// <summary>
-        /// upload
-        /// загрузить
+        /// upload settings from file system
         /// </summary>
         private void Load()
         {
@@ -94,7 +94,6 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// save the object settings to a file
-        /// сохранить настройки объекта в файл
         /// </summary>
         public void Save()
         {
@@ -132,13 +131,11 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// is it possible to save the data
-        /// можно ли сохранять данные
         /// </summary>
         private bool _canSave;
 
         /// <summary>
-        /// Delete object settings
-        /// удалить настройки объекта
+        /// delete object settings from file system
         /// </summary>
         public void Delete()
         {
@@ -148,10 +145,9 @@ namespace OsEngine.Entity
             }
         }
 
-        private bool _neadToRebuildSpecification;
-
-        private string _lastSpecification;
-
+        /// <summary>
+        /// unique object settings string
+        /// </summary>
         public string Specification
         {
             get
@@ -185,10 +181,12 @@ namespace OsEngine.Entity
                 return _lastSpecification;
             }
         }
+        private bool _neadToRebuildSpecification;
+
+        private string _lastSpecification;
 
         /// <summary>
-        /// Timeframe of candlesticks on which the connector is signed
-        /// ТаймФрейм свечек на который подписан коннектор
+        /// timeframe of candlesticks on which the connector is signed
         /// </summary>
         public TimeFrame TimeFrame
         {
@@ -292,7 +290,7 @@ namespace OsEngine.Entity
         private TimeFrame _timeFrame;
 
         /// <summary>
-        /// TimeFrame of candles in the form of TimeSpan on which the connector is signed
+        /// timeFrame of candles in the form of TimeSpan on which the connector is signed
         /// ТаймФрейм свечек в виде TimeSpan на который подписан коннектор
         /// </summary>
         public TimeSpan TimeFrameTimeSpan
@@ -318,7 +316,6 @@ namespace OsEngine.Entity
                 Save();
             }
         }
-
         private decimal _deltaPeriods;
 
         /// <summary>
@@ -358,7 +355,7 @@ namespace OsEngine.Entity
         private bool _setForeign;
 
         /// <summary>
-        /// data from which we collect candles: from ticks or glasses
+        /// data from which we collect candles: from ticks or market depths
         /// данные из которых собираем свечи: из тиков или из стаканов
         /// </summary>
         public CandleMarketDataType CandleMarketDataType
@@ -455,7 +452,6 @@ namespace OsEngine.Entity
                 Save();
             }
         }
-
         private decimal _reversCandlesPunktsMinMove;
 
         /// <summary>
@@ -475,7 +471,6 @@ namespace OsEngine.Entity
                 Save();
             }
         }
-
         private decimal _reversCandlesPunktsBackMove;
 
         /// <summary>
@@ -495,7 +490,6 @@ namespace OsEngine.Entity
                 Save();
             }
         }
-
         private decimal _rangeCandlesPunkts;
 
         public bool SaveTradesInCandles
@@ -517,23 +511,19 @@ namespace OsEngine.Entity
 
     /// <summary>
     /// Os.Engine timeframes
-    /// таймФреймы Os.Engine
     /// </summary>
     public enum TimeFrame
     {
         /// <summary>
         /// one second
-        /// одна секунда
         /// </summary>
         Sec1,
         /// <summary>
         /// two seconds
-        /// две секунды
         /// </summary>
         Sec2,
         /// <summary>
         /// five seconds
-        /// пять секунд
         /// </summary>
         Sec5,
         /// <summary>
@@ -543,94 +533,75 @@ namespace OsEngine.Entity
         Sec10,
         /// <summary>
         /// fifteen seconds
-        /// пятнадцать секунд
         /// </summary>
         Sec15,
         /// <summary>
         /// twenty seconds
-        /// двадцать секунд
         /// </summary>
         Sec20,
         /// <summary>
         /// thirty seconds
-        /// тридцать секунд
         /// </summary>
         Sec30,
         /// <summary>
         /// one minute
-        /// одна минута
         /// </summary>
         Min1,
         /// <summary>
         /// two minutes
-        /// две минуты
         /// </summary>
         Min2,
         /// <summary>
         /// three minutes
-        /// три минуты
         /// </summary>
         Min3,
         /// <summary>
         /// five minutes
-        /// пять минут
         /// </summary>
         Min5,
         /// <summary>
         /// ten minutes
-        /// десять минут
         /// </summary>
         Min10,
         /// <summary>
         /// fifteen minutes
-        /// пятнадцать минут
         /// </summary>
         Min15,
         /// <summary>
         /// twenty minutes
-        /// двадцать минут
         /// </summary>
         Min20,
         /// <summary>
         /// thirty minutes
-        /// тридцать минут
         /// </summary>
         Min30,
         /// <summary>
         /// Forty-five minutes.
-        /// сорок пять минут
         /// </summary>
         Min45,
         /// <summary>
         /// one hour
-        /// один час
         /// </summary>
         Hour1,
         /// <summary>
         /// two hours
-        /// два часа
         /// </summary>
         Hour2,
         /// <summary>
-        /// two hours
-        /// два часа
+        /// four hours
         /// </summary>
         Hour4,
         /// <summary>
         /// day
-        /// день
         /// </summary>
         Day,
         /// <summary>
         /// trade
-        /// лента сделок
         /// </summary>
         Tick,
         /// <summary>
         /// market depth
-        /// стакан
         /// </summary>
         MarketDepth
     }
-
 }

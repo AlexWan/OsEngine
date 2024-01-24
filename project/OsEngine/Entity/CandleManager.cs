@@ -15,7 +15,6 @@ using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
-using OsEngine.Market.Servers.GateIo;
 using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.Tester;
@@ -1110,7 +1109,7 @@ namespace OsEngine.Entity
         #region Tester
 
         /// <summary>
-        /// loading a new candle in the series
+        /// loading a new candle in the series in the tester 
         /// </summary>
         public void SetNewCandleInSeries(Candle candle, string nameSecurity, TimeSpan timeFrame)
         {

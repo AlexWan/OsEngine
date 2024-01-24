@@ -5,9 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Entity
@@ -15,19 +12,17 @@ namespace OsEngine.Entity
 
     /// <summary>
     /// a series of candles. The object in which the incoming data is collected candles
-    /// серия свечек. Объект в котором из входящих данных собираются свечи
     /// </summary>
     public class CandleSeries
     {
-        // сервис
+        #region Service and properties
 
         /// <summary>
         /// constructor
-        /// конструктор
         /// </summary>
-        /// <param name="timeFrameBuilder">/object that carries timeframe data/объект несущий в себе данные о таймФрейме</param>
-        /// <param name="security">security we are subscribed to/бумага на которою мы подписаны</param>
-        /// <param name="startProgram">the program that created the object/программа создавшая объект</param>
+        /// <param name="timeFrameBuilder">/object that carries timeframe data</param>
+        /// <param name="security">security we are subscribed to</param>
+        /// <param name="startProgram">the program that created the object</param>
         public CandleSeries(TimeFrameBuilder timeFrameBuilder, Security security, StartProgram startProgram)
         {
             TimeFrameBuilder = timeFrameBuilder;
@@ -41,7 +36,6 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// blocking empty constructor
-        /// блокируем пустой конструктор
         /// </summary>
         private CandleSeries()
         {
@@ -49,12 +43,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// программа создавшая объект
+        /// program that created the object
         /// </summary>
         private StartProgram _startProgram;
 
         /// <summary>
-        /// данные из которых собираем свечи: из тиков или из стаканов
+        /// data from which to collect candles: from ticks or from glasses
         /// </summary>
         public CandleMarketDataType CandleMarketDataType
         {
@@ -62,15 +56,21 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// тип сборки свечей: обычный, ренко, дельта, 
+        /// candle assembly type: regular, renko, delta
         /// </summary>
         public CandleCreateMethodType CandleCreateMethodType
         {
             get { return TimeFrameBuilder.CandleCreateMethodType; }
         }
 
+        /// <summary>
+        /// time frame settings storage
+        /// </summary>
         public TimeFrameBuilder TimeFrameBuilder;
 
+        /// <summary>
+        /// unique data accessory string
+        /// </summary>
         public string Specification
         {
             get
@@ -93,15 +93,18 @@ namespace OsEngine.Entity
             }
         }
 
+        /// <summary>
+        /// whether the data series has been merged with data from the file system
+        /// </summary>
         public bool IsMergedByCandlesFromFile;
 
         /// <summary>
-        /// бумага по которой собираются свечи
+        /// security on which the candles are assembled
         /// </summary>
         public Security Security;
 
         /// <summary>
-        /// таймФрейм собираемых свечей в виде TimeSpan
+        /// timeFrame of collected candlesticks in the form of TimeSpan
         /// </summary>
         public TimeSpan TimeFrameSpan
         {
@@ -109,7 +112,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// таймфрейм в виде перечисления
+        /// timeframe as an enumeration
         /// </summary>
         public TimeFrame TimeFrame
         {
@@ -121,10 +124,13 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// все собранные свечи в этой серии
+        /// all assembled candles in this series with All statuses
         /// </summary>
         public List<Candle> CandlesAll;
 
+        /// <summary>
+        /// all assembled candles in this series with Finished status
+        /// </summary>
         public List<Candle> CandlesOnlyReady
         {
             get
@@ -152,23 +158,22 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// флаг. Прогружена ли серия первичными данными
+        /// flag. Whether the series is loaded with primary data
         /// </summary>
         public bool IsStarted
         {
             get { return _isStarted; }
             set { _isStarted = value; }
         }
-
         private bool _isStarted;
 
         /// <summary>
-        /// нужно ли продолжать прогружать объект
+        /// whether to keep loading the object
         /// </summary>
         private bool _isStoped;
 
         /// <summary>
-        /// остановить расчёт серии
+        /// batch calculation series
         /// </summary>
         public void Stop()
         {
@@ -176,7 +181,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// очистить
+        /// clear data
         /// </summary>
         public void Clear()
         {
@@ -189,12 +194,47 @@ namespace OsEngine.Entity
             }
         }
 
-        // приём изменившегося времени
+        /// <summary>
+        /// add new ticks to the series, but load the candles only once, call at the start series
+        /// </summary>
+        public void PreLoad(List<Trade> trades)
+        {
+            if (TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+            {
+                return;
+            }
+            if (trades == null || trades.Count == 0)
+            {
+                _isStarted = true;
+                return;
+            }
+
+            for (int i = 0; i < trades.Count; i++)
+            {
+                if (trades[i] == null)
+                {
+                    continue;
+                }
+                UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
+
+                List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
+
+                tradesInCandle.Add(trades[i]);
+
+                CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
+            }
+            UpdateChangeCandle();
+
+            _isStarted = true;
+        }
+
+        #endregion
+
+        #region Candles building
 
         /// <summary>
-        /// добавить в серию новое время сервера
+        /// add a new server time to the series
         /// </summary>
-        /// <param name="time">новое время</param>
         public void SetNewTime(DateTime time)
         {
             if (_isStoped || _isStarted == false)
@@ -233,12 +273,9 @@ namespace OsEngine.Entity
             }
         }
 
-        // сбор свечек из тиков
-
         /// <summary>
-        /// добавить в серию новые тики
+        /// add new ticks to the series
         /// </summary>
-        /// <param name="trades">новые тики</param>
         public void SetNewTicks(List<Trade> trades)
         {
             if (_isStoped || _isStarted == false)
@@ -336,11 +373,44 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// индекс тика на последней итерации
+        /// add new market depth to the series
         /// </summary>
-        private int _lastTradeIndex;
+        public void SetNewMarketDepth(MarketDepth marketDepth)
+        {
+            if (_isStarted == false)
+            {
+                return;
+            }
 
-        private DateTime _lastTradeTime;
+            if (_isStoped)
+            {
+                return;
+            }
+
+            if (TimeFrameBuilder.CandleMarketDataType != CandleMarketDataType.MarketDepth)
+            {
+                return;
+            }
+
+
+            if (marketDepth.Bids == null ||
+                marketDepth.Bids.Count == 0 ||
+                marketDepth.Bids[0].Price == 0)
+            {
+                return;
+            }
+
+            if (marketDepth.Asks == null ||
+                marketDepth.Asks.Count == 0 ||
+                marketDepth.Asks[0].Price == 0)
+            {
+                return;
+            }
+
+            decimal price = marketDepth.Bids[0].Price + (marketDepth.Asks[0].Price - marketDepth.Bids[0].Price) / 2;
+
+            UpDateCandle(marketDepth.Time, price, 1, true, Side.None);
+        }
 
         private List<Trade> GetActualTrades(List<Trade> trades)
         {
@@ -383,14 +453,14 @@ namespace OsEngine.Entity
                             }
                             if (trades[i].Time == _lastTradeTime)
                             {
-                                if(string.IsNullOrEmpty(trades[i].Id))
+                                if (string.IsNullOrEmpty(trades[i].Id))
                                 {
                                     // если IDшников нет - просто игнорируем трейды с идентичным временем
                                     continue;
                                 }
-                                else if(isNewTradesFurther == false)
+                                else if (isNewTradesFurther == false)
                                 {
-                                    if(IsInArrayTradeIds(trades[i].Id))
+                                    if (IsInArrayTradeIds(trades[i].Id))
                                     {// если IDшник в последних 100 трейдах
                                         continue;
                                     }
@@ -416,7 +486,7 @@ namespace OsEngine.Entity
             {
                 return null;
             }
-            
+
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
 
             for (int i2 = 0; i2 < newTrades.Count; i2++)
@@ -429,14 +499,14 @@ namespace OsEngine.Entity
                 if (string.IsNullOrEmpty(newTrades[i2].Id) == false)
                 {
                     AddInListTradeIds(newTrades[i2].Id, newTrades[i2].Time);
-                } 
+                }
             }
 
             return newTrades;
         }
-
+        private int _lastTradeIndex;
+        private DateTime _lastTradeTime;
         List<string> _lastTradeIds = new List<string>();
-
         DateTime _idsTime = DateTime.MinValue;
 
         private void AddInListTradeIds(string id, DateTime _timeNow)
@@ -467,48 +537,13 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// добавить в серию новые тики, но свечи прогрузить только один раз, в конце
+        /// update candle series with new data
         /// </summary>
-        /// <param name="trades">тики</param>
-        public void PreLoad(List<Trade> trades)
-        {
-            if (TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
-            {
-                return;
-            }
-            if (trades == null || trades.Count == 0)
-            {
-                _isStarted = true;
-                return;
-            }
-
-            for (int i = 0; i < trades.Count; i++)
-            {
-                if (trades[i] == null)
-                {
-                    continue;
-                }
-                UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
-
-                List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
-
-                tradesInCandle.Add(trades[i]);
-
-                CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
-            }
-            UpdateChangeCandle();
-
-            _isStarted = true;
-        }
-
-        /// <summary>
-        /// прогрузить свечу новыми данными
-        /// </summary>
-        /// <param name="time">время новых данных</param>
-        /// <param name="price">цена</param>
-        /// <param name="volume">объём</param>
-        /// <param name="canPushUp">можно ли передовать сведения о свечках выше</param>
-        /// <param name="side">сторона в которую прошла последняя сделка</param>
+        /// <param name="time">new data time</param>
+        /// <param name="price">price new data</param>
+        /// <param name="volume">volume new data</param>
+        /// <param name="canPushUp">can the candles be shared with the architects above?</param>
+        /// <param name="side">last trade side</param>
         private void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
             if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
@@ -807,9 +842,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// обновить свечи Heiken Ashi
-        /// </summary>
         private void UpDateHeikenAshiCandle(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
@@ -995,9 +1027,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// обновить свечи с обычным ТФ
-        /// </summary>
         private void UpDateSimpleTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             if (CandlesAll != null 
@@ -1187,14 +1216,8 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// текущее накопление дельты
-        /// </summary>
         private decimal _currentDelta;
 
-        /// <summary>
-        /// обновить свечи с дельтой
-        /// </summary>
         private void UpDateDeltaTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
             // Формула кумулятивной дельты 
@@ -1326,14 +1349,8 @@ namespace OsEngine.Entity
 
         }
 
-        /// <summary>
-        /// сколько у нас в последней строящейся свечке тиков
-        /// </summary>
         private int _lastCandleTickCount;
 
-        /// <summary>
-        /// обновить свечи по кол-ву обезличенных сделок в свече
-        /// </summary>
         private void UpDateTickTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
@@ -1454,9 +1471,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// обновить свечи по объёму в свече
-        /// </summary>
         private void UpDateVolumeTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
@@ -1754,9 +1768,6 @@ namespace OsEngine.Entity
 
         }
 
-        /// <summary>
-        /// заставляет выслать на верх все имеющиеся свечки
-        /// </summary>
         public void UpdateAllCandles()
         {
             if (CandlesAll == null)
@@ -1768,9 +1779,6 @@ namespace OsEngine.Entity
 
         }
 
-        /// <summary>
-        /// метод пересылающий готовые свечи выше
-        /// </summary>
         private void UpdateChangeCandle()
         {
             if (_startProgram == StartProgram.IsTester &&
@@ -1793,9 +1801,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// добавить свечи в неторговые периоды
-        /// </summary>
         private void SetForeign(DateTime now)
         {
             if (CandlesAll == null ||
@@ -1825,12 +1830,25 @@ namespace OsEngine.Entity
             }
         }
 
-        // прямая загрузка серии из свечек
+        /// <summary>
+        /// the last candle in the series has changed
+        /// </summary>
+        public event Action<CandleSeries> СandleUpdeteEvent;
 
         /// <summary>
-        /// загрузить в серию новую свечку
+        /// the last candle in the series has finished
         /// </summary>
-        /// <param name="candle"></param>
+        public event Action<CandleSeries> СandleFinishedEvent;
+
+        #endregion
+
+        #region Tester
+
+        public TesterDataType TypeTesterData;
+
+        /// <summary>
+        /// load a new candle into the series in the tester or optimizer
+        /// </summary>
         public void SetNewCandleInArray(Candle candle)
         {
             if (TimeFrameBuilder.CandleMarketDataType == CandleMarketDataType.MarketDepth)
@@ -1868,120 +1886,45 @@ namespace OsEngine.Entity
 
         }
 
-        /// <summary>
-        /// в серии изменилась последняя свеча
-        /// </summary>
-        public event Action<CandleSeries> СandleUpdeteEvent;
+        #endregion
 
-        /// <summary>
-        /// в серии завершилась последняя свеча
-        /// </summary>
-        public event Action<CandleSeries> СandleFinishedEvent;
-
-        // создание свечек из Стакана
-
-        public void SetNewMarketDepth(MarketDepth marketDepth)
-        {
-            if (_isStarted == false)
-            {
-                return;
-            }
-
-            if (_isStoped)
-            {
-                return;
-            }
-
-            if (TimeFrameBuilder.CandleMarketDataType != CandleMarketDataType.MarketDepth)
-            {
-                return;
-            }
-
-
-            if (marketDepth.Bids == null ||
-                marketDepth.Bids.Count == 0 ||
-                marketDepth.Bids[0].Price == 0)
-            {
-                return;
-            }
-
-            if (marketDepth.Asks == null ||
-                marketDepth.Asks.Count == 0 ||
-                marketDepth.Asks[0].Price == 0)
-            {
-                return;
-            }
-
-            decimal price = marketDepth.Bids[0].Price + (marketDepth.Asks[0].Price - marketDepth.Bids[0].Price) / 2;
-
-            UpDateCandle(marketDepth.Time, price, 1, true, Side.None);
-        }
-
-
-        // для тестера
-
-        public TesterDataType TypeTesterData;
     }
 
     /// <summary>
-    /// тип данных для рассчёта свечек в серии свечей
+    /// data type for calculating candlesticks in a candlestick series
     /// </summary>
     public enum CandleMarketDataType
     {
         /// <summary>
-        /// создание свечей из тиков
+        /// creating candles from trades
         /// </summary>
         Tick,
 
         /// <summary>
-        /// создание свечей из центра стакана
+        /// creating candles from market depth center
         /// </summary>
         MarketDepth
     }
 
     /// <summary>
-    /// метод создания свечей
+    /// Candles type
     /// </summary>
     public enum CandleCreateMethodType
     {
-        /// <summary>
-        /// свечи с обычным ТФ от 1 секунды и выше
-        /// </summary>
         Simple,
 
-        /// <summary>
-        /// свечи ренко
-        /// </summary>
         Renko,
 
-        /// <summary>
-        /// свечи набираются из объёма
-        /// </summary>
         Volume,
 
-        /// <summary>
-        /// свечи набираемые из тиков
-        /// </summary>
         Ticks,
 
-        /// <summary>
-        /// свечи завершением которых служит изменение дельты на N открытого интереса
-        /// </summary>
         Delta,
 
-        /// <summary>
-        /// свечи хейкен аши
-        /// </summary>
         HeikenAshi,
 
-        /// <summary>
-        /// реверсивные свечи
-        /// </summary>
         Rеvers,
 
-        /// <summary>
-        /// рендж бары
-        /// </summary>
         Range
     }
 }

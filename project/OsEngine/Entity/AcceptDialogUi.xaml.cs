@@ -6,20 +6,17 @@ namespace OsEngine.Entity
 {
     /// <summary>
     /// Interaction logic for AcceptDialogUi.xaml
-    /// Логика взаимодействия для AcceptDialogUi.xaml
     /// </summary>
     public partial class AcceptDialogUi
     {
 
         /// <summary>
         /// The user has approved the action to be taken
-        /// Пользователь одобрил проводитмое действие
         /// </summary>
         public bool UserAcceptActioin;
 
         /// <summary>
         /// window designer
-        /// конструктор окна
         /// </summary>
         /// <param name="text">text that will be displayed as the main message to the user. What he will have to approve/текст который будет выведен в качестве основного сообщения пользователю. То что он должен будет одобрить</param>
         public AcceptDialogUi(string text)
