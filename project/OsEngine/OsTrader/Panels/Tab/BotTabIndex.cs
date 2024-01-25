@@ -27,6 +27,8 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public class BotTabIndex : IIBotTab
     {
+        #region Service. Constructor. Override for the interface
+
         public BotTabIndex(string name, StartProgram startProgram)
         {
             TabName = name;
@@ -55,16 +57,119 @@ namespace OsEngine.OsTrader.Panels.Tab
         private StartProgram _startProgram;
 
         /// <summary>
-        /// Chart
+        /// Unique robot name
         /// </summary>
-        private ChartCandleMaster _chartMaster;
+        public string TabName { get; set; }
 
         /// <summary>
-        /// Connectors array
+        /// Tab number
         /// </summary>
-        public List<ConnectorCandles> Tabs = new List<ConnectorCandles>();
+        public int TabNum { get; set; }
 
-        // control
+        /// <summary>
+        /// custom name robot
+        /// пользовательское имя робота
+        /// </summary>
+        public string NameStrategy
+        {
+            get
+            {
+                if (TabName.Contains("tab"))
+                {
+                    return TabName.Remove(TabName.LastIndexOf("tab"), TabName.Length - TabName.LastIndexOf("tab"));
+                }
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// Is the emulator enabled
+        /// </summary>
+        public bool EmulatorIsOn { get; set; }
+
+        /// <summary>
+        /// Clear
+        /// </summary>
+        public void Clear()
+        {
+            _valuesToFormula = new List<ValueSave>();
+            _chartMaster.Clear();
+        }
+
+        /// <summary>
+        /// Remove tab and all child structures
+        /// </summary>
+        public void Delete()
+        {
+            _chartMaster.Delete();
+
+            if (File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
+            {
+                File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
+            }
+
+            for (int i = 0; Tabs != null && i < Tabs.Count; i++)
+            {
+                Tabs[i].Delete();
+            }
+
+            if (TabDeletedEvent != null)
+            {
+                TabDeletedEvent();
+            }
+        }
+
+        /// <summary>
+        /// Whether the submission of events to the top is enabled or not
+        /// </summary>
+        public bool EventsIsOn
+        {
+            get
+            {
+                return _eventsIsOn;
+            }
+            set
+            {
+                if (_eventsIsOn == value)
+                {
+                    return;
+                }
+                _eventsIsOn = value;
+                Save();
+            }
+        }
+        private bool _eventsIsOn = true;
+
+        /// <summary>
+        /// Whether the tab is connected to download data
+        /// </summary>
+        public bool IsConnected
+        {
+            get
+            {
+                if (Tabs == null)
+                {
+                    return false;
+                }
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    if (Tabs[i].IsConnected == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Time of the last update of the candle
+        /// </summary>
+        public DateTime LastTimeCandleUpdate { get; set; }
+
+        #endregion
+
+        #region Controls
 
         /// <summary>
         /// Show GUI
@@ -74,7 +179,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (ServerMaster.GetServers() == null ||
                 ServerMaster.GetServers().Count == 0)
             {
-                SendNewLogMessage(OsLocalization.Market.Message1,LogMessageType.Error);
+                SendNewLogMessage(OsLocalization.Market.Message1, LogMessageType.Error);
                 return;
             }
 
@@ -96,7 +201,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowIndexConnectorIndexDialog(int index)
         {
-            if(index >= Tabs.Count)
+            if (index >= Tabs.Count)
             {
                 return;
             }
@@ -187,6 +292,44 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             return creator;
         }
+
+        /// <summary>
+        /// Chart
+        /// </summary>
+        private ChartCandleMaster _chartMaster;
+
+        /// <summary>
+        /// Start drawing this robot
+        /// </summary> 
+        public void StartPaint(Grid grid, WindowsFormsHost host, Rectangle rectangle)
+        {
+            _chartMaster.StartPaint(grid, host, rectangle);
+        }
+
+        /// <summary>
+        /// Stop drawing this robot
+        /// </summary>
+        public void StopPaint()
+        {
+            _chartMaster.StopPaint();
+        }
+
+        /// <summary>
+        /// get chart information
+        /// </summary>
+        public string GetChartLabel()
+        {
+            return _chartMaster.GetChartLabel();
+        }
+
+        #endregion
+
+        #region Storage, creation and deletion of securities in index
+
+        /// <summary>
+        /// Connectors array
+        /// </summary>
+        public List<ConnectorCandles> Tabs = new List<ConnectorCandles>();
 
         /// <summary>
         /// try to connect security
@@ -281,62 +424,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Start drawing this robot
-        /// </summary> 
-        public void StartPaint(Grid grid, WindowsFormsHost host, Rectangle rectangle)
-        {
-            _chartMaster.StartPaint(grid, host, rectangle);
-        }
-
-        /// <summary>
-        /// Stop drawing this robot
-        /// </summary>
-        public void StopPaint()
-        {
-            _chartMaster.StopPaint();
-        }
-
-        /// <summary>
-        /// Unique robot name
-        /// </summary>
-        public string TabName { get; set; }
-
-        /// <summary>
-        /// Tab number
-        /// </summary>
-        public int TabNum { get; set; }
-		
-        /// <summary>
-        /// custom name robot
-        /// пользовательское имя робота
-        /// </summary>
-        public string NameStrategy
-        {
-            get
-            {
-                if (TabName.Contains("tab"))
-                {
-                    return TabName.Remove(TabName.LastIndexOf("tab"), TabName.Length - TabName.LastIndexOf("tab"));
-                }
-                return "";
-            }
-        }
-
-        /// <summary>
-        /// Is the emulator enabled
-        /// </summary>
-        public bool EmulatorIsOn { get; set; }
-
-        /// <summary>
-        /// Clear
-        /// </summary>
-        public void Clear()
-        {
-            _valuesToFormula = new List<ValueSave>();
-            _chartMaster.Clear();
-        }
-
-        /// <summary>
         /// Save
         /// </summary>
         public void Save()
@@ -368,30 +455,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // ignore
             }
         }
-
-        bool _isLoaded = false;
-
-        /// <summary>
-        /// Whether the submission of events to the top is enabled or not
-        /// </summary>
-        public bool EventsIsOn
-        {
-            get
-            {
-                return _eventsIsOn;
-            }
-            set
-            {
-                if (_eventsIsOn == value)
-                {
-                    return;
-                }
-                _eventsIsOn = value;
-                Save();
-            }
-        }
-
-        private bool _eventsIsOn = true;
 
         /// <summary>
         /// Load settings from file
@@ -447,160 +510,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             _isLoaded = false;
         }
+        bool _isLoaded = false;
 
         /// <summary>
-        /// Remove tab and all child structures
+        /// Source removed
         /// </summary>
-        public void Delete()
-        {
-            _chartMaster.Delete();
+        public event Action TabDeletedEvent;
 
-            if (File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
-            {
-                File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
-            }
+        #endregion
 
-            for (int i = 0; Tabs != null && i < Tabs.Count; i++)
-            {
-                Tabs[i].Delete();
-            }
-
-            if(TabDeletedEvent != null)
-            {
-                TabDeletedEvent();
-            }
-        }
-
-        /// <summary>
-        /// Whether the tab is connected to download data
-        /// </summary>
-        public bool IsConnected
-        {
-            get
-            {
-                if (Tabs == null)
-                {
-                    return false;
-                }
-                for (int i = 0; i < Tabs.Count; i++)
-                {
-                    if (Tabs[i].IsConnected == false)
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Time of the last update of the candle
-        /// </summary>
-        public DateTime LastTimeCandleUpdate { get; set; }
-
-        /// <summary>
-        /// New data came from the connector
-        /// </summary>
-        private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
-        {
-            if (candles == null || candles.Count == 0)
-            {
-                return;
-            }
-
-            LastTimeCandleUpdate = Tabs[0].MarketTime;
-
-            DateTime timeCandle = candles[candles.Count - 1].TimeStart;
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                List<Candle> myCandles = Tabs[i].Candles(true);
-
-                if (myCandles == null || myCandles.Count < 10)
-                {
-                    return;
-                }
-
-                if (timeCandle != myCandles[myCandles.Count - 1].TimeStart)
-                {
-                    return;
-                }
-            }
-
-            DateTime time = Tabs[0].Candles(true)[Tabs[0].Candles(true).Count - 1].TimeStart;
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                List<Candle> myCandles = Tabs[i].Candles(true);
-                if (myCandles[myCandles.Count - 1].TimeStart != time)
-                {
-                    return;
-                }
-            }
-            // loop to collect all the candles in one array
-
-            if (string.IsNullOrWhiteSpace(ConvertedFormula))
-            {
-                return;
-            }
-
-            string nameArray = Calculate(ConvertedFormula);
-
-            if (_valuesToFormula != null && !string.IsNullOrWhiteSpace(nameArray))
-            {
-                ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
-
-                if (val != null)
-                {
-                    Candles = val.ValueCandles;
-
-                    if (Candles.Count > 1 &&
-                        Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
-                    {
-                        try
-                        {
-                            Candles.RemoveAt(Candles.Count - 1);
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-                    }
-                    if (_startProgram == StartProgram.IsOsTrader && Tabs.Count > 0)
-                    {
-                        var candlesToKeep = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._neadToSaveCandlesCountParam.Value;
-                        var needToRemove = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._needToRemoveCandlesFromMemory.Value;
-
-                        if (needToRemove
-                            && Candles[Candles.Count - 1].TimeStart.Minute % 15 == 0
-                            && Candles[Candles.Count - 1].TimeStart.Second == 0
-                            && Candles.Count > candlesToKeep)
-                        {
-                            Candles.RemoveRange(0, Candles.Count - 1 - candlesToKeep);
-                        }
-                    }
-
-                    _chartMaster.SetCandles(Candles);
-
-                    if (SpreadChangeEvent != null && EventsIsOn == true)
-                    {
-                        SpreadChangeEvent(Candles);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// spread candles
-        /// </summary>
-        public List<Candle> Candles;
-
-        /// <summary>
-        /// Spread change event
-        /// </summary>
-        public event Action<List<Candle>> SpreadChangeEvent;
-
-        // index calculation
+        #region Formula calculation
 
         /// <summary>
         /// Formula
@@ -649,6 +568,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
         private string _userFormula;
+
+
+        #endregion
+
+        #region Index calculation
+
+        /// <summary>
+        /// spread candles
+        /// </summary>
+        public List<Candle> Candles;
 
         /// <summary>
         /// Formula reduced to program format
@@ -1457,7 +1386,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             return oldCandle;
         }
-        // todo: fix index high\low
+
         private Candle GetCandle(Candle oldCandle, decimal valOne, Candle candleTwo, string sign)
         {
             if (oldCandle == null)
@@ -1596,7 +1525,106 @@ namespace OsEngine.OsTrader.Panels.Tab
             return oldCandle;
         }
 
-        // Indicators
+        /// <summary>
+        /// New data came from the connector
+        /// </summary>
+        private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
+        {
+            if (candles == null || candles.Count == 0)
+            {
+                return;
+            }
+
+            LastTimeCandleUpdate = Tabs[0].MarketTime;
+
+            DateTime timeCandle = candles[candles.Count - 1].TimeStart;
+
+            for (int i = 0; i < Tabs.Count; i++)
+            {
+                List<Candle> myCandles = Tabs[i].Candles(true);
+
+                if (myCandles == null || myCandles.Count < 10)
+                {
+                    return;
+                }
+
+                if (timeCandle != myCandles[myCandles.Count - 1].TimeStart)
+                {
+                    return;
+                }
+            }
+
+            DateTime time = Tabs[0].Candles(true)[Tabs[0].Candles(true).Count - 1].TimeStart;
+
+            for (int i = 0; i < Tabs.Count; i++)
+            {
+                List<Candle> myCandles = Tabs[i].Candles(true);
+                if (myCandles[myCandles.Count - 1].TimeStart != time)
+                {
+                    return;
+                }
+            }
+            // loop to collect all the candles in one array
+
+            if (string.IsNullOrWhiteSpace(ConvertedFormula))
+            {
+                return;
+            }
+
+            string nameArray = Calculate(ConvertedFormula);
+
+            if (_valuesToFormula != null && !string.IsNullOrWhiteSpace(nameArray))
+            {
+                ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
+
+                if (val != null)
+                {
+                    Candles = val.ValueCandles;
+
+                    if (Candles.Count > 1 &&
+                        Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
+                    {
+                        try
+                        {
+                            Candles.RemoveAt(Candles.Count - 1);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+                    if (_startProgram == StartProgram.IsOsTrader && Tabs.Count > 0)
+                    {
+                        var candlesToKeep = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._neadToSaveCandlesCountParam.Value;
+                        var needToRemove = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._needToRemoveCandlesFromMemory.Value;
+
+                        if (needToRemove
+                            && Candles[Candles.Count - 1].TimeStart.Minute % 15 == 0
+                            && Candles[Candles.Count - 1].TimeStart.Second == 0
+                            && Candles.Count > candlesToKeep)
+                        {
+                            Candles.RemoveRange(0, Candles.Count - 1 - candlesToKeep);
+                        }
+                    }
+
+                    _chartMaster.SetCandles(Candles);
+
+                    if (SpreadChangeEvent != null && EventsIsOn == true)
+                    {
+                        SpreadChangeEvent(Candles);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Spread change event
+        /// </summary>
+        public event Action<List<Candle>> SpreadChangeEvent;
+
+        #endregion
+
+        #region Indicators
 
         /// <summary>
         /// Create indicator
@@ -1625,7 +1653,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             get { return _chartMaster.Indicators; }
         }
 
-        // log 
+        #endregion
+
+        #region Log 
 
         /// <summary>
         /// send log message
@@ -1647,18 +1677,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        /// <summary>
-        /// Source removed
-        /// </summary>
-        public event Action TabDeletedEvent;
-
-        /// <summary>
-        /// get chart information
-        /// </summary>
-        public string GetChartLabel()
-        {
-            return _chartMaster.GetChartLabel();
-        }
+        #endregion
     }
 
     /// <summary>
