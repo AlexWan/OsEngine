@@ -1609,13 +1609,45 @@ namespace OsEngine.Market.Servers.Alor
                 return;
             }
 
+            Order order = ConvertToOsEngineOrder(baseMessage);
+
+            if(order == null)
+            {
+                return;
+            }
+
+            lock (_sendOrdersArrayLocker)
+            {
+                for (int i = 0; i < _sendOrders.Count; i++)
+                {
+                    if (_sendOrders[i] == null)
+                    {
+                        continue;
+                    }
+
+                    if (_sendOrders[i].NumberUser == order.NumberUser)
+                    {
+                        order.TypeOrder = _sendOrders[i].TypeOrder;
+                        break;
+                    }
+                }
+            }
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(order);
+            }
+        }
+
+        private Order ConvertToOsEngineOrder(OrderAlor baseMessage)
+        {
             Order order = new Order();
 
             order.SecurityNameCode = baseMessage.symbol;
             order.Volume = baseMessage.qty.ToDecimal();
 
             bool securityInArray = false;
-            for(int i = 0;i < _securitiesAndPortfolious.Count;i++)
+            for (int i = 0; i < _securitiesAndPortfolious.Count; i++)
             {
                 if (_securitiesAndPortfolious[i].Security == order.SecurityNameCode)
                 {
@@ -1625,30 +1657,30 @@ namespace OsEngine.Market.Servers.Alor
                 }
             }
 
-            if(securityInArray == false)
+            if (securityInArray == false)
             {
                 order.PortfolioNumber = baseMessage.exchange;
             }
 
-            if(baseMessage.type == "limit")
+            if (baseMessage.type == "limit")
             {
                 order.Price = baseMessage.price.ToDecimal();
                 order.TypeOrder = OrderPriceType.Limit;
             }
-            else if(baseMessage.type == "market")
+            else if (baseMessage.type == "market")
             {
                 order.TypeOrder = OrderPriceType.Market;
             }
-            
+
             try
             {
                 order.NumberUser = Convert.ToInt32(baseMessage.comment);
             }
             catch
             {
-                return;
+                return null;
             }
-            
+
             order.NumberMarket = baseMessage.id;
 
             order.TimeCallBack = ConvertToDateTimeFromTimeAlorData(baseMessage.transTime);
@@ -1691,16 +1723,16 @@ namespace OsEngine.Market.Servers.Alor
 
                         if (_changePriceOrders[i].MarketId == order.NumberMarket)
                         {
-                            return;
+                            return null;
                         }
                     }
                 }
 
-                if(string.IsNullOrEmpty(baseMessage.filledQtyUnits))
+                if (string.IsNullOrEmpty(baseMessage.filledQtyUnits))
                 {
                     order.State = OrderStateType.Cancel;
                 }
-                else if(baseMessage.filledQtyUnits == "0")
+                else if (baseMessage.filledQtyUnits == "0")
                 {
                     order.State = OrderStateType.Cancel;
                 }
@@ -1710,7 +1742,7 @@ namespace OsEngine.Market.Servers.Alor
                     {
                         decimal volFilled = baseMessage.filledQtyUnits.ToDecimal();
 
-                        if(volFilled > 0)
+                        if (volFilled > 0)
                         {
                             order.State = OrderStateType.Done;
                         }
@@ -1730,27 +1762,7 @@ namespace OsEngine.Market.Servers.Alor
                 order.State = OrderStateType.Fail;
             }
 
-            lock (_sendOrdersArrayLocker)
-            {
-                for (int i = 0; i < _sendOrders.Count; i++)
-                {
-                    if (_sendOrders[i] == null)
-                    {
-                        continue;
-                    }
-
-                    if (_sendOrders[i].NumberUser == order.NumberUser)
-                    {
-                        order.TypeOrder = _sendOrders[i].TypeOrder;
-                        break;
-                    }
-                }
-            }
-
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            return order;
         }
 
         private void UpDateMyPortfolio(string data, string portfolioName)
@@ -2127,12 +2139,155 @@ namespace OsEngine.Market.Servers.Alor
 
         public void CancelAllOrders()
         {
+            List<Order> orders = GetAllOrdersFromExchange();
 
+            for (int i = 0; i < orders.Count;i++)
+            {
+                Order order = orders[i];
+
+                if(order.State == OrderStateType.Activ)
+                {
+                    CancelOrder(order);
+                }
+            }
         }
 
         public void CancelAllOrdersToSecurity(Security security)
         {
+            List<Order> orders = GetAllOrdersFromExchange();
 
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+
+                if (order.State == OrderStateType.Activ
+                    && order.SecurityNameCode == security.Name)
+                {
+                    CancelOrder(order);
+                }
+            }
+        }
+
+        private List<Order> GetAllOrdersFromExchange()
+        {
+            List<Order> orders = new List<Order>();
+
+            if (string.IsNullOrEmpty(_portfolioSpotId) == false)
+            {
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioSpotId);
+
+                if (newOrders != null &&
+                    newOrders.Count > 0)
+                {
+                    orders.AddRange(newOrders);
+                }
+            }
+
+            if (string.IsNullOrEmpty(_portfolioFutId) == false)
+            {
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioFutId);
+
+                if (newOrders != null &&
+                    newOrders.Count > 0)
+                {
+                    orders.AddRange(newOrders);
+                }
+            }
+
+            if (string.IsNullOrEmpty(_portfolioCurrencyId) == false)
+            {
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioCurrencyId);
+
+                if (newOrders != null &&
+                    newOrders.Count > 0)
+                {
+                    orders.AddRange(newOrders);
+                }
+            }
+
+            if (string.IsNullOrEmpty(_portfolioSpareId) == false)
+            {
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioSpareId);
+
+                if (newOrders != null &&
+                    newOrders.Count > 0)
+                {
+                    orders.AddRange(newOrders);
+                }
+            }
+
+            return orders;
+        }
+
+        private List<Order> GetAllOrdersFromExchangeByPortfolio(string portfolio)
+        {
+            rateGateSendOrder.WaitToProceed();
+
+            try
+            {
+                string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/orders?format=Simple";
+
+                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                requestRest.AddHeader("accept", "application/json");
+
+                RestClient client = new RestClient(_restApiHost);
+
+                IRestResponse response = client.Execute(requestRest);
+
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string respString = response.Content;
+
+                    if(respString == "[]")
+                    {
+                        return null;
+                    }
+                    else
+                    {
+
+                        List<OrderAlor> orders = JsonConvert.DeserializeAnonymousType(respString, new List<OrderAlor>());
+
+                        List<Order> osEngineOrders = new List<Order>();
+
+                        for(int i = 0;i < orders.Count;i++)
+                        {
+                            Order newOrd = ConvertToOsEngineOrder(orders[i]);
+
+                            if(newOrd == null)
+                            {
+                                continue;
+                            }
+
+                            osEngineOrders.Add(newOrd);
+                        }
+
+                        return osEngineOrders;
+                        
+                    }
+                }
+                else if(response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+
+                    if (response.Content != null)
+                    {
+                        SendLogMessage("Fail reasons: "
+                      + response.Content, LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
+            }
+
+            return null;
         }
 
         #endregion
