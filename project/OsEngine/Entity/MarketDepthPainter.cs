@@ -2,6 +2,7 @@
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,26 +17,16 @@ using OsEngine.Logging;
 namespace OsEngine.Entity
 {
     /// <summary>
-    /// class responsible for drawing the glass and lines bid-ask
-    /// класс отвечающий за отрисовку стакана и линий бид-аск
+    /// class responsible for drawing the market depths and lines bid-ask
     /// </summary>
     public class MarketDepthPainter
     {
-        // static part with the work of drawing glass flow
-        // статическая часть с работой потока прорисовывающего стакан
+        // static part with the work of drawing market depths flow
 
-        /// <summary>
-        /// logs that need to be serviced
-        /// логи которые нужно обслуживать
-        /// </summary>
         public static List<MarketDepthPainter> MarketDepthsToCheck = new List<MarketDepthPainter>();
 
         private static object _activatorLocker = new object();
 
-        /// <summary>
-        /// activate stream to save
-        /// активировать поток для сохранения
-        /// </summary>
         public static void Activate()
         {
             lock (_activatorLocker)
@@ -52,10 +43,6 @@ namespace OsEngine.Entity
 
         private static Task _painter;
 
-        /// <summary>
-        /// place of work that keeps logs
-        /// место работы потока который сохраняет логи
-        /// </summary>
         public static async void WatcherHome()
         {
             while (true)
@@ -78,13 +65,8 @@ namespace OsEngine.Entity
             }
         }
 
-        // main class
-        // основной класс
+        // main object
 
-        /// <summary>
-        /// constructor object drawing glass
-        /// конструктор объекта прорисовывающего стакан
-        /// </summary>
         public MarketDepthPainter(string botName)
         {
             Activate();
@@ -94,8 +76,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// remove this object from the drawing
-        /// удалить данный объект из прорисовки
+        /// remove all objects from the drawing
         /// </summary>
         public void Delete()
         {
@@ -110,54 +91,34 @@ namespace OsEngine.Entity
                 }
             }
 
-            _glassBox = null;
-            _hostGlass = null;
+            _marketDepthTable = null;
+            _hostMd = null;
         }
 
-        /// <summary>
-        /// the name of the robot that owns the glass
-        /// имя робота которому принадлежит стакан
-        /// </summary>
         private string _name;
 
-        /// <summary>
-        /// glass area
-        /// область для размещения стакана
-        /// </summary>
-        private WindowsFormsHost _hostGlass;
+        private WindowsFormsHost _hostMd;
 
-        /// <summary>
-        /// glass table
-        /// таблица стакана
-        /// </summary>
-        DataGridView _glassBox;
+        DataGridView _marketDepthTable;
 
         private System.Windows.Controls.TextBox _textBoxLimitPrice;
 
         private System.Windows.Controls.TextBox _textBoxVolume;
 
-        /// <summary>
-        /// Last price selected by the user
-        /// последняя выбранная пользователем цена
-        /// </summary>
         private decimal _lastSelectPrice;
 
-        /// <summary>
-        /// Load controls into the connector
-        /// загрузить контролы в коннектор
-        /// </summary>
-        public void CreateGlass()
+        public void CreateMarketDepthControl()
         {
             try
             {
-                _glassBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                _marketDepthTable = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                     DataGridViewAutoSizeRowsMode.None);
-                _glassBox.AllowUserToResizeRows = false;
-                _glassBox.ScrollBars = ScrollBars.Vertical;
-                _glassBox.SelectionChanged += _glassBox_SelectionChanged;
+                _marketDepthTable.AllowUserToResizeRows = false;
+                _marketDepthTable.ScrollBars = ScrollBars.Vertical;
+                _marketDepthTable.SelectionChanged += _glassBox_SelectionChanged;
 
                 DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-                cell0.Style = _glassBox.DefaultCellStyle;
+                cell0.Style = _marketDepthTable.DefaultCellStyle;
 
                 DataGridViewColumn column0 = new DataGridViewColumn();
                 column0.CellTemplate = cell0;
@@ -165,7 +126,7 @@ namespace OsEngine.Entity
                 column0.ReadOnly = true;
                 column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-                _glassBox.Columns.Add(column0);
+                _marketDepthTable.Columns.Add(column0);
 
                 DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
                 DataGridViewColumn column = new DataGridViewColumn();
@@ -174,7 +135,7 @@ namespace OsEngine.Entity
                 column.ReadOnly = true;
                 column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-                _glassBox.Columns.Add(column);
+                _marketDepthTable.Columns.Add(column);
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
                 DataGridViewColumn column1 = new DataGridViewColumn();
@@ -183,7 +144,7 @@ namespace OsEngine.Entity
                 column1.ReadOnly = true;
                 column1.Width = 90;
 
-                _glassBox.Columns.Add(column1);
+                _marketDepthTable.Columns.Add(column1);
 
 
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
@@ -193,7 +154,7 @@ namespace OsEngine.Entity
                 column3.ReadOnly = true;
                 column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-                _glassBox.Columns.Add(column3);
+                _marketDepthTable.Columns.Add(column3);
 
                 DataGridViewCellStyle styleRed = new DataGridViewCellStyle();
                 styleRed.Alignment = DataGridViewContentAlignment.MiddleRight;
@@ -202,12 +163,12 @@ namespace OsEngine.Entity
 
                 for (int i = 0; i < 25; i++)
                 {
-                    _glassBox.Rows.Add(null, null, null);
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.BackColor = Color.FromArgb(28, 33, 37);
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.FromArgb(254, 84, 0);
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.Font = new Font("New Times Roman", 10);
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].Cells[0].Style = styleRed;
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].Cells[1].Style = styleRed;
+                    _marketDepthTable.Rows.Add(null, null, null);
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.BackColor = Color.FromArgb(28, 33, 37);
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.FromArgb(254, 84, 0);
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.Font = new Font("New Times Roman", 10);
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].Cells[0].Style = styleRed;
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].Cells[1].Style = styleRed;
                 }
 
                 DataGridViewCellStyle styleBlue = new DataGridViewCellStyle();
@@ -217,16 +178,16 @@ namespace OsEngine.Entity
 
                 for (int i = 0; i < 25; i++)
                 {
-                    _glassBox.Rows.Add(null, null, null);
+                    _marketDepthTable.Rows.Add(null, null, null);
                     //_glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Black;
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.FromArgb(57, 157, 54);
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.Font = new Font("New Times Roman", 10);
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].Cells[0].Style = styleBlue;
-                    _glassBox.Rows[_glassBox.Rows.Count - 1].Cells[1].Style = styleBlue;
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.FromArgb(57, 157, 54);
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.Font = new Font("New Times Roman", 10);
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].Cells[0].Style = styleBlue;
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].Cells[1].Style = styleBlue;
                 }
 
-                _glassBox.Rows[22].Cells[0].Selected = true;
-                _glassBox.Rows[22].Cells[0].Selected = false;
+                _marketDepthTable.Rows[22].Cells[0].Selected = true;
+                _marketDepthTable.Rows[22].Cells[0].Selected = false;
             }
             catch (Exception error)
             {
@@ -234,10 +195,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        ///  the text in the limit price field next to the glass has changed
-        /// изменился текст в поле лимитной цены рядом со стаканом
-        /// </summary>
         void _textBoxLimitPrice_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
@@ -262,32 +219,28 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// the user clicks on the glass
-        /// пользователь щёлкнул по стакану
-        /// </summary>
         void _glassBox_SelectionChanged(object sender, EventArgs e)
         {
             try
             {
-                if (_glassBox.InvokeRequired)
+                if (_marketDepthTable.InvokeRequired)
                 {
-                    _glassBox.Invoke(new Action<object, EventArgs>(_glassBox_SelectionChanged), sender, e);
+                    _marketDepthTable.Invoke(new Action<object, EventArgs>(_glassBox_SelectionChanged), sender, e);
                     return;
                 }
 
                 decimal price;
                 try
                 {
-                    if (_glassBox.CurrentCell == null ||
-                        _glassBox.Rows.Count == 0 ||
-                        _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells.Count < 2 ||
-                        _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells[2].Value == null)
+                    if (_marketDepthTable.CurrentCell == null ||
+                        _marketDepthTable.Rows.Count == 0 ||
+                        _marketDepthTable.Rows[_marketDepthTable.CurrentCell.RowIndex].Cells.Count < 2 ||
+                        _marketDepthTable.Rows[_marketDepthTable.CurrentCell.RowIndex].Cells[2].Value == null)
                     {
                         return;
                     }
   
-                    price = _glassBox.Rows[_glassBox.CurrentCell.RowIndex].Cells[2].Value.ToString().ToDecimal();
+                    price = _marketDepthTable.Rows[_marketDepthTable.CurrentCell.RowIndex].Cells[2].Value.ToString().ToDecimal();
                 }
                 catch (Exception)
                 {
@@ -298,7 +251,7 @@ namespace OsEngine.Entity
                 {
                     return;
                 }
-                if (_hostGlass != null)
+                if (_hostMd != null)
                 {
                     _lastSelectPrice = price;
                     if(_textBoxLimitPrice != null)
@@ -320,10 +273,6 @@ namespace OsEngine.Entity
 
         public event Action<decimal> UserClickOnMDAndSelectPriceEvent;
 
-        /// <summary>
-        /// to start drawing the connector elements
-        /// начать прорисовывать элементы коннектора
-        /// </summary>
         public void StartPaint(WindowsFormsHost glass, System.Windows.Controls.TextBox textBoxLimitPrice, System.Windows.Controls.TextBox textBoxVolume)
         {
             try
@@ -334,9 +283,9 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if(_glassBox == null)
+                if(_marketDepthTable == null)
                 {
-                    CreateGlass();
+                    CreateMarketDepthControl();
                     TryPaintMarketDepth();
                 }
 
@@ -363,11 +312,11 @@ namespace OsEngine.Entity
                     _textBoxLimitPrice.Text = Convert.ToDouble(_lastSelectPrice).ToString(new CultureInfo("RU-ru"));
                 }
 
-                _hostGlass = glass;
+                _hostMd = glass;
 
                 ProcessBidAsk(_bid, _ask);
-                _hostGlass.Child = _glassBox;
-                _hostGlass.Child.Refresh();
+                _hostMd.Child = _marketDepthTable;
+                _hostMd.Child.Refresh();
 
                 if(_lastMarketDepth != null)
                 {
@@ -384,21 +333,17 @@ namespace OsEngine.Entity
 
         private string _lastVolumeText; 
 
-        /// <summary>
-        /// Stop drawing connector elements
-        /// остановить прорисовывание элементов коннектора
-        /// </summary>
         public void StopPaint()
         {
             try
             {
-                if (_glassBox == null)
+                if (_marketDepthTable == null)
                 {
                     return;
                 }
-                if (_glassBox != null && _glassBox.InvokeRequired)
+                if (_marketDepthTable != null && _marketDepthTable.InvokeRequired)
                 {
-                    _glassBox.Invoke(new Action(StopPaint));
+                    _marketDepthTable.Invoke(new Action(StopPaint));
                     return;
                 }
 
@@ -415,19 +360,19 @@ namespace OsEngine.Entity
                     _textBoxVolume = null;
                 }
 
-                if (_hostGlass != null)
+                if (_hostMd != null)
                 {
-                    _hostGlass.Child = null;
-                    _hostGlass = null;
+                    _hostMd.Child = null;
+                    _hostMd = null;
                 }
 
-                if(_glassBox != null)
+                if(_marketDepthTable != null)
                 {
 
-                    _glassBox.SelectionChanged -= _glassBox_SelectionChanged;
-                    _glassBox.Rows.Clear();
-                    DataGridFactory.ClearLinks(_glassBox);
-                    _glassBox = null;
+                    _marketDepthTable.SelectionChanged -= _glassBox_SelectionChanged;
+                    _marketDepthTable.Rows.Clear();
+                    DataGridFactory.ClearLinks(_marketDepthTable);
+                    _marketDepthTable = null;
                 }
             }
             catch (Exception error)
@@ -435,21 +380,17 @@ namespace OsEngine.Entity
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // operation of the flow of drawing glasses
-        // работа потока прорисовывающего стаканы
 
-        /// <summary>
-        /// draw a glass
-        /// прорисовать стакан
-        /// </summary>
+        // operation of the flow of drawing market depths
+
         private void TryPaintMarketDepth()
         {
-            if (_hostGlass == null)
+            if (_hostMd == null)
             {
                 return;
             }
 
-            if(_glassBox == null)
+            if(_marketDepthTable == null)
             {
                 return;
             }
@@ -472,48 +413,32 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// penultimate cup
-        /// предпоследний стакан
-        /// </summary>
         private MarketDepth _lastMarketDepth;
 
         private DateTime _lastMdTimeEntry;
 
-        /// <summary>
-        ///  current cup
-        /// текущий стакан
-        /// </summary>
         private MarketDepth _currentMaretDepth;
 
-        /// <summary>
-        /// to send a glass to draw
-        /// отправить стакан на прорисовку
-        /// </summary>
         public void ProcessMarketDepth(MarketDepth depth)
         {
             _currentMaretDepth = depth;
             _lastMdTimeEntry = DateTime.Now;
         }
 
-        /// <summary>
-        /// draw a glass
-        /// прорисовать стакан
-        /// </summary>
         private void PaintMarketDepth(MarketDepth depth)
         {
             try
             {
                 _lastMarketDepth = depth;
 
-                if (_hostGlass == null || depth == null)
+                if (_hostMd == null || depth == null)
                 {
                     return;
                 }
 
-                if (_glassBox.InvokeRequired)
+                if (_marketDepthTable.InvokeRequired)
                 {
-                    _glassBox.Invoke(new Action<MarketDepth>(PaintMarketDepth), depth);
+                    _marketDepthTable.Invoke(new Action<MarketDepth>(PaintMarketDepth), depth);
                     return;
                 }
 
@@ -533,20 +458,20 @@ namespace OsEngine.Entity
                 {
                     if (i < depth.Bids.Count)
                     {
-                        _glassBox.Rows[25 + i].Cells[2].Value = depth.Bids[i].Price.ToStringWithNoEndZero();
-                        _glassBox.Rows[25 + i].Cells[3].Value = depth.Bids[i].Bid.ToStringWithNoEndZero();
+                        _marketDepthTable.Rows[25 + i].Cells[2].Value = depth.Bids[i].Price.ToStringWithNoEndZero();
+                        _marketDepthTable.Rows[25 + i].Cells[3].Value = depth.Bids[i].Bid.ToStringWithNoEndZero();
                         if (depth.Bids[i].Bid > maxVol)
                         {
                             maxVol = depth.Bids[i].Bid;
                         }
                         allAsk += depth.Bids[i].Bid;
                     }
-                    else if (_glassBox.Rows[25 + i].Cells[2].Value != null)
+                    else if (_marketDepthTable.Rows[25 + i].Cells[2].Value != null)
                     {
-                        _glassBox.Rows[25 + i].Cells[0].Value = null;
-                        _glassBox.Rows[25 + i].Cells[1].Value = null;
-                        _glassBox.Rows[25 + i].Cells[2].Value = null;
-                        _glassBox.Rows[25 + i].Cells[3].Value = null;
+                        _marketDepthTable.Rows[25 + i].Cells[0].Value = null;
+                        _marketDepthTable.Rows[25 + i].Cells[1].Value = null;
+                        _marketDepthTable.Rows[25 + i].Cells[2].Value = null;
+                        _marketDepthTable.Rows[25 + i].Cells[3].Value = null;
                     }
                 }
 
@@ -555,8 +480,8 @@ namespace OsEngine.Entity
                 {
                     if (i < depth.Asks.Count)
                     {
-                        _glassBox.Rows[24 - i].Cells[2].Value = depth.Asks[i].Price.ToStringWithNoEndZero();
-                        _glassBox.Rows[24 - i].Cells[3].Value = depth.Asks[i].Ask.ToStringWithNoEndZero();
+                        _marketDepthTable.Rows[24 - i].Cells[2].Value = depth.Asks[i].Price.ToStringWithNoEndZero();
+                        _marketDepthTable.Rows[24 - i].Cells[3].Value = depth.Asks[i].Ask.ToStringWithNoEndZero();
 
                         if (depth.Asks[i].Ask > maxVol)
                         {
@@ -565,12 +490,12 @@ namespace OsEngine.Entity
 
                         allBid += depth.Asks[i].Ask;
                     }
-                    else if (_glassBox.Rows[24 - i].Cells[2].Value != null)
+                    else if (_marketDepthTable.Rows[24 - i].Cells[2].Value != null)
                     {
-                        _glassBox.Rows[24 - i].Cells[2].Value = null;
-                        _glassBox.Rows[24 - i].Cells[3].Value = null;
-                        _glassBox.Rows[24 - i].Cells[0].Value = null;
-                        _glassBox.Rows[24 - i].Cells[1].Value = null;
+                        _marketDepthTable.Rows[24 - i].Cells[2].Value = null;
+                        _marketDepthTable.Rows[24 - i].Cells[3].Value = null;
+                        _marketDepthTable.Rows[24 - i].Cells[0].Value = null;
+                        _marketDepthTable.Rows[24 - i].Cells[1].Value = null;
                     }
                 }
                 // volume in sticks for ask
@@ -590,7 +515,7 @@ namespace OsEngine.Entity
                         builder.Append('|');
                     }
 
-                    _glassBox.Rows[25 + i].Cells[1].Value = builder;
+                    _marketDepthTable.Rows[25 + i].Cells[1].Value = builder;
 
                 }
                 // volume in bid sticks
@@ -611,7 +536,7 @@ namespace OsEngine.Entity
                         builder.Append('|');
                     }
 
-                    _glassBox.Rows[24 - i].Cells[1].Value = builder;
+                    _marketDepthTable.Rows[24 - i].Cells[1].Value = builder;
                 }
 
                 decimal maxSeries;
@@ -644,7 +569,7 @@ namespace OsEngine.Entity
                         builder.Append('|');
                     }
 
-                    _glassBox.Rows[25 + i].Cells[0].Value = builder;
+                    _marketDepthTable.Rows[25 + i].Cells[0].Value = builder;
 
                 }
                 // volume is cumulative for bids
@@ -667,7 +592,7 @@ namespace OsEngine.Entity
                         builder.Append('|');
                     }
 
-                    _glassBox.Rows[24 - i].Cells[0].Value = builder;
+                    _marketDepthTable.Rows[24 - i].Cells[0].Value = builder;
 
                 }
                 // _glassBox.Refresh();
@@ -682,78 +607,70 @@ namespace OsEngine.Entity
 
         private decimal _ask;
 
-        /// <summary>
-        /// send Bid with Ask for drawing
-        /// отправить Бид с Аском на прорисовку
-        /// </summary>
         public void ProcessBidAsk(decimal bid, decimal ask)
         {
             _bid = bid;
             _ask = ask;
         }
 
-        /// <summary>
-        /// draw the bid with ask in the glass
-        /// прорисовать бид с аском в стакане
-        /// </summary>
         private void PaintBidAsk(decimal bid, decimal ask)
         {
             try
             {
-                if (_hostGlass == null)
+                if (_hostMd == null)
                 {
                     return;
                 }
-                if (_glassBox.InvokeRequired)
+                if (_marketDepthTable.InvokeRequired)
                 {
-                    _glassBox.Invoke(new Action<decimal, decimal>(PaintBidAsk), bid, ask);
+                    _marketDepthTable.Invoke(new Action<decimal, decimal>(PaintBidAsk), bid, ask);
                     return;
                 }
 
                 if (ask != 0 && bid != 0)
                 {
-                    _glassBox.Rows[25].Cells[2].Value = bid.ToStringWithNoEndZero();
-                    _glassBox.Rows[24].Cells[2].Value = ask.ToStringWithNoEndZero();
+                    _marketDepthTable.Rows[25].Cells[2].Value = bid.ToStringWithNoEndZero();
+                    _marketDepthTable.Rows[24].Cells[2].Value = ask.ToStringWithNoEndZero();
                 }
 
-                if (_glassBox.Rows[26].Cells[2].Value != null ||
-                         _glassBox.Rows[23].Cells[2].Value != null)
+                if (_marketDepthTable.Rows[26].Cells[2].Value != null ||
+                         _marketDepthTable.Rows[23].Cells[2].Value != null)
                 {
                     if(_lastMdTimeEntry.AddSeconds(5) < DateTime.Now)
                     {
                         for (int i = 0; i < 25; i++)
                         {
                             if(i == 0 &&
-                                _glassBox.Rows[25].Cells[1].Value != null)
+                                _marketDepthTable.Rows[25].Cells[1].Value != null)
                             {
-                                _glassBox.Rows[25].Cells[0].Value = null;
-                                _glassBox.Rows[25].Cells[1].Value = null;
-                                _glassBox.Rows[25].Cells[3].Value = null;
+                                _marketDepthTable.Rows[25].Cells[0].Value = null;
+                                _marketDepthTable.Rows[25].Cells[1].Value = null;
+                                _marketDepthTable.Rows[25].Cells[3].Value = null;
                             }
-                            else if (_glassBox.Rows[25 + i].Cells[2].Value != null)
+                            else if (_marketDepthTable.Rows[25 + i].Cells[2].Value != null)
                             {
-                                _glassBox.Rows[25 + i].Cells[0].Value = null;
-                                _glassBox.Rows[25 + i].Cells[1].Value = null;
-                                _glassBox.Rows[25 + i].Cells[2].Value = null;
-                                _glassBox.Rows[25 + i].Cells[3].Value = null;
+                                _marketDepthTable.Rows[25 + i].Cells[0].Value = null;
+                                _marketDepthTable.Rows[25 + i].Cells[1].Value = null;
+                                _marketDepthTable.Rows[25 + i].Cells[2].Value = null;
+                                _marketDepthTable.Rows[25 + i].Cells[3].Value = null;
                             }
                         }
 
                         for (int i = 0; i < 25; i++)
                         {
                             if (i == 0 &&
-                                _glassBox.Rows[24].Cells[1].Value != null)
+                                _marketDepthTable.Rows[24].Cells[1].Value != null)
                             {
-                                _glassBox.Rows[24].Cells[0].Value = null;
-                                _glassBox.Rows[24].Cells[1].Value = null;
-                                _glassBox.Rows[24].Cells[3].Value = null;
+                                _marketDepthTable.Rows[24].Cells[0].Value = null;
+                                _marketDepthTable.Rows[24].Cells[1].Value = null;
+                                _marketDepthTable.Rows[24].Cells[3].Value = null;
                             }
-                            else if (_glassBox.Rows[24 - i].Cells[2].Value != null)
+                            else if (_marketDepthTable.Rows[24 - i].Cells[2].Value != null)
                             {
-                                _glassBox.Rows[24 - i].Cells[2].Value = null;
-                                _glassBox.Rows[24 - i].Cells[3].Value = null;
-                                _glassBox.Rows[24 - i].Cells[0].Value = null;
-                                _glassBox.Rows[24 - i].Cells[1].Value = null;
+                                _marketDepthTable.Rows[24 - i].Cells[2].Value = null;
+                                _marketDepthTable.Rows[24 - i].Cells[3].Value = null;
+                                _marketDepthTable.Rows[24 - i].Cells[0].Value = null;
+                                _marketDepthTable.Rows[24 - i].Cells[1].Value = null;
                             }
 
                         }
@@ -770,13 +687,9 @@ namespace OsEngine.Entity
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // messages to log
-        // сообщения в лог 
 
-        /// <summary>
-        /// send a new message to the top
-        /// выслать новое сообщение на верх
-        /// </summary>
+        // messages to log
+
         private void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -791,10 +704,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// outgoing message for log
-        /// исходящее сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }

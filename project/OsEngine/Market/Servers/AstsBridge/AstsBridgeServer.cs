@@ -63,7 +63,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
             _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
             _bidAskToSend = new ConcurrentQueue<BidAskSender>();
-            _levelOneToSend = new ConcurrentQueue<SecurityLevelOne>();
+            _levelOneToSend = new ConcurrentQueue<SecurityLevelOneAsts>();
             _tradesTableToSend = new ConcurrentQueue<List<Trade>>();
 
             if (neadToLoadTicks)
@@ -683,7 +683,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// queue of updates of leve1-data on instruments
         /// очередь обновлений level 1 по инструментам 
         /// </summary>
-        private ConcurrentQueue<SecurityLevelOne> _levelOneToSend;
+        private ConcurrentQueue<SecurityLevelOneAsts> _levelOneToSend;
 
         /// <summary>
         /// queue of updates of all trades table on instruments
@@ -830,7 +830,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     }
                     else if (!_levelOneToSend.IsEmpty)
                     {
-                        SecurityLevelOne levelOne;
+                        SecurityLevelOneAsts levelOne;
 
                         if (_levelOneToSend.TryDequeue(out levelOne))
                         {
@@ -1068,7 +1068,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
         }
 
-        private void LevelOneUpdateEvent(SecurityLevelOne levelOne)
+        private void LevelOneUpdateEvent(SecurityLevelOneAsts levelOne)
         {
             _levelOneToSend.Enqueue(levelOne);
         }
@@ -1083,7 +1083,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// instrument Level 1 changed
         /// Level 1 по бумаге изменился
         /// </summary>
-        public event Action<SecurityLevelOne> SecurityLevelOneChange;
+        public event Action<SecurityLevelOneAsts> SecurityLevelOneChange;
 
         /// <summary>
         /// show instruments

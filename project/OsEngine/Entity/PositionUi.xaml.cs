@@ -3,32 +3,23 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System.Drawing;
 using System.Windows.Forms;
 using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
-
 
 namespace OsEngine.Entity
 {
-    /// <summary>
-    /// View additional information about the positiong in the window
-    /// Окно просмотра дополнительной информации по позиции
-    /// </summary>
     public partial class PositionUi
     {
         /// <summary>
         /// position
-        /// позиция
         /// </summary>
         private Position _position;
 
         /// <summary>
         /// constructor
-        /// конструктор
         /// </summary>
         public PositionUi(Position position, StartProgram startProgram)
         {

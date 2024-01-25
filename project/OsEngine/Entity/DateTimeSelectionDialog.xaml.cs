@@ -9,9 +9,6 @@ using OsEngine.Language;
 
 namespace OsEngine.Entity
 {
-    /// <summary>
-    /// Логика взаимодействия для DateTimeSelectionDialog.xaml
-    /// </summary>
     public partial class DateTimeSelectionDialog : Window
     {
         public DateTimeSelectionDialog(DateTime initTime)

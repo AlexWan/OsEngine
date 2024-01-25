@@ -86,8 +86,8 @@ namespace OsEngine.Entity
                 File.Delete(@"Engine\" + _name + @"HorizontalVolumeSet.txt");
             }
         }
+
         // cluster calculation
-        // расчёт кластеров
 
         /// <summary>
         /// compute the clusters
@@ -344,7 +344,6 @@ namespace OsEngine.Entity
         private Security _security;
 
         // Data storage
-        // хранение данных
 
         /// <summary>
         /// volume clusters
@@ -417,8 +416,8 @@ namespace OsEngine.Entity
         /// столбец объёма с минимальной ценой
         /// </summary>
         public HorizontalVolumeCluster MinPriceCluster;
+
         // data access methods
-        // методы доступа к данным
 
         /// <summary>
         /// find cluster with maximum volume
@@ -549,8 +548,8 @@ namespace OsEngine.Entity
 
             return cluster;
         }
+
         // outgoing events
-        // исходящие события
 
         /// <summary>
         /// the cluster has changed with the maximum total volume
@@ -647,8 +646,8 @@ namespace OsEngine.Entity
         /// изменилась линия объёма  минимальным сумарным объёмом по дельте (покупки - продажи)
         /// </summary>
         public event Action<HorizontalVolumeLine> MinDeltaLineChangeEvent;
+
         // logging
-        // логирование
 
         /// <summary>
         /// send a new message to the top
@@ -717,6 +716,8 @@ namespace OsEngine.Entity
         /// количество знаков после запятой
         /// </summary>
         public int Decimals;
+
+        // Data storage
 
         /// <summary>
         /// horizontal volume lines. 0 - with a minimum price
@@ -933,8 +934,8 @@ namespace OsEngine.Entity
         /// номер кластера в хранилище горизонтальных объёмов
         /// </summary>
         public int NumCluster;
+
         // calculation of volumes
-        // расчёт объёмов
 
         /// <summary>
         /// multi-threaded trade array blocker for updating
@@ -1155,8 +1156,8 @@ namespace OsEngine.Entity
               
             }
         }
+
         // outgoing events
-        // исходящие события
 
         public event Action<HorizontalVolumeLine> NewLineCreateEvent;
 
@@ -1207,8 +1208,8 @@ namespace OsEngine.Entity
         /// изменилась линия объёма  минимальным сумарным объёмом по дельте (покупки - продажи)
         /// </summary>
         public event Action<HorizontalVolumeLine> MinDeltaLineChangeEvent;
+
         // logging
-        // логирование
 
         /// <summary>
         /// send a new message to the top

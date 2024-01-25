@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Forms;
@@ -9,6 +14,9 @@ namespace OsEngine.Entity
     {
         private static CultureInfo _culture = CultureInfo.GetCultureInfo("ru-RU");
 
+        /// <summary>
+        /// remove dangerous characters from the name of the security
+        /// </summary>
         public static string RemoveExcessFromSecurityName(this string value)
         {
             if (value == null)
@@ -32,6 +40,9 @@ namespace OsEngine.Entity
 
         }
 
+        /// <summary>
+        /// whether the string includes dangerous symbols.
+        /// </summary>
         public static bool HaveExcessInString(this string value)
         {
             if (value == null)
@@ -57,6 +68,9 @@ namespace OsEngine.Entity
             return false;
         }
 
+        /// <summary>
+        /// culture-neutral conversion of string to Decimal type
+        /// </summary>
         public static decimal ToDecimal(this string value)
         {
             if(value == null)
@@ -79,6 +93,9 @@ namespace OsEngine.Entity
             }
         }
 
+        /// <summary>
+        /// culture-neutral conversion of string to Double type
+        /// </summary>
         public static double ToDouble(this string value)
         {
             return Convert.ToDouble(value.Replace(",",
@@ -86,6 +103,9 @@ namespace OsEngine.Entity
                 CultureInfo.InvariantCulture);
         }
 
+        /// <summary>
+        /// remove zeros from the decimal value at the end
+        /// </summary>
         public static string ToStringWithNoEndZero(this decimal value)
         {
             string result = value.ToString(_culture);
@@ -103,6 +123,9 @@ namespace OsEngine.Entity
             return result;
         }
 
+        /// <summary>
+        /// remove zeros from the double value at the end
+        /// </summary>
         public static string ToStringWithNoEndZero(this double value)
         {
             string result = value.ToString(_culture);
@@ -120,6 +143,9 @@ namespace OsEngine.Entity
             return result;
         }
 
+        /// <summary>
+        /// get decimal point from double ro decimal values
+        /// </summary>
         public static int DecimalsCount(this string value)
         {
             value = value.Replace(",", ".");
@@ -139,9 +165,10 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// get scale accuracy based on the number of decimal places / 
         /// получить точность шкалы на основании количества знаков после запятой
         /// </summary>
-        /// <param name="value">количество знаков после запятой</param>
+        /// <param name="value">decimal point / количество знаков после запятой</param>
         public static decimal GetValueByDecimals(this int value)
         {
             switch (value)
@@ -173,6 +200,9 @@ namespace OsEngine.Entity
             }
         }
 
+        /// <summary>
+        /// merge two candlestick data arrays
+        /// </summary>
         public static List<Candle> Merge(this List<Candle> oldCandles, List<Candle> candlesToMerge)
         {
             if (candlesToMerge == null ||
@@ -276,6 +306,9 @@ namespace OsEngine.Entity
             return newCandles;
         }
 
+        /// <summary>
+        /// merge two trades data arrays
+        /// </summary>
         public static List<Trade> Merge(this List<Trade> oldTrades, List<Trade> tradesToMerge)
         {
             if (tradesToMerge == null ||
@@ -379,6 +412,9 @@ namespace OsEngine.Entity
             return newTrades;
         }
 
+        /// <summary>
+        /// merge the candle with the updated version of itself
+        /// </summary>
         public static Candle Merge(this Candle oldCandle, Candle candleToMerge)
         {
             Candle res = new Candle();
@@ -411,6 +447,9 @@ namespace OsEngine.Entity
             return res;
         }
 
+        /// <summary>
+        /// convert a row in a table to a string representation
+        /// </summary>
         public static string ToFormatString(this DataGridViewRow row)
         {
             string result = "";

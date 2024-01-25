@@ -1631,7 +1631,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// Level1 was changed in the security
         /// Level один изменился у бумаги
         /// </summary>
-        void _tableSecurity_SecurityMoexUpdateEvent(SecurityLevelOne securityMoex)
+        void _tableSecurity_SecurityMoexUpdateEvent(SecurityLevelOneAsts securityMoex)
         {
             if (SecurityMoexUpdateEvent != null)
             {
@@ -1811,7 +1811,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// updated security in exchange format
         /// обновились бумаги в формате биржи
         /// </summary>
-        public event Action<SecurityLevelOne> SecurityMoexUpdateEvent;
+        public event Action<SecurityLevelOneAsts> SecurityMoexUpdateEvent;
 
         // logging / логирование
 
@@ -3130,7 +3130,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// securities as Level 1
         /// бумаги в виде Level один
         /// </summary>
-        public List<SecurityLevelOne> MySecurityMoex;
+        public List<SecurityLevelOneAsts> MySecurityMoex;
 
         /// <summary>
         /// securities in Os.Engine format
@@ -3244,14 +3244,14 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                 if (MySecurityMoex == null)
                 {
-                    MySecurityMoex = new List<SecurityLevelOne>();
+                    MySecurityMoex = new List<SecurityLevelOneAsts>();
                 }
 
-                SecurityLevelOne mySecurityMoex = MySecurityMoex.Find(m => m.Security.Name == mySecurity.Name && m.Security.NameClass == mySecurity.NameClass);
+                SecurityLevelOneAsts mySecurityMoex = MySecurityMoex.Find(m => m.Security.Name == mySecurity.Name && m.Security.NameClass == mySecurity.NameClass);
 
                 if (mySecurityMoex == null)
                 {
-                    mySecurityMoex = new SecurityLevelOne();
+                    mySecurityMoex = new SecurityLevelOneAsts();
                     mySecurityMoex.Security = mySecurity;
                     MySecurityMoex.Add(mySecurityMoex);
                 }
@@ -3398,7 +3398,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// updated instruments in format Level 1
         /// обновились инструменты в формате Level 1
         /// </summary>
-        public event Action<SecurityLevelOne> SecurityMoexUpdateEvent;
+        public event Action<SecurityLevelOneAsts> SecurityMoexUpdateEvent;
     }
 
     /// <summary>

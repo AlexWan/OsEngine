@@ -10,7 +10,6 @@ namespace OsEngine.Entity
 {
     /// <summary>
     /// an object encapsulating data for opening a Stop transaction. OpenAtStop
-    /// объект инкапсулирующий данные для открытия сделки по Стопу. OpenAtStop
     /// </summary>
     public class PositionOpenerToStopLimit
     {
@@ -29,39 +28,33 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// order price
-        /// цена выставляемого ордера
         /// </summary>
         public decimal PriceOrder;
 
         /// <summary>
         /// the price of the line that we look at the breakdown
-        /// цена линии которую смотрим на пробой
         /// </summary>
         public decimal PriceRedLine;
 
         /// <summary>
-        /// price from which we look at the breakdown
-        /// цена от которой смотрим пробой
+        /// side of price breakdown for order activation
         /// </summary>
         public StopActivateType ActivateType;
 
         /// <summary>
         /// volume for opening a position
-        /// объём для открытия позиции
         /// </summary>
         public decimal Volume;
 
         /// <summary>
         /// side of the position being opened
-        /// сторона открываемой позиции
         /// </summary>
         public Side Side;
 
         private int _expiresBars;
 
         /// <summary>
-        /// Order Lifetime in Bars
-        /// Время жизни ордера в барах
+        /// order lifetime in bars (candle count)
         /// </summary>
         public int ExpiresBars
         {
@@ -70,8 +63,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// The bar number at which the order was created
-        /// Номер бара при котором был создан ордер
+        /// the bar (candle) number at which the order was created
         /// </summary>
         private int _orderCreateBarNumber;
 
@@ -82,17 +74,17 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// последнее время свечке при отсечке 
+        /// last candle time when checking the order life
         /// </summary>
         public DateTime LastCandleTime;
 
         /// <summary>
-        /// тип сигнала на открытие
+        /// type of opening signal to be written to the position
         /// </summary>
         public string SignalType;
 
         /// <summary>
-        /// время создания приказа
+        /// time of order creation
         /// </summary>
         public DateTime TimeCreate;
 
@@ -142,21 +134,18 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
-    /// activation type stop order / 
-    /// тип активации стоп приказа
+    /// side of price breakdown for activation stop-opening order
     /// </summary>
     public enum StopActivateType
     {
 
         /// <summary>
         /// activate when the price is higher or equal
-        /// активировать когда цена будет выше или равно
         /// </summary>
         HigherOrEqual,
 
         /// <summary>
-        /// activate when the price is lower or equal / 
-        /// активировать когда цена будет ниже или равно
+        /// activate when the price is lower or equal 
         /// </summary>
         LowerOrEqyal
     }

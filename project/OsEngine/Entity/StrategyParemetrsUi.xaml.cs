@@ -13,10 +13,6 @@ using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.Entity
 {
-    /// <summary>
-    /// Interaction logic for ParemetrsUi.xaml
-    /// Логика взаимодействия для ParemetrsUi.xaml
-    /// </summary>
     public partial class ParemetrsUi
     {
         private List<IIStrategyParameter> _parameters;
@@ -406,9 +402,8 @@ namespace OsEngine.Entity
                 string[] array = new[] { "", _grid.Rows[index].Cells[1].EditedFormattedValue.ToString() };
                 param.LoadParamFromString(array);
             }
-            catch (Exception exception)
+            catch
             {
-
                 _grid.Rows[index].Cells[1].Value = ((StrategyParameterTimeOfDay)_parameters[index]).Value.ToString();
             }
         }

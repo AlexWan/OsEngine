@@ -1,50 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
 
 namespace OsEngine.Entity
 {
     /// <summary>
-    /// what program start the class
-    /// какая программа запустила класс
+    /// what program start the object
     /// </summary>
     public enum StartProgram
     {
         /// <summary>
         /// tester
-        /// тестер
         /// </summary>
         IsTester,
 
         /// <summary>
         /// optimizator
-        /// оптимизатор
         /// </summary>
         IsOsOptimizer,
 
         /// <summary>
-        /// data downloading
-        /// качалка данных
+        /// data downloader
         /// </summary>
         IsOsData,
 
         /// <summary>
-        /// terminal
-        /// терминал
+        /// trade terminal
         /// </summary>
         IsOsTrader,
 
         /// <summary>
         /// ticks to candles converter
-        /// конвертер тиков в свечи
         /// </summary>
         IsOsConverter,
 
         /// <summary>
         /// pattern miner
-        /// майнер паттернов
         /// </summary>
         IsOsMiner
     }

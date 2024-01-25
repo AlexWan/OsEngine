@@ -395,7 +395,7 @@
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\SecurityLevelOne.cs" />
+    <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
     <Compile Include="Entity\TimeFrameBuilder.cs" />

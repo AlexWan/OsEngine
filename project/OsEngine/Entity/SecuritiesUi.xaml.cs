@@ -12,14 +12,12 @@ using OsEngine.Market.Servers;
 namespace OsEngine.Entity
 {
     /// <summary>
-    /// Server Paper Settings window
-    /// Окно настроек бумаг сервера
+    /// server securities settings window
     /// </summary>
     public partial class SecuritiesUi
     {
         /// <summary>
-        /// the server that owns the papers
-        /// сервер которому принадлежат бумаги
+        /// the server that owns the securities
         /// </summary>
         private IServer _server;
 
@@ -40,14 +38,12 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// spreadsheet for drawing papers
-        /// таблица для прорисовки бумаг
+        /// spreadsheet for drawing securities
         /// </summary>
         private DataGridView _grid;
 
         /// <summary>
         /// create a table of securities
-        /// создать таблицу бумаг
         /// </summary>
         private void CreateTable()
         {
@@ -62,7 +58,6 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// changed value in the table
-        /// изменилось значение в таблице
         /// </summary>
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
@@ -71,19 +66,15 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// securities has changed in the server
-        /// в сервере изменились бумаги
         /// </summary>
-        /// <param name="securities">securities/бумаги</param>
         private void _server_SecuritiesChangeEvent(List<Security> securities)
         {
             PaintSecurities(securities);
         }
 
         /// <summary>
-        /// draw paper on the chart
-        /// прорисовать бумаги на графике
+        /// draw securities on the chart
         /// </summary>
-        /// <param name="securities">securities/бумаги</param>
         private void PaintSecurities(List<Security> securities)
         {
             if(securities == null)
@@ -139,8 +130,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// save paper from table
-        /// сохранить бумаги из таблицы
+        /// save securities from table
         /// </summary>
         private void SaveFromTable()
         {
