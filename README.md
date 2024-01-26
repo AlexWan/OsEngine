@@ -87,6 +87,8 @@ Until August 2023, the project was distributed under the Apache 2 licence. Since
 
 [Сайт разработчиков](http://o-s-a.net)
 
+[FAQ. Огромный гайд по работе с проектом из более чем 170 постов](https://o-s-a.net/os-engine-faq)
+
 ![default](https://user-images.githubusercontent.com/26077466/243121761-25fe883f-d567-4ed0-bdd6-7f28c7ff667b.jpg)
 
 В него входят:
