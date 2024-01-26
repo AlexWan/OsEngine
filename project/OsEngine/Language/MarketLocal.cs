@@ -551,7 +551,7 @@ namespace OsEngine.Language
             "Ru:Соединение разорвано_");
 
         public string Message13 => OsLocalization.ConvertToLocString(
-            "Eng:In incoming papers, missing NameId_" +
+            "Eng:In incoming securities, missing NameId_" +
             "Ru:Во входящих бумагах, отсутствуют NameId_");
 
         public string Message14 => OsLocalization.ConvertToLocString(
@@ -919,6 +919,10 @@ namespace OsEngine.Language
         public string Message97 => OsLocalization.ConvertToLocString(
             "Eng: Testing cannot be started because there is a procedure for connecting securities to the trading _" +
             "Ru: Тестирование не может быть начато, т.к. идёт процедура подключения бумаг в торги_");
+
+        public string Message98 => OsLocalization.ConvertToLocString(
+           "Eng:In incoming securities, missing Name_" +
+           "Ru:Во входящих бумагах, отсутствуют Name_");
 
         public string TitleTester => OsLocalization.ConvertToLocString(
             "Eng:Exchange emulator_" +

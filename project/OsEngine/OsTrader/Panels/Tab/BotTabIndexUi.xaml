@@ -9,13 +9,25 @@
         </LinearGradientBrush>
     </Window.Background>
     <Grid Margin="0,0,0,-2">
-        <Rectangle Name="Rectangle" Fill="#FF17171B" Margin="5,5,5,32" Stroke="Black" StrokeThickness="0"/>
-        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,5" Height="22" FontSize="14" FontFamily="Calibri" Click="ButtonAccept_Click"  VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="150"/>
-        <Button Name="ButtonSecurity1" Content="+"  Height="59" FontSize="14" FontFamily="Calibri" Margin="0,33,10,0" VerticalAlignment="Top" Click="ButtonAddSecurity_Click" HorizontalAlignment="Right" Width="52"/>
-        <RepeatButton Name="ButtonSecurity2" Content="-" Height="59" FontSize="14" FontFamily="Calibri" Margin="0,106,10,0" VerticalAlignment="Top" Delay="1000" Interval="10" Click="RepeatButtonDeleteSecurity_Click" HorizontalAlignment="Right" Width="52"/>
-        <WindowsFormsHost Name="HostSecurity1" Margin="11,11,66,76" />
-        <TextBox Name="TextboxUserFormula"  Margin="10,0,10,36" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Height="37"/>
-        <Button Name="ButtonClearAllSecurities" Content="Clear all securities" HorizontalAlignment="Left" Margin="5,0,0,5" VerticalAlignment="Bottom" Width="160" Height="22" Click="ButtonClearAllSecurities_Click"/>
+
+        <TabControl>
+            <TabItem Name="TabControlItem1" Header="Base settings">
+                <Grid >
+                    <WindowsFormsHost x:Name="HostSecurity1" Margin="10,0,75,75" />
+                    <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,5" Height="22" FontSize="14" FontFamily="Calibri" Click="ButtonAccept_Click"  VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="150"/>
+                    <Button Name="ButtonSecurity1" Content="+"  Height="59" FontSize="14" FontFamily="Calibri" Margin="0,33,10,0" VerticalAlignment="Top" Click="ButtonAddSecurity_Click" HorizontalAlignment="Right" Width="52"/>
+                    <RepeatButton Name="ButtonSecurity2" Content="-" Height="59" FontSize="14" FontFamily="Calibri" Margin="0,106,10,0" VerticalAlignment="Top" Delay="1000" Interval="10" Click="RepeatButtonDeleteSecurity_Click" HorizontalAlignment="Right" Width="52"/>
+                    <TextBox Name="TextboxUserFormula"  Margin="10,0,10,36" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Height="37"/>
+                    <Button Name="ButtonClearAllSecurities" Content="Clear all securities" HorizontalAlignment="Left" Margin="5,0,0,5" VerticalAlignment="Bottom" Width="160" Height="22" Click="ButtonClearAllSecurities_Click"/>
+
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabControlItem2" Header="Auto-formula">
+                <Grid />
+                
+                
+            </TabItem>
+        </TabControl>
 
     </Grid>
 </Window>

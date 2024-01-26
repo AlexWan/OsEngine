@@ -17,13 +17,15 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
     /// <summary>
-    /// Tab - spread of candlestick data in the form of a candlestick chart
+    /// Tab - spread (or index) of candlestick data
     /// </summary>
     public class BotTabIndex : IIBotTab
     {
@@ -38,6 +40,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster = new ChartCandleMaster(TabName, _startProgram);
 
             Load();
+
+            _autoFormulaBuilder = new IndexFormulaBuilder(this, TabName, _startProgram);
         }
 
         /// <summary>
@@ -102,6 +106,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void Delete()
         {
             _chartMaster.Delete();
+            _chartMaster = null;
 
             if (File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
             {
@@ -112,6 +117,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 Tabs[i].Delete();
             }
+
+            _autoFormulaBuilder.Delete();
+            _autoFormulaBuilder = null;
 
             if (TabDeletedEvent != null)
             {
@@ -519,10 +527,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region Formula calculation
+        #region Formula
+
+        IndexFormulaBuilder _autoFormulaBuilder;
 
         /// <summary>
-        /// Formula
+        /// formula
         /// </summary>
         public string UserFormula
         {
@@ -549,7 +559,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 string nameArray = Calculate(ConvertedFormula);
 
-                if (_valuesToFormula != null && !string.IsNullOrWhiteSpace(nameArray))
+                if (_valuesToFormula != null 
+                    && !string.IsNullOrWhiteSpace(nameArray))
                 {
                     ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
 
@@ -569,25 +580,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private string _userFormula;
 
-
-        #endregion
-
-        #region Index calculation
-
         /// <summary>
-        /// spread candles
-        /// </summary>
-        public List<Candle> Candles;
-
-        /// <summary>
-        /// Formula reduced to program format
+        /// formula reduced to program format
         /// </summary>
         public string ConvertedFormula;
-
-        /// <summary>
-        /// Array of objects for storing intermediate arrays of candles
-        /// </summary>
-        private List<ValueSave> _valuesToFormula;
 
         /// <summary>
         /// Check the formula for errors and lead to the appearance of the program
@@ -643,6 +639,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             return formula;
         }
+
+        #endregion
+
+        #region Index calculation
+
+        /// <summary>
+        /// spread candles
+        /// </summary>
+        public List<Candle> Candles;
+
+        /// <summary>
+        /// Array of objects for storing intermediate arrays of candles
+        /// </summary>
+        private List<ValueSave> _valuesToFormula;
 
         /// <summary>
         /// Recalculate an arra
@@ -1559,11 +1569,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             for (int i = 0; i < Tabs.Count; i++)
             {
                 List<Candle> myCandles = Tabs[i].Candles(true);
+
                 if (myCandles[myCandles.Count - 1].TimeStart != time)
                 {
                     return;
                 }
             }
+
+            _autoFormulaBuilder.TryRebuidFormula(time);
+
             // loop to collect all the candles in one array
 
             if (string.IsNullOrWhiteSpace(ConvertedFormula))
@@ -1678,6 +1692,677 @@ namespace OsEngine.OsTrader.Panels.Tab
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+    }
+
+    public class IndexFormulaBuilder
+    {
+        public IndexFormulaBuilder(BotTabIndex tabIndex, 
+            string botUniqName, StartProgram startProgram)
+        {
+            _index = tabIndex;
+            _botUniqName = botUniqName;
+            _startProgram = startProgram;
+
+            Load();
+        }
+
+        private string _botUniqName;
+
+        private StartProgram _startProgram;
+
+        private BotTabIndex _index;
+
+        private void Load()
+        {
+            if (_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            if (!File.Exists(@"Engine\" + _botUniqName + @"IndexAutoFormulaSettings.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + _botUniqName + @"IndexAutoFormulaSettings.txt"))
+                {
+                    Enum.TryParse(reader.ReadLine(), out _regime);
+                    Enum.TryParse(reader.ReadLine(), out _dayOfWeekToRebuildIndex);
+                    _hourInDayToRebuildIndex = Convert.ToInt32(reader.ReadLine());
+                    _indexSecCount = Convert.ToInt32(reader.ReadLine());
+                    _daysLookBackInBuilding = Convert.ToInt32(reader.ReadLine());
+                    Enum.TryParse(reader.ReadLine(), out _indexMultType);
+                    Enum.TryParse(reader.ReadLine(), out _indexSortType);
+                    _lastTimeUpdateIndex = reader.ReadLine();
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void Save()
+        {
+            if (_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + _botUniqName + @"IndexAutoFormulaSettings.txt", false))
+                {
+                    writer.WriteLine(_regime.ToString());
+                    writer.WriteLine(_dayOfWeekToRebuildIndex.ToString());
+                    writer.WriteLine(_hourInDayToRebuildIndex);
+                    writer.WriteLine(_indexSecCount);
+                    writer.WriteLine(_daysLookBackInBuilding);
+                    writer.WriteLine(_indexMultType.ToString());
+                    writer.WriteLine(_indexSortType.ToString());
+                    writer.WriteLine(_lastTimeUpdateIndex);
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        public void Delete()
+        {
+            if (_startProgram != StartProgram.IsOsOptimizer)
+            {
+                if (!File.Exists(@"Engine\" + _botUniqName + @"IndexAutoFormulaSettings.txt"))
+                {
+                    return;
+                }
+            }
+
+            _index = null;
+        }
+
+        // settings
+
+        public IndexAutoFormulaBuilderRegime Regime
+        {
+            get
+            {
+                return _regime;
+            }
+            set
+            {
+                if(_regime == value)
+                {
+                    return;
+                }
+                _regime = value;
+                Save();
+            }
+        }
+        private IndexAutoFormulaBuilderRegime _regime;
+
+        public DayOfWeek DayOfWeekToRebuildIndex
+        {
+            get
+            {
+                return _dayOfWeekToRebuildIndex;
+            }
+            set
+            {
+                if (_dayOfWeekToRebuildIndex == value)
+                {
+                    return;
+                }
+                _dayOfWeekToRebuildIndex = value;
+                Save();
+            }
+        }
+        private DayOfWeek _dayOfWeekToRebuildIndex = DayOfWeek.Monday;
+
+        public int HourInDayToRebuildIndex
+        {
+            get
+            {
+                return _hourInDayToRebuildIndex;
+            }
+            set
+            {
+                if (_hourInDayToRebuildIndex == value)
+                {
+                    return;
+                }
+                _hourInDayToRebuildIndex = value;
+                Save();
+            }
+        }
+        private int _hourInDayToRebuildIndex = 10;
+
+        public int IndexSecCount
+        {
+            get
+            {
+                return _indexSecCount;
+            }
+            set
+            {
+                if (_indexSecCount == value)
+                {
+                    return;
+                }
+                _indexSecCount = value;
+                Save();
+            }
+        }
+        private int _indexSecCount = 5;
+
+        public int DaysLookBackInBuilding
+        {
+            get
+            {
+                return _daysLookBackInBuilding;
+            }
+            set
+            {
+                if (_daysLookBackInBuilding == value)
+                {
+                    return;
+                }
+                _daysLookBackInBuilding = value;
+                Save();
+            }
+        }
+        private int _daysLookBackInBuilding = 20;
+
+        public IndexMultType IndexMultType
+        {
+            get
+            {
+                return _indexMultType;
+            }
+            set
+            {
+                if (_indexMultType == value)
+                {
+                    return;
+                }
+                _indexMultType = value;
+                Save();
+            }
+        }
+        private IndexMultType _indexMultType;
+
+        public SecuritySortType IndexSortType
+        {
+            get
+            {
+                return _indexSortType;
+            }
+            set
+            {
+                if (_indexSortType == value)
+                {
+                    return;
+                }
+                _indexSortType = value;
+                Save();
+            }
+        }
+        private SecuritySortType _indexSortType;
+
+        private string _lastTimeUpdateIndex;
+
+        // logic
+
+        private DateTime _lastTimeUpdate = DateTime.MinValue;
+
+        public void TryRebuidFormula(DateTime timeCandle)
+        {
+            if(_regime == IndexAutoFormulaBuilderRegime.Off)
+            {
+                return;
+            }
+
+            if (_lastTimeUpdate == DateTime.MinValue &&
+                string.IsNullOrEmpty(_lastTimeUpdateIndex) == false)
+            {
+                try
+                {
+                    _lastTimeUpdate = Convert.ToDateTime(_lastTimeUpdateIndex);
+                }
+                catch
+                {
+
+                }
+            }
+
+            // проверка времени. Чтобы уже прошло время для пересчёта индекса
+
+            if(_regime == IndexAutoFormulaBuilderRegime.OncePerHour)
+            {
+                if(_lastTimeUpdate != DateTime.MinValue 
+                    && _lastTimeUpdate.Hour == timeCandle.Hour)
+                {
+                    return;
+                }
+            }
+            else if (_regime == IndexAutoFormulaBuilderRegime.OncePerDay)
+            {
+                if (_lastTimeUpdate != DateTime.MinValue 
+                    && _lastTimeUpdate.Date == timeCandle.Date)
+                {
+                    return;
+                }
+
+                if (timeCandle.Hour != _hourInDayToRebuildIndex)
+                {
+                    return;
+                }
+            }
+            else if(_regime == IndexAutoFormulaBuilderRegime.OncePerWeek)
+            {
+                if (_lastTimeUpdate != DateTime.MinValue 
+                    && _lastTimeUpdate.Date == timeCandle.Date)
+                {
+                    return;
+                }
+
+                if (_dayOfWeekToRebuildIndex != timeCandle.DayOfWeek)
+                {
+                    return;
+                }
+
+                if (timeCandle.Hour != _hourInDayToRebuildIndex)
+                {
+                    return;
+                }
+            }
+
+            // дальше логика
+
+            List<ConnectorCandles> tabsInIndex = _index.Tabs;
+
+            // 2 проверяем чтобы было больше одной бумаги
+
+            if (tabsInIndex.Count <= 1)
+            {
+                return;
+            }
+
+            // 3 берём бумаги которые должны войти в индекс
+
+            List<SecurityInIndex> secInIndex = GetSecuritiesToIndex(tabsInIndex, _daysLookBackInBuilding);
+
+            // 4 рассчитываем у бумаг мультипликаторы
+
+            SetMultInSecurities(secInIndex, _daysLookBackInBuilding);
+
+            // 5 Рассчитываем формулу
+
+            string formula = "(";
+
+            for (int i = 0; i < secInIndex.Count; i++)
+            {
+                formula += secInIndex[i].Name;
+
+                if (i + 1 < secInIndex.Count)
+                {
+                    formula += "+";
+                }
+            }
+
+            formula += ")";
+
+            //formula += "/" + tabToTrade.Name;
+
+            _index.UserFormula = formula;
+
+            _lastTimeUpdate = timeCandle;
+
+            _lastTimeUpdateIndex = _lastTimeUpdate.ToString();
+            Save();
+        }
+
+        private void SetMultInSecurities(List<SecurityInIndex> secInIndex, int daysLookBack)
+        {
+            if (_indexMultType == IndexMultType.EqualParts)
+            {
+                decimal maxPriceInSecs = 0;
+
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    if (maxPriceInSecs < secInIndex[i].LastPrice)
+                    {
+                        maxPriceInSecs = secInIndex[i].LastPrice;
+                    }
+                }
+
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    if (secInIndex[i].LastPrice == 0)
+                    {
+                        continue;
+                    }
+                    secInIndex[i].Mult = maxPriceInSecs / secInIndex[i].LastPrice;
+                    secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
+                }
+            }
+            else if (_indexMultType == IndexMultType.VolumeWeighted)
+            {
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    SetVolume(secInIndex[i], daysLookBack);
+
+                    if (i == 0)
+                    {
+                        secInIndex[i].Mult = 100;
+                    }
+                    else
+                    {
+                        if (secInIndex[i].LastPrice == 0)
+                        {
+                            continue;
+                        }
+                        secInIndex[i].Mult = (secInIndex[0].LastPrice / secInIndex[i].LastPrice) * 100;
+                    }
+                }
+
+                // 1 считаем суммарный объём
+
+                decimal summVolume = 0;
+
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    summVolume += secInIndex[i].SummVolume;
+                }
+
+                // 2 рассчитываем долю объёмов у всех инструментов в этих объёмах
+
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    decimal partInIndex = (secInIndex[i].SummVolume / (summVolume / 100)) / 100;
+                    secInIndex[i].Mult = Math.Round(secInIndex[i].Mult * partInIndex, 0);
+                    secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
+                }
+            }
+        }
+
+        private List<SecurityInIndex> GetSecuritiesToIndex(List<ConnectorCandles> tabsInIndex, int daysLookBack)
+        {
+            List<SecurityInIndex> secInIndex = new List<SecurityInIndex>();
+
+            if (_indexSortType == SecuritySortType.FirstInArray)
+            {
+                for (int i = 0; i < tabsInIndex.Count && i < _indexSecCount; i++)
+                {
+                    List<Candle> candles = tabsInIndex[i].Candles(false);
+
+                    SecurityInIndex newIndex = new SecurityInIndex();
+
+                    newIndex.Name = "A" + i;
+                    newIndex.Candles = candles;
+
+                    secInIndex.Add(newIndex);
+                }
+            }
+            else if (_indexSortType == SecuritySortType.VolumeWeighted)
+            {
+                for (int i = 0; i < tabsInIndex.Count; i++)
+                {
+                    List<Candle> candles = tabsInIndex[i].Candles(false);
+
+                    SecurityInIndex newIndex = new SecurityInIndex();
+
+                    newIndex.Name = "A" + i;
+                    newIndex.SecName = tabsInIndex[i].Security.Name;
+                    newIndex.Candles = candles;
+                    SetVolume(newIndex, daysLookBack);
+
+                    secInIndex.Add(newIndex);
+                }
+
+                for (int i2 = 0; i2 < secInIndex.Count; i2++)
+                {
+                    for (int i = 1; i < secInIndex.Count; i++)
+                    {
+                        if (secInIndex[i].SummVolume > secInIndex[i - 1].SummVolume)
+                        {
+                            SecurityInIndex sec = secInIndex[i - 1];
+                            secInIndex[i - 1] = secInIndex[i];
+                            secInIndex[i] = sec;
+                        }
+                    }
+                }
+
+                if (secInIndex.Count >= 100)
+                {
+                    string res = "";
+
+                    for (int i = 1; i < secInIndex.Count; i++)
+                    {
+                        res += secInIndex[i].SecName + "\n";
+                    }
+
+                    //_tab.TabsSimple[0].SetNewLogMessage(res, LogMessageType.Error);
+                }
+
+                while (secInIndex.Count > _indexSecCount)
+                {
+                    secInIndex.RemoveAt(secInIndex.Count - 1);
+                }
+            }
+            else if (_indexSortType == SecuritySortType.MaxVolatilytiWeighted
+                || _indexSortType == SecuritySortType.MinVolatilytiWeighted)
+            {
+                for (int i = 0; i < tabsInIndex.Count; i++)
+                {
+                    List<Candle> candles = tabsInIndex[i].Candles(false);
+
+                    SecurityInIndex newIndex = new SecurityInIndex();
+
+                    newIndex.Name = "A" + i;
+                    newIndex.SecName = tabsInIndex[i].Security.Name;
+                    newIndex.Candles = candles;
+                    SetVolatilyti(newIndex, daysLookBack);
+
+                    secInIndex.Add(newIndex);
+                }
+
+                for (int i2 = 0; i2 < secInIndex.Count; i2++)
+                {
+                    for (int i = 1; i < secInIndex.Count; i++)
+                    {
+                        if (_indexSortType == SecuritySortType.MaxVolatilytiWeighted)
+                        {
+                            if (secInIndex[i].VolatylityDayPercent > secInIndex[i - 1].VolatylityDayPercent)
+                            {
+                                SecurityInIndex sec = secInIndex[i - 1];
+                                secInIndex[i - 1] = secInIndex[i];
+                                secInIndex[i] = sec;
+                            }
+                        }
+                        else if (_indexSortType == SecuritySortType.MinVolatilytiWeighted)
+                        {
+                            if (secInIndex[i].VolatylityDayPercent < secInIndex[i - 1].VolatylityDayPercent)
+                            {
+                                SecurityInIndex sec = secInIndex[i - 1];
+                                secInIndex[i - 1] = secInIndex[i];
+                                secInIndex[i] = sec;
+                            }
+                        }
+                    }
+                }
+
+                while (secInIndex.Count > _indexSecCount)
+                {
+                    secInIndex.RemoveAt(secInIndex.Count - 1);
+                }
+            }
+
+            return secInIndex;
+        }
+
+        private void SetVolume(SecurityInIndex security, int daysLookBack)
+        {
+            // 1 берём свечки за последнюю неделю
+
+            List<Candle> allCandles = security.Candles;
+
+            if (allCandles == null || allCandles.Count == 0)
+            {
+                return;
+            }
+
+            List<Candle> candlesToVol = new List<Candle>();
+
+            DateTime startTime = allCandles[allCandles.Count - 1].TimeStart.AddDays(-daysLookBack);
+
+            for (int i = allCandles.Count - 1; i > 0; i--)
+            {
+                candlesToVol.Add(allCandles[i]);
+
+                if (allCandles[i].TimeStart < startTime)
+                {
+                    break;
+                }
+            }
+
+            // 2 считаем в них объём и складываем в переменную
+
+            decimal allVolume = 0;
+
+            for (int i = 0; i < candlesToVol.Count; i++)
+            {
+                allVolume += candlesToVol[i].Center * candlesToVol[i].Volume;
+            }
+
+            security.SummVolume = allVolume;
+
+        }
+
+        private void SetVolatilyti(SecurityInIndex security, int len)
+        {
+            List<Candle> candles = security.Candles;
+
+            List<decimal> curDaysVola = new List<decimal>();
+
+            decimal curMinInDay = decimal.MaxValue;
+            decimal curMaxInDay = 0;
+            int curDay = candles[candles.Count - 1].TimeStart.Day;
+            int daysCount = 1;
+
+
+            for (int i = candles.Count - 1; i > 0; i--)
+            {
+                Candle curCandle = candles[i];
+
+                if (curDay != curCandle.TimeStart.Day)
+                {
+                    if (curMaxInDay != 0 &&
+                        curMinInDay != decimal.MaxValue)
+                    {
+                        decimal moveInDay = curMaxInDay - curMinInDay;
+                        decimal percentMove = moveInDay / (curMinInDay / 100);
+                        curDaysVola.Add(percentMove);
+                    }
+
+                    curMinInDay = decimal.MaxValue;
+                    curMaxInDay = 0;
+                    curDay = candles[i].TimeStart.Day;
+
+                    daysCount++;
+
+                    if (len == daysCount)
+                    {
+                        break;
+                    }
+                }
+
+                if (curCandle.High > curMaxInDay)
+                {
+                    curMaxInDay = curCandle.High;
+                }
+                if (curCandle.Low < curMinInDay)
+                {
+                    curMinInDay = curCandle.Low;
+                }
+            }
+
+            if (curDaysVola.Count == 0)
+            {
+                return;
+            }
+
+            decimal result = 0;
+
+            for (int i = 0; i < curDaysVola.Count; i++)
+            {
+                result += curDaysVola[i];
+            }
+
+            security.VolatylityDayPercent = result / curDaysVola.Count;
+        }
+    }
+
+    public enum IndexAutoFormulaBuilderRegime
+    {
+        Off,
+        OncePerDay,
+        OncePerWeek,
+        OncePerHour,
+    }
+
+    public enum IndexMultType
+    {
+        /// <summary>
+        /// равными частями
+        /// </summary>
+        EqualParts,
+
+        /// <summary>
+        /// взвешенный по объёму
+        /// </summary>
+        VolumeWeighted
+    }
+
+    public enum SecuritySortType
+    {
+        FirstInArray,
+        VolumeWeighted,
+        MaxVolatilytiWeighted,
+        MinVolatilytiWeighted,
+    }
+
+    public class SecurityInIndex
+    {
+        public string SecName;
+
+        public string Name;
+
+        public decimal Mult;
+
+        public decimal SummVolume;
+
+        public decimal VolatylityDayPercent;
+
+        public List<Candle> Candles;
+
+        public decimal LastPrice
+        {
+            get
+            {
+                if (Candles == null || Candles.Count == 0)
+                {
+                    return 0;
+                }
+                return Candles[Candles.Count - 1].Close;
+            }
+        }
     }
 
     /// <summary>

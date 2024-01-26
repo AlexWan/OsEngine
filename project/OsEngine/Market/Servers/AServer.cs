@@ -14,6 +14,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using WebSocketSharp;
 
 namespace OsEngine.Market.Servers
 {
@@ -1242,10 +1243,15 @@ namespace OsEngine.Market.Servers
                 {
                     continue;
                 }
-                if (securities[i].NameId == null)
+                if (string.IsNullOrEmpty(securities[i].NameId))
                 {
                     SendLogMessage(OsLocalization.Market.Message13, LogMessageType.Error);
-                    return;
+                    continue;
+                }
+                if (string.IsNullOrEmpty(securities[i].Name))
+                {
+                    SendLogMessage(OsLocalization.Market.Message98, LogMessageType.Error);
+                    continue;
                 }
 
                 if (_securities.Find(s =>

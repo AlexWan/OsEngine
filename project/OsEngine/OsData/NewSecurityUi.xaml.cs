@@ -143,6 +143,10 @@ namespace OsEngine.OsData
                     classes.Add(orderedSecurities[i].NameClass);
                     ComboBoxClass.Items.Add(orderedSecurities[i].NameClass);
                 }
+                else
+                {
+
+                }
             }
 
             ComboBoxClass.Items.Add("All");

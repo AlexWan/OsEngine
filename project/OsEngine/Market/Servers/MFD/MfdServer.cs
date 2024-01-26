@@ -56,7 +56,10 @@ namespace OsEngine.Market.Servers.MFD
             else
             {
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent?.Invoke();
+                if(ConnectEvent!= null)
+                {
+                    ConnectEvent();
+                }
             }
         }
 
@@ -73,7 +76,10 @@ namespace OsEngine.Market.Servers.MFD
             portfolio.ValueCurrent = 1;
             portfolio.Number = "Mfd fake portfolio";
 
-            PortfolioEvent?.Invoke(new List<Portfolio>() { portfolio });
+            if(PortfolioEvent != null)
+            {
+                PortfolioEvent(new List<Portfolio>() { portfolio });
+            }
         }
 
         public void SendOrder(Order order)
@@ -136,10 +142,24 @@ namespace OsEngine.Market.Servers.MFD
 
             for (int i = 0; i < classes.Count; i++)
             {
-                securities.AddRange(GetAllSecuritiesToClass(classes[i]));
+                if (classes[i].Contains("Опционы"))
+                {
+                    continue;
+                }
+
+                List<Security> curSecs = GetAllSecuritiesToClass(classes[i]);
+
+                if (curSecs != null &&
+                    curSecs.Count > 0)
+                {
+                    securities.AddRange(curSecs);
+                }
             }
 
-            SecurityEvent?.Invoke(securities);
+            if(SecurityEvent != null)
+            {
+                SecurityEvent(securities);
+            }
 
             SendLogMessage("Securities downloaded. Count: " + securities.Count, LogMessageType.System);
 
@@ -223,11 +243,23 @@ namespace OsEngine.Market.Servers.MFD
 
             for (int i = 0; i < secInLines.Count; i++)
             {
+                if (secInLines[i].Contains("select"))
+                {
+                    continue;
+                }
+
                 Security newSecurity = new Security();
                 newSecurity.NameClass = curclass;
                 newSecurity.Name = secInLines[i].Split('#')[0];
                 newSecurity.NameFull = newSecurity.Name;
                 newSecurity.NameId = secInLines[i];
+
+                if(string.IsNullOrEmpty(newSecurity.Name))
+                {
+                    newSecurity.Name = newSecurity.NameId;
+                    newSecurity.NameFull = newSecurity.NameId;
+                }
+
                 securities.Add(newSecurity);
             }
 

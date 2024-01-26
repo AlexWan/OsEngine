@@ -1394,5 +1394,13 @@ namespace OsEngine.Language
         public string Label373 => OsLocalization.ConvertToLocString(
          "Eng:Order price change operation is not possible. This server does not support order price change_" +
          "Ru:Операция смены цены ордера не возможна. Данный сервер не поддерживает смену цены ордера_");
+
+        public string Label374 => OsLocalization.ConvertToLocString(
+         "Eng:Base settings_" +
+         "Ru:Базовые настройки_");
+
+        public string Label375 => OsLocalization.ConvertToLocString(
+         "Eng:Auto formula_" +
+         "Ru:Авто формула_");
     }
 }

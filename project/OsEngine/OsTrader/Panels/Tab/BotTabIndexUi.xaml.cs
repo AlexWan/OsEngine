@@ -27,6 +27,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             Title = OsLocalization.Trader.Label81;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             ButtonClearAllSecurities.Content = OsLocalization.Trader.Label369;
+            TabControlItem1.Header = OsLocalization.Trader.Label374;
+            TabControlItem2.Header = OsLocalization.Trader.Label375;
 
             this.Closed += BotTabIndexUi_Closed;
 
