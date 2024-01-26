@@ -2,7 +2,7 @@
 
 # Open Source Algo Trading Platform
 
-[FAQ and instructions](https://os-engine-eng.com/faq)
+[FAQ and instructions (More than 170 articles of study for free)](https://os-engine-eng.com/faq)
 
 
 ## What is OsEngine?
