@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Alerts;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -15,12 +14,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Net;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -41,7 +37,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Load();
 
-            _autoFormulaBuilder = new IndexFormulaBuilder(this, TabName, _startProgram);
+            AutoFormulaBuilder = new IndexFormulaBuilder(this, TabName, _startProgram);
+            AutoFormulaBuilder.LogMessageEvent += SendNewLogMessage;
         }
 
         /// <summary>
@@ -118,8 +115,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Tabs[i].Delete();
             }
 
-            _autoFormulaBuilder.Delete();
-            _autoFormulaBuilder = null;
+            AutoFormulaBuilder.Delete();
+            AutoFormulaBuilder.LogMessageEvent -= SendNewLogMessage;
+            AutoFormulaBuilder = null;
 
             if (TabDeletedEvent != null)
             {
@@ -194,13 +192,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             BotTabIndexUi ui = new BotTabIndexUi(this);
             ui.ShowDialog();
 
-            if (Tabs.Count != 0)
-            {
-                _chartMaster.SetNewSecurity("Index on: " + _userFormula, Tabs[0].TimeFrameBuilder, null, Tabs[0].ServerType);
-            }
-            else
+            if (Tabs.Count == 0)
             {
                 _chartMaster.Clear();
+                //_chartMaster.SetNewSecurity("Index on: " + _userFormula, Tabs[0].TimeFrameBuilder, null, Tabs[0].ServerType);
             }
         }
 
@@ -529,7 +524,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Formula
 
-        IndexFormulaBuilder _autoFormulaBuilder;
+        public IndexFormulaBuilder AutoFormulaBuilder;
 
         /// <summary>
         /// formula
@@ -1576,7 +1571,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            _autoFormulaBuilder.TryRebuidFormula(time);
+            AutoFormulaBuilder.TryRebuidFormula(time, false);
 
             // loop to collect all the candles in one array
 
@@ -1736,6 +1731,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Enum.TryParse(reader.ReadLine(), out _indexMultType);
                     Enum.TryParse(reader.ReadLine(), out _indexSortType);
                     _lastTimeUpdateIndex = reader.ReadLine();
+                    _writeLogMessageOnRebuild = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -1765,6 +1761,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(_indexMultType.ToString());
                     writer.WriteLine(_indexSortType.ToString());
                     writer.WriteLine(_lastTimeUpdateIndex);
+                    writer.WriteLine(_writeLogMessageOnRebuild);
+
                     writer.Close();
                 }
             }
@@ -1879,24 +1877,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private int _daysLookBackInBuilding = 20;
 
-        public IndexMultType IndexMultType
-        {
-            get
-            {
-                return _indexMultType;
-            }
-            set
-            {
-                if (_indexMultType == value)
-                {
-                    return;
-                }
-                _indexMultType = value;
-                Save();
-            }
-        }
-        private IndexMultType _indexMultType;
-
         public SecuritySortType IndexSortType
         {
             get
@@ -1915,73 +1895,160 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private SecuritySortType _indexSortType;
 
+        public IndexMultType IndexMultType
+        {
+            get
+            {
+                return _indexMultType;
+            }
+            set
+            {
+                if (_indexMultType == value)
+                {
+                    return;
+                }
+                _indexMultType = value;
+                Save();
+            }
+        }
+        private IndexMultType _indexMultType;
+
+        public bool WriteLogMessageOnRebuild
+        {
+            get
+            {
+                return _writeLogMessageOnRebuild;
+            }
+            set
+            {
+                if (_writeLogMessageOnRebuild == value)
+                {
+                    return;
+                }
+                _writeLogMessageOnRebuild = value;
+                Save();
+            }
+        }
+        private bool _writeLogMessageOnRebuild = true;
+
         private string _lastTimeUpdateIndex;
 
         // logic
 
+        public void RebuildHard()
+        {
+            try
+            {
+                List<ConnectorCandles> tabsInIndex = _index.Tabs;
+
+                // 2 проверяем чтобы было больше одной бумаги
+
+                if (tabsInIndex.Count <= 1)
+                {
+                    SendNewLogMessage("Can`t rebuild formula. No sources", LogMessageType.Error);
+                    return;
+                }
+
+                DateTime endTime = DateTime.MinValue;
+
+                for (int i = 0; i < tabsInIndex.Count; i++)
+                {
+                    List<Candle> curCandles = tabsInIndex[i].Candles(true);
+
+                    if (curCandles == null ||
+                        curCandles.Count == 0)
+                    {
+                        SendNewLogMessage("Can`t rebuild formula. One of securities with no candles!", LogMessageType.Error);
+                        return;
+                    }
+
+                    if (curCandles[curCandles.Count - 1].TimeStart > endTime)
+                    {
+                        endTime = curCandles[curCandles.Count - 1].TimeStart;
+                    }
+                }
+
+                if (endTime == DateTime.MinValue)
+                {
+                    SendNewLogMessage("Can`t rebuild formula. No candles", LogMessageType.Error);
+                    return;
+                }
+
+                TryRebuidFormula(endTime, true);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
         private DateTime _lastTimeUpdate = DateTime.MinValue;
 
-        public void TryRebuidFormula(DateTime timeCandle)
+        public void TryRebuidFormula(DateTime timeCandle, bool isHardRebiuld)
         {
             if(_regime == IndexAutoFormulaBuilderRegime.Off)
             {
                 return;
             }
 
-            if (_lastTimeUpdate == DateTime.MinValue &&
+            if(isHardRebiuld == false)
+            { // проверка возможности перестроить индекс исходя из времени
+                if (_lastTimeUpdate == DateTime.MinValue &&
                 string.IsNullOrEmpty(_lastTimeUpdateIndex) == false)
-            {
-                try
                 {
-                    _lastTimeUpdate = Convert.ToDateTime(_lastTimeUpdateIndex);
-                }
-                catch
-                {
+                    try
+                    {
+                        _lastTimeUpdate = Convert.ToDateTime(_lastTimeUpdateIndex);
+                    }
+                    catch
+                    {
 
+                    }
+                }
+
+                // проверка времени. Чтобы уже прошло время для пересчёта индекса
+
+                if (_regime == IndexAutoFormulaBuilderRegime.OncePerHour)
+                {
+                    if (_lastTimeUpdate != DateTime.MinValue
+                        && _lastTimeUpdate.Hour == timeCandle.Hour)
+                    {
+                        return;
+                    }
+                }
+                else if (_regime == IndexAutoFormulaBuilderRegime.OncePerDay)
+                {
+                    if (_lastTimeUpdate != DateTime.MinValue
+                        && _lastTimeUpdate.Date == timeCandle.Date)
+                    {
+                        return;
+                    }
+
+                    if (timeCandle.Hour != _hourInDayToRebuildIndex)
+                    {
+                        return;
+                    }
+                }
+                else if (_regime == IndexAutoFormulaBuilderRegime.OncePerWeek)
+                {
+                    if (_lastTimeUpdate != DateTime.MinValue
+                        && _lastTimeUpdate.Date == timeCandle.Date)
+                    {
+                        return;
+                    }
+
+                    if (_dayOfWeekToRebuildIndex != timeCandle.DayOfWeek)
+                    {
+                        return;
+                    }
+
+                    if (timeCandle.Hour != _hourInDayToRebuildIndex)
+                    {
+                        return;
+                    }
                 }
             }
-
-            // проверка времени. Чтобы уже прошло время для пересчёта индекса
-
-            if(_regime == IndexAutoFormulaBuilderRegime.OncePerHour)
-            {
-                if(_lastTimeUpdate != DateTime.MinValue 
-                    && _lastTimeUpdate.Hour == timeCandle.Hour)
-                {
-                    return;
-                }
-            }
-            else if (_regime == IndexAutoFormulaBuilderRegime.OncePerDay)
-            {
-                if (_lastTimeUpdate != DateTime.MinValue 
-                    && _lastTimeUpdate.Date == timeCandle.Date)
-                {
-                    return;
-                }
-
-                if (timeCandle.Hour != _hourInDayToRebuildIndex)
-                {
-                    return;
-                }
-            }
-            else if(_regime == IndexAutoFormulaBuilderRegime.OncePerWeek)
-            {
-                if (_lastTimeUpdate != DateTime.MinValue 
-                    && _lastTimeUpdate.Date == timeCandle.Date)
-                {
-                    return;
-                }
-
-                if (_dayOfWeekToRebuildIndex != timeCandle.DayOfWeek)
-                {
-                    return;
-                }
-
-                if (timeCandle.Hour != _hourInDayToRebuildIndex)
-                {
-                    return;
-                }
-            }
+            
 
             // дальше логика
 
@@ -2026,6 +2093,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _lastTimeUpdateIndex = _lastTimeUpdate.ToString();
             Save();
+
+            if (_writeLogMessageOnRebuild)
+            {
+                string message = "Index was rebuild. Time: " + _lastTimeUpdateIndex;
+                message += " new formula: " + _index.UserFormula;
+                SendNewLogMessage(message, LogMessageType.Error);
+            }
         }
 
         private void SetMultInSecurities(List<SecurityInIndex> secInIndex, int daysLookBack)
@@ -2087,6 +2161,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     decimal partInIndex = (secInIndex[i].SummVolume / (summVolume / 100)) / 100;
                     secInIndex[i].Mult = Math.Round(secInIndex[i].Mult * partInIndex, 0);
+
+                    if(secInIndex[i].Mult < 1)
+                    {
+                        secInIndex[i].Mult = 1;
+                    }
+
                     secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
                 }
             }
@@ -2307,6 +2387,26 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             security.VolatylityDayPercent = result / curDaysVola.Count;
         }
+
+        /// <summary>
+        /// send log message
+        /// </summary>
+        private void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+            else if (type == LogMessageType.Error)
+            {
+                System.Windows.MessageBox.Show(message);
+            }
+        }
+
+        /// <summary>
+        /// New log message event
+        /// </summary>
+        public event Action<string, LogMessageType> LogMessageEvent;
     }
 
     public enum IndexAutoFormulaBuilderRegime

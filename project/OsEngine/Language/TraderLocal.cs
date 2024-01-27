@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+
 namespace OsEngine.Language
 {
     public class TraderLocal
@@ -1402,5 +1403,46 @@ namespace OsEngine.Language
         public string Label375 => OsLocalization.ConvertToLocString(
          "Eng:Auto formula_" +
          "Ru:Авто формула_");
+
+        public string Label376 => OsLocalization.ConvertToLocString(
+         "Eng:Time rebuild index formula_" +
+         "Ru:Время пересчёта формулы_");
+
+        public string Label377 => OsLocalization.ConvertToLocString(
+         "Eng:Type rebuild index formula_" +
+         "Ru:Способ пересчёта формулы_");
+
+        public string Label378 => OsLocalization.ConvertToLocString(
+          "Eng:Day of week to work_" +
+          "Ru:День недели расчёта_");
+
+        public string Label379 => OsLocalization.ConvertToLocString(
+          "Eng:Hour in day to work_" +
+          "Ru:Час для расчёта_");
+
+        public string Label380 => OsLocalization.ConvertToLocString(
+          "Eng:Log message on rebuild_" +
+          "Ru:Делать запись в лог_");
+
+        public string Label381 => OsLocalization.ConvertToLocString(
+          "Eng:Securities sort type_" +
+          "Ru:Сортировка бумаг_");
+
+        public string Label382 => OsLocalization.ConvertToLocString(
+          "Eng:Securities count_" +
+          "Ru:Количество бумаг_");
+
+        public string Label383 => OsLocalization.ConvertToLocString(
+          "Eng:Securities mult type_" +
+          "Ru:Тип взвешивания_");
+
+        public string Label384 => OsLocalization.ConvertToLocString(
+          "Eng:Days look back_" +
+          "Ru:Взвешиваем за (дни)_");
+
+        public string Label385 => OsLocalization.ConvertToLocString(
+          "Eng:Rebuild Formula_" +
+          "Ru:Пересчитать сейчас_");
+
     }
 }

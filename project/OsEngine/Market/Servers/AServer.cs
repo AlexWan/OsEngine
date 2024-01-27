@@ -14,7 +14,6 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using WebSocketSharp;
 
 namespace OsEngine.Market.Servers
 {

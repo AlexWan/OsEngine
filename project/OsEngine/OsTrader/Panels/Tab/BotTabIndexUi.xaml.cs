@@ -23,6 +23,68 @@ namespace OsEngine.OsTrader.Panels.Tab
             _spread = spread;
             ReloadSecurityTable();
             TextboxUserFormula.Text = _spread.UserFormula;
+            TextboxUserFormula.TextChanged += TextboxUserFormula_TextChanged;
+            TextboxUserFormulaSecondTab.Text = _spread.UserFormula;
+
+            IndexFormulaBuilder autoFormulaBuilder = spread.AutoFormulaBuilder;
+
+            ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.Off.ToString());
+            ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.OncePerWeek.ToString());
+            ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.OncePerDay.ToString()); 
+            ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.OncePerHour.ToString());
+            ComboBoxRegime.SelectedItem = autoFormulaBuilder.Regime.ToString();
+            ComboBoxRegime.SelectionChanged += ComboBoxRegime_SelectionChanged;
+
+            ComboBoxDayOfWeekToRebuildIndex.Items.Add(DayOfWeek.Monday.ToString());
+            ComboBoxDayOfWeekToRebuildIndex.Items.Add(DayOfWeek.Tuesday.ToString());
+            ComboBoxDayOfWeekToRebuildIndex.Items.Add(DayOfWeek.Wednesday.ToString());
+            ComboBoxDayOfWeekToRebuildIndex.Items.Add(DayOfWeek.Thursday.ToString());
+            ComboBoxDayOfWeekToRebuildIndex.Items.Add(DayOfWeek.Friday.ToString());
+            ComboBoxDayOfWeekToRebuildIndex.Items.Add(DayOfWeek.Saturday.ToString());
+            ComboBoxDayOfWeekToRebuildIndex.Items.Add(DayOfWeek.Sunday.ToString());
+            ComboBoxDayOfWeekToRebuildIndex.SelectedItem = autoFormulaBuilder.DayOfWeekToRebuildIndex.ToString();
+            ComboBoxDayOfWeekToRebuildIndex.SelectionChanged += ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
+
+            for (int i = 0; i < 24; i++)
+            {
+                ComboBoxHourInDayToRebuildIndex.Items.Add(i.ToString());
+            }
+            ComboBoxHourInDayToRebuildIndex.SelectedItem = autoFormulaBuilder.HourInDayToRebuildIndex.ToString();
+            ComboBoxHourInDayToRebuildIndex.SelectionChanged += ComboBoxHourInDayToRebuildIndex_SelectionChanged;
+
+            CheckBoxWriteLogMessageOnRebuild.IsChecked = autoFormulaBuilder.WriteLogMessageOnRebuild;
+            CheckBoxWriteLogMessageOnRebuild.Click += CheckBoxWriteLogMessageOnRebuild_Click;
+
+            ComboBoxIndexSortType.Items.Add(SecuritySortType.FirstInArray.ToString());
+            ComboBoxIndexSortType.Items.Add(SecuritySortType.VolumeWeighted.ToString());
+            ComboBoxIndexSortType.Items.Add(SecuritySortType.MaxVolatilytiWeighted.ToString());
+            ComboBoxIndexSortType.Items.Add(SecuritySortType.MinVolatilytiWeighted.ToString());
+            ComboBoxIndexSortType.SelectedItem = autoFormulaBuilder.IndexSortType.ToString();
+            ComboBoxIndexSortType.SelectionChanged += ComboBoxIndexSortType_SelectionChanged;
+
+            for (int i = 1; i < 301; i++)
+            {
+                ComboBoxIndexSecCount.Items.Add(i.ToString());
+            }
+            ComboBoxIndexSecCount.SelectedItem = autoFormulaBuilder.IndexSecCount.ToString();
+            ComboBoxIndexSecCount.SelectionChanged += ComboBoxIndexSecCount_SelectionChanged;
+
+            ComboBoxIndexMultType.Items.Add(IndexMultType.EqualParts.ToString());
+            ComboBoxIndexMultType.Items.Add(IndexMultType.VolumeWeighted.ToString());
+            ComboBoxIndexMultType.SelectedItem = autoFormulaBuilder.IndexMultType.ToString();
+            ComboBoxIndexMultType.SelectionChanged += ComboBoxIndexMultType_SelectionChanged;
+
+            for (int i = 1; i < 301; i++)
+            {
+                ComboBoxDaysLookBackInBuilding.Items.Add(i.ToString());
+            }
+            ComboBoxDaysLookBackInBuilding.SelectedItem = autoFormulaBuilder.DaysLookBackInBuilding.ToString();
+            ComboBoxDaysLookBackInBuilding.SelectionChanged += ComboBoxDaysLookBackInBuilding_SelectionChanged;
+
+            ButtonRebuildFormulaNow.Click += ButtonRebuildFormulaNow_Click;
+
+            CheckDayComboBox();
+            CheckHourComboBox();
 
             Title = OsLocalization.Trader.Label81;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
@@ -30,18 +92,138 @@ namespace OsEngine.OsTrader.Panels.Tab
             TabControlItem1.Header = OsLocalization.Trader.Label374;
             TabControlItem2.Header = OsLocalization.Trader.Label375;
 
-            this.Closed += BotTabIndexUi_Closed;
+            LabelTimeSettingsToRebuildFormula.Content = OsLocalization.Trader.Label376;
+            LabelRegime.Content = OsLocalization.Trader.Label115;
+            LabelDayOfWeekToRebuildIndex.Content = OsLocalization.Trader.Label378;
+            LabelHourInDayToRebuildIndex.Content = OsLocalization.Trader.Label379;
+            CheckBoxWriteLogMessageOnRebuild.Content = OsLocalization.Trader.Label380;
 
+            LabelTypeSettingsToRebuildFormula.Content = OsLocalization.Trader.Label377;
+            LabelIndexSortType.Content = OsLocalization.Trader.Label381;
+            LabelIndexSecCount.Content = OsLocalization.Trader.Label382;
+            LabelIndexMultType.Content = OsLocalization.Trader.Label383;
+            LabelDaysLookBackInBuilding.Content = OsLocalization.Trader.Label384;
+
+            ButtonRebuildFormulaNow.Content = OsLocalization.Trader.Label385;
+
+            this.Closed += BotTabIndexUi_Closed;
             this.Activate();
             this.Focus();
+        }
+
+        private void CheckDayComboBox()
+        {
+            if(_spread.AutoFormulaBuilder.Regime == IndexAutoFormulaBuilderRegime.OncePerWeek)
+            {
+                ComboBoxDayOfWeekToRebuildIndex.IsEnabled = true;
+            }
+            else
+            {
+                ComboBoxDayOfWeekToRebuildIndex.IsEnabled = false;
+            }
+        }
+
+        private void CheckHourComboBox()
+        {
+            if (_spread.AutoFormulaBuilder.Regime == IndexAutoFormulaBuilderRegime.OncePerDay 
+                || _spread.AutoFormulaBuilder.Regime == IndexAutoFormulaBuilderRegime.OncePerWeek)
+            {
+                ComboBoxHourInDayToRebuildIndex.IsEnabled = true;
+            }
+            else
+            {
+                ComboBoxHourInDayToRebuildIndex.IsEnabled = false;
+            }
+        }
+
+        private void ComboBoxDaysLookBackInBuilding_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            _spread.AutoFormulaBuilder.DaysLookBackInBuilding
+              = Convert.ToInt32(ComboBoxDaysLookBackInBuilding.SelectedItem.ToString());
+        }
+
+        private void ComboBoxIndexMultType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            IndexMultType multType;
+
+            if (Enum.TryParse(ComboBoxIndexMultType.SelectedItem.ToString(), out multType))
+            {
+                _spread.AutoFormulaBuilder.IndexMultType = multType;
+            }
+        }
+
+        private void ComboBoxIndexSecCount_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            _spread.AutoFormulaBuilder.IndexSecCount
+               = Convert.ToInt32(ComboBoxIndexSecCount.SelectedItem.ToString());
+        }
+
+        private void CheckBoxWriteLogMessageOnRebuild_Click(object sender, RoutedEventArgs e)
+        {
+            _spread.AutoFormulaBuilder.WriteLogMessageOnRebuild = CheckBoxWriteLogMessageOnRebuild.IsChecked.Value;
+        }
+
+        private void ComboBoxIndexSortType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            SecuritySortType sortType;
+
+            if (Enum.TryParse(ComboBoxIndexSortType.SelectedItem.ToString(), out sortType))
+            {
+                _spread.AutoFormulaBuilder.IndexSortType = sortType;
+            }
+        }
+
+        private void ComboBoxHourInDayToRebuildIndex_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            _spread.AutoFormulaBuilder.HourInDayToRebuildIndex 
+                = Convert.ToInt32(ComboBoxHourInDayToRebuildIndex.SelectedItem.ToString());
+        }
+
+        private void ComboBoxDayOfWeekToRebuildIndex_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            DayOfWeek curDay;
+
+            if (Enum.TryParse(ComboBoxDayOfWeekToRebuildIndex.SelectedItem.ToString(), out curDay))
+            {
+                _spread.AutoFormulaBuilder.DayOfWeekToRebuildIndex = curDay;
+            }
+        }
+
+        private void ComboBoxRegime_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            IndexAutoFormulaBuilderRegime curRegime;
+
+            if(Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(), out curRegime))
+            {
+                _spread.AutoFormulaBuilder.Regime = curRegime;
+            }
+
+            CheckDayComboBox();
+            CheckHourComboBox();
+        }
+
+        private void TextboxUserFormula_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            TextboxUserFormulaSecondTab.Text = TextboxUserFormula.Text;
         }
 
         public bool IndexOrSourcesChanged = false;
 
         private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
         {
+            ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
+            ComboBoxDayOfWeekToRebuildIndex.SelectionChanged -= ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
+            ComboBoxHourInDayToRebuildIndex.SelectionChanged -= ComboBoxHourInDayToRebuildIndex_SelectionChanged;
+            CheckBoxWriteLogMessageOnRebuild.Click -= CheckBoxWriteLogMessageOnRebuild_Click;
+            ComboBoxIndexSortType.SelectionChanged -= ComboBoxIndexSortType_SelectionChanged;
+            ComboBoxIndexSecCount.SelectionChanged -= ComboBoxIndexSecCount_SelectionChanged;
+            ComboBoxIndexMultType.SelectionChanged -= ComboBoxIndexMultType_SelectionChanged;
+            ComboBoxDaysLookBackInBuilding.SelectionChanged -= ComboBoxDaysLookBackInBuilding_SelectionChanged;
+            ButtonRebuildFormulaNow.Click -= ButtonRebuildFormulaNow_Click;
+
             _sourcesGrid.CellDoubleClick -= Grid1CellValueChangeClick;
             _sourcesGrid.CellClick -= _sourcesGrid_CellClick;
+
             this.Closed -= BotTabIndexUi_Closed;
 
             DataGridFactory.ClearLinks(_sourcesGrid);
@@ -237,6 +419,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.Message);
                 ui.ShowDialog();
             }
+        }
+
+        private void ButtonRebuildFormulaNow_Click(object sender, RoutedEventArgs e)
+        {
+            _spread.AutoFormulaBuilder.RebuildHard();
+            TextboxUserFormula.Text = _spread.UserFormula;
         }
     }
 }

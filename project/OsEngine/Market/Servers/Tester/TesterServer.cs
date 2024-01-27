@@ -1128,6 +1128,12 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
+                TimeMax = DateTime.MinValue;
+                TimeEnd = DateTime.MaxValue;
+                TimeMin = DateTime.MaxValue;
+                TimeStart = DateTime.MinValue;
+                TimeNow = DateTime.MinValue;
+
                 for (int i = 0; i < directories.Length; i++)
                 {
                     LoadSeciruty(directories[i]);
@@ -1165,12 +1171,6 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return;
             }
-
-            TimeMax = DateTime.MinValue;
-            TimeEnd = DateTime.MaxValue;
-            TimeMin = DateTime.MaxValue;
-            TimeStart = DateTime.MinValue;
-            TimeNow = DateTime.MinValue;
 
             for (int i = 0; i < directories.Length; i++)
             {
