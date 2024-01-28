@@ -1,12 +1,13 @@
-using System;
+п»їusing System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Charts.CandleChart.Indicators.Indicator
 {
-    public class LinearRegressionChannel : Aindicator
+   //[IndicatorAttribute("LinearRegressionChannel")]
+    internal class LinearRegressionChannel : Aindicator
     {
         private IndicatorParameterInt _period;
         private IndicatorParameterDecimal _upDeviation;
@@ -22,10 +23,10 @@ namespace CustomIndicators.Scripts
             if (state == IndicatorState.Configure)
             {
                 _period = CreateParameterInt("Lenght", 100);
-                _candlePoint = CreateParameterStringCollection("Candle Point", "Close", Entity.CandlePointsArray);
+                _candlePoint = CreateParameterStringCollection("Candle Point", "Close", OsEngine.Indicators.Entity.CandlePointsArray);
 
                 _upDeviation = CreateParameterDecimal("Up channel deviation", 2);
-                _downDeviation = CreateParameterDecimal("Down channel deviation", -2);
+                _downDeviation = CreateParameterDecimal("Down channel deviation", 2);
 
                 _seriesUpperband = CreateSeries("Up channel", Color.Aqua,
                     IndicatorChartPaintType.Line, true);
@@ -96,21 +97,22 @@ namespace CustomIndicators.Scripts
 
             decimal standartError = 0;
             for (int i = index - _period.ValueInt + 1; i < index + 1; i++)
-            // Нужно узнать расстояние от всех точек до линии регрессии за длину периода
-            //Найденное расстояние сложить и поделить на длину периода
+            // We need to find out the distance from all points to the regression line over the length of the period
+            //Add the found distance and divide by the length of the period
             {
-
-                //Находим точку(точку закрытия свечи)
+                if (i < 0 ||
+                    i >= candles.Count)
+                {
+                    continue;
+                }
+                //Finding the point (closing point of the candle)
                 decimal point = candles[i].GetPoint(_candlePoint.ValueString);
 
-
-                //Находим точку на линии
+                //Finding a point on the line
                 decimal pointLine = _seriesCentralLine.Values[i];
 
-
-                //Находим дистанцию между точками
+                //Finding the distance between points
                 decimal distance = Math.Abs(point - pointLine);
-
 
                 standartError = standartError + distance;
 
@@ -139,7 +141,6 @@ namespace CustomIndicators.Scripts
             {
                 _seriesUpperband.Values[i] = 0;
             }
-
 
             for (int i = index - _period.ValueInt + 1; i < _seriesLowerband.Values.Count; i++)
             {
