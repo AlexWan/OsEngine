@@ -707,6 +707,11 @@
     <Compile Include="Market\Servers\Kraken\Sockets\Messages\TradeValues.cs" />
     <Compile Include="Market\Servers\Kraken\Sockets\Messages\Unsubscribe.cs" />
     <Compile Include="Market\Servers\Kraken\Sockets\SecureStringExtensions.cs" />
+    <Compile Include="Market\Servers\KuCoin\KuCoinSpot\Json\RequestMessagesRest.cs" />
+    <Compile Include="Market\Servers\KuCoin\KuCoinSpot\Json\ResponseMessageRest.cs" />
+    <Compile Include="Market\Servers\KuCoin\KuCoinSpot\Json\ResponseWebSocketMessageAction.cs" />
+    <Compile Include="Market\Servers\KuCoin\KuCoinSpot\KuCoinSpotServer.cs" />
+    <Compile Include="Market\Servers\KuCoin\KuCoinSpot\KuCoinSpotServerPermission.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\FixMessageCreator.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\FixMessageParser.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxEntity\RejectReasons.cs" />

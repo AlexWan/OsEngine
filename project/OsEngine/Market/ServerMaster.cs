@@ -50,6 +50,7 @@ using OsEngine.Market.Servers.BitGet.BitGetFutures;
 using OsEngine.Market.Servers.Alor;
 using OsEngine.Market.Servers.GateIo.GateIoSpot;
 using OsEngine.Market.Servers.GateIo.GateIoFutures;
+using OsEngine.Market.Servers.KuCoin.KuCoinSpot;
 
 namespace OsEngine.Market
 {
@@ -150,6 +151,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
+                serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
@@ -259,6 +261,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
+                serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
@@ -358,6 +361,10 @@ namespace OsEngine.Market
                 SaveMostPopularServers(type);
 
                 IServer newServer = null;
+                if (type == ServerType.KuCoinSpot)
+                {
+                    newServer = new KuCoinSpotServer();
+                }
                 if (type == ServerType.Alor)
                 {
                     newServer = new AlorServer();
@@ -932,7 +939,11 @@ namespace OsEngine.Market
 
                 IServerPermission serverPermission = null;
 
-                if (type == ServerType.Alor)
+                if (type == ServerType.KuCoinSpot)
+                {
+                    serverPermission = new KuCoinSpotServerPermission();
+                }
+                else if (type == ServerType.Alor)
                 {
                     serverPermission = new AlorServerPermission();
                 }
@@ -1395,6 +1406,11 @@ namespace OsEngine.Market
         /// <summary>
         /// Alor OpenAPI & Websocket
         /// </summary>
-        Alor
+        Alor,
+
+        /// <summary>
+        /// KuCoinSpot exchange
+        /// </summary>
+        KuCoinSpot,
     }
 }
