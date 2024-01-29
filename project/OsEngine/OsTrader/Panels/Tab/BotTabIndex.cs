@@ -97,7 +97,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// remove tab and all child structures
+        /// remove source and all child structures
         /// </summary>
         public void Delete()
         {
@@ -1712,12 +1712,24 @@ namespace OsEngine.OsTrader.Panels.Tab
             Load();
         }
 
+        /// <summary>
+        /// custom name robot
+        /// </summary>
         private string _botUniqName;
 
+        /// <summary>
+        /// program that created the source
+        /// </summary>
         private StartProgram _startProgram;
 
+        /// <summary>
+        /// object of the index source for which the formula is calculated
+        /// </summary>
         private BotTabIndex _index;
 
+        /// <summary>
+        /// load settings from the file system
+        /// </summary>
         private void Load()
         {
             if (_startProgram == StartProgram.IsOsOptimizer)
@@ -1753,6 +1765,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// save the settings to the file system
+        /// </summary>
         private void Save()
         {
             if (_startProgram == StartProgram.IsOsOptimizer)
@@ -1783,6 +1798,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// remove object and all child structures
+        /// </summary>
         public void Delete()
         {
             if (_startProgram != StartProgram.IsOsOptimizer)
@@ -1800,6 +1818,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Settings
 
+        /// <summary>
+        /// work mode
+        /// </summary>
         public IndexAutoFormulaBuilderRegime Regime
         {
             get
@@ -1818,6 +1839,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private IndexAutoFormulaBuilderRegime _regime;
 
+        /// <summary>
+        /// day of the week for index formula recalculation
+        /// </summary>
         public DayOfWeek DayOfWeekToRebuildIndex
         {
             get
@@ -1836,6 +1860,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private DayOfWeek _dayOfWeekToRebuildIndex = DayOfWeek.Monday;
 
+        /// <summary>
+        /// hour intraday for index formula recalculation
+        /// </summary>
         public int HourInDayToRebuildIndex
         {
             get
@@ -1854,6 +1881,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private int _hourInDayToRebuildIndex = 10;
 
+        /// <summary>
+        /// number of securities in the index formula
+        /// </summary>
         public int IndexSecCount
         {
             get
@@ -1872,6 +1902,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private int _indexSecCount = 5;
 
+        /// <summary>
+        /// for how many days the trading volumes in the securities will be taken when selecting securities for the formula
+        /// </summary>
         public int DaysLookBackInBuilding
         {
             get
@@ -1890,6 +1923,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private int _daysLookBackInBuilding = 20;
 
+        /// <summary>
+        /// type of securities sorting for the index formula
+        /// </summary>
         public SecuritySortType IndexSortType
         {
             get
@@ -1908,6 +1944,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private SecuritySortType _indexSortType;
 
+        /// <summary>
+        /// type of weighting of securities within the index formula
+        /// </summary>
         public IndexMultType IndexMultType
         {
             get
@@ -1926,6 +1965,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private IndexMultType _indexMultType;
 
+        /// <summary>
+        /// make a message in the emergency log after recalculation of the index formula
+        /// </summary>
         public bool WriteLogMessageOnRebuild
         {
             get
@@ -1944,12 +1986,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private bool _writeLogMessageOnRebuild = true;
 
+        /// <summary>
+        /// recent time updates to the index formula
+        /// </summary>
         private string _lastTimeUpdateIndex;
 
         #endregion
 
         #region Logic
 
+        /// <summary>
+        /// query to instantly recalculate the index formula at the moment. 
+        /// </summary>
         public void RebuildHard()
         {
             try
@@ -1998,8 +2046,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// recent time updates to the index formula
+        /// </summary>
         private DateTime _lastTimeUpdate = DateTime.MinValue;
 
+        /// <summary>
+        /// standard query to try to rebuild the index formula
+        /// </summary>
         public void TryRebuidFormula(DateTime timeCandle, bool isHardRebiuld)
         {
             if(_regime == IndexAutoFormulaBuilderRegime.Off)
@@ -2118,6 +2172,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// calculate securities weights in the index
+        /// </summary>
         private void SetMultInSecurities(List<SecurityInIndex> secInIndex, int daysLookBack)
         {
             if (_indexMultType == IndexMultType.EqualParts)
@@ -2188,6 +2245,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// select securities for the index formula
+        /// </summary>
         private List<SecurityInIndex> GetSecuritiesToIndex(List<ConnectorCandles> tabsInIndex, int daysLookBack)
         {
             List<SecurityInIndex> secInIndex = new List<SecurityInIndex>();
@@ -2264,7 +2324,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     newIndex.Name = "A" + i;
                     newIndex.SecName = tabsInIndex[i].Security.Name;
                     newIndex.Candles = candles;
-                    SetVolatilyti(newIndex, daysLookBack);
+                    SetVolatility(newIndex, daysLookBack);
 
                     secInIndex.Add(newIndex);
                 }
@@ -2303,6 +2363,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             return secInIndex;
         }
 
+        /// <summary>
+        /// calculate security volume for a certain number of days
+        /// </summary>
         private void SetVolume(SecurityInIndex security, int daysLookBack)
         {
             // 1 берём свечки за последнюю неделю
@@ -2341,7 +2404,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         }
 
-        private void SetVolatilyti(SecurityInIndex security, int len)
+        /// <summary>
+        /// calculate security volatility for a certain number of days
+        /// </summary>
+        private void SetVolatility(SecurityInIndex security, int len)
         {
             List<Candle> candles = security.Candles;
 
@@ -2424,13 +2490,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// New log message event
+        /// new log message event
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
     }
 
+    /// <summary>
+    /// auto-formula builder work mode
+    /// </summary>
     public enum IndexAutoFormulaBuilderRegime
     {
         Off,
@@ -2439,19 +2508,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         OncePerHour,
     }
 
+    /// <summary>
+    /// type of weighting of securities within the index formula
+    /// </summary>
     public enum IndexMultType
     {
-        /// <summary>
-        /// равными частями
-        /// </summary>
         EqualParts,
-
-        /// <summary>
-        /// взвешенный по объёму
-        /// </summary>
         VolumeWeighted
     }
 
+    /// <summary>
+    /// type of securities sorting for the index formula
+    /// </summary>
     public enum SecuritySortType
     {
         FirstInArray,
@@ -2460,6 +2528,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         MinVolatilytiWeighted,
     }
 
+    /// <summary>
+    /// object for storing market data on security, during the calculation of the formula
+    /// </summary>
     public class SecurityInIndex
     {
         public string SecName;
@@ -2492,14 +2563,8 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public class ValueSave
     {
-        /// <summary>
-        /// name
-        /// </summary>
         public string Name;
 
-        /// <summary>
-        /// candles
-        /// </summary>
         public List<Candle> ValueCandles;
     }
 }
