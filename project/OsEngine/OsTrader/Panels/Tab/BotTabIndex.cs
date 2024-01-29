@@ -53,23 +53,22 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Program that created the robot
+        /// program that created the source
         /// </summary>
         private StartProgram _startProgram;
 
         /// <summary>
-        /// Unique robot name
+        /// unique robot name
         /// </summary>
         public string TabName { get; set; }
 
         /// <summary>
-        /// Tab number
+        /// tab number
         /// </summary>
         public int TabNum { get; set; }
 
         /// <summary>
         /// custom name robot
-        /// пользовательское имя робота
         /// </summary>
         public string NameStrategy
         {
@@ -84,12 +83,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Is the emulator enabled
+        /// is the emulator enabled
         /// </summary>
         public bool EmulatorIsOn { get; set; }
 
         /// <summary>
-        /// Clear
+        /// clear memory to initial state
         /// </summary>
         public void Clear()
         {
@@ -98,7 +97,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Remove tab and all child structures
+        /// remove tab and all child structures
         /// </summary>
         public void Delete()
         {
@@ -126,7 +125,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Whether the submission of events to the top is enabled or not
+        /// whether the submission of events to the top is enabled or not
         /// </summary>
         public bool EventsIsOn
         {
@@ -147,7 +146,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private bool _eventsIsOn = true;
 
         /// <summary>
-        /// Whether the tab is connected to download data
+        /// whether the tab is connected to download data
         /// </summary>
         public bool IsConnected
         {
@@ -169,7 +168,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Time of the last update of the candle
+        /// time of the last update of the candle
         /// </summary>
         public DateTime LastTimeCandleUpdate { get; set; }
 
@@ -178,7 +177,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         #region Controls
 
         /// <summary>
-        /// Show GUI
+        /// show the user interface for configuring the source
         /// </summary>
         public void ShowDialog()
         {
@@ -200,7 +199,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Show connector GUI
+        /// show connector GUI
         /// </summary>
         public void ShowIndexConnectorIndexDialog(int index)
         {
@@ -214,7 +213,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Add new security to the list
+        /// add new security to the list
         /// </summary>
         public void ShowNewSecurityDialog()
         {
@@ -238,6 +237,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             ui.SourcesCreator = null;
         }
 
+        /// <summary>
+        /// request a class that stores a list of sources to be deployed for the index
+        /// </summary>
         private MassSourcesCreator GetCurrentCreator()
         {
             MassSourcesCreator creator = new MassSourcesCreator(_startProgram);
@@ -297,12 +299,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Chart
+        /// chart
         /// </summary>
         private ChartCandleMaster _chartMaster;
 
         /// <summary>
-        /// Start drawing this robot
+        /// start drawing this source
         /// </summary> 
         public void StartPaint(Grid grid, WindowsFormsHost host, Rectangle rectangle)
         {
@@ -310,7 +312,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Stop drawing this robot
+        /// stop drawing this source
         /// </summary>
         public void StopPaint()
         {
@@ -330,15 +332,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         #region Storage, creation and deletion of securities in index
 
         /// <summary>
-        /// Connectors array
+        /// connectors array. Data sources from which the index will be built
         /// </summary>
         public List<ConnectorCandles> Tabs = new List<ConnectorCandles>();
 
         /// <summary>
         /// try to connect security
         /// </summary>
-        /// <param name="security">security</param>
-        /// <param name="creator">mass source creator</param>
         private void TryRunSecurity(ActivatedSecurity security, MassSourcesCreator creator)
         {
             for (int i = 0; i < Tabs.Count; i++)
@@ -400,7 +400,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Make a new adapter to connect data
+        /// make a new adapter to connect data
         /// </summary>
         public void CreateNewSecurityConnector()
         {
@@ -411,7 +411,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Remove selected security from list
+        /// remove selected security from list
         /// </summary>
         public void DeleteSecurityTab(int index)
         {
@@ -427,7 +427,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Save
+        /// save the settings to the file system
         /// </summary>
         public void Save()
         {
@@ -460,7 +460,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Load settings from file
+        /// load settings from the file system
         /// </summary>
         public void Load()
         {
@@ -516,7 +516,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         bool _isLoaded = false;
 
         /// <summary>
-        /// Source removed
+        /// one of the sources has been removed
         /// </summary>
         public event Action TabDeletedEvent;
 
@@ -524,6 +524,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Formula
 
+        /// <summary>
+        /// object responsible for calculation of the index formula in automatic mode
+        /// </summary>
         public IndexFormulaBuilder AutoFormulaBuilder;
 
         /// <summary>
@@ -581,7 +584,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public string ConvertedFormula;
 
         /// <summary>
-        /// Check the formula for errors and lead to the appearance of the program
+        /// check the formula for errors and lead to the appearance of the program
         /// </summary>
         public string ConvertFormula(string formula)
         {
@@ -645,12 +648,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         public List<Candle> Candles;
 
         /// <summary>
-        /// Array of objects for storing intermediate arrays of candles
+        /// array of objects for storing intermediate arrays of candles
         /// </summary>
         private List<ValueSave> _valuesToFormula;
 
         /// <summary>
-        /// Recalculate an arra
+        /// recalculate values to index. Recursive function that parses the formula and calculates the index.
         /// </summary>
         /// <param name="formula">formula</param>
         /// <returns>the name of the array in which the final value lies</returns>
@@ -884,7 +887,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Calculate values
+        /// merge some values
         /// </summary>
         /// <param name="valOne">value one</param>
         /// <param name="valTwo">value two</param>
@@ -931,7 +934,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Add numbers
+        /// merge two decimal arrays
         /// </summary>
         private string ConcateDecimals(decimal valOne, decimal valTwo, string sign)
         {
@@ -959,7 +962,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Count arrays of candles
+        /// merge two candlex arrays
         /// </summary>
         private string ConcateCandles(string valOne, string valTwo, string sign)
         {
@@ -1125,7 +1128,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// count an array of candles and a number
+        /// merge candle and decimal arrays
         /// </summary>
         private string ConcateCandleAndDecimal(string valOne, string valTwo, string sign)
         {
@@ -1234,7 +1237,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// count number and array
+        /// merge decimal and candles arrays
         /// </summary>
         private string ConcateDecimalAndCandle(string valOne, string valTwo, string sign)
         {
@@ -1330,7 +1333,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Create index candle
+        /// merge candle with decimal by math sign
         /// </summary>
         private Candle GetCandle(Candle oldCandle, Candle candleOne, decimal valueTwo, string sign)
         {
@@ -1392,6 +1395,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             return oldCandle;
         }
 
+        /// <summary>
+        /// merge decimal with candle by math sign
+        /// </summary>
         private Candle GetCandle(Candle oldCandle, decimal valOne, Candle candleTwo, string sign)
         {
             if (oldCandle == null)
@@ -1452,6 +1458,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             return oldCandle;
         }
 
+        /// <summary>
+        /// merge two candles by math sign
+        /// </summary>
         private Candle GetCandle(Candle oldCandle, Candle candleOne, Candle candleTwo, string sign)
         {
             if (oldCandle == null)
@@ -1531,7 +1540,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// New data came from the connector
+        /// new data came from the connector
         /// </summary>
         private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
         {
@@ -1627,7 +1636,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Spread change event
+        /// index change event
         /// </summary>
         public event Action<List<Candle>> SpreadChangeEvent;
 
@@ -1636,7 +1645,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         #region Indicators
 
         /// <summary>
-        /// Create indicator
+        /// add an indicator to the index
         /// </summary>
         /// <param name="indicator"> indicator</param>
         /// <param name="nameArea">name of the area where it will be placed</param>
@@ -1646,7 +1655,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Remove indicator from candlestick chart
+        /// remove the indicator from the index
         /// </summary>
         /// <param name="indicator">indicator</param>
         public void DeleteCandleIndicator(IIndicator indicator)
@@ -1655,7 +1664,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// indicators available on the index
+        /// list of previously created indicators for the source
         /// </summary>
         public List<IIndicator> Indicators
         {
@@ -1682,7 +1691,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// New log message event
+        /// new log message event
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
@@ -1691,6 +1700,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
     public class IndexFormulaBuilder
     {
+        #region Service. Constructor
+
         public IndexFormulaBuilder(BotTabIndex tabIndex, 
             string botUniqName, StartProgram startProgram)
         {
@@ -1785,7 +1796,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             _index = null;
         }
 
-        // settings
+        #endregion
+
+        #region Settings
 
         public IndexAutoFormulaBuilderRegime Regime
         {
@@ -1933,7 +1946,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private string _lastTimeUpdateIndex;
 
-        // logic
+        #endregion
+
+        #region Logic
 
         public void RebuildHard()
         {
@@ -1943,7 +1958,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 // 2 проверяем чтобы было больше одной бумаги
 
-                if (tabsInIndex.Count <= 1)
+                if (tabsInIndex == null ||
+                    tabsInIndex.Count <= 1)
                 {
                     SendNewLogMessage("Can`t rebuild formula. No sources", LogMessageType.Error);
                     return;
@@ -2388,6 +2404,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             security.VolatylityDayPercent = result / curDaysVola.Count;
         }
 
+        #endregion
+
+        #region Log
+
         /// <summary>
         /// send log message
         /// </summary>
@@ -2407,6 +2427,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// New log message event
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 
     public enum IndexAutoFormulaBuilderRegime
