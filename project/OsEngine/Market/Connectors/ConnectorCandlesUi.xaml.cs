@@ -556,6 +556,11 @@ namespace OsEngine.Market.Connectors
                     server.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
                 }
 
+                if(ComboBoxTypeServer.SelectedItem == null)
+                {
+                    return;
+                }
+
                 Enum.TryParse(ComboBoxTypeServer.SelectedItem.ToString(), true, out _selectedType);
 
                 IServer server2 = serversAll.Find(server1 => server1.ServerType == _selectedType);

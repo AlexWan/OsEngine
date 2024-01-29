@@ -572,6 +572,11 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
+                if (ComboBoxTypeServer.SelectedItem == null)
+                {
+                    return;
+                }
+
                 IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
 
                 if (server != null)
