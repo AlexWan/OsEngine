@@ -90,7 +90,7 @@ namespace OsEngine.Robots.AO
 
             // Create indicator MACD
             _MACD = IndicatorsFactory.CreateIndicatorByName("MACD", name + "MACD", false);
-            _MACD = (Aindicator)_tab.CreateCandleIndicator(_MACD, "NewArea");
+            _MACD = (Aindicator)_tab.CreateCandleIndicator(_MACD, "NewArea0");
             ((IndicatorParameterInt)_MACD.Parameters[0]).ValueInt = FastLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[1]).ValueInt = SlowLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[2]).ValueInt = SignalLineLengthMACD.ValueInt;
