@@ -402,12 +402,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return false;
                 }
 
-                if (candleNow.Volume == 0)
+                if (candleNow.Open == candleNow.High
+                    && candleNow.High == candleNow.Low
+                    && candleNow.Low == candleNow.Close
+                    && candleNow.Volume == 0)
+                {
+                    // всё нормально. Некоторые биржи так закрывают пробелы в данных
+                }
+                else if (candleNow.Volume == 0)
                 {
                     SetNewError("Error 19. Candle Volume is zero " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
-
             }
 
             return true;

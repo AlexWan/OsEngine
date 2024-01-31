@@ -492,10 +492,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                if( candleNow.Open == 0 
-                    && candleNow.High == 0 
-                    && candleNow.Low == 0 
-                    && candleNow.Close == 0
+                if( candleNow.Open == candleNow.High
+                    && candleNow.High == candleNow.Low
+                    && candleNow.Low == candleNow.Close
                     && candleNow.Volume == 0)
                 {
                     // всё нормально. Некоторые биржи так закрывают пробелы в данных

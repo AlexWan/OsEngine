@@ -212,10 +212,20 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     newSecurity.Lot = 1;
                     newSecurity.Name = item.name;
                     newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = SecurityType.CurrencyPair.ToString();
+                    newSecurity.NameClass = item.symbol.Split('-')[1];
                     newSecurity.NameId = item.symbol;
                     newSecurity.SecurityType = SecurityType.CurrencyPair;
-                    newSecurity.Decimals = (Decimal.GetBits(item.priceIncrement.ToDecimal())[3] >> 16) & 0x000000FF;
+
+                    if(string.IsNullOrEmpty(item.priceIncrement) == false)
+                    {
+                        newSecurity.Decimals = item.priceIncrement.DecimalsCount();
+                    }
+                    
+                    if(string.IsNullOrEmpty(item.baseMinSize) == false)
+                    {
+                        newSecurity.DecimalsVolume = item.baseMinSize.DecimalsCount();
+                    }
+
                     newSecurity.PriceStep = item.priceIncrement.ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
@@ -225,8 +235,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
             SecurityEvent(securities);
         }
-
-      
 
         public event Action<List<Security>> SecurityEvent;
 
@@ -259,7 +267,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return GetCandleDataToSecurity(security, timeFrameBuilder, DateTime.UtcNow - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.Minutes * candleCount), DateTime.UtcNow, DateTime.UtcNow);
+            DateTime timeStart = DateTime.UtcNow - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.Minutes * candleCount);
+            DateTime timeEnd = DateTime.UtcNow;
+
+            return GetCandleDataToSecurity(security, timeFrameBuilder, timeStart, timeEnd, timeStart);
         }
 
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
@@ -346,8 +357,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             return 300;
         }
 
-    
-
         private string GetStringInterval(TimeSpan tf)
         {
             // Type of candlestick patterns: 1min, 3min, 5min, 15min, 30min, 1hour, 2hour, 4hour, 6hour, 8hour, 12hour, 1day, 1week
@@ -377,7 +386,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             // 1. получить адрес вебсокета
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/bullet-private", "POST", null, String.Empty);
+
+            if(responseMessage.IsSuccessStatusCode == false)
+            {
+                SendLogMessage("KuCoin keys are wrong. Message from server: " + responseMessage.Content.ReadAsStringAsync().Result, LogMessageType.Error);
+                return;
+            }
+
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+
             ResponsePrivateWebSocketConnection wsResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponsePrivateWebSocketConnection());
 
             // устанавливаем динамический адрес сервера ws
@@ -604,7 +621,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         #region 8 Security Subscribed
 
         // https://www.kucoin.com/docs/basic-info/request-rate-limit/rest-api
-        private RateGate rateGateSubscribed = new RateGate(20, TimeSpan.FromMilliseconds(30000));
+        private RateGate rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(220));
 
         public void Subscrible(Security security)
         {
@@ -1174,7 +1191,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
             lock (_socketLocker)
             {
+                //Push frequency: once every 100ms
                 webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/market/ticker:{security.Name}\"}}"); // сделки
+                //Push frequency: once every 100ms
                 webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/spotMarket/level2Depth5:{security.Name}\"}}"); // стаканы 5+5 https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
             }
         }
