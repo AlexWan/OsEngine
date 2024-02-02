@@ -163,6 +163,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(okx);
 
+            SupportConnection kuCoinSpot = new SupportConnection()
+            {
+                ServerType = ServerType.KuCoinSpot,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\KuCoin.png",
+                LingSiteUrl = "https://www.kucoin.com/r/af/QBSQUGP7",
+                Discount = 20
+            };
+            supportList.Add(kuCoinSpot);
+
             SupportConnection huobi = new SupportConnection()
             {
                 ServerType = ServerType.HuobiSpot,
