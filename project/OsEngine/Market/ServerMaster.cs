@@ -51,6 +51,8 @@ using OsEngine.Market.Servers.Alor;
 using OsEngine.Market.Servers.GateIo.GateIoSpot;
 using OsEngine.Market.Servers.GateIo.GateIoFutures;
 using OsEngine.Market.Servers.KuCoin.KuCoinSpot;
+using OsEngine.Market.Servers.BinGxSpot;
+using OsEngine.Market.Servers.BingX.BingXSpot;
 
 namespace OsEngine.Market
 {
@@ -183,6 +185,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Bitmax_AscendexFutures);
                 serverTypes.Add(ServerType.BitGetSpot);
                 serverTypes.Add(ServerType.BitGetFutures);
+                serverTypes.Add(ServerType.BingXSpot);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -282,6 +285,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
+                serverTypes.Add(ServerType.BingXSpot);
 
                 return serverTypes;
             }
@@ -361,6 +365,10 @@ namespace OsEngine.Market
                 SaveMostPopularServers(type);
 
                 IServer newServer = null;
+                if (type == ServerType.BingXSpot)
+                {
+                    newServer = new BingXServerSpot();
+                }
                 if (type == ServerType.KuCoinSpot)
                 {
                     newServer = new KuCoinSpotServer();
@@ -943,6 +951,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new KuCoinSpotServerPermission();
                 }
+                else if (type == ServerType.BingXSpot)
+                {
+                    serverPermission = new BingXSpotServerPermission();
+                }
                 else if (type == ServerType.Alor)
                 {
                     serverPermission = new AlorServerPermission();
@@ -1412,5 +1424,10 @@ namespace OsEngine.Market
         /// KuCoinSpot exchange
         /// </summary>
         KuCoinSpot,
+
+        /// <summary>
+        /// BingXSpot exchange
+        /// </summary>
+        BingXSpot,
     }
 }
