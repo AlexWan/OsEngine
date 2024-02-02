@@ -148,6 +148,11 @@ namespace OsEngine.Entity
         /// </summary>
         public static int DecimalsCount(this string value)
         {
+            if (value.Contains("E"))
+            {
+                value = value.ToDecimal().ToString();
+            }
+
             value = value.Replace(",", ".");
 
             while (value.Length > 0 &&
