@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OsEngine.Market.Servers.GateIo.Futures
+namespace OsEngine.Market.Servers.Bybit
 {
     public class BybitServerPermission : IServerPermission
     {
@@ -81,12 +81,13 @@ namespace OsEngine.Market.Servers.GateIo.Futures
         }
         public bool DataFeedTfTickCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return true; }
         }
+
 
         #endregion
 
@@ -112,7 +113,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 1; }
+            get { return 10; }
         }
 
         private TimeFramePermission _tradeTimeFramePermission
@@ -142,7 +143,7 @@ namespace OsEngine.Market.Servers.GateIo.Futures
 
         public bool UseStandartCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsUseLotToCalculateProfit
