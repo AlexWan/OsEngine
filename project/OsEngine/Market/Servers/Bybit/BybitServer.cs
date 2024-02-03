@@ -1,23 +1,25 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Bybit.Entities;
-using OsEngine.Market.Servers.Bybit.EntityCreators;
-using OsEngine.Market.Servers.Bybit.Utilities;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Services;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using Newtonsoft.Json;
+
+using WebSocket4Net;
+
 
 namespace OsEngine.Market.Servers.Bybit
 {
@@ -30,78 +32,859 @@ namespace OsEngine.Market.Servers.Bybit
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
-            CreateParameterEnum("Futures Type", "USDT Perpetual", new List<string> { "USDT Perpetual", "Inverse Perpetual" });
-            CreateParameterEnum("Net Type", "MainNet", new List<string> { "MainNet", "TestNet" });
-            CreateParameterEnum("Position Mode", "Merged Single", new List<string> { "Merged Single", "Both Side" });
+            CreateParameterEnum(OsLocalization.Market.Label1, Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(), Net_type.TestNet.ToString()});
+   
         }
 
-        /// <summary>
-        /// instrument history query
-        /// запрос истории по инструменту
-        /// </summary>
+   
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
         {
-            return ((BybitServerRealization)ServerRealization).GetCandleHistory(nameSec, tf);
+            int CountCandlesToLoad = 1000;
+            return ((BybitServerRealization)ServerRealization).GetCandleHistory(nameSec, tf, false, DateTime.Now, CountCandlesToLoad);
         }
-    }
 
+      
+    }
     public class BybitServerRealization : IServerRealization
     {
-        #region Properties
+
+
+        #region 1 Constructor, Status, Connection
+
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+        public ServerConnectStatus NeedServerStatus;
+
+        public BybitServerRealization()
+        {
+            ServerStatus = ServerConnectStatus.Disconnect;
+            NeedServerStatus = ServerConnectStatus.Disconnect;
+            supported_intervals = CreateIntervalDictionary();
+        }
+
+        private void StartAllThread()
+        {
+            if (threadPrivateMessageReader != null )
+            {
+                threadPrivateMessageReader.Abort();
+            }
+            threadPrivateMessageReader = new Thread(() => ThreadPrivateMessageReader());
+            threadPrivateMessageReader.IsBackground = true;
+            threadPrivateMessageReader.Name = "ThreadBybitPrivateMessageReader";
+            threadPrivateMessageReader.Start();
+
+            if (threadPublicMessageReader != null)
+            {
+                threadPublicMessageReader.Abort();
+            }
+            threadPublicMessageReader = new Thread(() => ThreadPublicMessageReader());
+            threadPublicMessageReader.IsBackground = true;
+            threadPublicMessageReader.Name = "ThreadBybitPublicMessageReader";
+            threadPublicMessageReader.Start();
+
+            if (threadMessageReaderOrderBook != null)
+            {
+                threadMessageReaderOrderBook.Abort();
+            }
+            threadMessageReaderOrderBook = new Thread(() => ThreadMessageReaderOrderBook());
+            threadMessageReaderOrderBook.IsBackground = true;
+            threadMessageReaderOrderBook.Name = "ThreadBybitMessageReaderOrderBook";
+            threadMessageReaderOrderBook.Start();
+
+            if (threadGetPortfolios != null)
+            {
+                threadGetPortfolios.Abort();
+            }
+            threadGetPortfolios = new Thread(() => ThreadGetPortfolios());
+            threadGetPortfolios.IsBackground = true;
+            threadGetPortfolios.Name = "ThreadBybitGetPortfolios";
+            threadGetPortfolios.Start();
+
+            if (threadCheckAlivePublicWebSocket != null)
+            {
+                threadCheckAlivePublicWebSocket.Abort();
+            }
+            threadCheckAlivePublicWebSocket = new Thread(() => ThreadCheckAliveWebSocketThread());
+            threadCheckAlivePublicWebSocket.IsBackground = true;
+            threadCheckAlivePublicWebSocket.Name = "ThreadBybitCheckAliveWebSocketThread";
+            threadCheckAlivePublicWebSocket.Start();
+        }
+
+
+        public void Connect()
+        {
+            try
+            {
+                PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
+                SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+                net_type = (Net_type)Enum.Parse(typeof(Net_type), ((ServerParameterEnum)ServerParameters[2]).Value);
+                NeedServerStatus = ServerConnectStatus.Connect;
+                if (!CheckApiKeyInformation(PublicKey))
+                {
+                    IsDispose = true;
+                    Disconnect();
+
+                    return;
+                }
+                IsDispose = false;
+            
+                CreatePublicWebSocketConnect();
+                CreatePrivateWebSocketConnect();
+
+                CheckFullActivation();
+                //StartPortfolioRequester();
+                StartAllThread();
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+
+            }
+        }
+
+        public void Disconnect()
+        {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                NeedServerStatus = ServerConnectStatus.Disconnect;
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+        }
+
+
+        private void CheckFullActivation()
+        {
+            try
+            {
+                if (!CheckApiKeyInformation(PublicKey))
+                {
+                    Disconnect();
+                    return;
+                }
+                if (webSocketPrivate == null || webSocketPrivate?.State != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+                if (webSocketPublicSpot == null || webSocketPublicSpot?.State != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+                if (webSocketPublicLinear == null || webSocketPublicLinear?.State != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    ServerStatus = ServerConnectStatus.Connect;
+                    ConnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                threadCheckAlivePublicWebSocket?.Abort();
+                threadGetPortfolios?.Abort();
+                threadMessageReaderOrderBook?.Abort();
+                threadPrivateMessageReader?.Abort();
+                threadPublicMessageReader?.Abort();
+
+                NeedServerStatus = ServerConnectStatus.Disconnect;
+                IsDispose = true;
+                try
+                {
+                    httpClient?.Dispose();
+                    httpClientHandler?.Dispose();
+                    httpClient = null;
+                    httpClientHandler = null;
+                }
+                catch (Exception ex)
+                {
+                    HandlerExeption(ex);
+                }
+                DisposePublicWebSocket();
+                DisposePrivateWebSocket();
+                
+            }
+            catch
+            {
+                
+            }
+            Disconnect();
+        }
+
+        #endregion 1
+
+        #region 2 Properties
         public ServerType ServerType => ServerType.Bybit;
 
         public ServerConnectStatus ServerStatus { get; set; }
-        public List<IServerParameter> ServerParameters { get; set; }
         public DateTime ServerTime { get; set; }
-        #endregion
+        public List<IServerParameter> ServerParameters { get; set; }
+        private readonly Dictionary<double, string> supported_intervals;
+        
+        public string PublicKey = String.Empty;
+        public string SecretKey = String.Empty;
+        public Net_type net_type;
+        public MarginMode margineMode;
+        Thread threadPrivateMessageReader;
+        Thread threadPublicMessageReader;
+        Thread threadMessageReaderOrderBook;
+        Thread threadGetPortfolios;
+        Thread threadCheckAlivePublicWebSocket;
 
-        #region Fields
-
-        private string public_key;
-        private string secret_key;
-
-        private Client client;
-        private WsSource ws_source_public;
-        private WsSource ws_source_private;
-
-        private DateTime last_time_update_socket;
-
-        private string futures_type = "USDT Perpetual";
-        private string net_type = "MainNet";
-        private string hedge_mode = "Merged Single";
-
-        private readonly Dictionary<int, string> supported_intervals;
-        public List<Portfolio> Portfolios;
-        private CancellationTokenSource cancel_token_source;
-        private readonly ConcurrentQueue<string> queue_messages_received_from_fxchange;
-        private readonly Dictionary<string, Action<JToken>> response_handlers;
-        private object locker_candles = new object();
-        private BybitMarketDepthCreator market_mepth_creator;
-        #endregion
-
-        #region Constructor
-        public BybitServerRealization() : base()
+        private int glassDeep
         {
-            queue_messages_received_from_fxchange = new ConcurrentQueue<string>();
+            get
+            { if (((ServerParameterBool)ServerParameters[10]).Value)
+                {
+                    return 50;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+            set
+            {
 
-            supported_intervals = CreateIntervalDictionary();
-            ServerStatus = ServerConnectStatus.Disconnect;
-
-            response_handlers = new Dictionary<string, Action<JToken>>();
-            response_handlers.Add("auth", HandleAuthMessage);
-            response_handlers.Add("ping", HandlePingMessage);
-            response_handlers.Add("subscribe", HandleSubscribeMessage);
-            response_handlers.Add("orderBookL2_25", HandleorderBookL2_25Message);
-            response_handlers.Add("trade", HandleTradesMessage);
-            response_handlers.Add("execution", HandleMyTradeMessage);
-            response_handlers.Add("order", HandleOrderMessage);
+            }
         }
-        #endregion
 
-        #region Service
-        private Dictionary<int, string> CreateIntervalDictionary()
+        private bool IsDispose;
+
+        private string MyIDPrefix = "o_ExAVP";    // префикс ордеров
+
+        public string main_Url = "https://api.bybit.com";
+        public string test_Url = "https://api-testnet.bybit.com";
+
+        public string mainWsPublicUrl = "wss://stream.bybit.com/v5/public/";    // +  linear, spot;
+        public string testWsPublicUrl = "wss://stream-testnet.bybit.com/v5/public/";    // +  linear, spot";
+
+        public string mainWsPrivateUrl = "wss://stream.bybit.com/v5/private";
+        public string testWsPrivateUrl = "wss://stream-testnet.bybit.com/v5/private";
+        public string wsPublicUrl(Category category = Category.spot)
         {
-            var dictionary = new Dictionary<int, string>();
+            string url;
+            if (net_type == Net_type.MainNet)
+            {
+                url = mainWsPublicUrl;
+            }
+            else
+            {
+                url = testWsPublicUrl;
+            }
+
+            switch (category)
+            {
+                case Category.spot:
+                    url = url + "spot";
+                    break;
+                case Category.linear:
+                    url = url + "linear";
+                    break;
+                case Category.inverse:
+                    url = url + "inverse";
+                    break;
+                case Category.option:
+                    url = url + "option";
+                    break;
+                default:
+                    break;
+            }
+
+            return url;
+        }
+        public string wsPrivateUrl
+        {
+            get
+            {
+                if (net_type == Net_type.MainNet)
+                {
+                    return mainWsPrivateUrl;
+                }
+                else
+                {
+                    return testWsPrivateUrl;
+                }
+            }
+        }
+
+        public string RestUrl
+        {
+            get
+            {
+                if (net_type == Net_type.MainNet)
+                {
+                    return main_Url;
+                }
+                else
+                {
+                    return test_Url;
+                }
+            }
+        }
+        #endregion 2
+
+        #region 3 Securities
+
+        public event Action<List<Security>> SecurityEvent;
+        public void GetSecurities()
+        {
+            try
+            {
+                List<Security> securities = new List<Security>();
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs.Add("category", Category.spot);
+
+                JToken sec = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
+                ResponseRestMessage<ArraySymbols> symbols;
+                if (sec != null)
+                {
+                    symbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(sec.ToString());
+                    ConvertSecuritis(symbols, securities, Category.spot);
+                }
+
+                parametrs["category"] = Category.linear;
+
+                sec = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
+                if (sec != null)
+                {
+                    symbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(sec.ToString());
+                    ConvertSecuritis(symbols, securities, Category.linear);
+                }
+                SecurityEvent?.Invoke(securities);
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+
+        private void ConvertSecuritis(ResponseRestMessage<ArraySymbols> symbols, List<Security> securities, Category category)
+        {
+            try
+            {
+                List<string> spotFilter = new List<string>();
+                spotFilter.Add("USDT");
+                spotFilter.Add("USDC");
+                spotFilter.Add("BTC");
+                spotFilter.Add("ETH");  // остальное неторгуемые инструменты 
+
+
+                for (int i = 0; i < symbols.result.list.Count - 1; i++)
+                {
+                    Symbols oneSec = symbols.result.list[i];
+                    if (oneSec.status.ToLower() == "trading")
+                    {
+                        if (category == Category.spot && !spotFilter.Exists((f) => f == oneSec.quoteCoin))
+                        {
+                            continue;
+                        }
+
+                        Security security = new Security();
+                        int.TryParse(oneSec.priceScale, out int ps);
+                        security.Decimals = ps;
+                        security.DecimalsVolume = GetDecimalsVolume(oneSec.lotSizeFilter.minOrderQty);
+                        security.Name = oneSec.symbol + (category == Category.linear ? ".P" : "");
+                        security.NameFull = oneSec.symbol;
+                        security.NameClass = category == Category.spot ? oneSec.quoteCoin : oneSec.contractType;
+                        security.NameId = oneSec.symbol;
+                        security.SecurityType = SecurityType.CurrencyPair;
+                        security.PriceStep = oneSec.priceFilter.tickSize.ToDecimal();
+                        security.PriceStepCost = oneSec.priceFilter.tickSize.ToDecimal();
+                        security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+                        security.State = SecurityStateType.Activ;
+                        security.Exchange = "ByBit";
+                        security.Lot = 1;
+
+                        securities.Add(security);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+
+        private int GetDecimalsVolume(string str)
+        {
+            string[] s = str.Split('.');
+            if (s.Length > 1)
+            {
+                return s[1].Length;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        #endregion 3
+
+        #region 4 Portfolios
+
+        public event Action<List<Portfolio>> PortfolioEvent;
+
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+        private void ThreadGetPortfolios()
+        {
+            Thread.Sleep(20000);
+            while (!IsDispose)
+            {
+                try
+                {
+                    Thread.Sleep(2000);
+                    GetPortfolios();
+
+                }
+                catch (ThreadAbortException ex)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    HandlerExeption(ex);
+                }
+            }
+
+        }
+
+        private List<Portfolio> portfolios = new List<Portfolio>();
+
+        public void GetPortfolios()
+        {
+            try
+            {
+
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs["accountType"] = "UNIFIED";
+                JToken balance = CreatePrivateQuery(parametrs, HttpMethod.Get, "/v5/account/wallet-balance");
+                if (balance == null)
+                {
+                    return;
+                }
+
+                List<Portfolio> _portfolios = new List<Portfolio>();
+                for (int i = 0; i < portfolios.Count; i++)
+                {
+                    Portfolio p = portfolios[i];
+                    Portfolio newp = new Portfolio();
+                    newp.Number = p.Number;
+                    newp.Profit = p.Profit;
+                    newp.ValueBegin = p.ValueBegin;
+                    newp.ValueBlocked = p.ValueBlocked;
+                    newp.ValueCurrent = p.ValueCurrent;
+
+                    List<PositionOnBoard> positionOnBoards = portfolios[i].GetPositionOnBoard();
+                    for (int i2 = 0; i2 < positionOnBoards.Count; i2++)
+                    {
+                        PositionOnBoard oldPB = positionOnBoards[i2];
+                        PositionOnBoard newPB = new PositionOnBoard();
+                        newPB.PortfolioName = oldPB.PortfolioName;
+                        newPB.SecurityNameCode = oldPB.SecurityNameCode;
+                        newPB.ValueBegin = oldPB.ValueBegin;
+                        newPB.ValueBlocked = oldPB.ValueBlocked;
+                        newPB.ValueCurrent = 0;
+                        newp.SetNewPosition(newPB);
+                    }
+                    _portfolios.Add(newp);
+                }
+
+                List<JToken> JPortolioList = balance.SelectToken("result.list").Children().ToList();
+
+                for (int j =0; j < JPortolioList.Count; j++)
+                {
+                    JToken item = JPortolioList[j];
+                    string portNumber = "Bybit" + item.SelectToken("accountType").ToString();
+                    Portfolio portfolio = BybitPortfolioCreator(item, portNumber);
+                    bool newPort = true;
+                    for (int i = 0; i < _portfolios.Count; i++)
+                    {
+                        if (_portfolios[i].Number == portNumber)
+                        {
+                            
+                            _portfolios[i].ValueBegin = portfolio.ValueBegin;
+                            _portfolios[i].ValueBlocked = portfolio.ValueBlocked;
+                            _portfolios[i].ValueCurrent = portfolio.ValueCurrent;
+                            portfolio = _portfolios[i];
+                            newPort = false;
+                            break;
+                        }
+                    }
+                    if (newPort)
+                    {
+                        _portfolios.Add(portfolio);
+                    }
+                    List<PositionOnBoard> PositionOnBoard = GetPositionsLinear(portfolio.Number);
+                    PositionOnBoard.AddRange(GetPositionsSpot(item.SelectToken("coin").Children().ToList(), portfolio.Number));
+                    for (int i = 0; i < PositionOnBoard.Count; i++)
+                    {
+                        portfolio.SetNewPosition(PositionOnBoard[i]);
+                    }
+                }
+                portfolios.Clear();
+                portfolios = _portfolios;
+                PortfolioEvent?.Invoke(_portfolios);
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+        public static Portfolio BybitPortfolioCreator(JToken data, string portfolioName)
+        {
+            try
+            {
+                Portfolio portfolio = new Portfolio();
+                portfolio.Number = portfolioName;
+
+                portfolio.ValueCurrent = 1;
+                portfolio.ValueBlocked = 1;
+                portfolio.ValueBegin = 1;
+
+                portfolio.ValueBegin = data.SelectToken("totalWalletBalance").Value<decimal>();
+                if (data.SelectToken("totalMarginBalance").Value<string>().Length > 0)
+                {
+                    decimal.TryParse(data.SelectToken("totalMarginBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out portfolio.ValueCurrent);
+                }
+                else
+                {
+                    decimal.TryParse(data.SelectToken("totalWalletBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out portfolio.ValueCurrent);
+                }
+                if (data.SelectToken("totalInitialMargin").Value<string>().Length > 0)
+                {
+                    decimal.TryParse(data.SelectToken("totalInitialMargin").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out portfolio.ValueBlocked);
+                }
+                else
+                {
+                    portfolio.ValueBlocked = 0;
+
+                }
+                return portfolio;
+            }
+            catch
+            {
+                return new Portfolio(); ;
+            }
+        }
+
+        public List<PositionOnBoard> GetPositionsSpot(List<JToken> JCoinList, string portfolioNumber)
+        {
+            try
+            {
+                List<PositionOnBoard> pb = new List<PositionOnBoard>();
+                for (int j2 = 0; j2 < JCoinList.Count; j2++)
+                {
+                    JToken item2 = JCoinList[j2];
+                    PositionOnBoard positions = new PositionOnBoard();
+                    positions.PortfolioName = portfolioNumber;
+                    positions.SecurityNameCode = item2.SelectToken("coin").Value<string>();
+                    decimal.TryParse(item2.SelectToken("walletBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBegin);
+                    decimal.TryParse(item2.SelectToken("availableToWithdraw").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueCurrent);
+                    decimal.TryParse(item2.SelectToken("locked").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBlocked);
+
+                    pb.Add(positions);
+                }
+                return pb;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public List<PositionOnBoard> GetPositionsLinear(string portfolioNumber)
+        {
+
+            List<PositionOnBoard> positionOnBoards = new List<PositionOnBoard>();
+            string[] settleCoin = new string[] {"USDT", "USDC", "BTC", "ETH" };
+            try
+            {
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                for (int i = 0; i < settleCoin.Length; i++)
+                {
+
+                    parametrs["settleCoin"] = settleCoin[i];
+                    parametrs["category"] = Category.linear;
+                    parametrs["limit"] = 10;
+                    if (parametrs.ContainsKey("cursor"))
+                    {
+                        parametrs.Remove("cursor");
+
+                    }
+                    string nextPageCursor = "";
+                    do
+                    {
+                        JToken position = CreatePrivateQuery(parametrs, HttpMethod.Get, "/v5/position/list");
+                        if (position == null)
+                        {
+                            return positionOnBoards;
+                        }
+                        List<PositionOnBoard> positions = CreatePosOnBoard(position.SelectToken("result.list"), portfolioNumber);
+                        if ( positions != null && positions.Count > 0)
+                        {
+                            positionOnBoards.AddRange(positions);
+                        }
+                        nextPageCursor = position.SelectToken("result.nextPageCursor").ToString();
+                        if (nextPageCursor.Length > 1)
+                        {
+                            parametrs["cursor"] = nextPageCursor;
+                        }
+                    } while (nextPageCursor.Length > 1);
+                }
+                    return positionOnBoards;
+            }
+            catch (Exception ex)
+            {
+
+                return positionOnBoards;
+            }
+        }
+        public static List<PositionOnBoard> CreatePosOnBoard(JToken data, string potrolioNumber)
+        {
+            List<PositionOnBoard> poses = new List<PositionOnBoard>();
+
+            List<JToken> list = data.Children().ToList();
+            for (int i = 0; i < list.Count; i++)
+            {
+                JToken posJson = list[i];
+                PositionOnBoard pos = new PositionOnBoard();
+
+                pos.PortfolioName = potrolioNumber;
+                pos.SecurityNameCode
+                    = posJson.SelectToken("symbol").ToString()+".P";
+                //+ "_" + posJson.SelectToken("side").ToString();
+
+                pos.ValueBegin = posJson.SelectToken("size").Value<decimal>() * (posJson.SelectToken("side").Value<string>() == "Buy" ? 1 : -1);
+                pos.ValueCurrent = pos.ValueBegin;
+                poses.Add(pos);
+            }
+
+            return poses;
+        }
+        #endregion 4
+
+        #region 5 Data
+        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, DateTime timeEnd, int CountToLoad)
+        {
+            try
+            {
+                string category = Category.spot.ToString();
+                if (nameSec.EndsWith(".P"))
+                {
+                    category = Category.linear.ToString();
+                }
+                if (!supported_intervals.ContainsKey(Convert.ToInt32(tf.TotalMinutes)))
+                {
+                    return null;
+                }
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs["category"] = category;
+                parametrs["symbol"] = nameSec.Replace(".P", "");
+                parametrs["interval"] = supported_intervals[Convert.ToInt32(tf.TotalMinutes)];
+                parametrs["start"] = ((DateTimeOffset)timeEnd.AddMinutes(tf.TotalMinutes * -1 * CountToLoad).ToUniversalTime()).ToUnixTimeMilliseconds();
+                parametrs["end"] = ((DateTimeOffset)timeEnd.ToUniversalTime()).ToUnixTimeMilliseconds();
+                parametrs["limit"] = 1000;
+                JToken JCandles = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/kline");
+                if (JCandles == null)
+                {
+                    return new List<Candle>();
+                }
+                List<Candle> candles = GetListCandles(JCandles);
+                if (candles == null || candles.Count == 0)
+                {
+                    return null;
+                }
+                return GetListCandles(JCandles);
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+            return null;
+        }
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, false, DateTime.UtcNow, candleCount);
+        }
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            try
+            {
+                if (actualTime < startTime || actualTime > endTime)
+                {
+                    return null;
+                }
+                string category = Category.spot.ToString();
+                if (security.Name.EndsWith(".P"))
+                {
+                    category = Category.linear.ToString();
+                }
+                if (!supported_intervals.ContainsKey(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes))
+                {
+                    return null;
+                }
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs["category"] = category;
+                parametrs["symbol"] = security.Name.Replace(".P", "");
+                parametrs["interval"] = supported_intervals[timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes];
+                parametrs["limit"] = 1000;
+                List<Candle> candles = new List<Candle>();
+                parametrs["start"] = TimeManager.GetTimeStampMilliSecondsToDateTime(startTime);
+                parametrs["end"] = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
+                do
+                {
+                    JToken JCandles = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/kline");
+                    if (JCandles == null)
+                    {
+                        break;
+                    }
+                    List<Candle> newCandles = GetListCandles(JCandles);
+                    if (newCandles != null && newCandles.Count > 0)
+                    {
+                        candles.InsertRange(0, newCandles);
+                        if (candles[0].TimeStart > startTime)
+                        {
+                            parametrs["end"] = TimeManager.GetTimeStampMilliSecondsToDateTime(candles[0].TimeStart.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * -1));
+                        }
+                        else
+                        {
+                            return candles;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                } while (true);
+                if (candles.Count > 0)
+                {
+                    return candles;
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+            return null;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+            // ByBit отдает через API не более 1000 последних тиков, что не соответствует требованиям коннектора, поэтому вернём null
+
+            List<Trade> trades = new List<Trade>();
+            try
+            {
+                string category = Category.spot.ToString();
+                if (security.Name.EndsWith(".P"))
+                {
+                    category = Category.linear.ToString();
+                }
+
+
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs.Add("category", category);
+                parametrs.Add("symbol", security.Name.Replace (".P",""));
+                parametrs.Add("limit", 1000);   // это максимум, который отдают
+
+                JToken Jtrades = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/recent-trade");
+
+                ResponseRestMessageList<RetTrade> responseTrades = JsonConvert.DeserializeObject<ResponseRestMessageList<RetTrade>>(Jtrades.ToString());
+                if (responseTrades == null || responseTrades.result == null || responseTrades.result.list == null || responseTrades.result.list.Count == 0 )
+                {
+                    return null;
+                }
+
+                List<RetTrade> retTrade = new List<RetTrade>();
+                retTrade = responseTrades.result.list;
+                DateTime preTime = DateTime.MinValue;
+                for (int i = retTrade.Count-1; i >= 0; i--)
+                {
+                    RetTrade Jtrade = retTrade[i];
+                    Trade trade = new Trade();
+                    trade.Id = Jtrade.execId;
+                    trade.Price = Jtrade.price.ToDecimal();
+                    trade.SecurityNameCode = Jtrade.symbol;
+                    trade.Side = Jtrade.side == "Buy" ? Side.Buy : Side.Sell;
+                    trade.Volume = Jtrade.size.ToDecimal();
+                    DateTime tradeTime = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(Jtrade.time)).UtcDateTime;
+                    if (tradeTime <= preTime)   // у байбит  в один и тот же момент времени, до миллисекунд, бывает несколько трейдов
+                    {
+                        // tradeTime = preTime.AddTicks(1);    // если в один момент времени несклько трейдов нельзя, то разрешить строку и добавлять по тику
+                    }
+                    trade.Time = tradeTime;
+                    trade.MicroSeconds = 0;
+                    preTime = trade.Time;
+
+                    trades.Add(trade);
+
+                }
+                return trades;
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+                return trades;
+            }
+        }
+
+        private static List<Candle> GetListCandles(JToken JCandles)
+        {
+            List<Candle> candles = new List<Candle>();
+            try
+            {
+                JToken JListCandels = JCandles.SelectToken("result.list");
+                List<JToken> JCandlesList =  JListCandels.Children().Reverse().ToList();
+                for (int i=0; i< JCandlesList.Count; i++)
+                {
+                    JToken oneSec = JCandlesList[i];
+                    List<JToken> listCandle = oneSec.Children().ToList();
+                    DateTime d = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(listCandle[0].ToString())).UtcDateTime;
+                    decimal o = listCandle[1].ToString().ToDecimal(); 
+                    decimal h = listCandle[2].ToString().ToDecimal(); 
+                    decimal l = listCandle[3].ToString().ToDecimal(); 
+                    decimal c = listCandle[4].ToString().ToDecimal();
+                    decimal v = listCandle[5].ToString().ToDecimal(); 
+
+                    Candle candle = new Candle();
+                    candle.TimeStart = d;
+                    candle.Open = o;
+                    candle.High = h;
+                    candle.Low = l;
+                    candle.Close = c;
+                    candle.Volume = v;
+                    candle.State = CandleState.Finished;
+                    candles.Add(candle);
+
+                }
+
+               
+            }
+            catch
+            {
+                return new List<Candle>();
+            }
+            return candles;
+        }
+        private Dictionary<double, string> CreateIntervalDictionary()
+        {
+            Dictionary<double, string> dictionary = new Dictionary<double, string>();
 
             dictionary.Add(1, "1");
             dictionary.Add(3, "3");
@@ -117,590 +900,1229 @@ namespace OsEngine.Market.Servers.Bybit
 
             return dictionary;
         }
-        #endregion
 
-        public void Connect()
-        {
-            public_key = ((ServerParameterString)ServerParameters[0]).Value;
-            secret_key = ((ServerParameterPassword)ServerParameters[1]).Value;
+        #endregion 5
 
-            futures_type = ((ServerParameterEnum)ServerParameters[2]).Value;
-            net_type = ((ServerParameterEnum)ServerParameters[3]).Value;
-            hedge_mode = ((ServerParameterEnum)ServerParameters[4]).Value;
+        #region 6 WebSocket creation
 
-            if (futures_type != "Inverse Perpetual" && net_type != "TestNet")
-            {
-                client = new Client(public_key, secret_key, false, true);
-            }
-
-            else if (futures_type != "Inverse Perpetual" && net_type == "TestNet")
-            {
-                client = new Client(public_key, secret_key, false, false);
-            }
-
-            else if (futures_type == "Inverse Perpetual" && net_type != "TestNet")
-            {
-                client = new Client(public_key, secret_key, true, true);
-            }
-
-            else if (futures_type == "Inverse Perpetual" && net_type == "TestNet")
-            {
-                client = new Client(public_key, secret_key, true, false);
-            }
-
-            last_time_update_socket = DateTime.UtcNow;
-            cancel_token_source = new CancellationTokenSource();
-            market_mepth_creator = new BybitMarketDepthCreator();
-
-            _alreadySubscribleOrders = false;
-            _alreadySubscribleTrades = false;
-            _alreadySubSec.Clear();
-
-            StartMessageReader();
-
-            ws_source_private = new WsSource(client.WsPrivateUrl);
-            ws_source_private.MessageEvent += WsSourceOnMessageEvent;
-            ws_source_private.Start();
-
-            ws_source_public = new WsSource(client.WsPublicUrl);
-            ws_source_public.MessageEvent += WsSourceOnMessageEvent;
-            ws_source_public.Start();
-            ServerStatus = ServerConnectStatus.Connect;
-        }
-
-        public void Dispose()
+        private WebSocket webSocketPublicSpot;
+        private WebSocket webSocketPublicLinear;
+        private WebSocket webSocketPrivate;
+        private ConcurrentQueue<string> concurrentQueueMessagePublicWebSocket;
+        private ConcurrentQueue<string> concurrentQueueMessageOrderBook;
+        private ConcurrentQueue<string> concurrentQueueMessagePrivateWebSocket;
+        private void CreatePublicWebSocketConnect()
         {
             try
             {
-                if (ws_source_private != null)
+                if (NeedServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    ws_source_private.MessageEvent -= WsSourceOnMessageEvent;
-                    ws_source_private.Dispose();
-                    ws_source_private = null;
+                    return;
                 }
 
-                if (ws_source_public != null)
+                if (concurrentQueueMessagePublicWebSocket == null) concurrentQueueMessagePublicWebSocket = new ConcurrentQueue<string>();
+                if (concurrentQueueMessageOrderBook == null) concurrentQueueMessageOrderBook = new ConcurrentQueue<string>();
+
+                webSocketPublicSpot = new WebSocket(wsPublicUrl(Category.spot));
+                webSocketPublicSpot.EnableAutoSendPing = true;
+                webSocketPublicSpot.AutoSendPingInterval = 10;
+                webSocketPublicSpot.MessageReceived += WebSocketPublic_MessageReceivedSpot;
+                webSocketPublicSpot.Closed += WebSocketPublic_Closed;
+                webSocketPublicSpot.Error += WebSocketPublic_Error;
+                webSocketPublicSpot.Opened += WebSocketPublic_Opened; ;
+                if (webSocketPublicSpot.State != WebSocketState.Open)
                 {
-                    ws_source_public.MessageEvent -= WsSourceOnMessageEvent;
-                    ws_source_public.Dispose();
-                    ws_source_public = null;
+                    webSocketPublicSpot.Open();
                 }
-
-                if (cancel_token_source != null &&
-                    !cancel_token_source.IsCancellationRequested)
+                webSocketPublicLinear = new WebSocket(wsPublicUrl(Category.linear));
+                webSocketPublicLinear.EnableAutoSendPing = true;
+                webSocketPublicLinear.AutoSendPingInterval = 10;
+                webSocketPublicLinear.MessageReceived += WebSocketPublic_MessageReceivedLinear;
+                webSocketPublicLinear.Closed += WebSocketPublic_Closed;
+                webSocketPublicLinear.Error += WebSocketPublic_Error;
+                webSocketPublicLinear.Opened += WebSocketPublic_Opened; ;
+                if (webSocketPublicLinear.State != WebSocketState.Open)
                 {
-                    cancel_token_source.Cancel();
-                    cancel_token_source = null;
+                    webSocketPublicLinear.Open();
                 }
-
-                cancel_token_source = new CancellationTokenSource();
-                market_mepth_creator = new BybitMarketDepthCreator();
-
-                client = null;
-
-                _alreadySubSec.Clear();
-
-                _alreadySubscribleOrders = false;
-                _alreadySubscribleTrades = false;
-
-                DisconnectEvent();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                SendLogMessage("Bybit dispose error: " + e.Message + " " + e.StackTrace, LogMessageType.Error);
-            }
-            ServerStatus = ServerConnectStatus.Disconnect;
-        }
-
-        private void WsSourceOnMessageEvent(WsMessageType message_type, string message)
-        {
-            if (message_type == WsMessageType.Opened)
-            {
-                SendLoginMessage();
-                ConnectEvent();
-                StartPortfolioRequester();
-            }
-            else if (message_type == WsMessageType.Closed)
-            {
-                DisconnectEvent();
-                Dispose();
-            }
-            else if (message_type == WsMessageType.StringData)
-            {
-                queue_messages_received_from_fxchange.Enqueue(message);
-            }
-            else if (message_type == WsMessageType.Error)
-            {
-                if (message.Contains("no address was supplied"))
-                {
-                    DisconnectEvent();
-                    Dispose();
-                }
-
-                SendLogMessage(message, LogMessageType.Error);
+                HandlerExeption(ex);
             }
         }
 
-        private void StartMessageReader()
+        private void CreatePrivateWebSocketConnect()
         {
-            Task.Run(() => MessageReader(cancel_token_source.Token), cancel_token_source.Token);
-            Task.Run(() => SourceAliveCheckerThread(cancel_token_source.Token), cancel_token_source.Token);
+            try
+            {
+                if (NeedServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+                if (concurrentQueueMessagePrivateWebSocket == null) concurrentQueueMessagePrivateWebSocket = new ConcurrentQueue<string>();
+
+                webSocketPrivate = new WebSocket(wsPrivateUrl);
+                webSocketPrivate.EnableAutoSendPing = true;
+                webSocketPrivate.AutoSendPingInterval = 10;
+                webSocketPrivate.MessageReceived += WebSocketPrivate_MessageReceived;
+                webSocketPrivate.Closed += WebSocketPrivate_Closed;
+                webSocketPrivate.Error += WebSocketPrivate_Error;
+                webSocketPrivate.Opened += WebSocketPrivate_Opened;
+                if (webSocketPrivate.State != WebSocketState.Open)
+                {
+                    webSocketPrivate.Open();
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
         }
 
-        private void StartPortfolioRequester()
+
+
+        #endregion 6
+
+        #region 7 WebSocket events
+
+        private void WebSocketPrivate_Opened(object sender, EventArgs e)
         {
-            Task.Run(() => PortfolioRequester(cancel_token_source.Token), cancel_token_source.Token);
+            try
+            {
+                CheckFullActivation();
+
+                string authRequest = GetWebSocketAuthRequest();
+                webSocketPrivate?.Send(authRequest);
+                webSocketPrivate?.Send("{\"op\":\"subscribe\",\"args\":[\"order\"]}");
+                webSocketPrivate?.Send("{\"op\":\"subscribe\", \"args\":[\"execution\"]}");
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
         }
 
-        private async void MessageReader(CancellationToken token)
+        private string GetWebSocketAuthRequest()
         {
-            while (!token.IsCancellationRequested)
+            long.TryParse(GetServerTime(), out long expires );
+            expires += 10000;
+            string signature = GenerateSignature(SecretKey, "GET/realtime" + expires);
+            string sign = $"{{\"op\":\"auth\",\"args\":[\"{PublicKey}\",{expires},\"{signature}\"]}}";
+            return sign;
+        }
+        private string GenerateSignature(string secret, string message)
+        {
+            using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret)))
+            {
+                byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+                return BitConverter.ToString(hash).Replace("-", "").ToLower();
+            }
+        }
+
+
+        private void WebSocketPrivate_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        {
+            try
+            {
+                if (DateTime.Now.Subtract(SendLogMessageTime).TotalSeconds > 10)
+                {
+                    SendLogMessageTime = DateTime.Now;
+                    SendLogMessage($"WebSocketPrivate {sender} error {e.Exception.Message}, wait reconnect", LogMessageType.Error);
+                }
+                CheckFullActivation();
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+
+
+        private void WebSocketPrivate_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                CheckFullActivation();
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+
+
+        private void WebSocketPrivate_MessageReceived(object sender, MessageReceivedEventArgs e)
+        {
+            if (concurrentQueueMessagePrivateWebSocket != null)
+            {
+                concurrentQueueMessagePrivateWebSocket?.Enqueue(e.Message);
+            }
+        }
+
+        private void WebSocketPublic_MessageReceivedSpot(object sender, MessageReceivedEventArgs e)
+        {
+            if (concurrentQueueMessagePublicWebSocket != null)
+            {
+                concurrentQueueMessagePublicWebSocket?.Enqueue(e.Message+".SPOT");
+            }
+        }
+        private void WebSocketPublic_MessageReceivedLinear(object sender, MessageReceivedEventArgs e)
+        {
+            if (concurrentQueueMessagePublicWebSocket != null)
+            {
+                concurrentQueueMessagePublicWebSocket?.Enqueue(e.Message);
+             
+            }
+        }
+
+
+        private void WebSocketPublic_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                CheckFullActivation();
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+
+        }
+        DateTime SendLogMessageTime = DateTime.Now;
+        private void WebSocketPublic_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        {
+            try
+            {
+                if (DateTime.Now.Subtract(SendLogMessageTime).TotalSeconds > 10)
+                {
+                    SendLogMessageTime = DateTime.Now;
+                    SendLogMessage($"WebSocketPublic {sender} error {e.Exception.Message}, wait reconnect", LogMessageType.Error);
+                }
+                CheckFullActivation();
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+
+
+        }
+        private void WebSocketPublic_Opened(object sender, EventArgs e)
+        {
+            CheckFullActivation();
+        }
+
+        #endregion 7
+
+        #region 8 WebSocket check alive
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+        private void ThreadCheckAliveWebSocketThread()
+        {
+            while (true)
             {
                 try
                 {
-                    if (!queue_messages_received_from_fxchange.IsEmpty && queue_messages_received_from_fxchange.TryDequeue(out string mes))
+                    Thread.Sleep(30000);
+                    if (ServerStatus != ServerConnectStatus.Connect)
                     {
-                        JToken response = JToken.Parse(mes);
-
-                        if (response.First.Path == "success")
+                        continue;
+                    }
+                    if (httpClient == null || !CheckApiKeyInformation(PublicKey))
+                    {
+                        continue;
+                    }
+                    if (webSocketPublicSpot == null)
+                    {
+                        if (NeedServerStatus != ServerConnectStatus.Disconnect)
                         {
-
-                            bool is_success = response.SelectToken("success").Value<bool>();
-
-                            if (is_success)
+                            CreatePublicWebSocketConnect();
+                            Thread.Sleep(2000);
+                            try
                             {
-                                string type = JToken.Parse(response.SelectToken("request").ToString()).SelectToken("op").Value<string>();
-
-                                if (response_handlers.ContainsKey(type))
+                                if (webSocketPublicSpot != null)
                                 {
-                                    response_handlers[type].Invoke(response);
-                                }
-                                else
-                                {
-                                    SendLogMessage(mes, LogMessageType.System);
+                                    string arg1 = "";
+                                    string arg2 = "";
+                                    string z = "";
+                                    for (int i = 0; i < SubscribleSecuritySpot.Count; i++)
+                                    {
+                                        string s = SubscribleSecuritySpot[i].Replace(".P", "");
+                                        arg1 = arg1 + z + $"\"publicTrade.{s}\"";
+                                        arg2 = arg2 + z + $"\"orderbook.{glassDeep}.{s}\"";
+                                        z = ",";
+                                    }
+                                    webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [{arg1}] }}");
+                                    webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [{arg2}] }}");
                                 }
                             }
-                            else if (!is_success)
+                            catch (Exception ex)
                             {
-                                string type = JToken.Parse(response.SelectToken("request").ToString()).SelectToken("op").Value<string>();
-                                string error_mssage = response.SelectToken("ret_msg").Value<string>();
-
-                                if (type == "subscribe" && error_mssage.Contains("already"))
-                                    continue;
-
-
-                                SendLogMessage("Broken response success marker " + mes, LogMessageType.Error);
-                                if (mes.Contains("\"auth\"") && mes.Contains("error"))
-                                {
-                                    Dispose();
-                                }
+                                HandlerExeption(ex);
                             }
                         }
-
-                        else if (response.First.Path == "topic") //orderBookL2_25.BTCUSD
+                    }
+                    if (webSocketPublicSpot?.State == WebSocketState.None || webSocketPublicSpot?.State == WebSocketState.Closed)
+                    {
+                        DisposePublicWebSocket();
+                        continue;
+                    }
+                    if (webSocketPublicSpot != null && webSocketPublicSpot?.State == WebSocketState.Open)
+                    {
+                        webSocketPublicSpot?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                    }
+                    if (webSocketPublicLinear == null)
+                    {
+                        if (NeedServerStatus == ServerConnectStatus.Disconnect)
                         {
-                            string type = response.SelectToken("topic").Value<string>().Split('.')[0];
-
-                            if (response_handlers.ContainsKey(type))
+                            return;
+                        }
+                        CreatePublicWebSocketConnect();
+                        Thread.Sleep(2000);
+                        try
+                        {
+                            if (webSocketPublicLinear != null)
                             {
-                                response_handlers[type].Invoke(response);
-                            }
-                            else
-                            {
-                                SendLogMessage(mes, LogMessageType.System);
+                                string arg1 = "";
+                                string arg2 = "";
+                                string z = "";
+                                for (int i = 0; i < SubscribleSecurityLinear.Count; i++)
+                                {
+                                    string s = SubscribleSecurityLinear[i].Replace(".P", "");
+                                    arg1 = arg1 + z + $"\"publicTrade.{s}\"";
+                                    arg2 = arg2 + z + $"\"orderbook.{glassDeep}.{s}\"";
+                                    z = ",";
+                                }
+                                webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [{arg1}] }}");
+                                webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [{arg2}] }}");
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            HandlerExeption(ex);
+                        }
 
+
+                    }
+                    if (webSocketPublicLinear?.State == WebSocketState.None || webSocketPublicLinear?.State == WebSocketState.Closed)
+                    {
+                        DisposePublicWebSocket();
+                        continue;
+                    }
+                    if (webSocketPublicLinear != null && webSocketPublicLinear?.State == WebSocketState.Open)
+                    {
+                        webSocketPublicLinear?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                    }
+                    if (webSocketPrivate == null)
+                    {
+                        if (NeedServerStatus == ServerConnectStatus.Disconnect)
+                        {
+                            return;
+                        }
+                        CreatePrivateWebSocketConnect();
+                        continue;
+                    }
+                    if (webSocketPrivate?.State == WebSocketState.None || webSocketPrivate?.State == WebSocketState.Closed)
+                    {
+                        DisposePrivateWebSocket();
+                        continue;
+                    }
+                    if (webSocketPrivate != null && webSocketPrivate?.State == WebSocketState.Open)
+                    {
+                        webSocketPrivate?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                    }
+                }
+                catch (ThreadAbortException ex)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    HandlerExeption(ex);
+                }
+            }
+
+           
+
+        }
+
+        private void DisposePrivateWebSocket()
+        {
+            
+            if (webSocketPrivate != null)
+            {
+                try
+                {
+                    if (webSocketPrivate?.State == WebSocketState.Open)
+                    {
+                        // отписка от потока, unsubscribe
+                        webSocketPrivate?.Send("{\"req_id\": \"order_1\", \"op\": \"unsubscribe\",\"args\": [\"order\"]}");
+                        webSocketPrivate?.Send("{\"req_id\": \"ticketInfo_1\", \"op\": \"unsubscribe\", \"args\": [ \"ticketInfo\"]}");
+                        webSocketPrivate?.Close();
+                    }
+                    webSocketPrivate.MessageReceived -= WebSocketPrivate_MessageReceived;
+                    webSocketPrivate.Closed -= WebSocketPrivate_Closed;
+                    webSocketPrivate.Error -= WebSocketPrivate_Error;
+                    webSocketPrivate.Opened -= WebSocketPrivate_Opened;
+                    webSocketPrivate?.Dispose();
+                    webSocketPrivate = null;
+                }
+                catch (Exception ex)
+                {
+                    HandlerExeption(ex);
+                }
+            }
+            webSocketPrivate = null;
+            concurrentQueueMessagePrivateWebSocket = null;
+        }
+
+
+        private void DisposePublicWebSocket()
+        {
+            try
+            {
+                if (webSocketPublicSpot != null)
+                {
+                    try
+                    {
+                        if (webSocketPublicSpot != null && webSocketPublicSpot?.State == WebSocketState.Open)
+                        {
+                            for (int i = 0; i < SubscribleSecuritySpot.Count; i++)
+                            {
+                                string s = SubscribleSecuritySpot[i].Replace(".P", "");
+                                webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{glassDeep}.{s}\" ] }}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        HandlerExeption(ex);
+                    }
+                    if (webSocketPublicSpot?.State == WebSocketState.Open)
+                    {
+                        webSocketPublicSpot?.Close();
+                    }
+                    webSocketPublicSpot.MessageReceived -= WebSocketPublic_MessageReceivedSpot;
+                    webSocketPublicSpot.Closed -= WebSocketPublic_Closed;
+                    webSocketPublicSpot.Error -= WebSocketPublic_Error;
+                    webSocketPublicSpot.Opened -= WebSocketPublic_Opened;
+                    webSocketPublicSpot?.Dispose();
+                    webSocketPublicSpot = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+            try
+            {
+                if (webSocketPublicLinear != null)
+                {
+                    try
+                    {
+                        if (webSocketPublicLinear != null && webSocketPublicLinear?.State == WebSocketState.Open)
+                        {
+                            for (int i = 0; i < SubscribleSecurityLinear.Count; i++)
+                            {
+                                string s = SubscribleSecurityLinear[i].Replace(".P", "");
+                                webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{glassDeep}.{s}\" ] }}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        HandlerExeption(ex);
+                    }
+                    if (webSocketPublicLinear?.State == WebSocketState.Open)
+                    {
+                        webSocketPublicLinear?.Close();
+                    }
+                    webSocketPublicLinear.MessageReceived -= WebSocketPublic_MessageReceivedLinear;
+                    webSocketPublicLinear.Closed -= WebSocketPublic_Closed;
+                    webSocketPublicLinear.Error -= WebSocketPublic_Error;
+                    webSocketPublicLinear.Opened -= WebSocketPublic_Opened;
+                    webSocketPublicLinear?.Dispose();
+                    webSocketPublicLinear = null;
+                }
+               listMarketDepth?.Clear();
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+            concurrentQueueMessagePublicWebSocket = null;
+            concurrentQueueMessageOrderBook = null;
+
+        }
+
+      
+
+
+
+        #endregion  8
+
+        #region 9 Security subscrible
+
+
+        List<string> SubscribleSecuritySpot = new List<string>();
+        List<string> SubscribleSecurityLinear = new List<string>();
+
+        public void Subscrible(Security security)
+        {
+            try
+            {
+
+                if (!security.Name.EndsWith(".P"))
+                {
+                    if (webSocketPublicSpot != null
+                        && webSocketPublicSpot?.State == WebSocketState.Open
+                        //&& !SubscribleSecuritySpot.Exists(s => s == security.Name)
+                        )
+                    {
+                        webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name}\" ] }}");
+                        webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{glassDeep}.{security.Name}\" ] }}");
+                        if (!SubscribleSecuritySpot.Exists(s => s == security.Name))
+                        {
+                            SubscribleSecuritySpot.Add(security.Name);
+                        }
+
+                    }
+
+                }
+                else
+                {
+                    if (webSocketPublicLinear != null
+                        && webSocketPublicLinear?.State == WebSocketState.Open
+                        //&& !SubscribleSecurityLinear.Exists(s => s == security.Name)
+                        )
+                    {
+                        webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".P", "")}\" ] }}");
+                        webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{glassDeep}.{security.Name.Replace(".P", "")}\" ] }}");
+                        if (SubscribleSecurityLinear.Exists(s => s == security.Name))
+                        {
+                            SubscribleSecurityLinear.Add(security.Name);
+                        }
+
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+
+
+        #endregion 9
+
+        #region 10 WebSocket parsing the messages
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+        private void ThreadPrivateMessageReader()
+        {
+            while (IsDispose == false)
+            {
+                try
+                {
+                    if (concurrentQueueMessagePrivateWebSocket == null
+                  || concurrentQueueMessagePrivateWebSocket.IsEmpty
+                  || concurrentQueueMessagePrivateWebSocket.Count == 0)
+                    {
+                        try
+                        {
+                        Thread.Sleep(1);
+                        }
+                        catch
+                        {
+                            return;
+                        }
+                        continue;
+                    }
+
+                    if (!concurrentQueueMessagePrivateWebSocket.TryDequeue(out string message))
+                    {
+                        continue;
+                    }
+                    SubscribleMessage subscribleMessage =
+                      JsonConvert.DeserializeAnonymousType(message, new SubscribleMessage());
+                    if (subscribleMessage.op == "pong")
+                    {
+                        continue;
+                    }
+                    ResponseWebSocketMessage<object> response =
+                      JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+
+                    if (response.topic != null)
+                    {
+                        if (response.topic.Contains("execution"))
+                        {
+                            UpdateMyTrade(message);
+                            continue;
+                        }
+                        else if (response.topic.Contains("order"))
+                        {
+                            UpdateOrder(message);
+                            continue;
+                        }
+                    }
+
+                }
+                catch (ThreadAbortException ex)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    HandlerExeption(ex);
+                }
+
+            }
+
+
+        }
+
+        private void UpdateMyTrade(string message)
+        {
+            try
+            {
+             //   Console.WriteLine("UpdateMyTrade - " + message);
+                ResponseWebSocketMyMessage<List<ResponseMyTrades>> responseMyTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMyMessage<List<ResponseMyTrades>>());
+
+                for (int i = 0; i < responseMyTrades.data.Count; i++)
+                {
+                    if (!responseMyTrades.data[i].orderLinkId.Contains(MyIDPrefix))
+                    {
+                        continue;
+                    }
+
+                    MyTrade myTrade = new MyTrade();
+                    
+                    if (responseMyTrades.data[i].category == Category.spot.ToString())
+                    {
+                        myTrade.SecurityNameCode = responseMyTrades.data[i].symbol;
+                    }
+                    else
+                    {
+                        myTrade.SecurityNameCode = responseMyTrades.data[i].symbol + ".P";
+                    }
+
+                    myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].execTime));
+                    myTrade.NumberOrderParent = responseMyTrades.data[i].orderId;
+                    myTrade.NumberTrade = responseMyTrades.data[i].execId;
+                    myTrade.Volume = responseMyTrades.data[i].execQty.Replace('.', ',').ToDecimal();
+                    myTrade.Price = responseMyTrades.data[i].execPrice.Replace('.', ',').ToDecimal();
+                    myTrade.Side = responseMyTrades.data[i].side.ToUpper().Equals("BUY") ? Side.Buy : Side.Sell;
+
+                    MyTradeEvent?.Invoke(myTrade);
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+        
+        private void UpdateOrder(string message)
+        {
+            try
+            {
+                ResponseWebSocketMyMessage<List<ResponseOrder>> responseMyTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMyMessage<List<ResponseOrder>>());
+                for (int i = 0; i < responseMyTrades.data.Count; i++)
+                {
+                    OrderStateType stateType = OrderStateType.None;
+                    if (!responseMyTrades.data[i].orderLinkId.Contains(MyIDPrefix))
+                    {
+                        continue;
+                    }
+                    //Console.WriteLine("UpdateOrder - " + message);
+                    stateType = responseMyTrades.data[i].orderStatus.ToUpper() switch
+                    {
+                        "CREATED" => OrderStateType.Activ,
+                        "NEW" => OrderStateType.Activ,
+                        "ORDER_NEW" => OrderStateType.Activ,
+                        "PARTIALLYFILLED" => OrderStateType.Activ,
+                        "FILLED" => OrderStateType.Done,
+                        "ORDER_FILLED" => OrderStateType.Done,
+                        "CANCELLED" => OrderStateType.Cancel,
+                        "ORDER_CANCELLED" => OrderStateType.Cancel,
+                        "PARTIALLYFILLEDCANCELED" => OrderStateType.Patrial,
+                        "REJECTED" => OrderStateType.Fail,
+                        "ORDER_REJECTED" => OrderStateType.Fail,
+                        "ORDER_FAILED" => OrderStateType.Fail,
+                        _ => OrderStateType.Cancel,
+                    };
+                    Order newOrder = new Order();
+                    newOrder.SecurityNameCode = responseMyTrades.data[i].symbol + (responseMyTrades.data[i].category.ToLower() == Category.spot.ToString() ? "":".P");
+                    newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].createdTime));
+                    if (stateType == OrderStateType.Activ)
+                    {
+                        newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].updatedTime));
+                    }
+                    if (stateType == OrderStateType.Cancel)
+                    {
+                        newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].updatedTime));
+                    }
+                    newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].orderLinkId.Replace(MyIDPrefix, ""));
+                    newOrder.TypeOrder = responseMyTrades.data[i].orderType.ToLower() == "market" ? OrderPriceType.Market : OrderPriceType.Limit;
+                    newOrder.NumberMarket = responseMyTrades.data[i].orderId;
+                    newOrder.Side = responseMyTrades.data[i].side.ToUpper().Contains("BUY") ? Side.Buy : Side.Sell;
+                    newOrder.State = stateType;
+                  
+                    newOrder.Volume = responseMyTrades.data[i].qty.Replace('.', ',').ToDecimal();
+                    newOrder.Price = responseMyTrades.data[i].price.Replace('.', ',').ToDecimal();
+                    newOrder.ServerType = ServerType.Bybit;
+                    newOrder.PortfolioNumber = "BybitUNIFIED";
+
+                    MyOrderEvent?.Invoke(newOrder);
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+            }
+        }
+
+
+
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+        private void ThreadMessageReaderOrderBook()
+        {
+            while (IsDispose == false)
+            {
+                try
+                {
+                    if (concurrentQueueMessageOrderBook == null
+                        || concurrentQueueMessageOrderBook.IsEmpty
+                        || concurrentQueueMessageOrderBook.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (!concurrentQueueMessageOrderBook.TryDequeue(out string _message))
+                    {
+                        continue;
+                    }
+                    Category category = Category.linear;
+                    if (_message.EndsWith(".SPOT"))
+                    {
+                        category = Category.spot;
+                    }
+                    string message = _message.Replace("}.SPOT", "}");
+                    ResponseWebSocketMessage<object> response =
+                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+
+                    UpdateOrderBook(message, response, category);
+                }
+                catch (ThreadAbortException ex)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    HandlerExeption(ex);
+                }
+            }
+        }
+       
+
+        public event Action<MarketDepth> MarketDepthEvent;
+
+        private Dictionary<string, MarketDepth> listMarketDepth = new Dictionary<string, MarketDepth>();
+
+       
+        private void UpdateOrderBook(string message, ResponseWebSocketMessage<object> response, Category category)
+        {
+            CultureInfo cultureInfo = new CultureInfo("en-US");
+
+            ResponseWebSocketMessage<ResponseOrderBook> responseDepth =
+                              JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseOrderBook>());
+
+            string[] topic = response.topic.Split('.');
+            string sec = topic[2];
+            if (category == Category.linear)
+            {
+                sec = sec + ".P";
+            }
+
+            if (!listMarketDepth.TryGetValue(sec, out MarketDepth marketDepth))
+            {
+                marketDepth = new MarketDepth();
+                marketDepth.SecurityNameCode = sec;
+                listMarketDepth.Add(sec, marketDepth);
+            }
+
+            if (response.type == "snapshot")
+            {
+                marketDepth.Asks.Clear();
+                marketDepth.Bids.Clear();
+            }
+            marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp((long)responseDepth.ts.ToDecimal());
+
+            //    Console.WriteLine(marketDepth.Time + $" GLASS {topic[2]} ");
+            bool needSortAsk = false;
+            bool needSortBid = false;
+            if (responseDepth.data.a.Length > 1)
+            {
+                for (int i = 0; i < (responseDepth.data.a.Length / 2); i++)
+                {
+                    decimal.TryParse(responseDepth.data.a[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out decimal aPrice);
+                    decimal.TryParse(responseDepth.data.a[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out decimal aAsk);
+                    if (marketDepth.Asks.Exists(a => a.Price == aPrice))
+                    {
+                        if (aAsk == 0)
+                        {
+                            marketDepth.Asks.RemoveAll(a => a.Price == aPrice);
+                        }
                         else
                         {
-                            SendLogMessage("Broken response topic marker " + mes, LogMessageType.Error);
+                            marketDepth.Asks.Find(a => a.Price == aPrice)
+                                   .Ask = aAsk;
                         }
                     }
                     else
                     {
-                        await Task.Delay(20);
+                        MarketDepthLevel marketDepthLevel = new MarketDepthLevel();
+                        marketDepthLevel.Ask = aAsk;
+                        marketDepthLevel.Price = aPrice;
+                        marketDepth.Asks.Add(marketDepthLevel);
+                        needSortAsk = true;
                     }
-                }
-                catch (TaskCanceledException)
-                {
-                    return;
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("MessageReader error: " + exception, LogMessageType.Error);
+
+                    marketDepth.Bids.RemoveAll(a => a.Price == aPrice && aPrice != 0);
+
                 }
             }
-        }
-
-        private async void SourceAliveCheckerThread(CancellationToken token)
-        {
-            var ping_message = BybitWsRequestBuilder.GetPingRequest();
-
-            while (!token.IsCancellationRequested)
+            if (responseDepth.data.b.Length > 1)
             {
-                await Task.Delay(15000);
-
-                ws_source_public?.SendMessage(ping_message);
-
-                if (last_time_update_socket == DateTime.MinValue)
+                for (int i = 0; i < (responseDepth.data.b.Length / 2); i++)
                 {
-                    continue;
-                }
-                if (last_time_update_socket.AddSeconds(60) < DateTime.UtcNow)
-                {
-                    SendLogMessage("The websocket is disabled. Restart", LogMessageType.Error);
-                    ConnectEvent();
-                    return;
-                }
-            }
-        }
-
-
-        #region Запросы Rest
-
-        private void SetPositionMode(Security security)
-        {
-            try
-            {
-                int mode = hedge_mode.Equals("Merged Single") ? 0 : 3;
-                Dictionary<string, string> parameters = new Dictionary<string, string>();
-                parameters.Add("mode", $"{mode}");
-                parameters.Add("symbol", security.Name);
-                parameters.Add("coin", null);
-                parameters.Add("api_key", client.ApiKey);
-                parameters.Add("recv_window", "90000000");
-                DateTime time = GetServerTime();
-
-                var res = CreatePrivatePostQuery(client, "/contract/v3/private/position/switch-mode", parameters, time);
-
-                string json = res.ToString();
-
-                PositionModeResponse posMode = JsonConvert.DeserializeObject<PositionModeResponse>(json);
-
-
-                if (posMode.retCode.Equals("140025") || posMode.retCode.Equals("0"))
-                {
-                    return;
-                }
-                else
-                {
-                    throw new Exception(posMode.retMsg);
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.Message, LogMessageType.Error);
-            }
-        }
-
-        private async void PortfolioRequester(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested)
-            {
-                try
-                {
-                    await Task.Delay(10000, token);
-
-                    GetPortfolios();
-                    GetPositions();
-                }
-                catch (TaskCanceledException)
-                {
-                    return;
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage("Portfolio creator error: " + exception, LogMessageType.Error);
-                }
-            }
-        }
-
-        private void GetPositions()
-        {
-            try
-            {
-                // https://api-testnet.bybit.com/private/linear/position/list?api_key={api_key}&symbol=BTCUSDT&timestamp={timestamp}&sign={sign}"
-
-                // /private/linear/position/list
-
-                Dictionary<string, string> parameters = new Dictionary<string, string>();
-                parameters.Add("api_key", client.ApiKey);
-                parameters.Add("recv_window", "90000000");
-
-                JToken account_response = CreatePrivateGetQuery(client, "/private/linear/position/list", parameters);
-
-                if (account_response == null)
-                {
-                    return;
-                }
-
-                if (_portfolios == null ||
-                     _portfolios.Count == 0)
-                {
-                    return;
-                }
-
-                Portfolio myPortf = null;
-
-                for (int i = 0; i < _portfolios.Count; i++)
-                {
-                    if (_portfolios[i].Number == null)
+                    decimal.TryParse(responseDepth.data.b[i, 0], System.Globalization.NumberStyles.Number, cultureInfo, out decimal bPrice);
+                    decimal.TryParse(responseDepth.data.b[i, 1], System.Globalization.NumberStyles.Number, cultureInfo, out decimal bBid);
+                    if (marketDepth.Bids.Exists(b => b.Price == bPrice))
                     {
-                        return;
+                        if (bBid == 0)
+                        {
+                            marketDepth.Bids.RemoveAll(b => b.Price == bPrice);
+                        }
+                        else
+                        {
+                            marketDepth.Bids.Find(b => b.Price == bPrice)
+                                .Bid = bBid;
+                        }
                     }
-                    if (_portfolios[i].Number == "BybitPortfolio")
+                    else
                     {
-                        myPortf = _portfolios[i];
+                        MarketDepthLevel marketDepthLevel = new MarketDepthLevel();
+                        marketDepthLevel.Bid = bBid;
+                        marketDepthLevel.Price = bPrice;
+                        marketDepth.Bids.Add(marketDepthLevel);
+                        needSortBid = true;
                     }
+
+                    marketDepth.Asks.RemoveAll(a => a.Price == bPrice && bPrice != 0);
+
                 }
-
-                if (myPortf == null)
-                {
-                    return;
-                }
-
-                List<PositionOnBoard> poses = BybitPortfolioCreator.CreatePosOnBoard(account_response.SelectToken("result"));
-
-                if (poses == null)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < poses.Count; i++)
-                {
-                    myPortf.SetNewPosition(poses[i]);
-                }
-
-                PortfolioEvent(_portfolios);
             }
-            catch (Exception)
+
+            if (needSortAsk && marketDepth.Asks.Count > 1)
             {
-                //ignore
+                marketDepth.Asks.RemoveAll(a => a.Ask == 0);
+                marketDepth.Asks.Sort((x, y) => x.Price > y.Price ? 1 : -1);
             }
-        }
-
-        public void GetPortfolios()
-        {
-            try
+            if (needSortBid && marketDepth.Bids.Count > 1)
             {
-                List<Portfolio> portfolios = new List<Portfolio>();
-
-                Dictionary<string, string> parameters = new Dictionary<string, string>();
-
-                parameters.Add("api_key", client.ApiKey);
-                parameters.Add("recv_window", "90000000");
-
-                JToken account_response = CreatePrivateGetQuery(client, "/v2/private/wallet/balance", parameters);
-
-                if (account_response == null)
-                {
-                    return;
-                }
-
-                string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
-
-                if (isSuccessfull == "OK")
-                {
-                    portfolios.Add(BybitPortfolioCreator.Create(account_response.SelectToken("result"), "BybitPortfolio"));
-                }
-                else
-                {
-                    SendLogMessage($"Can not get portfolios info.", LogMessageType.Error);
-                    SendLogMessage(isSuccessfull, LogMessageType.Error);
-
-                    portfolios.Add(BybitPortfolioCreator.Create("undefined"));
-                }
-
-                PortfolioEvent(portfolios);
-                _portfolios = portfolios;
+                marketDepth.Bids.RemoveAll(a => a.Bid == 0);
+                marketDepth.Bids.Sort((x, y) => x.Price > y.Price ? -1 : 1);
             }
-            catch (Exception)
+            int _glassDeep = glassDeep;
+            if (glassDeep > 20)
             {
-                //ignore
+                _glassDeep = 20;
             }
             
-        } // both futures
-
-        List<Portfolio> _portfolios;
-
-        public void GetSecurities() // both futures
-        {
-            JToken account_response = CreatePublicGetQuery(client, "/v2/public/symbols");
-
-            if (account_response == null)
+            while (marketDepth.Asks.Count > _glassDeep)
+            {
+                marketDepth.Asks.RemoveAt(_glassDeep);
+            }
+            while (marketDepth.Bids.Count > _glassDeep)
+            {
+                marketDepth.Bids.RemoveAt(_glassDeep);
+            }
+            if (marketDepth.Asks.Count==0)
             {
                 return;
             }
-
-            string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
-
-            if (isSuccessfull == "OK")
+            if (marketDepth.Bids.Count == 0)
             {
-                SecurityEvent(BybitSecurityCreator.Create(account_response.SelectToken("result"), futures_type));
+                return;
             }
-            else
+            MarketDepthEvent?.Invoke(marketDepth.GetCopy());
+        }
+
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+        private void ThreadPublicMessageReader()
+        {
+            while (IsDispose == false)
             {
-                SendLogMessage($"Can not get securities.", LogMessageType.Error);
+
+                try
+                {
+                    if (concurrentQueueMessagePublicWebSocket == null ||
+                        concurrentQueueMessagePublicWebSocket.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+
+                    if (!concurrentQueueMessagePublicWebSocket.TryDequeue(out string _message))
+                    {
+                        continue;
+                    }
+                    //             Console.WriteLine(_message);
+                    Category category = Category.linear;
+                    if (_message.EndsWith(".SPOT"))
+                    {
+                        category = Category.spot;
+                    }
+                    string message = _message.Replace("}.SPOT", "}");
+
+                    SubscribleMessage subscribleMessage =
+                       JsonConvert.DeserializeAnonymousType(message, new SubscribleMessage());
+
+                    if (subscribleMessage.op != null)
+                    {
+                        if (subscribleMessage.success == "false")
+                        {
+                            if (subscribleMessage.ret_msg.Contains("already"))
+                            {
+                                continue;
+                            }
+                            SendLogMessage("WebSocket Error: " + subscribleMessage.ret_msg, LogMessageType.Error);
+                        }
+
+                        continue;
+                    }
+                    if (subscribleMessage.op == "pong")
+                    {
+                        continue;
+                    }
+
+                    ResponseWebSocketMessage<object> response =
+                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+
+                    if (response.topic != null)
+                    {
+                        if (response.topic.Contains("publicTrade"))
+                        {
+                            UpdateTrade(message, category);
+                            continue;
+                        }
+                        else if (response.topic.Contains("orderbook"))
+                        {
+                            concurrentQueueMessageOrderBook.Enqueue(_message);
+                            continue;
+                        }
+                    }
+                }
+                catch (ThreadAbortException ex)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    HandlerExeption(ex);
+                }
+            }
+
+        }
+
+        public event Action<Trade> NewTradesEvent;
+        private void UpdateTrade(string message, Category category)
+        {
+            ResponseWebSocketMessageList<ResponseTrade> responseTrade =
+                               JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageList<ResponseTrade>());
+            
+         //   Console.WriteLine(category.ToString()+ "; " + message);
+
+            for (int i = 0; i < responseTrade.data.Count; i++)
+            {
+                ResponseTrade item = responseTrade.data[i];
+                {
+                    Trade trade = new Trade();
+                    trade.Id = item.i;
+                    trade.Time = TimeManager.GetDateTimeFromTimeStamp((long)item.T.ToDecimal());
+                    trade.Price = item.p.ToDecimal();
+                    trade.Volume = item.v.ToDecimal();
+                    trade.Side = item.S == "Buy" ? Side.Buy : Side.Sell;
+                    
+                    if (item.L != null)     // L string Direction of price change.Unique field for future
+                    {
+                        trade.SecurityNameCode = item.s + (category == Category.linear ? ".P" : "");
+                    }
+                    else
+                    {
+                        trade.SecurityNameCode = item.s;
+                    }
+                    
+                    NewTradesEvent?.Invoke(trade);
+                    
+                }
             }
         }
+
+        #endregion 10
+
+        #region 11 Trade
+
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
 
         public void SendOrder(Order order)
         {
-            if (order.TypeOrder == OrderPriceType.Iceberg)
-            {
-                SendLogMessage("Bybit does't support iceberg orders", LogMessageType.Error);
-                return;
-            }
-
-            string side = "Buy";
-            if (order.Side == Side.Sell)
-                side = "Sell";
-
-            string type = "Limit";
-            if (order.TypeOrder == OrderPriceType.Market)
-                type = "Market";
-
-            string reduce = "false";
-            if (order.PositionConditionType == OrderPositionConditionType.Close)
-            {
-                reduce = "true";
-            }
-
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
-
-            parameters.Add("api_key", client.ApiKey);
-            parameters.Add("side", side);
-            parameters.Add("order_type", type);
-            //parameters.Add("referer", "OsEngine");
-            parameters.Add("qty", order.Volume.ToString().Replace(",", "."));
-            parameters.Add("time_in_force", "GoodTillCancel");
-            parameters.Add("order_link_id", order.NumberUser.ToString());
-            parameters.Add("symbol", order.SecurityNameCode);
-            parameters.Add("price", order.Price.ToString().Replace(",", "."));
-            parameters.Add("reduce_only", reduce);
-            parameters.Add("close_on_trigger", "false");
-            parameters.Add("recv_window", "90000000");
-
-            JToken place_order_response = null;
-
-            DateTime time = GetServerTime();
-
             try
             {
-                if (client.FuturesMode == "Inverse")
-                    place_order_response = CreatePrivatePostQuery(client, "/v2/private/order/create", parameters, time);
+                
+                if (order.TypeOrder == OrderPriceType.Iceberg)
+                {
+                    SendLogMessage("Bybit does't support iceberg orders", LogMessageType.Error);
+                    return;
+                }
+
+                string side = "Buy";
+                if (order.Side == Side.Sell)
+                    side = "Sell";
+
+                string type = "Limit";
+                if (order.TypeOrder == OrderPriceType.Market)
+                    type = "Market";
+
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+                if ((order.SecurityClassCode != null && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString())) || order.SecurityNameCode.EndsWith(".P"))
+                {
+                    parameters["category"] = Category.linear.ToString();
+                }
                 else
-                    place_order_response = CreatePrivatePostQuery(client, "/private/linear/order/create", parameters, time);
-            }
-            catch
-            {
-                SendLogMessage($"Internet Error. Order exchange error num {order.NumberUser}", LogMessageType.Error);
+                {
+                    parameters["category"] = Category.spot.ToString();
+                }
+
+                parameters["symbol"] = order.SecurityNameCode.Replace(".P","");
+                parameters["side"] = side;
+                parameters["order_type"] = type;
+                parameters["qty"] = order.Volume.ToString().Replace(",", ".");
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    parameters["price"] = order.Price.ToString().Replace(",", ".");
+                }
+                else if ((string)parameters["category"] == Category.spot.ToString())
+                {
+                    parameters["marketUnit"] = "baseCoin";
+                }
+                parameters["orderLinkId"] = MyIDPrefix + order.NumberUser.ToString();
+                parameters["positionIdx"] = 0;// hedge_mode;
+
+                DateTime startTime = DateTime.Now;
+                JToken place_order_response = CreatePrivateQuery(parameters, HttpMethod.Post, "/v5/order/create");
+
+                string isSuccessful = "ByBit error. The order was not accepted.";
+                if (place_order_response != null)
+                {
+                    isSuccessful = place_order_response.SelectToken("retMsg").Value<string>();
+                    if (isSuccessful == "OK")
+                    {
+                    //Console.WriteLine("SendOrder - " + place_order_response.ToString());
+                        DateTime placedTime = DateTime.Now;
+                        order.State = OrderStateType.Activ;
+                        JToken ordChild = place_order_response.SelectToken("result.orderId");
+                        order.NumberMarket = ordChild.ToString();
+                        order.TimeCreate = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
+                        order.TimeCallBack = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime.Add(placedTime.Subtract(startTime));
+                        MyOrderEvent?.Invoke(order);
+
+                        return;
+                    }
+                }
+
+                //    SendLogMessage($"Order exchange error num {order.NumberUser}\n" + isSuccessful, LogMessageType.Error);
                 order.State = OrderStateType.Fail;
-                MyOrderEvent(order);
-                return;
+                MyOrderEvent?.Invoke(order);
+
             }
-
-            var isSuccessful = place_order_response.SelectToken("ret_msg").Value<string>();
-
-            if (isSuccessful == "OK")
+            catch (Exception ex)
             {
-                SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
-                order.State = OrderStateType.Activ;
-
-                var ordChild = place_order_response.SelectToken("result");
-
-                order.NumberMarket = ordChild.SelectToken("order_id").ToString();
-
-                MyOrderEvent(order);
+                HandlerExeption(ex);
             }
-            else
-            {
-                SendLogMessage($"Order exchange error num {order.NumberUser}" + isSuccessful, LogMessageType.Error);
-                order.State = OrderStateType.Fail;
+         
+        }
 
-                MyOrderEvent(order);
-            }
-        } // both futures
 
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
+            // не создает на бирже новый ордер, а меняет существующий
+            try
+            {
+                Dictionary<string, object> parameters = new Dictionary<string, object>();
+                if ((order.SecurityClassCode != null && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString())) || order.SecurityNameCode.EndsWith(".P"))
+                {
+                    parameters["category"] = Category.linear.ToString();
+                }
+                else
+                {
+                    parameters["category"] = Category.spot.ToString();
+                }
 
+                parameters["symbol"] = order.SecurityNameCode.Replace(".P", "");
+                parameters["orderLinkId"] = MyIDPrefix + order.NumberUser.ToString();
+                parameters["price"] = newPrice.ToString().Replace(",", ".");
+                JToken place_order_response = CreatePrivateQuery(parameters, HttpMethod.Post, "/v5/order/amend");
+                if (place_order_response != null)
+                {
+                    string retCode = place_order_response.SelectToken("retCode").Value<string>();
+                    string isSuccessful = place_order_response.SelectToken("retMsg").Value<string>();
+                    if (isSuccessful == "OK")
+                    {
+                        order.Price = newPrice;
+                        MyOrderEvent?.Invoke(order);
+                    }
+                    else
+                    {
+                        SendLogMessage("ChangeOrderPrice Fail. Status: "
+                       + retCode + "  " + order.SecurityNameCode, LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage("ChangeOrderPrice Fail. Status: "
+                        + "Not change order price. " + order.SecurityNameCode, LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("ChangeOrderPrice Fail. " + order.SecurityNameCode + ex.Message , LogMessageType.Error);
+            }
         }
+
+
 
         public void CancelOrder(Order order)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
 
-            parameters.Add("api_key", client.ApiKey);
-            parameters.Add("symbol", order.SecurityNameCode);
-            parameters.Add("order_id", order.NumberMarket);
-            parameters.Add("recv_window", "90000000");
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
 
-            DateTime time = GetServerTime();
-
-            JToken cancel_order_response;
-            if (futures_type == "Inverse Perpetual")
-                cancel_order_response = CreatePrivatePostQuery(client, "/v2/private/order/cancel", parameters, time); ///private/linear/order/cancel
-            else
-                cancel_order_response = CreatePrivatePostQuery(client, "/private/linear/order/cancel", parameters, time);
-
-            var isSuccessful = cancel_order_response.SelectToken("ret_msg").Value<string>();
-
-            if (isSuccessful == "OK")
+            if (
+                (order.SecurityClassCode != null && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString()))
+                || order.SecurityNameCode.EndsWith(".P")
+               )
             {
-                order.State = OrderStateType.Cancel;
-                MyOrderEvent(order);
+                parameters["category"] = Category.linear.ToString();
             }
             else
             {
-                SendLogMessage($"Error on order cancel num {order.NumberUser}", LogMessageType.Error);
+                parameters["category"] = Category.spot.ToString();
             }
-        } // both
+            parameters["symbol"] = order.SecurityNameCode.Replace(".P", ""); 
+            parameters["orderLinkId"] = MyIDPrefix + order.NumberUser.ToString();
+
+            
+           
+            
+            try
+            {
+                //order.TimeCancel = DateTimeOffset.UtcNow.UtcDateTime;
+                JToken  place_order_response = CreatePrivateQuery(parameters, HttpMethod.Post, "/v5/order/cancel");
+                if (place_order_response != null)
+                {
+                    string isSuccessful = place_order_response.SelectToken("retMsg").Value<string>();
+                    string retCode = place_order_response.SelectToken("retCode").Value<string>();
+                    if (isSuccessful == "OK")
+                    {
+                        order.TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
+                        order.State = OrderStateType.Cancel;
+                        MyOrderEvent?.Invoke(order);
+                        return;
+                    }
+                    else if (retCode == "110001" || retCode == "170213")   // "retCode":110001,"retMsg":"order not exists or too late to cancel"
+                                                                           //  retCode":170213,"retMsg":"Order does not exist."
+                                                                           // Ордер не существует (может быть еще не успел создаться)  или уже ранее был отменен. Спросим его статус
+                    {
+                        GetOrdersState(new List<Order>() {order});
+                        return;
+                        /*DateTime TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
+                        if ((TimeCancel - order.TimeCreate) > TimeSpan.FromSeconds(minTimeCreateOrders))
+                        {
+                                order.TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;   // дает ошибку -  убирает в отмененные ранее исполненный ордер
+                                order.State = OrderStateType.Cancel;
+                                MyOrderEvent?.Invoke(order);
+                            return;
+                        }*/
+
+                        // если пришло, что ордер не существует, а создали мы его несколько секунд  назад, то ничего не делаем с ним.
+
+                    }
+                    SendLogMessage($" Cancel Order Error. Order num {order.NumberUser}, {order.SecurityNameCode} {isSuccessful}", LogMessageType.Error);
+                }
+            }
+            catch
+            {
+                SendLogMessage($" Cancel Order Error. Order num {order.NumberUser}, {order.SecurityNameCode}", LogMessageType.Error);
+                
+                return;
+            }
+        }
 
         public void GetOrdersState(List<Order> orders)
         {
-            foreach (Order order in orders)
+            if (orders == null && orders.Count  == 0)
             {
-                Dictionary<string, string> parameters = new Dictionary<string, string>();
+                return;
+            }
+            
+            Dictionary<string, object> parametrs = new Dictionary<string, object>();
 
-                parameters.Add("api_key", client.ApiKey);
-                parameters.Add("symbol", order.SecurityNameCode);
-                parameters.Add("order_id", order.NumberMarket);
-                parameters.Add("recv_window", "90000000");
-
-                JToken account_response;
-                if (futures_type == "Inverse Perpetual")
-                    account_response = CreatePrivateGetQuery(client, "/v2/private/order", parameters); ///private/linear/order/search
+            DateTime serverTime = ServerTime;
+            
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+                if ((order.SecurityClassCode != null && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString()))
+                    || order.SecurityNameCode.EndsWith(".P"))
+                {
+                    parametrs["category"] = Category.linear.ToString();
+                }
                 else
-                    account_response = CreatePrivateGetQuery(client, "/private/linear/order/search", parameters);
-
-                if (account_response == null)
+                {
+                    parametrs["category"] = Category.spot.ToString();
+                }
+                if (order.State != OrderStateType.Activ)
                 {
                     continue;
                 }
+                
+                parametrs["orderLinkId"] = MyIDPrefix + order.NumberUser;
+                JToken bOrders = CreatePrivateQuery(parametrs, HttpMethod.Get, "/v5/order/history");
 
-                string isSuccessfull = account_response.SelectToken("ret_msg").Value<string>();
-
-                if (isSuccessfull == "OK")
+                if (bOrders == null)
                 {
-                    if (account_response.SelectToken("result") == null)
-                    {
-                        continue;
-                    }
-
-                    if (account_response.SelectToken("result").SelectToken("order_status") == null)
-                    {
-                        continue;
-                    }
-
-                    string state = account_response.SelectToken("result").SelectToken("order_status").Value<string>();
-
-                    switch (state)
+                    //        order.State = OrderStateType.Fail;
+                    //        MyOrderEvent?.Invoke(order);
+                    continue;
+                }
+              
+                List<JToken> OneOrder = bOrders.SelectToken("result.list").Children().ToList();
+                if (OneOrder.Count == 0)
+                {
+                    continue;
+                }
+                for (int i1 = 0; i1 < OneOrder.Count; i1++)
+                {
+                    JToken o = OneOrder[i1];
+                    string oStatus = o.SelectToken("orderStatus").ToString();
+                    switch (oStatus)
                     {
                         case "Created":
                             order.State = OrderStateType.Activ;
@@ -712,7 +2134,7 @@ namespace OsEngine.Market.Servers.Bybit
                             order.State = OrderStateType.Activ;
                             break;
                         case "PartiallyFilled":
-                            order.State = OrderStateType.Patrial;
+                            order.State = OrderStateType.Activ;
                             break;
                         case "Filled":
                             order.State = OrderStateType.Done;
@@ -724,513 +2146,344 @@ namespace OsEngine.Market.Servers.Bybit
                             order.State = OrderStateType.Cancel;
                             break;
                         default:
-                            order.State = OrderStateType.None;
+                            order.State = OrderStateType.Cancel;
                             break;
                     }
+                    MyOrderEvent?.Invoke(order);
                 }
-            }
-        } // both
-
-        private DateTime GetServerTime()
-        {
-            DateTime time = DateTime.MinValue;
-            JToken t = CreatePublicGetQuery(client, "/v2/public/time");
-
-            if (t == null)
-            {
-                return DateTime.UtcNow;
-            }
-
-            JToken tt = t.Root.SelectToken("time_now");
-
-            string timeString = tt.ToString();
-            time = Utils.LongToDateTime(Convert.ToInt64(timeString.ToDecimal()));
-            return time;
-        }
-
-        #endregion
-
-        #region Подписка на данные
-
-        private void SendLoginMessage()
-        {
-            var login_message = BybitWsRequestBuilder.GetAuthRequest(client);
-            ws_source_private.SendMessage(login_message);
-        }
-
-        List<string> _alreadySubSec = new List<string>();
-
-        public void Subscrible(Security security)
-        {
-            SetPositionMode(security);
-
-            for (int i = 0; i < _alreadySubSec.Count; i++)
-            {
-                if (_alreadySubSec[i] == security.Name)
-                {
-                    return;
-                }
-            }
-
-            _alreadySubSec.Add(security.Name);
-
-            SubscribeMarketDepth(security.Name);
-            SubscribeTrades(security.Name);
-
-            SubscribeOrders();
-            SubscribeMyTrades();
-        }
-
-        private void SubscribeMarketDepth(string security)
-        {
-            string request = BybitWsRequestBuilder.GetSubscribeRequest("orderBookL2_25." + security);
-
-            ws_source_public?.SendMessage(request);
-        }
-
-        private void SubscribeTrades(string security)
-        {
-            string request;
-
-            request = BybitWsRequestBuilder.GetSubscribeRequest("trade." + security);
-
-            ws_source_public?.SendMessage(request);
-        }
-
-        private bool _alreadySubscribleOrders;
-
-        private bool _alreadySubscribleTrades;
-
-        private void SubscribeOrders()
-        {
-            if (_alreadySubscribleOrders)
-            {
-                return;
-            }
-            _alreadySubscribleOrders = true;
-            string request = BybitWsRequestBuilder.GetSubscribeRequest("order");
-            ws_source_private?.SendMessage(request);
-        }
-
-        private void SubscribeMyTrades()
-        {
-            if (_alreadySubscribleTrades)
-            {
-                return;
-            }
-            _alreadySubscribleTrades = true;
-            string request = BybitWsRequestBuilder.GetSubscribeRequest("execution");
-
-            ws_source_private?.SendMessage(request);
-        }
-
-        #endregion
-
-        #region message handlers
-
-        private void HandleAuthMessage(JToken response)
-        {
-            SendLogMessage("Bybit: Successful authorization", LogMessageType.System);
-        }
-
-        private void HandlePingMessage(JToken response)
-        {
-            last_time_update_socket = DateTime.UtcNow;
-        }
-
-        private void HandleSubscribeMessage(JToken response)
-        {
-            string subscribe = response.SelectToken("request").SelectToken("args").First().Value<string>();
-
-            SendLogMessage("Bybit: Successful subscribed to " + subscribe, LogMessageType.System);
-        }
-
-        private void HandleorderBookL2_25Message(JToken response)
-        {
-            List<MarketDepth> new_md_list = new List<MarketDepth>();
-
-            if (response.SelectToken("type").Value<string>() == "snapshot")
-            {
-                new_md_list = market_mepth_creator.CreateNew(response.SelectToken("data"), client);
-            }
-
-            if (response.SelectToken("type").Value<string>() == "delta")
-            {
-                new_md_list = market_mepth_creator.Update(response.SelectToken("data"));
-            }
-
-            foreach (var depth in new_md_list)
-            {
-                SortAsksMarketDepth(depth);
-                var time = Convert.ToInt64(response.SelectToken("timestamp_e6").ToString());
-                depth.Time = TimeManager.GetDateTimeFromTimeStamp(time / 1000);
-                MarketDepthEvent(depth);
+                
             }
         }
 
-        private void SortAsksMarketDepth(MarketDepth depths)
-        {
-            for (int i = depths.Asks.Count - 1; i >= 0; i--)
-            {
-                for (int j = 0; j < i; j++)
-                {
-                    if (depths.Asks[j].Price > depths.Asks[j + 1].Price)
-                    {
-                        var tmp = depths.Asks[j + 1];
-                        depths.Asks[j + 1] = depths.Asks[j];
-                        depths.Asks[j] = tmp;
-                    }
-                }
-            }
-        }
-
-        private void HandleTradesMessage(JToken response)
-        {
-            List<Trade> new_trades = BybitTradesCreator.CreateFromWS(response.SelectToken("data"));
-
-            foreach (var trade in new_trades)
-            {
-                NewTradesEvent(trade);
-            }
-        }
-
-        private void HandleOrderMessage(JToken response)
-        {
-            List<Order> new_my_orders = BybitOrderCreator.Create(response.SelectToken("data"));
-
-            foreach (var order in new_my_orders)
-            {
-                MyOrderEvent(order);
-            }
-        }
-
-        private void HandleMyTradeMessage(JToken data)
-        {
-            List<MyTrade> new_my_trades = BybitTradesCreator.CreateMyTrades(data.SelectToken("data"));
-
-            foreach (var trade in new_my_trades)
-            {
-                MyTradeEvent(trade);
-            }
-        }
-
-        #endregion
-
-        #region Работа со свечами
-
-        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
-        {
-            var diff = new TimeSpan(0, (int)(tf.TotalMinutes * 200), 0);
-
-            return GetCandles((int)tf.TotalMinutes, nameSec, DateTime.UtcNow - diff, DateTime.UtcNow);
-        }
-
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder time_frame_builder, DateTime start_time, DateTime end_time, DateTime actual_time)
-        {
-            List<Candle> candles = new List<Candle>();
-
-            int old_interval = Convert.ToInt32(time_frame_builder.TimeFrameTimeSpan.TotalMinutes);
-
-            candles = GetCandles(old_interval, security.Name, start_time, end_time);
-
-            if (candles.Count == 0)
-            {
-                return null;
-            }
-
-            return candles;
-        }
-
-        private List<Candle> GetCandles(int old_interval, string security, DateTime start_time, DateTime end_time)
-        {
-            lock (locker_candles)
-            {
-                List<Candle> tmp_candles = new List<Candle>();
-                DateTime end_over = end_time;
-
-                string need_interval_for_query = CandlesCreator.DetermineAppropriateIntervalForRequest(old_interval, supported_intervals, out var need_interval);
-
-                while (true)
-                {
-                    var from = TimeManager.GetTimeStampSecondsToDateTime(start_time);
-
-                    if (end_over <= start_time)
-                    {
-                        break;
-                    }
-
-                    List<Candle> new_candles =
-                        BybitCandlesCreator.GetCandleCollection(client, security, need_interval_for_query, from, this);
-
-                    if (new_candles != null && new_candles.Count != 0)
-                        tmp_candles.AddRange(new_candles);
-                    else
-                        break;
-
-                    start_time = tmp_candles[tmp_candles.Count - 1].TimeStart.AddMinutes(old_interval);
-
-                    Thread.Sleep(20);
-                }
-
-                for (int i = tmp_candles.Count - 1; i > 0; i--)
-                {
-                    if (tmp_candles[i].TimeStart > end_time)
-                        tmp_candles.Remove(tmp_candles[i]);
-                }
-
-                if (old_interval == need_interval)
-                {
-                    return tmp_candles;
-                }
-
-                List<Candle> result_candles = CandlesCreator.CreateCandlesRequiredInterval(need_interval, old_interval, tmp_candles);
-
-                return result_candles;
-            }
-        }
-        #endregion
-
-        #region Работа с тиками
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime start_time, DateTime end_time, DateTime actual_time)
-        {
-            List<Trade> trades = new List<Trade>();
-
-            trades = GetTrades(security.Name, start_time, end_time);
-
-            if (trades.Count == 0)
-            {
-                return null;
-            }
-
-            return trades;
-        }
-
-        private List<Trade> GetTrades(string security, DateTime start_time, DateTime end_time)
-        {
-            lock (locker_candles)
-            {
-                List<Trade> result_trades = new List<Trade>();
-                DateTime end_over = end_time;
-
-                List<Trade> point_trades = BybitTradesCreator.GetTradesCollection(client, security, 1, -1, this);
-                int last_trade_id = Convert.ToInt32(point_trades.Last().Id);
-
-                while (true)
-                {
-                    List<Trade> new_trades = BybitTradesCreator.GetTradesCollection(client, security, 1000, last_trade_id - 1000, this);
-
-                    if (new_trades != null && new_trades.Count != 0)
-                    {
-                        last_trade_id = Convert.ToInt32(new_trades.First().Id);
-
-                        new_trades.AddRange(result_trades);
-                        result_trades = new_trades;
-
-                        if (result_trades.First().Time <= start_time)
-                            break;
-                    }
-                    else
-                        break;
-
-                    Thread.Sleep(20);
-                }
-
-                for (int i = result_trades.Count - 1; i > 0; i--)
-                {
-                    if (result_trades[i].Time > end_time)
-                        result_trades.Remove(result_trades[i]);
-                }
-
-                result_trades.Reverse();
-
-                for (int i = result_trades.Count - 1; i > 0; i--)
-                {
-                    if (result_trades[i].Time < start_time)
-                        result_trades.Remove(result_trades[i]);
-                }
-
-                result_trades.Reverse();
-
-                return result_trades;
-            }
-        }
-
-        #endregion
-
-        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(100));
-        public JToken CreatePrivateGetQuery(Client client, string end_point, Dictionary<string, string> parameters)
-        {
-            //int time_factor = 1;
-
-            //if (client.NetMode == "Main")
-            //    time_factor = 0;
-
-            _rateGate.WaitToProceed();
-
-            try
-            {
-                Dictionary<string, string> sorted_params = parameters.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
-
-                StringBuilder sb = new StringBuilder();
-
-                foreach (var param in sorted_params)
-                {
-                    sb.Append(param.Key + $"=" + param.Value + $"&");
-                }
-
-                long nonce = Utils.GetMillisecondsFromEpochStart();
-
-                string str_params = sb.ToString() + "timestamp=" + (nonce).ToString();
-
-                string url = client.RestUrl + end_point + $"?" + str_params;
-
-                Uri uri = new Uri(url + $"&sign=" + BybitSigner.CreateSignature(client, str_params));
-
-
-                HttpClient httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("referer", "OsEngine");
-                var res = httpClient.GetAsync(uri).Result;
-                string response_msg = res.Content.ReadAsStringAsync().Result;
-
-                if (res.StatusCode != HttpStatusCode.OK)
-                {
-                    throw new Exception("Failed request " + response_msg);
-                }
-
-                return JToken.Parse(response_msg);
-            }
-            catch
-            {
-                return null;
-            }
-
-        }
-
-        public JToken CreatePublicGetQuery(Client client, string end_point)
-        {
-            try
-            {
-                _rateGate.WaitToProceed();
-
-                string url = client.RestUrl + end_point;
-
-                Uri uri = new Uri(url);
-
-                var http_web_request = (HttpWebRequest)WebRequest.Create(uri);
-
-                HttpWebResponse http_web_response = (HttpWebResponse)http_web_request.GetResponse();
-
-                string response_msg;
-
-                using (var stream = http_web_response.GetResponseStream())
-                {
-                    using (StreamReader reader = new StreamReader(stream ?? throw new InvalidOperationException()))
-                    {
-                        response_msg = reader.ReadToEnd();
-                    }
-                }
-
-                http_web_response.Close();
-
-                if (http_web_response.StatusCode != HttpStatusCode.OK)
-                {
-                    throw new Exception("Failed request " + response_msg);
-                }
-
-                return JToken.Parse(response_msg);
-            }
-            catch
-            {
-                return null;
-            }
-
-        }
-
-        public JToken CreatePrivatePostQuery(Client client, string end_point, Dictionary<string, string> parameters, DateTime serverTime)
-        {
-            _rateGate.WaitToProceed();
-
-            parameters.Add("timestamp", (Utils.GetMillisecondsFromEpochStart(serverTime.ToUniversalTime())).ToString());
-
-            Dictionary<string, string> sorted_params = parameters.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            StringBuilder sb = new StringBuilder();
-
-            foreach (var param in sorted_params)
-            {
-                if (param.Value == "false" || param.Value == "true")
-                    sb.Append("\"" + param.Key + "\":" + param.Value + ",");
-                else
-                    sb.Append("\"" + param.Key + "\":\"" + param.Value + "\",");
-            }
-
-            StringBuilder sb_signer = new StringBuilder();
-
-            foreach (var param in sorted_params)
-            {
-                sb_signer.Append(param.Key + $"=" + param.Value + $"&");
-            }
-
-            string str_signer = sb_signer.ToString();
-
-            str_signer = str_signer.Remove(str_signer.Length - 1);
-
-            sb.Append("\"sign\":\"" + BybitSigner.CreateSignature(client, str_signer) + "\""); // api_key=bLP2z8x0sEeFHgt14S&close_on_trigger=False&order_link_id=&order_type=Limit&price=11018.00&qty=1&side=Buy&symbol=BTCUSD&time_in_force=GoodTillCancel&timestamp=1600513511844
-                                                                                               // api_key=bLP2z8x0sEeFHgt14S&close_on_trigger=False&order_link_id=&order_type=Limit&price=10999.50&qty=1&side=Buy&symbol=BTCUSD&time_in_force=GoodTillCancel&timestamp=1600514673126
-                                                                                               // {"api_key":"bLP2z8x0sEeFHgt14S","close_on_trigger":"False","order_link_id":"","order_type":"Limit","price":"11050.50","qty":"1","side":"Buy","symbol":"BTCUSD","time_in_force":"GoodTillCancel","timestamp":"1600515164173","sign":"fb3c69fa5d30526810a4b60fe4b8f216a3baf2c81745289ff7ddc21ab8232ccc"}
-
-
-            string url = client.RestUrl + end_point;
-
-            string str_data = "{" + sb.ToString() + "}";
-
-
-            HttpClient httpClient = new HttpClient();
-
-            StringContent content = new StringContent(str_data, Encoding.UTF8, "application/json");
-            httpClient.DefaultRequestHeaders.Add("referer", "OsEngine");
-            var res = httpClient.PostAsync(url, content).Result;
-            string response_msg = res.Content.ReadAsStringAsync().Result;
-
-
-            return JToken.Parse(response_msg);
-        }
-
-
-        public void SendLogMessage(string message, LogMessageType logMessageType)
-        {
-            LogMessageEvent(message, logMessageType);
-        }
-
-
-        public event Action<Order> MyOrderEvent;
-        public event Action<MyTrade> MyTradeEvent;
-        public event Action<List<Portfolio>> PortfolioEvent;
-        public event Action<List<Security>> SecurityEvent;
-        public event Action<MarketDepth> MarketDepthEvent;
-        public event Action<Trade> NewTradesEvent;
-        public event Action ConnectEvent;
-        public event Action DisconnectEvent;
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        public void CancelAllOrders()
-        {
-            
-        }
 
         public void CancelAllOrdersToSecurity(Security security)
         {
+            Dictionary<string, object> parametrs = new Dictionary<string, object>();
+            if (!security.NameClass.ToLower().Contains(Category.linear.ToString()))
+            {
+                parametrs["category"] = Category.spot.ToString();
+            }
+            else
+            {
+                parametrs["category"] = Category.linear.ToString();
+            }
+            parametrs.Add("symbol", security.Name.Replace(".P", ""));
+            CreatePrivateQuery(parametrs, HttpMethod.Post, "/v5/order/cancel-all");
 
         }
-
-        public void ResearchTradesToOrders(List<Order> orders)
+        public void CancelAllOrders()
         {
            
+
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+
+        #endregion 11
+
+        #region 12 Query
+
+        private const string RecvWindow = "50000";
+        private RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private HttpClientHandler httpClientHandler;
+        private HttpClient httpClient;
+
+        private HttpClient GetHttpClient()
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (httpClientHandler is null)
+                {
+                    httpClientHandler = new HttpClientHandler();   // управление экземплярами HttpClient
+                }
+                if (httpClient is null)
+                {
+                    httpClient = new HttpClient(httpClientHandler, false); ;   // управление экземплярами HttpClient
+                }
+                return httpClient;
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+                return null;
+            }
+
         }
+
+      
+
+        public bool CheckApiKeyInformation(string ApiKey)
+        {
+            string apiFromServer = "";
+            _rateGate.WaitToProceed();
+            try
+            {
+                JToken res = CreatePrivateQuery(new Dictionary<string, object>(), HttpMethod.Get, "/v5/user/query-api");
+                if (res != null)
+                {
+                    JToken api = res.SelectToken("result.apiKey");
+                    apiFromServer = api.ToString();
+                }
+                if (apiFromServer.Length < 1 || apiFromServer != ApiKey)
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+                return false;
+            }
+            return true;
+
+        }
+
+        public JToken CreatePrivateQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
+        {
+            _rateGate.WaitToProceed();
+            try
+            {
+                string timestamp = GetServerTime();
+                HttpRequestMessage request = null;
+                string jsonPayload = "";
+                string signature = "";
+                httpClient = GetHttpClient();
+                if (httpMethod == HttpMethod.Post)
+                {
+                    signature = GeneratePostSignature(parameters, timestamp);
+                    jsonPayload = parameters.Count > 0 ? JsonConvert.SerializeObject(parameters) : "";
+                    request = new HttpRequestMessage(httpMethod, RestUrl + uri);
+                    if (parameters.Count > 0)
+                    {
+                        request.Content = new StringContent(jsonPayload);
+                    }
+                }
+                if (httpMethod == HttpMethod.Get)
+                {
+                    signature = GenerateGetSignature(parameters, timestamp, PublicKey);
+                    jsonPayload = parameters.Count > 0 ? GenerateQueryString(parameters) : "";
+                    request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?" + jsonPayload);
+                }
+
+                request.Headers.Add("X-BAPI-API-KEY", PublicKey);
+                request.Headers.Add("X-BAPI-SIGN", signature);
+                request.Headers.Add("X-BAPI-SIGN-TYPE", "2");
+                request.Headers.Add("X-BAPI-TIMESTAMP", timestamp);
+                request.Headers.Add("X-BAPI-RECV-WINDOW", RecvWindow);
+
+                HttpResponseMessage response = httpClient?.SendAsync(request).Result;
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    LogMessageEvent?.Invoke($"BybitUnified Client {RestUrl + uri + $"?" + jsonPayload} StatusCode:{response.StatusCode.ToString()}", LogMessageType.Connect);
+                    return null;
+                }
+                string response_msg = response.Content.ReadAsStringAsync().Result;
+                JToken token = JToken.Parse(response_msg);
+                if (token.SelectToken("retCode").ToString() == "110001" && uri.Contains("order/cancel"))
+                {
+                    return token;
+                }
+                if (token.SelectToken("retCode").ToString() == "170213" && uri.Contains("order/cancel"))
+                {
+                    return token;
+                }
+                if (token.SelectToken("retCode").ToString() != "0")
+                {
+                    LogMessageEvent?.Invoke($"BybitUnified Client {RestUrl + uri + $"?" + jsonPayload} Status:{response_msg}", LogMessageType.Error);
+                    return null;
+                }
+
+                return token;
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+                
+                return null;
+            }
+
+        }
+
+        public JToken CreatePublicQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
+        {
+            _rateGate.WaitToProceed();
+            try
+            {
+                string jsonPayload = parameters.Count > 0 ? GenerateQueryString(parameters) : "";
+
+                httpClient = GetHttpClient();
+                HttpRequestMessage request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?{jsonPayload}");
+                HttpResponseMessage response = httpClient?.SendAsync(request).Result;
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    LogMessageEvent?.Invoke($"BybitUnified Client {RestUrl + uri + $"?" + jsonPayload} StatusCode:{response.StatusCode.ToString()}", LogMessageType.Connect);
+                    return null;
+                }
+                string response_msg = response.Content.ReadAsStringAsync().Result;
+                JToken token = JToken.Parse(response_msg);
+                if (token.SelectToken("retCode").ToString() != "0"
+                    || token.SelectToken("retMsg").ToString() != "OK")
+                {
+                    LogMessageEvent?.Invoke($"BybitUnified Client {RestUrl + uri + $"?" + jsonPayload} StatusCode:{response_msg}", LogMessageType.Error);
+                    return null;
+                }
+
+                return token;
+            }
+            catch (Exception ex)
+            {
+                HandlerExeption(ex);
+                return null; 
+            }
+        }
+        private string GenerateQueryString(Dictionary<string, object> parameters)
+        {
+            List<string> pairs = new List<string>();
+            string[] keysArray = new string[parameters.Count];
+            parameters.Keys.CopyTo(keysArray, 0);
+            for (int i = 0; i < keysArray.Length; i++)
+            {
+                string key = keysArray[i];
+                pairs.Add($"{key}={parameters[key]}");
+            }
+            string res = string.Join("&", pairs);
+            return res;
+        }
+
+        object lockerServerTime = new object();
+
+        public string GetServerTime()
+        {
+            lock (lockerServerTime)
+            { 
+                try
+                {
+                    httpClient = GetHttpClient();
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, RestUrl + "/v5/market/time");
+                    long UtcNowUnixTimeMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    JToken timeFromServer = null;
+               
+                    HttpResponseMessage response = httpClient?.SendAsync(request).Result;
+                    string response_msg = response.Content.ReadAsStringAsync().Result;
+
+                    timeFromServer = JToken.Parse(response_msg);
+                    if (timeFromServer == null)
+                    {
+                        return UtcNowUnixTimeMilliseconds.ToString();
+                    }
+                    JToken timeStamp = timeFromServer.Root.SelectToken("time");
+                    if (long.TryParse(timeStamp.ToString(), out long timestampServer))
+                    {
+                        return timeStamp.ToString();
+                    }
+                    return UtcNowUnixTimeMilliseconds.ToString();
+                    }
+                catch (Exception ex)
+                {
+                    HandlerExeption(ex);
+                }
+                return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            }
+        }
+
+        private string GeneratePostSignature(IDictionary<string, object> parameters, string Timestamp)
+        {
+            string paramJson = parameters.Count > 0 ? JsonConvert.SerializeObject(parameters) : "";
+            string rawData = Timestamp + PublicKey + RecvWindow + paramJson;
+
+            using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(SecretKey));
+            byte[] signature = hmac.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+            return BitConverter.ToString(signature).Replace("-", "").ToLower();
+        }
+
+        private string GenerateGetSignature(Dictionary<string, object> parameters, string Timestamp, string ApiKey)
+        {
+            string queryString = GenerateQueryString(parameters);
+            string rawData = Timestamp + ApiKey + RecvWindow + queryString;
+
+            return ComputeSignature(rawData);
+        }
+
+        private string ComputeSignature(string data)
+        {
+            using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(SecretKey));
+            byte[] signature = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
+            return BitConverter.ToString(signature).Replace("-", "").ToLower();
+        }
+
+        #endregion 12
+
+        #region 13 Log
+
+
+
+
+        public event Action<string, LogMessageType> LogMessageEvent;
+        private void SendLogMessage(string message, LogMessageType messageType)
+        {
+            LogMessageEvent?.Invoke(message, messageType);
+        }
+
+        private void HandlerExeption(Exception exception, [CallerMemberName] string caller = "")
+        {
+            if (exception is AggregateException)
+            {
+                AggregateException httpError = (AggregateException)exception;
+
+                for (int i = 0; i < httpError.InnerExceptions.Count; i++)
+
+                {
+                    Exception item = httpError.InnerExceptions[i];
+                    if (item is NullReferenceException == false)
+                    {
+                        SendLogMessage(caller +"; "+ item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                    }
+
+                }
+            }
+            else
+            {
+                if (exception is ThreadAbortException)
+                {
+                    return;
+                }
+                if (exception is NullReferenceException == false)
+                {
+                    SendLogMessage(caller + "; " + exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                }
+            }
+        }
+
+
+      
+
+      
+
+    
+
+
+
+        #endregion 13
+
     }
+    #region 14 Enum
+
+    public enum Net_type
+    {
+        MainNet,
+        TestNet
+    }
+    public enum MarginMode
+    {
+        Cross,
+        Isolated
+    }
+
+    public enum Category
+    {
+        spot,
+        linear,
+        inverse,
+        option
+    }
+    #endregion 14
 }
