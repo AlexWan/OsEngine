@@ -649,8 +649,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void WebSocket_Opened(object sender, EventArgs e)
         {
-            StartCheckAliveWebSocket();
-
             SendLogMessage("Connection Open", LogMessageType.Connect);
 
             if (ConnectEvent != null && ServerStatus != ServerConnectStatus.Connect)
@@ -710,48 +708,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #endregion
 
-        #region 8 WebSocket check alive
-
-        private DateTime _timeLastSendPing = DateTime.Now;
-
-        private void CheckAliveWebSocket()
-        {
-            while (IsDispose == false)
-            {
-                Thread.Sleep(3000);
-
-                if (_webSocket != null &&
-                    (_webSocket.ReadyState == WebSocketState.Open ||
-                    _webSocket.ReadyState == WebSocketState.Connecting)
-                    )
-                {
-                    if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
-                    {
-                        lock (_locker)
-                        {
-                            _webSocket.Send("Pong");
-                            _timeLastSendPing = DateTime.Now;
-                        }
-                    }
-                }
-                else
-                {
-                    Dispose();
-                }
-            }
-        }
-
-        private void StartCheckAliveWebSocket()
-        {
-            Thread thread = new Thread(CheckAliveWebSocket);
-            thread.IsBackground = true;
-            thread.Name = "CheckAliveWebSocket";
-            thread.Start();
-        }
-
-        #endregion
-
-        #region 9 Security subscrible
+        #region 8 Security subscrible
 
         private List<string> _subscribledSecutiries = new List<string>();
 
@@ -795,7 +752,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #endregion
 
-        #region 10 WebSocket parsing the messages
+        #region 9 WebSocket parsing the messages
 
         private ConcurrentQueue<string> _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
@@ -833,6 +790,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     {
                         ResponceWebSocketBingXMessage<object> responseWebsocketMessage;
 
+                        if (message.Contains("ping"))
+                        {
+                            _webSocket.Send("pong");
+                            continue;
+                        }
+
                         try
                         {
                             responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<object>());
@@ -859,6 +822,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                                 // у вебсокета нет подписки на трейды, так что получим их через http
                                 UpdateOrder(message);
                                 UpdateMyTrade(message);
+                                continue;
                             }
                         }
                     }
@@ -1044,7 +1008,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #endregion
 
-        #region 11 Trade
+        #region 10 Trade
 
         public void SendOrder(Order order)
         {
@@ -1228,7 +1192,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         }
         #endregion
 
-        #region 12 Queries
+        #region 11 Queries
 
         private const string _baseUrl = "https://open-api.bingx.com";
 
@@ -1294,7 +1258,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #endregion
 
-        #region 13 Log
+        #region 12 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
@@ -1328,7 +1292,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         }
         #endregion
 
-        #region 14 Helpers
+        #region 13 Helpers
 
         private string Decompress(byte[] data)
         {
