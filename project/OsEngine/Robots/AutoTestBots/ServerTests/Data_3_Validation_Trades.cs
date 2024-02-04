@@ -14,6 +14,22 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public override void Process()
         {
+            IServerPermission serverPermission = ServerMaster.GetServerPermission(_myServer.ServerType);
+
+            if (serverPermission == null)
+            {
+                SetNewError("Error. No server permission.");
+                TestEnded();
+                return;
+            }
+
+            if (serverPermission.DataFeedTfTickCanLoad == false)
+            {
+                SetNewServiceInfo("No permission. Server can`t download trades. Test over");
+                TestEnded();
+                return;
+            }
+
             List<Security> securities = Server.Securities;
 
             if (securities != null &&
