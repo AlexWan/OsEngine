@@ -44,7 +44,6 @@ using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
 using OsEngine.Market.Servers.BitMaxFutures;
-using OsEngine.Market.Servers.BybitSpot;
 using OsEngine.Market.Servers.BitGet.BitGetSpot;
 using OsEngine.Market.Servers.BitGet.BitGetFutures;
 using OsEngine.Market.Servers.Alor;
@@ -180,7 +179,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HuobiFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
-                serverTypes.Add(ServerType.BybitSpot);
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Bitmax_AscendexFutures);
                 serverTypes.Add(ServerType.BitGetSpot);
@@ -279,7 +277,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Bitfinex);
                 serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.Exmo);
-                serverTypes.Add(ServerType.BybitSpot);
                 serverTypes.Add(ServerType.HuobiSpot);
                 serverTypes.Add(ServerType.HuobiFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
@@ -388,10 +385,6 @@ namespace OsEngine.Market
                 if (type == ServerType.Bitmax_AscendexFutures)
                 {
                     newServer = new BitMaxFuturesServer();
-                }
-                if (type == ServerType.BybitSpot)
-                {
-                    newServer = new BybitSpotServer();
                 }
                 if (type == ServerType.OKX)
                 {
@@ -1015,10 +1008,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new HuobiFuturesServerPermission();
                 }
-                else if (type == ServerType.BybitSpot)
-                {
-                    serverPermission = new BybitSpotServerPermission();
-                }
                 else if (type == ServerType.HuobiFuturesSwap)
                 {
                     serverPermission = new HuobiFuturesSwapServerPermission();
@@ -1399,11 +1388,6 @@ namespace OsEngine.Market
         /// Ascendex exchange
         /// </summary>
         Bitmax_AscendexFutures,
-
-        /// <summary>
-        /// BybitSpot exchange
-        /// </summary>
-        BybitSpot,
 
         /// <summary>
         /// BitGetSpot exchange
