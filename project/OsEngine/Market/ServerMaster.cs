@@ -282,7 +282,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
-                serverTypes.Add(ServerType.BingXSpot);
 
                 return serverTypes;
             }

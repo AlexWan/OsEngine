@@ -8,7 +8,6 @@ using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -42,15 +41,28 @@ namespace OsEngine.Market.Servers.BinGxSpot
         public BingXServerSpotRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            Thread keepalive = new Thread(RequestListenKey);
+            keepalive.CurrentCulture = new CultureInfo("ru-RU");
+            keepalive.IsBackground = true;
+            keepalive.Start();
+
+            Thread thread = new Thread(GetUpdatePortfolio);
+            thread.IsBackground = true;
+            thread.Start();
+
+            Thread threadReader = new Thread(MessageReader);
+            threadReader.IsBackground = true;
+            threadReader.Name = "MessageReaderBingXSpot";
+            threadReader.Start();
         }
 
         public DateTime ServerTime { get; set; }
 
         public void Connect()
         {
-            IsDispose = false;
-            PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
-            SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
             HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/openApi/swap/v2/server/time").Result;
             string json = responseMessage.Content.ReadAsStringAsync().Result;
@@ -66,13 +78,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 try
                 {
                     CreateWebSocketConnect();
-                    StartMessageReader();
-                    StartUpdatePortfolio();
-
-                    Thread keepalive = new Thread(RequestListenKey);
-                    keepalive.CurrentCulture = new CultureInfo("ru-RU");
-                    keepalive.IsBackground = true;
-                    keepalive.Start();
                 }
                 catch (Exception ex)
                 {
@@ -99,7 +104,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     HandlerException(exeption);
                 }
 
-                IsDispose = true;
                 _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -126,11 +130,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
         #region 2 Properties
 
         public List<IServerParameter> ServerParameters { get; set; }
-        private RateGate _rateGate = new RateGate(490, TimeSpan.FromMilliseconds(60));
 
-        public string PublicKey;
-        public string SecretKey;
-        private bool IsDispose;
+        private RateGate _rateGate = new RateGate(490, TimeSpan.FromSeconds(60));
+
+        private string _publicKey;
+
+        private string _secretKey;
 
         #endregion
 
@@ -151,7 +156,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 request.AddParameter("timestamp", timeStamp);
                 request.AddParameter("signature", sign);
-                request.AddHeader("X-BX-APIKEY", PublicKey);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 IRestResponse json = client.Execute(request);
 
@@ -205,17 +210,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     security.PriceStepCost = security.PriceStep;
                     security.SecurityType = SecurityType.CurrencyPair;
 
-
-                    string[] parts = current.tickSize.Split('.');
-                    if (parts.Length > 1)
-                    {
-                        security.Decimals = parts[1].Length;
-                    }
-                    else
-                    {
-                        security.Decimals = 0;
-                    }
-                    security.DecimalsVolume = security.Decimals;
+                    security.Decimals = current.tickSize.DecimalsCount();
+                    security.DecimalsVolume = current.stepSize.DecimalsCount();
 
                     securities.Add(security);
                 }
@@ -244,18 +240,17 @@ namespace OsEngine.Market.Servers.BinGxSpot
             CreateQueryPortfolio();
         }
 
-        private void StartUpdatePortfolio()
-        {
-            Thread thread = new Thread(GetUpdatePortfolio);
-            thread.IsBackground = true;
-            thread.Start();
-        }
-
         private void GetUpdatePortfolio()
         {
             while (true)
             {
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
+
+                if(ServerStatus != ServerConnectStatus.Connect)
+                {
+                    continue;
+                }
+
                 CreateQueryPortfolio();
             }
         }
@@ -275,7 +270,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 request.AddParameter("timestamp", timeStamp);
                 request.AddParameter("signature", sign);
-                request.AddHeader("X-BX-APIKEY", PublicKey);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 IRestResponse json = client.Execute(request);
 
@@ -463,7 +458,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
@@ -593,8 +587,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
         #region 6 WebSocket creation
 
         private object _locker = new object();
+
         private WebSocket _webSocket;
+
         private const string _webSocketUrl = "wss://open-api-ws.bingx.com/market";
+
         private string _listenKey = "";
 
         private void CreateWebSocketConnect()
@@ -651,24 +648,24 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             SendLogMessage("Connection Open", LogMessageType.Connect);
 
-            if (ConnectEvent != null && ServerStatus != ServerConnectStatus.Connect)
+            if (ConnectEvent != null 
+                && ServerStatus != ServerConnectStatus.Connect)
             {
                 ServerStatus = ServerConnectStatus.Connect;
                 ConnectEvent();
             }
+
+            _webSocket.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // изменение ордеров
         }
 
         private void WebSocket_Closed(object sender, EventArgs e)
         {
-            if (IsDispose == false)
+            if (DisconnectEvent != null
+                && ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage("Connection Closed by BingX. WebSocket Closed Event", LogMessageType.Connect);
-
-                if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
@@ -676,33 +673,41 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
+                if(ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return;
+                }
+
                 if (e == null)
                 {
                     return;
                 }
+
                 if (string.IsNullOrEmpty(e.ToString()))
                 {
                     return;
                 }
+
                 if (_fifoListWebSocketMessage == null)
                 {
                     return;
                 }
+
                 if (e.IsBinary)
                 {
                     string item = Decompress(e.RawData);
                     _fifoListWebSocketMessage.Enqueue(item);
                 }
+
                 if (e.IsText)
                 {
                     _fifoListWebSocketMessage.Enqueue(e.Data);
                 }
-
             }
             catch (Exception error)
             {
                 HandlerException(error);
-                SendLogMessage($"Ошибка обработки ответа. Ошибка: {error}", LogMessageType.Error);
+                SendLogMessage($"Error message read. Error: {error}", LogMessageType.Error);
             }
         }
 
@@ -727,7 +732,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void CreateSubscribleSecurityMessageWebSocket(Security security)
         {
-            if (IsDispose)
+            if (ServerStatus == ServerConnectStatus.Disconnect)
             {
                 return;
             }
@@ -744,9 +749,14 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             lock (_locker)
             {
+                if(ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 _webSocket.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}"); // трейды
                 _webSocket.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}"); // глубина
-                _webSocket.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // изменение ордеров
+                
             }
         }
 
@@ -764,25 +774,23 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public event Action<Trade> NewTradesEvent;
 
-        private void StartMessageReader()
-        {
-            Thread thread = new Thread(MessageReader);
-            thread.IsBackground = true;
-            thread.Name = "MessageReaderBingXSpot";
-            thread.Start();
-        }
-
         private void MessageReader()
         {
             Thread.Sleep(1000);
 
-            while (IsDispose == false)
+            while (true)
             {
                 try
                 {
                     if (_fifoListWebSocketMessage.IsEmpty)
                     {
                         Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if(ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
                         continue;
                     }
 
@@ -829,6 +837,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
                 catch (Exception exeption)
                 {
+                    Thread.Sleep(5000);
                     HandlerException(exeption);
                 }
             }
@@ -881,7 +890,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
             MyOrderEvent(newOrder);
         }
 
-
         private void UpdateMyTrade(string message)
         {
             _rateGate.WaitToProceed();
@@ -900,7 +908,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             request.AddParameter("symbol", responceOrder.data.s);
             request.AddParameter("orderId", responceOrder.data.i);
             request.AddParameter("signature", sign);
-            request.AddHeader("X-BX-APIKEY", PublicKey);
+            request.AddHeader("X-BX-APIKEY", _publicKey);
 
             IRestResponse json = client.Execute(request); // получим данные о транзакциях
 
@@ -958,6 +966,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         }
 
         private readonly Dictionary<string, MarketDepth> _allDepths = new Dictionary<string, MarketDepth>();
+
         private void UpdateDepth(string message)
         {
             ResponceWebSocketBingXMessage<MarketDepthDataMessage> responceDepths =
@@ -1049,7 +1058,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             request.AddParameter("newClientOrderId", order.NumberUser);
             request.AddParameter("signature", sign);
-            request.AddHeader("X-BX-APIKEY", PublicKey);
+            request.AddHeader("X-BX-APIKEY", _publicKey);
 
             IRestResponse json = client.Execute(request);
 
@@ -1104,7 +1113,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             request.AddParameter("timestamp", timeStamp);
             request.AddParameter("symbol", symbol);
             request.AddParameter("signature", sign);
-            request.AddHeader("X-BX-APIKEY", PublicKey);
+            request.AddHeader("X-BX-APIKEY", _publicKey);
 
             IRestResponse json = client.Execute(request);
 
@@ -1145,7 +1154,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             request.AddParameter("symbol", symbol);
             request.AddParameter("orderId", orderId);
             request.AddParameter("signature", sign);
-            request.AddHeader("X-BX-APIKEY", PublicKey);
+            request.AddHeader("X-BX-APIKEY", _publicKey);
 
             IRestResponse json = client.Execute(request);
 
@@ -1190,6 +1199,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
 
         }
+
         #endregion
 
         #region 11 Queries
@@ -1197,7 +1207,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
         private const string _baseUrl = "https://open-api.bingx.com";
 
         private readonly HttpClient _httpPublicClient = new HttpClient();
-
 
         private string CreateListenKey()
         {
@@ -1209,7 +1218,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 string endpoint = "/openApi/user/auth/userDataStream";
 
                 RestRequest request = new RestRequest(endpoint, Method.POST);
-                request.AddHeader("X-BX-APIKEY", PublicKey);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 string response = new RestClient(baseUrl).Execute(request).Content;
 
@@ -1227,6 +1236,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             while (true)
             {
+                if(ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(5000);
+                    continue;
+                }
+
                 try
                 {
                     //спим 30 минут
@@ -1236,10 +1251,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     {
                         continue;
                     }
-                    if (IsDispose == true)
-                    {
-                        return;
-                    }
+
                     _rateGate.WaitToProceed();
 
                     string endpoint = "/openApi/user/auth/userDataStream";
@@ -1252,9 +1264,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
             }
         }
-
-
-
 
         #endregion
 
@@ -1270,26 +1279,35 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void HandlerException(Exception exception)
         {
-            if (exception is AggregateException)
+            try
             {
-                AggregateException httpError = (AggregateException)exception;
-
-                for (int i = 0; i < httpError.InnerExceptions.Count; i++)
+                if (exception is AggregateException)
                 {
-                    if (httpError.InnerExceptions[i] is NullReferenceException == false)
+                    AggregateException httpError = (AggregateException)exception;
+
+                    for (int i = 0; i < httpError.InnerExceptions.Count; i++)
                     {
-                        SendLogMessage(httpError.InnerExceptions[i].InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                        if (httpError.InnerExceptions[i] is NullReferenceException == false)
+                        {
+                            SendLogMessage(httpError.InnerExceptions[i].InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                        }
+                    }
+                }
+                else
+                {
+                    if (exception is NullReferenceException == false)
+                    {
+                        SendLogMessage($"Ошибка: {exception.Message} {exception.StackTrace}", LogMessageType.Error);
                     }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                if (exception is NullReferenceException == false)
-                {
-                    SendLogMessage($"Ошибка: {exception.Message} {exception.StackTrace}", LogMessageType.Error);
-                }
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         #endregion
 
         #region 13 Helpers
@@ -1325,7 +1343,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private string CalculateHmacSha256(string parametrs)
         {
-            byte[] keyBytes = Encoding.UTF8.GetBytes(SecretKey);
+            byte[] keyBytes = Encoding.UTF8.GetBytes(_secretKey);
             byte[] inputBytes = Encoding.UTF8.GetBytes(parametrs);
             using (HMACSHA256 hmac = new HMACSHA256(keyBytes))
             {

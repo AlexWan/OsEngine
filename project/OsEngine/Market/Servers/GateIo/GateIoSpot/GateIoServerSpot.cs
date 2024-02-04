@@ -1432,26 +1432,32 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private void HandlerException(Exception exception)
         {
-            if (exception is AggregateException)
+            try
             {
-                AggregateException httpError = (AggregateException)exception;
-
-                for (int i = 0; i < httpError.InnerExceptions.Count; i++)
+                if (exception is AggregateException)
                 {
-                    Exception item = httpError.InnerExceptions[i];
+                    AggregateException httpError = (AggregateException)exception;
 
-                    if (item is NullReferenceException == false)
+                    for (int i = 0; i < httpError.InnerExceptions.Count; i++)
                     {
-                        SendLogMessage(item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                        if (httpError.InnerExceptions[i] is NullReferenceException == false)
+                        {
+                            SendLogMessage(httpError.InnerExceptions[i].InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
+                        }
+                    }
+                }
+                else
+                {
+                    if (exception is NullReferenceException == false)
+                    {
+                        SendLogMessage($"Ошибка: {exception.Message} {exception.StackTrace}", LogMessageType.Error);
                     }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                if (exception is NullReferenceException == false)
-                {
-                    SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                }
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 

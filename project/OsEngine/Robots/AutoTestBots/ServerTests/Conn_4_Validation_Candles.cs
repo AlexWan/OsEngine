@@ -166,7 +166,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<CandleSeries> seriesReady = new List<CandleSeries>();
 
-            if (permission.DataFeedTf1MinuteCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameMin1IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Min1);
                 if(series != null)
@@ -174,7 +174,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
-            if (permission.DataFeedTf2MinuteCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameMin2IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Min2);
                 if (series != null)
@@ -182,7 +182,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
-            if (permission.DataFeedTf5MinuteCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameMin5IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Min5);
                 if (series != null)
@@ -190,7 +190,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
-            if (permission.DataFeedTf10MinuteCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameMin10IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Min10);
                 if (series != null)
@@ -198,7 +198,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
-            if (permission.DataFeedTf15MinuteCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameMin15IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Min15);
                 if (series != null)
@@ -206,7 +206,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
-            if (permission.DataFeedTf30MinuteCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameMin30IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Min30);
                 if (series != null)
@@ -214,7 +214,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
-            if (permission.DataFeedTf1HourCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameHour1IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Hour1);
                 if (series != null)
@@ -222,7 +222,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
-            if (permission.DataFeedTf2HourCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameHour2IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Hour2);
                 if (series != null)
@@ -230,7 +230,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
-            if (permission.DataFeedTf4HourCanLoad)
+            if (permission.TradeTimeFramePermission.TimeFrameHour4IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Hour4);
                 if (series != null)

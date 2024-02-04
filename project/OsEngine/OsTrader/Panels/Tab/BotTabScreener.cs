@@ -103,22 +103,31 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
+
                 Thread.Sleep(500);
 
-                for (int i = 0; _screeners != null &&
-                    _screeners.Count != 0 &&
-                    i < _screeners.Count; i++)
+                try
                 {
-                    for (int i2 = 0; _screeners[i].Tabs != null &&
-                        _screeners[i].Tabs.Count != 0 &&
-                        i2 < _screeners[i].Tabs.Count; i2++)
+                    for (int i = 0; _screeners != null &&
+                        _screeners.Count != 0 &&
+                        i < _screeners.Count; i++)
                     {
-                        PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
-                    }
+                        for (int i2 = 0; _screeners[i].Tabs != null &&
+                            _screeners[i].Tabs.Count != 0 &&
+                            i2 < _screeners[i].Tabs.Count; i2++)
+                        {
+                            PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
+                        }
 
-                    _screeners[i].TryLoadTabs();
-                    _screeners[i].TryReLoadTabs();
+                        _screeners[i].TryLoadTabs();
+                        _screeners[i].TryReLoadTabs();
+                    }
                 }
+                catch (Exception ex)
+                {
+                    // do nothin
+                }
+
             }
         }
 
