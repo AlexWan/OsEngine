@@ -4,6 +4,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BingX.BingXSpot.Entity;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.Hitbtc;
 using RestSharp;
 using System;
 using System.Collections.Concurrent;
@@ -69,7 +70,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             if (responseMessage.StatusCode != HttpStatusCode.OK)
             {
-                SendLogMessage($"Сервер не доступен. Отсутствует интернет.", LogMessageType.Error);
+                SendLogMessage($"The server is not available. No internet", LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
             }
@@ -81,7 +82,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
                 catch (Exception ex)
                 {
-                    HandlerException(ex);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                     SendLogMessage("The connection cannot be opened. BingX. Error Request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -92,26 +93,25 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public void Dispose()
         {
-            lock (_locker)
+
+            try
             {
-                try
-                {
-                    _subscribledSecutiries.Clear();
-                    DeleteWebscoektConnection();
-                }
-                catch (Exception exeption)
-                {
-                    HandlerException(exeption);
-                }
-
-                _fifoListWebSocketMessage = new ConcurrentQueue<string>();
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                _subscribledSecutiries.Clear();
+                DeleteWebscoektConnection();
             }
+            catch (Exception exeption)
+            {
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+            }
+
+            _fifoListWebSocketMessage = new ConcurrentQueue<string>();
+
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+
         }
 
         public ServerType ServerType
@@ -131,7 +131,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _rateGate = new RateGate(490, TimeSpan.FromSeconds(60));
+        private RateGate _rateGate = new RateGate(480, TimeSpan.FromSeconds(60));
 
         private string _publicKey;
 
@@ -183,7 +183,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -306,7 +306,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -404,7 +404,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
             return null;
         }
@@ -437,7 +437,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             catch (Exception exception)
             {
-                HandlerException(new Exception($"Ошибка конвертации свечей: {exception}"));
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 return null;
             }
         }
@@ -586,8 +586,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #region 6 WebSocket creation
 
-        private object _locker = new object();
-
         private WebSocket _webSocket;
 
         private const string _webSocketUrl = "wss://open-api-ws.bingx.com/market";
@@ -615,6 +613,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             if (_webSocket != null)
             {
+                _webSocket.OnOpen -= WebSocket_Opened;
+                _webSocket.OnClose -= WebSocket_Closed;
+                _webSocket.OnMessage -= WebSocket_DataReceived;
+                _webSocket.OnError -= WebSocket_Error;
+
                 try
                 {
                     _webSocket.Close();
@@ -624,10 +627,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     // ignore
                 }
 
-                _webSocket.OnOpen -= WebSocket_Opened;
-                _webSocket.OnClose -= WebSocket_Closed;
-                _webSocket.OnMessage -= WebSocket_DataReceived;
-                _webSocket.OnError -= WebSocket_Error;
                 _webSocket = null;
             }
         }
@@ -640,7 +639,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             if (e.Exception != null)
             {
-                HandlerException(e.Exception);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+            }
+            else
+            {
+                SendLogMessage("Socket error" + e.Message.ToString(), LogMessageType.Error);
             }
         }
 
@@ -706,7 +709,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             catch (Exception error)
             {
-                HandlerException(error);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
                 SendLogMessage($"Error message read. Error: {error}", LogMessageType.Error);
             }
         }
@@ -721,12 +724,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                _rateGate.WaitToProceed();
                 CreateSubscribleSecurityMessageWebSocket(security);
+
+                Thread.Sleep(200);
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -747,17 +751,14 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             _subscribledSecutiries.Add(security.Name);
 
-            lock (_locker)
+            if (ServerStatus == ServerConnectStatus.Disconnect)
             {
-                if(ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                _webSocket.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}"); // трейды
-                _webSocket.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}"); // глубина
-                
+                return;
             }
+
+            _webSocket.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}"); // трейды
+
+            _webSocket.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}"); // глубина
         }
 
         #endregion
@@ -815,7 +816,14 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                         if (responseWebsocketMessage.dataType != null)
                         {
-                            if (responseWebsocketMessage.dataType.Contains("@depth20"))
+                            if (responseWebsocketMessage.dataType.Contains("spot.executionReport"))
+                            {
+                                // у вебсокета нет подписки на трейды, так что получим их через http
+                                UpdateOrder(message);
+                                UpdateMyTrade(message);
+                                continue;
+                            }
+                            else if (responseWebsocketMessage.dataType.Contains("@depth20"))
                             {
                                 UpdateDepth(message);
                                 continue;
@@ -825,20 +833,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
                                 UpdateTrade(message);
                                 continue;
                             }
-                            else if (responseWebsocketMessage.dataType.Contains("spot.executionReport"))
-                            {
-                                // у вебсокета нет подписки на трейды, так что получим их через http
-                                UpdateOrder(message);
-                                UpdateMyTrade(message);
-                                continue;
-                            }
                         }
                     }
                 }
                 catch (Exception exeption)
                 {
                     Thread.Sleep(5000);
-                    HandlerException(exeption);
+                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -936,8 +937,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 else
                 {
                     ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                    HandlerException(new Exception($"Ошибка обработки трейдов: code - {responseError.code} | message - {responseError.msg}"));
-                    SendLogMessage($"Ошибка обработки трейдов: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                    SendLogMessage($"Ошибка обработки трейдов: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Error);
                 }
             }
             else
@@ -1067,7 +1067,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
                 if (response.code == "0")
                 {
-                    SendLogMessage($"Ордер успешно выставлен.", LogMessageType.Trade);
                     order.State = OrderStateType.Activ;
                     order.NumberMarket = response.data.orderId;
                 }
@@ -1075,8 +1074,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     CreateOrderFail(order);
                     ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                    HandlerException(new Exception($"Ошибка выставления ордера: code - {responseError.code} | message - {responseError.msg}"));
-                    SendLogMessage($"Ошибка выставления ордера: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+
+                    SendLogMessage($"Order execution error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
                 }
             }
             else
@@ -1122,13 +1121,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
                 if (response.code == "0")
                 {
-                    SendLogMessage($"Ордер успешно отменен или закрыт.", LogMessageType.Trade);
+                    
                 }
                 else
                 {
                     ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                    HandlerException(new Exception($"Ошибка при отмене ордера: code - {responseError.code} | message - {responseError.msg}"));
-                    SendLogMessage($"Ошибка при отмене ордера: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                    SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
                 }
             }
             else
@@ -1163,14 +1161,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
                 if (response.code == "0")
                 {
-                    SendLogMessage($"Ордер успешно отменен или закрыт.", LogMessageType.Trade);
+                    
                 }
                 else
                 {
                     CreateOrderFail(order);
                     ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                    HandlerException(new Exception($"Ошибка при отмене ордера: code - {responseError.code} | message - {responseError.msg}"));
-                    SendLogMessage($"Ошибка при отмене ордера: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                    SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
                 }
             }
             else
@@ -1227,7 +1224,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             catch (Exception ex)
             {
-                HandlerException(ex);
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
                 return null;
             }
         }
@@ -1260,7 +1257,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
                 catch
                 {
-                    HandlerException(new Exception("Ошибка запроса генерации listen key"));
+                    SendLogMessage(" Request Listen Key Error", LogMessageType.Error);
                 }
             }
         }
@@ -1275,37 +1272,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             if (LogMessageEvent != null)
                 LogMessageEvent(message, messageType);
-        }
-
-        private void HandlerException(Exception exception)
-        {
-            try
-            {
-                if (exception is AggregateException)
-                {
-                    AggregateException httpError = (AggregateException)exception;
-
-                    for (int i = 0; i < httpError.InnerExceptions.Count; i++)
-                    {
-                        if (httpError.InnerExceptions[i] is NullReferenceException == false)
-                        {
-                            SendLogMessage(httpError.InnerExceptions[i].InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                        }
-                    }
-                }
-                else
-                {
-                    if (exception is NullReferenceException == false)
-                    {
-                        SendLogMessage($"Ошибка: {exception.Message} {exception.StackTrace}", LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
         }
 
         #endregion
@@ -1331,7 +1297,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             catch
             {
-                HandlerException(new Exception("Ошибка при декомпресии GZip"));
+                SendLogMessage("Decompress error",LogMessageType.Error);
                 return null;
             }
         }
