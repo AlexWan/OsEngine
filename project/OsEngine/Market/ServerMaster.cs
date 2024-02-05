@@ -50,6 +50,7 @@ using OsEngine.Market.Servers.Alor;
 using OsEngine.Market.Servers.GateIo.GateIoSpot;
 using OsEngine.Market.Servers.GateIo.GateIoFutures;
 using OsEngine.Market.Servers.KuCoin.KuCoinSpot;
+using OsEngine.Market.Servers.KuCoin.KuCoinFutures;
 using OsEngine.Market.Servers.BinGxSpot;
 using OsEngine.Market.Servers.BingX.BingXSpot;
 
@@ -152,7 +153,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                serverTypes.Add(ServerType.KuCoinSpot);
+                
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
@@ -172,6 +173,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitStamp);
                 serverTypes.Add(ServerType.Bitfinex);
                 serverTypes.Add(ServerType.Kraken);
+                serverTypes.Add(ServerType.KuCoinSpot);
+                serverTypes.Add(ServerType.KuCoinFutures);
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.Zb);
                 serverTypes.Add(ServerType.Hitbtc);
@@ -364,6 +367,10 @@ namespace OsEngine.Market
                 if (type == ServerType.BingXSpot)
                 {
                     newServer = new BingXServerSpot();
+                }
+                if (type == ServerType.KuCoinFutures)
+                {
+                    newServer = new KuCoinFuturesServer();
                 }
                 if (type == ServerType.KuCoinSpot)
                 {
@@ -943,6 +950,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new KuCoinSpotServerPermission();
                 }
+                else if (type == ServerType.KuCoinFutures)
+                {
+                    serverPermission = new KuCoinFuturesServerPermission();
+                }
                 else if (type == ServerType.BingXSpot)
                 {
                     serverPermission = new BingXSpotServerPermission();
@@ -1407,6 +1418,11 @@ namespace OsEngine.Market
         /// KuCoinSpot exchange
         /// </summary>
         KuCoinSpot,
+
+        /// <summary>
+        /// KuCoinSpot exchange
+        /// </summary>
+        KuCoinFutures,
 
         /// <summary>
         /// BingXSpot exchange
