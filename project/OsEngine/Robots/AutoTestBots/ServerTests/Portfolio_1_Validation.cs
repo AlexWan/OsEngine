@@ -123,11 +123,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 TestEnded();
                 return;
             }
-
+            
+            
             if(OpenAndCloseShortPositionLogicTest(mySecurity,md) == false)
             {
-                TestEnded();
-                return;
+               TestEnded();
+               return;
             }
 
             TestEnded();
@@ -361,7 +362,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price + price * 0.05m, mySec.Decimals);
+            price = Math.Round(price + price * 0.01m, mySec.Decimals); // Проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
             _whaitSide = Side.Buy;
@@ -453,7 +454,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.05m, mySec.Decimals);
+            price = Math.Round(price - price * 0.01m, mySec.Decimals); // Проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
             _whaitSide = Side.Sell;
