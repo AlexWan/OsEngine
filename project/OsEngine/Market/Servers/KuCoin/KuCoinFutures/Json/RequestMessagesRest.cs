@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-
+﻿
 namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
 {
     public class SendOrderRequestData
@@ -18,7 +16,4 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
     {
         public string symbol;
     }
-
-
-
 }

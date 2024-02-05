@@ -997,14 +997,19 @@ namespace OsEngine.Entity
         /// </summary>
         private void _server_NewMarketDepthEvent(MarketDepth marketDepth)
         {
-            if (_server.ServerType == ServerType.Tester &&
-                TypeTesterData == TesterDataType.Candle)
+            if(_server == null)
             {
                 return;
             }
 
             try
             {
+                if (_server.ServerType == ServerType.Tester &&
+                     TypeTesterData == TesterDataType.Candle)
+                {
+                    return;
+                }
+
                 if (_activSeriesBasedOnMd == null)
                 {
                     return;

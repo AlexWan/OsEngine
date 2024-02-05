@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 
-
 namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Entity
 {
     public class RequestWebsocketAuth

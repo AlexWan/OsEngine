@@ -24,7 +24,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
     {
         public KuCoinSpotServer()
         {
-
             KuCoinSpotServerRealization realization = new KuCoinSpotServerRealization();
             ServerRealization = realization;
 
@@ -32,7 +31,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamPassphrase, "");
         }
-        
     }
 
     public class KuCoinSpotServerRealization : IServerRealization
@@ -42,13 +40,22 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         public KuCoinSpotServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            Thread threadForPublicMessages = new Thread(PublicMessageReader);
+            threadForPublicMessages.IsBackground = true;
+            threadForPublicMessages.Name = "PublicMessageReaderKuCoin";
+            threadForPublicMessages.Start();
+
+            Thread threadForPrivateMessages = new Thread(PrivateMessageReader);
+            threadForPrivateMessages.IsBackground = true;
+            threadForPrivateMessages.Name = "PrivateMessageReaderKuCoin";
+            threadForPrivateMessages.Start();
         }
 
         public DateTime ServerTime { get; set; }
 
         public void Connect()
         {
-            IsDispose = false;
             PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
             SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
@@ -63,15 +70,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     WebSocketPublicMessages = new ConcurrentQueue<string>();
                     WebSocketPrivateMessages = new ConcurrentQueue<string>();
                  
-                    StartMessageReader();
-                    
                     CreateWebSocketConnection();
 
                     StartUpdatePortfolio();
                 }
                 catch (Exception exception)
                 {
-                    HandlerException(exception);
+                    SendLogMessage(exception.ToString(),LogMessageType.Error);
                     SendLogMessage("Connection cannot be open. KuCoin. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -79,7 +84,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             }
             else
             {
-                IsDispose = true;
                 SendLogMessage("Connection cannot be open. KuCoin. Error request", LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
@@ -96,10 +100,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            IsDispose = true;
             WebSocketPublicMessages = new ConcurrentQueue<string>();
             WebSocketPrivateMessages = new ConcurrentQueue<string>();
 
@@ -126,8 +129,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/spotMarket/tradeOrdersV2\"}}"); // изменение ордеров
             webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/account/balance\"}}"); // изменение портфеля
         }
-
-        private bool IsDispose;
 
         public ServerType ServerType
         {
@@ -190,7 +191,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -221,7 +222,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                         newSecurity.Decimals = item.priceIncrement.DecimalsCount();
                     }
                     
-                    if(string.IsNullOrEmpty(item.baseMinSize) == false)
+                    if(string.IsNullOrEmpty(item.baseIncrement) == false)
                     {
                         newSecurity.DecimalsVolume = item.baseIncrement.DecimalsCount();
                     }
@@ -339,22 +340,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 TimeSpan TimeSlice = endTime - startTime;
                 return Convert.ToInt32(TimeSlice.TotalMinutes / tf.Minutes);
             }
-        }
-
-        private int GetCountCandlesToLoad()
-        {
-            AServer server = (AServer)ServerMaster.GetServers().Find(server => server.ServerType == ServerType.KuCoinSpot);
-
-            for (int i = 0; i < server.ServerParameters.Count; i++)
-            {
-                if (server.ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
-                {
-                    ServerParameterInt Param = (ServerParameterInt)server.ServerParameters[i];
-                    return Param.Value;
-                }
-            }
-
-            return 300;
         }
 
         private string GetStringInterval(TimeSpan tf)
@@ -477,9 +462,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         private void WebSocketPublic_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
         {
             SuperSocket.ClientEngine.ErrorEventArgs error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
+
             if (error.Exception != null)
             {
-                HandlerException(error.Exception);
+                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -488,7 +474,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             SuperSocket.ClientEngine.ErrorEventArgs error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
             if (error.Exception != null)
             {
-                HandlerException(error.Exception);
+                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -554,39 +540,21 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         private void WebSocketPublic_Closed(object sender, EventArgs e)
         {
-            if (IsDispose == false)
+            if (ServerStatus != ServerConnectStatus.Disconnect)
             {
-                //if(webSocketPublic != null)
-                //{
-                //    webSocketPublic.Opened -= WebSocketPublic_Opened;
-                //}
-                
                 SendLogMessage("Connection Closed by KuCoin. WebSocket Closed Event", LogMessageType.Error);
-                
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
         private void WebSocketPrivate_Closed(object sender, EventArgs e)
         {
-            if (IsDispose == false)
+            if (ServerStatus != ServerConnectStatus.Disconnect)
             {
-                //if (webSocketPrivate != null)
-                //{
-                //    webSocketPrivate.Opened -= WebSocketPrivate_Opened;
-                //}
-
                 SendLogMessage("Connection Closed by KuCoin. WebSocket Closed Event", LogMessageType.Error);
-                
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
@@ -594,7 +562,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             SendLogMessage("Connection to public data is Open", LogMessageType.System);
 
-            if (ServerStatus != ServerConnectStatus.Connect && webSocketPrivate.State == WebSocketState.Open)
+            if (ServerStatus != ServerConnectStatus.Connect 
+                && webSocketPrivate.State == WebSocketState.Open)
             {
                 ServerStatus = ServerConnectStatus.Connect;
                 ConnectEvent();
@@ -604,8 +573,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         private void WebSocketPrivate_Opened(object sender, EventArgs e)
         {
             SendLogMessage("Connection to private data is Open", LogMessageType.System);
-            
-            if (ServerStatus != ServerConnectStatus.Connect && webSocketPublic.State == WebSocketState.Open)
+
+            if (ServerStatus != ServerConnectStatus.Connect 
+                && webSocketPublic.State == WebSocketState.Open)
             {
                 ServerStatus = ServerConnectStatus.Connect;
                 ConnectEvent();
@@ -628,31 +598,22 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             try
             {
                 rateGateSubscribed.WaitToProceed();
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 CreateSubscribedSecurityMessageWebSocket(security);
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
         #endregion
 
         #region 9 WebSocket parsing the messages
-
-        private void StartMessageReader()
-        {
-            Thread threadForPublicMessages = new Thread(PublicMessageReader);
-            threadForPublicMessages.IsBackground = true;
-            threadForPublicMessages.Name = "PublicMessageReaderKuCoin";
-            threadForPublicMessages.Start();
-
-            Thread threadForPrivateMessages = new Thread(PrivateMessageReader);
-            threadForPrivateMessages.IsBackground = true;
-            threadForPrivateMessages.Name = "PrivateMessageReaderKuCoin";
-            threadForPrivateMessages.Start();
-        }
-        
         
         private ConcurrentQueue<string> WebSocketPublicMessages = new ConcurrentQueue<string>();
         private ConcurrentQueue<string> WebSocketPrivateMessages = new ConcurrentQueue<string>();
@@ -661,10 +622,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             Thread.Sleep(1000);
 
-            while (IsDispose == false)
+            while (true)
             {
                 try
                 {
+                    if(ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
                     if (WebSocketPublicMessages.IsEmpty)
                     {
                         Thread.Sleep(1);
@@ -705,7 +672,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 }
                 catch (Exception exception)
                 {
-                    HandlerException(exception);
+                    Thread.Sleep(2000);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -714,10 +682,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             Thread.Sleep(1000);
 
-            while (IsDispose == false)
+            while (true)
             {
                 try
                 {
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
                     if (WebSocketPrivateMessages.IsEmpty)
                     {
                         Thread.Sleep(1);
@@ -758,7 +732,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 }
                 catch (Exception exception)
                 {
-                    HandlerException(exception);
+                    Thread.Sleep(2000);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1174,10 +1149,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         private void CreateSubscribedSecurityMessageWebSocket(Security security)
         {
-            if (IsDispose)
-            {
-                return;
-            }
 
             for (int i = 0; i < _subscribedSecurities.Count; i++)
             {
@@ -1230,7 +1201,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1242,7 +1213,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             portfolio.Number = "KuCoinSpot";
             portfolio.ValueBegin = 1;
             portfolio.ValueCurrent = 1;
-            
+
+            List<PositionOnBoard> alreadySendPositions = new List<PositionOnBoard>();
+
             for (int i = 0; i < assets.data.Count; i++)
             {
                 ResponseAsset item = assets.data[i];
@@ -1259,7 +1232,23 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     pos.ValueBegin = item.available.ToDecimal();
                 }
 
-                portfolio.SetNewPosition(pos);
+                bool canSend = true;
+
+                for(int j = 0; j< alreadySendPositions.Count; j++) 
+                {
+                    if (alreadySendPositions[j].SecurityNameCode == pos.SecurityNameCode
+                        && pos.ValueCurrent == 0)
+                    {
+                        canSend = false;
+                        break;
+                    }
+                }
+
+                if(canSend)
+                {
+                    portfolio.SetNewPosition(pos);
+                    alreadySendPositions.Add(pos);
+                }
             }
 
             PortfolioEvent(new List<Portfolio> { portfolio });
@@ -1421,6 +1410,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 return Convert.ToBase64String(hashBytes);
             }
         }
+
         private string GenerateSignature(string timestamp, string method, string requestPath, string queryString, string body, string secretKey)
         {
             method = method.ToUpper();
@@ -1442,34 +1432,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             LogMessageEvent(message, messageType);
         }
-
-        private void HandlerException(Exception exception)
-        {
-            if (exception is AggregateException)
-            {
-                AggregateException httpError = (AggregateException)exception;
-
-                for (int i = 0; i < httpError.InnerExceptions.Count; i++)
-                {
-                    Exception item = httpError.InnerExceptions[i];
-
-                    if (item is NullReferenceException == false)
-                    {
-                        SendLogMessage(item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                    }
-
-                }
-            }
-            else
-            {
-                if (exception is NullReferenceException == false)
-                {
-                    SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                }
-            }
-        }
-
-        
 
         #endregion
     }
