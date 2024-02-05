@@ -47,12 +47,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string frozen;
         public string holds;
     }
-
-    public class ResponseAssets
-    {
-        List<ResponseAsset> assets;
-    }
-
+    
     public class ResponseSymbol
     {
         public string symbol;

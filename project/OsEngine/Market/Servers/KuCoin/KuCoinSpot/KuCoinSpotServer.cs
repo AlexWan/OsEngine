@@ -223,7 +223,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     
                     if(string.IsNullOrEmpty(item.baseMinSize) == false)
                     {
-                        newSecurity.DecimalsVolume = item.baseMinSize.DecimalsCount();
+                        newSecurity.DecimalsVolume = item.baseIncrement.DecimalsCount();
                     }
 
                     newSecurity.PriceStep = item.priceIncrement.ToDecimal();
@@ -304,7 +304,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
                 if (candles.Count != 0)
                 {
-                    timeEnd = candles[0].TimeStart; // + tf;
+                    timeEnd = candles[0].TimeStart;
                 }
 
                 needToLoadCandles -= limit;
@@ -462,10 +462,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     // ignore
                 }
 
-                webSocketPrivate.Opened -= WebSocketPublic_Opened;
-                webSocketPrivate.Closed -= WebSocketPublic_Closed;
-                webSocketPrivate.MessageReceived -= WebSocketPublic_MessageReceived;
-                webSocketPrivate.Error -= WebSocketPublic_Error;
+                webSocketPrivate.Opened -= WebSocketPrivate_Opened;
+                webSocketPrivate.Closed -= WebSocketPrivate_Closed;
+                webSocketPrivate.MessageReceived -= WebSocketPrivate_MessageReceived;
+                webSocketPrivate.Error -= WebSocketPrivate_Error;
                 webSocketPrivate = null;
             }
         }
@@ -556,10 +556,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             if (IsDispose == false)
             {
-                if(webSocketPublic != null)
-                {
-                    webSocketPublic.Opened -= WebSocketPublic_Opened;
-                }
+                //if(webSocketPublic != null)
+                //{
+                //    webSocketPublic.Opened -= WebSocketPublic_Opened;
+                //}
                 
                 SendLogMessage("Connection Closed by KuCoin. WebSocket Closed Event", LogMessageType.Error);
                 
@@ -575,10 +575,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             if (IsDispose == false)
             {
-                if (webSocketPrivate != null)
-                {
-                    webSocketPrivate.Opened -= WebSocketPrivate_Opened;
-                }
+                //if (webSocketPrivate != null)
+                //{
+                //    webSocketPrivate.Opened -= WebSocketPrivate_Opened;
+                //}
 
                 SendLogMessage("Connection Closed by KuCoin. WebSocket Closed Event", LogMessageType.Error);
                 
@@ -1242,9 +1242,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             portfolio.Number = "KuCoinSpot";
             portfolio.ValueBegin = 1;
             portfolio.ValueCurrent = 1;
-
-            foreach (ResponseAsset item in assets.data)
+            
+            for (int i = 0; i < assets.data.Count; i++)
             {
+                ResponseAsset item = assets.data[i];
+
                 PositionOnBoard pos = new PositionOnBoard();
 
                 pos.PortfolioName = "KuCoinSpot";
@@ -1329,8 +1331,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 {
                     List<Candle> candles = new List<Candle>();
 
-                    foreach (List<string> item in symbols.data)
+                    for (int i = 0; i < symbols.data.Count; i++)
                     {
+                        List<string> item = symbols.data[i];
 
                         /* Пример возвращаемого значения свечи https://www.kucoin.com/docs/rest/spot-trading/market-data/get-klines
                          * [
@@ -1446,9 +1449,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 AggregateException httpError = (AggregateException)exception;
 
-                foreach (Exception item in httpError.InnerExceptions)
-
+                for (int i = 0; i < httpError.InnerExceptions.Count; i++)
                 {
+                    Exception item = httpError.InnerExceptions[i];
+
                     if (item is NullReferenceException == false)
                     {
                         SendLogMessage(item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
