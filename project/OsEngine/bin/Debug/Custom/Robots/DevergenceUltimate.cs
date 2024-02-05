@@ -57,9 +57,6 @@ namespace OsEngine.Robots.AO
         // The last value of the indicator
         private decimal _lastUltimate;
 
-        // The prev value of the indicator
-        private decimal _prevUltimate;
-
         public DevergenceUltimate(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
@@ -223,9 +220,6 @@ namespace OsEngine.Robots.AO
             // The last value of the indicator
             _lastUltimate = _ZigZagUltimate.DataSeries[0].Last;
 
-            // The prev value of the indicator
-            _prevUltimate = _ZigZagUltimate.DataSeries[0].Values[_ZigZagUltimate.DataSeries[0].Values.Count - 2];
-
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
                 if (openPositions[i].State != PositionStateType.Open)
@@ -235,7 +229,7 @@ namespace OsEngine.Robots.AO
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    if (_lastUltimate < 45 && _prevUltimate > 50 || _prevUltimate > 70 && _lastUltimate < 70)
+                    if (_lastUltimate < 45 || _lastUltimate > 70)
                     {
 
                         _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
