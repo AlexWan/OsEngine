@@ -13,8 +13,6 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using System.Threading.Tasks;
-using System.Diagnostics.Eventing.Reader;
-using Kraken.WebSockets.Converters;
 
 namespace OsEngine.Market.Connectors
 {
@@ -896,6 +894,8 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                _alreadCheckedInAliveTasksArray = false;
+
                 while (true)
                 {
                     if(ServerType == ServerType.Optimizer)
@@ -915,6 +915,7 @@ namespace OsEngine.Market.Connectors
                             if (_alreadCheckedInAliveTasksArray == false)
                             {
                                 _aliveTasks++;
+                                _alreadCheckedInAliveTasksArray = true;
                             }
 
                             if (millisecondsToDelay < 500)
