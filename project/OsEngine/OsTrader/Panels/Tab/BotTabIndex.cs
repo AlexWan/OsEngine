@@ -2177,7 +2177,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void SetMultInSecurities(List<SecurityInIndex> secInIndex, int daysLookBack)
         {
-            if (_indexMultType == IndexMultType.EqualParts)
+            if (_indexMultType == IndexMultType.PriceWeighted)
             {
                 decimal maxPriceInSecs = 0;
 
@@ -2196,6 +2196,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                         continue;
                     }
                     secInIndex[i].Mult = maxPriceInSecs / secInIndex[i].LastPrice;
+                    secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
+                }
+            }
+            else if(_indexMultType == IndexMultType.EqualWeighted)
+            {
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    if (secInIndex[i].LastPrice == 0)
+                    {
+                        continue;
+                    }
+                    secInIndex[i].Mult = 1;
                     secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
                 }
             }
@@ -2513,8 +2525,12 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public enum IndexMultType
     {
-        EqualParts,
-        VolumeWeighted
+        PriceWeighted,
+
+        VolumeWeighted,
+
+        EqualWeighted
+
     }
 
     /// <summary>

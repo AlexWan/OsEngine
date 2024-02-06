@@ -69,8 +69,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             ComboBoxIndexSecCount.SelectedItem = autoFormulaBuilder.IndexSecCount.ToString();
             ComboBoxIndexSecCount.SelectionChanged += ComboBoxIndexSecCount_SelectionChanged;
 
-            ComboBoxIndexMultType.Items.Add(IndexMultType.EqualParts.ToString());
+            ComboBoxIndexMultType.Items.Add(IndexMultType.PriceWeighted.ToString());
             ComboBoxIndexMultType.Items.Add(IndexMultType.VolumeWeighted.ToString());
+            ComboBoxIndexMultType.Items.Add(IndexMultType.EqualWeighted.ToString());
             ComboBoxIndexMultType.SelectedItem = autoFormulaBuilder.IndexMultType.ToString();
             ComboBoxIndexMultType.SelectionChanged += ComboBoxIndexMultType_SelectionChanged;
 
