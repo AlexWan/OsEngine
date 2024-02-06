@@ -91,11 +91,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string maintainMargin; //0.005  						//Maintenance margin requirement
     }
 
-    public class ResponseAssets
-    {
-        List<ResponseAsset> assets;
-    }
-
     // https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
     public class ResponseSymbol
     {
