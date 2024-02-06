@@ -698,9 +698,6 @@
     <Compile Include="Market\Servers\Kraken\Sockets\Messages\TradeValues.cs" />
     <Compile Include="Market\Servers\Kraken\Sockets\Messages\Unsubscribe.cs" />
     <Compile Include="Market\Servers\Kraken\Sockets\SecureStringExtensions.cs" />
-    <Compile Include="Market\Servers\KuCoin\KuCoinFutures\Entity\RequestWebsocketAuth.cs" />
-    <Compile Include="Market\Servers\KuCoin\KuCoinFutures\Entity\ResponseRestMessage.cs" />
-    <Compile Include="Market\Servers\KuCoin\KuCoinFutures\Entity\ResponseWebSocketMessageAction.cs" />
     <Compile Include="Market\Servers\KuCoin\KuCoinFutures\Json\RequestMessagesRest.cs" />
     <Compile Include="Market\Servers\KuCoin\KuCoinFutures\Json\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\KuCoin\KuCoinFutures\Json\ResponseWebSocketMessageAction.cs" />
