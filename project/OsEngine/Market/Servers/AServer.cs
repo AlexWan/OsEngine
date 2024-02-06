@@ -1305,16 +1305,6 @@ namespace OsEngine.Market.Servers
         private string _lockerStarter = "lockerStarterAserver";
 
         /// <summary>
-        /// multi-threaded access blocker for starting securities
-        /// </summary>
-        private string _lockerStarterByTime = "lockerStarterByTimeAserver";
-
-        /// <summary>
-        /// the time of the last attempt to run the paper on audition
-        /// </summary>
-        private DateTime _lastTrySubCandle = DateTime.MinValue;
-
-        /// <summary>
         /// start uploading data on instrument
         /// </summary>
         /// <param name="securityName"> security name for running</param>
@@ -1323,16 +1313,6 @@ namespace OsEngine.Market.Servers
         /// <returns> returns CandleSeries if successful else null</returns>
         public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
         {
-            lock(_lockerStarterByTime)
-            {
-                if(_lastTrySubCandle.AddMilliseconds(100) > DateTime.Now)
-                {
-                    return null;
-                }
-
-                _lastTrySubCandle = DateTime.Now;
-            }
-
             try
             {
                 lock (_lockerStarter)
@@ -1413,6 +1393,7 @@ namespace OsEngine.Market.Servers
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
+
                 return null;
             }
         }

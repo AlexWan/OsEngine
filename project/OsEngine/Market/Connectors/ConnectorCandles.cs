@@ -13,6 +13,8 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using System.Threading.Tasks;
+using System.Diagnostics.Eventing.Reader;
+using Kraken.WebSockets.Converters;
 
 namespace OsEngine.Market.Connectors
 {
@@ -880,6 +882,16 @@ namespace OsEngine.Market.Connectors
 
         private object _myServerLocker = new object();
 
+        private static int _aliveTasks = 0;
+
+        private static string _aliveTasksArrayLocker = "aliveTasksArrayLocker";
+
+        private bool _alreadCheckedInAliveTasksArray = false;
+
+        private static int _tasksCountOnSubscruble = 0;
+
+        private static string _tasksCountLocker = "_tasksCountOnLocker";
+
         private async void Subscrable()
         {
             try
@@ -896,11 +908,33 @@ namespace OsEngine.Market.Connectors
                     }
                     else
                     {
-                        await Task.Delay(500);
+                        int millisecondsToDelay = _aliveTasks * 5;
+
+                        lock (_aliveTasksArrayLocker)
+                        {
+                            if (_alreadCheckedInAliveTasksArray == false)
+                            {
+                                _aliveTasks++;
+                            }
+
+                            if (millisecondsToDelay < 500)
+                            {
+                                millisecondsToDelay = 500;
+                            }
+                        }
+
+                        await Task.Delay(millisecondsToDelay);
                     }
 
                     if (_neadToStopThread)
                     {
+                        lock (_aliveTasksArrayLocker)
+                        {
+                            if (_aliveTasks > 0)
+                            {
+                                _aliveTasks--;
+                            }
+                        }
                         return;
                     }
 
@@ -983,6 +1017,13 @@ namespace OsEngine.Market.Connectors
                         {
                             if (_neadToStopThread)
                             {
+                                lock (_aliveTasksArrayLocker)
+                                {
+                                    if(_aliveTasks > 0)
+                                    {
+                                        _aliveTasks--;
+                                    }
+                                }
                                 return;
                             }
                             if (_myServer == null)
@@ -990,21 +1031,43 @@ namespace OsEngine.Market.Connectors
                                 continue;
                             }
 
-                            if(StartProgram == StartProgram.IsOsTrader)
+                            if (StartProgram == StartProgram.IsOsTrader)
                             {
-                                await Task.Delay(1000);
+                                int millisecondsToDelay = _aliveTasks * 5;
+
+                                if (millisecondsToDelay < 500)
+                                {
+                                    millisecondsToDelay = 500;
+                                }
+
+                                await Task.Delay(millisecondsToDelay);
                             }
                             else
                             {
                                 await Task.Delay(1);
                             }
                             
+                            if(_tasksCountOnSubscruble > 20)
+                            {
+                                continue;
+                            }
+
+                            lock(_tasksCountLocker)
+                            {
+                                _tasksCountOnSubscruble++;
+                            }
+
                             lock (_myServerLocker)
                             {
                                 if (_myServer != null)
                                 {
                                     _mySeries = _myServer.StartThisSecurity(_securityName, TimeFrameBuilder, _securityClass);
                                 }
+                            }
+
+                            lock (_tasksCountLocker)
+                            {
+                                _tasksCountOnSubscruble--;
                             }
 
                             OptimizerServer myOptimizerServer = _myServer as OptimizerServer;
@@ -1039,6 +1102,15 @@ namespace OsEngine.Market.Connectors
                     {
                         SecuritySubscribeEvent(Security);
                     }
+
+                    lock (_aliveTasksArrayLocker)
+                    {
+                        if (_aliveTasks > 0)
+                        {
+                            _aliveTasks--;
+                        }
+                    }
+
                     return;
                 }
             }
