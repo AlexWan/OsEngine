@@ -30,7 +30,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
             CreateParameterEnum(OsLocalization.Market.Label1, Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(), Net_type.TestNet.ToString()});
-   
+            CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
         }
     }
 
@@ -81,6 +81,7 @@ namespace OsEngine.Market.Servers.Bybit
                 PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 net_type = (Net_type)Enum.Parse(typeof(Net_type), ((ServerParameterEnum)ServerParameters[2]).Value);
+                margineMode = (MarginMode)Enum.Parse(typeof(MarginMode), ((ServerParameterEnum)ServerParameters[3]).Value);
                 if (!CheckApiKeyInformation(PublicKey))
                 {
                     Disconnect();
@@ -92,6 +93,7 @@ namespace OsEngine.Market.Servers.Bybit
                 CreatePrivateWebSocketConnect();
 
                 CheckFullActivation();
+                SetMargineMode();
             }
             catch (Exception ex)
             {
@@ -183,6 +185,26 @@ namespace OsEngine.Market.Servers.Bybit
             Disconnect();
         }
 
+        private void SetMargineMode()
+        {
+            try
+            {
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs["setMarginMode"] = margineMode == MarginMode.Cross ? "REGULAR_MARGIN" : "ISOLATED_MARGIN";
+                CreatePrivateQuery(parametrs, HttpMethod.Post, "/v5/account/set-margin-mode");
+                parametrs.Clear();
+                parametrs["category"] = Category.linear.ToString();
+                parametrs["coin"] = "USDT";
+                parametrs["mode"] = 0; //Position mode. 0: Merged Single. 3: Both Sides
+                CreatePrivateQuery(parametrs, HttpMethod.Post, "/v5/position/switch-mode");
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Проверьте Bybit API Ключи и настройки аккаунта Unified!", LogMessageType.Error);
+            }
+
+        }
+
         #endregion 1
 
         #region 2 Properties
@@ -208,7 +230,7 @@ namespace OsEngine.Market.Servers.Bybit
         private int glassDeep
         {
             get
-            { if (((ServerParameterBool)ServerParameters[10]).Value)
+            { if (((ServerParameterBool)ServerParameters[11]).Value)
                 {
                     return 50;
                 }
