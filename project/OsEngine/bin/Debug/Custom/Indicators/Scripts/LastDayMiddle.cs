@@ -10,19 +10,24 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
     internal class LastDayMiddle : Aindicator
     {
         private decimal _high;
-
         private decimal _low;
-
         private decimal _dayMid;
+
+        private IndicatorParameterDecimal _deviation;
 
         private DateTime _lastHandledCandleTime;
 
         private IndicatorDataSeries _series;
+        private IndicatorDataSeries _seriesUp;
+        private IndicatorDataSeries _seriesDown;
 
         public override void OnStateChange(IndicatorState state)
         {
-            _series = CreateSeries("Middle", Color.DarkBlue, IndicatorChartPaintType.Point, true);
+            _deviation = CreateParameterDecimal("Deviation", 2);
 
+            _series = CreateSeries("Middle", Color.DarkBlue, IndicatorChartPaintType.Point, true);
+            _seriesUp = CreateSeries("Up line", Color.Green, IndicatorChartPaintType.Line, true);
+            _seriesDown = CreateSeries("Down line", Color.Green, IndicatorChartPaintType.Line, true);
             SetDefoltHighLow();
         }
 
@@ -58,6 +63,8 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
             }
 
             _series.Values[index] = _dayMid;
+            _seriesUp.Values[index] = Math.Round(_dayMid + _dayMid * _deviation.ValueDecimal / 100, 6);
+            _seriesDown.Values[index] = Math.Round(_dayMid - _dayMid * _deviation.ValueDecimal / 100, 6);
 
             _lastHandledCandleTime = lastCandle.TimeStart;
         }
