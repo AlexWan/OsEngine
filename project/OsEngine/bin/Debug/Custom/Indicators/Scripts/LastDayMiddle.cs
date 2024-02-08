@@ -1,33 +1,45 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators.Custom
 {
-   // [IndicatorAttribute("LastDayMiddle")]
-    internal class LastDayMiddle : Aindicator
+    //[IndicatorAttribute("LastDayMiddle")]
+    public class LastDayMiddle : Aindicator
     {
         private decimal _high;
-        private decimal _low;
-        private decimal _dayMid;
 
-        private IndicatorParameterDecimal _deviation;
+        private decimal _low;
+
+        private decimal _dayMid;
 
         private DateTime _lastHandledCandleTime;
 
         private IndicatorDataSeries _series;
-        private IndicatorDataSeries _seriesUp;
-        private IndicatorDataSeries _seriesDown;
+
+        private IndicatorDataSeries _deviationUp;
+
+        private IndicatorDataSeries _deviationDownp;
+
+        private IndicatorParameterDecimal _deviationPercent;
+
+        private IndicatorParameterString _calcMethodType;
 
         public override void OnStateChange(IndicatorState state)
         {
-            _deviation = CreateParameterDecimal("Deviation", 2);
-
             _series = CreateSeries("Middle", Color.DarkBlue, IndicatorChartPaintType.Point, true);
-            _seriesUp = CreateSeries("Up line", Color.Green, IndicatorChartPaintType.Line, true);
-            _seriesDown = CreateSeries("Down line", Color.Green, IndicatorChartPaintType.Line, true);
+
+            _deviationUp = CreateSeries("Up deviation", Color.Green, IndicatorChartPaintType.Point, true);
+
+            _deviationDownp = CreateSeries("Downp deviation", Color.Red, IndicatorChartPaintType.Point, true);
+
+            _deviationPercent = CreateParameterDecimal("Deviation %", 1);
+
+            List<string> methods = new List<string>() { "HighLow", "Close" };
+
+            _calcMethodType = CreateParameterStringCollection("Calculation method", methods[0], methods);
+
             SetDefoltHighLow();
         }
 
@@ -52,21 +64,48 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
                 SetDefoltHighLow();
             }
 
-            if (lastCandle.High > _high)
-            {
-                _high = lastCandle.High;
-            }
-
-            if (lastCandle.Low < _low)
-            {
-                _low = lastCandle.Low;
-            }
+            CalcMaximumMinimum(lastCandle);
 
             _series.Values[index] = _dayMid;
-            _seriesUp.Values[index] = Math.Round(_dayMid + _dayMid * _deviation.ValueDecimal / 100, 6);
-            _seriesDown.Values[index] = Math.Round(_dayMid - _dayMid * _deviation.ValueDecimal / 100, 6);
+
+            _deviationUp.Values[index] = _dayMid + CalcDeviation();
+
+            _deviationDownp.Values[index] = _dayMid - CalcDeviation();
 
             _lastHandledCandleTime = lastCandle.TimeStart;
+        }
+
+        private void CalcMaximumMinimum(Candle lastCandle)
+        {
+            if (_calcMethodType.ValueString == "HighLow")
+            {
+                if (lastCandle.High > _high)
+                {
+                    _high = lastCandle.High;
+                }
+
+                if (lastCandle.Low < _low)
+                {
+                    _low = lastCandle.Low;
+                }
+            }
+            else if (_calcMethodType.ValueString == "Close")
+            {
+                if (lastCandle.Close > _high)
+                {
+                    _high = lastCandle.Close;
+                }
+
+                if (lastCandle.Close < _low)
+                {
+                    _low = lastCandle.Close;
+                }
+            }
+        }
+
+        private decimal CalcDeviation()
+        {
+            return _dayMid / 100 * _deviationPercent.ValueDecimal;
         }
 
         private void SetDefoltHighLow()
