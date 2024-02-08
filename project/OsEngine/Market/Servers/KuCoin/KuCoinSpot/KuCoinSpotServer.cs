@@ -1173,7 +1173,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             try
             {
-                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/accounts", "GET", null, null);
+                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/accounts", "GET", "type=trade", null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
