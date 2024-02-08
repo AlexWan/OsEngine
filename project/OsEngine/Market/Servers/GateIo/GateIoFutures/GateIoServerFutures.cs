@@ -42,38 +42,36 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             CreateParameterEnum("Base Wallet", "USDT", new List<string> { "USDT", "BTC" });
             CreateParameterEnum("Position Mode", "Single", new List<string> { "Single", "Double" });
         }
-
-        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
-        {
-            return ((GateIoServerFuturesRealization)ServerRealization).GetCandleHistory(nameSec, tf);
-        }
     }
 
     public sealed class GateIoServerFuturesRealization : IServerRealization
     {
-        private string _host = "https://api.gateio.ws";
-        private string _path = "/api/v4/futures";
-        private string _wallet = "usdt";
-        private string _positionMode = "Double";
-        private string _userId = "";
-        private string _baseWallet = "";
-        private const string WEB_SOCKET_URL = "wss://fx-ws.gateio.ws/v4/ws/";
-        private RestRequestBuilder _requestRest;
-        private Signer _signer;
-
         #region 1 Constructor, Status, Connection
 
         public GateIoServerFuturesRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            Thread thread = new Thread(CheckAliveWebSocket);
+            thread.IsBackground = true;
+            thread.Name = "CheckAliveWebSocket";
+            thread.Start();
+
+            Thread messageReaderThread = new Thread(MessageReader);
+            messageReaderThread.IsBackground = true;
+            messageReaderThread.Name = "MessageReaderGateIo";
+            messageReaderThread.Start();
+
+            Thread thread3 = new Thread(PortfolioRequester);
+            thread3.IsBackground = true;
+            thread3.Name = "PortfolioRequester";
+            thread3.Start();
         }
 
         public DateTime ServerTime { get; set; }
 
         public void Connect()
         {
-            _isDispose = false;
-
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _userId = ((ServerParameterString)ServerParameters[2]).Value;
@@ -175,10 +173,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
             catch (Exception exeption)
             {
-                HandlerException(exeption);
+                SendLogMessage(exeption.ToString(),LogMessageType.Error);
             }
 
-            _isDispose = true;
             _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -187,8 +184,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 DisconnectEvent();
             }
         }
-
-        private bool _isDispose;
 
         public ServerType ServerType
         {
@@ -204,6 +199,24 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         #endregion
 
         #region 2 Properties
+
+        private string _host = "https://api.gateio.ws";
+
+        private string _path = "/api/v4/futures";
+
+        private string _wallet = "usdt";
+
+        private string _positionMode = "Double";
+
+        private string _userId = "";
+
+        private string _baseWallet = "";
+
+        private const string WEB_SOCKET_URL = "wss://fx-ws.gateio.ws/v4/ws/";
+
+        private RestRequestBuilder _requestRest;
+
+        private Signer _signer;
 
         public List<IServerParameter> ServerParameters { get; set; }
 
@@ -235,7 +248,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -287,13 +300,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         public List<Portfolio> Portfolios;
 
-        private void StartPortfolioRequester()
+        private void PortfolioRequester()
         {
-            Task.Run(PortfolioRequester);
-        }
+            Thread.Sleep(5000);
 
-        private async void PortfolioRequester()
-        {
             if (Portfolios == null)
             {
                 Portfolios = new List<Portfolio>();
@@ -309,32 +319,23 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 PortfolioEvent(Portfolios);
             }
 
-            while (_isDispose == false)
+            while (true)
             {
                 try
                 {
-                    await Task.Delay(3000);
+                    if(ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(2000);
+                        continue;
+                    }
+
+                    Thread.Sleep(3000);
 
                     GetPortfolios();
                 }
                 catch (Exception exception)
                 {
-                    if (exception is WebException)
-                    {
-                        WebException ex = (WebException)exception;
-                        HttpWebResponse httpResponse = (HttpWebResponse)ex.Response;
-                        if (ex.Response != null)
-                        {
-                            using (Stream stream = ex.Response.GetResponseStream())
-                            {
-                                StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-                                string log = reader.ReadToEnd();
-                                SendLogMessage(log, LogMessageType.Error);
-                                return;
-                            }
-                        }
-                    }
-
+                    Thread.Sleep(5000);
                     SendLogMessage(exception.Message, LogMessageType.Error);
                 }
             }
@@ -377,16 +378,17 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                 portfolio.SetNewPosition(pos);
 
-
-                foreach (PositionResponceSwap item in accountPosition)
+                for(int i = 0; i < accountPosition.Count; i++)
                 {
+                    PositionResponceSwap item = accountPosition[i];
+
                     string mode = item.mode.Contains("single") ? "Single" : item.mode;
                     string SellBuy = mode == "Single" ? "_Single" : item.mode.Contains("short") ? "_SHORT" : "_LONG";
                     PositionOnBoard position = new PositionOnBoard();
                     position.PortfolioName = "GateIoFutures";
                     position.SecurityNameCode = item.contract + SellBuy;
-                    position.ValueBegin = Math.Abs(item.size.ToDecimal());
-                    position.ValueCurrent = Math.Abs(item.size.ToDecimal());
+                    position.ValueBegin = item.size.ToDecimal();
+                    position.ValueCurrent = item.size.ToDecimal();
                     portfolio.SetNewPosition(position);
                 }
 
@@ -394,21 +396,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
             catch (Exception exception)
             {
-                if (exception is WebException)
-                {
-                    WebException ex = (WebException)exception;
-                    HttpWebResponse httpResponse = (HttpWebResponse)ex.Response;
-                    if (ex.Response != null)
-                    {
-                        using (Stream stream = ex.Response.GetResponseStream())
-                        {
-                            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-                            string log = reader.ReadToEnd();
-                            SendLogMessage(log, LogMessageType.Error);
-                            return;
-                        }
-                    }
-                }
                 SendLogMessage(exception.Message, LogMessageType.Error);
             }
         }
@@ -432,8 +419,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         #endregion
 
         #region 5 Data
-
-        #region Trades
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
@@ -490,7 +475,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -532,7 +517,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -592,12 +577,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             return newTrades;
         }
-
-        #endregion
-
-        #region Candles
-
-        private int _limit = 1000;
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -672,6 +651,40 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             return allCandles;
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            TimeSpan interval = timeFrameBuilder.TimeFrameTimeSpan;
+
+            int tfTotalMinutes = (int)interval.TotalMinutes;
+
+            int timeRange = tfTotalMinutes * 10000;
+
+            DateTime maxStartTime = DateTime.Now.AddMinutes(-timeRange);
+
+            int from = TimeManager.GetTimeStampSecondsToDateTime(maxStartTime);
+            int to = TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow);
+
+            string tf = GetInterval(interval);
+
+            List<Candle> candles = RequestCandleHistory(security.Name, tf, from, to);
+
+            return candles;
+        }
+
+        private int _limit = 1000;
+
+        private string GetInterval(TimeSpan timeFrame)
+        {
+            if (timeFrame.Minutes != 0)
+            {
+                return $"{timeFrame.Minutes}m";
+            }
+            else
+            {
+                return $"{timeFrame.Hours}h";
+            }
+        }
+
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (endTime > DateTime.Now ||
@@ -699,36 +712,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
 
             return false;
-        }
-
-        public List<Candle> GetCandleHistory(string security, TimeSpan interval)
-        {
-            int tfTotalMinutes = (int)interval.TotalMinutes;
-
-            int timeRange = tfTotalMinutes * 10000;
-
-            DateTime maxStartTime = DateTime.Now.AddMinutes(-timeRange);
-
-            int from = TimeManager.GetTimeStampSecondsToDateTime(maxStartTime);
-            int to = TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow);
-
-            string tf = GetInterval(interval);
-
-            List<Candle> candles = RequestCandleHistory(security, tf, from, to);
-
-            return candles;
-        }
-
-        private string GetInterval(TimeSpan timeFrame)
-        {
-            if (timeFrame.Minutes != 0)
-            {
-                return $"{timeFrame.Minutes}m";
-            }
-            else
-            {
-                return $"{timeFrame.Hours}h";
-            }
         }
 
         private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(50));
@@ -764,7 +747,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -793,8 +776,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             return candles;
         }
-
-        #endregion
 
         #endregion
 
@@ -845,7 +826,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
             if (error.Exception != null)
             {
-                HandlerException(error.Exception);
+                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -853,14 +834,21 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
             try
             {
+                if(ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 if (e == null)
                 {
                     return;
                 }
+
                 if (string.IsNullOrEmpty(e.Message))
                 {
                     return;
                 }
+
                 if (_fifoListWebSocketMessage == null)
                 {
                     return;
@@ -876,24 +864,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private void WebSocket_Closed(object sender, EventArgs e)
         {
-            if (_isDispose == false)
+            if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage("Connection Closed by GateIo. WebSocket Closed Event", LogMessageType.Connect);
-
-                if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
         private void WebSocket_Opened(object sender, EventArgs e)
         {
-            StartCheckAliveWebSocket();
-            StartMessageReader();
-            StartPortfolioRequester();
-
             SendLogMessage("Connection Open", LogMessageType.Connect);
 
             if (ConnectEvent != null && ServerStatus != ServerConnectStatus.Connect)
@@ -909,31 +889,37 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private DateTime _timeLastSendPing = DateTime.Now;
 
-        private void StartCheckAliveWebSocket()
-        {
-            Thread thread = new Thread(CheckAliveWebSocket);
-            thread.IsBackground = true;
-            thread.Name = "CheckAliveWebSocket";
-            thread.Start();
-        }
-
         private void CheckAliveWebSocket()
         {
-            while (_isDispose == false)
+            while (true)
             {
-                Thread.Sleep(3000);
-
-                if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+                try
                 {
-                    if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        SendPing();
-                        _timeLastSendPing = DateTime.Now;
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    Thread.Sleep(3000);
+
+                    if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+                    {
+                        if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
+                        {
+                            SendPing();
+                            _timeLastSendPing = DateTime.Now;
+                        }
+                    }
+                    else
+                    {
+                        Dispose();
                     }
                 }
-                else
+                catch (Exception e)
                 {
-                    Dispose();
+                    Thread.Sleep(5000);
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -966,7 +952,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
             catch (Exception exeption)
             {
-                HandlerException(exeption);
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1077,80 +1063,76 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         #region 10 WebSocket parsing the messages
 
-        private Thread _messageReaderThread;
-
-        private void StartMessageReader()
-        {
-            _messageReaderThread = new Thread(MessageReader);
-            _messageReaderThread.IsBackground = true;
-            _messageReaderThread.Name = "MessageReaderGateIo";
-            _messageReaderThread.Start();
-        }
-
         private ConcurrentQueue<string> _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
         private void MessageReader()
         {
             Thread.Sleep(1000);
 
-            while (_isDispose == false)
+            while (true)
             {
                 try
                 {
-                    if (!_fifoListWebSocketMessage.IsEmpty)
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        if (_fifoListWebSocketMessage.TryDequeue(out string message))
-                        {
-                            ResponceWebsocketMessage<object> responseWebsocketMessage;
-
-                            try
-                            {
-                                responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<object>());
-                            }
-                            catch
-                            {
-                                continue;
-                            }
-
-                            if (responseWebsocketMessage.channel.Equals("futures.pong"))
-                            {
-                                continue;
-                            }
-
-                            if (responseWebsocketMessage.channel.Equals("futures.usertrades") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdateMyTrade(message);
-                                continue;
-                            }
-                            else if (responseWebsocketMessage.channel.Equals("futures.order_book") && responseWebsocketMessage.Event.Equals("all"))
-                            {
-                                UpdateDepth(message);
-                                continue;
-                            }
-                            else if (responseWebsocketMessage.channel.Equals("futures.trades") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdateTrade(message);
-                                continue;
-                            }
-                            else if (responseWebsocketMessage.channel.Equals("futures.orders") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdateOrder(message);
-                            }
-                            else if (responseWebsocketMessage.channel.Equals("futures.balances") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdatePortfolio(message);
-                                continue;
-                            }
-                        }
+                        Thread.Sleep(1000);
+                        continue;
                     }
-                    else
+
+                    if (_fifoListWebSocketMessage.IsEmpty)
                     {
-                        Thread.Sleep(20);
+                        Thread.Sleep(1);
+                    }
+
+                    if (_fifoListWebSocketMessage.TryDequeue(out string message))
+                    {
+                        ResponceWebsocketMessage<object> responseWebsocketMessage;
+
+                        try
+                        {
+                            responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<object>());
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+
+                        if (responseWebsocketMessage.channel.Equals("futures.pong"))
+                        {
+                            continue;
+                        }
+
+                        if (responseWebsocketMessage.channel.Equals("futures.usertrades") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateMyTrade(message);
+                            continue;
+                        }
+                        else if (responseWebsocketMessage.channel.Equals("futures.orders") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateOrder(message);
+                        }
+                        else if (responseWebsocketMessage.channel.Equals("futures.balances") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdatePortfolio(message);
+                            continue;
+                        }
+                        else if (responseWebsocketMessage.channel.Equals("futures.order_book") && responseWebsocketMessage.Event.Equals("all"))
+                        {
+                            UpdateDepth(message);
+                            continue;
+                        }
+                        else if (responseWebsocketMessage.channel.Equals("futures.trades") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateTrade(message);
+                            continue;
+                        }
                     }
                 }
                 catch (Exception exeption)
                 {
-                    HandlerException(exeption);
+                    Thread.Sleep(5000);
+                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1424,44 +1406,19 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 {
                     dynamic errorData = JToken.Parse(result);
                     string errorMsg = errorData.err_msg;
-
                     SendLogMessage($"Order exchange error num {order.NumberUser} : {errorMsg}", LogMessageType.Error);
-
                     order.State = OrderStateType.Fail;
+                    MyOrderEvent(order);
                 }
             }
             catch (Exception exception)
             {
-                if (exception is WebException)
-                {
-                    order.State = OrderStateType.Fail;
-
-                    WebException ex = (WebException)exception;
-                    HttpWebResponse httpResponse = (HttpWebResponse)ex.Response;
-                    if (ex.Response != null)
-                    {
-                        using (Stream stream = ex.Response.GetResponseStream())
-                        {
-                            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-                            string log = reader.ReadToEnd();
-                            SendLogMessage(log, LogMessageType.Error);
-                        }
-                    }
-                }
-                else
-                {
-                    SendLogMessage(exception.Message, LogMessageType.Error);
-                }
+                order.State = OrderStateType.Fail;
+                MyOrderEvent(order);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
-
-            MyOrderEvent(order);
         }
 
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
 
@@ -1548,42 +1505,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
             if (LogMessageEvent != null)
                 LogMessageEvent(message, messageType);
-        }
-
-        private void HandlerException(Exception exception)
-        {
-            try
-            {
-                if (exception is AggregateException)
-                {
-                    AggregateException httpError = (AggregateException)exception;
-
-                    for (int i = 0; i < httpError.InnerExceptions.Count; i++)
-                    {
-                        if (httpError.InnerExceptions[i] is NullReferenceException == false)
-                        {
-                            SendLogMessage(httpError.InnerExceptions[i].InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                        }
-                    }
-                }
-                else
-                {
-                    if (exception is NullReferenceException == false)
-                    {
-                        SendLogMessage($"Ошибка: {exception.Message} {exception.StackTrace}", LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return null;
         }
 
         #endregion

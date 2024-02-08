@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Market;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
@@ -18,6 +19,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public override void Process()
         {
+            IServerPermission permission = ServerMaster.GetServerPermission(Server.ServerType);
+
+            if (permission == null ||
+                permission.MarketOrdersIsSupport == false)
+            {
+                this.SetNewError("Error 0. No permission to market orders");
+                TestEnded();
+                return;
+            }
+
             if (Server.ServerStatus != ServerConnectStatus.Connect)
             {
                 this.SetNewError("Error 1. Server Status Disconnect");

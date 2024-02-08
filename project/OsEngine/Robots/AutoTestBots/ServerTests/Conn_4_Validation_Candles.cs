@@ -13,8 +13,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public string SecuritiesClass = "Futures";
 
+        public string SecuritiesSeparator = "_";
+
         public override void Process()
         {
+            if (string.IsNullOrEmpty(SecuritiesSeparator))
+            {
+                this.SetNewError("Error -1. Securities separator is null or empty");
+                TestEnded();
+                return;
+            }
+
             AServer myServer = Server;
 
             myServer.LogMessageEvent += MyServer_LogMessageEvent;
@@ -89,9 +98,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return null;
             }
 
-            string[] secsInString = SecutiesToSubscrible.Split('_');
+            string[] secsInString = SecutiesToSubscrible.Split(SecuritiesSeparator[0]);
 
-            List<Security> secsToTest = new List<Security>();
+            List <Security> secsToTest = new List<Security>();
 
             for(int i = 0;i < secs.Count;i++)
             {

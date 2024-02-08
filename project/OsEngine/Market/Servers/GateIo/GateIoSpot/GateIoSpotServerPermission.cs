@@ -23,7 +23,7 @@
         }
         public bool DataFeedTf10SecondCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf15SecondCanLoad
         {
@@ -39,7 +39,7 @@
         }
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2MinuteCanLoad
         {
@@ -47,7 +47,7 @@
         }
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf10MinuteCanLoad
         {
@@ -55,15 +55,15 @@
         }
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2HourCanLoad
         {
@@ -71,22 +71,22 @@
         }
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfTickCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
 
         public bool MarketOrdersIsSupport
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool IsTradeServer
@@ -137,7 +137,7 @@
 
         public bool UseStandartCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsUseLotToCalculateProfit

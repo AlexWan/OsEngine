@@ -33,30 +33,31 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
         }
-
-        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
-        {
-            return ((GateIoServerSpotRealization)ServerRealization).GetCandleHistory(nameSec, tf);
-        }
     }
 
     public sealed class GateIoServerSpotRealization : IServerRealization
     {
         #region 1 Constructor, Status, Connection
 
-        private string _host = "https://api.gateio.ws";
-        private string _prefix = "/api/v4";
-
         public GateIoServerSpotRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            Thread thread = new Thread(CheckAliveWebSocket);
+            thread.IsBackground = true;
+            thread.Name = "CheckAliveWebSocket";
+            thread.Start();
+
+            Thread _messageReaderThread = new Thread(MessageReader);
+            _messageReaderThread.IsBackground = true;
+            _messageReaderThread.Name = "MessageReaderGateIo";
+            _messageReaderThread.Start();
         }
 
         public DateTime ServerTime { get; set; }
 
         public void Connect()
         {
-            _isDispose = false;
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
@@ -108,10 +109,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
             catch (Exception exeption)
             {
-                HandlerException(exeption);
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
 
-            _isDispose = true;
             _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -120,8 +120,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 DisconnectEvent();
             }
         }
-
-        private bool _isDispose;
 
         public ServerType ServerType
         {
@@ -137,6 +135,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         #endregion
 
         #region 2 Properties
+
+        private string _host = "https://api.gateio.ws";
+
+        private string _prefix = "/api/v4";
 
         public List<IServerParameter> ServerParameters { get; set; }
 
@@ -168,7 +170,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -192,7 +194,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 security.NameFull = current.id;
                 security.NameClass = current.quote;
                 security.NameId = current.id;
+
                 security.SecurityType = SecurityType.CurrencyPair;
+
                 security.DecimalsVolume = Int32.Parse(current.amount_precision);
                 security.Lot = security.DecimalsVolume.GetValueByDecimals();
                 security.Decimals = Int32.Parse(current.precision);
@@ -226,8 +230,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         #endregion
 
         #region 5 Data
-
-        #region Candles
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -331,8 +333,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             return false;
         }
 
-        public List<Candle> GetCandleHistory(string security, TimeSpan interval)
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
+            TimeSpan interval = timeFrameBuilder.TimeFrameTimeSpan;
+
             int tfTotalMinutes = (int)interval.TotalMinutes;
 
             int timeRange = tfTotalMinutes * 1000;
@@ -344,7 +348,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             string tf = GetInterval(interval);
 
-            List<Candle> candles = RequestCandleHistory(security, tf, from, to);
+            List<Candle> candles = RequestCandleHistory(security.Name, tf, from, to);
 
             return candles;
         }
@@ -394,7 +398,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -423,10 +427,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             return candles;
         }
-
-        #endregion
-
-        #region Trades
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
@@ -483,7 +483,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -525,7 +525,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -560,7 +560,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -620,8 +620,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         #endregion
 
-        #endregion
-
         #region 6 WebSocket creation
 
         private WebSocket _webSocket;
@@ -671,7 +669,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             if (e.Exception != null)
             {
-                HandlerException(e.Exception);
+                SendLogMessage(e.Exception.ToString(),LogMessageType.Error);
             }
         }
 
@@ -702,23 +700,17 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private void WebSocket_Closed(object sender, EventArgs e)
         {
-            if (_isDispose == false)
+            if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage("Connection Closed by GateIo. WebSocket Closed Event", LogMessageType.Connect);
-
-                if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
+
         }
 
         private void WebSocket_Opened(object sender, EventArgs e)
         {
-            StartCheckAliveWebSocket();
-            StartMessageReader();
-
             SendLogMessage("Connection Open", LogMessageType.Connect);
             
             if (ConnectEvent != null && ServerStatus != ServerConnectStatus.Connect)
@@ -734,31 +726,36 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private DateTime _timeLastSendPing = DateTime.Now;
 
-        private void StartCheckAliveWebSocket()
-        {
-            Thread thread = new Thread(CheckAliveWebSocket);
-            thread.IsBackground = true;
-            thread.Name = "CheckAliveWebSocket";
-            thread.Start();
-        }
-
         private void CheckAliveWebSocket()
         {
-            while (_isDispose == false)
+            while (true)
             {
-                Thread.Sleep(3000);
-
-                if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+                try
                 {
-                    if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
+                    if(ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        SendPing();
-                        _timeLastSendPing = DateTime.Now;
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    Thread.Sleep(3000);
+
+                    if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+                    {
+                        if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
+                        {
+                            SendPing();
+                            _timeLastSendPing = DateTime.Now;
+                        }
+                    }
+                    else
+                    {
+                        Dispose();
                     }
                 }
-                else
+                catch(Exception error)
                 {
-                    Dispose();
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -791,7 +788,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
             catch (Exception exeption)
             {
-                HandlerException(exeption);
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
         }
 
@@ -958,75 +955,69 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         #region 10 WebSocket parsing the messages
 
-        private Thread _messageReaderThread;
-
-        private void StartMessageReader()
-        {
-            _messageReaderThread = new Thread(MessageReader);
-            _messageReaderThread.IsBackground = true;
-            _messageReaderThread.Name = "MessageReaderGateIo";
-            _messageReaderThread.Start();
-        }
-
         private ConcurrentQueue<string> _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
         private void MessageReader()
         {
             Thread.Sleep(1000);
 
-            while (_isDispose == false)
+            while (true)
             {
                 try
                 {
-                    if (!_fifoListWebSocketMessage.IsEmpty)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        if (_fifoListWebSocketMessage.TryDequeue(out string message))
-                        {
-                            ResponceWebsocketMessage<object> responseWebsocketMessage;
-
-                            try
-                            {
-                                responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<object>());
-                            }
-                            catch
-                            {
-                                continue;
-                            }
-
-                            if (responseWebsocketMessage.channel.Equals("spot.usertrades") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdateMyTrade(message);
-                                continue;
-                            }
-                            else if (responseWebsocketMessage.channel.Equals("spot.order_book") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdateDepth(message);
-                                continue;
-                            }
-                            else if (responseWebsocketMessage.channel.Equals("spot.trades") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdateTrade(message);
-                                continue;
-                            }
-                            else if (responseWebsocketMessage.channel.Equals("spot.orders") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdateOrder(message);
-                            }
-                            else if (responseWebsocketMessage.channel.Equals("spot.balances") && responseWebsocketMessage.Event.Equals("update"))
-                            {
-                                UpdatePortfolio(message);
-                                continue;
-                            }
-                        }
+                        Thread.Sleep(2000);
+                        continue;
                     }
-                    else
+
+                    if (_fifoListWebSocketMessage.IsEmpty)
                     {
-                        Thread.Sleep(20);
+                        Thread.Sleep(1);
+                    }
+                    if (_fifoListWebSocketMessage.TryDequeue(out string message))
+                    {
+                        ResponceWebsocketMessage<object> responseWebsocketMessage;
+
+                        try
+                        {
+                            responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<object>());
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+
+                        if (responseWebsocketMessage.channel.Equals("spot.usertrades") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateMyTrade(message);
+                            continue;
+                        }
+                        else if (responseWebsocketMessage.channel.Equals("spot.orders") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateOrder(message);
+                        }
+                        else if (responseWebsocketMessage.channel.Equals("spot.balances") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdatePortfolio(message);
+                            continue;
+                        }
+                        else if (responseWebsocketMessage.channel.Equals("spot.order_book") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateDepth(message);
+                            continue;
+                        }
+                        else if (responseWebsocketMessage.channel.Equals("spot.trades") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateTrade(message);
+                            continue;
+                        }
                     }
                 }
                 catch (Exception exeption)
                 {
-                    HandlerException(exeption);
+                    Thread.Sleep(5000);
+                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1155,7 +1146,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 newOrder.Volume = responceDepths.result[i].amount.Replace('.', ',').ToDecimal();
                 newOrder.Price = responceDepths.result[i].price.Replace('.', ',').ToDecimal();
                 newOrder.ServerType = ServerType.GateIoSpot;
-                newOrder.PortfolioNumber = "GateIoWallet";
+                newOrder.PortfolioNumber = "GateIO_Spot";
 
                 MyOrderEvent(newOrder);
             }
@@ -1218,6 +1209,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             string method = "POST";
             string url = "/spot/orders";
             string query_param = "";
+
             string bodyParam = $"{{\"text\":\"t-{order.NumberUser}\",\"currency_pair\":" +
                                 $"\"{secName}\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"{side}\",\"iceberg\":\"0\",\"amount\":\"{volume}\",\"price\":\"{price}\",\"time_in_force\":\"gtc\"}}";
 
@@ -1248,23 +1240,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             if (response.StatusCode != HttpStatusCode.Created)
             {
                 SendLogMessage(responseString, LogMessageType.Trade);
-
                 order.State = OrderStateType.Fail;
+                MyOrderEvent.Invoke(order);
             }
-            else
-            {
-                order.State = OrderStateType.Activ;
-                order.NumberMarket = order.NumberUser.ToString();
-            }
-
-            MyOrderEvent.Invoke(order);
         }
 
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
 
@@ -1379,7 +1359,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
             catch (Exception exception)
             {
-                HandlerException(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1391,7 +1371,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             {
                 _myPortfolio = new Portfolio();
 
-                _myPortfolio.Number = "GateIO";
+                _myPortfolio.Number = "GateIO_Spot";
                 _myPortfolio.ValueBegin = 1;
                 _myPortfolio.ValueCurrent = 1;
                 
@@ -1428,42 +1408,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             if (LogMessageEvent != null) 
                 LogMessageEvent(message, messageType);
-        }
-
-        private void HandlerException(Exception exception)
-        {
-            try
-            {
-                if (exception is AggregateException)
-                {
-                    AggregateException httpError = (AggregateException)exception;
-
-                    for (int i = 0; i < httpError.InnerExceptions.Count; i++)
-                    {
-                        if (httpError.InnerExceptions[i] is NullReferenceException == false)
-                        {
-                            SendLogMessage(httpError.InnerExceptions[i].InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                        }
-                    }
-                }
-                else
-                {
-                    if (exception is NullReferenceException == false)
-                    {
-                        SendLogMessage($"Ошибка: {exception.Message} {exception.StackTrace}", LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return null;
         }
 
         #endregion

@@ -14,17 +14,27 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public int MinutesToTest;
 
+        public string SecuritiesSeparator = "_";
+
         private List<Security> _secToSubscrible = new List<Security>();
 
         public override void Process()
         {
+            if(SecuritiesSeparator == null ||
+                SecuritiesSeparator.Length == 0)
+            {
+                SetNewError("Error -1. Security separator is null or empty" + SecNames);
+                TestEnded();
+                return;
+            }
+
             List<Security> securities = GetActivateSecurities(SecNames, SecClassCode);
 
             if (securities == null ||
                 securities.Count == 0 ||
                 securities.Count < 5)
             {
-                SetNewError("Error 0. Security set user is not found, or securities count < 5" + SecNames);
+                SetNewError("Error 0. Security set user is not found, or securities count < 5 " + SecNames);
                 TestEnded();
                 return;
             }
@@ -61,7 +71,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private List<Security> GetActivateSecurities(string securitiesInStr, string classCode)
         {
-            string[] secInArray = securitiesInStr.Split('_');
+            string[] secInArray = securitiesInStr.Split(SecuritiesSeparator[0]);
 
             List<Security> securitiesFromServer = Server.Securities;
 

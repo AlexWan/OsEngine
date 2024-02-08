@@ -200,6 +200,16 @@ namespace OsEngine.Entity
                     return 0.000000001m;
                 case 10:
                     return 0.0000000001m;
+                case 11:
+                    return 0.00000000001m;
+                case 12:
+                    return 0.000000000001m;
+                case 13:
+                    return 0.0000000000001m;
+                case 14:
+                    return 0.00000000000001m;
+                case 15:
+                    return 0.000000000000001m;
                 default:
                     return 0;
             }

@@ -156,6 +156,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
+                if (_ordersDone.Count != 0)
+                {
+                    this.SetNewServiceInfo("BuyLimit Active order income Check!");
+                    break;
+                }
+
                 if (_ordersActive.Count != 0)
                 {
                     this.SetNewServiceInfo("BuyLimit Active order income Check!");
@@ -248,6 +254,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
+                if (_ordersDone.Count != 0)
+                {
+                    this.SetNewServiceInfo("SellLimit Active order income Check!");
+                    break;
+                }
+
                 if (_ordersActive.Count != 0)
                 {
                     this.SetNewServiceInfo("SellLimit Active order income Check!");
@@ -276,7 +288,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                if (_ordersActive.Count != 0)
+                if (_ordersDone.Count != 0)
                 {
                     this.SetNewServiceInfo("SellLimit Done order income Check!");
                     break;

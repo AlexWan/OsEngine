@@ -22,9 +22,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             StrategyParameterButton buttonMarketDepth = CreateParameterButton("Start test md", "V2");
             buttonMarketDepth.UserClickOnButtonEvent += ButtonMarketDepth_UserClickOnButtonEvent;
-            V2_SecurityName = CreateParameter("Md tester Sec names", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "V2");
-            V2_ClassCode = CreateParameter("Md tester Class Code", "Futures", "V2");
-            V2_MarketDepthMinutesToTest = CreateParameter("Md tester work time minutes", 5, 5, 5, 1, "V2");
+            V2_SecuritiesSeparator = CreateParameter("Securities Separator v2", "_", "V2");
+            V2_SecurityName = CreateParameter("Md tester Sec names v2", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "V2");
+            V2_ClassCode = CreateParameter("Md tester Class Code v2", "Futures", "V2");
+            V2_MarketDepthMinutesToTest = CreateParameter("Md tester work time minutes v2", 5, 5, 5, 1, "V2");
 
             StrategyParameterButton buttonDataTest1 = CreateParameterButton("Start test data 1", "D1");
             buttonDataTest1.UserClickOnButtonEvent += ButtonDataTest1_UserClickOnButtonEvent;
@@ -43,11 +44,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             StrategyParameterButton buttonDataTest4 = CreateParameterButton("Start test data 4", "D4");
             buttonDataTest4.UserClickOnButtonEvent += ButtonDataTest4_UserClickOnButtonEvent;
+            D4_SecuritiesSeparator = CreateParameter("Securities separator data test 4", "_", "D4");
             D4_SecuritiesNames = CreateParameter("Sec name data test 4", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "D4");
             D4_SecurityClass = CreateParameter("Sec class data test 4", "Futures", "D4");
 
             StrategyParameterButton buttonDataTest5 = CreateParameterButton("Start test data 5", "D5");
             buttonDataTest5.UserClickOnButtonEvent += ButtonDataTest5_UserClickOnButtonEvent;
+            D5_SecuritiesSeparator = CreateParameter("Securities separator test 5", "_", "D5");
             D5_SecuritiesNames = CreateParameter("Sec name data test 5", "ADAUSDT_BNBUSDT_ETHUSDT", "D5");
             D5_SecurityClass = CreateParameter("Sec class data test 5", "Futures", "D5");
 
@@ -62,6 +65,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             StrategyParameterButton buttonConnectionTest4 = CreateParameterButton("Start test connection 4", "C4");
             buttonConnectionTest4.UserClickOnButtonEvent += ButtonConnectionTest4_UserClickOnButtonEvent;
+            C4_SecuritiesSeparator = CreateParameter("Securities separator test 4", "_", "C4");
             C4_SecuritiesNames = CreateParameter("Sec name connection test 4", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "C4");
             C4_SecuritiesClass = CreateParameter("Sec class connection test 4", "Futures", "C4");
 
@@ -126,6 +130,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString V2_SecurityName;
         StrategyParameterString V2_ClassCode;
         StrategyParameterInt V2_MarketDepthMinutesToTest;
+        StrategyParameterString V2_SecuritiesSeparator;
 
         StrategyParameterString D1_SecurityName;
         StrategyParameterString D1_SecurityClass;
@@ -137,12 +142,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString D3_SecurityClass;
 
         StrategyParameterString D4_SecuritiesNames;
+        StrategyParameterString D4_SecuritiesSeparator;
         StrategyParameterString D4_SecurityClass;
 
         StrategyParameterString D5_SecuritiesNames;
+        StrategyParameterString D5_SecuritiesSeparator;
         StrategyParameterString D5_SecurityClass;
 
         StrategyParameterString C4_SecuritiesNames;
+        StrategyParameterString C4_SecuritiesSeparator;
         StrategyParameterString C4_SecuritiesClass;
 
         StrategyParameterString O1_SecurityName;
@@ -449,6 +457,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     tester.MinutesToTest = V2_MarketDepthMinutesToTest.ValueInt;
                     tester.SecNames = V2_SecurityName.ValueString;
                     tester.SecClassCode = V2_ClassCode.ValueString;
+                    tester.SecuritiesSeparator = V2_SecuritiesSeparator.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -497,6 +506,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     Data_4_Stress_Candles tester = new Data_4_Stress_Candles();
                     tester.SecNames = D4_SecuritiesNames.ValueString;
                     tester.SecClass = D4_SecurityClass.ValueString;
+                    tester.SecuritiesSeparator = D4_SecuritiesSeparator.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -509,6 +519,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     Data_5_Stress_Trades tester = new Data_5_Stress_Trades();
                     tester.SecNames = D5_SecuritiesNames.ValueString;
                     tester.SecClass = D5_SecurityClass.ValueString;
+                    tester.SecuritiesSeparator = D5_SecuritiesSeparator.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -551,6 +562,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     Conn_4_Validation_Candles tester = new Conn_4_Validation_Candles();
                     tester.SecutiesToSubscrible = C4_SecuritiesNames.ValueString;
                     tester.SecuritiesClass = C4_SecuritiesClass.ValueString;
+                    tester.SecuritiesSeparator = C4_SecuritiesSeparator.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);

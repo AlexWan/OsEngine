@@ -12,8 +12,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public string SecClass;
 
+        public string SecuritiesSeparator = "_";
+
         public override void Process()
         {
+            if(string.IsNullOrEmpty(SecuritiesSeparator))
+            {
+                SetNewError("Error -1. Securities separator is null or empty ");
+                TestEnded();
+                return;
+            }
+
             List<Security> securities = Server.Securities;
 
             if (securities != null &&
@@ -44,7 +53,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private List<Security> GetActivateSecurities(string securitiesInStr)
         {
-            string[] secInArray = securitiesInStr.Split('_');
+            string[] secInArray = securitiesInStr.Split(SecuritiesSeparator[0]);
 
             List<Security> securitiesFromServer = Server.Securities;
 

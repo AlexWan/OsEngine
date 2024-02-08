@@ -39,7 +39,7 @@
         }
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2MinuteCanLoad
         {
@@ -47,7 +47,7 @@
         }
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf10MinuteCanLoad
         {
@@ -55,15 +55,15 @@
         }
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2HourCanLoad
         {
@@ -71,11 +71,11 @@
         }
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfTickCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
@@ -120,10 +120,10 @@
                 TimeFrameSec20IsOn = true,
                 TimeFrameSec30IsOn = true,
                 TimeFrameMin1IsOn = true,
-                TimeFrameMin2IsOn = true,
+                TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = true,
                 TimeFrameMin5IsOn = true,
-                TimeFrameMin10IsOn = true,
+                TimeFrameMin10IsOn = false,
                 TimeFrameMin15IsOn = true,
                 TimeFrameMin20IsOn = true,
                 TimeFrameMin30IsOn = true,
@@ -136,7 +136,7 @@
 
         public bool UseStandartCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsUseLotToCalculateProfit

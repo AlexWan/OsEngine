@@ -12,8 +12,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public string SecClass;
 
+        public string SecuritiesSeparator = "_";
+
         public override void Process()
         {
+            if(string.IsNullOrEmpty(SecuritiesSeparator))
+            {
+                SetNewError("Error -1. Securities separator is null or empty");
+                TestEnded();
+                return;
+            }
+
             IServerPermission serverPermission = ServerMaster.GetServerPermission(_myServer.ServerType);
 
             if (serverPermission == null)
