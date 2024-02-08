@@ -148,10 +148,20 @@ namespace OsEngine.Market.SupportTable
                 ServerType = ServerType.BitGetSpot,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Bitget.png",
-                LingSiteUrl = "https://partner.bitget.com/bg/txme90901684140842016 ",
+                LingSiteUrl = "https://partner.bitget.com/bg/txme90901684140842016",
                 Discount = 20
             };
             supportList.Add(bitGet);
+
+            SupportConnection bingx = new SupportConnection()
+            {
+                ServerType = ServerType.BingXSpot,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\bingx.png",
+                LingSiteUrl = "https://bingx.com/invite/OQLHEXTU",
+                Discount = 30
+            };
+            supportList.Add(bingx);
 
             SupportConnection okx = new SupportConnection()
             {
@@ -198,8 +208,8 @@ namespace OsEngine.Market.SupportTable
                 ServerType = ServerType.GateIoSpot,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\GateIo.png",
-                LingSiteUrl = "https://www.gate.io/signup/13169541",
-                Discount = 20
+                LingSiteUrl = "https://www.gate.io/signup/BFlMU19Z?ref_type=103",
+                Discount = 30
             };
             supportList.Add(gateIo);
 
