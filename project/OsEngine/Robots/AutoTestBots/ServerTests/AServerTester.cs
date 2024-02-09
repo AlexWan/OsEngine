@@ -27,6 +27,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             V2_ClassCode = CreateParameter("Md tester Class Code v2", "Futures", "V2");
             V2_MarketDepthMinutesToTest = CreateParameter("Md tester work time minutes v2", 5, 5, 5, 1, "V2");
 
+            StrategyParameterButton buttonTrades = CreateParameterButton("Start test trades", "V3");
+            buttonTrades.UserClickOnButtonEvent += ButtonTrades_UserClickOnButtonEvent;
+            V3_SecuritiesSeparator = CreateParameter("Securities Separator v3", "_", "V3");
+            V3_SecurityName = CreateParameter("Sec names v3", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "V3");
+            V3_ClassCode = CreateParameter("Class Code v3", "Futures", "V3");
+            V3_TradesMinutesToTest = CreateParameter("Tester work time minutes v3", 5, 5, 5, 1, "V3");
+
             StrategyParameterButton buttonDataTest1 = CreateParameterButton("Start test data 1", "D1");
             buttonDataTest1.UserClickOnButtonEvent += ButtonDataTest1_UserClickOnButtonEvent;
             D1_SecurityName = CreateParameter("Sec name data test 1", "ADAUSDT","D1");
@@ -131,6 +138,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString V2_ClassCode;
         StrategyParameterInt V2_MarketDepthMinutesToTest;
         StrategyParameterString V2_SecuritiesSeparator;
+
+        StrategyParameterString V3_SecurityName;
+        StrategyParameterString V3_ClassCode;
+        StrategyParameterInt V3_TradesMinutesToTest;
+        StrategyParameterString V3_SecuritiesSeparator;
 
         StrategyParameterString D1_SecurityName;
         StrategyParameterString D1_SecurityClass;
@@ -264,6 +276,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
 
             CurTestType = ServerTestType.Var_2_MarketDepth;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonTrades_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Var_3_Trades;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -458,6 +483,20 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     tester.SecNames = V2_SecurityName.ValueString;
                     tester.SecClassCode = V2_ClassCode.ValueString;
                     tester.SecuritiesSeparator = V2_SecuritiesSeparator.ValueString;
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
+                else if (CurTestType == ServerTestType.Var_3_Trades)
+                {
+                    Var_3_Trades tester = new Var_3_Trades();
+                    tester.MinutesToTest = V3_TradesMinutesToTest.ValueInt;
+                    tester.SecNames = V3_SecurityName.ValueString;
+                    tester.SecClassCode = V3_ClassCode.ValueString;
+                    tester.SecuritiesSeparator = V3_SecuritiesSeparator.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -705,6 +744,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     {
         Var_1_Securities,
         Var_2_MarketDepth,
+        Var_3_Trades,
         Data_1,
         Data_2,
         Data_3,

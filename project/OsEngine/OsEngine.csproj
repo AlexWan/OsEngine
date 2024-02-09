@@ -994,6 +994,7 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Portfolio_1_Validation.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_2_MarketDepth.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_1_Securities.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Var_3_Trades.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotCandlesComparison.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotConnection.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotConnectionParams.xaml.cs">
