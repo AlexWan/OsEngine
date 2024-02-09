@@ -38,7 +38,7 @@ namespace OsEngine.Robots.TechSamples
 
             StopLenPercent = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
 
-            ProfitLenPercent = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
+            ProfitLenPercent = CreateParameterDecimalCheckBox("Profit percent", 0.5m, 1, 10, 1, true, "Exit settings");
 
             _fastSma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma", false);
             _fastSma = (Aindicator)_tab.CreateCandleIndicator(_fastSma, "Prime");
@@ -217,7 +217,7 @@ namespace OsEngine.Robots.TechSamples
 
         StrategyParameterDecimal StopLenPercent;
 
-        StrategyParameterDecimal ProfitLenPercent;
+        StrategyParameterDecimalCheckBox ProfitLenPercent;
 
         Aindicator _fastSma;
 
@@ -308,9 +308,11 @@ namespace OsEngine.Robots.TechSamples
                 return;
             }
 
-            decimal profitActivation = pos.EntryPrice + pos.EntryPrice * ProfitLenPercent.ValueDecimal / 100;
-
-            _tab.CloseAtProfit(pos, profitActivation, profitActivation);
+            if(ProfitLenPercent.CheckState == CheckState.Checked)
+            {
+                decimal profitActivation = pos.EntryPrice + pos.EntryPrice * ProfitLenPercent.ValueDecimal / 100;
+                _tab.CloseAtProfit(pos, profitActivation, profitActivation);
+            }
 
             decimal stopActivation = pos.EntryPrice - pos.EntryPrice * StopLenPercent.ValueDecimal / 100;
 

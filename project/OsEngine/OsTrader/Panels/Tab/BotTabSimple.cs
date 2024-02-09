@@ -49,6 +49,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.OrderChangeEvent += _connector_OrderChangeEvent;
                 _connector.MyTradeEvent += _connector_MyTradeEvent;
                 _connector.BestBidAskChangeEvent += _connector_BestBidAskChangeEvent;
+                _connector.PortfolioOnExchangeChangedEvent += _connector_PortfolioOnExchangeChangedEvent;
                 _connector.GlassChangeEvent += _connector_GlassChangeEvent;
                 _connector.TimeChangeEvent += StrategOneSecurity_TimeServerChangeEvent;
                 _connector.NewCandlesChangeEvent += LogicToEndCandle;
@@ -330,6 +331,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.LastCandlesChangeEvent -= LogicToUpdateLastCandle;
                     _connector.TickChangeEvent -= _connector_TickChangeEvent;
                     _connector.ConnectorStartedReconnectEvent -= _connector_ConnectorStartedReconnectEvent;
+                    _connector.PortfolioOnExchangeChangedEvent -= _connector_PortfolioOnExchangeChangedEvent;
                     _connector.Delete();
                     _connector.LogMessageEvent -= SetNewLogMessage;
                     _connector.SecuritySubscribeEvent -= _connector_SecuritySubscribeEvent;
@@ -4508,6 +4510,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         // incoming data processing
 
         /// <summary>
+        /// On the stock market has changed the state of the portfolio
+        /// </summary>
+        private void _connector_PortfolioOnExchangeChangedEvent(Portfolio portfolio)
+        {
+            if(PortfolioOnExchangeChangedEvent != null)
+            {
+                PortfolioOnExchangeChangedEvent(portfolio);
+            }
+        }
+
+        /// <summary>
         /// New MarketDepth event handler
         /// </summary>
         void _connector_GlassChangeEvent(MarketDepth marketDepth)
@@ -5164,6 +5177,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Stop order sell activated
         /// </summary>
         public event Action<Position> PositionSellAtStopActivateEvent;
+
+        /// <summary>
+        /// Portfolio on exchange changed
+        /// </summary>
+        public event Action<Portfolio> PortfolioOnExchangeChangedEvent;
 
         /// <summary>
         /// The robot is removed from the system

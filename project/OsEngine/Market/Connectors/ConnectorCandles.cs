@@ -1130,6 +1130,7 @@ namespace OsEngine.Market.Connectors
             server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
             server.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+            server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
         }
 
         private void SubscribleOnServer(IServer server)
@@ -1141,6 +1142,7 @@ namespace OsEngine.Market.Connectors
             server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
             server.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+            server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
 
             if (NeadToLoadServerData)
             {
@@ -1150,6 +1152,7 @@ namespace OsEngine.Market.Connectors
                 server.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
                 server.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
                 server.NewOrderIncomeEvent += ConnectorBot_NewOrderIncomeEvent;
+                server.PortfoliosChangeEvent += Server_PortfoliosChangeEvent;
             }
  
             server.NeadToReconnectEvent += _myServer_NeadToReconnectEvent;
@@ -1433,6 +1436,36 @@ namespace OsEngine.Market.Connectors
                     {
                         _emulator.ProcessTime(time);
                     }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// on the stock market has changed the state of the portfolio
+        /// </summary>
+        private void Server_PortfoliosChangeEvent(List<Portfolio> portfolios)
+        {
+            try
+            {
+                Portfolio myPortfolio = null;
+
+                for (int i = 0; i < portfolios.Count; i++)
+                {
+                    if (PortfolioName == portfolios[i].Number)
+                    {
+                        myPortfolio = portfolios[i];
+                        break;
+                    }
+                }
+
+                if (myPortfolio != null &&
+                    PortfolioOnExchangeChangedEvent != null)
+                {
+                    PortfolioOnExchangeChangedEvent(myPortfolio);
                 }
             }
             catch (Exception error)
@@ -1794,6 +1827,11 @@ namespace OsEngine.Market.Connectors
         /// бумага для коннектора определена
         /// </summary>
         public event Action<Security> SecuritySubscribeEvent;
+
+        /// <summary>
+        /// portfolio on exchange changed
+        /// </summary>
+        public event Action<Portfolio> PortfolioOnExchangeChangedEvent;
 
         #endregion
 
