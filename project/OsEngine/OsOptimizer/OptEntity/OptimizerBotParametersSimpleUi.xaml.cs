@@ -3,6 +3,7 @@ using System.Windows;
 using OsEngine.Entity;
 using System.Windows.Forms.Integration;
 using System.Windows.Forms;
+using System;
 
 namespace OsEngine.OsOptimizer.OptEntity
 {
@@ -108,6 +109,10 @@ namespace OsEngine.OsOptimizer.OptEntity
             if (parameter.Type == StrategyParameterType.CheckBox)
             {
                 nRow.Cells[1].Value = ((StrategyParameterCheckBox)parameter).CheckState;
+            }
+            if (parameter.Type == StrategyParameterType.DecimalCheckBox)
+            {
+                nRow.Cells[1].Value = Convert.ToString(((StrategyParameterDecimalCheckBox)parameter).ValueDecimal) + " (" + Convert.ToString(((StrategyParameterDecimalCheckBox)parameter).CheckState) + ")";
             }
 
             return nRow;

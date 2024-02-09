@@ -226,6 +226,10 @@ namespace OsEngine.OsOptimizer
                 {
                     ((StrategyParameterDecimal)allParam[i]).ValueDecimal = ((StrategyParameterDecimal)allParam[i]).ValueDecimalStart;
                 }
+                if (allParam[i].Type == StrategyParameterType.DecimalCheckBox)
+                {
+                    ((StrategyParameterDecimalCheckBox)allParam[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)allParam[i]).ValueDecimalStart;
+                }				
             }
 
             List<bool> allOptimezedParam = paramsOn;
@@ -315,6 +319,29 @@ namespace OsEngine.OsOptimizer
                             break;
                         }
                     }
+                    else if (optimizedParamToCheckCount[i2].Type == StrategyParameterType.DecimalCheckBox
+                        )
+                    {
+                        StrategyParameterDecimalCheckBox parameter = (StrategyParameterDecimalCheckBox)optimizedParamToCheckCount[i2];
+
+                        if (parameter.ValueDecimal < parameter.ValueDecimalStop)
+                        {
+                            // at the current index you can increment the value
+                            // по текущему индексу можно приращивать значение
+                            parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+                            if (i2 > 0)
+                            {
+                                for (int i3 = 0; i3 < i2; i3++)
+                                {
+                                    // reset all previous parameters to zero
+                                    // сбрасываем все предыдущие параметры в ноль
+                                    ReloadParam(optimizedParamToCheckCount[i3]);
+                                }
+                            }
+                            countBots++;
+                            break;
+                        }
+                    }					
                 }
 
                 if (isAndOfFaze)
@@ -413,6 +440,28 @@ namespace OsEngine.OsOptimizer
                             break;
                         }
                     }
+                    else if (optimizeParamCurrent[i2].Type == StrategyParameterType.DecimalCheckBox
+                        )
+                    {
+                        StrategyParameterDecimalCheckBox parameter = (StrategyParameterDecimalCheckBox)optimizeParamCurrent[i2];
+
+                        if (parameter.ValueDecimal < parameter.ValueDecimalStop)
+                        {
+                            // at the current index you can increment the value
+                            // по текущему индексу можно приращивать значение
+                            parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
+                            if (i2 > 0)
+                            {
+                                for (int i3 = 0; i3 < i2; i3++)
+                                {
+                                    // reset all previous parameters to zero
+                                    // сбрасываем все предыдущие параметры в ноль
+                                    ReloadParam(optimizeParamCurrent[i3]);
+                                }
+                            }
+                            break;
+                        }
+                    }				
                 }
 
                 if (isAndOfFaze)
@@ -539,6 +588,11 @@ namespace OsEngine.OsOptimizer
             {
                 ((StrategyParameterDecimal)param).ValueDecimal = ((StrategyParameterDecimal)param).ValueDecimalStart;
             }
+			
+            if (param.Type == StrategyParameterType.DecimalCheckBox)
+            {
+                ((StrategyParameterDecimalCheckBox)param).ValueDecimal = ((StrategyParameterDecimalCheckBox)param).ValueDecimalStart;
+            }			
         }
 
         /// <summary>
@@ -580,6 +634,17 @@ namespace OsEngine.OsOptimizer
                         ((StrategyParameterDecimal)paramsToCopy[i]).ValueDecimalStep);
                     ((StrategyParameterDecimal)newParam).ValueDecimal = ((StrategyParameterDecimal)paramsToCopy[i]).ValueDecimalStart;
                 }
+                else if (paramsToCopy[i].Type == StrategyParameterType.DecimalCheckBox)
+                {
+                    newParam = new StrategyParameterDecimalCheckBox(paramsToCopy[i].Name,
+                        ((StrategyParameterDecimalCheckBox)paramsToCopy[i]).ValueDecimalDefolt,
+                        ((StrategyParameterDecimalCheckBox)paramsToCopy[i]).ValueDecimalStart,
+                        ((StrategyParameterDecimalCheckBox)paramsToCopy[i]).ValueDecimalStop,
+                        ((StrategyParameterDecimalCheckBox)paramsToCopy[i]).ValueDecimalStep,
+                        Convert.ToBoolean(((StrategyParameterDecimalCheckBox)paramsToCopy[i]).CheckState));
+                    ((StrategyParameterDecimalCheckBox)newParam).ValueDecimal = ((StrategyParameterDecimalCheckBox)paramsToCopy[i]).ValueDecimalStart;
+                }
+				
                 newParameters.Add(newParam);
 
             }
@@ -772,6 +837,11 @@ namespace OsEngine.OsOptimizer
                     {
                         ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimal;
                     }
+                    else if (par.Type == StrategyParameterType.DecimalCheckBox)
+                    {
+                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimal;
+                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
+                    }					
                 }
                 else //if (isInOptimizeParams == false)
                 {
@@ -783,6 +853,11 @@ namespace OsEngine.OsOptimizer
                     {
                         ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimalDefolt;
                     }
+                    else if (par.Type == StrategyParameterType.DecimalCheckBox)
+                    {
+                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimalDefolt;
+                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
+                    }					
                 }
             }
 

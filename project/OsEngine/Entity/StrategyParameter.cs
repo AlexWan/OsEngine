@@ -1350,6 +1350,249 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
+    /// The parameter of the Decimal type strategy with CheckBox
+    /// </summary>
+    public class StrategyParameterDecimalCheckBox : IIStrategyParameter
+    {
+        /// <summary>
+        /// Designer for creating a parameter storing Decimal type variables
+        /// </summary>
+        /// <param name="name">Parameter name</param>
+        /// <param name="value">Default value</param>
+        /// <param name="start">First value in optimization</param>
+        /// <param name="stop">last value in optimization</param>
+        /// <param name="step">Step change in optimization</param>
+        /// <param name="isChecked">is it active</param>
+        public StrategyParameterDecimalCheckBox(string name, decimal value, decimal start, decimal stop, decimal step, bool isChecked, string tabName = null)
+        {
+            if (name.HaveExcessInString())
+            {
+                throw new Exception("The parameter name of the robot contains a special character. This will cause errors. Take it away");
+            }
+            if (start > stop)
+            {
+                throw new Exception("The initial value of the parameter cannot be greater than the last");
+            }
+
+            _name = name;
+            _valueDecimal = value;
+            _valueDecimalDefolt = value;
+            _valueDecimalStart = start;
+            _valueDecimalStop = stop;
+            _valueDecimalStep = step;
+
+            if (isChecked == true)
+            {
+                _checkState = CheckState.Checked;
+            }
+            else
+            {
+                _checkState = CheckState.Unchecked;
+            }
+
+            _type = StrategyParameterType.DecimalCheckBox;
+            TabName = tabName;
+        }
+
+        /// <summary>
+        /// Blank. it is impossible to create a variable of StrategyParameter type with an empty constructor
+        /// </summary>
+        private StrategyParameterDecimalCheckBox()
+        {
+
+        }
+
+        /// <summary>
+        /// Get formatted string to save to file
+        /// </summary>
+        public string GetStringToSave()
+        {
+            string save = _name + "#";
+            save += _valueDecimal + "#";
+            save += _valueDecimalDefolt + "#";
+            save += _valueDecimalStart + "#";
+            save += _valueDecimalStop + "#";
+            save += _valueDecimalStep + "#";
+
+            if (_checkState == CheckState.Checked)
+            {
+                save += "true" + "#";
+            }
+            else
+            {
+                save += "false" + "#";
+            }
+
+            return save;
+        }
+
+        /// <summary>
+        /// Load parameter from string
+        /// </summary>
+        /// <param name="save">line with saved parameters</param>
+        public void LoadParamFromString(string[] save)
+        {
+            _valueDecimal = save[1].ToDecimal();
+
+            try
+            {
+                _valueDecimalDefolt = save[2].ToDecimal();
+                _valueDecimalStart = save[3].ToDecimal();
+                _valueDecimalStop = save[4].ToDecimal();
+                _valueDecimalStep = save[5].ToDecimal();
+
+                if (save[6] == "true")
+                {
+                    _checkState = CheckState.Checked;
+                }
+                else
+                {
+                    _checkState = CheckState.Unchecked;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        /// <summary>
+        /// Uniq parameter name
+        /// </summary>
+        public string Name
+        {
+            get { return _name; }
+        }
+
+        private string _name;
+
+        /// <summary>
+        /// Owner tab name
+        /// </summary>
+        public string TabName
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Parameter type
+        /// </summary>
+        public StrategyParameterType Type
+        {
+            get { return _type; }
+        }
+
+        private StrategyParameterType _type;
+
+        /// <summary>
+        /// Current value of the Decimal parameter
+        /// </summary>
+        public decimal ValueDecimal
+        {
+            get
+            {
+                return _valueDecimal;
+            }
+            set
+            {
+                if (_valueDecimal == value)
+                {
+                    return;
+                }
+                _valueDecimal = value;
+                if (ValueChange != null)
+                {
+                    ValueChange();
+                }
+            }
+        }
+
+        private decimal _valueDecimal;
+
+        /// <summary>
+        /// Default value for the Decimal type
+        /// </summary>
+        public decimal ValueDecimalDefolt
+        {
+            get
+            {
+                return _valueDecimalDefolt;
+            }
+        }
+
+        private decimal _valueDecimalDefolt;
+
+        /// <summary>
+        /// Initial value of the Decimal type parameter
+        /// </summary>
+        public decimal ValueDecimalStart
+        {
+            get
+            {
+                return _valueDecimalStart;
+            }
+        }
+
+        private decimal _valueDecimalStart;
+
+        /// <summary>
+        /// The last value of the Decimal type parameter
+        /// </summary>
+        public decimal ValueDecimalStop
+        {
+            get
+            {
+                return _valueDecimalStop;
+            }
+        }
+
+        private decimal _valueDecimalStop;
+
+        /// <summary>
+        /// Incremental step of the Decimal type parameter
+        /// </summary>
+        public decimal ValueDecimalStep
+        {
+            get
+            {
+                return _valueDecimalStep;
+            }
+        }
+
+        private decimal _valueDecimalStep;
+
+        /// <summary>
+        /// CheckBox is it active
+        /// </summary>
+        public CheckState CheckState
+        {
+            get
+            {
+                return _checkState;
+            }
+            set
+            {
+                if (_checkState == value)
+                {
+                    return;
+                }
+                _checkState = value;
+                if (ValueChange != null)
+                {
+                    ValueChange();
+                }
+            }
+        }
+
+        private CheckState _checkState;
+
+        /// <summary>
+        /// Event: parameter state changed
+        /// </summary>
+        public event Action ValueChange;
+    }
+
+    /// <summary>
     /// Parameter type
     /// </summary>
     public enum StrategyParameterType
@@ -1392,6 +1635,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// checkbox in the parameters window
         /// </summary>
-        CheckBox
+        CheckBox,
+
+        /// <summary>
+        /// A floating point number of the decimal type with CheckBox
+        /// </summary>
+        DecimalCheckBox
+		
     }
 }

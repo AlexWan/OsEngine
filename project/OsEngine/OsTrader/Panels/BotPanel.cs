@@ -1030,6 +1030,21 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
+        /// create a Decimal type parameter with CheckBox
+        /// </summary>
+        public StrategyParameterDecimalCheckBox CreateParameterDecimalCheckBox(string name, decimal value, decimal start, decimal stop, decimal step, bool isChecked, string tabControlName = null)
+        {
+            StrategyParameterDecimalCheckBox newParameter = new StrategyParameterDecimalCheckBox(name, value, start, stop, step, isChecked, tabControlName);
+
+            if (_parameters.Find(p => p.Name == name) != null)
+            {
+                throw new Exception(OsLocalization.Trader.Label52);
+            }
+
+            return (StrategyParameterDecimalCheckBox)LoadParameterValues(newParameter);
+        }
+
+        /// <summary>
         /// create label type parameter
         /// </summary>
         public StrategyParameterLabel CreateParameterLabel(string name, string label, string value, int rowHeight, int textHeight, System.Drawing.Color color, string tabControlName = null)

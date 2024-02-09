@@ -1517,9 +1517,14 @@ namespace OsEngine.OsOptimizer
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridParametrs.Columns.Add(column4);
 
+            DataGridViewColumn column5 = new DataGridViewColumn();
+            column5.CellTemplate = cell0;
+            column5.ReadOnly = false;
+            column5.Width = 20;
+            _gridParametrs.Columns.Add(column5);
+
             _gridParametrs.Rows.Add(null, null);
             _gridParametrs.DataError += _gridParametrs_DataError;
-
 
             HostParam.Child = _gridParametrs;
         }
@@ -1582,6 +1587,10 @@ namespace OsEngine.OsOptimizer
                 {
                     _gridParametrs.Rows.Add(GetRowTimeOfDay(_parameters[i]));
                 }
+                else if (_parameters[i].Type == StrategyParameterType.DecimalCheckBox)
+                {
+                    _gridParametrs.Rows.Add(GetRowDecimalCheckBox(_parameters[i], _parametrsActiv[i]));
+                }				
                 else //if (_parameters[i].Type == StrategyParameterType.Label)
                 {// не известный или не реализованный параметр
                     continue;
@@ -1937,6 +1946,93 @@ namespace OsEngine.OsOptimizer
             return row;
         }
 
+        private DataGridViewRow GetRowDecimalCheckBox(IIStrategyParameter parameter, bool isOptimize)
+        {
+            DataGridViewRow row = new DataGridViewRow();
+            // 0 on / off
+            row.Cells.Add(new DataGridViewCheckBoxCell());
+            row.Cells[0].ReadOnly = false;
+            row.Cells[0].Value = isOptimize;
+
+            // 1 Param Name by User
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[1].Value = parameter.Name;
+
+            // 2 Param Type
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[2].Value = parameter.Type;
+
+            // 3 Param Defoult Value
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[3].Value = ((StrategyParameterDecimalCheckBox)parameter).ValueDecimalDefolt.ToString();
+
+            if (isOptimize == true)
+            {
+                row.Cells[3].ReadOnly = false;
+                row.Cells[3].Style.BackColor = System.Drawing.Color.DimGray;
+                row.Cells[3].Style.SelectionBackColor = System.Drawing.Color.DimGray;
+            }
+
+            // 4 Start optimize value
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[4].Value = ((StrategyParameterDecimalCheckBox)parameter).ValueDecimalStart.ToString();
+
+            if (isOptimize == false)
+            {
+                row.Cells[4].ReadOnly = true;
+                row.Cells[4].Style.BackColor = System.Drawing.Color.DimGray;
+                row.Cells[4].Style.SelectionBackColor = System.Drawing.Color.DimGray;
+            }
+
+            // 5 Step optimize
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[5].Value = ((StrategyParameterDecimalCheckBox)parameter).ValueDecimalStep.ToString();
+
+            if (isOptimize == false)
+            {
+                row.Cells[5].ReadOnly = true;
+                row.Cells[5].Style.BackColor = System.Drawing.Color.DimGray;
+                row.Cells[5].Style.SelectionBackColor = System.Drawing.Color.DimGray;
+            }
+
+            // 6 Step optimize
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[6].Value = ((StrategyParameterDecimalCheckBox)parameter).ValueDecimalStop.ToString();
+
+            if (isOptimize == false)
+            {
+                row.Cells[6].ReadOnly = true;
+                row.Cells[6].Style.BackColor = System.Drawing.Color.DimGray;
+                row.Cells[6].Style.SelectionBackColor = System.Drawing.Color.DimGray;
+            }
+
+            DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
+
+            cell.FlatStyle = FlatStyle.Standard;
+            cell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+            if (((StrategyParameterDecimalCheckBox)parameter).CheckState == CheckState.Checked)
+            {
+                cell.Value = true;
+            }
+            else
+            {
+                cell.Value = false;
+            }
+
+            row.Cells.Add(cell);
+
+            row.Cells[7].ReadOnly = false;
+            row.Cells[7].Style.BackColor = System.Drawing.Color.DimGray;
+            row.Cells[7].Style.SelectionBackColor = System.Drawing.Color.DimGray;
+
+            return row;
+        }
+
         private DataGridViewRow GetRowString(IIStrategyParameter parameter)
         {
             DataGridViewRow row = new DataGridViewRow();
@@ -2146,6 +2242,53 @@ namespace OsEngine.OsOptimizer
                             ActiveteRowOptimizing(row);
                         }
                     }
+                    else if (parameter.Type == StrategyParameterType.DecimalCheckBox)
+                    {
+                        decimal valueDefoult = row.Cells[3].Value.ToString().ToDecimal();
+                        decimal valueStart = row.Cells[4].Value.ToString().ToDecimal();
+                        decimal valueStep = row.Cells[5].Value.ToString().ToDecimal();
+                        decimal valueStop = row.Cells[6].Value.ToString().ToDecimal();
+                        bool isChecked = Convert.ToBoolean(row.Cells[7].Value.ToString());
+
+                        if (isChecked)
+                        {
+                            ((StrategyParameterDecimalCheckBox)parameter).CheckState = CheckState.Checked;
+                        }
+                        else
+                        {
+                            ((StrategyParameterDecimalCheckBox)parameter).CheckState = CheckState.Unchecked;
+                        }
+
+                        if (valueStart > valueStop)
+                        {
+                            MessageBox.Show(OsLocalization.Optimizer.Message34);
+                            PaintTableParametrs();
+                            return;
+                        }
+
+                        StrategyParameterDecimalCheckBox param = ((StrategyParameterDecimalCheckBox)parameter);
+
+                        if (valueStart != param.ValueDecimalStart ||
+                            valueStep != param.ValueDecimalStep ||
+                            valueStop != param.ValueDecimalStop ||
+                            valueDefoult != param.ValueDecimalDefolt)
+                        {
+                            _parameters.Insert(i_param, new StrategyParameterDecimalCheckBox(parameter.Name, valueDefoult,
+                               valueStart, valueStop, valueStep, true));
+                            _parameters.RemoveAt(i_param + 1);
+                        }
+                        if (row.Cells[0].Value == null ||
+                            (bool)row.Cells[0].Value == false)
+                        {
+                            _parametrsActiv[i_param] = false;
+                            UnActiveteRowOptimizing(row);
+                        }
+                        else
+                        {
+                            _parametrsActiv[i_param] = true;
+                            ActiveteRowOptimizing(row);
+                        }
+                    }					
                     else //if (parameter.Type == StrategyParameterType.Label)
                     {//неизвестный или не реализованный параметр
                         i_grid--;
