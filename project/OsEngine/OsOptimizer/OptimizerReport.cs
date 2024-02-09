@@ -106,6 +106,10 @@ namespace OsEngine.OsOptimizer
                 {
                     result += ((StrategyParameterCheckBox)parameters[i]).CheckState;
                 }
+                else if (parameters[i].Type == StrategyParameterType.DecimalCheckBox)
+                {
+                    result += ((StrategyParameterDecimalCheckBox)parameters[i]).ValueDecimal + " (" + Convert.ToString(((StrategyParameterDecimalCheckBox)parameters[i]).CheckState) + ")";
+                }
 
                 result += "\n";
             }
@@ -163,6 +167,11 @@ namespace OsEngine.OsOptimizer
                 else if (type == StrategyParameterType.CheckBox)
                 {
                     param = new StrategyParameterCheckBox(name, false);
+                    param.LoadParamFromString(StrategyParameters[i].Split('$')[1].Split('#'));
+                }
+                else if (type == StrategyParameterType.DecimalCheckBox)
+                {
+                    param = new StrategyParameterDecimalCheckBox(name, 0, 0, 0, 0, false);
                     param.LoadParamFromString(StrategyParameters[i].Split('$')[1].Split('#'));
                 }
 

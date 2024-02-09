@@ -353,6 +353,29 @@ namespace OsEngine.Entity
 
                     row.Cells.Add(cell);
                 }
+                else if (_parameters[i].Type == StrategyParameterType.DecimalCheckBox)
+                {
+                    if (_grid.ColumnCount == 2)
+                    {
+                        DataGridViewCell cell = new DataGridViewTextBoxCell();
+
+                        DataGridViewColumn column = new DataGridViewColumn(cell); 
+                        column.Width = 20;
+
+                        _grid.Columns.Add(column);   
+                    }
+
+                    StrategyParameterDecimalCheckBox param = (StrategyParameterDecimalCheckBox)_parameters[i];
+
+                    DataGridViewTextBoxCell cell1 = new DataGridViewTextBoxCell();
+                    cell1.Value = param.ValueDecimal.ToString();
+
+                    DataGridViewCheckBoxCell cell2 = new DataGridViewCheckBoxCell();
+                    cell2.Value = param.CheckState;
+
+                    row.Cells.Add(cell1);
+                    row.Cells.Add(cell2);
+                }
 
                 _grid.Rows.Add(row);
             }
@@ -448,6 +471,21 @@ namespace OsEngine.Entity
                             ((StrategyParameterCheckBox)_parameters[i]).CheckState = CheckState.Unchecked;
                         }
                     }
+                    else if (_parameters[i].Type == StrategyParameterType.DecimalCheckBox)
+                    {
+                        ((StrategyParameterDecimalCheckBox)_parameters[i]).ValueDecimal = _grid.Rows[i].Cells[1].EditedFormattedValue.ToString().ToDecimal();
+
+                        bool value = Convert.ToBoolean(_grid.Rows[i].Cells[2].Value);
+
+                        if (value == true)
+                        {
+                            ((StrategyParameterDecimalCheckBox)_parameters[i]).CheckState = CheckState.Checked;
+                        }
+                        else
+                        {
+                            ((StrategyParameterDecimalCheckBox)_parameters[i]).CheckState = CheckState.Unchecked;
+                        }
+                    }				
                 }
                 catch
                 {
