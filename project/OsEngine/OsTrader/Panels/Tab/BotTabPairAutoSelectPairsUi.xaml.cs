@@ -1139,8 +1139,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                string portfolio = ComboBoxPortfolio.Text;
-
+                
                 TimeFrame timeFrame;
                 Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
 
@@ -1165,10 +1164,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if(string.IsNullOrEmpty(secClass))
                 {
+                    MessageBox.Show("Creation pairs is Stop. Securities class is null");
                     return;
                 }
 
-                for(int i = 0;i < _pairNamesNew.Count;i++)
+                string portfolio = ComboBoxPortfolio.Text;
+
+                if (string.IsNullOrEmpty(portfolio))
+                {
+                    MessageBox.Show("Creation pairs is Stop. Portfolio is null");
+                    return;
+                }
+
+                for (int i = 0;i < _pairNamesNew.Count;i++)
                 {
                     string sec1 = _pairNamesNew[i].Replace("_|_", "*").Split('*')[0];
                     string sec2 = _pairNamesNew[i].Replace("_|_", "*").Split('*')[1];
@@ -1178,7 +1186,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         continue;
                     }
 
-                    _pairTrader.CreateNewPair(sec1, sec2, secClass, timeFrame, server, typeComission,comissionValue);
+                    _pairTrader.CreateNewPair(sec1, sec2, secClass, timeFrame, server, typeComission,comissionValue,portfolio);
 
                 }
 

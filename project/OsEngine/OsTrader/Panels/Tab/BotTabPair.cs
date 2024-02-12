@@ -912,7 +912,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void CreateNewPair(
             string sec1, string sec2, string secClass, 
             TimeFrame timeFrame, ServerType serverType,
-            ComissionType comissionType, decimal comissionValue)
+            ComissionType comissionType, decimal comissionValue,
+            string portfolio)
         {
             CreatePair();
 
@@ -924,6 +925,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newPair.Tab1.Connector.TimeFrame = timeFrame;
             newPair.Tab1.Connector.SecurityName = sec1;
             newPair.Tab1.Connector.SecurityClass = secClass;
+            newPair.Tab1.Connector.PortfolioName = portfolio;
 
             newPair.Tab2.ComissionType = comissionType;
             newPair.Tab2.ComissionValue = comissionValue;
@@ -931,6 +933,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newPair.Tab2.Connector.TimeFrame = timeFrame;
             newPair.Tab2.Connector.SecurityName = sec2;
             newPair.Tab2.Connector.SecurityClass = secClass;
+            newPair.Tab2.Connector.PortfolioName = portfolio;
         }
 
         #endregion
@@ -1289,6 +1292,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (rows[i].Cells[1].Value == null)
                 {
                     continue;
+                }
+
+                if(i >= _grid.Rows.Count)
+                {
+                    break;
                 }
 
                 TryRePaintRow(_grid.Rows[i], rows[i]);
@@ -1849,6 +1857,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             Tab1.PositionOpeningSuccesEvent += Tab1_PositionOpeningSuccesEvent;
             Tab2.PositionOpeningSuccesEvent += Tab2_PositionOpeningSuccesEvent;
 
+            Tab1.LogMessageEvent += SendNewLogMessage;
+            Tab2.LogMessageEvent += SendNewLogMessage;
+
             Load();
         }
 
@@ -1968,6 +1979,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Tab1.PositionOpeningSuccesEvent -= Tab1_PositionOpeningSuccesEvent;
             Tab2.PositionOpeningSuccesEvent -= Tab2_PositionOpeningSuccesEvent;
+
+            Tab1.LogMessageEvent -= SendNewLogMessage;
+            Tab2.LogMessageEvent -= SendNewLogMessage;
 
             Tab1.Delete();
             Tab2.Delete();
