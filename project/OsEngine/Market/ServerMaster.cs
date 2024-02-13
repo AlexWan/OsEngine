@@ -53,6 +53,7 @@ using OsEngine.Market.Servers.KuCoin.KuCoinSpot;
 using OsEngine.Market.Servers.KuCoin.KuCoinFutures;
 using OsEngine.Market.Servers.BinGxSpot;
 using OsEngine.Market.Servers.BingX.BingXSpot;
+using OsEngine.Market.Servers.BingX.BingXFutures;
 
 namespace OsEngine.Market
 {
@@ -187,6 +188,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitGetSpot);
                 serverTypes.Add(ServerType.BitGetFutures);
                 serverTypes.Add(ServerType.BingXSpot);
+                serverTypes.Add(ServerType.BingXFutures);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -366,6 +368,10 @@ namespace OsEngine.Market
                 if (type == ServerType.BingXSpot)
                 {
                     newServer = new BingXServerSpot();
+                }
+                if (type == ServerType.BingXFutures)
+                {
+                    newServer = new BingXServerFutures();
                 }
                 if (type == ServerType.KuCoinFutures)
                 {
@@ -957,6 +963,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new BingXSpotServerPermission();
                 }
+                else if (type == ServerType.BingXFutures)
+                {
+                    serverPermission = new BingXFuturesServerPermission();
+                }
                 else if (type == ServerType.Alor)
                 {
                     serverPermission = new AlorServerPermission();
@@ -1427,5 +1437,10 @@ namespace OsEngine.Market
         /// BingXSpot exchange
         /// </summary>
         BingXSpot,
+
+        /// <summary>
+        /// BingXFutures exchange
+        /// </summary>
+        BingXFutures,
     }
 }
