@@ -501,6 +501,11 @@
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\TradeResponse.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceServerSpot.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotServerPermission.cs" />
+    <Compile Include="Market\Servers\BingX\BingXFutures\BingXFuturesServerPermission.cs" />
+    <Compile Include="Market\Servers\BingX\BingXFutures\BingXServerFutures.cs" />
+    <Compile Include="Market\Servers\BingX\BingXFutures\Entity\ListenKeyBingXFutures.cs" />
+    <Compile Include="Market\Servers\BingX\BingXFutures\Entity\ResponseFuturesBingX.cs" />
+    <Compile Include="Market\Servers\BingX\BingXFutures\Entity\ResponseWSBingXFuturesMessage.cs" />
     <Compile Include="Market\Servers\BingX\BingXSpot\BingXServerSpot.cs" />
     <Compile Include="Market\Servers\BingX\BingXSpot\BingXSpotServerPermission.cs" />
     <Compile Include="Market\Servers\BingX\BingXSpot\Entity\ListenKeyBingX.cs" />
