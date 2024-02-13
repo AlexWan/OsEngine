@@ -54,6 +54,7 @@ using OsEngine.Market.Servers.KuCoin.KuCoinFutures;
 using OsEngine.Market.Servers.BinGxSpot;
 using OsEngine.Market.Servers.BingX.BingXSpot;
 using OsEngine.Market.Servers.BingX.BingXFutures;
+using OsEngine.Market.Servers.Deribit;
 
 namespace OsEngine.Market
 {
@@ -154,7 +155,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                
+                serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
@@ -267,6 +268,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
+                serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.Finam);
@@ -516,6 +518,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.Finam)
                 {
                     newServer = new FinamServer();
+                }
+                else if (type == ServerType.Deribit)
+                {
+                    newServer = new DeribitServer();
                 }
 
                 if (newServer == null)
@@ -1047,6 +1053,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new InteractiveBrokersServerPermission();
                 }
+                else if (type == ServerType.Deribit)
+                {
+                    serverPermission = new DeribitServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1442,5 +1452,10 @@ namespace OsEngine.Market
         /// BingXFutures exchange
         /// </summary>
         BingXFutures,
+
+        /// <summary>
+        /// Deribit exchange
+        /// </summary>
+        Deribit,
     }
 }
