@@ -461,6 +461,11 @@ namespace OsEngine.OsData
                         return;
                     }
 
+                    if(loader.TimeFrame == TimeFrame.MarketDepth)
+                    {
+                        return;
+                    }
+
                     OsDataSetDetailUi detailUi = new OsDataSetDetailUi(loader);
                     detailUi.ShowDialog();
                     loader.CheckTimeInSets();

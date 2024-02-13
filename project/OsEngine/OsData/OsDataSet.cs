@@ -1241,7 +1241,7 @@ namespace OsEngine.OsData
 
         private string _saveStrCandleCount;
 
-        #region СВЕЧКИ
+        #region Candles
 
         private void ProcessCandles(IServer server, SettingsToLoadSecurity param)
         {
@@ -1458,7 +1458,7 @@ namespace OsEngine.OsData
 
         #endregion
 
-        #region ТРЕЙДЫ
+        #region Trades
 
         private void ProcessTrades(IServer server, SettingsToLoadSecurity param, bool needToSave)
         {
@@ -1669,7 +1669,7 @@ namespace OsEngine.OsData
 
         #endregion
 
-        #region СТАКАНЫ
+        #region Market Depth
 
         List<MarketDepthLoader> MdSourses = new List<MarketDepthLoader>();
 
@@ -1725,11 +1725,28 @@ namespace OsEngine.OsData
 
                 if(source.SaveStrings.TryDequeue(out str))
                 {
-                    builder.Append(str + "\r");
+                    if(string.IsNullOrEmpty(str))
+                    {
+                        continue;
+                    }
+
+                    if(source.SaveStrings.IsEmpty == false)
+                    {
+                        builder.Append(str + "\r");
+                    }
+                    else
+                    {
+                        builder.Append(str);
+                    }
                 }
             }
 
             if(builder.Length == 0)
+            {
+                return;
+            }
+
+            if(MainWindow.ProccesIsWorked == false)
             {
                 return;
             }
@@ -1754,7 +1771,7 @@ namespace OsEngine.OsData
 
         #endregion
 
-        #region СВЕЧИ ТФ < МИНУТЫ
+        #region Candle whith time frame less than minute
 
         private void ProcessCandlesLessMinute(IServer server, SettingsToLoadSecurity param)
         {
@@ -1928,6 +1945,8 @@ namespace OsEngine.OsData
                 + _secName + "_"
                 + _secClass + "_"
                 + _depth;
+
+
 
             MarketDepthSource = new BotTabSimple(nameTab, StartProgram.IsOsData);
             MarketDepthSource.Connector.SecurityName = _secName;

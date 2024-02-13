@@ -1032,7 +1032,8 @@ namespace OsEngine.Market.Connectors
                                 continue;
                             }
 
-                            if (StartProgram == StartProgram.IsOsTrader)
+                            if (StartProgram == StartProgram.IsOsTrader ||
+                                StartProgram == StartProgram.IsOsData)
                             {
                                 int millisecondsToDelay = _aliveTasks * 5;
 

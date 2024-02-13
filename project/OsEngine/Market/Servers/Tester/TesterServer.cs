@@ -1838,8 +1838,18 @@ namespace OsEngine.Market.Servers.Tester
                     for (int i2 = 0; i2 < 20; i2++)
                     {
                         MarketDepth tradeN = new MarketDepth();
-                        tradeN.SetMarketDepthFromString(reader.ReadLine());
-
+                        string lastStr = reader.ReadLine();
+                        try
+                        {
+                            tradeN.SetMarketDepthFromString(lastStr);
+                        }
+                        catch (Exception error)
+                        {
+                            Thread.Sleep(2000);
+                            SendLogMessage(error.ToString(),LogMessageType.Error);
+                            continue;
+                        }
+                        
                         decimal open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
 
                         if (open == 0)
@@ -1949,7 +1959,7 @@ namespace OsEngine.Market.Servers.Tester
                     trade2.SetMarketDepthFromString(lastString2);
                     security[security.Count - 1].TimeEnd = trade2.Time;
                 }
-                catch
+                catch(Exception error)
                 {
                     security.Remove(security[security.Count - 1]);
                 }
@@ -2562,8 +2572,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 return false;
             }
-            decimal minPrice = lastMarketDepth.Asks[0].Price;
-            decimal maxPrice = lastMarketDepth.Bids[0].Price;
+            decimal sellBestPrice = lastMarketDepth.Asks[0].Price;
+            decimal buyBestPrice = lastMarketDepth.Bids[0].Price;
 
             DateTime time = lastMarketDepth.Time;
 
@@ -2576,20 +2586,25 @@ namespace OsEngine.Market.Servers.Tester
             // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
-                if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > minPrice)
+                if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price > sellBestPrice)
                    ||
-                   (OrderExecutionType == OrderExecutionType.Touch && order.Price >= minPrice)
+                   (OrderExecutionType == OrderExecutionType.Touch && order.Price >= sellBestPrice)
                    ||
                    (OrderExecutionType == OrderExecutionType.FiftyFifty &&
                    _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Intersection &&
-                   order.Price > minPrice)
+                   order.Price > sellBestPrice)
                    ||
                    (OrderExecutionType == OrderExecutionType.FiftyFifty &&
                    _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
-                   order.Price >= minPrice)
+                   order.Price >= sellBestPrice)
                    )
                 {
                     decimal realPrice = order.Price;
+
+                    if(realPrice > sellBestPrice )
+                    {
+                        realPrice = sellBestPrice;
+                    }
 
                     int slipage = 0;
 
@@ -2624,21 +2639,26 @@ namespace OsEngine.Market.Servers.Tester
 
             if (order.Side == Side.Sell)
             {
-                if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price < maxPrice)
+                if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price < buyBestPrice)
                     ||
-                    (OrderExecutionType == OrderExecutionType.Touch && order.Price <= maxPrice)
+                    (OrderExecutionType == OrderExecutionType.Touch && order.Price <= buyBestPrice)
                     ||
                     (OrderExecutionType == OrderExecutionType.FiftyFifty &&
                      _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Intersection &&
-                     order.Price < maxPrice)
+                     order.Price < buyBestPrice)
                     ||
                     (OrderExecutionType == OrderExecutionType.FiftyFifty &&
                      _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
-                     order.Price <= maxPrice)
+                     order.Price <= buyBestPrice)
                     )
                 {
                     // execute / исполняем
                     decimal realPrice = order.Price;
+
+                    if (realPrice < buyBestPrice)
+                    {
+                        realPrice = buyBestPrice;
+                    }
 
                     int slipage = 0;
 

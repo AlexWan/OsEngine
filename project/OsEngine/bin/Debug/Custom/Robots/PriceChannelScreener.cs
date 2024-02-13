@@ -95,7 +95,8 @@ namespace OsEngine.Robots.Screeners
 
         private void TabSimpleSecuritySubscribeEvent(Security security)
         {
-            SendNewLogMessage($"Security {security.Name} connected", Logging.LogMessageType.NoName);
+
+            SendNewLogMessage("Security connected " + security.Name, Logging.LogMessageType.NoName);
         }
 
         private void ScreenerTabCandleFinishedEvent(List<Candle> candles, BotTabSimple simpleTab)
