@@ -40,7 +40,6 @@ using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.Tinkoff;
 using MessageBox = System.Windows.MessageBox;
-using OsEngine.Market.Servers.GateIo.Futures;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
 using OsEngine.Market.Servers.BitMaxFutures;
@@ -155,7 +154,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                serverTypes.Add(ServerType.Deribit);
+                
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
@@ -169,6 +168,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.GateIoSpot);
                 serverTypes.Add(ServerType.GateIoFutures);
                 serverTypes.Add(ServerType.AscendEx_BitMax);
+                serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BitMex);

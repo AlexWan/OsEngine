@@ -554,6 +554,10 @@
     <Compile Include="Market\Servers\Bybit\BybitServerPermission.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\ResponseRestMessage.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\ResponseWebSocketMessage.cs" />
+    <Compile Include="Market\Servers\Deribit\DeribitServer.cs" />
+    <Compile Include="Market\Servers\Deribit\DeribitServerPermission.cs" />
+    <Compile Include="Market\Servers\Deribit\Entity\ResponseMessageRest.cs" />
+    <Compile Include="Market\Servers\Deribit\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
     <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
