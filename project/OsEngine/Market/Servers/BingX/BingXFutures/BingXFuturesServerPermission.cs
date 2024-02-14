@@ -9,6 +9,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         }
 
         #region DataFeedPermissions
+
         public bool DataFeedTf1SecondCanLoad
         {
             get { return false; }
@@ -102,6 +103,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         #endregion
 
         #region Trade permission
+
         public bool MarketOrdersIsSupport
         {
             get { return true; }
@@ -114,7 +116,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 25; }
+            get { return 15; }
         }
 
         public bool IsCanChangeOrderPrice
@@ -140,13 +142,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
-                TimeFrameSec2IsOn = false,
-                TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
-                TimeFrameSec15IsOn = false,
-                TimeFrameSec20IsOn = false,
-                TimeFrameSec30IsOn = false,
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = true,

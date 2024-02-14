@@ -106,25 +106,31 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 DisconnectEvent();
             }
         }
+
         public ServerType ServerType
         {
             get { return ServerType.BingXFutures; }
         }
 
         public ServerConnectStatus ServerStatus { get; set; }
+
         public event Action ConnectEvent;
+
         public event Action DisconnectEvent;
 
         #endregion
 
         #region 2 Properties
+
         public List<IServerParameter> ServerParameters { get; set; }
+
         private RateGate _rateGate = new RateGate(450, TimeSpan.FromSeconds(60));
 
         public string _publicKey;
-        public string _secretKey;
-        private bool _hedgeMode;
 
+        public string _secretKey;
+
+        private bool _hedgeMode;
 
         #endregion
 
@@ -197,11 +203,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     security.NameId = current.contractId;
                     security.Exchange = nameof(ServerType.BingXFutures);
                     security.State = SecurityStateType.Activ;
-                    security.PriceStep = OsEngine.Entity.Extensions.GetValueByDecimals(Convert.ToInt32(current.pricePrecision));
+                    security.Decimals = Convert.ToInt32(current.pricePrecision);
+                    security.PriceStep = security.Decimals.GetValueByDecimals();
                     security.PriceStepCost = security.PriceStep;
                     security.SecurityType = SecurityType.CurrencyPair;
-                    security.Decimals = Convert.ToInt32(current.pricePrecision);
-                    security.DecimalsVolume = security.Decimals;
+                    security.DecimalsVolume = Convert.ToInt32(current.quantityPrecision);
 
                     securities.Add(security);
                 }
@@ -653,11 +659,21 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         #region 6 WebSocket creation
 
         private WebSocket _webSocket;
+
         private const string _webSocketUrl = "wss://open-api-swap.bingx.com/swap-market";
+
         private string _listenKey = "";
+
         private void CreateWebSocketConnect()
         {
             _listenKey = CreateListenKey();
+
+            if(_listenKey == null)
+            {
+                SendLogMessage("Autorization error. Listen key is note created", LogMessageType.Error);
+                return;
+            }
+
             string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
 
             _webSocket = new WebSocket(urlStr);
@@ -723,7 +739,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             if (DisconnectEvent != null
                 && ServerStatus != ServerConnectStatus.Disconnect)
             {
-                SendLogMessage("Connection Closed by BingXFutures. WebSocket Closed Event", LogMessageType.Connect);
+                SendLogMessage("Connection Closed by BingXFutures. WebSocket Closed Event", LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
             }
@@ -733,18 +749,26 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             try
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 if (e == null)
                 {
                     return;
                 }
+
                 if (string.IsNullOrEmpty(e.ToString()))
                 {
                     return;
                 }
+
                 if (_fifoListWebSocketMessage == null)
                 {
                     return;
                 }
+
                 if (e.Data is byte[])
                 {
                     string item = Decompress(e.Data);
@@ -804,8 +828,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         private ConcurrentQueue<string> _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
         public event Action<Order> MyOrderEvent;
+
         public event Action<MyTrade> MyTradeEvent;
+
         public event Action<Trade> NewTradesEvent;
+
         public event Action<MarketDepth> MarketDepthEvent;
 
         private void MessageReader()
@@ -855,6 +882,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 }
                 catch (Exception exception)
                 {
+                    Thread.Sleep(2000);
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
@@ -1022,11 +1050,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 newOrder.TypeOrder = responceOrder.o.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
                 newOrder.ServerType = ServerType.BingXFutures;
 
-
                 MyOrderEvent(newOrder);
 
                 //если ордер исполнен, вызываем MyTradeEvent
-                if (orderState == OrderStateType.Done || orderState == OrderStateType.Patrial)
+                if (orderState == OrderStateType.Done 
+                    || orderState == OrderStateType.Patrial)
                 {
                     UpdateMyTrade(message);
                 }
@@ -1044,24 +1072,45 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             try
             {
                 TradeUpdateEvent responseOrder = JsonConvert.DeserializeObject<TradeUpdateEvent>(message);
-
                 MyTrade newTrade = new MyTrade();
 
                 newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseOrder.o.T));
                 newTrade.SecurityNameCode = responseOrder.o.s;
                 newTrade.NumberOrderParent = responseOrder.o.i;
                 newTrade.Price = responseOrder.o.ap.ToDecimal();
-                newTrade.NumberTrade = responseOrder.o.i; // сервер не возвращает id транзакции, только id ордера
+                newTrade.NumberTrade = TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.Now).ToString();
                 newTrade.Side = responseOrder.o.S.Contains("BUY") ? Side.Buy : Side.Sell;
-                newTrade.Volume = responseOrder.o.q.ToDecimal();
+
+                decimal previousVolume = GetExecuteVolumeInOrder(newTrade.NumberOrderParent);
+
+                newTrade.Volume = responseOrder.o.z.ToDecimal() - previousVolume;
 
                 MyTradeEvent(newTrade);
+
+                _myTrades.Add(newTrade);
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
+        private decimal GetExecuteVolumeInOrder(string orderNum)
+        {
+            decimal result = 0;
+
+            for(int i = 0;i < _myTrades.Count;i++)
+            {
+                if (_myTrades[i].NumberOrderParent == orderNum)
+                {
+                    result += _myTrades[i].Volume;
+                }
+            }
+
+            return result;
+        }
+
+        private List<MyTrade> _myTrades = new List<MyTrade>();
 
         private void UpdateDepth(string message)
         {
@@ -1117,6 +1166,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         public void SendOrder(Order order)
         {
             _rateGate.WaitToProceed();
+
+            _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
 
             RestClient client = new RestClient(_baseUrl);
             RestRequest request = new RestRequest("/openApi/swap/v2/trade/order", Method.POST);
@@ -1291,11 +1342,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 MyOrderEvent(order);
             }
         }
+
         #endregion
 
         #region 11 Queries
 
         private const string _baseUrl = "https://open-api.bingx.com";
+
         private readonly HttpClient _httpPublicClient = new HttpClient();
 
         private string CreateListenKey()
@@ -1304,6 +1357,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
             try
             {
+                _timeLastUpdateListenKey = DateTime.Now;
+
                 string endpoint = "/openApi/user/auth/userDataStream";
 
                 RestRequest request = new RestRequest(endpoint, Method.POST);
@@ -1321,8 +1376,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
+        private DateTime _timeLastUpdateListenKey = DateTime.MinValue;
+
         private void RequestListenKey()
         {
+            _timeLastUpdateListenKey = DateTime.Now;
+
             while (true)
             {
                 if (ServerStatus != ServerConnectStatus.Connect)
@@ -1331,11 +1390,14 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     continue;
                 }
 
+                if(_timeLastUpdateListenKey.AddMinutes(30) > DateTime.Now)
+                {   // спим 30 минут
+                    Thread.Sleep(10000);
+                    continue;
+                }
+
                 try
                 {
-                    //спим 30 минут
-                    Thread.Sleep(1800000);
-
                     if (_listenKey == "")
                     {
                         continue;
@@ -1346,6 +1408,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     string endpoint = "/openApi/user/auth/userDataStream";
 
                     HttpResponseMessage responseMessage = _httpPublicClient.GetAsync($"{_baseUrl}{endpoint}?listenKey={_listenKey}").Result;
+                 
+                    _timeLastUpdateListenKey = DateTime.Now;
                 }
                 catch
                 {

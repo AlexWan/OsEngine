@@ -169,6 +169,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewMarketDepthEvent(MarketDepth md)
         {
+            if (md.SecurityNameCode != SecurityNameToTrade)
+            {
+                return;
+            }
             _md = md;
         }
 
