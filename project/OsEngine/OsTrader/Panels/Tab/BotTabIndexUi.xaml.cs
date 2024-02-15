@@ -57,8 +57,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             ComboBoxIndexSortType.Items.Add(SecuritySortType.FirstInArray.ToString());
             ComboBoxIndexSortType.Items.Add(SecuritySortType.VolumeWeighted.ToString());
-            ComboBoxIndexSortType.Items.Add(SecuritySortType.MaxVolatilytiWeighted.ToString());
-            ComboBoxIndexSortType.Items.Add(SecuritySortType.MinVolatilytiWeighted.ToString());
+            ComboBoxIndexSortType.Items.Add(SecuritySortType.MaxVolatilityWeighted.ToString());
+            ComboBoxIndexSortType.Items.Add(SecuritySortType.MinVolatilityWeighted.ToString());
             ComboBoxIndexSortType.SelectedItem = autoFormulaBuilder.IndexSortType.ToString();
             ComboBoxIndexSortType.SelectionChanged += ComboBoxIndexSortType_SelectionChanged;
 

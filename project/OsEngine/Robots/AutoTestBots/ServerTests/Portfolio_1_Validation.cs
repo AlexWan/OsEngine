@@ -724,55 +724,95 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return false;
             }
 
-            if (order.TimeDone == DateTime.MinValue &&
-                order.State == OrderStateType.Done)
+            DateTime now = DateTime.Now;
+
+            if (order.TimeCallBack.AddDays(-1) > now)
             {
-                this.SetNewError("Error 33. Order Done, buy TimeDone is MinValue");
+                this.SetNewError("Error 33. Order. TimeCallBack is to big. Time: " + order.TimeCallBack.ToString());
                 return false;
             }
 
-            if (order.TimeCancel == DateTime.MinValue &&
-                order.State == OrderStateType.Cancel)
+            if (order.TimeCallBack.AddDays(1) < now)
             {
-                this.SetNewError("Error 34. Order Cancel, buy TimeCancel is MinValue");
+                this.SetNewError("Error 34. Order. TimeCallBack is to small. Time: " + order.TimeCallBack.ToString());
                 return false;
+            }
+
+            if(order.State == OrderStateType.Done)
+            {
+                if (order.TimeDone == DateTime.MinValue)
+                {
+                    this.SetNewError("Error 35. Order Done, TimeDone is MinValue");
+                    return false;
+                }
+                if (order.TimeDone.AddDays(-1) > now)
+                {
+                    this.SetNewError("Error 36. Order. TimeDone is to big. Time: " + order.TimeDone.ToString());
+                    return false;
+                }
+
+                if (order.TimeDone.AddDays(1) < now)
+                {
+                    this.SetNewError("Error 37. Order. TimeDone is to small. Time: " + order.TimeDone.ToString());
+                    return false;
+                }
+            }
+
+            if(order.State == OrderStateType.Cancel)
+            {
+                if (order.TimeCancel == DateTime.MinValue)
+                {
+                    this.SetNewError("Error 38. Order Cancel, buy TimeCancel is MinValue");
+                    return false;
+                }
+                if (order.TimeCancel.AddDays(-1) > now)
+                {
+                    this.SetNewError("Error 39. Order. TimeCancel is to big. Time: " + order.TimeCancel.ToString());
+                    return false;
+                }
+
+                if (order.TimeCancel.AddDays(1) < now)
+                {
+                    this.SetNewError("Error 40. Order. TimeCancel is to small. Time: " + order.TimeCancel.ToString());
+                    return false;
+                }
             }
 
             if (order.NumberUser == 0)
             {
-                this.SetNewError("Error 35. NumberUser is zero");
+                this.SetNewError("Error 41. NumberUser is zero");
                 return false;
             }
 
             if (order.State != OrderStateType.Fail
                 && string.IsNullOrEmpty(order.NumberMarket))
             {
-                this.SetNewError("Error 36. NumberMarket is null or empty");
+                this.SetNewError("Error 42. NumberMarket is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.SecurityNameCode))
             {
-                this.SetNewError("Error 37. SecurityNameCode is null or empty");
+                this.SetNewError("Error 43. SecurityNameCode is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.PortfolioNumber))
             {
-                this.SetNewError("Error 38. PortfolioNumber is null or empty");
+                this.SetNewError("Error 44. PortfolioNumber is null or empty");
                 return false;
             }
 
             if (order.Side == Side.None)
             {
-                this.SetNewError("Error 39. Side is None");
+                this.SetNewError("Error 45. Side is None");
                 return false;
             }
 
             if (order.State != OrderStateType.Fail
                 && order.Price <= 0)
             {
-                this.SetNewError("Error 40. Price is zero");
+                this.SetNewError("Error 46. Price is zero");
                 return false;
             }
 
@@ -780,7 +820,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 order.State != OrderStateType.Cancel &&
                 order.Volume <= 0)
             {
-                this.SetNewError("Error 41. Volume is zero");
+                this.SetNewError("Error 47. Volume is zero");
                 return false;
             }
 
@@ -814,44 +854,58 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (myTrade.Side != _whaitSide)
             {
-                this.SetNewError("Error 42. MyTrade. Whait side note equal. Whait: " + _whaitSide
+                this.SetNewError("Error 48. MyTrade. Whait side note equal. Whait: " + _whaitSide
                   + " Side in order: " + myTrade.Side);
                 return false;
             }
 
             if (myTrade.Volume <= 0)
             {
-                this.SetNewError("Error 43. MyTrade. Volume is zero");
+                this.SetNewError("Error 49. MyTrade. Volume is zero");
                 return false;
             }
 
             if (myTrade.Price <= 0)
             {
-                this.SetNewError("Error 44. MyTrade. Price is zero");
+                this.SetNewError("Error 50. MyTrade. Price is zero");
                 return false;
             }
 
             if (string.IsNullOrEmpty(myTrade.SecurityNameCode))
             {
-                this.SetNewError("Error 45. MyTrade. SecurityNameCode is null or empty");
+                this.SetNewError("Error 51. MyTrade. SecurityNameCode is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(myTrade.NumberOrderParent))
             {
-                this.SetNewError("Error 46. MyTrade. NumberOrderParent is null or empty");
+                this.SetNewError("Error 52. MyTrade. NumberOrderParent is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(myTrade.NumberTrade))
             {
-                this.SetNewError("Error 47. MyTrade. NumberTrade is null or empty");
+                this.SetNewError("Error 53. MyTrade. NumberTrade is null or empty");
                 return false;
             }
 
             if (myTrade.Time == DateTime.MinValue)
             {
-                this.SetNewError("Error 48. MyTrade. Time is min value");
+                this.SetNewError("Error 54. MyTrade. Time is min value");
+                return false;
+            }
+
+            DateTime now = DateTime.Now;
+
+            if (myTrade.Time.AddDays(-1) > now)
+            {
+                this.SetNewError("Error 55. MyTrade. Time is to big. Time: " + myTrade.Time.ToString());
+                return false;
+            }
+
+            if (myTrade.Time.AddDays(1) < now)
+            {
+                this.SetNewError("Error 56. MyTrade. Time is to small. Time: " + myTrade.Time.ToString());
                 return false;
             }
 

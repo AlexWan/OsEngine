@@ -2322,8 +2322,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     secInIndex.RemoveAt(secInIndex.Count - 1);
                 }
             }
-            else if (_indexSortType == SecuritySortType.MaxVolatilytiWeighted
-                || _indexSortType == SecuritySortType.MinVolatilytiWeighted)
+            else if (_indexSortType == SecuritySortType.MaxVolatilityWeighted
+                || _indexSortType == SecuritySortType.MinVolatilityWeighted)
             {
                 for (int i = 0; i < tabsInIndex.Count; i++)
                 {
@@ -2343,7 +2343,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 1; i < secInIndex.Count; i++)
                     {
-                        if (_indexSortType == SecuritySortType.MaxVolatilytiWeighted)
+                        if (_indexSortType == SecuritySortType.MaxVolatilityWeighted)
                         {
                             if (secInIndex[i].VolatylityDayPercent > secInIndex[i - 1].VolatylityDayPercent)
                             {
@@ -2352,7 +2352,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                                 secInIndex[i] = sec;
                             }
                         }
-                        else if (_indexSortType == SecuritySortType.MinVolatilytiWeighted)
+                        else if (_indexSortType == SecuritySortType.MinVolatilityWeighted)
                         {
                             if (secInIndex[i].VolatylityDayPercent < secInIndex[i - 1].VolatylityDayPercent)
                             {
@@ -2538,8 +2538,8 @@ namespace OsEngine.OsTrader.Panels.Tab
     {
         FirstInArray,
         VolumeWeighted,
-        MaxVolatilytiWeighted,
-        MinVolatilytiWeighted,
+        MaxVolatilityWeighted,
+        MinVolatilityWeighted,
     }
 
     /// <summary>
