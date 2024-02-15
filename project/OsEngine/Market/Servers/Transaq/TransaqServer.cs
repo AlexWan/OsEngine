@@ -1280,19 +1280,61 @@ namespace OsEngine.Market.Servers.Transaq
                     security.NameId = securityData.Secid;
                     security.Decimals = Convert.ToInt32(securityData.Decimals);
 
-                    security.SecurityType = securityData.Sectype == "FUT" ? SecurityType.Futures
-                        : securityData.Sectype == "SHARE" ? SecurityType.Stock
-                        : securityData.Sectype == "OPT" ? SecurityType.Option
-                        : securityData.Sectype == "BOND" ? SecurityType.Bond
-                        : securityData.Sectype == "CURRENCY" || securityData.Sectype == "CETS" ? SecurityType.CurrencyPair
-                        : SecurityType.None;
-
-                    if (security.NameClass == "MCT"
-                        && security.SecurityType == SecurityType.None
-                        && (security.NameFull.Contains("call") || security.NameFull.Contains("put")))
+                    if (securityData.Sectype == "FUT")
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+                    else if (securityData.Sectype == "SHARE")
+                    {
+                        security.SecurityType = SecurityType.Stock;
+                    }
+                    else if (securityData.Sectype == "OPT")
+                    {
+                        security.SecurityType = SecurityType.Option;
+                    }
+                    else if (securityData.Sectype == "BOND")
+                    {
+                        security.SecurityType = SecurityType.Bond;
+                    }
+                    else if (securityData.Sectype == "CURRENCY"
+                        || securityData.Sectype == "CETS"
+                        || security.NameClass == "CETS")
+                    {
+                        security.SecurityType = SecurityType.CurrencyPair;
+                    }
+                    else if (securityData.Sectype == "FUND")
+                    {
+                        security.SecurityType = SecurityType.Fund;
+                    }
+                    else if (security.NameClass == "MCT"
+                       && (security.NameFull.Contains("call") || security.NameFull.Contains("put")))
                     {
                         security.NameClass = "MCT_put_call";
+                        security.SecurityType = SecurityType.Option;
                     }
+                    else if (security.NameClass == "MCT")
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+                    else if (security.NameClass == "QUOTES")
+                    {
+                        // ignore
+                    }
+                    else if (security.NameClass == "DVP")
+                    {
+                        // ignore
+                    }
+                    else if (security.NameClass == "INDEXM"
+                        || security.NameClass == "INDEXE"
+                        || security.NameClass == "INDEXR")
+                    {
+                        security.SecurityType = SecurityType.Index;
+                    }
+                    else
+                    {
+                        //security.NameClass = securityData.Sectype;
+                    }
+
 
                     security.Lot = securityData.Lotsize.ToDecimal();
 
