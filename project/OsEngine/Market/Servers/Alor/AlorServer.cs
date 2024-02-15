@@ -366,13 +366,17 @@ namespace OsEngine.Market.Servers.Alor
                     {
                         newSecurity.NameClass = "Stock";
                     }
-		    else if (item.type == "CORP")
+		            else if (item.type == "CORP")
                     {
                         newSecurity.NameClass = "Bond";
                     }
                     else if (item.type == "PS")
                     {
                         newSecurity.NameClass = "Stock Pref";
+                    }
+                    else if (newSecurity.SecurityType == SecurityType.Fund)
+                    {
+                        newSecurity.NameClass = "Fund";
                     }
                     else
                     {
@@ -385,6 +389,7 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.PriceStep = item.minstep.ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
+
                     _securities.Add(newSecurity);
                 }
                    
@@ -398,10 +403,27 @@ namespace OsEngine.Market.Servers.Alor
         private SecurityType GetSecurityType(AlorSecurity security)
         {
             var cfiCode = security.cfiCode;
-            if (cfiCode.StartsWith("F")) return SecurityType.Futures;
-            if (cfiCode.StartsWith("O")) return SecurityType.Option;
-            if (cfiCode.StartsWith("ES") || cfiCode.StartsWith("EP")) return SecurityType.Stock;
-            if (cfiCode.StartsWith("DB")) return SecurityType.Bond;
+
+            if (cfiCode.StartsWith("F"))
+            {
+                return SecurityType.Futures;
+            }
+            else if (cfiCode.StartsWith("O"))
+            {
+                return SecurityType.Option;
+            }
+            else if (cfiCode.StartsWith("ES") || cfiCode.StartsWith("EP"))
+            {
+                return SecurityType.Stock;
+            }
+            else if (cfiCode.StartsWith("DB"))
+            { 
+                return SecurityType.Bond; 
+            }
+            else if(cfiCode.StartsWith("EUX"))
+            {
+                return SecurityType.Fund;
+            }
 
             var board = security.board;
             if (board == "CETS") return SecurityType.CurrencyPair;
@@ -420,6 +442,7 @@ namespace OsEngine.Market.Servers.Alor
                 case SecurityType.None when _useOther:
                 case SecurityType.Bond when _useOther:
                 case SecurityType.Index when _useOther:
+                case SecurityType.Fund when _useOther:
                     return true;
                 default:
                     return false;

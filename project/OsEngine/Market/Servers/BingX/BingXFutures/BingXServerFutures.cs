@@ -1074,7 +1074,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 TradeUpdateEvent responseOrder = JsonConvert.DeserializeObject<TradeUpdateEvent>(message);
                 MyTrade newTrade = new MyTrade();
 
-                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseOrder.o.T));
+                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseOrder.E));
                 newTrade.SecurityNameCode = responseOrder.o.s;
                 newTrade.NumberOrderParent = responseOrder.o.i;
                 newTrade.Price = responseOrder.o.ap.ToDecimal();

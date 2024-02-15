@@ -344,7 +344,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// index индекс
         /// </summary>
-        Index
+        Index,
+
+        /// <summary>
+        /// exchange fund
+        /// </summary>
+        Fund
     }
 
     /// <summary>
