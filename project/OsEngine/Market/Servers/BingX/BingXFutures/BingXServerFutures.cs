@@ -124,7 +124,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _rateGate = new RateGate(450, TimeSpan.FromSeconds(60));
+        private RateGate _rateGate = new RateGate(280, TimeSpan.FromSeconds(60)); // макс 1500 / 5 мин
 
         public string _publicKey;
 
@@ -784,7 +784,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
-                SendLogMessage($"Ошибка обработки ответа. Ошибка: {exception}", LogMessageType.Error);
+                SendLogMessage($"Error message read. Error: {exception}", LogMessageType.Error);
             }
         }
         #endregion
@@ -1407,8 +1407,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                     string endpoint = "/openApi/user/auth/userDataStream";
 
-                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync($"{_baseUrl}{endpoint}?listenKey={_listenKey}").Result;
-                 
+                    HttpResponseMessage responseMessage = _httpPublicClient.PutAsync($"{_baseUrl}{endpoint}?listenKey={_listenKey}", null).Result;
+
                     _timeLastUpdateListenKey = DateTime.Now;
                 }
                 catch
