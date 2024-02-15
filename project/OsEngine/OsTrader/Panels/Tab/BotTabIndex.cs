@@ -2141,19 +2141,17 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             // 5 Рассчитываем формулу
 
-            string formula = "(";
+            string formula = "";
 
             for (int i = 0; i < secInIndex.Count; i++)
             {
-                formula += secInIndex[i].Name;
+                formula += "(" + secInIndex[i].Name + ")";
 
                 if (i + 1 < secInIndex.Count)
                 {
                     formula += "+";
                 }
             }
-
-            formula += ")";
 
             //formula += "/" + tabToTrade.Name;
 
