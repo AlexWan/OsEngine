@@ -39,6 +39,7 @@ using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.Tinkoff;
+using OsEngine.Market.Servers.TinkoffInvestments;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
@@ -161,6 +162,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
                 serverTypes.Add(ServerType.Tinkoff);
+                serverTypes.Add(ServerType.TinkoffInvestments);
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
@@ -426,6 +428,10 @@ namespace OsEngine.Market
                 if (type == ServerType.Tinkoff)
                 {
                     newServer = new TinkoffServer();
+                }
+                if (type == ServerType.TinkoffInvestments)
+                {
+                    newServer = new TinkoffInvestmentsServer();
                 }
                 if (type == ServerType.Hitbtc)
                 {
@@ -1025,6 +1031,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new TinkoffServerPermission();
                 }
+                else if (type == ServerType.TinkoffInvestments)
+                {
+                    serverPermission = new TinkoffInvestmentsServerPermission();
+                }
                 else if (type == ServerType.HuobiSpot)
                 {
                     serverPermission = new HuobiSpotServerPermission();
@@ -1234,6 +1244,12 @@ namespace OsEngine.Market
         /// подключение к Тинькофф Инвест (выдающих кредиты под 70% годовых)
         /// </summary>
         Tinkoff,
+
+        /// <summary>
+        /// connection to Russian broker Tinkoff Investments
+        /// подключение к Тинькофф Инвестициям (версия 3 коннектора)
+        /// </summary>
+        TinkoffInvestments,
 
         /// <summary>
         /// cryptocurrency exchange Hitbtc

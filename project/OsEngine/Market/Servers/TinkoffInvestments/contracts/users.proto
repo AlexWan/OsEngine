@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+package tinkoff.public.invest.api.contract.v1;
+
+option go_package = "./;investapi";
+option java_package = "ru.tinkoff.piapi.contract.v1";
+option java_multiple_files = true;
+option csharp_namespace = "Tinkoff.InvestApi.V1";
+option objc_class_prefix = "TIAPI";
+option php_namespace = "Tinkoff\\Invest\\V1";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/field_behavior.proto";
+import "common.proto";
+
+service UsersService { /*Сервис предназначен для получения: </br> **1**.
+                       списка счетов пользователя; </br> **2**. маржинальных показателей по счёту.*/
+
+  //Метод получения счетов пользователя.
+  rpc GetAccounts (GetAccountsRequest) returns (GetAccountsResponse);
+
+  //Расчёт маржинальных показателей по счёту.
+  rpc GetMarginAttributes (GetMarginAttributesRequest) returns (GetMarginAttributesResponse);
+
+  //Запрос тарифа пользователя.
+  rpc GetUserTariff (GetUserTariffRequest) returns (GetUserTariffResponse);
+
+  //Метод получения информации о пользователе.
+  rpc GetInfo (GetInfoRequest) returns (GetInfoResponse);
+}
+
+//Запрос получения счетов пользователя.
+message GetAccountsRequest {}
+
+//Список счетов пользователя.
+message GetAccountsResponse {
+  // Массив счетов клиента.
+  repeated Account accounts = 1;
+}
+
+//Информация о счёте.
+message Account {
+
+  // Идентификатор счёта.
+  string id = 1;
+
+  // Тип счёта.
+  AccountType type = 2;
+
+  // Название счёта.
+  string name = 3;
+
+  // Статус счёта.
+  AccountStatus status = 4;
+
+  // Дата открытия счёта в часовом поясе UTC.
+  google.protobuf.Timestamp opened_date = 5;
+
+  // Дата закрытия счёта в часовом поясе UTC.
+  google.protobuf.Timestamp closed_date = 6;
+
+  // Уровень доступа к текущему счёту (определяется токеном).
+  AccessLevel access_level = 7;
+}
+
+//Тип счёта.
+enum AccountType {
+  ACCOUNT_TYPE_UNSPECIFIED = 0; //Тип аккаунта не определён.
+  ACCOUNT_TYPE_TINKOFF = 1; //Брокерский счёт Тинькофф.
+  ACCOUNT_TYPE_TINKOFF_IIS = 2; //ИИС счёт.
+  ACCOUNT_TYPE_INVEST_BOX = 3; //Инвесткопилка.
+}
+
+//Статус счёта.
+enum AccountStatus {
+  ACCOUNT_STATUS_UNSPECIFIED = 0; //Статус счёта не определён.
+  ACCOUNT_STATUS_NEW = 1; //Новый, в процессе открытия.
+  ACCOUNT_STATUS_OPEN = 2; //Открытый и активный счёт.
+  ACCOUNT_STATUS_CLOSED = 3; //Закрытый счёт.
+}
+
+//Запрос маржинальных показателей по счёту
+message GetMarginAttributesRequest {
+
+  // Идентификатор счёта пользователя.
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+//Маржинальные показатели по счёту.
+message GetMarginAttributesResponse {
+
+  // Ликвидная стоимость портфеля. Подробнее: [что такое ликвидный портфель?](https://help.tinkoff.ru/margin-trade/short/liquid-portfolio/).
+  MoneyValue liquid_portfolio = 1;
+
+  // Начальная маржа — начальное обеспечение для совершения новой сделки. Подробнее: [начальная и минимальная маржа](https://help.tinkoff.ru/margin-trade/short/initial-and-maintenance-margin/).
+  MoneyValue starting_margin = 2;
+
+  // Минимальная маржа — это минимальное обеспечение для поддержания позиции, которую вы уже открыли. Подробнее: [начальная и минимальная маржа](https://help.tinkoff.ru/margin-trade/short/initial-and-maintenance-margin/).
+  MoneyValue minimal_margin = 3;
+
+  // Уровень достаточности средств. Соотношение стоимости ликвидного портфеля к начальной марже.
+  Quotation funds_sufficiency_level = 4;
+
+  // Объем недостающих средств. Разница между стартовой маржой и ликвидной стоимости портфеля.
+  MoneyValue amount_of_missing_funds = 5;
+
+  // Скорректированная маржа.Начальная маржа, в которой плановые позиции рассчитываются с учётом активных заявок на покупку позиций лонг или продажу позиций шорт.
+  MoneyValue corrected_margin = 6;
+}
+
+//Запрос текущих лимитов пользователя.
+message GetUserTariffRequest {
+}
+
+//Текущие лимиты пользователя.
+message GetUserTariffResponse {
+  repeated UnaryLimit unary_limits = 1; //Массив лимитов пользователя по unary-запросам.
+  repeated StreamLimit stream_limits = 2; //Массив лимитов пользователей для stream-соединений.
+}
+
+//Лимит unary-методов.
+message UnaryLimit {
+  int32 limit_per_minute = 1; //Количество unary-запросов в минуту.
+  repeated string methods = 2; //Названия методов.
+}
+
+//Лимит stream-соединений.
+message StreamLimit {
+  int32 limit = 1; //Максимальное количество stream-соединений.
+  repeated string streams = 2; //Названия stream-методов.
+  int32 open = 3; //Текущее количество открытых stream-соединений.
+}
+
+//Запрос информации о пользователе.
+message GetInfoRequest {
+}
+
+//Информация о пользователе.
+message GetInfoResponse {
+  bool prem_status = 1; //Признак премиум клиента.
+  bool qual_status = 2; //Признак квалифицированного инвестора.
+  repeated string qualified_for_work_with = 3; //Набор требующих тестирования инструментов и возможностей, с которыми может работать пользователь. [Подробнее](https://russianinvestments.github.io/investAPI/faq_users/).
+  string tariff = 4; //Наименование тарифа пользователя.
+}
+
+//Уровень доступа к счёту.
+enum AccessLevel {
+  ACCOUNT_ACCESS_LEVEL_UNSPECIFIED = 0; //Уровень доступа не определён.
+  ACCOUNT_ACCESS_LEVEL_FULL_ACCESS = 1; //Полный доступ к счёту.
+  ACCOUNT_ACCESS_LEVEL_READ_ONLY = 2; //Доступ с уровнем прав "только чтение".
+  ACCOUNT_ACCESS_LEVEL_NO_ACCESS = 3; //Доступ отсутствует.
+}

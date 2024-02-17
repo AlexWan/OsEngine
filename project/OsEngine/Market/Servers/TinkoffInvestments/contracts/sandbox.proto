@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package tinkoff.public.invest.api.contract.v1;
+
+option go_package = "./;investapi";
+option java_package = "ru.tinkoff.piapi.contract.v1";
+option java_multiple_files = true;
+option csharp_namespace = "Tinkoff.InvestApi.V1";
+option objc_class_prefix = "TIAPI";
+option php_namespace = "Tinkoff\\Invest\\V1";
+
+import "common.proto";
+import "orders.proto";
+import "operations.proto";
+import "users.proto";
+import "google/api/field_behavior.proto";
+
+service SandboxService { //Сервис для работы с песочницей TINKOFF INVEST API
+
+  //Метод регистрации счёта в песочнице.
+  rpc OpenSandboxAccount(OpenSandboxAccountRequest) returns (OpenSandboxAccountResponse);
+
+  //Метод получения счетов в песочнице.
+  rpc GetSandboxAccounts(GetAccountsRequest) returns (GetAccountsResponse);
+
+  //Метод закрытия счёта в песочнице.
+  rpc CloseSandboxAccount(CloseSandboxAccountRequest) returns (CloseSandboxAccountResponse);
+
+  //Метод выставления торгового поручения в песочнице.
+  rpc PostSandboxOrder(PostOrderRequest) returns (PostOrderResponse);
+
+  //Метод изменения выставленной заявки.
+  rpc ReplaceSandboxOrder(ReplaceOrderRequest) returns (PostOrderResponse);
+
+  //Метод получения списка активных заявок по счёту в песочнице.
+  rpc GetSandboxOrders(GetOrdersRequest) returns (GetOrdersResponse);
+
+  //Метод отмены торгового поручения в песочнице.
+  rpc CancelSandboxOrder(CancelOrderRequest) returns (CancelOrderResponse);
+
+  //Метод получения статуса заявки в песочнице. Заявки хранятся в таблице 7 дней.
+  rpc GetSandboxOrderState(GetOrderStateRequest) returns (OrderState);
+
+  //Метод получения позиций по виртуальному счёту песочницы.
+  rpc GetSandboxPositions(PositionsRequest) returns (PositionsResponse);
+
+  //Метод получения операций в песочнице по номеру счёта.
+  rpc GetSandboxOperations(OperationsRequest) returns (OperationsResponse);
+
+  //Метод получения операций в песочнице по номеру счета с пагинацией.
+  rpc GetSandboxOperationsByCursor(GetOperationsByCursorRequest) returns (GetOperationsByCursorResponse);
+
+  //Метод получения портфолио в песочнице.
+  rpc GetSandboxPortfolio(PortfolioRequest) returns (PortfolioResponse);
+
+  //Метод пополнения счёта в песочнице.
+  rpc SandboxPayIn(SandboxPayInRequest) returns (SandboxPayInResponse);
+
+  //Метод получения доступного остатка для вывода средств в песочнице.
+  rpc GetSandboxWithdrawLimits(WithdrawLimitsRequest) returns (WithdrawLimitsResponse);
+}
+
+//Запрос открытия счёта в песочнице.
+message OpenSandboxAccountRequest {
+  //пустой запрос
+}
+
+//Номер открытого счёта в песочнице.
+message OpenSandboxAccountResponse {
+  string account_id = 1; //Номер счёта
+}
+
+//Запрос закрытия счёта в песочнице.
+message CloseSandboxAccountRequest {
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счёта
+}
+
+//Результат закрытия счёта в песочнице.
+message CloseSandboxAccountResponse {
+  //пустой ответ
+}
+
+//Запрос пополнения счёта в песочнице.
+message SandboxPayInRequest {
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счёта
+  MoneyValue amount = 2 [(google.api.field_behavior) = REQUIRED]; //Сумма пополнения счёта в рублях
+}
+
+//Результат пополнения счёта, текущий баланс.
+message SandboxPayInResponse {
+  MoneyValue balance = 1; //Текущий баланс счёта
+}
