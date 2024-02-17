@@ -4,7 +4,6 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BingX.BingXSpot.Entity;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.Hitbtc;
 using RestSharp;
 using System;
 using System.Collections.Concurrent;
@@ -131,7 +130,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _rateGate = new RateGate(480, TimeSpan.FromSeconds(60));
+        private RateGate _rateGate = new RateGate(280, TimeSpan.FromSeconds(60));
 
         private string _publicKey;
 
@@ -246,7 +245,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 Thread.Sleep(5000);
 
-                if(ServerStatus != ServerConnectStatus.Connect)
+                if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     continue;
                 }
@@ -595,6 +594,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
         private void CreateWebSocketConnect()
         {
             _listenKey = CreateListenKey();
+
+            if (_listenKey == null)
+            {
+                SendLogMessage("Autorization error. Listen key is note created", LogMessageType.Error);
+                return;
+            }
+
             string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
 
             _webSocket = new WebSocket(urlStr);
@@ -651,7 +657,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             SendLogMessage("Connection Open", LogMessageType.Connect);
 
-            if (ConnectEvent != null 
+            if (ConnectEvent != null
                 && ServerStatus != ServerConnectStatus.Connect)
             {
                 ServerStatus = ServerConnectStatus.Connect;
@@ -676,7 +682,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                if(ServerStatus != ServerConnectStatus.Connect)
+                if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     return;
                 }
@@ -699,6 +705,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 if (e.IsBinary)
                 {
                     string item = Decompress(e.RawData);
+
+                    if (item.Contains("Ping")) // отправлять сразу после получения. 
+                    {
+                        _webSocket.Send("Pong");
+                        return;
+                    }
+
                     _fifoListWebSocketMessage.Enqueue(item);
                 }
 
@@ -789,7 +802,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         continue;
                     }
 
-                    if(ServerStatus == ServerConnectStatus.Disconnect)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
                         continue;
@@ -797,42 +810,20 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                     if (_fifoListWebSocketMessage.TryDequeue(out string message))
                     {
-                        ResponceWebSocketBingXMessage<object> responseWebsocketMessage;
-
-                        if (message.Contains("ping"))
+                        if (message.Contains("spot.executionReport"))
                         {
-                            _webSocket.Send("pong");
+                            UpdateOrder(message);
                             continue;
                         }
-
-                        try
+                        else if (message.Contains("@depth20"))
                         {
-                            responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<object>());
-                        }
-                        catch
-                        {
+                            UpdateDepth(message);
                             continue;
                         }
-
-                        if (responseWebsocketMessage.dataType != null)
+                        else if (message.Contains("@trade"))
                         {
-                            if (responseWebsocketMessage.dataType.Contains("spot.executionReport"))
-                            {
-                                // у вебсокета нет подписки на трейды, так что получим их через http
-                                UpdateOrder(message);
-                                UpdateMyTrade(message);
-                                continue;
-                            }
-                            else if (responseWebsocketMessage.dataType.Contains("@depth20"))
-                            {
-                                UpdateDepth(message);
-                                continue;
-                            }
-                            else if (responseWebsocketMessage.dataType.Contains("@trade"))
-                            {
-                                UpdateTrade(message);
-                                continue;
-                            }
+                            UpdateTrade(message);
+                            continue;
                         }
                     }
                 }
@@ -846,133 +837,124 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void UpdateOrder(string message)
         {
-            ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData> responceOrder =
-                JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData>());
-
-            Order newOrder = new Order();
-
-            OrderStateType orderState = OrderStateType.None;
-
-            switch (responceOrder.data.X)
+            try
             {
-                case "FILLED":
-                    orderState = OrderStateType.Done;
-                    break;
-                case "PENDING":
-                    orderState = OrderStateType.Pending;
-                    break;
-                case "PARTIALLY_FILLED":
-                    orderState = OrderStateType.Patrial;
-                    break;
-                case "CANCELED":
-                    orderState = OrderStateType.Cancel;
-                    break;
-                case "FAILED":
-                    orderState = OrderStateType.Fail;
-                    break;
-                case "NEW":
-                    orderState = OrderStateType.Activ;
-                    break;
+                ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData> responceOrder =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData>());
+
+                Order newOrder = new Order();
+
+                OrderStateType orderState = OrderStateType.None;
+
+                switch (responceOrder.data.X)
+                {
+                    case "FILLED":
+                        orderState = OrderStateType.Done;
+                        break;
+                    case "PENDING":
+                        orderState = OrderStateType.Activ;
+                        break;
+                    case "PARTIALLY_FILLED":
+                        orderState = OrderStateType.Patrial;
+                        break;
+                    case "CANCELED":
+                        orderState = OrderStateType.Cancel;
+                        break;
+                    case "FAILED":
+                        orderState = OrderStateType.Fail;
+                        break;
+                    case "NEW":
+                        orderState = OrderStateType.Activ;
+                        break;
+                }
+
+                newOrder.NumberUser = Convert.ToInt32(responceOrder.data.C);
+                newOrder.NumberMarket = responceOrder.data.i.ToString();
+                newOrder.SecurityNameCode = responceOrder.data.s;
+                newOrder.SecurityClassCode = responceOrder.data.s.Split('-')[1];
+                newOrder.PortfolioNumber = "BingXSpot";
+                newOrder.Side = responceOrder.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
+                newOrder.Price = responceOrder.data.p.Replace('.', ',').ToDecimal();
+                newOrder.Volume = responceOrder.data.q.Replace('.', ',').ToDecimal();
+                newOrder.State = orderState;
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceOrder.data.E));
+                newOrder.TypeOrder = responceOrder.data.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                newOrder.ServerType = ServerType.BingXSpot;
+
+                MyOrderEvent(newOrder);
+
+                //если ордер исполнен, вызываем MyTradeEvent
+                if (orderState == OrderStateType.Done
+                    || orderState == OrderStateType.Patrial)
+                {
+                    UpdateMyTrade(message);
+                }
             }
-
-            newOrder.NumberUser = Convert.ToInt32(responceOrder.data.C);
-            newOrder.NumberMarket = responceOrder.data.i.ToString();
-            newOrder.SecurityNameCode = responceOrder.data.s;
-            newOrder.SecurityClassCode = responceOrder.data.s.Split('-')[1];
-            newOrder.PortfolioNumber = "BingXSpot";
-            newOrder.Side = responceOrder.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
-            newOrder.Price = responceOrder.data.p.Replace('.', ',').ToDecimal();
-            newOrder.Volume = responceOrder.data.q.Replace('.', ',').ToDecimal();
-            newOrder.State = orderState;
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceOrder.data.E));
-            newOrder.TypeOrder = responceOrder.data.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
-            newOrder.ServerType = ServerType.BingXSpot;
-
-            MyOrderEvent(newOrder);
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private void UpdateMyTrade(string message)
         {
-            _rateGate.WaitToProceed();
-
-            ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData> responceOrder =
-                JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData>());
-
-            RestClient client = new RestClient(_baseUrl);
-            RestRequest request = new RestRequest("/openApi/spot/v1/trade/myTrades", Method.GET);
-
-            string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            string parameters = $"timestamp={timeStamp}&symbol={responceOrder.data.s}&orderId={responceOrder.data.i}";
-            string sign = CalculateHmacSha256(parameters);
-
-            request.AddParameter("timestamp", timeStamp);
-            request.AddParameter("symbol", responceOrder.data.s);
-            request.AddParameter("orderId", responceOrder.data.i);
-            request.AddParameter("signature", sign);
-            request.AddHeader("X-BX-APIKEY", _publicKey);
-
-            IRestResponse json = client.Execute(request); // получим данные о транзакциях
-
-            if (json.StatusCode == HttpStatusCode.OK)
+            try
             {
-                ResponseSpotBingX<QueryTransactionDetails> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<QueryTransactionDetails>());
-                if (response.code == "0")
-                {
-                    for (int i = 0; i < response.data.fills.Count; i++)
-                    {
-                        string security = response.data.fills[i].symbol;
+                ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData> responceOrder =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData>());
 
-                        MyTrade newTrade = new MyTrade();
+                MyTrade newTrade = new MyTrade();
 
-                        newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.fills[i].time));
-                        newTrade.SecurityNameCode = security;
-                        newTrade.NumberOrderParent = response.data.fills[i].orderId;
-                        newTrade.Price = response.data.fills[i].price.ToDecimal();
-                        newTrade.NumberTrade = response.data.fills[i].id;
-                        newTrade.Side = response.data.fills[i].isBuyer.Equals("true") ? Side.Buy : Side.Sell;
-                        newTrade.Volume = response.data.fills[i].qty.ToDecimal();
-                        MyTradeEvent(newTrade);
-                    }
-                }
-                else
-                {
-                    ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                    SendLogMessage($"Ошибка обработки трейдов: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Error);
-                }
+                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceOrder.data.T));
+                newTrade.SecurityNameCode = responceOrder.data.s;
+                newTrade.NumberOrderParent = responceOrder.data.i;
+                newTrade.Price = responceOrder.data.p.ToDecimal();
+                newTrade.NumberTrade = responceOrder.data.t;
+                newTrade.Side = responceOrder.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
+                newTrade.Volume = responceOrder.data.q.ToDecimal();
+
+                MyTradeEvent(newTrade);
             }
-            else
+            catch (Exception exception)
             {
-                SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
         private void UpdateTrade(string message)
         {
-            ResponceWebSocketBingXMessage<ResponseWebSocketTrade> responceTrades =
-                JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<ResponseWebSocketTrade>());
+            try
+            {
+                ResponceWebSocketBingXMessage<ResponseWebSocketTrade> responceTrades =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<ResponseWebSocketTrade>());
 
-            Trade trade = new Trade();
-            trade.SecurityNameCode = responceTrades.data.s;
+                Trade trade = new Trade();
+                trade.SecurityNameCode = responceTrades.data.s;
 
-            trade.Price = responceTrades.data.p.Replace('.', ',').ToDecimal();
-            trade.Id = responceTrades.data.t;
-            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceTrades.data.T));
-            trade.Volume = responceTrades.data.q.Replace('.', ',').ToDecimal();
-            if (responceTrades.data.m == "true")
-                trade.Side = Side.Sell;
-            else trade.Side = Side.Buy;
+                trade.Price = responceTrades.data.p.Replace('.', ',').ToDecimal();
+                trade.Id = responceTrades.data.t;
+                trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceTrades.data.T));
+                trade.Volume = responceTrades.data.q.Replace('.', ',').ToDecimal();
+                if (responceTrades.data.m == "true")
+                    trade.Side = Side.Sell;
+                else trade.Side = Side.Buy;
 
-            NewTradesEvent(trade);
+                NewTradesEvent(trade);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private readonly Dictionary<string, MarketDepth> _allDepths = new Dictionary<string, MarketDepth>();
 
         private void UpdateDepth(string message)
         {
-            ResponceWebSocketBingXMessage<MarketDepthDataMessage> responceDepths =
-                JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<MarketDepthDataMessage>());
             try
             {
+                ResponceWebSocketBingXMessage<MarketDepthDataMessage> responceDepths =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<MarketDepthDataMessage>());
                 MarketDepth depth = new MarketDepth();
 
                 List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
@@ -1121,7 +1103,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
                 if (response.code == "0")
                 {
-                    
+
                 }
                 else
                 {
@@ -1161,7 +1143,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
                 if (response.code == "0")
                 {
-                    
+
                 }
                 else
                 {
@@ -1220,30 +1202,38 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 string response = new RestClient(baseUrl).Execute(request).Content;
 
                 string responseStr = JsonConvert.DeserializeAnonymousType(response, new ListenKeyBingX()).listenKey;
+
+                _timeLastUpdateListenKey = DateTime.Now;
+
                 return responseStr;
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
             }
         }
+
+        private DateTime _timeLastUpdateListenKey = DateTime.MinValue;
 
         private void RequestListenKey()
         {
             while (true)
             {
-                if(ServerStatus != ServerConnectStatus.Connect)
+                if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     Thread.Sleep(5000);
                     continue;
                 }
 
+                if (_timeLastUpdateListenKey.AddMinutes(30) > DateTime.Now)
+                {   // спим 30 минут
+                    Thread.Sleep(10000);
+                    continue;
+                }
+
                 try
                 {
-                    //спим 30 минут
-                    Thread.Sleep(1800000);
-
                     if (_listenKey == "")
                     {
                         continue;
@@ -1253,11 +1243,18 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                     string endpoint = "/openApi/user/auth/userDataStream";
 
-                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync($"{_baseUrl}{endpoint}?listenKey={_listenKey}").Result;
+                    RestClient client = new RestClient(_baseUrl);
+                    RestRequest request = new RestRequest(endpoint, Method.PUT);
+
+                    request.AddQueryParameter("listenKey", _listenKey);
+
+                    IRestResponse response = client.Execute(request);
+
+                    _timeLastUpdateListenKey = DateTime.Now;
                 }
-                catch
+                catch (Exception exception)
                 {
-                    SendLogMessage(" Request Listen Key Error", LogMessageType.Error);
+                    SendLogMessage($"Request Listen Key Error. Error: {exception}", LogMessageType.Error);
                 }
             }
         }
@@ -1297,7 +1294,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             catch
             {
-                SendLogMessage("Decompress error",LogMessageType.Error);
+                SendLogMessage("Decompress error", LogMessageType.Error);
                 return null;
             }
         }

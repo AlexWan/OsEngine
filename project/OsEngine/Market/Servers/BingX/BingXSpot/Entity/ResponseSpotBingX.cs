@@ -19,26 +19,6 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot.Entity
         public List<SymbolData> symbols { get; set; }
     }
 
-    public class QueryTransactionDetails
-    {
-        public List<Fill> fills { get; set; }
-    }
-
-    public class Fill
-    {
-        public string symbol { get; set; } // Trading symbol
-        public string id { get; set; } // Trade ID
-        public string orderId { get; set; } // Order ID
-        public string price { get; set; } // Price of the trade
-        public string qty { get; set; } // Quantity of the trade
-        public string quoteQty { get; set; } // Quote asset quantity traded
-        public string commission { get; set; } // Commission amount
-        public string commissionAsset { get; set; } // Commission asset type
-        public string time { get; set; } // Trade time
-        public string isBuyer { get; set; } // Whether the buyer
-        public string isMaker { get; set; } // Whether the maker
-    }
-
     public class BalanceData
     {
         public string asset; // Asset name

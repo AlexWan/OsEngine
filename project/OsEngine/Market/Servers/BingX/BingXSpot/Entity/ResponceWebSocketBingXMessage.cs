@@ -50,42 +50,6 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot.Entity
         public List<string[]> bids;
         public List<string[]> asks;
     }
-    public class SubscriptionAccountBalancePush
-    {
-        public string e; // Event Type
-        public string E; // event time
-        public string T; //Matching time
-        public AccountСontainer a; // Asset Name
-    }
-
-    public class AccountСontainer
-    {
-        public List<BalancesСontainer> B;
-        public string m; //event launch reason. includes the following possible types:
-                         // DEPOSIT
-                         // WITHDRAW
-                         // ORDER
-                         // FUNDING_FEE
-                         // WITHDRAW_REJECT
-                         // ADJUSTMENT
-                         // INSURANCE_CLEAR
-                         // ADMIN_DEPOSIT
-                         // ADMIN_WITHDRAW
-                         // MARGIN_TRANSFER
-                         // MARGIN_TYPE_CHANGE
-                         // ASSET_TRANSFER
-                         // OPTIONS_PREMIUM_FEE
-                         // OPTIONS_SETTLE_PROFIT
-                         // AUTO_EXCHANGE
-    }
-
-    public class BalancesСontainer
-    {
-        public string a;  // Asset Name
-        public string bc; // The amount of change in the asset account in this transaction
-        public string wb; // Wallet Balance
-        public string cw; // Cross Wallet Balance
-    }
 
     public class ResponseWebSocketTrade
     {
@@ -97,11 +61,5 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot.Entity
         public string q { get; set; } // Executed quantity
         public string T { get; set; } // transaction time
         public string m { get; set; } // Whether the buyer is a market maker. If true, this transaction is an active sell order, otherwise it is an active buy order
-    }
-
-    public class ResponseWebSocketPing
-    {
-        public string ping { get; set; }
-        public string time { get; set; }
     }
 }
