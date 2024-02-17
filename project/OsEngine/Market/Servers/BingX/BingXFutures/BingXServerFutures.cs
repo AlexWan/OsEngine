@@ -426,9 +426,19 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             return RequestCandleHistory(security.Name, tf);
         }
 
+        private DateTime _timeLastRequestCandleHistory = DateTime.Now;
+
         private List<Candle> RequestCandleHistory(string nameSec, string tameFrame, long limit = 500, long fromTimeStamp = 0, long toTimeStamp = 0)
         {
             _rateGate.WaitToProceed();
+
+            while (true)
+            {
+                if (_timeLastRequestCandleHistory.AddMilliseconds(100) > DateTime.Now)
+                    continue;
+                else
+                    break;
+            }
 
             try
             {
@@ -453,6 +463,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                    _timeLastRequestCandleHistory = DateTime.Now;
 
                     try
                     {
@@ -668,7 +680,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             _listenKey = CreateListenKey();
 
-            if(_listenKey == null)
+            if (_listenKey == null)
             {
                 SendLogMessage("Autorization error. Listen key is note created", LogMessageType.Error);
                 return;
@@ -985,7 +997,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         position.SecurityNameCode = accountUpdate.a.P[i].s + "_LONG";
 
                         portfolio.SetNewPosition(position);
-
                     }
                     else if (accountUpdate.a.P[i].ps.Equals("SHORT"))
                     {
@@ -1053,7 +1064,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 MyOrderEvent(newOrder);
 
                 //если ордер исполнен, вызываем MyTradeEvent
-                if (orderState == OrderStateType.Done 
+                if (orderState == OrderStateType.Done
                     || orderState == OrderStateType.Patrial)
                 {
                     UpdateMyTrade(message);
@@ -1099,7 +1110,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             decimal result = 0;
 
-            for(int i = 0;i < _myTrades.Count;i++)
+            for (int i = 0; i < _myTrades.Count; i++)
             {
                 if (_myTrades[i].NumberOrderParent == orderNum)
                 {
@@ -1282,7 +1293,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public void CancelAllOrders()
         {
-            
+
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -1357,8 +1368,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
             try
             {
-                _timeLastUpdateListenKey = DateTime.Now;
-
                 string endpoint = "/openApi/user/auth/userDataStream";
 
                 RestRequest request = new RestRequest(endpoint, Method.POST);
@@ -1367,6 +1376,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 string json = new RestClient(_baseUrl).Execute(request).Content;
 
                 ListenKeyBingXFutures responseStr = JsonConvert.DeserializeObject<ListenKeyBingXFutures>(json);
+
+                _timeLastUpdateListenKey = DateTime.Now;
+
                 return responseStr.listenKey;
             }
             catch (Exception exception)
@@ -1390,7 +1402,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     continue;
                 }
 
-                if(_timeLastUpdateListenKey.AddMinutes(30) > DateTime.Now)
+                if (_timeLastUpdateListenKey.AddMinutes(30) > DateTime.Now)
                 {   // спим 30 минут
                     Thread.Sleep(10000);
                     continue;
@@ -1407,7 +1419,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                     string endpoint = "/openApi/user/auth/userDataStream";
 
-                    HttpResponseMessage responseMessage = _httpPublicClient.PutAsync($"{_baseUrl}{endpoint}?listenKey={_listenKey}", null).Result;
+                    RestClient client = new RestClient(_baseUrl);
+                    RestRequest request = new RestRequest(endpoint, Method.PUT);
+
+                    request.AddQueryParameter("listenKey", _listenKey);
+
+                    IRestResponse response = client.Execute(request);
 
                     _timeLastUpdateListenKey = DateTime.Now;
                 }
