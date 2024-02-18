@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Grpc.Tools.2.61.0\build\Grpc.Tools.props" Condition="Exists('..\packages\Grpc.Tools.2.61.0\build\Grpc.Tools.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -836,6 +835,22 @@
     <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
     <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\Common.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\FieldBehavior.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\Instruments.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\InstrumentsGrpc.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\Marketdata.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\MarketdataGrpc.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\Operations.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\OperationsGrpc.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\Orders.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\OrdersGrpc.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\Sandbox.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\SandboxGrpc.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\Stoporders.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\StopordersGrpc.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\Users.cs" />
+    <Compile Include="Market\Servers\TinkoffInvestments\contracts\UsersGrpc.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServerPermission.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffClient.cs" />
@@ -1769,15 +1784,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\common.proto" GrpcServices="Client" />
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\google\api\field_behavior.proto" GrpcServices="Client" />
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\instruments.proto" GrpcServices="Client" />
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\marketdata.proto" GrpcServices="Client" />
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\operations.proto" GrpcServices="Client" />
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\orders.proto" GrpcServices="Client" />
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\sandbox.proto" GrpcServices="Client" />
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\stoporders.proto" GrpcServices="Client" />
-    <Protobuf ProtoRoot="Market\Servers\TinkoffInvestments\contracts\" Include="Market\Servers\TinkoffInvestments\contracts\users.proto" GrpcServices="Client" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -1890,10 +1896,7 @@
       <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets'))" />
-    <Error Condition="!Exists('..\packages\Grpc.Tools.2.61.0\build\Grpc.Tools.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grpc.Tools.2.61.0\build\Grpc.Tools.props'))" />
-    <Error Condition="!Exists('..\packages\Grpc.Tools.2.61.0\build\Grpc.Tools.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grpc.Tools.2.61.0\build\Grpc.Tools.targets'))" />
   </Target>
-  <Import Project="..\packages\Grpc.Tools.2.61.0\build\Grpc.Tools.targets" Condition="Exists('..\packages\Grpc.Tools.2.61.0\build\Grpc.Tools.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
