@@ -36,6 +36,9 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <CoreCompileDependsOn>$(CoreCompileDependsOn);Protobuf_Compile</CoreCompileDependsOn>
   </PropertyGroup>
+  <PropertyGroup>
+    <Protobuf_Generator>CSharp</Protobuf_Generator>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
