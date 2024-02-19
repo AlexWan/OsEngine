@@ -344,15 +344,17 @@ namespace OsEngine.Market.Servers.Quik
             {
                 if (connectionEvent == Trans2Quik.QuikResult.DLL_CONNECTED)
                 {
+                    _connectToBrokerStatus = ServerConnectStatus.Connect;
                     _transe2QuikStatus = ServerConnectStatus.Connect;
                     SendLogMessage(OsLocalization.Market.Message85 + _transe2QuikStatus, LogMessageType.System);
                 }
                 if (connectionEvent == Trans2Quik.QuikResult.DLL_DISCONNECTED)
                 {
+                    _connectToBrokerStatus = ServerConnectStatus.Disconnect;
                     _transe2QuikStatus = ServerConnectStatus.Disconnect;
                     SendLogMessage(OsLocalization.Market.Message85 + _transe2QuikStatus, LogMessageType.System);
                 }
-                if (connectionEvent == Trans2Quik.QuikResult.QUIK_CONNECTED)
+               /* if (connectionEvent == Trans2Quik.QuikResult.QUIK_CONNECTED)
                 {
                     _connectToBrokerStatus = ServerConnectStatus.Connect;
                     SendLogMessage(OsLocalization.Market.Message86 + ServerConnectStatus.Connect, LogMessageType.System);
@@ -361,7 +363,7 @@ namespace OsEngine.Market.Servers.Quik
                 {
                     _connectToBrokerStatus = ServerConnectStatus.Disconnect;
                     SendLogMessage(OsLocalization.Market.Message86 + ServerConnectStatus.Disconnect, LogMessageType.System);
-                }
+                }*/
             }
             catch (Exception erorr)
             {
