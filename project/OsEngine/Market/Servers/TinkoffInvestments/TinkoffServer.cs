@@ -819,8 +819,15 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     PortfolioRequest portfolioRequest = new PortfolioRequest();
                     portfolioRequest.AccountId = account.Id;
 
-                    PortfolioResponse portfolioResponse =
-                        _operationsClient.GetPortfolio(portfolioRequest, _gRpcMetadata);
+                    PortfolioResponse portfolioResponse = null;
+                    try
+                    {
+                        portfolioResponse = _operationsClient.GetPortfolio(portfolioRequest, _gRpcMetadata);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage("Error getting portfolio.", LogMessageType.Error);
+                    }
 
                     GetPortfolios(portfolioResponse);
                     UpdatePositionsInPortfolio(portfolioResponse);
@@ -859,61 +866,139 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         
         private void UpdatePositionsInPortfolio(PortfolioResponse portfolio)
         {
-            Portfolio myPortfolio = _myPortfolios.Find(p => p.Number == portfolio.AccountId);
+            Portfolio portf = _myPortfolios.Find(p => p.Number == portfolio.AccountId);
 
-            if (myPortfolio == null)
+            if (portf == null)
             {
                 return;
             }
 
             List<PositionOnBoard> sectionPoses = new List<PositionOnBoard>();
 
-            for (int i = 0; i < portfolio.Positions.Count; i++)
+            PositionsRequest positionsRequest = new PositionsRequest();
+            positionsRequest.AccountId = portf.Number;
+
+            PositionsResponse posData = null;
+
+            try
             {
-                PortfolioPosition position = portfolio.Positions[i];
+                posData = _operationsClient.GetPositions(positionsRequest, _gRpcMetadata);
+            }
+            catch
+            {
+                SendLogMessage("Error getting positions in portfolio", LogMessageType.Error);
+            }
+          
+
+            for (int i = 0; i < posData.Securities.Count; i++)
+            {
+                PositionsSecurities pos = posData.Securities[i];
 
                 InstrumentRequest instrumentRequest = new InstrumentRequest();
-                instrumentRequest.Id = position.InstrumentUid;
+                instrumentRequest.Id = pos.InstrumentUid;
                 instrumentRequest.IdType = InstrumentIdType.Uid;
 
-                _rateGateInstruments.WaitToProceed();
-                InstrumentResponse instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                InstrumentResponse instrument = null;
 
-                PositionOnBoard pos = new PositionOnBoard();
-                pos.PortfolioName = portfolio.AccountId;
-                pos.ValueCurrent = GetValue(position.Quantity);
-                pos.ValueBegin = pos.ValueCurrent;
-                pos.SecurityNameCode = instrument.Instrument.Ticker;
-                if (instrument.Instrument.InstrumentType == "currency")
+                try
                 {
-                    pos.SecurityNameCode = instrument.Instrument.Currency;
+                    _rateGateInstruments.WaitToProceed();
+                    instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
                 }
 
-                sectionPoses.Add(pos);
+                PositionOnBoard newPos = new PositionOnBoard();
+
+                newPos.PortfolioName = portf.Number;
+                newPos.ValueCurrent = pos.Balance;
+                newPos.ValueBlocked = pos.Blocked;
+                newPos.ValueBegin = newPos.ValueCurrent;
+                newPos.SecurityNameCode = instrument.Instrument.Ticker;
+
+                sectionPoses.Add(newPos);
+            }
+
+            for (int i = 0; i < posData.Futures.Count; i++)
+            {
+                PositionsFutures pos = posData.Futures[i];
+
+                InstrumentRequest instrumentRequest = new InstrumentRequest();
+                instrumentRequest.Id = pos.InstrumentUid;
+                instrumentRequest.IdType = InstrumentIdType.Uid;
+                InstrumentResponse instrument = null;
+
+                try
+                {
+                    _rateGateInstruments.WaitToProceed();
+                    instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
+                }
+
+                PositionOnBoard newPos = new PositionOnBoard();
+
+                newPos.PortfolioName = portf.Number;
+                newPos.ValueCurrent = pos.Balance;
+                newPos.ValueBlocked = pos.Blocked;
+                newPos.ValueBegin = newPos.ValueCurrent;
+                newPos.SecurityNameCode = instrument.Instrument.Ticker;
+
+                sectionPoses.Add(newPos);
+            }
+
+            for (int i = 0; i < posData.Options.Count; i++)
+            {
+                PositionsOptions pos = posData.Options[i];
+
+                InstrumentRequest instrumentRequest = new InstrumentRequest();
+                instrumentRequest.Id = pos.InstrumentUid;
+                instrumentRequest.IdType = InstrumentIdType.Uid;
+                InstrumentResponse instrument = null;
+
+                try
+                {
+                    _rateGateInstruments.WaitToProceed();
+                    instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + ex.ToString(), LogMessageType.Error);
+                }
+
+                PositionOnBoard newPos = new PositionOnBoard();
+
+                newPos.PortfolioName = portf.Number;
+                newPos.ValueCurrent = pos.Balance;
+                newPos.ValueBlocked = pos.Blocked;
+                newPos.ValueBegin = newPos.ValueCurrent;
+                newPos.SecurityNameCode = instrument.Instrument.Ticker;
+
+                sectionPoses.Add(newPos);
+            }
+            
+            for (int i = 0; i < posData.Money.Count; i++) // posData.Blocked обработать отдельно?
+            {
+                MoneyValue posMoney = posData.Money[i];
+           
+                PositionOnBoard newPos = new PositionOnBoard();
+
+                newPos.PortfolioName = portf.Number;
+                newPos.ValueCurrent = GetValue(posMoney);
+                newPos.ValueBegin = newPos.ValueCurrent;
+                
+                newPos.SecurityNameCode = posMoney.Currency;
+
+                sectionPoses.Add(newPos);
             }
 
             for (int i = 0; i < sectionPoses.Count; i++)
             {
-                myPortfolio.SetNewPosition(sectionPoses[i]);
-            }
-            
-            // теперь обновляем очищенные позиции
-            List<PositionOnBoard> allPoses = myPortfolio.GetPositionOnBoard();
-
-            if (allPoses != null)
-            {
-                for (int i = 0; i < allPoses.Count; i++)
-                {
-                    string name = allPoses[i].SecurityNameCode;
-
-                    if (sectionPoses.Find(s => s.SecurityNameCode == name) != null)
-                    {
-                        continue;
-                    }
-                    
-                    // позиция по бумаге обнулена. Правим
-                    allPoses[i].ValueCurrent = 0;
-                }
+                portf.SetNewPosition(sectionPoses[i]);
             }
         }
         
