@@ -910,9 +910,13 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         
         bool isTodayATradingDayForSecurity(Security security)
         {
+            if (security == null)
+                return true;
+
             string exchangeToAskSchedule = security.Exchange.Split('_')[0];
             
-            TradingSchedulesResponse thisDaySchedules;
+            TradingSchedulesResponse thisDaySchedules = null;
+
             if (_tradingSchedules.ContainsKey(DateTime.UtcNow.Date))
             {
                 thisDaySchedules = _tradingSchedules[DateTime.UtcNow.Date];
@@ -925,10 +929,21 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 TradingSchedulesRequest tradingSchedulesRequest = new TradingSchedulesRequest();
                 tradingSchedulesRequest.From = from;
                 tradingSchedulesRequest.To = to;
-                thisDaySchedules = _instrumentsClient.TradingSchedules(tradingSchedulesRequest, _gRpcMetadata);
-                
+
+                try
+                {
+                    thisDaySchedules = _instrumentsClient.TradingSchedules(tradingSchedulesRequest, _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error fetching trading schedules", LogMessageType.Error);
+                }
+
                 _tradingSchedules[DateTime.UtcNow.Date] = thisDaySchedules;
             }
+
+            if (thisDaySchedules == null)
+                return true;
 
             TradingDay day = null;
             for (int i = 0; i < thisDaySchedules.Exchanges.Count; i++)
@@ -1261,6 +1276,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     if (marketDataResponse.Trade != null)
                     {
                         Security security = GetSecurity(marketDataResponse.Trade.InstrumentUid);
+                        if (security == null)
+                            continue;
 
                         if (_filterOutNonMarketData)
                         {
@@ -1285,7 +1302,9 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     if (marketDataResponse.Orderbook != null)
                     {
                         Security security = GetSecurity(marketDataResponse.Orderbook.InstrumentUid);
-                        
+                        if (security == null)
+                            continue;
+
                         if (_filterOutNonMarketData)
                         {
                             if (isTodayATradingDayForSecurity(security) == false)
