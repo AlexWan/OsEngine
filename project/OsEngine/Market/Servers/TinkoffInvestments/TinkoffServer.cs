@@ -20,6 +20,7 @@ using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
+using OsEngine.Market.Servers.OKX.Entity;
 
 namespace OsEngine.Market.Servers.TinkoffInvestments
 {
@@ -76,7 +77,6 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         {
             try
             {
-                _securities.Clear();
                 _myPortfolios.Clear();
                 _subscribedSecurities.Clear();
              
@@ -140,42 +140,81 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             }
         }
         
-        public async void Dispose()
+        public void Dispose()
         {
-            _securities.Clear();
-            _subscribedSecurities.Clear();
-            _myPortfolios.Clear();
-
             // останавливаем чтение всех потоков
             if (_marketDataStream != null)
             {
-                await _marketDataStream.RequestStream.CompleteAsync();
+                try
+                {
+                    _marketDataStream.RequestStream.CompleteAsync().Wait();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error cancelling stream", LogMessageType.Error);
+                }
+
                 SendLogMessage("Completed exchange with market data stream", LogMessageType.System);
             }
 
             if (_cancellationTokenSource != null)
             {
-                _cancellationTokenSource.Cancel();
+                try
+                {
+                    _cancellationTokenSource.Cancel();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                }
             }
 
             if (_marketDataStream != null)
             {
-                _marketDataStream.Dispose();
+                try
+                {
+                    _marketDataStream.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                }
             }
 
             if (_portfolioDataStream != null)
             {
-                _portfolioDataStream.Dispose();
+                try
+                {
+                    _portfolioDataStream.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                }
             }
 
             if (_positionsDataStream != null)
             {
-                _positionsDataStream.Dispose();
+                try
+                {
+                    _positionsDataStream.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                }
             }
 
             if (_myTradesDataStream != null)
             {
-                _myTradesDataStream.Dispose();
+                try
+                {
+                    _myTradesDataStream.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                }
             }
 
             _marketDataStream = null;
@@ -184,6 +223,13 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             _myTradesDataStream = null;
             
             SendLogMessage("Connection Closed by TinkoffInvestments. Data streams Closed Event", LogMessageType.System);
+
+            _subscribedSecurities.Clear();
+            _myPortfolios.Clear();
+            _lastMarketDataTime = DateTime.Now;
+            _lastMdTime = DateTime.Now;
+            _lastMyTradesDataTime = DateTime.Now;
+            _lastPortfolioDataTime = DateTime.Now;
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
@@ -221,44 +267,118 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         #region 3 Securities
 
+        private RateGate _rateGateInstruments = new RateGate(200, TimeSpan.FromMinutes(1));
+
         public void GetSecurities()
         {
-            //securities?sector=FOND&limit=1000
             _useStock = ((ServerParameterBool)ServerParameters[1]).Value;
             _useFutures = ((ServerParameterBool)ServerParameters[2]).Value;
             _useOptions = ((ServerParameterBool)ServerParameters[3]).Value;
             _useOther = ((ServerParameterBool)ServerParameters[4]).Value;
 
-            CurrenciesResponse currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata);
+            _rateGateInstruments.WaitToProceed();
+            CurrenciesResponse currenciesResponse = null;
+            try
+            {
+                currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error loading securities", LogMessageType.Error);
+            }
+
             UpdateCurrenciesFromServer(currenciesResponse);
 
             if (_useStock || _useOther)
             {
-                SharesResponse result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
+                _rateGateInstruments.WaitToProceed();
+                SharesResponse result = null;
+                try
+                {
+                    result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                }
+
                 UpdateSharesFromServer(result);
             }
             
             if (_useFutures)
             {
-                FuturesResponse result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
+                _rateGateInstruments.WaitToProceed();
+                FuturesResponse result = null;
+                try
+                {
+                    result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                }
+
                 UpdateFuturesFromServer(result);
             }
 
             if (_useOptions)
             {
-                OptionsResponse result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata);
+                _rateGateInstruments.WaitToProceed();
+
+                OptionsResponse result = null;
+                try
+                {
+                    result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                }
+
                 UpdateOptionsFromServer(result);
             }
 
             if (_useOther)
             {
-                BondsResponse result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
+                _rateGateInstruments.WaitToProceed();
+                BondsResponse result = null;
+                try
+                {
+                    result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                }
+
                 UpdateBondsFromServer(result);
 
-                EtfsResponse etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
+                _rateGateInstruments.WaitToProceed();
+                EtfsResponse etfs = null;
+
+                try
+                {
+                    etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                }
+
                 UpdateEtfsFromServer(etfs);
 
-                IndicativesResponse indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
+                _rateGateInstruments.WaitToProceed();
+                IndicativesResponse indicatives = null;
+
+                try
+                {
+                    indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                }
+
                 UpdateIndicativesFromServer(indicatives);
             }
 
@@ -756,6 +876,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 instrumentRequest.Id = position.InstrumentUid;
                 instrumentRequest.IdType = InstrumentIdType.Uid;
 
+                _rateGateInstruments.WaitToProceed();
                 InstrumentResponse instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
 
                 PositionOnBoard pos = new PositionOnBoard();
@@ -932,6 +1053,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
                 try
                 {
+                    _rateGateInstruments.WaitToProceed();
                     thisDaySchedules = _instrumentsClient.TradingSchedules(tradingSchedulesRequest, _gRpcMetadata);
                 }
                 catch (Exception ex)
@@ -964,6 +1086,9 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         private List<Candle> ConvertToOsEngineCandles(GetCandlesResponse response, Security security)
         {
             List<Candle> candles = new List<Candle>();
+
+            if (response == null)
+                return candles;
 
             for (int i = 0; i < response.Candles.Count; i++)
             {
@@ -1228,6 +1353,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 OrderBookInstrument orderBookInstrument = new OrderBookInstrument();
                 orderBookInstrument.InstrumentId = security.NameId;
                 orderBookInstrument.Depth = 10;
+                orderBookInstrument.OrderBookType = OrderBookType.Unspecified;
 
                 SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest { SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { orderBookInstrument } };
                 marketDataRequestOrderBooks.SubscribeOrderBookRequest = subscribeOrderBookRequest;
@@ -1264,7 +1390,20 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
+                    if (_marketDataStream == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+                    
                     MarketDataResponse marketDataResponse = _marketDataStream.ResponseStream.Current;
+
+                    if (marketDataResponse == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     _lastMarketDataTime  = DateTime.Now;
 
                     if (marketDataResponse.Ping != null)
@@ -1272,7 +1411,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         Thread.Sleep(1);
                         continue;
                     }
-
+                    
                     if (marketDataResponse.Trade != null)
                     {
                         Security security = GetSecurity(marketDataResponse.Trade.InstrumentUid);
@@ -1559,7 +1698,19 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
+                    if (_portfolioDataStream == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     PortfolioStreamResponse portfolioResponse = _portfolioDataStream.ResponseStream.Current;
+                    if (portfolioResponse == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     _lastPortfolioDataTime = DateTime.Now;
 
                     if (portfolioResponse.Ping != null)
@@ -1642,7 +1793,19 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
+                    if (_positionsDataStream == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     PositionsStreamResponse positionsResponse = _positionsDataStream.ResponseStream.Current;
+                    if (positionsResponse == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     _lastPortfolioDataTime = DateTime.Now;
 
                     if (positionsResponse.Ping != null)
@@ -1669,7 +1832,18 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             InstrumentRequest instrumentRequest = new InstrumentRequest();
                             instrumentRequest.Id = pos.InstrumentUid;
                             instrumentRequest.IdType = InstrumentIdType.Uid;
-                            InstrumentResponse instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+
+                            InstrumentResponse instrument = null;
+
+                            try
+                            {
+                                _rateGateInstruments.WaitToProceed();
+                                instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
+                            }
 
                             PositionOnBoard newPos = new PositionOnBoard();
 
@@ -1688,7 +1862,17 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             InstrumentRequest instrumentRequest = new InstrumentRequest();
                             instrumentRequest.Id = pos.InstrumentUid;
                             instrumentRequest.IdType = InstrumentIdType.Uid;
-                            InstrumentResponse instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                            InstrumentResponse instrument = null;
+
+                            try
+                            {
+                                _rateGateInstruments.WaitToProceed();
+                                instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
+                            }
 
                             PositionOnBoard newPos = new PositionOnBoard();
 
@@ -1707,8 +1891,18 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             InstrumentRequest instrumentRequest = new InstrumentRequest();
                             instrumentRequest.Id = pos.InstrumentUid;
                             instrumentRequest.IdType = InstrumentIdType.Uid;
-                            InstrumentResponse instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
-                            
+                            InstrumentResponse instrument = null;
+
+                            try
+                            {
+                                _rateGateInstruments.WaitToProceed();
+                                instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + ex.ToString(), LogMessageType.Error);
+                            }
+
                             PositionOnBoard newPos = new PositionOnBoard();
 
                             newPos.PortfolioName = portf.Number;
@@ -1783,7 +1977,19 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
+                    if (_myTradesDataStream == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     TradesStreamResponse tradesResponse = _myTradesDataStream.ResponseStream.Current;
+                    if (tradesResponse == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     _lastMyTradesDataTime = DateTime.Now;
 
                     if (tradesResponse.Ping != null)
@@ -1801,7 +2007,15 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         getOrderStateRequest.OrderId = tradesResponse.OrderTrades.OrderId;
                         getOrderStateRequest.AccountId = tradesResponse.OrderTrades.AccountId;
 
-                        OrderState state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
+                        OrderState state = null;
+                        try
+                        {
+                            state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage("Error getting order state " + security.Name, LogMessageType.Error);
+                        }
 
                         Order order = new Order();
 
