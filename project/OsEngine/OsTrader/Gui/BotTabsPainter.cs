@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms.Integration;
 using System.Windows.Forms;
@@ -9,7 +6,6 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Language;
 using System.Threading;
-using System.Windows;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -371,16 +367,38 @@ namespace OsEngine.OsTrader.Gui
 
         private void RePaintTable()
         {
-            _grid.Rows.Clear();
-
-            for (int i = 0; _master.PanelsArray != null && i < _master.PanelsArray.Count; i++)
+            try
             {
-                _grid.Rows.Add(GetRow(_master.PanelsArray[i],i+1));
+                int lastShowRowIndex = _grid.FirstDisplayedScrollingRowIndex;
+
+                _grid.Rows.Clear();
+
+                for (int i = 0; _master.PanelsArray != null && i < _master.PanelsArray.Count; i++)
+                {
+                    _grid.Rows.Add(GetRow(_master.PanelsArray[i], i + 1));
+                }
+
+                _grid.Rows.Add(GetNullRow());
+
+                _grid.Rows.Add(GetAddRow());
+
+                if (lastShowRowIndex > 0 &&
+                    lastShowRowIndex < _grid.Rows.Count)
+                {
+                    _grid.FirstDisplayedScrollingRowIndex = lastShowRowIndex;
+                    _grid.Rows[lastShowRowIndex].Selected = true;
+
+                    if (_grid.Rows[lastShowRowIndex].Cells != null
+                        && _grid.Rows[lastShowRowIndex].Cells[0] != null)
+                    {
+                        _grid.Rows[lastShowRowIndex].Cells[0].Selected = true;
+                    }
+                }
             }
-
-            _grid.Rows.Add(GetNullRow());
-
-            _grid.Rows.Add(GetAddRow());
+            catch (Exception error)
+            {
+                _master.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private DataGridViewRow GetRow(BotPanel bot, int num)

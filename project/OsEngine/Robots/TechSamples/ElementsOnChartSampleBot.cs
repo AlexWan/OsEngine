@@ -15,34 +15,36 @@ namespace OsEngine.Robots.TechSamples
     {
         public ElementsOnChartSampleBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            // создаём источник
+            // creating a source
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            // создаём индикатор на второй области чарта (MacdArea)
+            //  create an indicator on the second chart area (MacdArea)
             _macd = IndicatorsFactory.CreateIndicatorByName("MACD", name + "MacdArea", false);
             _macd = (Aindicator)_tab.CreateCandleIndicator(_macd, "MacdArea");
             _macd.Save();
 
-            // создаём кнопки и подписываемся на событие клика по ним
-            _buttonAddPointOnPrimeArea = CreateParameterButton("Точка на чарт");
+            // create buttons and subscribe to the event of clicking on them
+            _buttonAddPointOnPrimeArea = CreateParameterButton("Point on prime chart");
             _buttonAddPointOnPrimeArea.UserClickOnButtonEvent += _buttonAddPointOnPrimeArea_UserClickOnButtonEvent;
 
-            _buttonAddLineOnPrimeArea = CreateParameterButton("Линия на чарт");
+            _buttonAddLineOnPrimeArea = CreateParameterButton("Line on prime chart");
             _buttonAddLineOnPrimeArea.UserClickOnButtonEvent += _buttonAddLineOnPrimeArea_UserClickOnButtonEvent;
 
-            _buttonAddSegmentOnPrimeArea = CreateParameterButton("Отрезок на чарт");
+            _buttonAddSegmentOnPrimeArea = CreateParameterButton("A segment on prime chart");
             _buttonAddSegmentOnPrimeArea.UserClickOnButtonEvent += _buttonAddSegmentOnPrimeArea_UserClickOnButtonEvent;
 
-            _buttonAddLineOnSecondArea = CreateParameterButton("Линию на доп область на чарте");
+            _buttonAddLineOnSecondArea = CreateParameterButton("The line to the extra area on the chart");
             _buttonAddLineOnSecondArea.UserClickOnButtonEvent += _buttonAddLineOnSecondArea_UserClickOnButtonEvent;
 
-            _buttonAddInclinedLineOnPrimeArea = CreateParameterButton("Наклонная линия на главный чарт");
+            _buttonAddInclinedLineOnPrimeArea = CreateParameterButton("The slanted line to the main chart");
             _buttonAddInclinedLineOnPrimeArea.UserClickOnButtonEvent += _buttonAddInclinedLineOnPrimeArea_UserClickOnButtonEvent;
 
-        }
+            _buttonClearAllElementsButton = CreateParameterButton("Remove all elements");
+            _buttonClearAllElementsButton.UserClickOnButtonEvent += _buttonClearAllElementsButton_UserClickOnButtonEvent;
 
+        }
 
         public override string GetNameStrategyType()
         {
@@ -68,6 +70,8 @@ namespace OsEngine.Robots.TechSamples
 
         StrategyParameterButton _buttonAddInclinedLineOnPrimeArea;
 
+        StrategyParameterButton _buttonClearAllElementsButton;
+
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // на завершении свечи - нужно обновить время конца линии и обновить линии
@@ -85,12 +89,14 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-// обработчики для кнопок
+        // button handlers
+
+        PointElement _point;
 
         private void _buttonAddPointOnPrimeArea_UserClickOnButtonEvent()
         {
             if (_tab.IsConnected == false)
-            {// если источник не готов. Выходим
+            {// if the source isn't ready. Go out
                 return;
             }
 
@@ -98,8 +104,13 @@ namespace OsEngine.Robots.TechSamples
 
             if(candles.Count == 0 ||
                 candles.Count < 10)
-            {// если свечек слишком мало. Выходим
+            {// if there are too few candles. Go out
                 return;
+            }
+
+            if (_point != null)
+            {
+                _tab.DeleteChartElement(_point);
             }
 
             PointElement point = new PointElement("Some label", "Prime");
@@ -113,6 +124,8 @@ namespace OsEngine.Robots.TechSamples
             point.Color = Color.Red;
             point.Style = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Star4;
             point.Size = 12;
+
+            _point = point;
 
             _tab.SetChartElement(point);
         }
@@ -134,6 +147,11 @@ namespace OsEngine.Robots.TechSamples
                 return;
             }
 
+            if (_lineOnPrimeChart != null)
+            {
+                _tab.DeleteChartElement(_lineOnPrimeChart);
+            }
+
             LineHorisontal line = new LineHorisontal("Some line","Prime", false);
 
             line.Value = candles[candles.Count - 1].Close;
@@ -141,7 +159,7 @@ namespace OsEngine.Robots.TechSamples
             line.TimeEnd = candles[candles.Count-1].TimeStart;
             line.CanResize = true;
             line.Color = Color.White;
-            line.LineWidth = 3; // Толщина линии
+            line.LineWidth = 3; // Line thickness
 
             line.Label = "Some label on Line";
             line.Font = new Font("Arial", 10);
@@ -152,6 +170,8 @@ namespace OsEngine.Robots.TechSamples
 
             _lineOnPrimeChart = line;
         }
+
+        LineHorisontal _lineSegment;
 
         private void _buttonAddSegmentOnPrimeArea_UserClickOnButtonEvent()
         {
@@ -168,16 +188,23 @@ namespace OsEngine.Robots.TechSamples
                 return;
             }
 
+            if (_lineSegment != null)
+            {
+                _tab.DeleteChartElement(_lineSegment);
+            }
+
             LineHorisontal line = new LineHorisontal("Some segment", "Prime", false);
 
             line.Value = candles[candles.Count - 5].Close;
             line.TimeStart = candles[candles.Count - 10].TimeStart;
             line.TimeEnd = candles[candles.Count - 5].TimeStart;
             line.Color = Color.Green;
-            line.LineWidth = 1; // Толщина линии
+            line.LineWidth = 1; // Line thickness
 
             line.Label = "Some label on segment";
-           
+
+            _lineSegment = line;
+
             _tab.SetChartElement(line);
         }
 
@@ -198,14 +225,20 @@ namespace OsEngine.Robots.TechSamples
             {
                 return;
             }
-                                 // второй параметр - имя области на чарте для линии 
+
+            if (_lineOnSecondChart != null)
+            {
+                _tab.DeleteChartElement(_lineOnSecondChart);
+            }
+
+            // second parameter - name of the area on the chart for the line 
             LineHorisontal line = new LineHorisontal("Some line on second area", "MacdArea", false);
 
             line.Value = _macd.DataSeries[0].Last;
             line.TimeStart = candles[0].TimeStart;
             line.TimeEnd = candles[candles.Count - 1].TimeStart;
             line.Color = Color.White;
-            line.LineWidth = 5; // Толщина линии
+            line.LineWidth = 5; // Line thickness
 
             line.Label = "Some label on second chart";
             _tab.SetChartElement(line);
@@ -230,6 +263,11 @@ namespace OsEngine.Robots.TechSamples
                 return;
             }
 
+            if (_lineInclinedOnPrimeChart != null)
+            {
+                _tab.DeleteChartElement(_lineInclinedOnPrimeChart);
+            }
+
             Line line = new Line("Inclined line", "Prime");
 
             line.ValueYStart = candles[candles.Count - 11].Close;
@@ -247,5 +285,14 @@ namespace OsEngine.Robots.TechSamples
             _lineInclinedOnPrimeChart = line;
         }
 
+        private void _buttonClearAllElementsButton_UserClickOnButtonEvent()
+        {
+            _tab.DeleteAllChartElement();
+            _lineInclinedOnPrimeChart = null;
+            _lineOnSecondChart = null;
+            _lineSegment = null;
+            _lineOnPrimeChart = null;
+            _point = null;
+        }
     }
 }

@@ -1286,9 +1286,16 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            for (int i = 0; _chartElements != null && i < _chartElements.Count; i++)
+            List<IChartElement> listToDelete = new List<IChartElement>();
+
+            for(int i = 0;i < _chartElements.Count;i++)
             {
-                DeleteChartElement(_chartElements[i]);
+                listToDelete.Add(_chartElements[i]);
+            }
+
+            for (int i = 0; listToDelete != null && i < listToDelete.Count; i++)
+            {
+                DeleteChartElement(listToDelete[i]);
             }
         }
 
