@@ -10,6 +10,8 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -225,25 +227,35 @@ namespace OsEngine.Robots.AO
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
-            {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
-            }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            if (VolumeRegime.ValueString == "Number of contracts")
             {
                 volume = VolumeOnPosition.ValueDecimal;
             }
+            else if (VolumeRegime.ValueString == "Contract currency")
+            {
+                decimal contractPrice = _tab.PriceBestAsk;
+                volume = VolumeOnPosition.ValueDecimal / contractPrice;
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(_tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                        _tab.Securiti.Lot != 0 &&
+                        _tab.Securiti.Lot > 1)
+                    {
+                        volume = VolumeOnPosition.ValueDecimal / (contractPrice * _tab.Securiti.Lot);
+                    }
+
+                    volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
             }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
+
             return volume;
         }
     }

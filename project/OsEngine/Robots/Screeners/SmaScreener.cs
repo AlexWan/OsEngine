@@ -10,6 +10,9 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
 using OsEngine.Charts.CandleChart.Indicators;
 using System;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.Robots.Screeners
 {
@@ -179,21 +182,38 @@ namespace OsEngine.Robots.Screeners
 
         private decimal GetVolume(List<Candle> candles, BotTabSimple tab)
         {
-            if(VolumeType.ValueString == "Contracts")
-            {
-                return Volume.ValueDecimal;
-            }
-            else // if(VolumeType.ValueString == "Contract currency")
-            {
-                decimal volumeOnPosition = Volume.ValueDecimal;
-                decimal contractPrice = candles[candles.Count - 1].Close;
-                int volumeDecimals = tab.Securiti.DecimalsVolume;
-                decimal volume = Math.Round(volumeOnPosition / contractPrice, volumeDecimals);
+            decimal volume = 0;
 
-                return volume;
+            if (VolumeType.ValueString == "Contracts")
+            {
+                volume = Volume.ValueDecimal;
             }
+            else //if (VolumeType.ValueString == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = Volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Securiti.Lot != 0 &&
+                        tab.Securiti.Lot > 1)
+                    {
+                        volume = Volume.ValueDecimal / (contractPrice * tab.Securiti.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+
+            return volume;
         }
     }
-
-
 }
