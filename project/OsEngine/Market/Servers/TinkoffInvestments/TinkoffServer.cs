@@ -913,8 +913,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 PositionOnBoard newPos = new PositionOnBoard();
 
                 newPos.PortfolioName = portf.Number;
-                newPos.ValueCurrent = pos.Balance;
-                newPos.ValueBlocked = pos.Blocked;
+                newPos.ValueCurrent = pos.Balance/instrument.Instrument.Lot;
+                newPos.ValueBlocked = pos.Blocked/instrument.Instrument.Lot;
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -943,8 +943,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 PositionOnBoard newPos = new PositionOnBoard();
 
                 newPos.PortfolioName = portf.Number;
-                newPos.ValueCurrent = pos.Balance;
-                newPos.ValueBlocked = pos.Blocked;
+                newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
+                newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -973,8 +973,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 PositionOnBoard newPos = new PositionOnBoard();
 
                 newPos.PortfolioName = portf.Number;
-                newPos.ValueCurrent = pos.Balance;
-                newPos.ValueBlocked = pos.Blocked;
+                newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
+                newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
@@ -1933,8 +1933,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             PositionOnBoard newPos = new PositionOnBoard();
 
                             newPos.PortfolioName = portf.Number;
-                            newPos.ValueCurrent = pos.Balance;
-                            newPos.ValueBlocked = pos.Blocked;
+                            newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
+                            newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                             portf.SetNewPosition(newPos);
@@ -1962,8 +1962,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             PositionOnBoard newPos = new PositionOnBoard();
 
                             newPos.PortfolioName = portf.Number;
-                            newPos.ValueCurrent = pos.Balance;
-                            newPos.ValueBlocked = pos.Blocked;
+                            newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
+                            newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                             portf.SetNewPosition(newPos);
@@ -1991,8 +1991,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             PositionOnBoard newPos = new PositionOnBoard();
 
                             newPos.PortfolioName = portf.Number;
-                            newPos.ValueCurrent = pos.Balance;
-                            newPos.ValueBlocked = pos.Blocked;
+                            newPos.ValueCurrent = pos.Balance / instrument.Instrument.Lot;
+                            newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
                             newPos.SecurityNameCode = instrument.Instrument.Ticker;
 
                             portf.SetNewPosition(newPos);
