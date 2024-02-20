@@ -2164,7 +2164,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
                             trade.SecurityNameCode = security.Name;
                             trade.Price = GetValue(tradesResponse.OrderTrades.Trades[i].Price);
-                            trade.Volume = tradesResponse.OrderTrades.Trades[i].Quantity;
+                            trade.Volume = tradesResponse.OrderTrades.Trades[i].Quantity/security.Lot;
                             trade.NumberOrderParent = tradesResponse.OrderTrades.OrderId;
                             trade.NumberTrade = tradesResponse.OrderTrades.Trades[i].TradeId;
                             trade.Time = tradesResponse.OrderTrades.Trades[i].DateTime.ToDateTime();
