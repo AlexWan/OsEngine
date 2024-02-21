@@ -2087,6 +2087,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     {
                         Security security = GetSecurity(tradesResponse.OrderTrades.InstrumentUid);
 
+                        if (security == null)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
+
                         // запрашиваем состояние ордера
                         GetOrderStateRequest getOrderStateRequest = new GetOrderStateRequest();
                         getOrderStateRequest.OrderId = tradesResponse.OrderTrades.OrderId;
@@ -2101,6 +2107,10 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         catch (Exception ex)
                         {
                             SendLogMessage("Error getting order state " + security.Name + " exception: " + ex.ToString(), LogMessageType.Error);
+                            SendLogMessage("Server data was: " + tradesResponse.ToString(), LogMessageType.Error);
+
+                            Thread.Sleep(1);
+                            continue;
                         }
 
                         Order order = new Order();
