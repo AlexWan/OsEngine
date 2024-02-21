@@ -2095,11 +2095,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         OrderState state = null;
                         try
                         {
+                            _rateGateOrders.WaitToProceed();
                             state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
                         }
                         catch (Exception ex)
                         {
-                            SendLogMessage("Error getting order state " + security.Name, LogMessageType.Error);
+                            SendLogMessage("Error getting order state " + security.Name + " exception: " + ex.ToString(), LogMessageType.Error);
                         }
 
                         Order order = new Order();
