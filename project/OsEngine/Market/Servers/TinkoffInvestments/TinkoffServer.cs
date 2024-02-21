@@ -2087,6 +2087,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     {
                         Security security = GetSecurity(tradesResponse.OrderTrades.InstrumentUid);
 
+                        if (security == null)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
+
                         // запрашиваем состояние ордера
                         GetOrderStateRequest getOrderStateRequest = new GetOrderStateRequest();
                         getOrderStateRequest.OrderId = tradesResponse.OrderTrades.OrderId;
@@ -2095,11 +2101,16 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         OrderState state = null;
                         try
                         {
+                            _rateGateOrders.WaitToProceed();
                             state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
                         }
                         catch (Exception ex)
                         {
-                            SendLogMessage("Error getting order state " + security.Name, LogMessageType.Error);
+                            SendLogMessage("Error getting order state " + security.Name + " exception: " + ex.ToString(), LogMessageType.Error);
+                            SendLogMessage("Server data was: " + tradesResponse.ToString(), LogMessageType.Error);
+
+                            Thread.Sleep(1);
+                            continue;
                         }
 
                         Order order = new Order();
