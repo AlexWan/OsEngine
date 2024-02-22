@@ -66,7 +66,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         public bool DataFeedTf2MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf5MinuteCanLoad
@@ -148,8 +148,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         TimeFrameSec20IsOn = false,
         TimeFrameSec30IsOn = false,
         TimeFrameMin1IsOn = true,
-        TimeFrameMin2IsOn = false,
-        TimeFrameMin3IsOn = false,
+        TimeFrameMin2IsOn = true,
+        TimeFrameMin3IsOn = true,
         TimeFrameMin5IsOn = true,
         TimeFrameMin10IsOn = true,
         TimeFrameMin15IsOn = true,
