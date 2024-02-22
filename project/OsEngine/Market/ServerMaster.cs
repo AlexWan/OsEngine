@@ -270,6 +270,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
+                serverTypes.Add(ServerType.TinkoffInvestments);
                 serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.Alor);

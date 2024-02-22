@@ -1057,6 +1057,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     endDateTime = endTime;
 
                 List<Candle> range = GetCandleHistoryFromDays(startTime, endDateTime, security, tf);
+
+                if (range == null)
+                { // Если запрошен некорректный таймфрейм, то возвращает null
+                    return null;
+                }
+
                 candles.AddRange(range);
 
                 startTime = endDateTime;
@@ -1090,11 +1096,16 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         private List<Candle> GetCandleHistoryFromDays(DateTime fromDateTime, DateTime toDateTime, Security security, TimeFrame tf)
         {
+            CandleInterval requestedCandleInterval = CreateTimeFrameInterval(tf);
+
+            if (requestedCandleInterval == CandleInterval.Unspecified)
+                return null;
+            
             Timestamp from = Timestamp.FromDateTime(fromDateTime.ToUniversalTime());
             Timestamp to = Timestamp.FromDateTime(toDateTime.ToUniversalTime());
 
             _rateGateMarketData.WaitToProceed();
-
+            
             GetCandlesResponse candlesResp = null;
             try
             {
@@ -1102,7 +1113,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 getCandlesRequest.InstrumentId = security.NameId;
                 getCandlesRequest.From = from;
                 getCandlesRequest.To = to;
-                getCandlesRequest.Interval = CreateTimeFrameInterval(tf);
+                getCandlesRequest.Interval = requestedCandleInterval;
                 
                 candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
             }
@@ -1222,19 +1233,17 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         
         private CandleInterval CreateTimeFrameInterval(TimeFrame tf)
         {
-            
-            //CANDLE_INTERVAL_1_MIN, CANDLE_INTERVAL_5_MIN, CANDLE_INTERVAL_15_MIN, CANDLE_INTERVAL_HOUR, CANDLE_INTERVAL_DAY
             if (tf == TimeFrame.Min1)
             {
                 return CandleInterval._1Min;
             }
             if (tf == TimeFrame.Min2)
             {
-                return CandleInterval._1Min;
+                return CandleInterval._2Min;
             }
             if (tf == TimeFrame.Min3)
             {
-                return CandleInterval._1Min;
+                return CandleInterval._3Min;
             }
             else if (tf == TimeFrame.Min5)
             {
@@ -1251,10 +1260,6 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             else if (tf == TimeFrame.Min30)
             {
                 return CandleInterval._30Min;
-            }
-            else if (tf == TimeFrame.Min45)
-            {
-                return CandleInterval._15Min;
             }
             else if (tf == TimeFrame.Hour1)
             {
