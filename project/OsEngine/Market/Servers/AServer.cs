@@ -1679,7 +1679,10 @@ namespace OsEngine.Market.Servers
                     ServerTime = myDepth.Time;
                 }
 
-                if (myDepth.Asks.Count == 0 && myDepth.Bids.Count == 0)
+                if (myDepth.Asks == null ||
+                     myDepth.Asks.Count == 0
+                     || myDepth.Bids == null ||
+                      myDepth.Bids.Count == 0)
                 {
                     return;
                 }

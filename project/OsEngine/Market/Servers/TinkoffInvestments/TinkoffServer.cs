@@ -20,7 +20,6 @@ using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
-using OsEngine.Market.Servers.OKX.Entity;
 
 namespace OsEngine.Market.Servers.TinkoffInvestments
 {
@@ -32,7 +31,6 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamToken, "");
-            
             CreateParameterBoolean(OsLocalization.Market.UseStock, true);
             CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
@@ -105,37 +103,44 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         {
             while (true)
             {
-                Thread.Sleep(10000);
-
-                if (ServerStatus != ServerConnectStatus.Connect)
+                try
                 {
-                    continue;
-                }
+                    Thread.Sleep(10000);
 
-                bool shitHappenedWithStreams = false;
-
-                if (_marketDataStream != null && _lastMarketDataTime.AddMinutes(3) < DateTime.Now)
-                {
-                    shitHappenedWithStreams = true;
-                }
-
-                if (_portfolioDataStream != null && _lastPortfolioDataTime.AddMinutes(3) < DateTime.Now)
-                {
-                    shitHappenedWithStreams = true;
-                }
-
-                if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.Now)
-                {
-                    shitHappenedWithStreams = true;
-                }
-
-                if (shitHappenedWithStreams)
-                {
-                    if (ServerStatus == ServerConnectStatus.Connect)
+                    if (ServerStatus != ServerConnectStatus.Connect)
                     {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        continue;
                     }
+
+                    bool shitHappenedWithStreams = false;
+
+                    if (_marketDataStream != null && _lastMarketDataTime.AddMinutes(3) < DateTime.Now)
+                    {
+                        shitHappenedWithStreams = true;
+                    }
+
+                    if (_portfolioDataStream != null && _lastPortfolioDataTime.AddMinutes(3) < DateTime.Now)
+                    {
+                        shitHappenedWithStreams = true;
+                    }
+
+                    if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.Now)
+                    {
+                        shitHappenedWithStreams = true;
+                    }
+
+                    if (shitHappenedWithStreams)
+                    {
+                        if (ServerStatus == ServerConnectStatus.Connect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
+                }
+                catch(Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1594,7 +1599,9 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             }
         }
 
-        // Чудо-поток для опроса последних цен инструментов и эмуляции стакана L1. Работает только если количество подписок превышает лимит gRPC-потока
+        // Чудо-поток для опроса последних цен инструментов и эмуляции стакана L1.
+        // Работает только если количество подписок превышает лимит gRPC-потока
+
         private void LastPricesPoller()
         {
             Thread.Sleep(10000);
@@ -1622,6 +1629,13 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
                     if (usePollingForMarketData)
                     {
+                        if(_subscribedSecurities == null ||
+                            _subscribedSecurities.Count == 0)
+                        {
+                            _useStreamForMarketData = true;
+                            continue;
+                        }
+
                         if (_filterOutNonMarketData)
                         {
                             if (isTodayATradingDayForSecurity(_subscribedSecurities[0]) == false)
@@ -1858,6 +1872,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 }
             }
         }
+
         private async void PositionsMessageReader()
         {
             Thread.Sleep(1000);
@@ -2282,11 +2297,6 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             }
         }
         
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             try
@@ -2576,10 +2586,15 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         private Security GetSecurity(string instrumentId)
         {
-            Security security = _securities.Find((sec) =>
-                sec.NameId == instrumentId);
+            for(int i = 0;i < _securities.Count;i++)
+            {
+                if (_securities[i].NameId == instrumentId)
+                {
+                    return _securities[i];
+                }
+            }
 
-            return security;
+            return null;
         }
 
         private Quotation ConvertToQuotation(decimal value)
