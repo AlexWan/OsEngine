@@ -213,6 +213,17 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(gateIo);
 
+            SupportConnection deribit = new SupportConnection()
+            {
+                ServerType = ServerType.Deribit,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\Deribit.png",
+                LingSiteUrl = "https://www.deribit.com/?reg=18571.8844",
+                Discount = 10
+            };
+            supportList.Add(deribit);
+
+
             SupportConnection askend = new SupportConnection()
             {
                 ServerType = ServerType.AscendEx_BitMax,

@@ -1,3 +1,4 @@
+AllSourcesInOneSample&Example in which all types of sources are created in OsEngine&Include&&Simple 1*Index 1*Cluster 1*Pair 1*Screener 1*Polygon 1*&&
 BbPowerTrade&Trend strategy based on two indicators BullsPower and BearsPowerBulls + Bears is less than negative Step - close the position and enter Short. Bulls + Bears more than Step - close the position and enter Long.&Include&&Simple 1*&BearsPower*BullsPower*&
 BollingerRevers&Trend Strategy Based on Breaking Bollinger Lines Buy: 1. The price is more than BollingerUpLine. Sell: 1. Price below BollingerDownLine.Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*&
 BollingerTrailing&Bollinger Bands trading bargaining robot with pull-up Trailing-Stop through Bollinger Bands Buy: 1. The price is more than BollingerUpLine. Sell: 1. Price below BollingerDownLine.Exit: 1. Trailing-Stop through Bollinger Bands&Include&&Simple 1*&Bollinger*&
