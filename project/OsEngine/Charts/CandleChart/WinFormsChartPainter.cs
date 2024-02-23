@@ -1895,8 +1895,10 @@ namespace OsEngine.Charts.CandleChart
                     // going through open order limit
                     // проходим Лимит ОРДЕРА НА ОТКРЫТИИ
 
-                    if (deals[i].State == PositionStateType.Opening && deals[i].OpenOrders != null &&
-                        deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].State == OrderStateType.Activ)
+                    if (deals[i].State == PositionStateType.Opening 
+                        && deals[i].OpenOrders != null 
+                        && deals[i].OpenOrders.Count > 0 
+                        && deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].State == OrderStateType.Activ)
                     {
                         Series lineSeries = new Series("Open_" + deals[i].Number);
                         lineSeries.ChartType = SeriesChartType.Line;
@@ -1941,6 +1943,7 @@ namespace OsEngine.Charts.CandleChart
                     // проходим Лимит ОРДЕРА НА ЗАКРЫТИИ
                     if (deals[i].State == PositionStateType.Closing &&
                         deals[i].CloseOrders != null &&
+                        deals[i].CloseOrders.Count > 0 &&
                         deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].State == OrderStateType.Activ)
                     {
                         Series lineSeries = new Series("Close_" + deals[i].Number);
