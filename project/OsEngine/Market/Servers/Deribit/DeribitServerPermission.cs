@@ -8,6 +8,7 @@
         }
 
         #region DataFeedPermissions
+
         public bool DataFeedTf1SecondCanLoad
         {
             get { return false; }
@@ -92,6 +93,7 @@
         #endregion
 
         #region Trade permission
+
         public bool MarketOrdersIsSupport
         {
             get { return true; }

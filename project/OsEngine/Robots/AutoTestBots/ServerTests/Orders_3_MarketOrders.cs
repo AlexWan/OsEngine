@@ -171,7 +171,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                if (_ordersActive.Count != 0)
+                if (_ordersActive.Count != 0
+                    || _ordersDone.Count != 0)
                 {
                     this.SetNewServiceInfo("BuyMarket Active order income Check!");
                     break;
@@ -263,7 +264,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                if (_ordersActive.Count != 0)
+                if (_ordersActive.Count != 0||
+                    _ordersDone.Count != 0)
                 {
                     this.SetNewServiceInfo("SellMarket Active order income Check!");
                     break;
@@ -291,7 +293,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                if (_ordersActive.Count != 0)
+                if (_ordersDone.Count != 0)
                 {
                     this.SetNewServiceInfo("SellMarket Done order income Check!");
                     break;
