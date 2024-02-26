@@ -223,6 +223,15 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(deribit);
 
+            SupportConnection bybit = new SupportConnection()
+            {
+                ServerType = ServerType.Bybit,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\Bybit.png",
+                LingSiteUrl = "https://partner.bybit.com/b/osengine",
+                Discount = 20
+            };
+            supportList.Add(bybit);
 
             SupportConnection askend = new SupportConnection()
             {
@@ -233,16 +242,6 @@ namespace OsEngine.Market.SupportTable
                 Discount = 25
             };
             supportList.Add(askend);
-
-            SupportConnection bybit = new SupportConnection()
-            {
-                ServerType = ServerType.Bybit,
-                SupportType = SupportServerType.Standart,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Bybit.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(bybit);
 
             SupportConnection bitmex = new SupportConnection()
             {
