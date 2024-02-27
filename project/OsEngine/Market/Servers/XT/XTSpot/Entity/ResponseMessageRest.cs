@@ -1,0 +1,143 @@
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace OsEngine.Market.Servers.XT.XTSpot.Entity
+{
+    public class ResponseMessageRest<T>
+    {
+        public string rc { get; set; }                           // Response code
+        public string mc { get; set; }                           // Message code
+        [JsonIgnore]
+        public List<string> ma { get; set; }
+        public T result { get; set; }
+    }
+
+    public class ResponseServerTime
+    {
+        public string serverTime { get; set; }                   //"1662444177871" server time in ms 
+    }
+
+    public class ResponseDepth
+    {
+        public string symbol { get; set; }                       //"btc_usdt"
+        public string timestamp { get; set; }                    //"1662444177871" in ms
+        public string lastUpdateId { get; set; }                 //"1662444177871" in ms
+        public List<List<string>>? bids { get; set; }            //List of bids
+        public List<List<string>>? asks { get; set; }            //List of asks
+    }
+    
+    public class ResponseToken
+    {
+        public string accessToken { get; set; }                  //Private API access token
+        public string refreshToken { get; set; }
+    }
+
+    public class ResponseSymbols
+    {
+        public string time { get; set; }                         //1662444177871 in ms,
+        public string version { get; set; }                      //Version number, when the request version number is consistent with the response content version, the list will not be returned, reducing IO eg: 2e14d2cd5czcb2c2af2c1db 
+        public List<ResponseSymbol> symbols { get; set; }        //List of symbols
+    }
+
+    public class ResponseCandles
+    {
+        public List<ResponseCandle> candles { get; set; }        //List of candles
+    }
+
+    public class ResponseCandle
+    {
+        [JsonProperty("t")]
+        public string OpenTime { get; set; }                     //1662601014832, open time in ms
+        [JsonProperty("o")]
+        public string Open { get; set; }                         //"30000", open price
+        [JsonProperty("c")]
+        public string Close { get; set; }                        //"32000", close price
+        [JsonProperty("h")]
+        public string High { get; set; }                         //"35000", highest price
+        [JsonProperty("l")]
+        public string Low { get; set; }                          //"25000", lowest price
+        [JsonProperty("q")]
+        public string Quantity { get; set; }                     //"512", transaction quantity
+        [JsonProperty("v")]
+        public string Volume { get; set; }                       //"15360000", transaction volume
+    }
+
+    public class ResponsePlaceOrder
+    {
+        public string orderId { get; set; }                      //Placed Order Id
+    }
+
+    public class ResponseAsset
+    {
+        public string currency { get; set; }                     //Asset currency
+        public string currencyId { get; set; }                   //Asset currency Id
+        public string frozenAmount { get; set; }                 //Frozen amount
+        public string availableAmount { get; set; }              //Available amount
+        public string totalAmount { get; set; }                  //Total amount
+        public string convertBtcAmount { get; set; }             //BTC amount
+    }
+
+    public class ResponseAssets
+    {
+        public List<ResponseAsset> assets { get; set; }          //List of assets
+    }
+
+    public class ResponseSymbol
+    {
+        public string id { get; set; }                           //Id
+        public string symbol { get; set; }                       //"btc_usdt", Symbol
+        public string displayName { get; set; }                  //Display name
+        public string state { get; set; }                        //symbol state [ONLINE;OFFLINE,DELISTED]
+        public string tradingEnabled { get; set; }               //Trading is available or not
+        public string openapiEnabled { get; set; }               //Openapi transaction is available or not
+        public string nextStateTime { get; set; }
+        public string nextState { get; set; }
+        public string depthMergePrecision { get; set; }          //Depth Merge Accuracy
+        public string baseCurrency { get; set; }                 //"btc"
+        public string baseCurrencyPrecision { get; set; }        //"8"
+        public string baseCurrencyId { get; set; }               //"2"
+        public string quoteCurrency { get; set; }                //"usdt"
+        public string quoteCurrencyPrecision { get; set; }       //"4"
+        public string quoteCurrencyId { get; set; }              //"11"
+        public string pricePrecision { get; set; }               //"4", Transaction price accuracy
+        public string quantityPrecision { get; set; }            //"6", Transaction quantity accuracy
+        public List<string> orderTypes { get; set; }             //List of Order Types [LIMIT;MARKET]
+        public List<string> timeInForces { get; set; }           //List of Effective Ways [GTC, IOC, FOK, GTX=Revoke if unable to become a pending party]
+        public string displayWeight { get; set; }                //Show the weight, the greater the weight, the more forward 
+        public string displayLevel { get; set; }                 //Presentation level, [FULL=Full display,SEARCH=Search display,DIRECT=Direct display,NONE=Don't show]
+        
+
+        public List<object> filters { get; set; }                //List of filters
+    }
+    
+    public class ResponseMyTrade
+    {
+        public string symbol { get; set; }                       //"BTC_USDT",
+        public string tradeId { get; set; }                      //"6316559590087222001", Trade Id
+        public string orderId { get; set; }                      //"6216559590087220004", Order Id
+        public string orderSide { get; set; }                    //"BUY", SELL
+        public string orderType { get; set; }                    //"LIMIT", MARKET
+        public string bizType { get; set; }                      //"SPOT",
+        public string time { get; set; }                         //"1655958915583", time in ms
+        public string price { get; set; }                        //"40000", price
+        public string quantity { get; set; }                     //"1.2", volume
+        public string quoteQty { get; set; }                     //"48000", amount
+        public string baseCurrency { get; set; }                 //"BTC",
+        public string quoteCurrency { get; set; }                //"USDT",
+        public string fee { get; set; }                          //"0.5",
+        public string feeCurrency { get; set; }                  //"USDT",
+        public string takerMaker { get; set; }                   //"taker", takerMaker
+    }
+
+    public class ResponseMyTrades
+    {
+        public string hasPrev { get; set; }                      //"true", boolean
+        public string hasNext { get; set; }                      //"true", boolean
+        public List<ResponseMyTrade> items { get; set; }         //List of my trades
+    }
+
+    public class CancaledOrderResponse
+    {
+        public string cancelId { get; set; }                     //"6216559590087220004", Canceled Order Id
+    }
+}
