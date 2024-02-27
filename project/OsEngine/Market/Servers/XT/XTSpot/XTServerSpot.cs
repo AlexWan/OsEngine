@@ -727,10 +727,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         Thread.Sleep(15000);
 
-                        if (webSocketPublic is { State: WebSocketState.Open } 
-                            && webSocketPublicTrades is { State: WebSocketState.Open } 
-                            && webSocketPrivate is { State: WebSocketState.Open })
-                        {
+                        if (webSocketPublic.State == WebSocketState.Open 
+                            && webSocketPublicTrades.State == WebSocketState.Open 
+                            && webSocketPrivate.State == WebSocketState.Open)                      {
+                        {   
                             webSocketPublic.Send("ping");
                             webSocketPrivate.Send("ping");
                             webSocketPublicTrades.Send("ping");
@@ -1251,7 +1251,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 newOrder.ServerType = ServerType.XTSpot;
                 newOrder.PortfolioNumber = "XTSpot";
 
-                if (stateType is OrderStateType.Done or OrderStateType.Patrial)
+                if (stateType == OrderStateType.Done || stateType == OrderStateType.Patrial)
                 {
                     CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, time);
                 }
