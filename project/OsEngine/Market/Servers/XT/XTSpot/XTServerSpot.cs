@@ -113,7 +113,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     UnsubscribeFromAllWebSockets();
                     _subscribedSecurities.Clear();
                     DeleteWebsocketConnection();
-                    _bufferDepth.Clear();
+                    _bufferDepthSecurity.Clear();
                 }
                 catch (Exception exception)
                 {
@@ -137,7 +137,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 if (webSocketPublic == null || webSocketPrivate == null || webSocketPublicTrades == null)
                     return;
-
+                if(ServerStatus != ServerConnectStatus.Connect)
+                    return;
+                
                 for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
                     string securityName = _subscribedSecurities[i];
@@ -169,8 +171,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             private string _publicKey;
             private string _secretKey;
             private string _listenKey; // lifetime <= 30 days
-            private List<ResponseWebSocketMessageAction<ResponseWebSocketDepthIncremental>> _bufferDepth = new List<ResponseWebSocketMessageAction<ResponseWebSocketDepthIncremental>>();
-
+            private Dictionary<string, List<ResponseWebSocketDepthIncremental>> _bufferDepthSecurity =
+                new Dictionary<string, List<ResponseWebSocketDepthIncremental>>();
             #endregion
 
             #region 3 Securities
@@ -705,8 +707,12 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
 
                 // sign up for order and portfolio changes
-                webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // изменение ордеров
-                webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // изменение портфеля
+                if (ServerStatus == ServerConnectStatus.Connect)
+                {
+                    webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // изменение ордеров
+                    webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // изменение портфеля
+                }
+
             }
 
             #endregion
@@ -726,11 +732,17 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         }
 
                         Thread.Sleep(15000);
+                        if(webSocketPublic == null)
+                            continue;
+                        if(webSocketPrivate == null)
+                            continue;
+                        if(webSocketPublicTrades == null)
+                            continue;
 
                         if (webSocketPublic.State == WebSocketState.Open 
                             && webSocketPublicTrades.State == WebSocketState.Open 
-                            && webSocketPrivate.State == WebSocketState.Open)                      {
-                        {   
+                            && webSocketPrivate.State == WebSocketState.Open)
+                        {
                             webSocketPublic.Send("ping");
                             webSocketPrivate.Send("ping");
                             webSocketPublicTrades.Send("ping");
@@ -955,7 +967,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 trade.Volume = responseTrade.Data.TradeQuantity.ToDecimal();
                 trade.Side = responseTrade.Data.IsBuyerMaker.Equals("true") ? Side.Buy : Side.Sell;
 
-                NewTradesEvent(trade);
+                NewTradesEvent?.Invoke(trade);
             }
             
             ResponseDepth snapshotDepth = null;
@@ -970,20 +982,20 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
 
                 //Depth events to buffer
-                
-                _bufferDepth.Add(responseDepth);
+
+                if (_bufferDepthSecurity.ContainsKey(responseDepth.Data.Symbol))
+                {
+                    _bufferDepthSecurity[responseDepth.Data.Symbol].Add(responseDepth.Data);
+                }
+                else
+                {
+                    _bufferDepthSecurity.Add(responseDepth.Data.Symbol, new List<ResponseWebSocketDepthIncremental>(){responseDepth.Data});
+                }
                 
                 //Get MD snapshot
-                ResponseDepth snapshotDepthTmp = GetDepthSnapshot(responseDepth.Data.Symbol);
+                ResponseDepth snapshotDepth = GetDepthSnapshot(responseDepth.Data.Symbol);
                 
-                
-                if (snapshotDepthTmp != null)
-                {
-                    snapshotDepthTmp.symbol = responseDepth.Data.Symbol;
-                    snapshotDepth = snapshotDepthTmp;
-                }
-
-                if (snapshotDepth == null || snapshotDepth.symbol != responseDepth.Data.Symbol)
+                if (snapshotDepth == null)
                 {
                     return;
                 }
@@ -993,11 +1005,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
                 List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
-                marketDepth.SecurityNameCode = snapshotDepth.symbol;
+                marketDepth.SecurityNameCode = responseDepth.Data.Symbol;
                 
                 if (snapshotDepth.asks != null)
                 {
-                    for (int i = 0; i < snapshotDepth.asks.Count-1; i++)
+                    for (int i = 0; i < snapshotDepth.asks.Count; i++)
                     {
                         MarketDepthLevel newMDLevel = new MarketDepthLevel();
                         newMDLevel.Ask = snapshotDepth.asks[i][1].ToDecimal();
@@ -1009,7 +1021,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 if (snapshotDepth.bids != null)
                 {
-                    for (int i = 0; i < snapshotDepth.bids.Count-1; i++)
+                    for (int i = 0; i < snapshotDepth.bids.Count; i++)
                     {
                         MarketDepthLevel newMDLevel = new MarketDepthLevel();
                         newMDLevel.Bid = snapshotDepth.bids[i][1].ToDecimal();
@@ -1018,92 +1030,95 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         bids.Add(newMDLevel);
                     } 
                 }
-                   
-                for(int i = 0; i < _bufferDepth.Count; i++)
+
+                if(_bufferDepthSecurity.ContainsKey(responseDepth.Data.Symbol) && _bufferDepthSecurity[responseDepth.Data.Symbol].Count > 0)
                 {
-                    if (_bufferDepth[i].Data.Symbol == responseDepth.Data.Symbol)
+                    for (int i = 0; i < _bufferDepthSecurity[responseDepth.Data.Symbol].Count; i++)
                     {
-                        long buffId = Convert.ToInt64(_bufferDepth[i].Data.LastUpdateId);
+                        long buffId = Convert.ToInt64(_bufferDepthSecurity[responseDepth.Data.Symbol][i].LastUpdateId);
                         long snapId = Convert.ToInt64(snapshotDepth.lastUpdateId);
-                        
+
                         if (buffId <= snapId) //discard all events older than the depth snapshot
                         {
-                            _bufferDepth.Remove(_bufferDepth[i]);
+                            _bufferDepthSecurity[responseDepth.Data.Symbol].Remove(_bufferDepthSecurity[responseDepth.Data.Symbol][i]);
                         }
                         else
                         {
-                            if (_bufferDepth[i].Data.asks != null && _bufferDepth[i].Data.asks.Count != 0)
+                            if (_bufferDepthSecurity[responseDepth.Data.Symbol][i].asks != null
+                                && _bufferDepthSecurity[responseDepth.Data.Symbol][i].asks.Count > 0)
                             {
-                                for (int k = 0; k < _bufferDepth[i].Data.asks.Count; k++)
+                                for (int k = 0; k < _bufferDepthSecurity[responseDepth.Data.Symbol][i].asks.Count; k++)
                                 {
-                                    bool isPresetntInDepth = false;
-                                    for (int j = 0; j < ascs.Count; j++)
+                                    for (int j = 1; j < ascs.Count; j++)
                                     {
-                                        if (ascs[j].Price != _bufferDepth[i].Data.asks[k][0].ToDecimal()) 
-                                            continue;
-                                        //if quantity = 0 -> remove the level
-                                        if(_bufferDepth[i].Data.asks[k][1].ToDecimal() == 0)
+                                        if (ascs[j-1].Price == _bufferDepthSecurity[responseDepth.Data.Symbol][i].asks[k][0].ToDecimal())
                                         {
-                                            ascs.RemoveAt(j);
-                                            isPresetntInDepth = true;
+                                            if (_bufferDepthSecurity[responseDepth.Data.Symbol][i].asks[k][1].ToDecimal() == 0)
+                                            {
+                                                ascs.RemoveAt(j-1);
+                                            }
+                                            else
+                                            {
+                                                ascs[j-1].Ask = _bufferDepthSecurity[responseDepth.Data.Symbol][i].asks[k][1].ToDecimal();
+                                            }
                                         }
-                                        else
+                                        else if (_bufferDepthSecurity[responseDepth.Data.Symbol][i].asks[k][0].ToDecimal() < ascs[j].Price
+                                                && _bufferDepthSecurity[responseDepth.Data.Symbol][i].asks[k][0].ToDecimal() > ascs[j-1].Price   
+                                                && _bufferDepthSecurity[responseDepth.Data.Symbol][i].asks[k][1].ToDecimal() != 0)
                                         {
-                                            ascs[j].Ask = _bufferDepth[i].Data.asks[k][1].ToDecimal();
-                                            isPresetntInDepth = true;
+                                            //add new level
+                                            ascs.Insert(j, new MarketDepthLevel
+                                            {
+                                                Ask = _bufferDepthSecurity[responseDepth.Data.Symbol][i].asks[k][1].ToDecimal(),
+                                                Price = _bufferDepthSecurity[responseDepth.Data.Symbol][i].asks[k][0].ToDecimal()
+                                            });
                                         }
                                     }
 
-                                    if (!isPresetntInDepth && _bufferDepth[i].Data.asks[k][1].ToDecimal() != 0)
-                                    {
-                                        ascs.Add(new MarketDepthLevel
-                                        {
-                                            Ask = _bufferDepth[i].Data.asks[k][1].ToDecimal(),
-                                            Price = _bufferDepth[i].Data.asks[k][0].ToDecimal()
-                                        });
-                                    }    
-                                }       
+                                }
                             }
 
-                            if (_bufferDepth[i].Data.bids == null || _bufferDepth[i].Data.bids.Count == 0) 
-                                continue;
+                            if (_bufferDepthSecurity[responseDepth.Data.Symbol][i].bids != null
+                                && _bufferDepthSecurity[responseDepth.Data.Symbol][i].bids.Count > 0)
                             {
-                                for (int k = 0; k < _bufferDepth[i].Data.bids.Count; k++)
+                                for (int k = 0; k < _bufferDepthSecurity[responseDepth.Data.Symbol][i].bids.Count; k++)
                                 {
-                                    bool isPresetntInDepth = false;
-                                    for (int j = 0; j < bids.Count; j++)
+                                    for (int j = 1; j < bids.Count; j++)
                                     {
-                                        if (bids[j].Price != _bufferDepth[i].Data.bids[k][0].ToDecimal()) 
-                                            continue;
-                                        //if quantity = 0 -> remove the level
-                                        if(_bufferDepth[i].Data.bids[k][1].ToDecimal() == 0)
+                                        if (bids[j-1].Price == _bufferDepthSecurity[responseDepth.Data.Symbol][i].bids[k][0].ToDecimal())
                                         {
-                                            bids.RemoveAt(j);
-                                            isPresetntInDepth = true;
+                                            if (_bufferDepthSecurity[responseDepth.Data.Symbol][i].bids[k][1].ToDecimal() == 0)
+                                            {
+                                                bids.RemoveAt(j-1);
+                                            }
+                                            else
+                                            {
+                                                bids[j-1].Bid = _bufferDepthSecurity[responseDepth.Data.Symbol][i].bids[k][1].ToDecimal();
+                                            }
                                         }
-                                        else
+
+                                        else if (_bufferDepthSecurity[responseDepth.Data.Symbol][i].bids[k][0].ToDecimal() > bids[j].Price
+                                                && _bufferDepthSecurity[responseDepth.Data.Symbol][i].bids[k][0].ToDecimal() < bids[j-1].Price
+                                                && _bufferDepthSecurity[responseDepth.Data.Symbol][i].bids[k][1].ToDecimal() != 0)
                                         {
-                                            bids[j].Bid = _bufferDepth[i].Data.bids[k][1].ToDecimal();
-                                            isPresetntInDepth = true;
+                                            //add new level
+                                            bids.Insert(j, new MarketDepthLevel
+                                            {
+                                                Bid = _bufferDepthSecurity[responseDepth.Data.Symbol][i].bids[k][1].ToDecimal(),
+                                                Price = _bufferDepthSecurity[responseDepth.Data.Symbol][i].bids[k][0].ToDecimal()
+                                            });
                                         }
                                     }
-
-                                    if (!isPresetntInDepth && _bufferDepth[i].Data.bids[k][1].ToDecimal() != 0)
-                                    {
-                                        bids.Add(new MarketDepthLevel
-                                        {
-                                            Bid = _bufferDepth[i].Data.bids[k][1].ToDecimal(),
-                                            Price = _bufferDepth[i].Data.bids[k][0].ToDecimal()
-                                        });
-                                    }    
                                 }
                             }
                         }
                     }
                 }
-                
-                marketDepth.Asks = ascs;
-                marketDepth.Bids = bids;
+
+                //_bufferDepthSecurity.Remove(responseDepth.Data.Symbol);
+
+                marketDepth.Asks = ascs.GetRange(0, Math.Min(20, ascs.Count));
+                marketDepth.Bids = bids.GetRange(0, Math.Min(20, bids.Count));
 
                 marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.Data.LastUpdateId));
 
@@ -1199,7 +1214,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 pos.ValueCurrent = Portfolio.Data.Balance.ToDecimal();
 
                 portfolio.SetNewPosition(pos);
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
             }
 
             private void UpdateOrder(string message)
@@ -1357,7 +1372,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 
                 ResponseMessageRest<ResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<ResponsePlaceOrder>());
 
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                 {
                     if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                     {
@@ -1365,10 +1380,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         order.State = OrderStateType.Activ;
                         order.NumberMarket = stateResponse.result.orderId;
 
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(order);
-                        }
+                        MyOrderEvent?.Invoke(order);
                     }
                     else
                     {
@@ -1452,7 +1464,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
                 ResponseMessageRest<CancaledOrderResponse> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<CancaledOrderResponse>());
 
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                 {
                     if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                     {
@@ -1511,7 +1523,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
                     ResponseMessageRest<ResponseToken> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<ResponseToken>());
 
-                    if (responseMessage.StatusCode == HttpStatusCode.OK)
+                    if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
                     {
                         if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
@@ -1804,6 +1816,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 HMACSHA256 hmac = new HMACSHA256(ascii.GetBytes(_secretKey));
 
                 string signature = BitConverter.ToString(hmac.ComputeHash(ascii.GetBytes(s1 + s2))).Replace("-", "");
+
+                hmac.Dispose();
 
                 return signature;
             }

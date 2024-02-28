@@ -19,7 +19,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
 
     public class ResponseDepth
     {
-        public string symbol { get; set; }                       //"btc_usdt"
         public string timestamp { get; set; }                    //"1662444177871" in ms
         public string lastUpdateId { get; set; }                 //"1662444177871" in ms
         public List<List<string>>? bids { get; set; }            //List of bids
