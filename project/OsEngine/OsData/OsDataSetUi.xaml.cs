@@ -153,7 +153,48 @@ namespace OsEngine.OsData
         {
             string text = TextBoxFolderName.Text;
 
-            if(string.IsNullOrEmpty(text))
+            text = text
+              .Replace("/", "")
+              .Replace("\\", "")
+              .Replace("*", "")
+              .Replace("-", "")
+              .Replace("+", "")
+              .Replace(":", "")
+              .Replace("@", "")
+              .Replace(";", "")
+              .Replace("%", "")
+              .Replace(">", "")
+              .Replace("<", "")
+              .Replace("^", "")
+              .Replace("{", "")
+              .Replace("}", "")
+              .Replace("[", "")
+              .Replace("]", "")
+              .Replace("_", "")
+              .Replace("`", "")
+              .Replace("(", "")
+              .Replace(")", "")
+              .Replace("$", "")
+              .Replace("#", "")
+              .Replace("!", "")
+              .Replace("&", "")
+              .Replace("?", "")
+              .Replace("=", "")
+              .Replace(",", "")
+              .Replace(".", "")
+              .Replace("'", "")
+              .Replace("|", "")
+              .Replace("~", "")
+              .Replace("№", "")
+              .Replace("\"", "");
+
+            if(text != TextBoxFolderName.Text)
+            {
+                TextBoxFolderName.Text = text;
+                return;
+            }
+
+            if (string.IsNullOrEmpty(text))
             {
                 ComboBoxSource.Visibility = System.Windows.Visibility.Hidden;
             }

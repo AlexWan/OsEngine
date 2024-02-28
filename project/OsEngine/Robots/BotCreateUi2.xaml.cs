@@ -147,8 +147,49 @@ namespace OsEngine.Robots
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
+            if(string.IsNullOrEmpty(TextBoxName.Text) == true)
+            {
+                return;
+            }
+
             IsAccepted = true;
             NameBot = TextBoxName.Text;
+
+            NameBot = NameBot
+                .Replace("/", "")
+                .Replace("\\", "")
+                .Replace("*", "")
+                .Replace("-", "")
+                .Replace("+", "")
+                .Replace(":", "")
+                .Replace("@", "")
+                .Replace(";", "")
+                .Replace("%", "")
+                .Replace(">", "")
+                .Replace("<", "")
+                .Replace("^", "")
+                .Replace("{", "")
+                .Replace("}", "")
+                .Replace("[", "")
+                .Replace("]", "")
+                .Replace("_", "")
+                .Replace("`", "")
+                .Replace("(", "")
+                .Replace(")", "")
+                .Replace("$", "")
+                .Replace("#", "")
+                .Replace("!", "")
+                .Replace("&", "")
+                .Replace("?", "")
+                .Replace("=", "")
+                .Replace(",", "")
+                .Replace(".", "")
+                .Replace("'", "")
+                .Replace("|", "")
+                .Replace("~", "")
+                .Replace("№", "")
+                .Replace("\"", "");
+
             Close();
         }
 

@@ -1037,6 +1037,7 @@
     <Compile Include="Robots\CurrencyArbitrage\CurrencyMoveExplorer.cs" />
     <Compile Include="Robots\Engines\EnginePair.cs" />
     <Compile Include="Robots\Engines\PolygonalEngine.cs" />
+    <Compile Include="Robots\IndexArbitrage\MultiOneLegArbitrageInTrend.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiOneLegArbitrageMeanReversion.cs" />
     <Compile Include="Robots\OnScriptIndicators\GridSample.cs" />
     <Compile Include="Robots\Engines\CandleEngine.cs" />
