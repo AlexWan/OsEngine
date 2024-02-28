@@ -2262,7 +2262,7 @@ namespace OsEngine.Market.Servers
 
                 _ordersToExecute.Enqueue(ord);
 
-                SendLogMessage(OsLocalization.Market.Message116 + order.NumberUser, LogMessageType.System);
+                SendLogMessage(OsLocalization.Market.Label120 + order.NumberUser, LogMessageType.System);
 
             }
             catch (Exception error)
