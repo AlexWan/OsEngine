@@ -1,16 +1,10 @@
-﻿using OsEngine.Charts.CandleChart.Indicators;
-using OsEngine.Entity;
+﻿using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.Robots.IndexArbitrage
 {
@@ -29,13 +23,14 @@ namespace OsEngine.Robots.IndexArbitrage
 
             TabCreate(BotTabType.Screener);
             _screener = TabsScreener[0];
+            _screener.CreateCandleIndicator(1, "VolatilityAverage", null, "Prime");
             _screener.CandleFinishedEvent += _screener_CandleFinishedEvent;
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
 
             VolatilityStageToTrade = CreateParameter("Volatility Stage To Trade", 2, 1, 5, 1);
 
-            RegimeClosePosition = CreateParameter("Reverse signal", "", new[] { "Reverse signal", "No signal", "Zero crossing" });
+            StopMult = CreateParameter("Stop mult", 0.1m, 0.1m, 5, 0.1m);
 
             MaxPositionsCount = CreateParameter("Max poses count", 3, 1, 50, 4);
 
@@ -76,8 +71,6 @@ namespace OsEngine.Robots.IndexArbitrage
 
         public StrategyParameterString Regime;
 
-        public StrategyParameterString RegimeClosePosition;
-
         public StrategyParameterInt MaxPositionsCount;
 
         public StrategyParameterDecimal MoneyPercentFromDepoOnPosition;
@@ -96,6 +89,8 @@ namespace OsEngine.Robots.IndexArbitrage
 
         public StrategyParameterInt VolatilityStageToTrade;
 
+        public StrategyParameterDecimal StopMult;
+
         // logic open poses
 
         private void _index_SpreadChangeEvent(List<Candle> index)
@@ -111,8 +106,15 @@ namespace OsEngine.Robots.IndexArbitrage
                 return;
             }
 
-            if (_volatilityStagesOnIndex.DataSeries[0].Values.Count == 0
-                || _volatilityStagesOnIndex.DataSeries[0].Values[_volatilityStagesOnIndex.DataSeries[0].Values.Count-1] == 0)
+            if (_volatilityStagesOnIndex.DataSeries[0].Values.Count == 0)
+            {
+                return;
+            }
+
+            decimal lastVolaStage =
+                _volatilityStagesOnIndex.DataSeries[0].Values[_volatilityStagesOnIndex.DataSeries[0].Values.Count - 1];
+
+            if (lastVolaStage != VolatilityStageToTrade.ValueInt)
             {
                 return;
             }
@@ -184,14 +186,16 @@ namespace OsEngine.Robots.IndexArbitrage
                 return;
             }
 
-            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up)
+            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up
+                 && Regime.ValueString != "OnlyLong")
             { // nead to short security
-                BuySecurity(tab, CointegrationLineSide.Up.ToString());
+                SellSecurity(tab, CointegrationLineSide.Up.ToString());
             }
 
-            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down)
+            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down
+                 && Regime.ValueString != "OnlyShort")
             { // nead to long security
-                SellSecurity(tab, CointegrationLineSide.Down.ToString());
+                BuySecurity(tab, CointegrationLineSide.Down.ToString());
             }
         }
 
@@ -298,113 +302,49 @@ namespace OsEngine.Robots.IndexArbitrage
                 return;
             }
 
+            if (Regime.ValueString == "Off")
+            {
+                return;
+            }
+
             List<Position> poses = tab.PositionsOpenAll;
 
             if (poses.Count == 0)
             {
                 return;
             }
+
             Position pos = poses[0];
 
-            List<Candle> candlesIndex = _index.Candles;
-
-            if (candlesIndex == null ||
-                candlesIndex.Count == 0)
+            if(pos.State != PositionStateType.Open)
             {
                 return;
             }
 
-            CointegrationBuilder cointegrationIndicator = new CointegrationBuilder();
-            cointegrationIndicator.CointegrationLookBack = CointegrationCandlesLookBack.ValueInt;
-            cointegrationIndicator.CointegrationDeviation = CointegrationStandartDeviationMult.ValueDecimal;
-            cointegrationIndicator.ReloadCointegration(candlesIndex, candlesSecurity, false);
+            // закрываемся по трейлинг стопу отступая усреднённую внутридневную волатильность умноженную на мультипликатор
+            // close on trailing stop retreating average intraday volatility multiplied by the multiplier
 
-            if (cointegrationIndicator.Cointegration == null
-                || cointegrationIndicator.Cointegration.Count == 0)
+            Aindicator volaIndicatorOnSecurity = (Aindicator)tab.Indicators[0];
+
+            decimal curVolaInPercent = volaIndicatorOnSecurity.DataSeries[1].Last;
+
+            if(curVolaInPercent <= 0)
             {
                 return;
             }
 
-            if (pos.SignalTypeOpen == "Up")
-            {
-                //"Reverse signal", "No signal", "Zero crossing"
-                if (RegimeClosePosition.ValueString == "Reverse signal"
-                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down)
-                {
-                    ClosePosition(pos, tab);
-                }
-                else if (RegimeClosePosition.ValueString == "No signal"
-                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
-                {
-                    ClosePosition(pos, tab);
-                }
-                else if (RegimeClosePosition.ValueString == "Zero crossing")
-                {
-                    if (cointegrationIndicator.Cointegration != null &&
-                        cointegrationIndicator.Cointegration.Count != 0 &&
-                        cointegrationIndicator.Cointegration.Last().Value <= 0)
-                    {
-                        ClosePosition(pos, tab);
-                    }
-                }
-            }
-            else if (pos.SignalTypeOpen == "Down")
-            {
-                //"Reverse signal", "No signal", "Zero crossing"
-                if (RegimeClosePosition.ValueString == "Reverse signal"
-                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up)
-                {
-                    ClosePosition(pos, tab);
-                }
-                else if (RegimeClosePosition.ValueString == "No signal"
-                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
-                {
-                    ClosePosition(pos, tab);
-                }
-                else if (RegimeClosePosition.ValueString == "Zero crossing")
-                {
-                    if (cointegrationIndicator.Cointegration != null &&
-                        cointegrationIndicator.Cointegration.Count != 0 &&
-                        cointegrationIndicator.Cointegration.Last().Value >= 0)
-                    {
-                        ClosePosition(pos, tab);
-                    }
-                }
-            }
-        }
+            decimal stopPrice = tab.PriceCenterMarketDepth;
 
-        private void ClosePosition(Position pos, BotTabSimple tab)
-        {
-            if (pos.State != PositionStateType.Open)
+            if(pos.Direction == Side.Buy)
             {
-                return;
+                stopPrice = stopPrice - stopPrice * (curVolaInPercent * StopMult.ValueDecimal);
+            }
+            else if(pos.Direction == Side.Sell)
+            {
+                stopPrice = stopPrice + stopPrice * (curVolaInPercent * StopMult.ValueDecimal);
             }
 
-            decimal price = 0;
-            decimal volume = pos.OpenVolume;
-
-            if (pos.Direction == Side.Buy)
-            {
-                price = tab.PriceBestBid;
-
-                if (SlippagePercent.ValueDecimal != 0)
-                {
-                    price = price - price * (SlippagePercent.ValueDecimal / 100);
-                    price = Math.Round(price, tab.Securiti.Decimals);
-                }
-            }
-            else if (pos.Direction == Side.Sell)
-            {
-                price = tab.PriceBestAsk;
-
-                if (SlippagePercent.ValueDecimal != 0)
-                {
-                    price = price + price * (SlippagePercent.ValueDecimal / 100);
-                    price = Math.Round(price, tab.Securiti.Decimals);
-                }
-            }
-
-            tab.CloseAtLimit(pos, price, volume);
+            tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
         }
     }
 }
