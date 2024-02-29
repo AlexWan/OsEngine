@@ -909,19 +909,26 @@ positionOpener.LifeTimeType
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
 
-            DataGridViewColumn colum0 = new DataGridViewColumn();
-            colum0.CellTemplate = cell0;
-            colum0.HeaderText = OsLocalization.Entity.ColumnServers1;
-            colum0.ReadOnly = true;
-            colum0.Width = 150;
-            newGrid.Columns.Add(colum0);
+            DataGridViewColumn colum1 = new DataGridViewColumn();
+            colum1.CellTemplate = cell0;
+            colum1.HeaderText = OsLocalization.Entity.ColumnServers1;
+            colum1.ReadOnly = true;
+            colum1.Width = 150;
+            newGrid.Columns.Add(colum1);
 
-            DataGridViewColumn colu = new DataGridViewColumn();
-            colu.CellTemplate = cell0;
-            colu.HeaderText = OsLocalization.Entity.ColumnServers2;
-            colu.ReadOnly = true;
-            colu.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colu);
+            DataGridViewColumn colum2 = new DataGridViewColumn();
+            colum2.CellTemplate = cell0;
+            colum2.HeaderText = OsLocalization.Entity.ColumnServers2;
+            colum2.ReadOnly = true;
+            colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(colum2);
+
+            DataGridViewColumn colum3 = new DataGridViewColumn();
+            colum3.CellTemplate = cell0;
+            colum3.HeaderText = "";
+            colum3.ReadOnly = true;
+            colum3.Width = 30;
+            newGrid.Columns.Add(colum3);
 
             return newGrid;
         }

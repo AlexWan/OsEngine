@@ -30,6 +30,7 @@ namespace OsEngine.Entity
 
             value = value
                 .Replace("/", "")
+                .Replace("\\", "")
                 .Replace("*", "")
                 .Replace(":", "")
                 .Replace("@", "")

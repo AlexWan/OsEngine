@@ -373,6 +373,7 @@ namespace OsEngine.Market
                 SaveMostPopularServers(type);
 
                 IServer newServer = null;
+
                 if (type == ServerType.BingXSpot)
                 {
                     newServer = new BingXServerSpot();

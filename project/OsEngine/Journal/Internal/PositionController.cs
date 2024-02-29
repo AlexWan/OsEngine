@@ -829,18 +829,20 @@ namespace OsEngine.Journal.Internal
 
             _neadToSaveStopLimit = false;
 
-            if(_actualStopLimits == null
-               || _actualStopLimits.Count == 0)
-            { // очищаем файл от записей
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealControllerStopLimits.txt", false))
-                {
-                    
-                }
-                return;
-            }
+
 
             try
             {
+                if (_actualStopLimits == null
+                   || _actualStopLimits.Count == 0)
+                { // очищаем файл от записей
+                    using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealControllerStopLimits.txt", false))
+                    {
+
+                    }
+                    return;
+                }
+
                 string positionsString = "";
 
                 for(int i = 0;i < _actualStopLimits.Count;i++)
