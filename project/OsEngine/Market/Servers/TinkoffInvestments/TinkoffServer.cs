@@ -287,6 +287,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             {
                 currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata);
             }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error loading currencies. Info: {message}", LogMessageType.Error);
+            }
             catch (Exception ex)
             {
                 SendLogMessage("Error loading securities", LogMessageType.Error);
@@ -301,6 +306,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 try
                 {
                     result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting shares data. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
@@ -317,6 +327,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 try
                 {
                     result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting futures data. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
@@ -335,6 +350,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata);
                 }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting options data. Info: {message}", LogMessageType.Error);
+                }
                 catch (Exception ex)
                 {
                     SendLogMessage("Error loading securities", LogMessageType.Error);
@@ -351,6 +371,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
                 }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting bonds data. Info: {message}", LogMessageType.Error);
+                }
                 catch (Exception ex)
                 {
                     SendLogMessage("Error loading securities", LogMessageType.Error);
@@ -365,6 +390,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
                 }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting Etfs data. Info: {message}", LogMessageType.Error);
+                }
                 catch (Exception ex)
                 {
                     SendLogMessage("Error loading securities", LogMessageType.Error);
@@ -378,6 +408,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 try
                 {
                     indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting indicatives data. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
@@ -785,8 +820,14 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             {
                 accountsResponse = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata);
             }
-            catch (Exception e)
+            catch (RpcException ex)
             {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting user portfolios. Info: {message}", LogMessageType.Error);
+                return;
+            }
+            catch (Exception e)
+            {                
                 SendLogMessage($"Error getting user portfolios: {e.Message}", LogMessageType.Error);
             }
 
@@ -828,6 +869,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     try
                     {
                         portfolioResponse = _operationsClient.GetPortfolio(portfolioRequest, _gRpcMetadata);
+                    }
+                    catch (RpcException ex)
+                    {
+                        string message = GetGRPCErrorMessage(ex);
+                        SendLogMessage($"Error getting user portfolios. Info: {message}", LogMessageType.Error);
                     }
                     catch (Exception ex)
                     {
@@ -889,6 +935,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             {
                 posData = _operationsClient.GetPositions(positionsRequest, _gRpcMetadata);
             }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting positions in portfolio. Info: {message}", LogMessageType.Error);
+            }
             catch
             {
                 SendLogMessage("Error getting positions in portfolio", LogMessageType.Error);
@@ -909,6 +960,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     _rateGateInstruments.WaitToProceed();
                     instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
@@ -940,6 +996,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     _rateGateInstruments.WaitToProceed();
                     instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
                 }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                }
                 catch (Exception ex)
                 {
                     SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
@@ -969,6 +1030,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     _rateGateInstruments.WaitToProceed();
                     instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
@@ -1117,6 +1183,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 
                 candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
             }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting candles. Info: {message}", LogMessageType.Error);
+            }
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
@@ -1156,6 +1227,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     _rateGateInstruments.WaitToProceed();
                     thisDaySchedules = _instrumentsClient.TradingSchedules(tradingSchedulesRequest, _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting trading schedules. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
@@ -1696,9 +1772,10 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     InstrumentId = { instrumentIds }
                 }, _gRpcMetadata);
             }
-            catch (RpcException exception)
+            catch (RpcException ex)
             {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting last prices. Info: {message}", LogMessageType.Error);
             }
             catch (Exception ex)
             {
@@ -1945,6 +2022,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                                 _rateGateInstruments.WaitToProceed();
                                 instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
                             }
+                            catch (RpcException ex)
+                            {
+                                string message = GetGRPCErrorMessage(ex);
+                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                            }
                             catch (Exception ex)
                             {
                                 SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
@@ -1974,6 +2056,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                                 _rateGateInstruments.WaitToProceed();
                                 instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
                             }
+                            catch (RpcException ex)
+                            {
+                                string message = GetGRPCErrorMessage(ex);
+                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                            }
                             catch (Exception ex)
                             {
                                 SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
@@ -2002,6 +2089,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             {
                                 _rateGateInstruments.WaitToProceed();
                                 instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                            }
+                            catch (RpcException ex)
+                            {
+                                string message = GetGRPCErrorMessage(ex);
+                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
                             }
                             catch (Exception ex)
                             {
@@ -2123,6 +2215,14 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         {
                             _rateGateOrders.WaitToProceed();
                             state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
+                        }
+                        catch (RpcException ex)
+                        {
+                            string message = GetGRPCErrorMessage(ex);
+                            SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.Error);
+
+                            Thread.Sleep(1);
+                            continue;
                         }
                         catch (Exception ex)
                         {
@@ -2268,6 +2368,19 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     response = _ordersClient.PostOrder(request, _gRpcMetadata);
                 }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error posting order. Info: {message}", LogMessageType.Error);
+
+                    order.State = OrderStateType.Fail;
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(order);
+                    }
+
+                    return;
+                }
                 catch (Exception exception)
                 {
                     SendLogMessage("Error on order Execution \n" + exception.Message, LogMessageType.Error);
@@ -2343,6 +2456,19 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 try
                 {
                     response = _ordersClient.ReplaceOrder(request, _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error replacing order. Info: {message}", LogMessageType.Error);
+
+                    order.State = OrderStateType.Fail;
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(order);
+                    }
+
+                    return;
                 }
                 catch (Exception exception)
                 {
@@ -2424,6 +2550,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 try
                 {
                     response = _ordersClient.CancelOrder(request, _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error cancelling order. Info: {message}", LogMessageType.Error);
                 }
                 catch (Exception exception)
                 {
@@ -2577,6 +2708,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     SendLogMessage("Get all orders request error. ", LogMessageType.Error);
                 }
             }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting all orders. Info: {message}", LogMessageType.Error);
+            }
             catch (Exception exception)
             {
                 SendLogMessage("Get all orders request error. " + exception.ToString(), LogMessageType.Error);
@@ -2589,6 +2725,30 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         #region 10 Helpers
 
+        private string GetGRPCErrorMessage(RpcException exception)
+        {
+            string message = "no server message";
+            string trackingId = "";
+
+            if (exception.Trailers == null)
+                return message;
+
+            for(int i = 0; i < exception.Trailers.Count; i++)
+            {
+                if (exception.Trailers[i].Key == "x-tracking-id")
+                    trackingId = exception.Trailers[i].Value;
+
+                if (exception.Trailers[i].Key == "message")
+                    message = exception.Trailers[i].Value;
+            }
+
+            if (trackingId.Length > 0)
+            {
+                message = "Tracking id: " + trackingId + "; Message: " + message;
+            }
+
+            return message;
+        }
         private Security GetSecurity(string instrumentId)
         {
             for(int i = 0;i < _securities.Count;i++)
