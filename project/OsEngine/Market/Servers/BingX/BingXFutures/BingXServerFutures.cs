@@ -471,13 +471,18 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         ResponseFuturesBingX<CandlestickChartDataFutures> response =
                             JsonConvert.DeserializeAnonymousType(json, new ResponseFuturesBingX<CandlestickChartDataFutures>());
 
-                        if (response.code == "0" && response.data.Count != 1) // если дата старта свечек неправильная, биржа вместо ошибки шлет одну последнюю свечку
+                        // если дата старта и окончания свечек неправильная, биржа вместо ошибки шлет одну последнюю свечку
+                        if (response.code == "0" && response.data.Count != 1)
                         {
                             return ConvertCandles(response.data);
                         }
+                        else if (response.data.Count == 1)
+                        {
+                            return null;
+                        }
                         else
                         {
-                            SendLogMessage($"Error: code {response.code}, or incorrect candle start time", LogMessageType.Error);
+                            SendLogMessage($"Error: code {response.code}", LogMessageType.Error);
                         }
                     }
                     catch
@@ -558,6 +563,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            if (endTime > actualTime)
+            {
+                endTime = DateTime.Now;
+            }
+
             if (!CheckTime(startTime, endTime, actualTime))
             {
                 return null;
