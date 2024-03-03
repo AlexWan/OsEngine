@@ -17,7 +17,8 @@ namespace OsEngine.Robots.IndexArbitrage
             _index = TabsIndex[0];
             _index.SpreadChangeEvent += _index_SpreadChangeEvent;
 
-            _volatilityStagesOnIndex = IndicatorsFactory.CreateIndicatorByName("VolatilityStagesAW", name + "VolatilityStagesAW", false);
+            _volatilityStagesOnIndex 
+                = IndicatorsFactory.CreateIndicatorByName("VolatilityStagesAW", name + "VolatilityStagesAW", false);
             _volatilityStagesOnIndex = (Aindicator)_index.CreateCandleIndicator(_volatilityStagesOnIndex, "VolaStagesArea");
             _volatilityStagesOnIndex.Save();
 
@@ -337,11 +338,11 @@ namespace OsEngine.Robots.IndexArbitrage
 
             if(pos.Direction == Side.Buy)
             {
-                stopPrice = stopPrice - stopPrice * (curVolaInPercent * StopMult.ValueDecimal);
+                stopPrice = stopPrice - (stopPrice/100) * (curVolaInPercent * StopMult.ValueDecimal);
             }
             else if(pos.Direction == Side.Sell)
             {
-                stopPrice = stopPrice + stopPrice * (curVolaInPercent * StopMult.ValueDecimal);
+                stopPrice = stopPrice + (stopPrice / 100) * (curVolaInPercent * StopMult.ValueDecimal);
             }
 
             tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);

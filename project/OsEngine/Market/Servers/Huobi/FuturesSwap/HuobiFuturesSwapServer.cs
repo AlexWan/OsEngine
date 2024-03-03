@@ -831,6 +831,8 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 
                 if (newCandles == null)
                 {
+                    actualTime = actualTime + step;
+                    midTime = actualTime + step;
                     continue;
                 }
 
@@ -906,6 +908,11 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         private List<Candle> CreateCandlesFromJson(CandleResponseMessage rawCandles)
         {
             var candles = new List<Candle>();
+
+            if(rawCandles.status == "error")
+            {
+                return null;
+            }
 
             foreach (var jtCandle in rawCandles.data)
             {

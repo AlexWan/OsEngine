@@ -24,7 +24,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort"});
 
-            RegimeClosePosition = CreateParameter("Reverse signal", "", new[] { "Reverse signal", "No signal" });
+            RegimeClosePosition = CreateParameter("Regime Close Position", "Reverse signal", new[] { "Reverse signal", "No signal" });
 
             MaxPositionsCount = CreateParameter("Max poses count", 3, 1, 50, 4);
 
@@ -323,15 +323,6 @@ namespace OsEngine.Robots.IndexArbitrage
                 {
                     ClosePosition(pos, tab);
                 }
-                else if (RegimeClosePosition.ValueString == "Zero crossing")
-                {
-                    if(cointegrationIndicator.Cointegration != null &&
-                        cointegrationIndicator.Cointegration.Count != 0 &&
-                        cointegrationIndicator.Cointegration.Last().Value <= 0)
-                    {
-                        ClosePosition(pos, tab);
-                    }
-                }
             }
             else if(pos.SignalTypeOpen == "Down")
             {
@@ -345,15 +336,6 @@ namespace OsEngine.Robots.IndexArbitrage
                     && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
                 {
                     ClosePosition(pos, tab);
-                }
-                else if (RegimeClosePosition.ValueString == "Zero crossing")
-                {
-                    if (cointegrationIndicator.Cointegration != null &&
-                        cointegrationIndicator.Cointegration.Count != 0 &&
-                        cointegrationIndicator.Cointegration.Last().Value >= 0)
-                    {
-                        ClosePosition(pos, tab);
-                    }
                 }
             }
         }
