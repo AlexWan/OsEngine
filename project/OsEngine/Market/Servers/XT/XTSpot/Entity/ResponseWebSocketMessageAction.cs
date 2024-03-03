@@ -18,11 +18,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
         public string Event { get; set; }                        //"trade@btc_usdt"
         [JsonProperty("data")]
         public T Data { get; set; }                              // "s": "btc_usdt", 
-                                                                // "i": 6316559590087222000, 
-                                                                // "t": 1655992403617, 
-                                                                // "p": "43000", 
-                                                                // "q": "0.21", 
-                                                                // "b": true
+                                                                 // "i": 6316559590087222000, 
+                                                                 // "t": 1655992403617, 
+                                                                 // "p": "43000", 
+                                                                 // "q": "0.21", 
+                                                                 
     }
     
     public class WsTrade

@@ -80,7 +80,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         {
                             SendLogMessage("Check the Public and Private Key!", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent?.Invoke();
+                            
+                            if (DisconnectEvent != null)
+                            {
+                                DisconnectEvent();
+                            }
                             return;
                         }
 
@@ -89,20 +93,27 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         _webSocketPublicTradesMessages = new ConcurrentQueue<string>();
                         
                         CreateWebSocketConnection();
+                        GetPortfolios();
                     }
                     catch (Exception exception)
                     {
                         SendLogMessage(exception.ToString(), LogMessageType.Error);
                         SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent?.Invoke();
+                        if(DisconnectEvent != null)
+                        {
+                            DisconnectEvent();
+                        }
                     }
                 }
                 else
                 {
                     SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent?.Invoke();
+                    if (DisconnectEvent != null)
+                    {
+                        DisconnectEvent();
+                    }
                 }
             }
 
@@ -128,7 +139,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent?.Invoke();
+                        if (DisconnectEvent != null)
+                        {
+                            DisconnectEvent();
+                        }
                     }
                 }
             }
@@ -171,8 +185,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             private string _publicKey;
             private string _secretKey;
             private string _listenKey; // lifetime <= 30 days
-            private Dictionary<string, List<ResponseWebSocketDepthIncremental>> _bufferDepthSecurity =
-                new Dictionary<string, List<ResponseWebSocketDepthIncremental>>();
+            private Dictionary<string, List<ResponseWebSocketDepthIncremental>> _bufferDepthSecurity = new Dictionary<string, List<ResponseWebSocketDepthIncremental>>();
+            
             #endregion
 
             #region 3 Securities
@@ -230,7 +244,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     if (!item.openapiEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
                         || !item.tradingEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
-                        || !item.state.Equals("ONLINE", StringComparison.OrdinalIgnoreCase)) continue;
+                        || !item.state.Equals("ONLINE", StringComparison.OrdinalIgnoreCase)) 
+                        
+                        continue;
                     
                     Security newSecurity = new Security();
 
@@ -258,7 +274,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     securities.Add(newSecurity);
                 }
 
-                SecurityEvent?.Invoke(securities);
+                if (SecurityEvent != null)
+                {
+                    SecurityEvent(securities);
+                }
             }
 
             public event Action<List<Security>> SecurityEvent;
@@ -644,7 +663,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     SendLogMessage("WebSocketPublic Connection Closed by XT. WebSocket Closed Event", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent?.Invoke();
+                    
+                    if (DisconnectEvent != null)
+                    {
+                        DisconnectEvent();
+                    }
                 }
             }
 
@@ -654,7 +677,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     SendLogMessage("WebSocketPublicTrades Connection Closed by XT. WebSocket Closed Event", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent?.Invoke();
+                    
+                    if (DisconnectEvent != null)
+                    {
+                        DisconnectEvent();
+                    }
                 }
             }
 
@@ -664,7 +691,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     SendLogMessage("WebSocketPrivate Connection Closed by XT. WebSocket Closed Event", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent?.Invoke();
+                    
+                    if(DisconnectEvent != null)
+                    {
+                        DisconnectEvent();
+                    }
                 }
             }
 
@@ -677,7 +708,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     && webSocketPublicTrades.State == WebSocketState.Open)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent?.Invoke();
+                    
+                    if (ConnectEvent != null)
+                    {
+                        ConnectEvent();
+                    }
                 }
             }
 
@@ -690,7 +725,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     && webSocketPublic.State == WebSocketState.Open)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent?.Invoke();
+                    
+                    if (ConnectEvent != null)
+                    {
+                        ConnectEvent();
+                    }
                 }
             }
 
@@ -703,16 +742,19 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     && webSocketPublicTrades.State == WebSocketState.Open)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent?.Invoke();
+                    
+                    if (ConnectEvent != null)
+                    {
+                        ConnectEvent();
+                    }
                 }
 
                 // sign up for order and portfolio changes
                 if (ServerStatus == ServerConnectStatus.Connect)
                 {
-                    webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // изменение ордеров
-                    webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // изменение портфеля
+                    webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change orders
+                    webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change portfolio
                 }
-
             }
 
             #endregion
@@ -734,8 +776,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         Thread.Sleep(15000);
                         if(webSocketPublic == null)
                             continue;
+                        
                         if(webSocketPrivate == null)
                             continue;
+                        
                         if(webSocketPublicTrades == null)
                             continue;
 
@@ -966,8 +1010,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.Data.TradeTime));
                 trade.Volume = responseTrade.Data.TradeQuantity.ToDecimal();
                 trade.Side = responseTrade.Data.IsBuyerMaker.Equals("true") ? Side.Buy : Side.Sell;
-
-                NewTradesEvent?.Invoke(trade);
+                
+                if (NewTradesEvent != null)
+                {
+                    NewTradesEvent(trade);
+                }
             }
             
             ResponseDepth snapshotDepth = null;
@@ -981,7 +1028,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     return;
                 }
 
-                //Depth events to buffer
+                //Copy depth events to buffer
 
                 if (_bufferDepthSecurity.ContainsKey(responseDepth.Data.Symbol))
                 {
@@ -1119,10 +1166,12 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 marketDepth.Asks = ascs.GetRange(0, Math.Min(20, ascs.Count));
                 marketDepth.Bids = bids.GetRange(0, Math.Min(20, bids.Count));
-
                 marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.Data.LastUpdateId));
-
-                MarketDepthEvent?.Invoke(marketDepth);
+                
+                if (MarketDepthEvent != null)
+                {
+                    MarketDepthEvent(marketDepth);
+                }
             }
 
             private long _ts = 0;
@@ -1133,7 +1182,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     return null;
                 }
+                
                 HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + $"/v4/public/depth?symbol={secName}&limit=50").Result;
+                
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
                 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -1165,7 +1216,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 return null;
             }
 
-            private void UpdateMytrade(string json)
+            private void UpdateMyTrade(string json)
             {
                 ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseMyTrades>());
 
@@ -1193,7 +1244,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         myTrade.Volume = responseT.quantity.ToDecimal();
                     }
 
-                    MyTradeEvent?.Invoke(myTrade);
+                    if (MyTradeEvent != null)
+                    {
+                        MyTradeEvent(myTrade);
+                    }
                 }
             }
 
@@ -1214,7 +1268,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 pos.ValueCurrent = Portfolio.Data.Balance.ToDecimal();
 
                 portfolio.SetNewPosition(pos);
-                PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
+                
+                if (PortfolioEvent != null)
+                {
+                    PortfolioEvent(new List<Portfolio> { portfolio });
+                }
             }
 
             private void UpdateOrder(string message)
@@ -1273,8 +1331,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     newOrder.Price = item.Price?.ToDecimal() ?? 0;
                 }
                 
-             
-
                 newOrder.ServerType = ServerType.XTSpot;
                 newOrder.PortfolioNumber = "XTSpot";
 
@@ -1286,7 +1342,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, time);
                 }
 
-                MyOrderEvent?.Invoke(newOrder);
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(newOrder);
+                }
             }
 
             private OrderStateType GetOrderState(string orderStatusResponse, string orderFilledSize, string orderOriginSize)
@@ -1356,6 +1415,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 data.timeInForce = "GTC";
                 data.bizType = "SPOT";
                 data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
+                
                 if(order.TypeOrder == OrderPriceType.Limit)
                 {
                     data.price = order.Price.ToString().Replace(",", ".");
@@ -1398,8 +1458,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             CreateQueryMyTrade(order.SecurityNameCode, stateResponse.result.orderId, TimeManager.GetUnixTimeStampMilliseconds());
                         }
                         order.NumberMarket = stateResponse.result.orderId;
-
-                        MyOrderEvent?.Invoke(order);
+                        
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
                     }
                     else
                     {
@@ -1419,7 +1482,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
-
             }
 
             public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -1480,7 +1542,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 _rateGateCancelOrder.WaitToProceed();
                 
                 HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/order/" + order.NumberMarket, "DELETE", "");
+                
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+                
                 ResponseMessageRest<CancaledOrderResponse> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<CancaledOrderResponse>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
@@ -1512,8 +1576,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             private void CreateOrderFail(Order order)
             {
                 order.State = OrderStateType.Fail;
-
-                MyOrderEvent?.Invoke(order);
+                
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(order);    
+                }
             }
 
             #endregion
@@ -1680,7 +1747,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     alreadySendPositions.Add(pos);
                 }
 
-                PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
+                if (PortfolioEvent != null)
+                {
+                    PortfolioEvent(new List<Portfolio> { portfolio });
+                }
             }
 
             private void CreateQueryMyTrade(string nameSec, string OrdId, long ts)
@@ -1707,7 +1777,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             return;
                         }
 
-                        UpdateMytrade(JsonResponse);
+                        UpdateMyTrade(JsonResponse);
                     }
                     else
                     {
@@ -1774,6 +1844,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
                 
                 SendLogMessage($"CreateQueryCandles error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                
                 return null;
             }
 
@@ -1815,6 +1886,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     param = "?" + queryString;
                 }
+                
                 return httpClient.GetAsync(url + param).Result;
             }
 
@@ -1847,13 +1919,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private void SendLogMessage(string message, LogMessageType messageType)
             {
-                LogMessageEvent?.Invoke(message, messageType);
+                if (LogMessageEvent != null)
+                {
+                    LogMessageEvent(message, messageType);
+                }
             }
 
             public event Action<string, LogMessageType> LogMessageEvent;
 
             #endregion
-
         }
     }
 }

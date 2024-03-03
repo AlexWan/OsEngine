@@ -104,8 +104,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
         public List<string> timeInForces { get; set; }           //List of Effective Ways [GTC, IOC, FOK, GTX=Revoke if unable to become a pending party]
         public string displayWeight { get; set; }                //Show the weight, the greater the weight, the more forward 
         public string displayLevel { get; set; }                 //Presentation level, [FULL=Full display,SEARCH=Search display,DIRECT=Direct display,NONE=Don't show]
-        
-
         public List<object> filters { get; set; }                //List of filters
     }
     
