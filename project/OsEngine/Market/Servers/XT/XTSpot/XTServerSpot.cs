@@ -1180,7 +1180,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     myTrade.NumberTrade = responseT.tradeId;
                     myTrade.Price = responseT.price.ToDecimal();
                     myTrade.SecurityNameCode = responseT.symbol;
-                    myTrade.Side = responseT.orderSide.ToLower().Equals("buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
+                    myTrade.Side = responseT.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
 
                     string comissionSecName = responseT.feeCurrency;
 
@@ -1230,7 +1230,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 OrderStateType stateType = GetOrderState(item.State, item.ExecutedQuantity, item.OriginalQuantity);
 
-                if (item.Type.ToLower().Equals("market", StringComparison.OrdinalIgnoreCase) 
+                if (item.Type.Equals("Market", StringComparison.OrdinalIgnoreCase) 
                     && stateType == OrderStateType.Activ)
                 {
                     return;
@@ -1258,13 +1258,28 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 OrderPriceType.TryParse(item.Type, true, out newOrder.TypeOrder);
 
-                newOrder.Side = item.Side.ToLower().Equals("buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
+                newOrder.Side = item.Side.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
                 newOrder.State = stateType;
-                newOrder.Volume = item.OriginalQuantity?.ToDecimal() ?? 0;
-                newOrder.Price = item.Price?.ToDecimal() ?? 0;
+                
+
+                if(newOrder.TypeOrder == OrderPriceType.Market && newOrder.Side == Side.Buy)
+                {
+                    newOrder.Volume = item.ExecutedQuantity.ToDecimal() / item.AveragePrice.ToDecimal();  //сумма покупки / цену сделки округлить до точности объема
+                    newOrder.Price = item.AveragePrice.ToDecimal(); //price
+                }
+                else
+                {
+                    newOrder.Volume = item.OriginalQuantity?.ToDecimal() ?? 0;
+                    newOrder.Price = item.Price?.ToDecimal() ?? 0;
+                }
+                
+             
 
                 newOrder.ServerType = ServerType.XTSpot;
                 newOrder.PortfolioNumber = "XTSpot";
+
+                List<ResponseWebSocketOrder> test = new List<ResponseWebSocketOrder>();
+                test.Add(item);
 
                 if (stateType == OrderStateType.Done || stateType == OrderStateType.Patrial)
                 {
@@ -1335,7 +1350,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 SendOrderRequestData data = new SendOrderRequestData();
                 data.symbol = order.SecurityNameCode;
-                data.clientOrderId = order.NumberUser.ToString();
+                data.clientOrderId = (order.NumberUser + 1000).ToString();
                 data.side = order.Side.ToString().ToUpper();
                 data.type = order.TypeOrder.ToString().ToUpper();
                 data.timeInForce = "GTC";
@@ -1359,7 +1374,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         data.quoteQty = null;
                         data.quantity = order.Volume.ToString().Replace(",", ".");
                     }
-                    
                 }
                 
                 JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
@@ -1378,6 +1392,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         SendLogMessage($"Order num {order.NumberUser} on XT exchange.", LogMessageType.Trade);
                         order.State = OrderStateType.Activ;
+                        if (order.TypeOrder == OrderPriceType.Market)
+                        {
+                            order.State = OrderStateType.Done;
+                            CreateQueryMyTrade(order.SecurityNameCode, stateResponse.result.orderId, TimeManager.GetUnixTimeStampMilliseconds());
+                        }
                         order.NumberMarket = stateResponse.result.orderId;
 
                         MyOrderEvent?.Invoke(order);
@@ -1661,7 +1680,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     alreadySendPositions.Add(pos);
                 }
 
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
             }
 
             private void CreateQueryMyTrade(string nameSec, string OrdId, long ts)
