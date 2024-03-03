@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -25,7 +24,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort"});
 
-            RegimeClosePosition = CreateParameter("Reverse signal", "", new[] { "Reverse signal", "No signal", "Zero crossing" });
+            RegimeClosePosition = CreateParameter("Reverse signal", "", new[] { "Reverse signal", "No signal" });
 
             MaxPositionsCount = CreateParameter("Max poses count", 3, 1, 50, 4);
 
@@ -163,12 +162,14 @@ namespace OsEngine.Robots.IndexArbitrage
                 return;
             }
 
-            if(cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up)
+            if(cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up
+                && Regime.ValueString != "OnlyShort")
             { // nead to short security
                 BuySecurity(tab, CointegrationLineSide.Up.ToString());
             }
 
-            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down)
+            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down
+                && Regime.ValueString != "OnlyLong")
             { // nead to long security
                 SellSecurity(tab, CointegrationLineSide.Down.ToString());
             }
@@ -273,6 +274,11 @@ namespace OsEngine.Robots.IndexArbitrage
             }
 
             if (tab.IsReadyToTrade == false)
+            {
+                return;
+            }
+
+            if (Regime.ValueString == "Off")
             {
                 return;
             }

@@ -19,11 +19,14 @@ Fisher&Fisher based on multithreading Entering a position - we are waiting for a
 FundBalanceDivergenceBot&The countertrend bots Buy: 1. FBD more Indicator Divergence. Sell: 1. FBD is less than negative Indicator Divergence. Exit: after N number of days.&Include&&Simple 1*&FBD*&
 GridSample&Logic of the first Buy: if there are N candles falling down, we place the first order according to the close of the last candle. Next: buy if the price is greater than entryUpPrice or less than entryDownPrice. Exit: by stop&Include&&Simple 1*&&
 HighFrequencyTrader&robot analyzing the density of the market depth&Include&&Simple 1*&&
+IndexArbitrageClassic&Classic trading with two index&Include&&Index 2*Screener 2*&&
 MomentumMACD&Trend strategy based on 2 indicators Momentum and Macd. if lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short. if lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.&Include&&Simple 1*&MacdLine*Momentum*&
 MarketMakerBot&&Include&&Simple 1*&&
 MacdRevers&Trend strategy at the intersection of the MACD indicator Logic of the first Enter: lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell Next: lastMacdDown > 0 and lastMacdUp < lastMacdDown close position and open Short. lastMacdDown < 0 and lastMacdUp > lastMacdDown close position and open Long.&Include&&Simple 1*&MACD*&
 MacdTrail&Trend strategy based on the Macd indicator and trail stop Logic Enter: lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell Exit: By TralingStop&Include&&Simple 1*&MacdLine*&
-MultiOneLegArbitrageMeanReversion&Securities that deviate from the broad market without momentum are traded on a return to the index. &Include&&Index 1*Screener 1*&&
+MultiExchangePairArbitrageOnTheIndex&&Include&&Simple 5*Index 1*&&
+MultiOneLegArbitrageInTrend&Securities that deviate from the broad market with momentum trade on a widening gap, in a certain stage of volatility.&Include&&Index 1*Screener 1*&VolatilityStagesAW*VolatilityAverage*&
+MultiOneLegArbitrageMeanReversion&Securities that deviate from the broad market without momentum are traded on a return to the index. &Include&&Index 1*Screener 1*&VolatilityAverage*&
 OneLegArbitrage&Trading robot on the index. The intersection of MA on the index from the bottom up long, with the reverse intersection of shorts&Include&&Simple 1*Index 1*&Sma*&
 PairTraderSimple&robot for pair trading. trading two papers based on their acceleration to each other by candle&Include&&Simple 2*&&
 PatternTrader&Pattern trading robot&Include&&Simple 1*&&
