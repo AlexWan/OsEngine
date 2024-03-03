@@ -30,7 +30,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             RegimeClosePosition = CreateParameter("Regime Close Position", "", new[] { "Reverse signal", "No signal" });
 
-            MoneyPercentFromDepoOnPosition = CreateParameter("Percent depo on position", 25m, 0.1m, 50, 0.1m);
+            MoneyPercentFromDepoOnOneLeg = CreateParameter("Percent depo on one leg", 25m, 0.1m, 50, 0.1m);
 
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
@@ -70,7 +70,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
         public StrategyParameterString RegimeClosePosition;
 
-        public StrategyParameterDecimal MoneyPercentFromDepoOnPosition;
+        public StrategyParameterDecimal MoneyPercentFromDepoOnOneLeg;
 
         public StrategyParameterString TradeAssetInPortfolio;
 
@@ -112,6 +112,8 @@ namespace OsEngine.Robots.IndexArbitrage
             }
         }
 
+        private bool _lastCandleOpenPos;
+
         private void Trade()
         {
             if (Regime.ValueString == "Off")
@@ -136,9 +138,15 @@ namespace OsEngine.Robots.IndexArbitrage
             if (havePos == false)
             {
                 TryOpenPositions();
+                _lastCandleOpenPos = true;
             }
             else if (havePos == true)
             {
+                if(_lastCandleOpenPos == true)
+                {
+                    _lastCandleOpenPos = false;
+                    return;
+                }
                 TryClosePositions();
             }
         }
@@ -191,53 +199,54 @@ namespace OsEngine.Robots.IndexArbitrage
             }
 
             if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up)
-            { // long second short first 
-                BuySecondSellFirst(CointegrationLineSide.Up.ToString());
+            { // long first short second 
+                BuyFirstSellSecond(CointegrationLineSide.Up.ToString());
             }
 
             if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down)
-            { // long first short second 
-                BuyFirstSellSecond(CointegrationLineSide.Down.ToString());
+            { // long second short first
+                BuySecondSellFirst(CointegrationLineSide.Down.ToString());
             }
         }
 
         private void BuyFirstSellSecond(string curSideCointegration)
         {
-            for(int i = 0;i < _screenerFirst.Tabs.Count;i++)
+            
+            decimal firstLegVolumeOneSec = MoneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerFirst.Tabs.Count;
+            decimal firstLegVolumeTwoSec = MoneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerSecond.Tabs.Count;
+
+            for (int i = 0;i < _screenerFirst.Tabs.Count;i++)
             {
-                decimal volume = GetVolume(_screenerFirst.Tabs[i]);
+                decimal volume = GetVolume(_screenerFirst.Tabs[i], firstLegVolumeOneSec);
                 _screenerFirst.Tabs[i].BuyAtMarket(volume, curSideCointegration);
             }
 
             for (int i = 0; i < _screenerSecond.Tabs.Count; i++)
             {
-                decimal volume = GetVolume(_screenerSecond.Tabs[i]);
+                decimal volume = GetVolume(_screenerSecond.Tabs[i], firstLegVolumeTwoSec);
                 _screenerSecond.Tabs[i].SellAtMarket(volume, curSideCointegration);
             }
         }
 
         private void BuySecondSellFirst(string curSideCointegration)
         {
+            decimal firstLegVolumeOneSec = MoneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerFirst.Tabs.Count;
+            decimal firstLegVolumeTwoSec = MoneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerSecond.Tabs.Count;
+
             for (int i = 0; i < _screenerFirst.Tabs.Count; i++)
             {
-                decimal volume = GetVolume(_screenerFirst.Tabs[i]);
-
-                if(volume == 0)
-                {
-
-                }
-
+                decimal volume = GetVolume(_screenerFirst.Tabs[i], firstLegVolumeOneSec);
                 _screenerFirst.Tabs[i].SellAtMarket(volume, curSideCointegration);
             }
 
             for (int i = 0; i < _screenerSecond.Tabs.Count; i++)
             {
-                decimal volume = GetVolume(_screenerSecond.Tabs[i]);
+                decimal volume = GetVolume(_screenerSecond.Tabs[i], firstLegVolumeTwoSec);
                 _screenerSecond.Tabs[i].BuyAtMarket(volume, curSideCointegration);
             }
         }
 
-        private decimal GetVolume(BotTabSimple tab)
+        private decimal GetVolume(BotTabSimple tab, decimal portfolioPercent)
         {
             Portfolio myPortfolio = tab.Portfolio;
 
@@ -277,7 +286,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 return 0;
             }
 
-            decimal moneyOnPosition = portfolioPrimeAsset * (MoneyPercentFromDepoOnPosition.ValueDecimal / 100);
+            decimal moneyOnPosition = portfolioPrimeAsset * (portfolioPercent / 100);
 
             decimal qty = moneyOnPosition / tab.PriceBestAsk;
 
