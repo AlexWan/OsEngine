@@ -28,9 +28,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
 
-            RegimeClosePosition = CreateParameter("Reverse signal", "", new[] { "Reverse signal", "No signal" });
-
-            MaxPositionsCount = CreateParameter("Max poses count", 3, 1, 50, 4);
+            RegimeClosePosition = CreateParameter("Regime Close Position", "", new[] { "Reverse signal", "No signal" });
 
             MoneyPercentFromDepoOnPosition = CreateParameter("Percent depo on position", 25m, 0.1m, 50, 0.1m);
 
@@ -46,7 +44,6 @@ namespace OsEngine.Robots.IndexArbitrage
 
             Description =
                     "Classic trading with two index";
-
 
         }
 
@@ -72,8 +69,6 @@ namespace OsEngine.Robots.IndexArbitrage
         public StrategyParameterString Regime;
 
         public StrategyParameterString RegimeClosePosition;
-
-        public StrategyParameterInt MaxPositionsCount;
 
         public StrategyParameterDecimal MoneyPercentFromDepoOnPosition;
 
@@ -119,12 +114,12 @@ namespace OsEngine.Robots.IndexArbitrage
 
         private void Trade()
         {
-            if(Regime.ValueString == "Off")
+            if (Regime.ValueString == "Off")
             {
                 return;
             }
 
-            if(_screenerFirst.Tabs.Count == 0)
+            if (_screenerFirst.Tabs.Count == 0)
             {
                 SendNewLogMessage("ScreenerFirst is note activated", Logging.LogMessageType.Error);
                 return;
@@ -138,15 +133,38 @@ namespace OsEngine.Robots.IndexArbitrage
 
             bool havePos = HavePositions();
 
-            if(havePos == false)
+            if (havePos == false)
             {
                 TryOpenPositions();
             }
-            else if(havePos == true)
+            else if (havePos == true)
             {
                 TryClosePositions();
             }
         }
+
+        private bool HavePositions()
+        {
+            for (int i = 0; i < _screenerFirst.Tabs.Count; i++)
+            {
+                if (_screenerFirst.Tabs[i].PositionsOpenAll.Count != 0)
+                {
+                    return true;
+                }
+            }
+
+            for (int i = 0; i < _screenerSecond.Tabs.Count; i++)
+            {
+                if (_screenerSecond.Tabs[i].PositionsOpenAll.Count != 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // logic open poses
 
         private void TryOpenPositions()
         {
@@ -203,6 +221,12 @@ namespace OsEngine.Robots.IndexArbitrage
             for (int i = 0; i < _screenerFirst.Tabs.Count; i++)
             {
                 decimal volume = GetVolume(_screenerFirst.Tabs[i]);
+
+                if(volume == 0)
+                {
+
+                }
+
                 _screenerFirst.Tabs[i].SellAtMarket(volume, curSideCointegration);
             }
 
@@ -255,10 +279,21 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal moneyOnPosition = portfolioPrimeAsset * (MoneyPercentFromDepoOnPosition.ValueDecimal / 100);
 
-            decimal qty = Math.Round(moneyOnPosition / tab.PriceBestAsk, tab.Securiti.DecimalsVolume);
+            decimal qty = moneyOnPosition / tab.PriceBestAsk;
+
+            if(tab.StartProgram == StartProgram.IsOsTrader)
+            {
+                qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+            }
+            else
+            {
+                qty = Math.Round(qty, 7);
+            }
 
             return qty;
         }
+
+        // logic close poses
 
         private void TryClosePositions()
         {
@@ -293,6 +328,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 if (_screenerFirst.Tabs[i].PositionsOpenAll.Count == 0)
                 {
                     SendNewLogMessage("In one of securities no positions!", Logging.LogMessageType.Error);
+                    CloseAllPositionsByMarket();
                     return;
                 }
             }
@@ -302,6 +338,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 if (_screenerSecond.Tabs[i].PositionsOpenAll.Count == 0)
                 {
                     SendNewLogMessage("In one of securities no positions!", Logging.LogMessageType.Error);
+                    CloseAllPositionsByMarket();
                     return;
                 }
             }
@@ -327,39 +364,35 @@ namespace OsEngine.Robots.IndexArbitrage
                 SendNewLogMessage("Last side is unknown! Error", Logging.LogMessageType.Error);
                 return;
             }
-            //"Reverse signal", "No signal" 
-            if (RegimeClosePosition.ValueString == "Reverse signal"
-                && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up
-                && lastSide == CointegrationLineSide.Down)
-            {
-                CloseAllPositionsByMarket();
-            }
-            else if (RegimeClosePosition.ValueString == "No signal"
-                     && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
-            {
-                CloseAllPositionsByMarket();
-            }
-        }
 
-        private bool HavePositions()
-        {
-            for (int i = 0; i < _screenerFirst.Tabs.Count; i++)
+            if (lastSide.ToString() == "Up")
             {
-                if (_screenerFirst.Tabs[i].PositionsOpenAll.Count != 0)
+                if (RegimeClosePosition.ValueString == "Reverse signal"
+                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down)
                 {
-                    return true;
+                    CloseAllPositionsByMarket();
+                }
+                else if (RegimeClosePosition.ValueString == "No signal"
+                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
+                {
+                    CloseAllPositionsByMarket();
+                }
+            }
+            else if (lastSide.ToString() == "Down")
+            {
+                //"Reverse signal", "No signal"
+                if (RegimeClosePosition.ValueString == "Reverse signal"
+                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up)
+                {
+                    CloseAllPositionsByMarket();
+                }
+                else if (RegimeClosePosition.ValueString == "No signal"
+                    && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
+                {
+                    CloseAllPositionsByMarket();
                 }
             }
 
-            for (int i = 0; i < _screenerSecond.Tabs.Count; i++)
-            {
-                if (_screenerSecond.Tabs[i].PositionsOpenAll.Count != 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private void CloseAllPositionsByMarket()

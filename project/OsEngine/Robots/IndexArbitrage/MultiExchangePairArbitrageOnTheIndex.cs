@@ -328,7 +328,16 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal moneyOnPosition = portfolioPrimeAsset * (MoneyPercentFromDepoOnPosition.ValueDecimal / 100);
 
-            decimal qty = Math.Round(moneyOnPosition / tab.PriceBestAsk, tab.Securiti.DecimalsVolume);
+            decimal qty = moneyOnPosition / tab.PriceBestAsk;
+
+            if (tab.StartProgram == StartProgram.IsOsTrader)
+            {
+                qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+            }
+            else
+            {
+                qty = Math.Round(qty, 7);
+            }
 
             return qty;
         }

@@ -259,7 +259,16 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal moneyOnPosition = portfolioPrimeAsset * (MoneyPercentFromDepoOnPosition.ValueDecimal / 100);
 
-            decimal qty = Math.Round(moneyOnPosition / tab.PriceBestAsk,tab.Securiti.DecimalsVolume);
+            decimal qty = moneyOnPosition / tab.PriceBestAsk;
+
+            if (tab.StartProgram == StartProgram.IsOsTrader)
+            {
+                qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+            }
+            else
+            {
+                qty = Math.Round(qty, 7);
+            }
 
             return qty;
         }
@@ -312,7 +321,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             if (pos.SignalTypeOpen == "Up")
             {
-                //"Reverse signal", "No signal", "Zero crossing"
+                //"Reverse signal", "No signal"
                 if (RegimeClosePosition.ValueString == "Reverse signal"
                     && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down)
                 {
@@ -326,7 +335,7 @@ namespace OsEngine.Robots.IndexArbitrage
             }
             else if(pos.SignalTypeOpen == "Down")
             {
-                //"Reverse signal", "No signal", "Zero crossing"
+                //"Reverse signal", "No signal"
                 if (RegimeClosePosition.ValueString == "Reverse signal"
                     && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up)
                 {
