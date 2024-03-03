@@ -55,6 +55,7 @@ using OsEngine.Market.Servers.BinGxSpot;
 using OsEngine.Market.Servers.BingX.BingXSpot;
 using OsEngine.Market.Servers.BingX.BingXFutures;
 using OsEngine.Market.Servers.Deribit;
+using OsEngine.Market.Servers.XT.XTSpot;
 
 namespace OsEngine.Market
 {
@@ -192,6 +193,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitGetFutures);
                 serverTypes.Add(ServerType.BingXSpot);
                 serverTypes.Add(ServerType.BingXFutures);
+                serverTypes.Add(ServerType.XTSpot);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -271,6 +273,7 @@ namespace OsEngine.Market
                 List<ServerType> serverTypes = new List<ServerType>();
 
                 serverTypes.Add(ServerType.TinkoffInvestments);
+                serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.Alor);
@@ -375,6 +378,10 @@ namespace OsEngine.Market
                 if (type == ServerType.BingXSpot)
                 {
                     newServer = new BingXServerSpot();
+                }
+                if (type == ServerType.XTSpot)
+                {
+                    newServer = new XTServerSpot();
                 }
                 if (type == ServerType.BingXFutures)
                 {
@@ -974,6 +981,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new KuCoinFuturesServerPermission();
                 }
+                else if (type == ServerType.XTSpot)
+                {
+                    serverPermission = new XTSpotServerPermission();
+                }
                 else if (type == ServerType.BingXSpot)
                 {
                     serverPermission = new BingXSpotServerPermission();
@@ -1476,5 +1487,10 @@ namespace OsEngine.Market
         /// Deribit exchange
         /// </summary>
         Deribit,
+
+        /// <summary>
+        /// XT Spot exchange
+        /// </summary>
+        XTSpot,
     }
 }
