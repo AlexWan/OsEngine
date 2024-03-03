@@ -28,9 +28,7 @@ namespace OsEngine.Robots.IndexArbitrage
             _sec4Tab = TabsSimple[3];
             _sec5Tab = TabsSimple[4];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
-
-            MaxPositionsCount = CreateParameter("Max poses count", 3, 1, 50, 4);
+            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
 
             MoneyPercentFromDepoOnPosition = CreateParameter("Percent depo on position", 25m, 0.1m, 50, 0.1m);
 
@@ -68,8 +66,6 @@ namespace OsEngine.Robots.IndexArbitrage
         private BotTabSimple _sec5Tab;
 
         public StrategyParameterString Regime;
-
-        public StrategyParameterInt MaxPositionsCount;
 
         public StrategyParameterDecimal MoneyPercentFromDepoOnPosition;
 
@@ -220,8 +216,9 @@ namespace OsEngine.Robots.IndexArbitrage
             {
                 decimal volumeOnUpperSec = GetVolume(upSec);
                 decimal volumeOnLowerSec = GetVolume(downSec);
+
                 upSec.SellAtMarket(volumeOnUpperSec);
-                downSec.SellAtMarket(volumeOnLowerSec);
+                downSec.BuyAtMarket(volumeOnLowerSec);
             }
         }
 
@@ -289,54 +286,6 @@ namespace OsEngine.Robots.IndexArbitrage
             return true;
         }
 
-        private void TryClosePositions(List<OpenPosByTab> openPoses)
-        {
-            if(openPoses.Count == 1)
-            { // error position
-
-                CloseAtMarket(openPoses[0]);
-                return;
-            }
-
-            OpenPosByTab upPosition = null;
-            OpenPosByTab downPosition = null;
-
-            if (openPoses[0].Position.Direction == Side.Sell)
-            {
-                upPosition = openPoses[0];
-                downPosition = openPoses[1];
-            }
-            else
-            {
-                upPosition = openPoses[1];
-                downPosition = openPoses[0];
-            }
-
-            decimal lowPrice = downPosition.Tab.PriceBestAsk;
-            decimal highPrice = upPosition.Tab.PriceBestBid;
-
-            decimal absDiff = highPrice - lowPrice;
-
-            decimal percentMove = absDiff / (lowPrice / 100);
-
-            if (percentMove <= MinDeviationToExit.ValueDecimal)
-            {
-                CloseAtMarket(upPosition);
-                CloseAtMarket(downPosition);
-            }
-
-        }
-
-        private void CloseAtMarket(OpenPosByTab pos)
-        { 
-            if(pos.Position.State != PositionStateType.Open)
-            {
-                return;
-            }
-
-            pos.Tab.CloseAtMarket(pos.Position, pos.Position.OpenVolume);
-        }
-
         private decimal GetVolume(BotTabSimple tab)
         {
             Portfolio myPortfolio = tab.Portfolio;
@@ -386,8 +335,95 @@ namespace OsEngine.Robots.IndexArbitrage
 
         private List<OpenPosByTab> GetOpenPoses()
         {
+            List<OpenPosByTab> openPoses = new List<OpenPosByTab>();
 
-            return null;
+            if(_sec1Tab.PositionsOpenAll.Count > 0)
+            {
+                OpenPosByTab newPos = new OpenPosByTab();
+                newPos.Position = _sec1Tab.PositionsOpenAll[0];
+                newPos.Tab = _sec1Tab;
+                openPoses.Add(newPos);
+            }
+            if (_sec2Tab.PositionsOpenAll.Count > 0)
+            {
+                OpenPosByTab newPos = new OpenPosByTab();
+                newPos.Position = _sec2Tab.PositionsOpenAll[0];
+                newPos.Tab = _sec2Tab;
+                openPoses.Add(newPos);
+            }
+            if (_sec3Tab.PositionsOpenAll.Count > 0)
+            {
+                OpenPosByTab newPos = new OpenPosByTab();
+                newPos.Position = _sec3Tab.PositionsOpenAll[0];
+                newPos.Tab = _sec3Tab;
+                openPoses.Add(newPos);
+            }
+            if (_sec4Tab.PositionsOpenAll.Count > 0)
+            {
+                OpenPosByTab newPos = new OpenPosByTab();
+                newPos.Position = _sec4Tab.PositionsOpenAll[0];
+                newPos.Tab = _sec4Tab;
+                openPoses.Add(newPos);
+            }
+            if (_sec5Tab.PositionsOpenAll.Count > 0)
+            {
+                OpenPosByTab newPos = new OpenPosByTab();
+                newPos.Position = _sec5Tab.PositionsOpenAll[0];
+                newPos.Tab = _sec5Tab;
+                openPoses.Add(newPos);
+            }
+
+            return openPoses;
+        }
+
+        // logic close poses
+
+        private void TryClosePositions(List<OpenPosByTab> openPoses)
+        {
+            if (openPoses.Count == 1)
+            { // error position
+
+                CloseAtMarket(openPoses[0]);
+                return;
+            }
+
+            OpenPosByTab upPosition = null;
+            OpenPosByTab downPosition = null;
+
+            if (openPoses[0].Position.Direction == Side.Sell)
+            {
+                upPosition = openPoses[0];
+                downPosition = openPoses[1];
+            }
+            else
+            {
+                upPosition = openPoses[1];
+                downPosition = openPoses[0];
+            }
+
+            decimal lowPrice = downPosition.Tab.PriceBestAsk;
+            decimal highPrice = upPosition.Tab.PriceBestBid;
+
+            decimal absDiff = highPrice - lowPrice;
+
+            decimal percentMove = absDiff / (lowPrice / 100);
+
+            if (percentMove <= MinDeviationToExit.ValueDecimal)
+            {
+                CloseAtMarket(upPosition);
+                CloseAtMarket(downPosition);
+            }
+
+        }
+
+        private void CloseAtMarket(OpenPosByTab pos)
+        {
+            if (pos.Position.State != PositionStateType.Open)
+            {
+                return;
+            }
+
+            pos.Tab.CloseAtMarket(pos.Position, pos.Position.OpenVolume);
         }
     }
 
