@@ -141,6 +141,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 catch(Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
@@ -1660,6 +1661,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     // Handle the cancellation gracefully
                     SendLogMessage("Market data stream was cancelled", LogMessageType.System);
+                    Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
                 {
@@ -1671,6 +1673,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
+                    Thread.Sleep(5000);
                 }
                 catch (Exception exception)
                 {
@@ -1935,6 +1938,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     // Handle the cancellation gracefully
                     SendLogMessage("Portfolio data stream was cancelled", LogMessageType.System);
+                    Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
                 {
@@ -1946,6 +1950,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
+                    Thread.Sleep(5000);
                 }
                 catch (Exception exception)
                 {
@@ -2134,6 +2139,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     // Handle the cancellation gracefully
                     SendLogMessage("Positions data stream was cancelled", LogMessageType.System);
+                    Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
                 {
@@ -2145,6 +2151,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
+                    Thread.Sleep(5000);
                 }
                 catch (Exception exception)
                 {
@@ -2314,6 +2321,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     // Handle the cancellation gracefully
                     SendLogMessage("My trades data stream was cancelled", LogMessageType.System);
+                    Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
                 {
@@ -2325,6 +2333,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
+                    Thread.Sleep(5000);
                 }
                 catch (Exception exception)
                 {
