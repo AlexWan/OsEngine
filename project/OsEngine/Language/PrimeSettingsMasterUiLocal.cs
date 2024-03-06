@@ -30,7 +30,7 @@ namespace OsEngine.Language
         public string TextBoxMessageToUsers => OsLocalization.ConvertToLocString(
             "Eng: We apologize for any inconvenience with the translation. \nSupport our Open Source project and it will become better._"
             +
-            "_Ru: Напишите на наш форум если нашли ошибку. Поддержите разработку проекта и вместе мы станем лучше._");
+            "_Ru: Напишите в чат поддержки если нашли ошибку. Поддержите разработку проекта и вместе мы станем лучше._");
 
         public string LabelServerTestingIsActive => OsLocalization.ConvertToLocString(
             "Eng:Server Testing Is Active_" +
