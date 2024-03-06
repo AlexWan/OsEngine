@@ -268,7 +268,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
                 for (int i = 0; i < positionOnBoard.Count; i++)
                 {
-                    if (positionOnBoard[i].PortfolioName == TradeAssetInPortfolio.ValueString)
+                    if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
                     {
                         portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                         break;
