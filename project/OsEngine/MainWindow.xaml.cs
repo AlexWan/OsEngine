@@ -23,6 +23,7 @@ using OsEngine.OsOptimizer;
 using OsEngine.OsTrader.Gui;
 using OsEngine.PrimeSettings;
 using OsEngine.Layout;
+using System.Collections.Generic;
 
 namespace OsEngine
 {
@@ -84,6 +85,13 @@ namespace OsEngine
                     MessageBox.Show(OsLocalization.MainWindow.Message6);
                     Close();
                 }
+
+                if (!CheckAlreadyWorkEngine())
+                {
+                    MessageBox.Show(OsLocalization.MainWindow.Message7);
+                    Close();
+                }
+
             }
             catch (Exception)
             {
@@ -265,6 +273,74 @@ namespace OsEngine
 
 
             return true;
+        }
+
+        private bool CheckAlreadyWorkEngine()
+        {
+            try
+            {
+                string myDirectory = Directory.GetCurrentDirectory();
+
+                Process[] ps1 = System.Diagnostics.Process.GetProcesses();
+
+                List<Process> process = new List<Process>();
+
+                for (int i = 0; i < ps1.Length; i++)
+                {
+                    Process p = ps1[i];
+
+                    try
+                    {
+                        string mainStr = p.MainWindowHandle.ToString();
+
+                        if (mainStr == "0")
+                        {
+                            continue;
+                        }
+
+                        if (p.MainModule.FileName != ""
+                            && p.Modules != null)
+                        {
+                            process.Add(p);
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                }
+
+                int osEngineCount = 0;
+
+                for (int i = 0; i < process.Count; i++)
+                {
+                    Process p = process[i];
+
+                    for (int j = 0; p.Modules != null && j < p.Modules.Count; j++)
+                    {
+                        if (p.Modules[j].FileName == null)
+                        {
+                            continue;
+                        }
+
+                        if (p.Modules[j].FileName.Contains(myDirectory))
+                        {
+                            osEngineCount++;
+                        }
+                    }
+                }
+
+                if (osEngineCount > 0)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return true;
+            }
         }
 
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

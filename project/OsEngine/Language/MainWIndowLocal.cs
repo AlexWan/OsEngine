@@ -99,5 +99,9 @@ namespace OsEngine.Language
             "Eng:It looks like you didn't run the program from its folder. Not by creating a shortcut, but by moving the program. You can't do that!_" +
             "Ru:Похоже Вы запустили программу не из папки с ней. Не создав ярлык, а обычным перемещением. Так нельзя!_");
 
+        public string Message7 => OsLocalization.ConvertToLocString(
+           "Eng:Os Engine is already running from this directory. You cannot run a second one!_" +
+           "Ru:Os Engine уже запущен из данной директории. Второй запускать нельзя!_");
+
     }
 }
