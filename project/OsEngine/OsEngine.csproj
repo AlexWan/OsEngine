@@ -767,6 +767,11 @@
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml.cs">
       <DependentUpon>OptimizerDataStorageUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Pionex\Entity\OrdersPionexRequest.cs" />
+    <Compile Include="Market\Servers\Pionex\Entity\ResponseMessageRest.cs" />
+    <Compile Include="Market\Servers\Pionex\Entity\ResponseWebSocketMessage.cs" />
+    <Compile Include="Market\Servers\Pionex\PionexServerSpot.cs" />
+    <Compile Include="Market\Servers\Pionex\PionexServerSpotPermission.cs" />
     <Compile Include="Market\Servers\Plaza\Internal\PlazaClient.cs" />
     <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />

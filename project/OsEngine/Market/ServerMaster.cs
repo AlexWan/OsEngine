@@ -56,6 +56,7 @@ using OsEngine.Market.Servers.BingX.BingXSpot;
 using OsEngine.Market.Servers.BingX.BingXFutures;
 using OsEngine.Market.Servers.Deribit;
 using OsEngine.Market.Servers.XT.XTSpot;
+using OsEngine.Market.Servers.Pionex;
 
 namespace OsEngine.Market
 {
@@ -194,6 +195,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BingXSpot);
                 serverTypes.Add(ServerType.BingXFutures);
                 serverTypes.Add(ServerType.XTSpot);
+                serverTypes.Add(ServerType.PionexSpot);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -538,6 +540,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.Deribit)
                 {
                     newServer = new DeribitServer();
+                }
+                else if (type == ServerType.PionexSpot)
+                {
+                    newServer = new PionexServerSpot();
                 }
 
                 if (newServer == null)
@@ -1081,6 +1087,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new DeribitServerPermission();
                 }
+                else if (type == ServerType.PionexSpot)
+                {
+                    serverPermission = new PionexServerSpotPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1492,5 +1502,10 @@ namespace OsEngine.Market
         /// XT Spot exchange
         /// </summary>
         XTSpot,
+
+        /// <summary>
+        /// Pionex exchange
+        /// </summary>
+        PionexSpot,
     }
 }
