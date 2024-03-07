@@ -2259,7 +2259,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         order.Volume = state.LotsRequested;
                         order.VolumeExecute = state.LotsExecuted;
                         order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialOrderPrice) : 0;
-                        order.TimeCallBack = DateTime.Now;
+                        order.TimeCallBack = state.OrderDate.ToDateTime();
                         order.SecurityClassCode = security.NameClass;
 
                         if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
