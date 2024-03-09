@@ -2087,6 +2087,12 @@ namespace OsEngine.OsOptimizer
                 cell.Value = param.ValueString;
                 row.Cells.Add(cell);
             }
+            else
+            {
+                DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+                cell.Value = "";
+                row.Cells.Add(cell);
+            }
 
             // 4 Start optimize value
 
