@@ -602,6 +602,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             SendLogMessage("Connection to public data is Open", LogMessageType.System);
 
             if (ServerStatus != ServerConnectStatus.Connect 
+                && _webSocketPrivate != null
                 && _webSocketPrivate.State == WebSocketState.Open)
             {
                 ServerStatus = ServerConnectStatus.Connect;
@@ -613,7 +614,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             SendLogMessage("Connection to private data is Open", LogMessageType.System);
             
-            if (ServerStatus != ServerConnectStatus.Connect 
+            if (ServerStatus != ServerConnectStatus.Connect
+                && _webSocketPublic != null
                 && _webSocketPublic.State == WebSocketState.Open)
             {
                 ServerStatus = ServerConnectStatus.Connect;
