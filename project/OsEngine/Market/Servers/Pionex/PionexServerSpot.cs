@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Com.Lmax.Api.Internal;
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -147,6 +148,7 @@ namespace OsEngine.Market.Servers.Pionex
         #endregion
 
         #region 2 Properties
+
         public List<IServerParameter> ServerParameters { get; set; }
 
         private string _publicKey;
@@ -164,6 +166,7 @@ namespace OsEngine.Market.Servers.Pionex
         #region 3 Securities
 
         RateGate _rateGateGetSec = new RateGate(2, TimeSpan.FromMilliseconds(1000));
+
         public void GetSecurities()
         {
             _rateGateGetSec.WaitToProceed();
@@ -203,6 +206,7 @@ namespace OsEngine.Market.Servers.Pionex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void UpdateSecurity(string json)
         {
             ResponseMessageRest<ResponseSymbols> symbols = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseSymbols>());
@@ -244,6 +248,7 @@ namespace OsEngine.Market.Servers.Pionex
         #endregion
 
         #region 4 Portfolios
+
         public void GetPortfolios()
         {
             CreateQueryPortfolio();
@@ -257,7 +262,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return CreateQueryCandles(security, timeFrameBuilder, candleCount);
+            return CreateQueryCandles(security, timeFrameBuilder, candleCount,1);
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -358,6 +363,7 @@ namespace OsEngine.Market.Servers.Pionex
         #endregion
 
         #region 7 WebSocket events
+
         private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
         {
             ErrorEventArgs error = (ErrorEventArgs)e;
@@ -367,6 +373,7 @@ namespace OsEngine.Market.Servers.Pionex
                 SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPublic_DataReceived(object sender, DataReceivedEventArgs e)
         {
             try
@@ -402,6 +409,7 @@ namespace OsEngine.Market.Servers.Pionex
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPublic_Closed(object sender, EventArgs e)
         {
             if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -411,11 +419,13 @@ namespace OsEngine.Market.Servers.Pionex
                 DisconnectEvent();
             }
         }
+
         private void WebSocketPublic_Opened(object sender, EventArgs e)
         {
             SendLogMessage("Connection to public data is Open", LogMessageType.System);
 
             if (ServerStatus != ServerConnectStatus.Connect
+                && _webSocketPublic != null
                 && _webSocketPublic.State == WebSocketState.Open)
             {
                 ServerStatus = ServerConnectStatus.Connect;
@@ -431,6 +441,7 @@ namespace OsEngine.Market.Servers.Pionex
                 SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPrivate_DataReceived(object sender, DataReceivedEventArgs e)
         {
             try
@@ -466,6 +477,7 @@ namespace OsEngine.Market.Servers.Pionex
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPrivate_Closed(object sender, EventArgs e)
         {
             if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -476,11 +488,13 @@ namespace OsEngine.Market.Servers.Pionex
                 DisconnectEvent();
             }
         }
+
         private void WebSocketPrivate_Opened(object sender, EventArgs e)
         {
             SendLogMessage("Connection to private data is Open", LogMessageType.System);
 
             if (ServerStatus != ServerConnectStatus.Connect
+                && _webSocketPrivate != null
                 && _webSocketPrivate.State == WebSocketState.Open)
             {
                 ServerStatus = ServerConnectStatus.Connect;
@@ -496,7 +510,7 @@ namespace OsEngine.Market.Servers.Pionex
 
         private List<string> _subscribedSecurities = new List<string>();
 
-        private RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(1000));
+        private RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
         public void Subscrible(Security security)
         {
@@ -516,7 +530,6 @@ namespace OsEngine.Market.Servers.Pionex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
-
 
         private void CreateSubscribedSecurityMessageWebSocket(Security security)
         {
@@ -617,6 +630,7 @@ namespace OsEngine.Market.Servers.Pionex
                 }
             }
         }
+
         private void PrivateMessageReader()
         {
             Thread.Sleep(1000);
@@ -685,6 +699,7 @@ namespace OsEngine.Market.Servers.Pionex
                 }
             }
         }
+
         private void UpdateTrade(string message)
         {
             ResponseWebSocketMessage<List<TradeElements>> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<TradeElements>>());
@@ -712,6 +727,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             NewTradesEvent(trade);
         }
+
         private void UpdateDepth(string message)
         {
             ResponseWebSocketMessage<ResponseWebSocketDepthItem> responseDepth = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseWebSocketDepthItem>());
@@ -748,8 +764,15 @@ namespace OsEngine.Market.Servers.Pionex
             marketDepth.Bids = bids;
             marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.timestamp));
 
+            if(marketDepth.Asks.Count == 0 ||
+                marketDepth.Bids.Count == 0)
+            {
+                return;
+            }
+
             MarketDepthEvent(marketDepth);
         }
+
         private void UpdatePortfolio(string message)
         {
             ResponseWebSocketMessage<ResponceWSBalance> responce = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponceWSBalance>());
@@ -772,6 +795,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
+
         private void UpdateMyTrade(string message)
         {
             ResponseWebSocketMessage<MyTrades> responseTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<MyTrades>());
@@ -796,6 +820,7 @@ namespace OsEngine.Market.Servers.Pionex
             
             MyTradeEvent(newTrade);
         }
+
         private decimal GetVolumeForMyTrade(string symbol, decimal preVolume)
         {
             int forTruncate = 1;
@@ -821,6 +846,7 @@ namespace OsEngine.Market.Servers.Pionex
             }
             return preVolume;
         }
+
         private void UpdateOrder(string message)
         {
             ResponseWebSocketMessage<MyOrders> responseOrders = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<MyOrders>());
@@ -843,6 +869,12 @@ namespace OsEngine.Market.Servers.Pionex
 
             newOrder.SecurityNameCode = item.symbol;
             newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.createTime));
+
+            if(string.IsNullOrEmpty(item.clientOrderId))
+            {
+                return;
+            }
+
             newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
             newOrder.NumberMarket = item.orderId;
             newOrder.Side = item.side.Equals("BUY") ? Side.Buy : Side.Sell;
@@ -855,6 +887,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             MyOrderEvent(newOrder);
         }
+
         private OrderStateType GetOrderState(string status, string filledSize)
         {
             OrderStateType stateType;
@@ -894,6 +927,7 @@ namespace OsEngine.Market.Servers.Pionex
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
+
         public void SendOrder(Order order)
         {
             _rateGate.WaitToProceed();
@@ -905,7 +939,7 @@ namespace OsEngine.Market.Servers.Pionex
             data.type = order.TypeOrder.ToString().ToUpper();
             data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
             data.size = order.Volume.ToString().Replace(",", ".");
-            data.amount = order.TypeOrder == OrderPriceType.Market && order.Side == Side.Buy ?  (order.Volume * order.Price).ToString().Replace(",", ".") : null; // для BUY MARKET ORDER указывается размер в USDT не меньше 10
+            data.amount = (order.Volume * order.Price).ToString().Replace(",", "."); // для BUY MARKET ORDER указывается размер в USDT не меньше 10
             data.IOC = false;
 
             string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -945,6 +979,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             MyOrderEvent.Invoke(order);
         }
+
         private void CreateOrderFail(Order order)
         {
             order.State = OrderStateType.Fail;
@@ -954,6 +989,7 @@ namespace OsEngine.Market.Servers.Pionex
                 MyOrderEvent(order);
             }
         }
+
         public void CancelAllOrdersToSecurity(Security security)
         {
             _rateGate.WaitToProceed();
@@ -986,6 +1022,7 @@ namespace OsEngine.Market.Servers.Pionex
                 SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
             }
         }
+
         public void CancelOrder(Order order)
         {
             _rateGate.WaitToProceed();
@@ -1020,10 +1057,12 @@ namespace OsEngine.Market.Servers.Pionex
             }
 
         }
+
         public void CancelAllOrders()
         {
           
         }
+
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             
@@ -1033,9 +1072,10 @@ namespace OsEngine.Market.Servers.Pionex
 
         #region 11 Queries
 
-        private RateGate _rateGate = new RateGate(10, TimeSpan.FromMilliseconds(1000)); // https://pionex-doc.gitbook.io/apidocs/restful/general/rate-limit
+        private RateGate _rateGate = new RateGate(8, TimeSpan.FromMilliseconds(1000)); // https://pionex-doc.gitbook.io/apidocs/restful/general/rate-limit
 
         private HttpClient _httpPublicClient = new HttpClient();
+
         private void CreateQueryPortfolio()
         {
             _rateGate.WaitToProceed();
@@ -1076,6 +1116,7 @@ namespace OsEngine.Market.Servers.Pionex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void UpdatePortfolioREST(Balance[] balances)
         {
             Portfolio portfolio = new Portfolio();
@@ -1096,7 +1137,8 @@ namespace OsEngine.Market.Servers.Pionex
 
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
-        private List<Candle> CreateQueryCandles(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+
+        private List<Candle> CreateQueryCandles(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount, int taskCount)
         {
             _rateGate.WaitToProceed();
 
@@ -1147,10 +1189,10 @@ namespace OsEngine.Market.Servers.Pionex
 
                 IRestResponse json = CreatePrivateRequest(_signature, _pathUrl, Method.GET, timestamp, null, parameters);
 
-                ResponseMessageRest<ResponceCandles> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponceCandles>());
-
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
+                    ResponseMessageRest<ResponceCandles> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseMessageRest<ResponceCandles>());
+
                     if (responce.result == "true")
                     {
                         List<Candle> candles = new List<Candle>();
@@ -1173,14 +1215,30 @@ namespace OsEngine.Market.Servers.Pionex
                     }
                     else
                     {
-                        SendLogMessage($"Error: {responce.code} - message: {responce.message}", LogMessageType.Error);
-                        return null;
+                        if(taskCount >= 3)
+                        {
+                            SendLogMessage($"CreateQueryCandles Error: {responce.code} - message: {responce.message}", LogMessageType.Error);
+                            return null;
+                        }
+                        else
+                        {
+                            taskCount++;
+                            return CreateQueryCandles(security, timeFrameBuilder, candleCount, taskCount);
+                        }
                     }
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
-                    return null;
+                    if (taskCount >= 3)
+                    {
+                        SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
+                        return null;
+                    }
+                    else
+                    {
+                        taskCount++;
+                        return CreateQueryCandles(security, timeFrameBuilder, candleCount, taskCount);
+                    }
                 }
             }
             catch (Exception exception)
@@ -1190,6 +1248,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             return null;
         }
+        
         private string GenerateSignature(string method, string path, string timestamp, string body, SortedDictionary<string, string> param)
         {
             method = method.ToUpper();
@@ -1211,6 +1270,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             return SHA256HexHashString(_secretKey, preHash);
         }
+       
         private string SHA256HexHashString(string key, string message)
         {
             string hashString;
@@ -1224,6 +1284,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             return hashString;
         }
+        
         private string ToHex(byte[] bytes, bool upperCase)
         {
             StringBuilder result = new StringBuilder(bytes.Length * 2);
@@ -1235,6 +1296,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             return result.ToString();
         }
+        
         public string BuildParams(SortedDictionary<string, string> _params)
         {
             if (_params == null)
@@ -1256,6 +1318,7 @@ namespace OsEngine.Market.Servers.Pionex
             }
             return sb.ToString().Substring(1) + "&";
         }
+        
         private IRestResponse CreatePrivateRequest(string signature, string pathUrl, Method method, string timestamp, string body, SortedDictionary<string, string> _params)
         {
             RestClient client = new RestClient(_baseUrl);
@@ -1295,6 +1358,7 @@ namespace OsEngine.Market.Servers.Pionex
         #region 12 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent(message, messageType);

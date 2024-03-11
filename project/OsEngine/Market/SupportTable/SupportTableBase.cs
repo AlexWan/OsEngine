@@ -243,6 +243,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(askend);
 
+            SupportConnection pionex = new SupportConnection()
+            {
+                ServerType = ServerType.PionexSpot,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\pionex.png",
+                LingSiteUrl = "https://www.pionex.com/ru/signUp?r=0z11LpNQfus",
+                Discount = 10
+            };
+            supportList.Add(pionex);
+
             SupportConnection bitmex = new SupportConnection()
             {
                 ServerType = ServerType.BitMex,

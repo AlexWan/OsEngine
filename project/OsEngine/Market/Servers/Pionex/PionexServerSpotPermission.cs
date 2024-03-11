@@ -14,6 +14,7 @@ namespace OsEngine.Market.Servers.Pionex
         }
 
         #region DataFeedPermissions
+
         public bool DataFeedTf1SecondCanLoad
         {
             get { return false; }
@@ -91,30 +92,37 @@ namespace OsEngine.Market.Servers.Pionex
         #endregion
 
         #region Trade permission
+
         public bool MarketOrdersIsSupport
         {
             get { return true; }
         }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 10; }
         }
+
         public bool IsCanChangeOrderPrice
         {
             get { return false; }
         }
+
         public bool UseStandartCandlesStarter
         {
             get { return true; }
         }
+
         public bool IsUseLotToCalculateProfit
         {
             get { return false; }
         }
+
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
         }
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
@@ -144,20 +152,23 @@ namespace OsEngine.Market.Servers.Pionex
         {
             get { return null; }
         }
+
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
             get { return null; }
         }
+
         public bool ManuallyClosePositionOnBoard_IsOn
         {
             get { return false; }
         }
+
         public bool IsTradeServer
         {
             get { return true; }
         }
+
         #endregion
 
-       
     }
 }
