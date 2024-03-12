@@ -587,6 +587,8 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
+        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+
         /// <summary>
         /// subscribe to get ticks and depth by instrument
         /// подписаться на получение тиков и стаканов по инструменту
@@ -594,6 +596,8 @@ namespace OsEngine.Market.Servers.Transaq
         /// <param name="security">subscribed instrument / инструмент на который подписываемся</param>
         public void Subscrible(Security security)
         {
+            _rateGateSubscrible.WaitToProceed();
+
             string cmd = "<command id=\"subscribe\">";
             cmd += "<alltrades>";
             cmd += "<security>";
@@ -705,74 +709,103 @@ namespace OsEngine.Market.Servers.Transaq
             return null;
         }
 
+        private RateGate _rateGateCandle = new RateGate(1, TimeSpan.FromMilliseconds(300));
+
         /// <summary>
         /// request candle history
         /// запросить историю свечей
         /// </summary>
         public void GetCandleHistory(CandleSeries series)
         {
-            Task.Run(() => GetCandles(series), _cancellationToken);
+            _rateGateCandle.WaitToProceed();
+            Task.Run(() => GetCandles(series,1), _cancellationToken);
         }
 
-        private void GetCandles(CandleSeries series)
+        private void GetCandles(CandleSeries series, int countTry)
         {
-            Security security = series.Security;
-            TimeFrame tf = series.TimeFrame;
-
-            int newTf;
-            int oldTf;
-            string needPeriodId = GetNeedIdPeriod(tf, out newTf, out oldTf);
-
-            string cmd = "<command id=\"gethistorydata\">";
-            cmd += "<security>";
-            cmd += "<board>" + security.NameClass + "</board>";
-            cmd += "<seccode>" + security.Name + "</seccode>";
-            cmd += "</security>";
-            cmd += "<period>" + needPeriodId + "</period>";
-            cmd += "<count>" + 1000 + "</count>";
-            cmd += "<reset>" + "true" + "</reset>";
-            cmd += "</command>";
-
-            // sending command / отправка команды
-            string res = _client.ConnectorSendCommand(cmd);
-
-            if (res != "<result success=\"true\"/>")
+            try
             {
-                SendLogMessage(res, LogMessageType.Error);
-                return;
-            }
+                Security security = series.Security;
+                TimeFrame tf = series.TimeFrame;
 
-            var startLoadingTime = DateTime.Now;
+                int newTf;
+                int oldTf;
+                string needPeriodId = GetNeedIdPeriod(tf, out newTf, out oldTf);
 
-            while (startLoadingTime.AddSeconds(10) > DateTime.Now)
-            {
-                var candles = _allCandleSeries.Find(s => s.Seccode == security.Name && s.Period == needPeriodId);
+                string cmd = "<command id=\"gethistorydata\">";
+                cmd += "<security>";
+                cmd += "<board>" + security.NameClass + "</board>";
+                cmd += "<seccode>" + security.Name + "</seccode>";
+                cmd += "</security>";
+                cmd += "<period>" + needPeriodId + "</period>";
+                cmd += "<count>" + 1000 + "</count>";
+                cmd += "<reset>" + "true" + "</reset>";
+                cmd += "</command>";
 
-                if (candles != null)
+                // sending command / отправка команды
+                string res = _client.ConnectorSendCommand(cmd);
+
+                if (res != "<result success=\"true\"/>")
                 {
-                    var donorCandles = ParseCandles(candles);
-
-                    if ((tf == TimeFrame.Min1 && needPeriodId == "1") ||
-                        (tf == TimeFrame.Min5 && needPeriodId == "2") ||
-                        (tf == TimeFrame.Min15 && needPeriodId == "3") ||
-                        (tf == TimeFrame.Hour1 && needPeriodId == "4"))
+                    if (countTry >= 3)
                     {
-                        series.CandlesAll = donorCandles;
+                        SendLogMessage(res, LogMessageType.Error);
+                        return;
                     }
                     else
                     {
-                        series.CandlesAll = BuildCandles(donorCandles, newTf, oldTf);
+                        countTry++;
+                        GetCandles(series, countTry);
+                        return;
                     }
-
-                    series.UpdateAllCandles();
-                    series.IsStarted = true;
-                    return;
                 }
 
-                Thread.Sleep(500);
-            }
+                var startLoadingTime = DateTime.Now;
 
-            SendLogMessage(OsLocalization.Market.Message95 + security.Name, LogMessageType.Error);
+                while (startLoadingTime.AddSeconds(10) > DateTime.Now)
+                {
+                    var candles = _allCandleSeries.Find(s => s.Seccode == security.Name && s.Period == needPeriodId);
+
+                    if (candles != null)
+                    {
+                        var donorCandles = ParseCandles(candles);
+
+                        if ((tf == TimeFrame.Min1 && needPeriodId == "1") ||
+                            (tf == TimeFrame.Min5 && needPeriodId == "2") ||
+                            (tf == TimeFrame.Min15 && needPeriodId == "3") ||
+                            (tf == TimeFrame.Hour1 && needPeriodId == "4"))
+                        {
+                            series.CandlesAll = donorCandles;
+                        }
+                        else
+                        {
+                            series.CandlesAll = BuildCandles(donorCandles, newTf, oldTf);
+                        }
+
+                        series.UpdateAllCandles();
+                        series.IsStarted = true;
+                        return;
+                    }
+
+                    Thread.Sleep(200);
+                }
+
+                if (countTry >= 3)
+                {
+                    SendLogMessage(OsLocalization.Market.Message95 + security.Name, LogMessageType.Error);
+                    return;
+                }
+                else
+                {
+                    countTry++;
+                    GetCandles(series, countTry);
+                    return;
+                }
+            }
+            catch (Exception ex) 
+            {
+                SendLogMessage("Error GetCandles  " + ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private List<Candle> ParseCandles(Candles candles)
