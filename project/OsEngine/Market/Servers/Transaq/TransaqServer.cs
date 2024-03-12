@@ -93,6 +93,8 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 dirInfo.Create();
             }
+
+            _portfoliosHandlerTask = Task.Run(new Action(CycleGettingPortfolios));
         }
 
         /// <summary>
@@ -386,99 +388,104 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public void GetPortfolios()
         {
-            if (_clients == null || _clients.Count == 0)
-            {
-                return;
-            }
-
-            if (_portfoliosHandlerTask != null)
-            {
-                return;
-            }
-
-            _portfoliosHandlerTask = Task.Run(new Action(CycleGettingPortfolios), _cancellationToken);
 
         }
 
         private void CycleGettingPortfolios()
         {
-            while (!_cancellationToken.IsCancellationRequested)
+            while (true)
             {
-                Thread.Sleep(3000);
-                if (ServerInWork == false)
+                try
                 {
-                    continue;
-                }
+                    Thread.Sleep(3000);
 
-                if (_client == null)
-                {
-                    continue;
-                }
-
-                if (!_client.IsConnected)
-                {
-                    continue;
-                }
-
-                if (_clients == null || _clients.Count == 0)
-                {
-                    continue;
-                }
-
-                foreach (var client in _clients)
-                {
-                    string command;
-                    if (client.Type == "mct")
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        command = $"<command id=\"get_portfolio_mct\" client=\"{client.Id}\"/>";
-
-                        string res = _client.ConnectorSendCommand(command);
-
-                        if (res != "<result success=\"true\"/>")
-                        {
-                            SendLogMessage(res, LogMessageType.Error);
-                            Thread.Sleep(5000);
-                        }
+                        continue;
                     }
-                    else
+
+                    if (ServerInWork == false)
                     {
-                        if (!string.IsNullOrEmpty(client.Union))
+                        continue;
+                    }
+
+                    if (_client == null)
+                    {
+                        continue;
+                    }
+
+                    if (!_client.IsConnected)
+                    {
+                        continue;
+                    }
+
+                    if (_clients == null || _clients.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    for(int i = 0;i < _clients.Count;i++)
+                    {
+                        Client client = _clients[i];
+
+                        string command;
+
+                        if (client.Type == "mct")
                         {
-                            command = $"<command id=\"get_mc_portfolio\" union=\"{client.Union}\" />";
+                            command = $"<command id=\"get_portfolio_mct\" client=\"{client.Id}\"/>";
+
+                            string res = _client.ConnectorSendCommand(command);
+
+                            if (res != "<result success=\"true\"/>")
+                            {
+                                SendLogMessage(res, LogMessageType.Error);
+                                Thread.Sleep(5000);
+                            }
                         }
                         else
                         {
-                            command = $"<command id=\"get_mc_portfolio\" client=\"{client.Id}\" />";
+                            if (!string.IsNullOrEmpty(client.Union))
+                            {
+                                command = $"<command id=\"get_mc_portfolio\" union=\"{client.Union}\" />";
+                            }
+                            else
+                            {
+                                command = $"<command id=\"get_mc_portfolio\" client=\"{client.Id}\" />";
+                            }
+
+                            string res = _client.ConnectorSendCommand(command);
+
+                            if (res != "<result success=\"true\"/>")
+                            {
+                                SendLogMessage(res, LogMessageType.Error);
+                                Thread.Sleep(5000);
+                            }
                         }
 
-                        string res = _client.ConnectorSendCommand(command);
-
-                        if (res != "<result success=\"true\"/>")
+                        if (string.IsNullOrEmpty(client.Union) && !string.IsNullOrEmpty(client.Forts_acc))
                         {
-                            SendLogMessage(res, LogMessageType.Error);
-                            Thread.Sleep(5000);
+                            command = $"<command id=\"get_client_limits\" client=\"{client.Id}\"/>";
+                            string res = _client.ConnectorSendCommand(command);
+
+                            if (res != "<result success=\"true\"/>")
+                            {
+                                SendLogMessage(res, LogMessageType.Error);
+                                Thread.Sleep(5000);
+                            }
                         }
                     }
-
-                    if(string.IsNullOrEmpty(client.Union) && !string.IsNullOrEmpty(client.Forts_acc))
-                    {
-                        command = $"<command id=\"get_client_limits\" client=\"{client.Id}\"/>";
-                        string res = _client.ConnectorSendCommand(command);
-
-                        if (res != "<result success=\"true\"/>")
-                        {
-                            SendLogMessage(res, LogMessageType.Error);
-                            Thread.Sleep(5000);
-                        }
-                    }
-
-                    Thread.Sleep(500);
+                }
+                catch(Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
 
         public void GetSecurities()
         {
+
         }
 
         /// <summary>
@@ -760,34 +767,46 @@ namespace OsEngine.Market.Servers.Transaq
                     }
                 }
 
-                var startLoadingTime = DateTime.Now;
+                DateTime startLoadingTime = DateTime.Now;
 
                 while (startLoadingTime.AddSeconds(10) > DateTime.Now)
                 {
-                    var candles = _allCandleSeries.Find(s => s.Seccode == security.Name && s.Period == needPeriodId);
+                    Candles candles = null;
 
-                    if (candles != null)
+                    for (int i = 0; i < _allCandleSeries.Count; i++)
                     {
-                        var donorCandles = ParseCandles(candles);
+                        Candles curSeries = _allCandleSeries[i];
 
-                        if ((tf == TimeFrame.Min1 && needPeriodId == "1") ||
-                            (tf == TimeFrame.Min5 && needPeriodId == "2") ||
-                            (tf == TimeFrame.Min15 && needPeriodId == "3") ||
-                            (tf == TimeFrame.Hour1 && needPeriodId == "4"))
+                        if (curSeries.Seccode == security.Name && curSeries.Period == needPeriodId)
                         {
-                            series.CandlesAll = donorCandles;
+                            candles = curSeries;
+                            break;
                         }
-                        else
-                        {
-                            series.CandlesAll = BuildCandles(donorCandles, newTf, oldTf);
-                        }
-
-                        series.UpdateAllCandles();
-                        series.IsStarted = true;
-                        return;
                     }
 
-                    Thread.Sleep(200);
+                    if (candles == null)
+                    {
+                        Thread.Sleep(200);
+                        continue;
+                    }
+
+                    List<Candle> donorCandles = ParseCandles(candles);
+
+                    if ((tf == TimeFrame.Min1 && needPeriodId == "1") ||
+                        (tf == TimeFrame.Min5 && needPeriodId == "2") ||
+                        (tf == TimeFrame.Min15 && needPeriodId == "3") ||
+                        (tf == TimeFrame.Hour1 && needPeriodId == "4"))
+                    {
+                        series.CandlesAll = donorCandles;
+                    }
+                    else
+                    {
+                        series.CandlesAll = BuildCandles(donorCandles, newTf, oldTf);
+                    }
+
+                    series.UpdateAllCandles();
+                    series.IsStarted = true;
+                    return;
                 }
 
                 if (countTry >= 3)
@@ -1284,6 +1303,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
 
             _securities.RemoveAll(s => s == null);
+
             SecurityEvent?.Invoke(_securities);
 
             TimeSpan timeOnWork =  DateTime.Now - timeStart;
@@ -1312,6 +1332,7 @@ namespace OsEngine.Market.Servers.Transaq
                     security.NameClass = securityData.Board;
                     security.NameId = securityData.Secid;
                     security.Decimals = Convert.ToInt32(securityData.Decimals);
+                    security.Exchange = securityData.Board;
 
                     if (securityData.Sectype == "FUT")
                     {
@@ -1368,10 +1389,24 @@ namespace OsEngine.Market.Servers.Transaq
                         //security.NameClass = securityData.Sectype;
                     }
 
+                    if(security.SecurityType == SecurityType.None)
+                    {
+                        security.SecurityType = SecurityType.Bond;
+                    }
 
                     security.Lot = securityData.Lotsize.ToDecimal();
 
+                    if (security.Lot == 0)
+                    {
+                        security.Lot = 1;
+                    }
+
                     security.PriceStep = securityData.Minstep.ToDecimal();
+
+                    if(security.PriceStep == 0)
+                    {
+                        continue;
+                    }
 
                     decimal pointCost;
                     try
@@ -1394,6 +1429,11 @@ namespace OsEngine.Market.Servers.Transaq
 
                     security.State = securityData.Active == "true" ? SecurityStateType.Activ : SecurityStateType.Close;
 
+                    if(security.State != SecurityStateType.Activ)
+                    {
+                        continue;
+                    }
+
                     if (_securities.Contains(security))
                     {
                         continue;
@@ -1408,7 +1448,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        private readonly object _locker = new object();
+        private string _locker = "filterLocker";
 
         private bool CheckFilter(TransaqEntity.Security security)
         {
@@ -1455,7 +1495,6 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-
         /// <summary>
         /// got new ticks from server
         /// с сервера пришли новые тики
@@ -1492,7 +1531,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         private List<MarketDepth> _depths;
 
-        private readonly object _depthLocker = new object();
+        private string _depthLocker = "depthLocker";
 
         /// <summary>
         /// updated market depth
@@ -1551,6 +1590,11 @@ namespace OsEngine.Market.Servers.Transaq
                                 }
                                 else
                                 {
+                                    if(sortedQuote.Value[i].Price == 0)
+                                    {
+                                        continue;
+                                    }
+
                                     needDepth.Bids.Add(new MarketDepthLevel()
                                     {
                                         Price = sortedQuote.Value[i].Price,
@@ -1571,6 +1615,12 @@ namespace OsEngine.Market.Servers.Transaq
                                             return 0;
                                         }
                                     });
+
+                                    while (needDepth.Asks.Count > 0 &&
+                                     needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
+                                    {
+                                        needDepth.Asks.RemoveAt(0);
+                                    }
                                 }
 
                             }
@@ -1583,6 +1633,11 @@ namespace OsEngine.Market.Servers.Transaq
                                 }
                                 else
                                 {
+                                    if (sortedQuote.Value[i].Price == 0)
+                                    {
+                                        continue;
+                                    }
+
                                     needDepth.Asks.Add(new MarketDepthLevel()
                                     {
                                         Price = sortedQuote.Value[i].Price,
@@ -1603,6 +1658,12 @@ namespace OsEngine.Market.Servers.Transaq
                                             return 0;
                                         }
                                     });
+
+                                    while (needDepth.Bids.Count > 0 &&
+                                     needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
+                                    {
+                                        needDepth.Bids.RemoveAt(0);
+                                    }
                                 }
                             }
                             if (sortedQuote.Value[i].Buy == -1)
@@ -1625,6 +1686,43 @@ namespace OsEngine.Market.Servers.Transaq
 
                         needDepth.Time = ServerTime == DateTime.MinValue ? TimeManager.GetExchangeTime("Russian Standard Time") : ServerTime;
 
+                        if(needDepth.Time <= _lastMdTime)
+                        {
+                            needDepth.Time = _lastMdTime.AddMilliseconds(1);
+                        }
+
+                        _lastMdTime = needDepth.Time;
+
+
+                        if(needDepth.Asks == null ||
+                            needDepth.Asks.Count == 0 ||
+                            needDepth.Bids == null ||
+                            needDepth.Bids.Count == 0)
+                        {
+                            return;
+                        }
+
+                        while(needDepth.Bids.Count > 0 &&
+                            needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
+                        {
+                            needDepth.Bids.RemoveAt(0);
+                        }
+
+                        if(needDepth.Bids.Count == 0)
+                        {
+                            return;
+                        }
+
+                        while(needDepth.Bids.Count > 25)
+                        {
+                            needDepth.Bids.RemoveAt(needDepth.Bids.Count - 1);
+                        }
+
+                        while (needDepth.Asks.Count > 25)
+                        {
+                            needDepth.Asks.RemoveAt(needDepth.Asks.Count - 1);
+                        }
+
                         if (MarketDepthEvent != null)
                         {
                             MarketDepthEvent(needDepth.GetCopy());
@@ -1637,6 +1735,8 @@ namespace OsEngine.Market.Servers.Transaq
                 SendLogMessage("UpdateMarketDepth" + e, LogMessageType.Error);
             }
         }
+
+        DateTime _lastMdTime;
 
         /// <summary>
         /// got order information
