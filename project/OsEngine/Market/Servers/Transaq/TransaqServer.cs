@@ -1312,14 +1312,19 @@ namespace OsEngine.Market.Servers.Transaq
 
         public void Subscrible(Security security)
         {
+            SubscribeRecursion(security, 1);
+        }
+
+        private void SubscribeRecursion(Security security, int counter)
+        {
             _rateGateSubscrible.WaitToProceed();
 
-            if(_client == null)
+            if (_client == null)
             {
                 return;
             }
 
-            if(ServerStatus == ServerConnectStatus.Disconnect)
+            if (ServerStatus == ServerConnectStatus.Disconnect)
             {
                 return;
             }
@@ -1344,7 +1349,21 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (res != "<result success=\"true\"/>")
             {
-                SendLogMessage("Subscrible security error " + res, LogMessageType.Error);
+                if(counter >= 3)
+                {
+                    SendLogMessage("Subscrible security error "+ security.Name + "   " + res, LogMessageType.Error);
+                    return;
+                }
+                else
+                {
+                    if(ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        return;
+                    }
+
+                    counter++;
+                    SubscribeRecursion(security, counter);
+                }
             }
         }
 
