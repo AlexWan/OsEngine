@@ -333,6 +333,10 @@ namespace OsEngine.Market
                         {
                             myOrder.TimeCallBack = order.TimeCallBack;
                         }
+                        if (myOrder.TimeCreate == DateTime.MinValue)    //AVP
+                        {
+                            myOrder.TimeCreate = order.TimeCreate;
+                        }
                     }
 
                     if (_orders.Count > 200)
