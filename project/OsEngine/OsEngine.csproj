@@ -860,6 +860,7 @@
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPortfolio.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPositions.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqServer.cs" />
+    <Compile Include="Market\Servers\Transaq\TransaqServerPermission.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\RequestMessagesRest.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\RequestMessagesWebSocket.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\ResponseMessageRest.cs" />

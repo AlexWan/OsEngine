@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -58,10 +63,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         public ServerWorkingTimeSettings WorkingTimeSettings;
 
-        /// <summary>
-        /// request of history by instrument
-        /// запрос истории по инструменту
-        /// </summary>
         public void GetCandleHistory(CandleSeries series)
         {
             ((TransaqServerRealization)ServerRealization).GetCandleHistory(series);
@@ -70,14 +71,7 @@ namespace OsEngine.Market.Servers.Transaq
 
     public class TransaqServerRealization : IServerRealization
     {
-        private readonly string _logPath;
-
-        private bool _useStock = false;
-        private bool _useFutures = false;
-        private bool _useOptions = false;
-        private bool _useCurrency = false;
-        private bool _useOther = false;
-
+        #region 1 Constructor, Status, Connection
 
         public TransaqServerRealization(ServerWorkingTimeSettings workingTimeSettings)
         {
@@ -94,13 +88,15 @@ namespace OsEngine.Market.Servers.Transaq
                 dirInfo.Create();
             }
 
-            _portfoliosHandlerTask = Task.Run(new Action(CycleGettingPortfolios));
+            Thread worker = new Thread(CycleGettingPortfolios);
+            worker.Name = "ThreadTransaqGetPortfolio";
+            worker.Start();
+
+            Thread worker2 = new Thread(ThreadDataParsingWorkPlace);
+            worker2.Name = "ThreadTransaqDataParsing";
+            worker2.Start();
         }
 
-        /// <summary>
-        /// server type
-        /// тип сервера
-        /// </summary>
         public ServerType ServerType
         {
             get { return ServerType.Transaq; }
@@ -108,77 +104,14 @@ namespace OsEngine.Market.Servers.Transaq
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        /// <summary>
-        /// server time
-        /// время сервера
-        /// </summary>
         public DateTime ServerTime { get; set; }
 
         public ServerConnectStatus ServerStatus { get; set; }
-
-        // outgoing events
-        // исходящие события
-
-        /// <summary>
-        /// called when the order has changed
-        /// вызывается когда изменился ордер
-        /// </summary>
-        public event Action<Order> MyOrderEvent;
-
-        /// <summary>
-        /// called when my trade has changed
-        /// вызывается когда изменился мой трейд
-        /// </summary>
-        public event Action<MyTrade> MyTradeEvent;
-
-        /// <summary>
-        /// appear new portfolios
-        /// появились новые портфели
-        /// </summary>
-        public event Action<List<Portfolio>> PortfolioEvent;
-
-        /// <summary>
-        /// new securities
-        /// новые бумаги
-        /// </summary>
-        public event Action<List<Security>> SecurityEvent;
-
-        /// <summary>
-        /// new depth
-        /// новый стакан
-        /// </summary>
-        public event Action<MarketDepth> MarketDepthEvent;
-
-        /// <summary>
-        /// new trade
-        /// новый трейд
-        /// </summary>
-        public event Action<Trade> NewTradesEvent;
-
-        /// <summary>
-        /// API connection established
-        /// соединение с API установлено
-        /// </summary>
-        public event Action ConnectEvent;
-
-        /// <summary>
-        /// API connection lost
-        /// соединение с API разорвано
-        /// </summary>
-        public event Action DisconnectEvent;
-
-        TransaqClient _client;
-
-        #region requests / запросы
 
         private CancellationTokenSource _cancellationTokenSource;
 
         private CancellationToken _cancellationToken;
 
-        /// <summary>
-        /// connect to API
-        /// подсоединиться к апи
-        /// </summary>
         public void Connect()
         {
             _client = new TransaqClient(((ServerParameterString)ServerParameters[0]).Value,
@@ -194,22 +127,23 @@ namespace OsEngine.Market.Servers.Transaq
             _useOther = ((ServerParameterBool)ServerParameters[8]).Value;
             var useSecUpdates = ((ServerParameterBool)ServerParameters[9]).Value;
             var btn = ((ServerParameterButton)ServerParameters[10]);
+
             btn.UserClickButton += () => { ButtonClickChangePasswordWindowShow(); };
 
             _client.Connected += _client_Connected;
             _client.Disconnected += _client_Disconnected;
             _client.LogMessageEvent += SendLogMessage;
-            _client.UpdatePairs += ClientOnUpdatePairs;
-            _client.ClientsInfo += ClientsInfoUpdate;
-            _client.UpdatePortfolio += ClientOnUpdatePortfolio;
-            _client.UpdatePositions += ClientOnUpdatePositions;
-            _client.UpdateClientLimits += ClientOnUpdateLimits;
-            _client.NewTradesEvent += ClientOnNewTradesEvent;
-            _client.UpdateMarketDepth += ClientOnUpdateMarketDepth;
-            _client.MyOrderEvent += ClientOnMyOrderEvent;
-            _client.MyTradeEvent += ClientOnMyTradeEvent;
-            _client.NewCandles += ClientOnNewCandles;
-            _client.NeedChangePassword += NeedChangePassword;
+            _client.UpdatePairs += _client_ClientOnUpdatePairs;
+            _client.ClientsInfo += _client_ClientsInfoUpdate;
+            _client.UpdatePortfolio += _client_ClientOnUpdatePortfolio;
+            _client.UpdatePositions += _client_ClientOnUpdatePositions;
+            _client.UpdateClientLimits += _client_ClientOnUpdateLimits;
+            _client.NewTradesEvent += _client_ClientOnNewTradesEvent;
+            _client.UpdateMarketDepth += _client_ClientOnUpdateMarketDepth;
+            _client.MyOrderEvent += _client_ClientOnMyOrderEvent;
+            _client.MyTradeEvent += _client_ClientOnMyTradeEvent;
+            _client.NewCandles += _client_ClientOnNewCandles;
+            _client.NeedChangePassword += _client_NeedChangePassword;
             _client.NewTicks += _client_NewTicks;
 
             _client.Connect(useSecUpdates);
@@ -221,22 +155,92 @@ namespace OsEngine.Market.Servers.Transaq
             Task.Run(new Action(SessionTimeHandler), _cancellationToken);
         }
 
-        private void ButtonClickChangePasswordWindowShow()
+        public void Dispose()
         {
-            ChangeTransaqPassword changeTransaqPassword = new ChangeTransaqPassword(this);
-            changeTransaqPassword.ShowDialog();
+            if (_client != null)
+            {
+                _client.Dispose();
+
+                _client.Connected -= _client_Connected;
+                _client.Disconnected -= _client_Disconnected;
+                _client.LogMessageEvent -= SendLogMessage;
+                _client.UpdatePairs -= _client_ClientOnUpdatePairs;
+                _client.ClientsInfo -= _client_ClientsInfoUpdate;
+                _client.UpdatePortfolio -= _client_ClientOnUpdatePortfolio;
+                _client.UpdatePositions -= _client_ClientOnUpdatePositions;
+                _client.UpdateClientLimits -= _client_ClientOnUpdateLimits;
+                _client.NewTradesEvent -= _client_ClientOnNewTradesEvent;
+                _client.UpdateMarketDepth -= _client_ClientOnUpdateMarketDepth;
+                _client.MyOrderEvent -= _client_ClientOnMyOrderEvent;
+                _client.MyTradeEvent -= _client_ClientOnMyTradeEvent;
+                _client.NewCandles -= _client_ClientOnNewCandles;
+                _client.NeedChangePassword -= _client_NeedChangePassword;
+            }
+
+            _depths?.Clear();
+
+            _depths = null;
+
+            _allCandleSeries?.Clear();
+
+            _cancellationTokenSource?.Cancel();
+
+            _transaqSecurities = new ConcurrentQueue<string>();
+
+            _securities = new List<Security>();
+
+            _client = null;
+
+            ServerStatus = ServerConnectStatus.Disconnect;
         }
 
-        private void _client_NewTicks(List<Tick> ticks)
+        public event Action ConnectEvent;
+
+        public event Action DisconnectEvent;
+
+        #endregion
+
+        #region 2 Properties
+
+        private readonly string _logPath;
+
+        private bool _useStock = false;
+
+        private bool _useFutures = false;
+
+        private bool _useOptions = false;
+
+        private bool _useCurrency = false;
+
+        private bool _useOther = false;
+
+        #endregion
+
+        #region 3 Client to Transaq
+
+        private TransaqClient _client;
+
+        void _client_Connected()
         {
-            _allTicks.AddRange(ticks);
+            CreateSecurities();
+
+            if (ServerStatus != ServerConnectStatus.Connect)
+            {
+                ConnectEvent?.Invoke();
+                ServerStatus = ServerConnectStatus.Connect;
+            }
         }
 
-        /// <summary>
-        /// exchange requires to change the password
-        /// биржа требует изменить пароль
-        /// </summary>
-        private void NeedChangePassword()
+        void _client_Disconnected()
+        {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                DisconnectEvent?.Invoke();
+                ServerStatus = ServerConnectStatus.Disconnect;
+            }
+        }
+
+        private void _client_NeedChangePassword()
         {
             Application.Current.Dispatcher.Invoke((Action)delegate {
                 string message = OsLocalization.Market.Message94;
@@ -246,10 +250,12 @@ namespace OsEngine.Market.Servers.Transaq
             });
         }
 
-        /// <summary>
-        /// change password
-        /// изменить пароль
-        /// </summary>
+        private void ButtonClickChangePasswordWindowShow()
+        {
+            ChangeTransaqPassword changeTransaqPassword = new ChangeTransaqPassword(this);
+            changeTransaqPassword.ShowDialog();
+        }
+
         public void ChangePassword(string oldPassword, string newPassword)
         {
             string cmd = $"<command id=\"change_pass\" oldpass=\"{oldPassword}\" newpass=\"{newPassword}\"/>";
@@ -328,68 +334,261 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        /// <summary>
-        /// dispose API
-        /// освободить апи
-        /// </summary>
-        public void Dispose()
-        {
-            if (_client != null)
-            {
-                _client.Dispose();
+        #endregion
 
-                _client.Connected -= _client_Connected;
-                _client.Disconnected -= _client_Disconnected;
-                _client.LogMessageEvent -= SendLogMessage;
-                _client.UpdatePairs -= ClientOnUpdatePairs;
-                _client.ClientsInfo -= ClientsInfoUpdate;
-                _client.UpdatePortfolio -= ClientOnUpdatePortfolio;
-                _client.UpdatePositions -= ClientOnUpdatePositions;
-                _client.UpdateClientLimits -= ClientOnUpdateLimits;
-                _client.NewTradesEvent -= ClientOnNewTradesEvent;
-                _client.UpdateMarketDepth -= ClientOnUpdateMarketDepth;
-                _client.MyOrderEvent -= ClientOnMyOrderEvent;
-                _client.MyTradeEvent -= ClientOnMyTradeEvent;
-                _client.NewCandles -= ClientOnNewCandles;
-                _client.NeedChangePassword -= NeedChangePassword;
+        #region 4 Securities
+
+        public void GetSecurities()
+        {
+
+        }
+
+        private List<Security> _securities;
+
+        private ConcurrentQueue<string> _transaqSecurities = new ConcurrentQueue<string>();
+
+        private void _client_ClientOnUpdatePairs(string securities)
+        {
+            _transaqSecurities.Enqueue(securities);
+            _lastUpdateSecurityArrayTime = DateTime.Now;
+        }
+
+        private DateTime _lastUpdateSecurityArrayTime;
+
+        private void CreateSecurities()
+        {
+            while (true)
+            {
+                Thread.Sleep(500);
+                if (_lastUpdateSecurityArrayTime == DateTime.MinValue)
+                {
+                    continue;
+                }
+                if (_lastUpdateSecurityArrayTime.AddSeconds(5) > DateTime.Now)
+                {
+                    continue;
+                }
+
+                break;
             }
 
-            _depths?.Clear();
+            DateTime timeStart = DateTime.Now;
 
-            _depths = null;
+            while (_transaqSecurities.IsEmpty == false)
+            {
+                string curArray = null;
 
-            _allCandleSeries?.Clear();
+                if (_transaqSecurities.TryDequeue(out curArray))
+                {
+                    CreateSecurities(curArray);
+                }
+            }
 
-            _cancellationTokenSource?.Cancel();
+            _securities.RemoveAll(s => s == null);
 
-            _transaqSecurities = new ConcurrentQueue<string>();
+            SecurityEvent?.Invoke(_securities);
 
-            _portfoliosHandlerTask = null;
+            TimeSpan timeOnWork = DateTime.Now - timeStart;
 
-            _securities = new List<Security>();
-
-            _client = null;
-
-            ServerStatus = ServerConnectStatus.Disconnect;
+            SendLogMessage("Time securities add: " + timeOnWork.ToString(), LogMessageType.System);
+            SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
         }
 
-        public void GetOrdersState(List<Order> orders)
+        private void CreateSecurities(string data)
         {
-          
+            List<TransaqEntity.Security> transaqSecurities = _client.DeserializeSecurities(data);
+
+            foreach (TransaqEntity.Security securityData in transaqSecurities)
+            {
+                try
+                {
+                    if (!CheckFilter(securityData))
+                    {
+                        continue;
+                    }
+
+                    Security security = new Security();
+
+                    security.Name = securityData.Seccode;
+                    security.NameFull = securityData.Shortname;
+                    security.NameClass = securityData.Board;
+                    security.NameId = securityData.Secid;
+                    security.Decimals = Convert.ToInt32(securityData.Decimals);
+                    security.Exchange = securityData.Board;
+
+                    if (securityData.Sectype == "FUT")
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+                    else if (securityData.Sectype == "SHARE")
+                    {
+                        security.SecurityType = SecurityType.Stock;
+                    }
+                    else if (securityData.Sectype == "OPT")
+                    {
+                        security.SecurityType = SecurityType.Option;
+                    }
+                    else if (securityData.Sectype == "BOND")
+                    {
+                        security.SecurityType = SecurityType.Bond;
+                    }
+                    else if (securityData.Sectype == "CURRENCY"
+                        || securityData.Sectype == "CETS"
+                        || security.NameClass == "CETS")
+                    {
+                        security.SecurityType = SecurityType.CurrencyPair;
+                    }
+                    else if (securityData.Sectype == "FUND")
+                    {
+                        security.SecurityType = SecurityType.Fund;
+                    }
+                    else if (security.NameClass == "MCT"
+                       && (security.NameFull.Contains("call") || security.NameFull.Contains("put")))
+                    {
+                        security.NameClass = "MCT_put_call";
+                        security.SecurityType = SecurityType.Option;
+                    }
+                    else if (security.NameClass == "MCT")
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+                    else if (security.NameClass == "QUOTES")
+                    {
+                        // ignore
+                    }
+                    else if (security.NameClass == "DVP")
+                    {
+                        // ignore
+                    }
+                    else if (security.NameClass == "INDEXM"
+                        || security.NameClass == "INDEXE"
+                        || security.NameClass == "INDEXR")
+                    {
+                        security.SecurityType = SecurityType.Index;
+                    }
+                    else
+                    {
+                        //security.NameClass = securityData.Sectype;
+                    }
+
+                    if (security.SecurityType == SecurityType.None)
+                    {
+                        security.SecurityType = SecurityType.Bond;
+                    }
+
+                    security.Lot = securityData.Lotsize.ToDecimal();
+
+                    if (security.Lot == 0)
+                    {
+                        security.Lot = 1;
+                    }
+
+                    security.PriceStep = securityData.Minstep.ToDecimal();
+
+                    if (security.PriceStep == 0)
+                    {
+                        continue;
+                    }
+
+                    decimal pointCost;
+                    try
+                    {
+                        pointCost = securityData.Point_cost.ToDecimal();
+                    }
+                    catch (Exception e)
+                    {
+                        decimal.TryParse(securityData.Point_cost, NumberStyles.Float, CultureInfo.InvariantCulture, out pointCost);
+                    }
+
+                    if (security.PriceStep > 1)
+                    {
+                        security.PriceStepCost = security.PriceStep * pointCost / 100;
+                    }
+                    else
+                    {
+                        security.PriceStepCost = pointCost / 100;
+                    }
+
+                    security.State = securityData.Active == "true" ? SecurityStateType.Activ : SecurityStateType.Close;
+
+                    if (security.State != SecurityStateType.Activ)
+                    {
+                        continue;
+                    }
+
+                    if (_securities.Contains(security))
+                    {
+                        continue;
+                    }
+
+                    _securities.Add(security);
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.Message, LogMessageType.Error);
+                }
+            }
         }
 
-        private List<Portfolio> _portfolios;
+        private string _locker = "filterLocker";
 
-        private Task _portfoliosHandlerTask;
+        private bool CheckFilter(TransaqEntity.Security security)
+        {
+            lock (_locker)
+            {
+                if (security.Sectype == "SHARE")
+                {
+                    if (_useStock)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (security.Sectype == "FUT")
+                {
+                    if (_useFutures)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (security.Sectype == "OPT")
+                {
+                    if (_useOptions)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (security.Sectype == "CETS" || security.Sectype == "CURRENCY")
+                {
+                    if (_useCurrency)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (_useOther)
+                {
+                    return true;
+                }
 
-        /// <summary>
-        /// request portfolios
-        /// запросить портфели
-        /// </summary>
+                return false;
+            }
+        }
+
+        public event Action<List<Security>> SecurityEvent;
+
+        #endregion
+
+        #region 5 Portfolios
+
         public void GetPortfolios()
         {
 
         }
+
+        private List<Portfolio> _portfolios;
 
         private void CycleGettingPortfolios()
         {
@@ -424,7 +623,7 @@ namespace OsEngine.Market.Servers.Transaq
                         continue;
                     }
 
-                    for(int i = 0;i < _clients.Count;i++)
+                    for (int i = 0; i < _clients.Count; i++)
                     {
                         Client client = _clients[i];
 
@@ -475,7 +674,7 @@ namespace OsEngine.Market.Servers.Transaq
                         }
                     }
                 }
-                catch(Exception error)
+                catch (Exception error)
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
@@ -483,151 +682,187 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        public void GetSecurities()
+        private List<Client> _clients;
+
+        private void _client_ClientsInfoUpdate(Client clientInfo)
         {
-
-        }
-
-        /// <summary>
-        /// send order to exchange
-        /// выслать ордер на биржу
-        /// </summary>
-        public void SendOrder(Order order)
-        {
-            string side = order.Side == Side.Buy ? "B" : "S";
-
-            Security needSec = _securities.Find(
-                s => s.Name == order.SecurityNameCode &&
-                s.NameClass == order.SecurityClassCode);
-
-            if(needSec == null)
+            if (_clients == null)
             {
-                needSec = _securities.Find(
-                s => s.Name == order.SecurityNameCode);
+                _clients = new List<Client>();
             }
 
-            string cmd = "<command id=\"neworder\">";
-            cmd += "<security>";
-            cmd += "<board>" + needSec.NameClass + "</board>";
-            cmd += "<seccode>" + needSec.Name + "</seccode>";
-            cmd += "</security>";
-
-            if (order.PortfolioNumber.StartsWith("United_"))
+            if (!string.IsNullOrEmpty(clientInfo.Union))
             {
-                var union = order.PortfolioNumber.Split('_')[1];
-                cmd += "<union>" + union + "</union>";
+                var needClient = _clients.Find(c => string.IsNullOrEmpty(clientInfo.Union));
+
+                if (needClient == null)
+                {
+                    _clients.Add(clientInfo);
+                }
             }
             else
             {
-                cmd += "<client>" + order.PortfolioNumber + "</client>";
+                _clients.Add(clientInfo);
+            }
+        }
+
+        private void _client_ClientOnUpdatePortfolio(string portfolio)
+        {
+            if (_portfolios == null)
+            {
+                _portfolios = new List<Portfolio>();
             }
 
-            cmd += "<price>" + order.Price.ToString().Replace(',', '.') + "</price>";
-            cmd += "<quantity>" + order.Volume + "</quantity>";
-            cmd += "<buysell>" + side + "</buysell>";
-            cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
-            cmd += "<unfilled> PutInQueue </unfilled>";
+            var unitedPortfolio = ParsePortfolio(portfolio);
 
-            if (needSec.NameClass == "TQBR")
+            var needPortfolio = _portfolios.Find(p => p.Number == unitedPortfolio.Number);
+
+            if (needPortfolio != null)
             {
-                cmd += "<usecredit> true </usecredit>";
+                _portfolios.Remove(needPortfolio);
             }
-            
-            cmd += "</command>";
+            _portfolios.Add(unitedPortfolio);
 
-            // sending command / отправка команды
-            string res = _client.ConnectorSendCommand(cmd);
+            PortfolioEvent?.Invoke(_portfolios);
+        }
 
-            var result = _client.Deserialize<Result>(res);
+        private Portfolio ParsePortfolio(string data)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(data);
 
-            if (!result.Success)
+            XmlElement root = doc.DocumentElement;
+
+            if (root == null)
             {
-                order.State = OrderStateType.Fail;
-                SendLogMessage("SendOrderFall" + result.Message, LogMessageType.Error);
+                return null;
+            }
+
+            var union = root.GetAttribute("union");
+            var client = root.GetAttribute("client");
+
+            var openEquity = root.SelectSingleNode("open_equity");
+            var equity = root.SelectSingleNode("equity");
+            var block = root.SelectSingleNode("maint_req");
+
+            var allSecurity = root.GetElementsByTagName("security");
+
+            var portfolio = new Portfolio();
+
+            if (openEquity != null) portfolio.ValueBegin = openEquity.InnerText.ToDecimal();
+            if (equity != null) portfolio.ValueCurrent = equity.InnerText.ToDecimal();
+            if (block != null) portfolio.ValueBlocked = block.InnerText.ToDecimal();
+
+            if (!string.IsNullOrEmpty(union))
+            {
+                portfolio.Number = "United_" + union;
             }
             else
             {
-                order.NumberUser = result.TransactionId;
-                order.State = OrderStateType.Activ;
+                portfolio.Number = client;
             }
 
-            order.TimeCallBack = ServerTime;
-
-            MyOrderEvent?.Invoke(order);
-        }
-
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-
-        }
-
-        /// <summary>
-        /// cancel order
-        /// отменить ордер
-        /// </summary>
-        public void CancelOrder(Order order)
-        {
-            string cmd = "<command id=\"cancelorder\">";
-            cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
-            cmd += "</command>";
-
-            // отправка команды
-            string res = _client.ConnectorSendCommand(cmd);
-
-            if (!res.StartsWith("<result success=\"true\""))
+            foreach (var security in allSecurity)
             {
-                SendLogMessage(res, LogMessageType.Error);
+                var node = (XmlNode)security;
+
+                var pos = new PositionOnBoard();
+
+                pos.SecurityNameCode = node.SelectSingleNode("seccode")?.InnerText;
+                pos.PortfolioName = portfolio.Number;
+
+                var begin = node.SelectSingleNode("open_balance")?.InnerText.ToDecimal();
+                var buy = node.SelectSingleNode("bought")?.InnerText.ToDecimal();
+                var sell = node.SelectSingleNode("sold")?.InnerText.ToDecimal();
+
+                pos.ValueBegin = Convert.ToDecimal(begin);
+                pos.ValueCurrent = pos.ValueBegin + Convert.ToDecimal(buy - sell);
+
+                portfolio.SetNewPosition(pos);
             }
+
+            return portfolio;
         }
 
-        /// <summary>
-        /// cancel all orders from trading system
-        /// отозвать все ордера из торговой системы
-        /// </summary>
-        public void CancelAllOrders()
+        private void _client_ClientOnUpdateLimits(ClientLimits clientLimits)
         {
-
-        }
-
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
-
-        /// <summary>
-        /// subscribe to get ticks and depth by instrument
-        /// подписаться на получение тиков и стаканов по инструменту
-        /// </summary>
-        /// <param name="security">subscribed instrument / инструмент на который подписываемся</param>
-        public void Subscrible(Security security)
-        {
-            _rateGateSubscrible.WaitToProceed();
-
-            string cmd = "<command id=\"subscribe\">";
-            cmd += "<alltrades>";
-            cmd += "<security>";
-            cmd += "<board>" + security.NameClass + "</board>";
-            cmd += "<seccode>" + security.Name + "</seccode>";
-            cmd += "</security>";
-            cmd += "</alltrades>";
-            cmd += "<quotes>";
-            cmd += "<security>";
-            cmd += "<board>" + security.NameClass + "</board>";
-            cmd += "<seccode>" + security.Name + "</seccode>";
-            cmd += "</security>";
-            cmd += "</quotes>";
-            cmd += "</command>";
-
-            // sending command / отправка команды
-            string res = _client.ConnectorSendCommand(cmd);
-
-            if (res != "<result success=\"true\"/>")
+            if (_portfolios == null)
             {
-                SendLogMessage(res, LogMessageType.Error);
+                return;
             }
+
+            var needPortfolio = _portfolios.Find(p => p.Number == clientLimits.Client);
+
+            if (needPortfolio != null)
+            {
+                InitPortfolio(needPortfolio, clientLimits);
+            }
+
+            PortfolioEvent?.Invoke(_portfolios);
         }
+
+        private Portfolio InitPortfolio(Portfolio portfolio, ClientLimits clientLimits)
+        {
+            portfolio.ValueBegin = clientLimits.MoneyCurrent.ToDecimal();
+            portfolio.ValueCurrent = clientLimits.MoneyFree.ToDecimal();
+            portfolio.ValueBlocked = clientLimits.MoneyReserve.ToDecimal();
+            portfolio.Profit = clientLimits.Profit.ToDecimal();
+
+            return portfolio;
+        }
+
+        private decimal _blocked = 0;
+
+        private void _client_ClientOnUpdatePositions(TransaqPositions transaqPositions)
+        {
+            if (_portfolios == null)
+            {
+                _portfolios = new List<Portfolio>();
+            }
+
+            if (transaqPositions.Forts_money != null)
+            {
+                _blocked = Convert.ToDecimal(transaqPositions.Forts_money.Blocked.Replace(".", ","));
+            }
+
+            if (transaqPositions.Forts_position.Count == 0)
+            {
+                foreach (var portfolio in _portfolios)
+                {
+                    portfolio.ClearPositionOnBoard();
+                }
+            }
+            else
+            {
+                foreach (var fortsPosition in transaqPositions.Forts_position)
+                {
+                    var needPortfolio = _portfolios.Find(p => p.Number == fortsPosition.Client);
+
+                    if (needPortfolio != null)
+                    {
+                        PositionOnBoard pos = new PositionOnBoard()
+                        {
+                            SecurityNameCode = fortsPosition.Seccode,
+                            ValueBegin = Convert.ToDecimal(fortsPosition.Startnet.Replace(".", ",")),
+                            ValueCurrent = Convert.ToDecimal(fortsPosition.Totalnet.Replace(".", ",")),
+                            ValueBlocked = Convert.ToDecimal(fortsPosition.Openbuys.Replace(".", ",")) +
+                                           Convert.ToDecimal(fortsPosition.Opensells.Replace(".", ",")),
+                            PortfolioName = needPortfolio.Number,
+
+                        };
+                        needPortfolio.SetNewPosition(pos);
+                    }
+                }
+            }
+
+            PortfolioEvent?.Invoke(_portfolios);
+        }
+
+        public event Action<List<Portfolio>> PortfolioEvent;
+
+        #endregion
+
+        #region 6 Data
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
@@ -718,20 +953,21 @@ namespace OsEngine.Market.Servers.Transaq
 
         private RateGate _rateGateCandle = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
-        /// <summary>
-        /// request candle history
-        /// запросить историю свечей
-        /// </summary>
         public void GetCandleHistory(CandleSeries series)
         {
             _rateGateCandle.WaitToProceed();
-            Task.Run(() => GetCandles(series,1), _cancellationToken);
+            Task.Run(() => GetCandles(series, 1), _cancellationToken);
         }
 
         private void GetCandles(CandleSeries series, int countTry)
         {
             try
             {
+                if(_client == null)
+                {
+                    return;
+                }
+
                 Security security = series.Security;
                 TimeFrame tf = series.TimeFrame;
 
@@ -821,7 +1057,7 @@ namespace OsEngine.Market.Servers.Transaq
                     return;
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 SendLogMessage("Error GetCandles  " + ex.ToString(), LogMessageType.Error);
             }
@@ -854,14 +1090,6 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        /// <summary>
-        /// build candles
-        /// собрать свечи
-        /// </summary>
-        /// <param name="oldCandles"></param>
-        /// <param name="needTf"></param>
-        /// <param name="oldTf"></param>
-        /// <returns></returns>
         private List<Candle> BuildCandles(List<Candle> oldCandles, int needTf, int oldTf)
         {
             List<Candle> newCandles = new List<Candle>();
@@ -936,9 +1164,9 @@ namespace OsEngine.Market.Servers.Transaq
                     newCandle = new Candle();
                     newCandle.Open = oldCandles[i].Open;
                     newCandle.TimeStart = oldCandles[i].TimeStart;
-                    if (needTf <=60 && newCandle.TimeStart.Minute % needTf !=0)  //AVP, если свечка пришла в некратное ТФ время, например, был пропуск свечи, то ТФ правим на кратное. на MOEX  в пропущенные на клиринге свечках, на 10 минутках давало сбой - сдвиг свечек на 5 минут.
+                    if (needTf <= 60 && newCandle.TimeStart.Minute % needTf != 0)  //AVP, если свечка пришла в некратное ТФ время, например, был пропуск свечи, то ТФ правим на кратное. на MOEX  в пропущенные на клиринге свечках, на 10 минутках давало сбой - сдвиг свечек на 5 минут.
                     {
-                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes((newCandle.TimeStart.Minute % needTf) * -1);        
+                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes((newCandle.TimeStart.Minute % needTf) * -1);
                     }
                     newCandle.Low = Decimal.MaxValue;
                 }
@@ -953,9 +1181,9 @@ namespace OsEngine.Market.Servers.Transaq
 
                 newCandle.Volume += oldCandles[i].Volume;
 
-               
 
-                if (counter == count || (needTf <= 60 && i < oldCandles.Count-2 && oldCandles[i+1].TimeStart.Minute % needTf == 0) )    // AVP добавил проверку "или", что следующая свечка в мелком ТФ, должна войти в следующую свечу более крупного ТФ
+
+                if (counter == count || (needTf <= 60 && i < oldCandles.Count - 2 && oldCandles[i + 1].TimeStart.Minute % needTf == 0))    // AVP добавил проверку "или", что следующая свечка в мелком ТФ, должна войти в следующую свечу более крупного ТФ
                 {
                     newCandle.Close = oldCandles[i].Close;
                     newCandle.State = CandleState.Finished;
@@ -968,17 +1196,13 @@ namespace OsEngine.Market.Servers.Transaq
                     newCandle.Close = oldCandles[i].Close;
                     newCandle.State = CandleState.Started;
                     newCandles.Add(newCandle);
-                   
+
                 }
             }
 
             return newCandles;
         }
 
-        /// <summary>
-        /// get needed id
-        /// получить нужный Id
-        /// </summary>
         private string GetNeedIdPeriod(TimeFrame tf, out int newTf, out int oldTf)
         {
             switch (tf)
@@ -1042,779 +1266,281 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            return null;
+        }
+
+        private List<Candles> _allCandleSeries = new List<Candles>();
+
+        private void _client_ClientOnNewCandles(Candles candles)
+        {
+            _allCandleSeries.Add(candles);
+        }
+
+        private List<Tick> _allTicks = new List<Tick>();
+
+        private void _client_NewTicks(List<Tick> ticks)
+        {
+            _allTicks.AddRange(ticks);
+        }
+
         #endregion
 
-        #region parsing incoming data / разбор входящих данных
+        #region 7 Security subscrible
 
-        void _client_Connected()
+        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+
+        public void Subscrible(Security security)
         {
-            CreateSecurities();
-            ConnectEvent?.Invoke();
-            ServerStatus = ServerConnectStatus.Connect;
-        }
+            _rateGateSubscrible.WaitToProceed();
 
-        void _client_Disconnected()
-        {
-            DisconnectEvent?.Invoke();
-            ServerStatus = ServerConnectStatus.Disconnect;
-        }
+            string cmd = "<command id=\"subscribe\">";
+            cmd += "<alltrades>";
+            cmd += "<security>";
+            cmd += "<board>" + security.NameClass + "</board>";
+            cmd += "<seccode>" + security.Name + "</seccode>";
+            cmd += "</security>";
+            cmd += "</alltrades>";
+            cmd += "<quotes>";
+            cmd += "<security>";
+            cmd += "<board>" + security.NameClass + "</board>";
+            cmd += "<seccode>" + security.Name + "</seccode>";
+            cmd += "</security>";
+            cmd += "</quotes>";
+            cmd += "</command>";
 
-        private List<Client> _clients;
+            // sending command / отправка команды
+            string res = _client.ConnectorSendCommand(cmd);
 
-        /// <summary>
-        /// updated client data
-        /// обновились данные о клиенте
-        /// </summary>
-        private void ClientsInfoUpdate(Client clientInfo)
-        {
-            if (_clients == null)
+            if (res != "<result success=\"true\"/>")
             {
-                _clients = new List<Client>();
+                SendLogMessage(res, LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region 8 Trade
+
+        public void SendOrder(Order order)
+        {
+            string side = order.Side == Side.Buy ? "B" : "S";
+
+            Security needSec = _securities.Find(
+                s => s.Name == order.SecurityNameCode &&
+                s.NameClass == order.SecurityClassCode);
+
+            if(needSec == null)
+            {
+                needSec = _securities.Find(
+                s => s.Name == order.SecurityNameCode);
             }
 
-            if (!string.IsNullOrEmpty(clientInfo.Union))
-            {
-                var needClient = _clients.Find(c => string.IsNullOrEmpty(clientInfo.Union));
+            string cmd = "<command id=\"neworder\">";
+            cmd += "<security>";
+            cmd += "<board>" + needSec.NameClass + "</board>";
+            cmd += "<seccode>" + needSec.Name + "</seccode>";
+            cmd += "</security>";
 
-                if (needClient == null)
-                {
-                    _clients.Add(clientInfo);
-                }
+            if (order.PortfolioNumber.StartsWith("United_"))
+            {
+                var union = order.PortfolioNumber.Split('_')[1];
+                cmd += "<union>" + union + "</union>";
             }
             else
             {
-                _clients.Add(clientInfo);
+                cmd += "<client>" + order.PortfolioNumber + "</client>";
             }
-        }
 
-        /// <summary>
-        /// got portfolio data
-        /// пришли данные по портфелям
-        /// </summary>
-        /// <param name="portfolio">portfolio / портфель </param>
-        private void ClientOnUpdatePortfolio(string portfolio)
-        {
-            if (_portfolios == null)
+            cmd += "<price>" + order.Price.ToString().Replace(',', '.') + "</price>";
+            cmd += "<quantity>" + order.Volume + "</quantity>";
+            cmd += "<buysell>" + side + "</buysell>";
+            cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
+            cmd += "<unfilled> PutInQueue </unfilled>";
+
+            if (needSec.NameClass == "TQBR")
             {
-                _portfolios = new List<Portfolio>();
+                cmd += "<usecredit> true </usecredit>";
             }
             
-            var unitedPortfolio = ParsePortfolio(portfolio);
+            cmd += "</command>";
 
-            var needPortfolio = _portfolios.Find(p => p.Number == unitedPortfolio.Number);
+            // sending command / отправка команды
+            string res = _client.ConnectorSendCommand(cmd);
 
-            if (needPortfolio != null)
+            var result = _client.Deserialize<Result>(res);
+
+            if (!result.Success)
             {
-                _portfolios.Remove(needPortfolio);
-            }
-            _portfolios.Add(unitedPortfolio);
-            
-            PortfolioEvent?.Invoke(_portfolios);
-        }
-
-        private Portfolio ParsePortfolio(string data)
-        {
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(data);
-
-            XmlElement root = doc.DocumentElement;
-
-            if (root == null)
-            {
-                return null;
-            }
-
-            var union = root.GetAttribute("union");
-            var client = root.GetAttribute("client");
-
-            var openEquity = root.SelectSingleNode("open_equity");
-            var equity = root.SelectSingleNode("equity");
-            var block = root.SelectSingleNode("maint_req");
-
-            var allSecurity = root.GetElementsByTagName("security");
-
-            var portfolio = new Portfolio();
-
-            if (openEquity != null) portfolio.ValueBegin = openEquity.InnerText.ToDecimal();
-            if (equity != null) portfolio.ValueCurrent = equity.InnerText.ToDecimal();
-            if (block != null) portfolio.ValueBlocked = block.InnerText.ToDecimal();
-
-            if (!string.IsNullOrEmpty(union))
-            {
-                portfolio.Number = "United_" + union;
+                order.State = OrderStateType.Fail;
+                SendLogMessage("SendOrderFall" + result.Message, LogMessageType.Error);
             }
             else
             {
-                portfolio.Number = client;
+                order.NumberUser = result.TransactionId;
+                order.State = OrderStateType.Activ;
             }
 
-            foreach (var security in allSecurity)
-            {
-                var node = (XmlNode) security;
+            order.TimeCallBack = ServerTime;
 
-                var pos = new PositionOnBoard();
-
-                pos.SecurityNameCode = node.SelectSingleNode("seccode")?.InnerText;
-                pos.PortfolioName = portfolio.Number;
-
-                var begin = node.SelectSingleNode("open_balance")?.InnerText.ToDecimal();
-                var buy = node.SelectSingleNode("bought")?.InnerText.ToDecimal();
-                var sell = node.SelectSingleNode("sold")?.InnerText.ToDecimal();
-
-                pos.ValueBegin = Convert.ToDecimal(begin);
-                pos.ValueCurrent = pos.ValueBegin + Convert.ToDecimal(buy - sell);
-
-                portfolio.SetNewPosition(pos);
-            }
-
-            return portfolio;
+            MyOrderEvent?.Invoke(order);
         }
 
-        /// <summary>
-        /// got portfolio data
-        /// пришли данные по портфелям
-        /// </summary>
-        private void ClientOnUpdateLimits(ClientLimits clientLimits)
+        public void ChangeOrderPrice(Order order, decimal newPrice)
         {
-            if (_portfolios == null)
+
+        }
+
+        public void CancelOrder(Order order)
+        {
+            string cmd = "<command id=\"cancelorder\">";
+            cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
+            cmd += "</command>";
+
+            // отправка команды
+            string res = _client.ConnectorSendCommand(cmd);
+
+            if (!res.StartsWith("<result success=\"true\""))
+            {
+                SendLogMessage(res, LogMessageType.Error);
+            }
+        }
+
+        public void CancelAllOrders()
+        {
+
+        }
+
+        public void GetOrdersState(List<Order> orders)
+        {
+
+        }
+
+        public void ResearchTradesToOrders(List<Order> orders)
+        {
+
+        }
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
+        #endregion
+
+        #region 9 Incoming streams data
+
+        ConcurrentQueue<List<TransaqEntity.Order>> _ordersQueue = new ConcurrentQueue<List<TransaqEntity.Order>>();
+
+        ConcurrentQueue<List<TransaqEntity.Trade>> _myTradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
+
+        ConcurrentQueue<List<TransaqEntity.Trade>> _tradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
+
+        ConcurrentQueue<List<Quote>> _mdQueue = new ConcurrentQueue<List<Quote>>();
+
+        private void _client_ClientOnNewTradesEvent(List<TransaqEntity.Trade> trades)
+        {
+            if(ServerStatus == ServerConnectStatus.Disconnect)
             {
                 return;
             }
 
-            var needPortfolio = _portfolios.Find(p => p.Number == clientLimits.Client);
-
-            if (needPortfolio != null)
-            {
-                InitPortfolio(needPortfolio, clientLimits);
-            }
-
-            PortfolioEvent?.Invoke(_portfolios);
+            _tradesQueue.Enqueue(trades);
         }
 
-        private Portfolio InitPortfolio(Portfolio portfolio, ClientLimits clientLimits)
+        private void _client_ClientOnUpdateMarketDepth(List<Quote> quotes)
         {
-            portfolio.ValueBegin = clientLimits.MoneyCurrent.ToDecimal();
-            portfolio.ValueCurrent = clientLimits.MoneyFree.ToDecimal();
-            portfolio.ValueBlocked = clientLimits.MoneyReserve.ToDecimal();
-            portfolio.Profit = clientLimits.Profit.ToDecimal();
+            if(ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
 
-            return portfolio;
+            _mdQueue.Enqueue(quotes);
         }
 
-        private decimal _blocked = 0;
-
-        /// <summary>
-        /// updated position
-        /// обновились позиции
-        /// </summary>
-        private void ClientOnUpdatePositions(TransaqPositions transaqPositions)
+        private void _client_ClientOnMyOrderEvent(List<TransaqEntity.Order> orders)
         {
-            if (_portfolios == null)
-            {
-                _portfolios = new List<Portfolio>();
-            }
-
-            if (transaqPositions.Forts_money != null)
-            {
-                _blocked = Convert.ToDecimal(transaqPositions.Forts_money.Blocked.Replace(".", ","));
-            }
-
-            if (transaqPositions.Forts_position.Count == 0)
-            {
-                foreach (var portfolio in _portfolios)
-                {
-                    portfolio.ClearPositionOnBoard();
-                }
-            }
-            else
-            {
-                foreach (var fortsPosition in transaqPositions.Forts_position)
-                {
-                    var needPortfolio = _portfolios.Find(p => p.Number == fortsPosition.Client);
-
-                    if (needPortfolio != null)
-                    {
-                        PositionOnBoard pos = new PositionOnBoard()
-                        {
-                            SecurityNameCode = fortsPosition.Seccode,
-                            ValueBegin = Convert.ToDecimal(fortsPosition.Startnet.Replace(".", ",")),
-                            ValueCurrent = Convert.ToDecimal(fortsPosition.Totalnet.Replace(".", ",")),
-                            ValueBlocked = Convert.ToDecimal(fortsPosition.Openbuys.Replace(".", ",")) +
-                                           Convert.ToDecimal(fortsPosition.Opensells.Replace(".", ",")),
-                            PortfolioName = needPortfolio.Number,
-
-                        };
-                        needPortfolio.SetNewPosition(pos);
-                    }
-                }
-            }
-
-            PortfolioEvent?.Invoke(_portfolios);
+            _ordersQueue.Enqueue(orders);
         }
 
-        /// <summary>
-        /// all instruments of connector
-        /// все инструменты коннектора
-        /// </summary>
-        private List<Security> _securities;
-
-        private ConcurrentQueue<string> _transaqSecurities = new ConcurrentQueue<string>();
-
-        /// <summary>
-        /// got instruments
-        /// пришли инструменты
-        /// </summary>
-        /// <param name="securities">list of instrument in transaq format / список инструментов в формате transaq</param>
-        private void ClientOnUpdatePairs(string securities)
+        private void _client_ClientOnMyTradeEvent(List<TransaqEntity.Trade> trades)
         {
-            _transaqSecurities.Enqueue(securities);
-            _lastUpdateSecurityArrayTime = DateTime.Now;
+            _myTradesQueue.Enqueue(trades);
         }
 
-        private DateTime _lastUpdateSecurityArrayTime;
+        #endregion
 
-        private void CreateSecurities()
+        #region 10 Incoming data parsing flow
+
+        private void ThreadDataParsingWorkPlace()
         {
-            while(true)
-            {
-                Thread.Sleep(500);
-                if (_lastUpdateSecurityArrayTime ==  DateTime.MinValue)
-                {
-                    continue;
-                }
-                if(_lastUpdateSecurityArrayTime.AddSeconds(5) >  DateTime.Now)
-                {
-                    continue;
-                }
-
-                break;
-            }
-
-            DateTime timeStart = DateTime.Now;          
-
-            while(_transaqSecurities.IsEmpty == false)
-            {
-                string curArray = null;
-                
-                if(_transaqSecurities.TryDequeue(out curArray))
-                {
-                    CreateSecurities(curArray);
-                }
-            }
-
-            _securities.RemoveAll(s => s == null);
-
-            SecurityEvent?.Invoke(_securities);
-
-            TimeSpan timeOnWork =  DateTime.Now - timeStart;
-
-            SendLogMessage("Time securities add: " + timeOnWork.ToString(), LogMessageType.System);
-            SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
-        }
-
-        private void CreateSecurities(string data)
-        {
-            List<TransaqEntity.Security> transaqSecurities = _client.DeserializeSecurities(data);
-
-            foreach (TransaqEntity.Security securityData in transaqSecurities)
+            while (true)
             {
                 try
                 {
-                    if (!CheckFilter(securityData))
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        Thread.Sleep(1000);
                         continue;
                     }
 
-                    Security security = new Security();
+                    if (_ordersQueue.IsEmpty == false)
+                    {
+                        List<TransaqEntity.Order> orders = null;
 
-                    security.Name = securityData.Seccode;
-                    security.NameFull = securityData.Shortname;
-                    security.NameClass = securityData.Board;
-                    security.NameId = securityData.Secid;
-                    security.Decimals = Convert.ToInt32(securityData.Decimals);
-                    security.Exchange = securityData.Board;
+                        if(_ordersQueue.TryDequeue(out orders))
+                        {
+                            UpdateMyOrders(orders);
+                        }
 
-                    if (securityData.Sectype == "FUT")
-                    {
-                        security.SecurityType = SecurityType.Futures;
                     }
-                    else if (securityData.Sectype == "SHARE")
+                    else if (_myTradesQueue.IsEmpty == false)
                     {
-                        security.SecurityType = SecurityType.Stock;
+                        List<TransaqEntity.Trade> trades = null;
+
+                        if(_myTradesQueue.TryDequeue(out trades))
+                        {
+                            UpdateMyTrades(trades);
+                        }
                     }
-                    else if (securityData.Sectype == "OPT")
+                    else if (_tradesQueue.IsEmpty == false)
                     {
-                        security.SecurityType = SecurityType.Option;
+                        List<TransaqEntity.Trade> trades = null;
+
+                        if(_tradesQueue.TryDequeue(out trades))
+                        {
+                            UpdateTrades(trades);
+                        }
                     }
-                    else if (securityData.Sectype == "BOND")
+                    else if (_mdQueue.IsEmpty == false)
                     {
-                        security.SecurityType = SecurityType.Bond;
-                    }
-                    else if (securityData.Sectype == "CURRENCY"
-                        || securityData.Sectype == "CETS"
-                        || security.NameClass == "CETS")
-                    {
-                        security.SecurityType = SecurityType.CurrencyPair;
-                    }
-                    else if (securityData.Sectype == "FUND")
-                    {
-                        security.SecurityType = SecurityType.Fund;
-                    }
-                    else if (security.NameClass == "MCT"
-                       && (security.NameFull.Contains("call") || security.NameFull.Contains("put")))
-                    {
-                        security.NameClass = "MCT_put_call";
-                        security.SecurityType = SecurityType.Option;
-                    }
-                    else if (security.NameClass == "MCT")
-                    {
-                        security.SecurityType = SecurityType.Futures;
-                    }
-                    else if (security.NameClass == "QUOTES")
-                    {
-                        // ignore
-                    }
-                    else if (security.NameClass == "DVP")
-                    {
-                        // ignore
-                    }
-                    else if (security.NameClass == "INDEXM"
-                        || security.NameClass == "INDEXE"
-                        || security.NameClass == "INDEXR")
-                    {
-                        security.SecurityType = SecurityType.Index;
+                        List<Quote> quotes = null;
+
+                        if(_mdQueue.TryDequeue(out quotes))
+                        {
+                            UpdateMarketDepths(quotes);
+                        }
                     }
                     else
                     {
-                        //security.NameClass = securityData.Sectype;
+                        Thread.Sleep(1);
                     }
-
-                    if(security.SecurityType == SecurityType.None)
-                    {
-                        security.SecurityType = SecurityType.Bond;
-                    }
-
-                    security.Lot = securityData.Lotsize.ToDecimal();
-
-                    if (security.Lot == 0)
-                    {
-                        security.Lot = 1;
-                    }
-
-                    security.PriceStep = securityData.Minstep.ToDecimal();
-
-                    if(security.PriceStep == 0)
-                    {
-                        continue;
-                    }
-
-                    decimal pointCost;
-                    try
-                    {
-                        pointCost = securityData.Point_cost.ToDecimal();
-                    }
-                    catch (Exception e)
-                    {
-                        decimal.TryParse(securityData.Point_cost, NumberStyles.Float, CultureInfo.InvariantCulture, out pointCost);
-                    }
-
-                    if (security.PriceStep > 1)
-                    {
-                        security.PriceStepCost = security.PriceStep * pointCost / 100;
-                    }
-                    else
-                    {
-                        security.PriceStepCost = pointCost / 100;
-                    }
-
-                    security.State = securityData.Active == "true" ? SecurityStateType.Activ : SecurityStateType.Close;
-
-                    if(security.State != SecurityStateType.Activ)
-                    {
-                        continue;
-                    }
-
-                    if (_securities.Contains(security))
-                    {
-                        continue;
-                    }
-
-                    _securities.Add(security);
                 }
                 catch (Exception e)
                 {
-                    SendLogMessage(e.Message, LogMessageType.Error);
+                    SendLogMessage(e.ToString(),LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
 
-        private string _locker = "filterLocker";
-
-        private bool CheckFilter(TransaqEntity.Security security)
+        private void UpdateMyTrades(List<TransaqEntity.Trade> trades)
         {
-            lock (_locker)
+            for(int i = 0;i < trades.Count;i++) 
             {
-                if (security.Sectype == "SHARE")
-                {
-                    if (_useStock)
-                    {
-                        return true;
-                    }
-                    return false;
-                }
-                if (security.Sectype == "FUT")
-                {
-                    if (_useFutures)
-                    {
-                        return true;
-                    }
-                    return false;
-                }
-                if (security.Sectype == "OPT")
-                {
-                    if (_useOptions)
-                    {
-                        return true;
-                    }
-                    return false;
-                }
-                if (security.Sectype == "CETS" || security.Sectype == "CURRENCY")
-                {
-                    if (_useCurrency)
-                    {
-                        return true;
-                    }
-                    return false;
-                }
-                if (_useOther)
-                {
-                    return true;
-                }
+                TransaqEntity.Trade trade = trades[i];
 
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// got new ticks from server
-        /// с сервера пришли новые тики
-        /// </summary>
-        private void ClientOnNewTradesEvent(List<TransaqEntity.Trade> trades)
-        {
-            foreach (var t in trades)
-            {
-                try
-                {
-                    Trade trade = new Trade()
-                    {
-                        SecurityNameCode = t.Seccode,
-                        Id = t.Tradeno,
-                        Price = Convert.ToDecimal(t.Price.Replace(".", ",")),
-                        Side = t.Buysell == "B" ? Side.Buy : Side.Sell,
-                        Volume = Convert.ToDecimal(t.Quantity.Replace(".", ",")),
-                        Time = DateTime.Parse(t.Time),
-                    };
-
-                    NewTradesEvent?.Invoke(trade);
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage("" + e, LogMessageType.Error);
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// all depths
-        /// все стаканы
-        /// </summary>
-        private List<MarketDepth> _depths;
-
-        private string _depthLocker = "depthLocker";
-
-        /// <summary>
-        /// updated market depth
-        /// обновился стакан котировок
-        /// </summary>
-        private void ClientOnUpdateMarketDepth(List<Quote> quotes)
-        {
-            try
-            {
-                lock (_depthLocker)
-                {
-                    if (quotes == null || quotes.Count == 0)
-                    {
-                        return;
-                    }
-                    if (_depths == null)
-                    {
-                        _depths = new List<MarketDepth>();
-                    }
-
-                    Dictionary<string, List<Quote>> sortedQuotes = new Dictionary<string, List<Quote>>();
-
-                    foreach (var quote in quotes)
-                    {
-                        if (!sortedQuotes.ContainsKey(quote.Seccode))
-                        {
-                            sortedQuotes.Add(quote.Seccode, new List<Quote>());
-                        }
-
-                        sortedQuotes[quote.Seccode].Add(quote);
-                    }
-
-                    foreach (var sortedQuote in sortedQuotes)
-                    {
-                        var needDepth = _depths.Find(depth => depth.SecurityNameCode == sortedQuote.Value[0].Seccode);
-
-                        if (needDepth == null)
-                        {
-                            needDepth = new MarketDepth();
-                            needDepth.SecurityNameCode = sortedQuote.Value[0].Seccode;
-                            _depths.Add(needDepth);
-                        }
-
-                        for (int i = 0; i < sortedQuote.Value.Count; i++)
-                        {
-                            if (sortedQuote.Value[i].Buy == -1 && sortedQuote.Value[i].Sell == -1)
-                            {
-
-                            }
-                            if (sortedQuote.Value[i].Buy > 0)
-                            {
-                                var needLevel = needDepth.Bids.Find(level => level.Price == sortedQuote.Value[i].Price);
-                                if (needLevel != null)
-                                {
-                                    needLevel.Bid = sortedQuote.Value[i].Buy;
-                                }
-                                else
-                                {
-                                    if(sortedQuote.Value[i].Price == 0)
-                                    {
-                                        continue;
-                                    }
-
-                                    needDepth.Bids.Add(new MarketDepthLevel()
-                                    {
-                                        Price = sortedQuote.Value[i].Price,
-                                        Bid = sortedQuote.Value[i].Buy,
-                                    });
-                                    needDepth.Bids.Sort((a, b) =>
-                                    {
-                                        if (a.Price > b.Price)
-                                        {
-                                            return -1;
-                                        }
-                                        else if (a.Price < b.Price)
-                                        {
-                                            return 1;
-                                        }
-                                        else
-                                        {
-                                            return 0;
-                                        }
-                                    });
-
-                                    while (needDepth.Asks.Count > 0 &&
-                                     needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
-                                    {
-                                        needDepth.Asks.RemoveAt(0);
-                                    }
-                                }
-
-                            }
-                            if (sortedQuote.Value[i].Sell > 0)
-                            {
-                                var needLevel = needDepth.Asks.Find(level => level.Price == sortedQuote.Value[i].Price);
-                                if (needLevel != null)
-                                {
-                                    needLevel.Ask = sortedQuote.Value[i].Sell;
-                                }
-                                else
-                                {
-                                    if (sortedQuote.Value[i].Price == 0)
-                                    {
-                                        continue;
-                                    }
-
-                                    needDepth.Asks.Add(new MarketDepthLevel()
-                                    {
-                                        Price = sortedQuote.Value[i].Price,
-                                        Ask = sortedQuote.Value[i].Sell,
-                                    });
-                                    needDepth.Asks.Sort((a, b) =>
-                                    {
-                                        if (a.Price > b.Price)
-                                        {
-                                            return 1;
-                                        }
-                                        else if (a.Price < b.Price)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        {
-                                            return 0;
-                                        }
-                                    });
-
-                                    while (needDepth.Bids.Count > 0 &&
-                                     needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
-                                    {
-                                        needDepth.Bids.RemoveAt(0);
-                                    }
-                                }
-                            }
-                            if (sortedQuote.Value[i].Buy == -1)
-                            {
-                                var deleteLevelIndex = needDepth.Bids.FindIndex(level => level.Price == sortedQuote.Value[i].Price);
-                                if (deleteLevelIndex != -1)
-                                {
-                                    needDepth.Bids.RemoveAt(deleteLevelIndex);
-                                }
-                            }
-                            if (sortedQuote.Value[i].Sell == -1)
-                            {
-                                var deleteLevelIndex = needDepth.Asks.FindIndex(level => level.Price == sortedQuote.Value[i].Price);
-                                if (deleteLevelIndex != -1)
-                                {
-                                    needDepth.Asks.RemoveAt(deleteLevelIndex);
-                                }
-                            }
-                        }
-
-                        needDepth.Time = ServerTime == DateTime.MinValue ? TimeManager.GetExchangeTime("Russian Standard Time") : ServerTime;
-
-                        if(needDepth.Time <= _lastMdTime)
-                        {
-                            needDepth.Time = _lastMdTime.AddMilliseconds(1);
-                        }
-
-                        _lastMdTime = needDepth.Time;
-
-
-                        if(needDepth.Asks == null ||
-                            needDepth.Asks.Count == 0 ||
-                            needDepth.Bids == null ||
-                            needDepth.Bids.Count == 0)
-                        {
-                            return;
-                        }
-
-                        while(needDepth.Bids.Count > 0 &&
-                            needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
-                        {
-                            needDepth.Bids.RemoveAt(0);
-                        }
-
-                        if(needDepth.Bids.Count == 0)
-                        {
-                            return;
-                        }
-
-                        while(needDepth.Bids.Count > 25)
-                        {
-                            needDepth.Bids.RemoveAt(needDepth.Bids.Count - 1);
-                        }
-
-                        while (needDepth.Asks.Count > 25)
-                        {
-                            needDepth.Asks.RemoveAt(needDepth.Asks.Count - 1);
-                        }
-
-                        if (MarketDepthEvent != null)
-                        {
-                            MarketDepthEvent(needDepth.GetCopy());
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                SendLogMessage("UpdateMarketDepth" + e, LogMessageType.Error);
-            }
-        }
-
-        DateTime _lastMdTime;
-
-        /// <summary>
-        /// got order information
-        /// пришла информация об ордерах
-        /// </summary>
-        private void ClientOnMyOrderEvent(List<TransaqEntity.Order> orders)
-        {
-            foreach (var order in orders)
-            {
-                try
-                {
-                    if (order.Orderno == "0")
-                    {
-                        //continue;
-                    }
-
-                    Order newOrder = new Order();
-                    newOrder.SecurityNameCode = order.Seccode;
-                    newOrder.NumberUser = Convert.ToInt32(order.Transactionid);
-                    newOrder.NumberMarket = order.Orderno;
-                    newOrder.TimeCallBack = order.Time != null ? DateTime.Parse(order.Time) : ServerTime;
-                    newOrder.Side = order.Buysell == "B" ? Side.Buy : Side.Sell;
-                    newOrder.Volume = Convert.ToDecimal(order.Quantity);
-                    newOrder.Price = Convert.ToDecimal(order.Price.Replace(".", ","));
-                    newOrder.ServerType = ServerType.Transaq;
-                    newOrder.PortfolioNumber = string.IsNullOrEmpty(order.Union) ? order.Client : order.Union;
-
-                    if (order.Status == "active")
-                    {
-                        newOrder.State = OrderStateType.Activ;
-                    }
-                    else if (order.Status == "cancelled" ||
-                             order.Status == "expired" ||
-                             order.Status == "disabled" ||
-                             order.Status == "removed")
-                    {
-                        newOrder.State = OrderStateType.Cancel;
-                    }
-                    else if (order.Status == "matched")
-                    {
-                        newOrder.State = OrderStateType.Done;
-                    }
-                    else if (order.Status == "denied" ||
-                             order.Status == "rejected" ||
-                             order.Status == "failed" ||
-                             order.Status == "refused")
-                    {
-                        newOrder.State = OrderStateType.Fail;
-                    }
-                    else if (order.Status == "forwarding" ||
-                             order.Status == "wait" ||
-                             order.Status == "watching")
-                    {
-                        newOrder.State = OrderStateType.Pending;
-                    }
-                    else
-                    {
-                        newOrder.State = OrderStateType.None;
-                    }
-
-                    MyOrderEvent?.Invoke(newOrder);
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage(e.ToString(), LogMessageType.Error);
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// got my trades
-        /// пришли мои трейды
-        /// </summary>
-        private void ClientOnMyTradeEvent(List<TransaqEntity.Trade> trades)
-        {
-            foreach (var trade in trades)
-            {
                 MyTrade myTrade = new MyTrade();
                 myTrade.Time = DateTime.Parse(trade.Time);
                 myTrade.NumberOrderParent = trade.Orderno;
@@ -1828,24 +1554,288 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        private List<Candles> _allCandleSeries = new List<Candles>();
-
-        private List<Tick> _allTicks = new List<Tick>();
-
-        private void ClientOnNewCandles(Candles candles)
+        private void UpdateMyOrders(List<TransaqEntity.Order> orders)
         {
-            _allCandleSeries.Add(candles);
+            for (int i = 0; i < orders.Count; i++)
+            {
+                TransaqEntity.Order order = orders[i];
+
+                if (order.Orderno == "0")
+                {
+                    //continue;
+                }
+
+                Order newOrder = new Order();
+                newOrder.SecurityNameCode = order.Seccode;
+                newOrder.NumberUser = Convert.ToInt32(order.Transactionid);
+                newOrder.NumberMarket = order.Orderno;
+                newOrder.TimeCallBack = order.Time != null ? DateTime.Parse(order.Time) : ServerTime;
+                newOrder.Side = order.Buysell == "B" ? Side.Buy : Side.Sell;
+                newOrder.Volume = Convert.ToDecimal(order.Quantity);
+                newOrder.Price = Convert.ToDecimal(order.Price.Replace(".", ","));
+                newOrder.ServerType = ServerType.Transaq;
+                newOrder.PortfolioNumber = string.IsNullOrEmpty(order.Union) ? order.Client : order.Union;
+
+                if (order.Status == "active")
+                {
+                    newOrder.State = OrderStateType.Activ;
+                }
+                else if (order.Status == "cancelled" ||
+                         order.Status == "expired" ||
+                         order.Status == "disabled" ||
+                         order.Status == "removed")
+                {
+                    newOrder.State = OrderStateType.Cancel;
+                }
+                else if (order.Status == "matched")
+                {
+                    newOrder.State = OrderStateType.Done;
+                }
+                else if (order.Status == "denied" ||
+                         order.Status == "rejected" ||
+                         order.Status == "failed" ||
+                         order.Status == "refused")
+                {
+                    newOrder.State = OrderStateType.Fail;
+                }
+                else if (order.Status == "forwarding" ||
+                         order.Status == "wait" ||
+                         order.Status == "watching")
+                {
+                    newOrder.State = OrderStateType.Pending;
+                }
+                else
+                {
+                    newOrder.State = OrderStateType.None;
+                }
+
+                MyOrderEvent?.Invoke(newOrder);
+            }
         }
+
+        private List<MarketDepth> _depths;
+
+        DateTime _lastMdTime;
+
+        private void UpdateMarketDepths(List<Quote> quotes)
+        {
+            if (quotes == null || quotes.Count == 0)
+            {
+                return;
+            }
+            if (_depths == null)
+            {
+                _depths = new List<MarketDepth>();
+            }
+
+            Dictionary<string, List<Quote>> sortedQuotes = new Dictionary<string, List<Quote>>();
+
+            foreach (var quote in quotes)
+            {
+                if (!sortedQuotes.ContainsKey(quote.Seccode))
+                {
+                    sortedQuotes.Add(quote.Seccode, new List<Quote>());
+                }
+
+                sortedQuotes[quote.Seccode].Add(quote);
+            }
+
+            foreach (var sortedQuote in sortedQuotes)
+            {
+                MarketDepth needDepth = _depths.Find(depth => depth.SecurityNameCode == sortedQuote.Value[0].Seccode);
+
+                if (needDepth == null)
+                {
+                    needDepth = new MarketDepth();
+                    needDepth.SecurityNameCode = sortedQuote.Value[0].Seccode;
+                    _depths.Add(needDepth);
+                }
+
+                for (int i = 0; i < sortedQuote.Value.Count; i++)
+                {
+                    if (sortedQuote.Value[i].Buy == -1 && sortedQuote.Value[i].Sell == -1)
+                    {
+
+                    }
+                    if (sortedQuote.Value[i].Buy > 0)
+                    {
+                        var needLevel = needDepth.Bids.Find(level => level.Price == sortedQuote.Value[i].Price);
+                        if (needLevel != null)
+                        {
+                            needLevel.Bid = sortedQuote.Value[i].Buy;
+                        }
+                        else
+                        {
+                            if (sortedQuote.Value[i].Price == 0)
+                            {
+                                continue;
+                            }
+
+                            needDepth.Bids.Add(new MarketDepthLevel()
+                            {
+                                Price = sortedQuote.Value[i].Price,
+                                Bid = sortedQuote.Value[i].Buy,
+                            });
+                            needDepth.Bids.Sort((a, b) =>
+                            {
+                                if (a.Price > b.Price)
+                                {
+                                    return -1;
+                                }
+                                else if (a.Price < b.Price)
+                                {
+                                    return 1;
+                                }
+                                else
+                                {
+                                    return 0;
+                                }
+                            });
+
+                            while (needDepth.Asks.Count > 0 &&
+                             needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
+                            {
+                                needDepth.Asks.RemoveAt(0);
+                            }
+                        }
+
+                    }
+                    if (sortedQuote.Value[i].Sell > 0)
+                    {
+                        var needLevel = needDepth.Asks.Find(level => level.Price == sortedQuote.Value[i].Price);
+                        if (needLevel != null)
+                        {
+                            needLevel.Ask = sortedQuote.Value[i].Sell;
+                        }
+                        else
+                        {
+                            if (sortedQuote.Value[i].Price == 0)
+                            {
+                                continue;
+                            }
+
+                            needDepth.Asks.Add(new MarketDepthLevel()
+                            {
+                                Price = sortedQuote.Value[i].Price,
+                                Ask = sortedQuote.Value[i].Sell,
+                            });
+                            needDepth.Asks.Sort((a, b) =>
+                            {
+                                if (a.Price > b.Price)
+                                {
+                                    return 1;
+                                }
+                                else if (a.Price < b.Price)
+                                {
+                                    return -1;
+                                }
+                                else
+                                {
+                                    return 0;
+                                }
+                            });
+
+                            while (needDepth.Bids.Count > 0 &&
+                             needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
+                            {
+                                needDepth.Bids.RemoveAt(0);
+                            }
+                        }
+                    }
+                    if (sortedQuote.Value[i].Buy == -1)
+                    {
+                        var deleteLevelIndex = needDepth.Bids.FindIndex(level => level.Price == sortedQuote.Value[i].Price);
+                        if (deleteLevelIndex != -1)
+                        {
+                            needDepth.Bids.RemoveAt(deleteLevelIndex);
+                        }
+                    }
+                    if (sortedQuote.Value[i].Sell == -1)
+                    {
+                        var deleteLevelIndex = needDepth.Asks.FindIndex(level => level.Price == sortedQuote.Value[i].Price);
+                        if (deleteLevelIndex != -1)
+                        {
+                            needDepth.Asks.RemoveAt(deleteLevelIndex);
+                        }
+                    }
+                }
+
+                needDepth.Time = ServerTime == DateTime.MinValue ? TimeManager.GetExchangeTime("Russian Standard Time") : ServerTime;
+
+                if (needDepth.Time <= _lastMdTime)
+                {
+                    needDepth.Time = _lastMdTime.AddMilliseconds(1);
+                }
+
+                _lastMdTime = needDepth.Time;
+
+
+                if (needDepth.Asks == null ||
+                    needDepth.Asks.Count == 0 ||
+                    needDepth.Bids == null ||
+                    needDepth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                while (needDepth.Bids.Count > 0 &&
+                    needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
+                {
+                    needDepth.Bids.RemoveAt(0);
+                }
+
+                if (needDepth.Bids.Count == 0)
+                {
+                    return;
+                }
+
+                while (needDepth.Bids.Count > 25)
+                {
+                    needDepth.Bids.RemoveAt(needDepth.Bids.Count - 1);
+                }
+
+                while (needDepth.Asks.Count > 25)
+                {
+                    needDepth.Asks.RemoveAt(needDepth.Asks.Count - 1);
+                }
+
+                if (MarketDepthEvent != null)
+                {
+                    MarketDepthEvent(needDepth.GetCopy());
+                }
+            }
+        }
+
+        private void UpdateTrades(List<TransaqEntity.Trade> trades)
+        {
+            for(int i = 0;i < trades.Count;i++)
+            {
+                TransaqEntity.Trade t = trades[i];
+
+                Trade trade = new Trade();
+                trade.SecurityNameCode = t.Seccode;
+                trade.Id = t.Tradeno;
+                trade.Price = Convert.ToDecimal(t.Price.Replace(".", ","));
+                trade.Side = t.Buysell == "B" ? Side.Buy : Side.Sell;
+                trade.Volume = Convert.ToDecimal(t.Quantity.Replace(".", ","));
+                trade.Time = DateTime.Parse(t.Time);
+                
+                NewTradesEvent?.Invoke(trade);
+            }
+        }
+
+        public event Action<Order> MyOrderEvent;
+
+        public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<MarketDepth> MarketDepthEvent;
+
+        public event Action<Trade> NewTradesEvent;
 
         #endregion
 
-        // log messages
-        // сообщения для лога
+        #region 11 Log messages
 
-        /// <summary>
-        /// add a new log message
-        /// добавить в лог новое сообщение
-        /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -1854,25 +1844,8 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
-        }
-
-        public void CancelAllOrdersToSecurity(Security security)
-        {
-
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// outgoing lom message
-        /// исходящее сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 }

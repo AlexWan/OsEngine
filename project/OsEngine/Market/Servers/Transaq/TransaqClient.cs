@@ -1,4 +1,9 @@
-﻿using OsEngine.Logging;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Logging;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
 using RestSharp;
 using RestSharp.Deserializers;
@@ -9,12 +14,9 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Serialization;
 using OsEngine.Market.Servers.Entity;
 using Order = OsEngine.Market.Servers.Transaq.TransaqEntity.Order;
-
 
 namespace OsEngine.Market.Servers.Transaq
 {
@@ -351,13 +353,16 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                         }
                     }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
                 }
-
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-                Thread.Sleep(1);
+              
             }
         }
 
@@ -464,7 +469,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public event Action<List<Tick>> NewTicks;
 
-
         /// <summary>
         /// need to change password
         /// нужно изменить пароль
@@ -476,7 +480,6 @@ namespace OsEngine.Market.Servers.Transaq
         /// обновились данные по инструменту
         /// </summary>
         public event Action<List<string>> UpdateSecurity;
-
 
         #endregion
 

@@ -991,6 +991,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new XTSpotServerPermission();
                 }
+                else if (type == ServerType.Transaq)
+                {
+                    serverPermission = new TransaqServerPermission();
+                }
                 else if (type == ServerType.BingXSpot)
                 {
                     serverPermission = new BingXSpotServerPermission();
