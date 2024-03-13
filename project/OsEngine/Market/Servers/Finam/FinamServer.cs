@@ -435,10 +435,6 @@ namespace OsEngine.Market.Servers.Finam
                 string path = $"https://www.finam.ru{GetIchartsPath()}";
 
                 response = GetPage(path);
-
-                string[] arra = response.Split('=');
-                string[] arr = arra[1].Split('[')[1].Split(']')[0].Split(',');
-
             }
             catch (Exception e)
             {
@@ -454,6 +450,9 @@ namespace OsEngine.Market.Servers.Finam
             {
                 response = GetSecFromFile();
             }
+
+            string[] arra = response.Split('=');
+            string[] arr = arra[1].Split('[')[1].Split(']')[0].Split(',');
 
             string[] arraySets = response.Split('=');
             string[] arrayIds = arraySets[1].Split('[')[1].Split(']')[0].Split(',');
@@ -2135,11 +2134,13 @@ namespace OsEngine.Market.Servers.Finam
 
             List<Candle> candles = new List<Candle>();
 
-            while (timeStart.Year != timeEnd.Year)
-            {
-                List<Candle> candlesOneDay = GetCandles(timeStart.Date, timeStart.AddMonths(12 - timeStart.Month).AddDays(31 - timeStart.Day).Date);
+            const int FinamDataMonthsAvailable = 3; // Финам позволяет грузить данные внутредневных свеч не более 4 месяцев на запрос. Ставим на месяц меньше для надежности.
 
-                timeStart = timeStart.AddMonths(12 - timeStart.Month).AddDays(32 - timeStart.Day).Date;
+            while (timeStart.AddMonths(FinamDataMonthsAvailable) < timeEnd)
+            {
+                List<Candle> candlesOneDay = GetCandles(timeStart, timeStart.AddMonths(FinamDataMonthsAvailable));
+
+                timeStart = timeStart.AddMonths(FinamDataMonthsAvailable);
 
                 if (candlesOneDay != null)
                 {
