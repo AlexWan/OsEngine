@@ -24,13 +24,19 @@ namespace OsEngine.OsTrader.AdminPanelApi.Model
         private void ServerOnLogMessageEvent(string message, LogMessageType logMessageType)
         {
             string msg = "serverLog_" + $"{{\"Server\":\"{Name}\", \"LogMessage\":\"{message}\", \"LogMessageType\":\"{logMessageType}\"}}";
-            ApiServer.Send(msg);
+            if(ApiServer != null)
+            {
+                ApiServer.Send(msg);
+            }
         }
 
         private void ServerOnConnectStatusChangeEvent(string state)
         {
             string msg = "serverState_" + $"{{\"Server\":\"{Name}\", \"State\":\"{state}\"}}";
-            ApiServer.Send(msg);
+            if (ApiServer != null)
+            {
+                ApiServer.Send(msg);
+            }
         }
     }
 }

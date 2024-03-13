@@ -737,12 +737,12 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 SendLogMessage("WebSocketPrivate Connection to private data is Open", LogMessageType.System);
 
-                if (ServerStatus != ServerConnectStatus.Connect 
+                if (ServerStatus != ServerConnectStatus.Connect
                     && webSocketPublic.State == WebSocketState.Open
                     && webSocketPublicTrades.State == WebSocketState.Open)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    
+
                     if (ConnectEvent != null)
                     {
                         ConnectEvent();
@@ -750,11 +750,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
 
                 // sign up for order and portfolio changes
-                if (ServerStatus == ServerConnectStatus.Connect)
-                {
-                    webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change orders
-                    webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change portfolio
-                }
+
+                webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"order\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change orders
+                webSocketPrivate.Send($"{{\"method\":\"subscribe\",\"params\":[\"balance\"],\"listenKey\":\"{_listenKey}\",\"id\":\"{TimeManager.GetUnixTimeStampMilliseconds()}\"}}"); // change portfolio
+
             }
 
             #endregion
