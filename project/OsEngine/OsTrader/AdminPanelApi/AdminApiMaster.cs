@@ -4,6 +4,7 @@ using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.AdminPanelApi.Model;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.PrimeSettings;
 using RestSharp;
 using System;
@@ -44,6 +45,12 @@ namespace OsEngine.OsTrader.AdminPanelApi
                     try
                     {
                         Thread.Sleep(5000);
+
+                        if(_apiServer == null)
+                        {
+                            continue;
+                        }
+
                         SendProcessId();
                         SendCounter();
                         SendPortfolios();
@@ -72,8 +79,10 @@ namespace OsEngine.OsTrader.AdminPanelApi
 
             jId.Add("ProcessId", Process.GetCurrentProcess().Id);
 
-            _apiServer.Send("processId_" + jId);
-
+            if(_apiServer != null)
+            {
+                _apiServer.Send("processId_" + jId);
+            }
         }
 
         private void SendCounter()
@@ -86,7 +95,10 @@ namespace OsEngine.OsTrader.AdminPanelApi
             jCounter.Add("Cpu", cpu);
             jCounter.Add("Ram", ram);
 
-            _apiServer.Send("osCounter_" + jCounter);
+            if(_apiServer != null)
+            {
+                _apiServer.Send("osCounter_" + jCounter);
+            }
         }
 
         private void ServerMasterOnServerCreateEvent(IServer server)
@@ -105,9 +117,16 @@ namespace OsEngine.OsTrader.AdminPanelApi
                 return;
             }
 
-            var permittedIp = PrimeSettingsMaster.Ip.Replace(" ", "").Split(',');
-            var permittedToken = PrimeSettingsMaster.Token.Replace(" ", "");
-            var exitPort = PrimeSettingsMaster.Port.Replace(" ", "");
+            string[] permittedIp = PrimeSettingsMaster.Ip.Replace(" ", "").Split(',');
+            string permittedToken = PrimeSettingsMaster.Token.Replace(" ", "");
+            string exitPort = PrimeSettingsMaster.Port.Replace(" ", "");
+
+            if(permittedIp.Length == 0
+                || string.IsNullOrEmpty(permittedToken) 
+                || string.IsNullOrEmpty(exitPort))
+            {
+                return;
+            }
 
             _apiServer = new TcpServer();
             _apiServer.ExitPort = Convert.ToInt32(exitPort);
@@ -231,7 +250,10 @@ namespace OsEngine.OsTrader.AdminPanelApi
 
             if (jBots.Count != 0)
             {
-                _apiServer.Send("allBotsList_" + jBots.ToString());
+                if(_apiServer!= null)
+                {
+                    _apiServer.Send("allBotsList_" + jBots.ToString());
+                }
             }
         }
 
@@ -244,8 +266,19 @@ namespace OsEngine.OsTrader.AdminPanelApi
         {
             foreach (var botPanel in _traderMaster.PanelsArray)
             {
-                var message = "botState_" + GetJBot(botPanel).ToString();
-                _apiServer.Send(message);
+                JsonObject bots = GetJBot(botPanel);
+
+                if (bots == null)
+                {
+                    continue;
+                }
+
+                string message = "botState_" + bots.ToString();
+
+                if(_apiServer != null)
+                {
+                    _apiServer.Send(message);
+                }
             }
         }
 
@@ -258,7 +291,11 @@ namespace OsEngine.OsTrader.AdminPanelApi
                 if (parameters != null && parameters.Count > 0)
                 {
                     var message = "botParams_" + GetJBotParams(botPanel.NameStrategyUniq, parameters).ToString();
-                    _apiServer.Send(message);
+
+                    if(_apiServer != null)
+                    {
+                        _apiServer.Send(message);
+                    }
                 }
             }
         }
@@ -398,7 +435,12 @@ namespace OsEngine.OsTrader.AdminPanelApi
 
             jLog.Add("BotName", botPanel.NameStrategyUniq);
 
-            var tabs = botPanel.GetTabs();
+            List<IIBotTab> tabs = botPanel.GetTabs();
+
+            if(tabs == null)
+            {
+                return null;
+            }
 
             DateTime lastTimeUpdate = DateTime.MinValue;
 

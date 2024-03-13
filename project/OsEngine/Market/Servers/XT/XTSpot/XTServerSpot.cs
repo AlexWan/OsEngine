@@ -832,7 +832,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             #region 10 WebSocket parsing the messages
 
             private ConcurrentQueue<string> _webSocketPublicMessages = new ConcurrentQueue<string>();
+
             private ConcurrentQueue<string> _webSocketPrivateMessages = new ConcurrentQueue<string>();
+
             private ConcurrentQueue<string> _webSocketPublicTradesMessages = new ConcurrentQueue<string>();
 
             private void PublicMessageReader()
