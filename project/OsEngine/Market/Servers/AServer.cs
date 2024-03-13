@@ -1217,67 +1217,75 @@ namespace OsEngine.Market.Servers
         /// </summary>
         void _serverRealization_SecurityEvent(List<Security> securities)
         {
-            if (securities == null)
+            try
             {
-                return;
-            }
-
-            if (_securities == null
-                && securities.Count > 5000)
-            {
-                _securities = securities;
-                _securitiesToSend.Enqueue(_securities);
-
-                return;
-            }
-
-            if (_securities == null)
-            {
-                _securities = new List<Security>();
-            }
-
-            for (int i = 0; i < securities.Count; i++)
-            {
-                if (securities[i] == null)
+                if (securities == null 
+                    || securities.Count == 0)
                 {
-                    continue;
-                }
-                if (string.IsNullOrEmpty(securities[i].NameId))
-                {
-                    SendLogMessage(OsLocalization.Market.Message13, LogMessageType.Error);
-                    continue;
-                }
-                if (string.IsNullOrEmpty(securities[i].Name))
-                {
-                    SendLogMessage(OsLocalization.Market.Message98, LogMessageType.Error);
-                    continue;
+                    return;
                 }
 
-                if (_securities.Find(s =>
-                        s != null &&
-                        s.NameId == securities[i].NameId &&
-                        s.Name == securities[i].Name) == null)
+                if (_securities == null
+                    && securities.Count > 5000)
                 {
-                    bool isInArray = false;
+                    _securities = securities;
+                    _securitiesToSend.Enqueue(_securities);
 
-                    for (int i2 = 0; i2 < _securities.Count; i2++)
+                    return;
+                }
+
+                if (_securities == null)
+                {
+                    _securities = new List<Security>();
+                }
+
+                for (int i = 0; i < securities.Count; i++)
+                {
+                    if (securities[i] == null)
                     {
-                        if (_securities[i2].Name[0] > securities[i].Name[0])
+                        continue;
+                    }
+                    if (string.IsNullOrEmpty(securities[i].NameId))
+                    {
+                        SendLogMessage(OsLocalization.Market.Message13, LogMessageType.Error);
+                        continue;
+                    }
+                    if (string.IsNullOrEmpty(securities[i].Name))
+                    {
+                        SendLogMessage(OsLocalization.Market.Message98, LogMessageType.Error);
+                        continue;
+                    }
+
+                    if (_securities.Find(s =>
+                            s != null &&
+                            s.NameId == securities[i].NameId &&
+                            s.Name == securities[i].Name) == null)
+                    {
+                        bool isInArray = false;
+
+                        for (int i2 = 0; i2 < _securities.Count; i2++)
                         {
-                            _securities.Insert(i2, securities[i]);
-                            isInArray = true;
-                            break;
+                            if (_securities[i2].Name[0] > securities[i].Name[0])
+                            {
+                                _securities.Insert(i2, securities[i]);
+                                isInArray = true;
+                                break;
+                            }
+                        }
+
+                        if (isInArray == false)
+                        {
+                            _securities.Add(securities[i]);
                         }
                     }
-
-                    if (isInArray == false)
-                    {
-                        _securities.Add(securities[i]);
-                    }
                 }
-            }
 
-            _securitiesToSend.Enqueue(_securities);
+                _securitiesToSend.Enqueue(_securities);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("AServer Error. _serverRealization_SecurityEvent  " + ex.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
