@@ -157,6 +157,12 @@ namespace OsEngine.Market.Servers.Transaq
 
         public void Dispose()
         {
+            if(ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+            
             if (_client != null)
             {
                 _client.Dispose();
@@ -190,8 +196,6 @@ namespace OsEngine.Market.Servers.Transaq
             _securities = new List<Security>();
 
             _client = null;
-
-            ServerStatus = ServerConnectStatus.Disconnect;
         }
 
         public event Action ConnectEvent;
@@ -222,6 +226,8 @@ namespace OsEngine.Market.Servers.Transaq
 
         void _client_Connected()
         {
+            SendLogMessage("Transaq client activated ", LogMessageType.System);
+
             CreateSecurities();
 
             if (ServerStatus != ServerConnectStatus.Connect)
@@ -233,6 +239,8 @@ namespace OsEngine.Market.Servers.Transaq
 
         void _client_Disconnected()
         {
+            SendLogMessage("Transaq client disconnected ", LogMessageType.System);
+
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 DisconnectEvent?.Invoke();
@@ -343,7 +351,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
-        private List<Security> _securities;
+        private List<Security> _securities = new List<Security>();
 
         private ConcurrentQueue<string> _transaqSecurities = new ConcurrentQueue<string>();
 
@@ -357,6 +365,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void CreateSecurities()
         {
+
             while (true)
             {
                 Thread.Sleep(500);
@@ -385,6 +394,11 @@ namespace OsEngine.Market.Servers.Transaq
             }
 
             _securities.RemoveAll(s => s == null);
+
+            if(_securities.Count == 0)
+            {
+                return;
+            }
 
             SecurityEvent?.Invoke(_securities);
 
@@ -637,7 +651,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (res != "<result success=\"true\"/>")
                             {
-                                SendLogMessage(res, LogMessageType.Error);
+                                SendLogMessage("CycleGettingPortfolios method error " + res, LogMessageType.Error);
                                 Thread.Sleep(5000);
                             }
                         }
@@ -656,7 +670,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (res != "<result success=\"true\"/>")
                             {
-                                SendLogMessage(res, LogMessageType.Error);
+                                SendLogMessage("CycleGettingPortfolios method error " + res, LogMessageType.Error);
                                 Thread.Sleep(5000);
                             }
                         }
@@ -668,7 +682,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (res != "<result success=\"true\"/>")
                             {
-                                SendLogMessage(res, LogMessageType.Error);
+                                SendLogMessage("CycleGettingPortfolios method error " + res, LogMessageType.Error);
                                 Thread.Sleep(5000);
                             }
                         }
@@ -882,7 +896,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (res != "<result success=\"true\"/>")
             {
-                SendLogMessage(res, LogMessageType.Error);
+                SendLogMessage("GetTickDataToSecurity method error " + res, LogMessageType.Error);
                 return null;
             }
 
@@ -932,7 +946,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (res2 != "<result success=\"true\"/>")
                     {
-                        SendLogMessage(res2, LogMessageType.Error);
+                        SendLogMessage("GetTickDataToSecurity method error 2 " + res2, LogMessageType.Error);
                     }
 
                     break;
@@ -964,6 +978,11 @@ namespace OsEngine.Market.Servers.Transaq
             try
             {
                 if(_client == null)
+                {
+                    return;
+                }
+
+                if(ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
@@ -1295,6 +1314,16 @@ namespace OsEngine.Market.Servers.Transaq
         {
             _rateGateSubscrible.WaitToProceed();
 
+            if(_client == null)
+            {
+                return;
+            }
+
+            if(ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
             string cmd = "<command id=\"subscribe\">";
             cmd += "<alltrades>";
             cmd += "<security>";
@@ -1315,7 +1344,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (res != "<result success=\"true\"/>")
             {
-                SendLogMessage(res, LogMessageType.Error);
+                SendLogMessage("Subscrible security error " + res, LogMessageType.Error);
             }
         }
 
@@ -1403,7 +1432,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (!res.StartsWith("<result success=\"true\""))
             {
-                SendLogMessage(res, LogMessageType.Error);
+                SendLogMessage("CancelOrder method error " + res, LogMessageType.Error);
             }
         }
 

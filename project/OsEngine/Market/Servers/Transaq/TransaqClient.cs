@@ -116,6 +116,8 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         public void Dispose()
         {
+            _isDisposed = true;
+
             Disconnect();
             Thread.Sleep(2000);
             var res = ConnectorUnInitialize();
@@ -128,8 +130,6 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     Disconnected();
                 }
-
-                _isDisposed = true;
             }
         }
 
