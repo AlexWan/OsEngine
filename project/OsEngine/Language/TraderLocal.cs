@@ -1444,5 +1444,10 @@ namespace OsEngine.Language
           "Eng:Rebuild Formula_" +
           "Ru:Пересчитать сейчас_");
 
+        public string Label386 => OsLocalization.ConvertToLocString(
+          "Eng:Move the stop and profit to the new settings?_" +
+          "Ru:Переставить стоп и профит по новым настройкам?_");
+
+        
     }
 }

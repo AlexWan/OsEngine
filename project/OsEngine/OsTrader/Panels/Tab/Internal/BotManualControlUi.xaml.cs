@@ -138,6 +138,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             try
             {
+
                 // stop
                 // стоп
                 _strategySettings.StopIsOn = CheckBoxStopIsOn.IsChecked.Value;

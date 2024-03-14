@@ -1187,7 +1187,70 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowManualControlDialog()
         {
+            bool stopIsOnStartValue = ManualPositionSupport.StopIsOn;
+            decimal stopDistance = ManualPositionSupport.StopDistance;
+            decimal stopSlipage = ManualPositionSupport.StopSlipage;
+
+            bool profitOnStartValue = ManualPositionSupport.ProfitIsOn;
+            decimal profitDistance = ManualPositionSupport.ProfitDistance;
+            decimal profitSlipage = ManualPositionSupport.ProfitSlipage;
+
             ManualPositionSupport.ShowDialog();
+
+            bool neadToReplaceStop = false;
+
+            if(ManualPositionSupport.StopIsOn == true
+                && stopIsOnStartValue == false)
+            {
+                neadToReplaceStop = true;
+            }
+            if(ManualPositionSupport.StopIsOn == true
+                && stopDistance != ManualPositionSupport.StopDistance)
+            {
+                neadToReplaceStop = true;
+            }
+            if (ManualPositionSupport.StopIsOn == true
+                && stopSlipage != ManualPositionSupport.StopSlipage)
+            {
+                neadToReplaceStop = true;
+            }
+
+            if (ManualPositionSupport.ProfitIsOn == true
+                && profitOnStartValue == false)
+            {
+                neadToReplaceStop = true;
+            }
+            if (ManualPositionSupport.ProfitIsOn == true
+                && profitDistance != ManualPositionSupport.ProfitDistance)
+            {
+                neadToReplaceStop = true;
+            }
+            if (ManualPositionSupport.ProfitIsOn == true
+                && profitSlipage != ManualPositionSupport.ProfitSlipage)
+            {
+                neadToReplaceStop = true;
+            }
+
+            List<Position> positions = this.PositionsOpenAll;
+
+            
+
+            if(positions.Count > 0 &&
+                neadToReplaceStop &&
+                IsCreatedByScreener == false)
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label386);
+
+                ui.ShowDialog();
+
+                if(ui.UserAcceptActioin)
+                {
+                    for(int i = 0;i < positions.Count;i++)
+                    {
+                        ManualReloadStopsAndProfitToPosition(positions[i]);
+                    }
+                }
+            }
         }
 
         /// <summary>
