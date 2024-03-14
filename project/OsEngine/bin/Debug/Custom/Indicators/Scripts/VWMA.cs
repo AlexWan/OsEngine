@@ -39,8 +39,11 @@ namespace CustomIndicators.Scripts
                 weights += candles[i].Volume;
             }
 
-            average = average/weights;
-
+            if(weights != 0)
+            {
+                average = average / weights;
+            }
+            
             _series.Values[index] = average;
         }
     }
