@@ -27,15 +27,21 @@
         <TabControl Name="TabControlTypePosition" Margin="0,0,0,2" Height="212" VerticalAlignment="Bottom">
             <TabItem Header="Limit" Name ="TabItemLimit" Width="100">
                 <Grid>
-                    <TextBox Name="TextBoxLimitPrice" HorizontalAlignment="Left" Margin="204,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelLimitPrice" Content="Price" HorizontalAlignment="Left" Margin="100,50,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxLimitPrice" HorizontalAlignment="Left" Margin="204,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelLimitPrice" Content="Price" HorizontalAlignment="Left" Margin="80,40,0,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonCloseAtLimit"  Height="45" Content="Close at limit" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtLimit_Click"/>
+                    <TextBox x:Name="TextBoxLimitVolumeToClose" HorizontalAlignment="Left" Margin="204,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label x:Name="LabelLimitVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="80,68,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelLimitAllOpenVolumeSend" Content="All open volume: 1.3" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="275,91,0,0" VerticalAlignment="Top" FontSize="10" Height="12" Width="128"/>
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Market" Name ="TabItemMarket" Width="100">
+            <TabItem Header="Market" Name ="TabItemMarket" Width="100" HorizontalAlignment="Right">
                 <Grid>
                     <Button Name="ButtonCloseAtMarket"  Height="45" Content="Close at market" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtMarket_Click"/>
+                    <TextBox x:Name="TextBoxMarketVolumeToClose" HorizontalAlignment="Left" Margin="204,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label x:Name="LabelMarketVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="80,68,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="LabelMarketAllOpenVolumeSend" Content="All open volume. 1.3" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="275,91,0,0" VerticalAlignment="Top" FontSize="10" Height="12" Width="128"/>
                 </Grid>
             </TabItem>
 
@@ -43,10 +49,10 @@
                 <Grid>
 
                     <TextBox Name="TextBoxStopActivationPrice" HorizontalAlignment="Left" Margin="205,34,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelStopActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="77,34,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="74,34,0,0" VerticalAlignment="Top"/>
 
                     <TextBox Name="TextBoxStopPrice" HorizontalAlignment="Left" Margin="205,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelStopPrice" Content="Price" HorizontalAlignment="Left" Margin="77,62,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopPrice" Content="Price" HorizontalAlignment="Left" Margin="74,62,0,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonCloseAtStop"  Height="45" Content="Close at stop" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtStop_Click"/>
                 </Grid>
             </TabItem>
@@ -54,25 +60,28 @@
             <TabItem Header="Profit" Name ="TabItemProfit" Width="100">
                 <Grid>
 
-                    <TextBox Name="TextBoxProfitActivationPrice" HorizontalAlignment="Left" Margin="203,34,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelProfitActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="75,34,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxProfitActivationPrice" HorizontalAlignment="Left" Margin="205,34,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelProfitActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="74,34,0,0" VerticalAlignment="Top"/>
 
-                    <TextBox Name="TextBoxProfitPrice" HorizontalAlignment="Left" Margin="203,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelProfitPrice" Content="Price" HorizontalAlignment="Left" Margin="75,62,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxProfitPrice" HorizontalAlignment="Left" Margin="205,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelProfitPrice" Content="Price" HorizontalAlignment="Left" Margin="74,62,0,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonCloseAtProfit"  Height="45" Content="Close at profit" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtProfit_Click"/>
                 </Grid>
             </TabItem>
 
             <TabItem Header="Fake" Name ="TabItemFake" Width="100">
                 <Grid>
-                    <TextBox Name="TextBoxFakePrice" HorizontalAlignment="Left" Margin="207,78,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label Name="LabelFakePrice" Content="Price" HorizontalAlignment="Left" Margin="103,78,0,0" VerticalAlignment="Top"/>
-                    <DatePicker x:Name="DatePickerFakeOpenDate" HorizontalAlignment="Left" Margin="207,20,0,0" VerticalAlignment="Top" Width="139"/>
-                    <Label Name="LabelFakeOpenDate" Content="Open Date" HorizontalAlignment="Left" Margin="103,20,0,0" VerticalAlignment="Top" Width="104"/>
-                    <TextBox Name="TextBoxFakeOpenTime" HorizontalAlignment="Left" Margin="207,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="139"/>
-                    <Label Name="LabelFakeOpenTime" Content="Open Time" HorizontalAlignment="Left" Margin="103,50,0,0" VerticalAlignment="Top" Width="104"/>
-                    <Button Name="ButtonFakeTimeOpenNow" Content="Now" HorizontalAlignment="Left" Margin="351,20,0,0" VerticalAlignment="Top" Height="53" Width="55" Click="ButtonFakeTimeOpenNow_Click"/>
-                    <Button Name="ButtonCloseAtFake" Height="45" Content="Close at fake" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtFake_Click"/>
+                    <TextBox Name="TextBoxFakePrice" HorizontalAlignment="Left" Margin="205,61,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelFakePrice" Content="Price" HorizontalAlignment="Left" Margin="101,61,0,0" VerticalAlignment="Top"/>
+                    <DatePicker x:Name="DatePickerFakeOpenDate" HorizontalAlignment="Left" Margin="205,3,0,0" VerticalAlignment="Top" Width="139"/>
+                    <Label Name="LabelFakeOpenDate" Content="Open Date" HorizontalAlignment="Left" Margin="101,3,0,0" VerticalAlignment="Top" Width="104"/>
+                    <TextBox Name="TextBoxFakeOpenTime" HorizontalAlignment="Left" Margin="205,33,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="139"/>
+                    <Label Name="LabelFakeOpenTime" Content="Open Time" HorizontalAlignment="Left" Margin="101,33,0,0" VerticalAlignment="Top" Width="104"/>
+                    <Button Name="ButtonFakeTimeOpenNow" Content="Now" HorizontalAlignment="Left" Margin="349,3,0,0" VerticalAlignment="Top" Height="53" Width="55" Click="ButtonFakeTimeOpenNow_Click"/>
+                    <Button Name="ButtonCloseAtFake" Height="35" Content="Close at fake" Margin="155,128,155,0" VerticalAlignment="Top" Click="ButtonCloseAtFake_Click"/>
+                    <TextBox x:Name="TextBoxFakeVolume" HorizontalAlignment="Left" Margin="205,89,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label x:Name="LabelFakeVolume" Content="Volume" HorizontalAlignment="Left" Margin="101,89,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="LabelFakeAllOpenVolume" Content="All open volume. 1.3" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="276,112,0,0" VerticalAlignment="Top" FontSize="10" Height="12" Width="128"/>
                 </Grid>
             </TabItem>
 

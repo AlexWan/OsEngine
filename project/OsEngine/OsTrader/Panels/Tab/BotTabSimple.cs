@@ -1233,8 +1233,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Position> positions = this.PositionsOpenAll;
 
-            
-
             if(positions.Count > 0 &&
                 neadToReplaceStop &&
                 IsCreatedByScreener == false)
@@ -2778,6 +2776,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 closeOrder.SecurityNameCode = Securiti.Name;
                 closeOrder.SecurityClassCode = Securiti.NameClass;
                 closeOrder.PortfolioNumber = Portfolio.Number;
+
+                if(volume < position.OpenVolume &&
+                    closeOrder.Volume != volume)
+                {
+                    closeOrder.Volume = volume;
+                }
 
                 position.AddNewCloseOrder(closeOrder);
 

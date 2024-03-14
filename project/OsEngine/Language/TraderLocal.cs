@@ -1448,6 +1448,20 @@ namespace OsEngine.Language
           "Eng:Move the stop and profit to the new settings?_" +
           "Ru:Переставить стоп и профит по новым настройкам?_");
 
-        
+        public string Label387 => OsLocalization.ConvertToLocString(
+          "Eng:All open volume   _" +
+          "Ru:Весь объём в позиции   _");
+
+        public string Label388 => OsLocalization.ConvertToLocString(
+          "Eng:Time to order Error _" +
+          "Ru:Время ордера с ошибкой _");
+
+        public string Label389 => OsLocalization.ConvertToLocString(
+          "Eng:Volume to order Error _" +
+          "Ru:Объём ордера с ошибкой _");
+
+        public string Label390 => OsLocalization.ConvertToLocString(
+          "Eng:Price to order Error _" +
+          "Ru:Цена ордера с ошибкой _");
     }
 }

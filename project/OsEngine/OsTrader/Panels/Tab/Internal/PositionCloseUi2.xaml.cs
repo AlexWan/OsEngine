@@ -6,6 +6,7 @@ using System;
 using System.Windows;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -46,6 +47,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             LabelStopPrice.Content = OsLocalization.Trader.Label205;
             LabelFakePrice.Content = OsLocalization.Trader.Label205;
             LabelProfitPrice.Content = OsLocalization.Trader.Label205;
+
+            LabelLimitVolumeToClose.Content = OsLocalization.Trader.Label30;
+            LabelMarketVolumeToClose.Content = OsLocalization.Trader.Label30;
+            LabelFakeVolume.Content = OsLocalization.Trader.Label30;
 
             LabelProfitActivationPrice.Content = OsLocalization.Trader.Label206;
             LabelStopActivationPrice.Content = OsLocalization.Trader.Label206;
@@ -95,6 +100,25 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
 
             LabelOpenVolumeValue.Content = Position.OpenVolume.ToStringWithNoEndZero();
+            TextBoxLimitVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
+            TextBoxMarketVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
+            TextBoxFakeVolume.Text = Position.OpenVolume.ToStringWithNoEndZero();
+
+            LabelLimitAllOpenVolumeSend.Content = OsLocalization.Trader.Label387 + Position.OpenVolume.ToStringWithNoEndZero();
+            LabelLimitAllOpenVolumeSend.MouseLeftButtonDown += LabelLimitAllOpenVolumeSend_MouseLeftButtonDown;
+            LabelLimitAllOpenVolumeSend.MouseEnter += LabelLimitAllOpenVolumeSend_MouseEnter;
+            LabelLimitAllOpenVolumeSend.MouseLeave += LabelLimitAllOpenVolumeSend_MouseLeave;
+
+            LabelMarketAllOpenVolumeSend.Content = OsLocalization.Trader.Label387 + Position.OpenVolume.ToStringWithNoEndZero();
+            LabelMarketAllOpenVolumeSend.MouseLeftButtonDown += LabelMarketAllOpenVolumeSend_MouseLeftButtonDown;
+            LabelMarketAllOpenVolumeSend.MouseEnter += LabelMarketAllOpenVolumeSend_MouseEnter;
+            LabelMarketAllOpenVolumeSend.MouseLeave += LabelMarketAllOpenVolumeSend_MouseLeave;
+
+            LabelFakeAllOpenVolume.Content = OsLocalization.Trader.Label387 + Position.OpenVolume.ToStringWithNoEndZero();
+            LabelFakeAllOpenVolume.MouseLeftButtonDown += LabelFakeAllOpenVolume_MouseLeftButtonDown;
+            LabelFakeAllOpenVolume.MouseEnter += LabelFakeAllOpenVolume_MouseEnter;
+            LabelFakeAllOpenVolume.MouseLeave += LabelFakeAllOpenVolume_MouseLeave;
+
             LabelPosStateValue.Content = Position.State.ToString();
             LabelPosNumberValue.Content = Position.Number.ToString();
             LabelOpenSideValue.Content = Position.Direction.ToString();
@@ -254,12 +278,35 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
-                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                Tab.SetNewLogMessage(
+                    OsLocalization.Trader.Label390 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
                 return;
             }
 
             if (price <= 0)
             {
+                Tab.SetNewLogMessage(
+                 OsLocalization.Trader.Label390, Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 0;
+
+            try
+            {
+                volume = TextBoxLimitVolumeToClose.Text.ToDecimal();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(
+                    OsLocalization.Trader.Label389 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (volume <= 0)
+            {
+                Tab.SetNewLogMessage(
+                 OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
                 return;
             }
 
@@ -274,7 +321,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
             }
 
-            Tab.CloseAtLimit(Position, price, Position.OpenVolume);
+            Tab.CloseAtLimit(Position, price, volume);
         }
 
         private void ButtonCloseAtMarket_Click(object sender, RoutedEventArgs e)
@@ -290,7 +337,33 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
             }
 
-            Tab.CloseAtMarket(Position, Position.OpenVolume);
+            if(string.IsNullOrEmpty(TextBoxMarketVolumeToClose.Text))
+            {
+                Tab.SetNewLogMessage(OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 0;
+            
+            try
+            {
+                volume = TextBoxMarketVolumeToClose.Text.ToDecimal();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(
+                    OsLocalization.Trader.Label389 + "\n" + ex.ToString(), 
+                    Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (volume <= 0)
+            {
+                Tab.SetNewLogMessage(OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
+                return;
+            }
+
+            Tab.CloseAtMarket(Position, volume);
         }
 
         private void ButtonCloseAtStop_Click(object sender, RoutedEventArgs e)
@@ -346,11 +419,29 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         private void ButtonCloseAtFake_Click(object sender, RoutedEventArgs e)
         {
             decimal price = 0;
-            DateTime timeOpen = DateTime.MinValue;
 
             try
             {
                 price = TextBoxFakePrice.Text.ToDecimal();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(
+                    OsLocalization.Trader.Label390 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (price <= 0)
+            {
+                Tab.SetNewLogMessage(
+                 OsLocalization.Trader.Label390, Logging.LogMessageType.Error);
+                return;
+            }
+
+            DateTime timeOpen = DateTime.MinValue;
+
+            try
+            {
                 timeOpen = DatePickerFakeOpenDate.SelectedDate.Value;
                 string[] openTimeStr = TextBoxFakeOpenTime.Text.ToString().Split(':');
 
@@ -360,18 +451,89 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
+                Tab.SetNewLogMessage(
+                OsLocalization.Trader.Label388, Logging.LogMessageType.Error);
+
                 Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
                 return;
             }
 
-            if (price == 0 ||
-                timeOpen == DateTime.MinValue)
+            if (timeOpen == DateTime.MinValue)
             {
+                Tab.SetNewLogMessage(
+                 OsLocalization.Trader.Label388, Logging.LogMessageType.Error);
                 return;
             }
 
-            Tab.CloseAtFake(Position, Position.OpenVolume, price, timeOpen);
+            decimal volume = 0;
 
+            try
+            {
+                volume = TextBoxFakeVolume.Text.ToDecimal();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(
+                    OsLocalization.Trader.Label389 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (volume <= 0)
+            {
+                Tab.SetNewLogMessage(
+                 OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
+                return;
+            }
+
+            Tab.CloseAtFake(Position, volume, price, timeOpen);
+
+        }
+
+        // работа с кнопками актуального объёма
+
+        private void LabelLimitAllOpenVolumeSend_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            TextBoxLimitVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
+        }
+
+        private void LabelLimitAllOpenVolumeSend_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            LabelLimitAllOpenVolumeSend.Foreground = Brushes.YellowGreen;
+        }
+
+        private void LabelLimitAllOpenVolumeSend_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            LabelLimitAllOpenVolumeSend.Foreground = LabelOpenVolumeValue.Foreground;
+        }
+
+        private void LabelMarketAllOpenVolumeSend_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            TextBoxMarketVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
+        }
+
+        private void LabelMarketAllOpenVolumeSend_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            LabelMarketAllOpenVolumeSend.Foreground = Brushes.YellowGreen;
+        }
+
+        private void LabelMarketAllOpenVolumeSend_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            LabelMarketAllOpenVolumeSend.Foreground = LabelOpenVolumeValue.Foreground;
+        }
+
+        private void LabelFakeAllOpenVolume_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            TextBoxFakeVolume.Text = Position.OpenVolume.ToStringWithNoEndZero();
+        }
+
+        private void LabelFakeAllOpenVolume_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            LabelFakeAllOpenVolume.Foreground = Brushes.YellowGreen;
+        }
+
+        private void LabelFakeAllOpenVolume_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            LabelFakeAllOpenVolume.Foreground = LabelOpenVolumeValue.Foreground;
         }
 
         // поток отвечающий за просмотром статуса позиции
@@ -414,6 +576,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
                     _isDeleted = true;
                     Close();
+                    return;
+                }
+
+                string curPosAll = OsLocalization.Trader.Label387 + Position.OpenVolume.ToStringWithNoEndZero();
+
+                if (curPosAll != LabelLimitAllOpenVolumeSend.Content.ToString())
+                {
+                    LabelLimitAllOpenVolumeSend.Content = curPosAll;
+                    LabelMarketAllOpenVolumeSend.Content = curPosAll;
+                    LabelFakeAllOpenVolume.Content = curPosAll;
                 }
             }
             catch
