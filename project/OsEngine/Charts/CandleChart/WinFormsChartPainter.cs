@@ -1263,11 +1263,11 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
 
-                    if (_neadMoveToChartToTheRigth)
+                    if (_neadMoveChartToTheRigth)
                     {
-                        _neadMoveToChartToTheRigth = false;
-                        MoveChartToTheRigthLogic(_scaleSizeToMoveChanrtToTheRight);
-                        _scaleSizeToMoveChanrtToTheRight = 0;
+                        _neadMoveChartToTheRigth = false;
+                        MoveChartToTheRigthLogic(_scaleSizeToMoveChartToTheRight);
+                        _scaleSizeToMoveChartToTheRight = 0;
                     }
 
                     if (_startProgram == StartProgram.IsTester ||
@@ -7095,14 +7095,14 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
-                _neadMoveToChartToTheRigth = true;
-                _scaleSizeToMoveChanrtToTheRight = scaleSize;
+                _neadMoveChartToTheRigth = true;
+                _scaleSizeToMoveChartToTheRight = scaleSize;
             }
         }
 
-        private bool _neadMoveToChartToTheRigth;
+        private bool _neadMoveChartToTheRigth;
 
-        private int _scaleSizeToMoveChanrtToTheRight;
+        private int _scaleSizeToMoveChartToTheRight;
 
         private void MoveChartToTheRigthLogic(int scaleSize)
         {
