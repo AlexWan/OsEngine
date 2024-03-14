@@ -1049,224 +1049,237 @@ namespace OsEngine.Charts.CandleChart
         {
             while (true)
             {
-                await Task.Delay(1000);
-
-                if (_isDeleted)
+                try
                 {
-                    ClearDelete();
-
                     await Task.Delay(1000);
 
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                    return;
-                }
+                    if (_isDeleted)
+                    {
+                        ClearDelete();
 
-                if (MainWindow.ProccesIsWorked == false)
-                {
-                    return;
-                }
+                        await Task.Delay(1000);
 
-                if (_host == null)
-                {
-                    continue;
-                }
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        return;
+                    }
 
-                if (_lastTimeClear.AddSeconds(5) > DateTime.Now
-                    && _startProgram != StartProgram.IsOsOptimizer)
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    if (_host == null)
+                    {
+                        continue;
+                    }
+
+                    if (_lastTimeClear.AddSeconds(5) > DateTime.Now
+                        && _startProgram != StartProgram.IsOsOptimizer)
+                    {
+                        _candlesToPaint = new ConcurrentQueue<List<Candle>>();
+                        _indicatorsToPaint = new ConcurrentQueue<IIndicator>();
+                        await Task.Delay(5000);
+                    }
+                    // checking to see if the candles are here.
+                    // проверяем, пришли ли свечи
+
+                    if (!_candlesToPaint.IsEmpty)
+                    {
+                        List<Candle> candles = new List<Candle>();
+
+                        while (!_candlesToPaint.IsEmpty)
+                        {
+                            _candlesToPaint.TryDequeue(out candles);
+                        }
+
+                        if (candles != null)
+                        {
+                            PaintCandles(candles);
+                        }
+                    }
+                    // checking to see if the positions have come
+                    // проверяем, пришли ли позиции
+
+                    if (!_positions.IsEmpty)
+                    {
+                        List<Position> positions = new List<Position>();
+
+                        while (!_positions.IsEmpty)
+                        {
+                            _positions.TryDequeue(out positions);
+                        }
+
+                        if (positions != null && positions.Count != 0)
+                        {
+                            PaintPositions(positions);
+                        }
+                    }
+
+                    if (!_stopLimits.IsEmpty)
+                    {
+                        List<PositionOpenerToStopLimit> positions = new List<PositionOpenerToStopLimit>();
+
+                        while (!_stopLimits.IsEmpty)
+                        {
+                            _stopLimits.TryDequeue(out positions);
+                        }
+
+                        if (positions != null)
+                        {
+                            PaintStopLimits(positions);
+                        }
+                    }
+
+                    // see if there are any new elements to draw on chart
+                    // проверяем, есть ли новые элементы для прорисовки на чарте
+
+                    if (!_chartElementsToPaint.IsEmpty)
+                    {
+                        List<IChartElement> elements = new List<IChartElement>();
+
+                        while (!_chartElementsToPaint.IsEmpty)
+                        {
+                            IChartElement newElement;
+                            _chartElementsToPaint.TryDequeue(out newElement);
+
+                            if (newElement != null)
+                            {
+                                elements.Add(newElement);
+                            }
+                        }
+
+                        List<IChartElement> elementsWithoutRepiat = new List<IChartElement>();
+
+                        for (int i = elements.Count - 1; i > -1; i--)
+                        {
+                            if (elementsWithoutRepiat.Find(element => element.UniqName == elements[i].UniqName) == null)
+                            {
+                                elementsWithoutRepiat.Add(elements[i]);
+                            }
+                        }
+
+                        for (int i = 0; i < elementsWithoutRepiat.Count; i++)
+                        {
+                            PaintElem(elementsWithoutRepiat[i]);
+                        }
+                    }
+                    // check if there are any new elements to remove from tchart
+                    // проверяем, есть ли новые элементы для удаления с чарта
+
+                    if (!_chartElementsToClear.IsEmpty)
+                    {
+                        List<IChartElement> elements = new List<IChartElement>();
+
+                        while (!_chartElementsToClear.IsEmpty)
+                        {
+                            IChartElement newElement;
+                            _chartElementsToClear.TryDequeue(out newElement);
+
+                            if (newElement != null)
+                            {
+                                elements.Add(newElement);
+                            }
+                        }
+
+                        List<IChartElement> elementsWithoutRepiat = new List<IChartElement>();
+
+                        for (int i = elements.Count - 1; i > -1; i--)
+                        {
+                            if (elementsWithoutRepiat.Find(element => element.UniqName == elements[i].UniqName) == null)
+                            {
+                                elementsWithoutRepiat.Add(elements[i]);
+                            }
+                        }
+
+                        for (int i = 0; i < elementsWithoutRepiat.Count; i++)
+                        {
+                            ClearElem(elementsWithoutRepiat[i]);
+                        }
+
+                    }
+                    // check if there are any indicators to draw on chart
+                    // проверяем, есть ли индикаторы для прорисовки на чарте
+
+                    if (!_indicatorsToPaint.IsEmpty)
+                    {
+                        List<IIndicator> elements = new List<IIndicator>();
+
+                        while (!_indicatorsToPaint.IsEmpty)
+                        {
+                            IIndicator newElement;
+                            _indicatorsToPaint.TryDequeue(out newElement);
+
+                            if (newElement != null)
+                            {
+                                elements.Add(newElement);
+                            }
+                        }
+
+                        List<IIndicator> elementsWithoutRepiat = new List<IIndicator>();
+
+                        for (int i = elements.Count - 1; i > -1; i--)
+                        {
+                            if (elementsWithoutRepiat.Find(element => element.Name == elements[i].Name) == null)
+                            {
+                                elementsWithoutRepiat.Add(elements[i]);
+                            }
+                        }
+
+                        for (int i = 0; i < elementsWithoutRepiat.Count; i++)
+                        {
+                            PaintIndicator(elementsWithoutRepiat[i]);
+                        }
+                    }
+
+                    if (!_alertsToPaint.IsEmpty)
+                    {
+                        List<AlertToChart> elements = new List<AlertToChart>();
+
+                        while (!_alertsToPaint.IsEmpty)
+                        {
+                            AlertToChart newElement;
+                            _alertsToPaint.TryDequeue(out newElement);
+
+                            if (newElement != null)
+                            {
+                                elements.Add(newElement);
+                            }
+                        }
+
+                        List<AlertToChart> elementsWithoutRepiat = new List<AlertToChart>();
+
+                        for (int i = elements.Count - 1; i > -1; i--)
+                        {
+                            if (elementsWithoutRepiat.Find(element => element.Name == elements[i].Name) == null)
+                            {
+                                elementsWithoutRepiat.Add(elements[i]);
+                            }
+                        }
+
+                        for (int i = 0; i < elementsWithoutRepiat.Count; i++)
+                        {
+                            PaintAlert(elementsWithoutRepiat[i]);
+                        }
+                    }
+
+                    if (_neadMoveToChartToTheRigth)
+                    {
+                        _neadMoveToChartToTheRigth = false;
+                        MoveChartToTheRigthLogic(_scaleSizeToMoveChanrtToTheRight);
+                        _scaleSizeToMoveChanrtToTheRight = 0;
+                    }
+
+                    if (_startProgram == StartProgram.IsTester ||
+                        _startProgram == StartProgram.IsOsOptimizer)
+                    {
+                        await Task.Delay(2000);
+                    }
+                }
+                catch(Exception error)
                 {
-                    _candlesToPaint = new ConcurrentQueue<List<Candle>>();
-                    _indicatorsToPaint = new ConcurrentQueue<IIndicator>();
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                     await Task.Delay(5000);
-                }
-                // checking to see if the candles are here.
-                // проверяем, пришли ли свечи
-
-                if (!_candlesToPaint.IsEmpty)
-                {
-                    List<Candle> candles = new List<Candle>();
-
-                    while (!_candlesToPaint.IsEmpty)
-                    {
-                        _candlesToPaint.TryDequeue(out candles);
-                    }
-
-                    if (candles != null)
-                    {
-                        PaintCandles(candles);
-                    }
-                }
-                // checking to see if the positions have come
-                // проверяем, пришли ли позиции
-
-                if (!_positions.IsEmpty)
-                {
-                    List<Position> positions = new List<Position>();
-
-                    while (!_positions.IsEmpty)
-                    {
-                        _positions.TryDequeue(out positions);
-                    }
-
-                    if (positions != null && positions.Count != 0)
-                    {
-                        PaintPositions(positions);
-                    }
-                }
-                
-                if (!_stopLimits.IsEmpty)
-                {
-                    List<PositionOpenerToStopLimit> positions = new List<PositionOpenerToStopLimit>();
-
-                    while (!_stopLimits.IsEmpty)
-                    {
-                        _stopLimits.TryDequeue(out positions);
-                    }
-
-                    if (positions != null)
-                    {
-                       PaintStopLimits(positions);
-                    }
-                }
-
-                // see if there are any new elements to draw on chart
-                // проверяем, есть ли новые элементы для прорисовки на чарте
-
-                if (!_chartElementsToPaint.IsEmpty)
-                {
-                    List<IChartElement> elements = new List<IChartElement>();
-
-                    while (!_chartElementsToPaint.IsEmpty)
-                    {
-                        IChartElement newElement;
-                        _chartElementsToPaint.TryDequeue(out newElement);
-
-                        if (newElement != null)
-                        {
-                            elements.Add(newElement);
-                        }
-                    }
-
-                    List<IChartElement> elementsWithoutRepiat = new List<IChartElement>();
-
-                    for (int i = elements.Count-1; i > -1; i--)
-                    {
-                        if (elementsWithoutRepiat.Find(element => element.UniqName == elements[i].UniqName) == null)
-                        {
-                            elementsWithoutRepiat.Add(elements[i]);
-                        }
-                    }
-
-                    for (int i = 0; i < elementsWithoutRepiat.Count; i++)
-                    {
-                        PaintElem(elementsWithoutRepiat[i]);
-                    }
-                }
-                // check if there are any new elements to remove from tchart
-                // проверяем, есть ли новые элементы для удаления с чарта
-
-                if (!_chartElementsToClear.IsEmpty)
-                {
-                    List<IChartElement> elements = new List<IChartElement>();
-
-                    while (!_chartElementsToClear.IsEmpty)
-                    {
-                        IChartElement newElement;
-                        _chartElementsToClear.TryDequeue(out newElement);
-
-                        if (newElement != null)
-                        {
-                            elements.Add(newElement);
-                        }
-                    }
-
-                    List<IChartElement> elementsWithoutRepiat = new List<IChartElement>();
-
-                    for (int i = elements.Count-1; i >-1 ; i--)
-                    {
-                        if (elementsWithoutRepiat.Find(element => element.UniqName == elements[i].UniqName) == null)
-                        {
-                            elementsWithoutRepiat.Add(elements[i]);
-                        }
-                    }
-
-                    for (int i = 0; i < elementsWithoutRepiat.Count; i++)
-                    {
-                        ClearElem(elementsWithoutRepiat[i]);
-                    }
-
-                }
-                // check if there are any indicators to draw on chart
-                // проверяем, есть ли индикаторы для прорисовки на чарте
-
-                if (!_indicatorsToPaint.IsEmpty)
-                {
-                    List<IIndicator> elements = new List<IIndicator>();
-
-                    while (!_indicatorsToPaint.IsEmpty)
-                    {
-                        IIndicator newElement;
-                        _indicatorsToPaint.TryDequeue(out newElement);
-
-                        if (newElement != null)
-                        {
-                            elements.Add(newElement);
-                        }
-                    }
-
-                    List<IIndicator> elementsWithoutRepiat = new List<IIndicator>();
-
-                    for (int i = elements.Count-1; i >-1 ; i--)
-                    {
-                        if (elementsWithoutRepiat.Find(element => element.Name == elements[i].Name) == null)
-                        {
-                            elementsWithoutRepiat.Add(elements[i]);
-                        }
-                    }
-
-                    for (int i = 0; i < elementsWithoutRepiat.Count; i++)
-                    {
-                        PaintIndicator(elementsWithoutRepiat[i]);
-                    }
-                }
-
-
-                if (!_alertsToPaint.IsEmpty)
-                {
-                    List<AlertToChart> elements = new List<AlertToChart>();
-
-                    while (!_alertsToPaint.IsEmpty)
-                    {
-                        AlertToChart newElement;
-                        _alertsToPaint.TryDequeue(out newElement);
-
-                        if (newElement != null)
-                        {
-                            elements.Add(newElement);
-                        }
-                    }
-
-                    List<AlertToChart> elementsWithoutRepiat = new List<AlertToChart>();
-
-                    for (int i = elements.Count - 1; i > -1; i--)
-                    {
-                        if (elementsWithoutRepiat.Find(element => element.Name == elements[i].Name) == null)
-                        {
-                            elementsWithoutRepiat.Add(elements[i]);
-                        }
-                    }
-
-                    for (int i = 0; i < elementsWithoutRepiat.Count; i++)
-                    {
-                        PaintAlert(elementsWithoutRepiat[i]);
-                    }
-                }
-                
-
-                if (_startProgram == StartProgram.IsTester ||
-                    _startProgram == StartProgram.IsOsOptimizer)
-                {
-                    await Task.Delay(2000);
                 }
             }
         }
@@ -1403,7 +1416,6 @@ namespace OsEngine.Charts.CandleChart
 
                     ReloadAreaSizes();
                     PaintAllCandles(history);
-                    MoveChartToTheRight();
                     ResizeSeriesLabels();
                     RePaintRightLebels();
                     ResizeYAxisOnArea("Prime");
@@ -7073,7 +7085,26 @@ namespace OsEngine.Charts.CandleChart
             }
         }
 
-        public void MoveChartToTheRight()
+        public void MoveChartToTheRight(int scaleSize)
+        {
+            if ((_startProgram == StartProgram.IsTester ||
+      _startProgram == StartProgram.IsOsMiner) &&
+     _host != null)
+            {
+                MoveChartToTheRigthLogic(scaleSize);
+            }
+            else
+            {
+                _neadMoveToChartToTheRigth = true;
+                _scaleSizeToMoveChanrtToTheRight = scaleSize;
+            }
+        }
+
+        private bool _neadMoveToChartToTheRigth;
+
+        private int _scaleSizeToMoveChanrtToTheRight;
+
+        private void MoveChartToTheRigthLogic(int scaleSize)
         {
             if (_chart == null)
             {
@@ -7081,7 +7112,7 @@ namespace OsEngine.Charts.CandleChart
             }
             if (_chart.InvokeRequired)
             {
-                _chart.Invoke(new Action(MoveChartToTheRight));
+                _chart.Invoke(new Action<int>(MoveChartToTheRigthLogic), scaleSize);
 
                 return;
             }
@@ -7091,7 +7122,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
-            if(_chart.ChartAreas[0].AxisX.ScrollBar == null)
+            if (_chart.ChartAreas[0].AxisX.ScrollBar == null)
             {
                 return;
             }
@@ -7107,14 +7138,24 @@ namespace OsEngine.Charts.CandleChart
                 values = (int)_chart.ChartAreas[0].AxisX.ScaleView.Size;
             }
 
-            if(values == _myCandles.Count)
+            if (scaleSize != 0 &&
+                scaleSize != values)
+            {
+                ChangeOpenScaleSize(scaleSize);
+                values = scaleSize;
+            }
+
+            if (values == _myCandles.Count)
             {
                 return;
             }
 
             _chart.ChartAreas[0].AxisX.ScaleView.Position = _myCandles.Count - values;
-            
-
+            ReloadAreaSizes();
+            ResizeSeriesLabels();
+            RePaintRightLebels();
+            ResizeYAxisOnArea("Prime");
+            ResizeXAxis();
         }
 
         public int OpenChartScale 

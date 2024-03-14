@@ -1954,6 +1954,11 @@ namespace OsEngine.Journal.Internal
                 int number;
                 try
                 {
+                    if(_gridOpenDeal.Rows.Count == 0)
+                    {
+                        return;
+                    }
+
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
@@ -1983,6 +1988,11 @@ namespace OsEngine.Journal.Internal
                 int number;
                 try
                 {
+                    if (_gridOpenDeal.Rows.Count == 0)
+                    {
+                        return;
+                    }
+
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)
@@ -2020,6 +2030,11 @@ namespace OsEngine.Journal.Internal
                 int number;
                 try
                 {
+                    if (_gridOpenDeal.Rows.Count == 0)
+                    {
+                        return;
+                    }
+
                     number = Convert.ToInt32(_gridOpenDeal.Rows[_gridOpenDeal.CurrentCell.RowIndex].Cells[0].Value);
                 }
                 catch (Exception)

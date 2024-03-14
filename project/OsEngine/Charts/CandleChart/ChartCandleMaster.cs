@@ -1596,7 +1596,7 @@ namespace OsEngine.Charts.CandleChart
                 if(_lastStopChartScale > 10)
                 {
                     ChartCandle.OpenChartScale = _lastStopChartScale;
-                    ChartCandle.MoveChartToTheRight();
+                    ChartCandle.MoveChartToTheRight(_lastStopChartScale);
                 }
             }
             catch (Exception error)
@@ -1617,7 +1617,11 @@ namespace OsEngine.Charts.CandleChart
 
                 ChartCandle = null;
 
-                _lastStopChartScale = painter.OpenChartScale; 
+                if(painter.OpenChartScale != 0)
+                {
+                    _lastStopChartScale = painter.OpenChartScale;
+                }
+                
                 painter.StopPaint();
                 painter.Delete();
                 
@@ -1676,7 +1680,7 @@ namespace OsEngine.Charts.CandleChart
         {
             if (ChartCandle != null)
             {
-                ChartCandle.MoveChartToTheRight();
+                ChartCandle.MoveChartToTheRight(0);
             }
         }
 
