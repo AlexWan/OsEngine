@@ -739,6 +739,14 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         private void TcpSendMessage()
         {
             _rateGate.WaitToProceed();
+
+            if(_tcpWriter == null ||
+                _message == null ||
+                _message.Count == 0)
+            {
+                return;
+            }
+
             _tcpWriter.Write(_message.ToArray());
             _message = new List<byte>();
         }

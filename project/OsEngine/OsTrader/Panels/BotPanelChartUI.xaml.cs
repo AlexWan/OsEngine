@@ -59,7 +59,8 @@ namespace OsEngine.OsTrader.Panels
             LocationChanged += RobotUi_LocationChanged;
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
 
-            Title = panel.GetType().Name;
+            Title = panel.GetType().Name + " / " + panel.NameStrategyUniq;
+
             TabControlBotsName.Items[0] = panel.NameStrategyUniq;
             ButtonShowInformPanel.Visibility = Visibility.Hidden;
 

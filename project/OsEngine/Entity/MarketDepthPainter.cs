@@ -112,7 +112,7 @@ namespace OsEngine.Entity
             try
             {
                 _marketDepthTable = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
-                    DataGridViewAutoSizeRowsMode.None);
+                    DataGridViewAutoSizeRowsMode.AllCells);
                 _marketDepthTable.AllowUserToResizeRows = false;
                 _marketDepthTable.ScrollBars = ScrollBars.Vertical;
                 _marketDepthTable.SelectionChanged += _glassBox_SelectionChanged;
