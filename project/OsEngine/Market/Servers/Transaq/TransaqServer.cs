@@ -195,6 +195,8 @@ namespace OsEngine.Market.Servers.Transaq
 
             _securities = new List<Security>();
 
+            _subscribeSecurities = new List<Security>();
+
             _client = null;
         }
 
@@ -1059,6 +1061,15 @@ namespace OsEngine.Market.Servers.Transaq
                         series.CandlesAll = BuildCandles(donorCandles, newTf, oldTf);
                     }
 
+                    for(int i = 0;series.CandlesAll != null && i < series.CandlesAll.Count;i++)
+                    {
+                        if (series.CandlesAll[i] == null)
+                        {
+                            series.CandlesAll.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
                     series.UpdateAllCandles();
                     series.IsStarted = true;
                     return;
@@ -1310,8 +1321,28 @@ namespace OsEngine.Market.Servers.Transaq
 
         private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
+        private List<Security> _subscribeSecurities = new List<Security>();
+
         public void Subscrible(Security security)
         {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
+            for (int i = 0;i < _subscribeSecurities.Count;i++)
+            {
+                if (_subscribeSecurities[i].Name == security.Name
+                    && _subscribeSecurities[i].NameId == security.NameId
+                     && _subscribeSecurities[i].NameFull == security.NameFull
+                    && _subscribeSecurities[i].NameClass == security.NameClass)
+                {
+                    return;
+                }
+            }
+
+            _subscribeSecurities.Add(security);
+
             SubscribeRecursion(security, 1);
         }
 

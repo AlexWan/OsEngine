@@ -227,6 +227,22 @@ namespace OsEngine.Entity
                 return oldCandles;
             }
 
+            // костыль от наличия null свечек в массиве
+
+            for(int i = 0;i < candlesToMerge.Count;i++)
+            {
+                if (candlesToMerge[i] == null)
+                {
+                    candlesToMerge.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            if(candlesToMerge.Count == 0)
+            {
+                return oldCandles;
+            }
+
             if (oldCandles.Count == 0)
             {
                 oldCandles.AddRange(candlesToMerge);
@@ -267,7 +283,16 @@ namespace OsEngine.Entity
 
             if (newCandles.Count != 0)
             {
-                Candle lastCandle = candlesToMerge.Find(c => c.TimeStart == newCandles[newCandles.Count - 1].TimeStart);
+                Candle lastCandle = null;
+
+                for(int i = 0;i < candlesToMerge.Count;i++)
+                {
+                    if (candlesToMerge[i].TimeStart == newCandles[newCandles.Count - 1].TimeStart)
+                    {
+                        lastCandle = candlesToMerge[i]; 
+                        break;
+                    }
+                }
 
                 if (lastCandle != null)
                 {
