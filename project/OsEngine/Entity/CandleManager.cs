@@ -908,14 +908,14 @@ namespace OsEngine.Entity
         /// </summary>
         private void server_NewTradeEvent(List<Trade> trades)
         {
-            if (_server.ServerType == ServerType.Tester &&
-                TypeTesterData == TesterDataType.Candle)
-            {
-                return;
-            }
-
             try
             {
+                if (_server.ServerType == ServerType.Tester &&
+                    TypeTesterData == TesterDataType.Candle)
+                {
+                    return;
+                }
+
                 if (trades == null ||
                     trades.Count == 0 ||
                     trades[0] == null)

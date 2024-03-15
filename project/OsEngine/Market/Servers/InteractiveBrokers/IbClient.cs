@@ -45,6 +45,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         private bool _isConnected;
 
+        private string _sendMessageLocker = "sendMessageLocker";
+
         /// <summary>
         /// establish a connection to TCP server of TWS
         /// установить соединение с TСP сервером TWS
@@ -61,31 +63,35 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 _tcpWriter = new BinaryWriter(_tcpClient.GetStream());
                 _tcpReader = new BinaryReader(_tcpClient.GetStream());
 
-                try
+                lock(_sendMessageLocker)
                 {
-                    TcpWrite(63);
+                    try
+                    {
+                        TcpWrite(63);
+                        TcpSendMessage();
+                    }
+                    catch (IOException error)
+                    {
+                        SendLogMessage(error.ToString(), LogMessageType.Error);
+                        throw;
+
+                    }
+
+                    int serverVersion = TcpReadInt();
+                    SendLogMessage("Server TCP Activ. Version TWS server: " + serverVersion, LogMessageType.System);
+
+
+                    string twsTime = TcpReadString();
+                    SendLogMessage("TWS time: " + twsTime, LogMessageType.System);
+
+                    _isConnected = true;
+
+                    TcpWrite("71");
+                    TcpWrite("1");
+                    TcpWrite("0");
                     TcpSendMessage();
                 }
-                catch (IOException error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    throw;
 
-                }
-
-                int serverVersion = TcpReadInt();
-                SendLogMessage("Server TCP Activ. Version TWS server: " + serverVersion, LogMessageType.System);
-
-
-                string twsTime = TcpReadString();
-                SendLogMessage("TWS time: " + twsTime, LogMessageType.System);
-
-                _isConnected = true;
-
-                TcpWrite("71");
-                TcpWrite("1");
-                TcpWrite("0");
-                TcpSendMessage();
 
                 if (_listenThread == null)
                 {
@@ -175,12 +181,15 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
             try
             {
-                TcpWrite(62);
-                TcpWrite(1);
-                TcpWrite(50000001);
-                TcpWrite("All");
-                TcpWrite("AccountType,NetLiquidation");
-                TcpSendMessage();
+                lock (_sendMessageLocker)
+                {
+                    TcpWrite(62);
+                    TcpWrite(1);
+                    TcpWrite(50000001);
+                    TcpWrite("All");
+                    TcpWrite("AccountType,NetLiquidation");
+                    TcpSendMessage();
+                }
             }
             catch (Exception error)
             {
@@ -205,9 +214,12 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
             try
             {
-                TcpWrite(61);
-                TcpWrite(1);
-                TcpSendMessage();
+                lock (_sendMessageLocker)
+                {
+                    TcpWrite(61);
+                    TcpWrite(1);
+                    TcpSendMessage();
+                }
             }
             catch (Exception error)
             {
@@ -226,33 +238,36 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
             try
             {
-                TcpWrite(9);
-                TcpWrite(7);
+                lock (_sendMessageLocker)
+                {
+                    TcpWrite(9);
+                    TcpWrite(7);
 
-                TcpWrite(-1);
+                    TcpWrite(-1);
 
-                TcpWrite(contract.ConId);
+                    TcpWrite(contract.ConId);
 
-                TcpWrite(contract.Symbol);
-                TcpWrite(contract.SecType);
-                TcpWrite(contract.Expiry);
-                TcpWrite(contract.Strike);
-                TcpWrite(contract.Right);
+                    TcpWrite(contract.Symbol);
+                    TcpWrite(contract.SecType);
+                    TcpWrite(contract.Expiry);
+                    TcpWrite(contract.Strike);
+                    TcpWrite(contract.Right);
 
-                TcpWrite(contract.Multiplier);
+                    TcpWrite(contract.Multiplier);
 
-                TcpWrite(contract.Exchange);
-                TcpWrite(contract.Currency);
-                TcpWrite(contract.LocalSymbol);
+                    TcpWrite(contract.Exchange);
+                    TcpWrite(contract.Currency);
+                    TcpWrite(contract.LocalSymbol);
 
-                TcpWrite(contract.TradingClass);
+                    TcpWrite(contract.TradingClass);
 
-                TcpWrite(contract.IncludeExpired);
+                    TcpWrite(contract.IncludeExpired);
 
-                TcpWrite(contract.SecIdType);
-                TcpWrite(contract.SecId);
+                    TcpWrite(contract.SecIdType);
+                    TcpWrite(contract.SecId);
 
-                TcpSendMessage();
+                    TcpSendMessage();
+                }
             }
             catch (Exception error)
             {
@@ -301,26 +316,29 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 return;
             try
             {
-                TcpWrite(1);
-                TcpWrite(11);
-                TcpWrite(contract.ConId);
-                TcpWrite(0);
-                TcpWrite(contract.Symbol);
-                TcpWrite(contract.SecType);
-                TcpWrite(contract.Expiry);
-                TcpWrite(contract.Strike);
-                TcpWrite(null); // Right
-                TcpWrite(""); // Multiplier
-                TcpWrite(contract.Exchange);
-                TcpWrite(contract.PrimaryExch); // PrimaryEx
-                TcpWrite(contract.Currency);
-                TcpWrite(contract.LocalSymbol);
-                TcpWrite(null);
-                TcpWrite(false);
-                TcpWrite("");
-                TcpWrite(false);
-                TcpWrite("");
-                TcpSendMessage();
+                lock (_sendMessageLocker)
+                {
+                    TcpWrite(1);
+                    TcpWrite(11);
+                    TcpWrite(contract.ConId);
+                    TcpWrite(0);
+                    TcpWrite(contract.Symbol);
+                    TcpWrite(contract.SecType);
+                    TcpWrite(contract.Expiry);
+                    TcpWrite(contract.Strike);
+                    TcpWrite(null); // Right
+                    TcpWrite(""); // Multiplier
+                    TcpWrite(contract.Exchange);
+                    TcpWrite(contract.PrimaryExch); // PrimaryEx
+                    TcpWrite(contract.Currency);
+                    TcpWrite(contract.LocalSymbol);
+                    TcpWrite(null);
+                    TcpWrite(false);
+                    TcpWrite("");
+                    TcpWrite(false);
+                    TcpWrite("");
+                    TcpSendMessage();
+                }
             }
             catch (Exception error)
             {
@@ -337,35 +355,38 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
             try
             {
-                TcpWrite(20);
-                TcpWrite(6);
-                TcpWrite(contract.ConId.ToString());
-                TcpWrite(contract.ConId.ToString());
-                TcpWrite(contract.Symbol);
-                TcpWrite(contract.SecType);
-                TcpWrite(contract.Expiry);
-                TcpWrite(contract.Strike);
-                TcpWrite(null);
-                TcpWrite(null);
-                TcpWrite(contract.Exchange);
-                TcpWrite(null);
-                TcpWrite(contract.Currency);
-                TcpWrite(contract.LocalSymbol);
-                TcpWrite(contract.TradingClass);
-                TcpWrite(0);
-                string time = endDateTime.ToString("yyyyMMdd HH:mm:ss");// + " GMT";
-                TcpWrite(time);
-                TcpWrite(barSizeSetting);
-                string period = ConvertPeriodtoIb(endDateTime, startTime);
-                TcpWrite(period);
-                TcpWrite(0);
-                TcpWrite(candleType);
+                lock (_sendMessageLocker)
+                {
+                    TcpWrite(20);
+                    TcpWrite(6);
+                    TcpWrite(contract.ConId.ToString());
+                    TcpWrite(contract.ConId.ToString());
+                    TcpWrite(contract.Symbol);
+                    TcpWrite(contract.SecType);
+                    TcpWrite(contract.Expiry);
+                    TcpWrite(contract.Strike);
+                    TcpWrite(null);
+                    TcpWrite(null);
+                    TcpWrite(contract.Exchange);
+                    TcpWrite(null);
+                    TcpWrite(contract.Currency);
+                    TcpWrite(contract.LocalSymbol);
+                    TcpWrite(contract.TradingClass);
+                    TcpWrite(0);
+                    string time = endDateTime.ToString("yyyyMMdd HH:mm:ss");// + " GMT";
+                    TcpWrite(time);
+                    TcpWrite(barSizeSetting);
+                    string period = ConvertPeriodtoIb(endDateTime, startTime);
+                    TcpWrite(period);
+                    TcpWrite(0);
+                    TcpWrite(candleType);
 
-                TcpWrite(1);
-                TcpWrite(null);
-                TcpWrite(null);
+                    TcpWrite(1);
+                    TcpWrite(null);
+                    TcpWrite(null);
 
-                TcpSendMessage();
+                    TcpSendMessage();
+                }
             }
             catch (Exception error)
             {
@@ -435,30 +456,33 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
             try
             {
-                TcpWrite(10);
-                TcpWrite(5);
-                TcpWrite(contract.ConId.ToString());
-                TcpWrite(contract.ConId.ToString());
+                lock (_sendMessageLocker)
+                {
+                    TcpWrite(10);
+                    TcpWrite(5);
+                    TcpWrite(contract.ConId.ToString());
+                    TcpWrite(contract.ConId.ToString());
 
-                TcpWrite(contract.Symbol);
-                TcpWrite(contract.SecType);
-                TcpWrite(contract.Expiry);
-                TcpWrite(contract.Strike);
-                TcpWrite(contract.Right);
+                    TcpWrite(contract.Symbol);
+                    TcpWrite(contract.SecType);
+                    TcpWrite(contract.Expiry);
+                    TcpWrite(contract.Strike);
+                    TcpWrite(contract.Right);
 
-                TcpWrite(contract.Multiplier);
+                    TcpWrite(contract.Multiplier);
 
-                TcpWrite(contract.Exchange);
-                TcpWrite(contract.Currency);
-                TcpWrite(contract.LocalSymbol);
-                TcpWrite(contract.TradingClass);
+                    TcpWrite(contract.Exchange);
+                    TcpWrite(contract.Currency);
+                    TcpWrite(contract.LocalSymbol);
+                    TcpWrite(contract.TradingClass);
 
 
-                TcpWrite("10");
+                    TcpWrite("10");
 
-                TcpWrite("");
+                    TcpWrite("");
 
-                TcpSendMessage();
+                    TcpSendMessage();
+                }
             }
             catch (Exception error)
             {
@@ -490,154 +514,157 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 _orders = new List<Order>();
             }
 
-            try
+            lock (_sendMessageLocker)
             {
-                if (_orders.Find(o => o.NumberUser == order.NumberUser) == null)
+                try
                 {
-                    _orders.Add(order);
+
+                    if (_orders.Find(o => o.NumberUser == order.NumberUser) == null)
+                    {
+                        _orders.Add(order);
+                    }
+                    _nextOrderNum++;
+                    order.NumberMarket = order.NumberUser.ToString();
+
+                    TcpWrite(3);
+                    TcpWrite(43);
+                    TcpWrite(order.NumberUser);
+                    TcpWrite(contract.ConId);
+                    TcpWrite(contract.Symbol);
+                    TcpWrite(contract.SecType);
+                    TcpWrite(contract.Expiry);
+                    TcpWrite(contract.Strike);
+                    TcpWrite(contract.Right);
+                    TcpWrite(contract.Multiplier);
+                    TcpWrite(contract.Exchange);
+                    TcpWrite(contract.PrimaryExch);
+                    TcpWrite(contract.Currency);
+                    TcpWrite(contract.LocalSymbol);
+                    TcpWrite(contract.TradingClass);
+                    TcpWrite(contract.SecIdType);
+                    TcpWrite(contract.SecId);
+
+
+                    string action = "";
+
+                    if (order.Side == Side.Buy)
+                    {
+                        action = "BUY";
+                    }
+                    else
+                    {
+                        action = "SELL";
+                    }
+
+                    string type = "";
+
+                    if (order.TypeOrder == OrderPriceType.Limit)
+                    {
+                        type = "LMT";
+                    }
+                    else
+                    {
+                        type = "MKT";
+                    }
+
+                    // paramsList.AddParameter main order fields
+                    TcpWrite(action);
+                    TcpWrite(order.Volume.ToString(new NumberFormatInfo() { CurrencyDecimalSeparator = "." }));
+                    TcpWrite(type);
+                    TcpWrite(order.Price.ToString(new NumberFormatInfo() { CurrencyDecimalSeparator = "." }));
+                    TcpWrite("");
+
+
                 }
-                _nextOrderNum++;
-                order.NumberMarket = order.NumberUser.ToString();
-
-                TcpWrite(3);
-                TcpWrite(43);
-                TcpWrite(order.NumberUser);
-                TcpWrite(contract.ConId);
-                TcpWrite(contract.Symbol);
-                TcpWrite(contract.SecType);
-                TcpWrite(contract.Expiry);
-                TcpWrite(contract.Strike);
-                TcpWrite(contract.Right);
-                TcpWrite(contract.Multiplier);
-                TcpWrite(contract.Exchange);
-                TcpWrite(contract.PrimaryExch);
-                TcpWrite(contract.Currency);
-                TcpWrite(contract.LocalSymbol);
-                TcpWrite(contract.TradingClass);
-                TcpWrite(contract.SecIdType);
-                TcpWrite(contract.SecId);
-
-
-                string action = "";
-
-                if (order.Side == Side.Buy)
+                catch (Exception error)
                 {
-                    action = "BUY";
-                }
-                else
-                {
-                    action = "SELL";
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
 
-                string type = "";
 
-                if (order.TypeOrder == OrderPriceType.Limit)
-                {
-                    type = "LMT";
-                }
-                else
-                {
-                    type = "MKT";
-                }
-
-                // paramsList.AddParameter main order fields
-                TcpWrite(action);
-                TcpWrite(order.Volume.ToString(new NumberFormatInfo() { CurrencyDecimalSeparator = "." }));
-                TcpWrite(type);
-                TcpWrite(order.Price.ToString(new NumberFormatInfo() { CurrencyDecimalSeparator = "." }));
+                // paramsList.AddParameter extended order fields
+                TcpWrite(null); // null
+                TcpWrite("");
+                TcpWrite(order.PortfolioNumber);
+                TcpWrite("");
+                TcpWrite(0);
+                TcpWrite(null);
+                TcpWrite(true);
+                TcpWrite(0);
+                TcpWrite(false);
+                TcpWrite(false);
+                TcpWrite(0);
+                TcpWrite(0);
+                TcpWrite(false);
+                TcpWrite(false);
                 TcpWrite("");
 
 
+                TcpWrite(0);
+
+
+                TcpWrite(null); // order.GoodAfterTime
+                TcpWrite(null); // order.GoodTillDate
+                TcpWrite(null); // order.FaGroup
+                TcpWrite(null); // order.FaMethod
+                TcpWrite(null); // order.FaPercentage
+                TcpWrite(null); // order.FaProfile
+
+
+                TcpWrite(null); // order.ShortSaleSlot   // 0 only for retail, 1 or 2 only for institution.
+                TcpWrite("");   // order.DesignatedLocation// only populate when order.shortSaleSlot = 2.
+
+
+                TcpWrite(-1); // order.ExemptCode
+
+
+                TcpWrite(0);     // order.OcaType
+                TcpWrite(null);  // order.Rule80A
+                TcpWrite(null);  // order.SettlingFirm
+                TcpWrite(0);     // order.AllOrNone
+                TcpWrite(""); // order.MinQty
+                TcpWrite(""); // order.PercentOffset
+                TcpWrite(false); // order.ETradeOnly
+                TcpWrite(false); // order.FirmQuoteOnly
+                TcpWrite(""); //order.NbboPriceCap
+                TcpWrite(0); // order.AuctionStrategy
+                TcpWrite(""); // order.StartingPrice
+                TcpWrite(""); // order.StockRefPrice
+                TcpWrite(""); // order.Delta
+                TcpWrite("");
+                TcpWrite("");
+
+                TcpWrite(false); // order.OverridePercentageConstraints
+
+                // Volatility orders
+                TcpWrite(""); // order.Volatility
+                TcpWrite(""); // order.VolatilityType
+                TcpWrite(""); // order.DeltaNeutralOrderType
+                TcpWrite(""); // order.DeltaNeutralAuxPrice
+                TcpWrite(0); // order.ContinuousUpdate
+                TcpWrite(""); // order.ReferencePriceType
+                TcpWrite(""); // order.TrailStopPrice
+                TcpWrite(""); // order.TrailingPercent
+                TcpWrite(""); // order.ScaleInitLevelSize
+                TcpWrite(""); // order.ScaleSubsLevelSize
+                TcpWrite(""); // order.ScalePriceIncrement
+                TcpWrite(""); // order.ScaleTable
+                TcpWrite(""); // order.ActiveStartTime
+                TcpWrite(""); // order.ActiveStopTime
+                TcpWrite(null);  //order.HedgeType
+                TcpWrite(false); // order.OptOutSmartRouting
+                TcpWrite(null); // order.ClearingAccount
+                TcpWrite(null); // order.ClearingIntent
+                TcpWrite(false); // order.NotHeld
+                TcpWrite(false);
+                TcpWrite(null); // order.AlgoStrategy
+                TcpWrite(null); // order.AlgoId
+                TcpWrite(false); // order.WhatIf
+                TcpWrite(""); // TagValueListToString(order.OrderMiscOptions)
+
+
+                TcpSendMessage();
             }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-
-
-            // paramsList.AddParameter extended order fields
-            TcpWrite(null); // null
-            TcpWrite("");
-            TcpWrite(order.PortfolioNumber);
-            TcpWrite("");
-            TcpWrite(0);
-            TcpWrite(null);
-            TcpWrite(true);
-            TcpWrite(0);
-            TcpWrite(false);
-            TcpWrite(false);
-            TcpWrite(0);
-            TcpWrite(0);
-            TcpWrite(false);
-            TcpWrite(false);
-            TcpWrite("");
-
-
-            TcpWrite(0);
-
-
-            TcpWrite(null); // order.GoodAfterTime
-            TcpWrite(null); // order.GoodTillDate
-            TcpWrite(null); // order.FaGroup
-            TcpWrite(null); // order.FaMethod
-            TcpWrite(null); // order.FaPercentage
-            TcpWrite(null); // order.FaProfile
-
-
-            TcpWrite(null); // order.ShortSaleSlot   // 0 only for retail, 1 or 2 only for institution.
-            TcpWrite("");   // order.DesignatedLocation// only populate when order.shortSaleSlot = 2.
-
-
-            TcpWrite(-1); // order.ExemptCode
-
-
-            TcpWrite(0);     // order.OcaType
-            TcpWrite(null);  // order.Rule80A
-            TcpWrite(null);  // order.SettlingFirm
-            TcpWrite(0);     // order.AllOrNone
-            TcpWrite(""); // order.MinQty
-            TcpWrite(""); // order.PercentOffset
-            TcpWrite(false); // order.ETradeOnly
-            TcpWrite(false); // order.FirmQuoteOnly
-            TcpWrite(""); //order.NbboPriceCap
-            TcpWrite(0); // order.AuctionStrategy
-            TcpWrite(""); // order.StartingPrice
-            TcpWrite(""); // order.StockRefPrice
-            TcpWrite(""); // order.Delta
-            TcpWrite("");
-            TcpWrite("");
-
-            TcpWrite(false); // order.OverridePercentageConstraints
-
-            // Volatility orders
-            TcpWrite(""); // order.Volatility
-            TcpWrite(""); // order.VolatilityType
-            TcpWrite(""); // order.DeltaNeutralOrderType
-            TcpWrite(""); // order.DeltaNeutralAuxPrice
-            TcpWrite(0); // order.ContinuousUpdate
-            TcpWrite(""); // order.ReferencePriceType
-            TcpWrite(""); // order.TrailStopPrice
-            TcpWrite(""); // order.TrailingPercent
-            TcpWrite(""); // order.ScaleInitLevelSize
-            TcpWrite(""); // order.ScaleSubsLevelSize
-            TcpWrite(""); // order.ScalePriceIncrement
-            TcpWrite(""); // order.ScaleTable
-            TcpWrite(""); // order.ActiveStartTime
-            TcpWrite(""); // order.ActiveStopTime
-            TcpWrite(null);  //order.HedgeType
-            TcpWrite(false); // order.OptOutSmartRouting
-            TcpWrite(null); // order.ClearingAccount
-            TcpWrite(null); // order.ClearingIntent
-            TcpWrite(false); // order.NotHeld
-            TcpWrite(false);
-            TcpWrite(null); // order.AlgoStrategy
-            TcpWrite(null); // order.AlgoId
-            TcpWrite(false); // order.WhatIf
-            TcpWrite(""); // TagValueListToString(order.OrderMiscOptions)
-
-
-            TcpSendMessage();
-
         }
 
         /// <summary>
@@ -649,10 +676,13 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             // _twsServer.cancelOrder(Convert.ToInt32(order.NumberMarket));
             try
             {
-                TcpWrite(4);
-                TcpWrite(1);
-                TcpWrite(order.NumberMarket);
-                TcpSendMessage();
+                lock (_sendMessageLocker)
+                {
+                    TcpWrite(4);
+                    TcpWrite(1);
+                    TcpWrite(order.NumberMarket);
+                    TcpSendMessage();
+                }
             }
             catch (Exception error)
             {

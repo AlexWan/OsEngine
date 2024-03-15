@@ -104,7 +104,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             _namesSubscribleSecurities = new List<string>();
             _client = null;
             _connectedContracts = new List<string>();
-
+            _portfolioIsStarted = false;
             ServerStatus = ServerConnectStatus.Disconnect;
 
             if (DisconnectEvent != null)
@@ -490,7 +490,10 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         /// </summary>
         public void GetPortfolios()
         {
-            _client.GetPortfolios();
+            lock (_subLocker)
+            {
+                _client.GetPortfolios();
+            }
         }
 
         List<Portfolio> _portfolios;
@@ -569,9 +572,12 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                 portfolio.SetNewPosition(positionOnBoard);
 
-                if (PortfolioEvent != null)
+                if(_portfolioIsStarted)
                 {
-                    PortfolioEvent(_portfolios);
+                    if (PortfolioEvent != null)
+                    {
+                        PortfolioEvent(_portfolios);
+                    }
                 }
             }
             catch (Exception error)
@@ -582,16 +588,18 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         private void StartListeningPortfolios()
         {
-            Thread.Sleep(3000);
+            Thread.Sleep(1000);
 
             for (int i = 0; i < _portfolios.Count; i++)
             {
                 _client.ListenPortfolio(_portfolios[i].Number);
             }
 
-            Thread.Sleep(5000);
+            Thread.Sleep(1000);
+            _portfolioIsStarted = true;
         }
 
+        private bool _portfolioIsStarted = false;
 
         #endregion
 
@@ -938,34 +946,60 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         private List<string> _connectedContracts = new List<string>();
 
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(2000));
+
+        private string _subLocker = "subLocker";
+
         public void Subscrible(Security security)
         {
-
             while (_securitiesIsConnect == false)
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
                 Thread.Sleep(500);
             }
 
-            SecurityIb contractIb =
+            while (_portfolioIsStarted == false)
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+                Thread.Sleep(500);
+            }
+
+            lock (_subLocker)
+            {
+                if(ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                _rateGate.WaitToProceed();
+
+                SecurityIb contractIb =
            _secIB.Find(
          contract =>
              contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange == security.Name);
 
-            if (contractIb == null)
-            {
-                return;
-            }
-
-
-            if (_connectedContracts.Find(s => s == security.Name) == null)
-            {
-                _connectedContracts.Add(security.Name);
-
-                _client.GetMarketDataToSecurity(contractIb);
-
-                if (contractIb.CreateMarketDepthFromTrades == false)
+                if (contractIb == null)
                 {
-                    _client.GetMarketDepthToSecurity(contractIb);
+                    return;
+                }
+
+
+                if (_connectedContracts.Find(s => s == security.Name) == null)
+                {
+                    _connectedContracts.Add(security.Name);
+
+                    _client.GetMarketDataToSecurity(contractIb);
+
+                    if (contractIb.CreateMarketDepthFromTrades == false)
+                    {
+                        _client.GetMarketDepthToSecurity(contractIb);
+                    }
                 }
             }
         }
@@ -991,161 +1025,171 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         #region Candles request
 
+        RateGate _rateGateGateCandles = new RateGate(1, TimeSpan.FromMilliseconds(2000));
+
         /// <summary>
         /// request instrument history
         /// запрос истории по инструменту
         /// </summary>
         public List<Candle> GetCandleHistory(string nameSec, TimeFrame tf)
         {
-            SecurityIb contractIb =
+            lock (_subLocker)
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return null;
+                }
+                _rateGateGateCandles.WaitToProceed();
+
+                SecurityIb contractIb =
 _secIB.Find(
 contract =>
  contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange == nameSec);
 
-            if (contractIb == null)
-            {
-                return null; ;
-            }
-
-            DateTime timeEnd = DateTime.Now.ToUniversalTime();
-            DateTime timeStart = timeEnd.AddMinutes(60);
-
-            string barSize = "1 min";
-
-            int mergeCount = 0;
-
-
-            if (tf == TimeFrame.Sec1)
-            {
-                barSize = "1 sec";
-                timeStart = timeEnd.AddMinutes(10);
-            }
-            else if (tf == TimeFrame.Sec5)
-            {
-                barSize = "5 secs";
-            }
-            else if (tf == TimeFrame.Sec15)
-            {
-                barSize = "15 secs";
-            }
-            else if (tf == TimeFrame.Sec30)
-            {
-                barSize = "30 secs";
-            }
-            else if (tf == TimeFrame.Min1)
-            {
-                timeStart = timeEnd.AddHours(5);
-                barSize = "1 min";
-            }
-            else if (tf == TimeFrame.Min5)
-            {
-                timeStart = timeEnd.AddHours(25);
-                barSize = "5 mins";
-            }
-            else if (tf == TimeFrame.Min15)
-            {
-                timeStart = timeEnd.AddHours(75);
-                barSize = "15 mins";
-            }
-            else if (tf == TimeFrame.Min30)
-            {
-                timeStart = timeEnd.AddHours(150);
-                barSize = "30 mins";
-            }
-            else if (tf == TimeFrame.Hour1)
-            {
-                timeStart = timeEnd.AddHours(1300);
-                barSize = "1 hour";
-            }
-            else if (tf == TimeFrame.Hour2)
-            {
-                timeStart = timeEnd.AddHours(2100);
-                barSize = "1 hour";
-                mergeCount = 2;
-            }
-            else if (tf == TimeFrame.Hour4)
-            {
-                timeStart = timeEnd.AddHours(4200);
-                barSize = "1 hour";
-                mergeCount = 4;
-            }
-            else if (tf == TimeFrame.Day)
-            {
-                barSize = "1 day";
-                timeStart = timeEnd.AddDays(701);
-            }
-            else
-            {
-                return null;
-            }
-
-            CandlesRequestResult = null;
-
-            _client.GetCandles(contractIb, timeEnd, timeStart, barSize, "TRADES");
-
-            DateTime startSleep = DateTime.Now;
-
-            while (true)
-            {
-                Thread.Sleep(1000);
-
-                if (startSleep.AddSeconds(30) < DateTime.Now)
+                if (contractIb == null)
                 {
-                    break;
+                    return null;
                 }
 
-                if (CandlesRequestResult != null)
-                {
-                    break;
-                }
-            }
+                DateTime timeEnd = DateTime.Now.ToUniversalTime();
+                DateTime timeStart = timeEnd.AddMinutes(60);
 
-            if (CandlesRequestResult != null &&
-                CandlesRequestResult.CandlesArray.Count != 0)
-            {
-                if (mergeCount != 0)
+                string barSize = "1 min";
+
+                int mergeCount = 0;
+
+
+                if (tf == TimeFrame.Sec1)
                 {
-                    List<Candle> newCandles = Merge(CandlesRequestResult.CandlesArray, mergeCount);
-                    CandlesRequestResult.CandlesArray = newCandles;
+                    barSize = "1 sec";
+                    timeStart = timeEnd.AddMinutes(10);
+                }
+                else if (tf == TimeFrame.Sec5)
+                {
+                    barSize = "5 secs";
+                }
+                else if (tf == TimeFrame.Sec15)
+                {
+                    barSize = "15 secs";
+                }
+                else if (tf == TimeFrame.Sec30)
+                {
+                    barSize = "30 secs";
+                }
+                else if (tf == TimeFrame.Min1)
+                {
+                    timeStart = timeEnd.AddHours(5);
+                    barSize = "1 min";
+                }
+                else if (tf == TimeFrame.Min5)
+                {
+                    timeStart = timeEnd.AddHours(25);
+                    barSize = "5 mins";
+                }
+                else if (tf == TimeFrame.Min15)
+                {
+                    timeStart = timeEnd.AddHours(75);
+                    barSize = "15 mins";
+                }
+                else if (tf == TimeFrame.Min30)
+                {
+                    timeStart = timeEnd.AddHours(150);
+                    barSize = "30 mins";
+                }
+                else if (tf == TimeFrame.Hour1)
+                {
+                    timeStart = timeEnd.AddHours(1300);
+                    barSize = "1 hour";
+                }
+                else if (tf == TimeFrame.Hour2)
+                {
+                    timeStart = timeEnd.AddHours(2100);
+                    barSize = "1 hour";
+                    mergeCount = 2;
+                }
+                else if (tf == TimeFrame.Hour4)
+                {
+                    timeStart = timeEnd.AddHours(4200);
+                    barSize = "1 hour";
+                    mergeCount = 4;
+                }
+                else if (tf == TimeFrame.Day)
+                {
+                    barSize = "1 day";
+                    timeStart = timeEnd.AddDays(701);
+                }
+                else
+                {
+                    return null;
+                }
+
+                CandlesRequestResult = null;
+
+                _client.GetCandles(contractIb, timeEnd, timeStart, barSize, "TRADES");
+
+                DateTime startSleep = DateTime.Now;
+
+                while (true)
+                {
+                    Thread.Sleep(1000);
+
+                    if (startSleep.AddSeconds(30) < DateTime.Now)
+                    {
+                        break;
+                    }
+
+                    if (CandlesRequestResult != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (CandlesRequestResult != null &&
+                    CandlesRequestResult.CandlesArray.Count != 0)
+                {
+                    if (mergeCount != 0)
+                    {
+                        List<Candle> newCandles = Merge(CandlesRequestResult.CandlesArray, mergeCount);
+                        CandlesRequestResult.CandlesArray = newCandles;
+                        return StraichCandles(CandlesRequestResult);
+                    }
+
                     return StraichCandles(CandlesRequestResult);
                 }
 
-                return StraichCandles(CandlesRequestResult);
-            }
 
+                _client.GetCandles(contractIb, timeEnd, timeStart, barSize, "MIDPOINT");
 
-            _client.GetCandles(contractIb, timeEnd, timeStart, barSize, "MIDPOINT");
+                startSleep = DateTime.Now;
 
-            startSleep = DateTime.Now;
-
-            while (true)
-            {
-                Thread.Sleep(1000);
-
-                if (startSleep.AddSeconds(30) < DateTime.Now)
+                while (true)
                 {
-                    break;
+                    Thread.Sleep(1000);
+
+                    if (startSleep.AddSeconds(30) < DateTime.Now)
+                    {
+                        break;
+                    }
+
+                    if (CandlesRequestResult != null)
+                    {
+                        break;
+                    }
                 }
 
-                if (CandlesRequestResult != null)
+                if (CandlesRequestResult != null &&
+                    CandlesRequestResult.CandlesArray.Count != 0)
                 {
-                    break;
-                }
-            }
+                    if (mergeCount != 0)
+                    {
+                        List<Candle> newCandles = Merge(CandlesRequestResult.CandlesArray, mergeCount);
+                        CandlesRequestResult.CandlesArray = newCandles;
+                        return StraichCandles(CandlesRequestResult);
+                    }
 
-            if (CandlesRequestResult != null &&
-                CandlesRequestResult.CandlesArray.Count != 0)
-            {
-                if (mergeCount != 0)
-                {
-                    List<Candle> newCandles = Merge(CandlesRequestResult.CandlesArray, mergeCount);
-                    CandlesRequestResult.CandlesArray = newCandles;
                     return StraichCandles(CandlesRequestResult);
                 }
-
-                return StraichCandles(CandlesRequestResult);
             }
-
             return null;
         }
 
@@ -1167,9 +1211,7 @@ contract =>
                 newArray.Add(curCandle);
             }
 
-            series.CandlesArray = newArray;
-
-            return series.CandlesArray;
+            return newArray;
         }
 
         private void _client_CandlesUpdateEvent(Candles series)

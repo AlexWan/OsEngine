@@ -153,6 +153,7 @@ namespace OsEngine
         {
             ProccesIsWorked = false;
             GlobalGUILayout.IsClosed = true;
+            Thread.Sleep(4000);
             Process.GetCurrentProcess().Kill();
         }
 
