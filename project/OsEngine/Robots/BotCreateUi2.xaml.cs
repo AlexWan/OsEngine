@@ -850,8 +850,6 @@ namespace OsEngine.Robots
             _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label300, 100, 0, true);
             AwaitUi ui = new AwaitUi(_awaitUiBotsInfoLoading);
 
-           
-
             _descriptionsFromBotFactoryLast = null;
 
             Thread worker = new Thread(GetBotDescriptionsFromBotFactory);

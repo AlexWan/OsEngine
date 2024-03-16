@@ -1463,5 +1463,9 @@ namespace OsEngine.Language
         public string Label390 => OsLocalization.ConvertToLocString(
           "Eng:Price to order Error _" +
           "Ru:Цена ордера с ошибкой _");
+
+        public string Label391 => OsLocalization.ConvertToLocString(
+          "Eng:Please wait. Program modules are stopping_" +
+          "Ru:Ждите. Идёт штатная остановка модулей программы_");
     }
 }

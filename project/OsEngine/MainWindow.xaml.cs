@@ -24,6 +24,7 @@ using OsEngine.OsTrader.Gui;
 using OsEngine.PrimeSettings;
 using OsEngine.Layout;
 using System.Collections.Generic;
+using OsEngine.Entity;
 
 namespace OsEngine
 {
@@ -59,7 +60,7 @@ namespace OsEngine
             ImageAlor2.Visibility = Visibility.Collapsed;
             ImageAlor.Visibility = Visibility.Collapsed;
 
-            this.Closed += MainWindow_Closed;
+            this.Closing += MainWindow_Closing;
 
             try
             {
@@ -149,12 +150,39 @@ namespace OsEngine
             }
         }
 
-        private void MainWindow_Closed(object sender, EventArgs e)
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            ProccesIsWorked = false;
             GlobalGUILayout.IsClosed = true;
-            Thread.Sleep(4000);
+
+            if (ProccesIsWorked == true)
+            {
+                ProccesIsWorked = false;
+
+                if (this.IsVisible == false)
+                {
+                    _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
+                    AwaitUi ui = new AwaitUi(_awaitUiBotsInfoLoading);
+
+                    Thread worker = new Thread(Await7Seconds);
+                    worker.Start();
+
+                    ui.ShowDialog();
+                }
+            }
+
+            Thread.Sleep(500);
+
             Process.GetCurrentProcess().Kill();
+        }
+
+        AwaitObject _awaitUiBotsInfoLoading;
+
+        private void Await7Seconds()
+        {
+            // Это нужно чтобы потоки сохраняющие данные в файловую систему штатно завершили свою работу
+            // This is necessary for threads saving data to the file system to complete their work properly
+            Thread.Sleep(7000);
+            _awaitUiBotsInfoLoading.Dispose();
         }
 
         private void ChangeText()
@@ -313,6 +341,8 @@ namespace OsEngine
 
                 int osEngineCount = 0;
 
+                string myProgrammPath = myDirectory + "\\OsEngine.exe";
+
                 for (int i = 0; i < process.Count; i++)
                 {
                     Process p = process[i];
@@ -324,7 +354,7 @@ namespace OsEngine
                             continue;
                         }
 
-                        if (p.Modules[j].FileName.Contains(myDirectory))
+                        if (p.Modules[j].FileName.EndsWith(myProgrammPath))
                         {
                             osEngineCount++;
                         }
