@@ -53,6 +53,7 @@ namespace OsEngine.Market.Servers.MOEX
            }
            else
            {
+               GetSecurities();
                ServerStatus = ServerConnectStatus.Connect;
                ConnectEvent?.Invoke();
            }

@@ -478,7 +478,7 @@ namespace OsEngine.Market.Servers.Bybit
                     newp.ValueCurrent = p.ValueCurrent;
 
                     List<PositionOnBoard> positionOnBoards = portfolios[i].GetPositionOnBoard();
-                    for (int i2 = 0; i2 < positionOnBoards.Count; i2++)
+                    for (int i2 = 0; positionOnBoards != null && i2 < positionOnBoards.Count; i2++)
                     {
                         PositionOnBoard oldPB = positionOnBoards[i2];
                         PositionOnBoard newPB = new PositionOnBoard();
@@ -494,7 +494,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 List<JToken> JPortolioList = balance.SelectToken("result.list").Children().ToList();
 
-                for (int j =0; j < JPortolioList.Count; j++)
+                for (int j =0; JPortolioList != null && j < JPortolioList.Count; j++)
                 {
                     JToken item = JPortolioList[j];
                     string portNumber = "Bybit" + item.SelectToken("accountType").ToString();
@@ -517,7 +517,10 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         _portfolios.Add(portfolio);
                     }
+
                     List<PositionOnBoard> PositionOnBoard = GetPositionsLinear(portfolio.Number);
+
+
                     PositionOnBoard.AddRange(GetPositionsSpot(item.SelectToken("coin").Children().ToList(), portfolio.Number));
                     for (int i = 0; i < PositionOnBoard.Count; i++)
                     {
