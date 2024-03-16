@@ -55,6 +55,20 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
         public List<List<string>> bids { get; set; }             //List of bids (buy orders), [0]price, [1]quantity
     }
 
+    public class ResponseWebSocketDepth
+    {
+        [JsonProperty("s")]
+        public string Symbol { get; set; }                       //symbol
+        [JsonProperty("i")]
+        public string UpdateId { get; set; }                     //lastUpdateId
+        [JsonProperty("t")]
+        public string Time { get; set; }                         //"1655992403617", time  
+        [JsonProperty("a")]
+        public List<List<string>> asks { get; set; }             //List of asks (sell orders), [0]price, [1]quantity
+        [JsonProperty("b")]
+        public List<List<string>> bids { get; set; }             //List of bids (buy orders), [0]price, [1]quantity
+    }
+
     public class ResponseWebSocketPortfolio
     {
         // https://doc.xt.com/#websocket_privatebalanceChange
