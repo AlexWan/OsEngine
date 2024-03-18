@@ -585,8 +585,29 @@ namespace OsEngine.Market
                         return;
                     }
 
-                    Order order = _orders[(_orders.Count - 1 - _gridActiveOrders.CurrentCell.RowIndex)];
-
+                    Order order = _orders[(_orders.Count - 1 - _gridActiveOrders.CurrentCell.RowIndex)];    // иногда ошибается, не тот ордер возвращает
+                    try   //AVP
+                    {
+                        int ordNumber = (int)_gridActiveOrders.Rows[_gridActiveOrders.CurrentCell.RowIndex].Cells[0].Value;    
+                        if (order.NumberUser != ordNumber)
+                        {
+                            for (int i = 0; i < _orders.Count; i++)
+                            {
+                                if (_orders[i].NumberUser == ordNumber)
+                                {
+                                    order = _orders[i];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    catch 
+                    {
+                        if (order is null)
+                        {
+                            return;
+                        }
+                    }
                     if ((order.State == OrderStateType.Activ || order.State == OrderStateType.Pending)
                         &&
                             !string.IsNullOrEmpty(order.PortfolioNumber))
