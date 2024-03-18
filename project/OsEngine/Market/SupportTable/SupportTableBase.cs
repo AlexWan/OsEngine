@@ -233,6 +233,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(bybit);
 
+            SupportConnection xt = new SupportConnection()
+            {
+                ServerType = ServerType.XTSpot,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\XT.png",
+                LingSiteUrl = "https://www.xt.com/ru/accounts/register?ref=QA3TMX",
+                Discount = 30
+            };
+            supportList.Add(xt);
+
             SupportConnection askend = new SupportConnection()
             {
                 ServerType = ServerType.AscendEx_BitMax,
