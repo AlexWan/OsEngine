@@ -1691,7 +1691,7 @@ namespace OsEngine.Market.Servers.Bybit
             if (_lastMdTime != DateTime.MinValue &&
                 _lastMdTime >= marketDepth.Time)
             {
-                marketDepth.Time = _lastMdTime.AddMilliseconds(1);
+                marketDepth.Time = _lastMdTime.AddTicks(1);
             }
 
             _lastMdTime = marketDepth.Time;
