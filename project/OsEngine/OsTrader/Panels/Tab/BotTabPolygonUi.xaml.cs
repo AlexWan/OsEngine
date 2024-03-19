@@ -481,8 +481,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             lastCurrency = lastCurrency.Replace(_polygon.BaseCurrency.ToLower(), "");
 
-            lastCurrency = lastCurrency.Replace(_polygon.SeparatorToSecurities, "");
-
+            if(string.IsNullOrEmpty(_polygon.SeparatorToSecurities) == false)
+            {
+                lastCurrency = lastCurrency.Replace(_polygon.SeparatorToSecurities, "");
+            }
+           
             Side side = Side.Buy;
 
             if (_polygon.Tab1TradeSide == Side.Buy)
