@@ -1087,6 +1087,7 @@
     <Compile Include="Robots\OnScriptIndicators\TimeOfDayBot.cs" />
     <Compile Include="Robots\Screeners\SmaScreener.cs" />
     <Compile Include="Robots\TechSamples\ElementsOnChartSampleBot.cs" />
+    <Compile Include="Robots\TechSamples\FakeOutExample.cs" />
     <Compile Include="Robots\TechSamples\TinkoffGetRealCandlesSample.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotTradesInCandlesTest.cs" />
     <Compile Include="Robots\TechSamples\TradeLineExample.cs" />

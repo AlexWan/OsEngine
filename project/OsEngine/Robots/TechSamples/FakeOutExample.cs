@@ -1,77 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Forms.VisualStyles;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-
 using OsEngine.Charts.CandleChart.Elements;
-
 
 namespace OsEngine.Robots._MyRobots
 {
     [Bot("FakeOutExample")]
     internal class FakeOutExample : BotPanel
-    {
-        private BotTabSimple _tab;
-
-// Basic Settings
-        private StrategyParameterString Regime;
-
-        public StrategyParameterInt CandlesForPcLevel;
-
-        public StrategyParameterInt MinutsForExit;
-
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
-
-
-        // Indicator setting 
-        public StrategyParameterInt PeriodPC;
-        
-// Indicator
-        Aindicator _PC;
-
-// The last value of the indicators
-        //private decimal _lastPcUp;
-        //private decimal _lastPcDown;
-        //private List<int> index = new List<int>();
-
-
-        private bool _signalBuy;
-        private bool _signalSell;
-        private bool _signalSellClose;
-        private decimal _hLevelOne;
-        
-        
-        //private decimal _lastPcUpMinusOne;
-
-
-        ////////////////////////////////////////////////
-        //MAIN BASE
-        ////////////////////////////////////////////////
+    {        
         public FakeOutExample(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
- // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-
+            // Basic setting
+            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" }, "Base");
             MinutsForExit = CreateParameter("MinutsForExit", 75, 5, 240, 1, "Base");
-
             CandlesForPcLevel = CreateParameter("CandlesForPcLevel", 10, 3, 24, 1, "Base");
-
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 9, 15, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 23, 40, 0, 0, "Base");
            
-
             // Setting indicator 
             PeriodPC = CreateParameter("PeriodPC", 10, 5, 40, 1, "Base");
-
 
             // Create indicator PC
             _PC = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PC", false);
@@ -80,25 +32,41 @@ namespace OsEngine.Robots._MyRobots
             ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = PeriodPC.ValueInt;
             _PC.Save();
 
-
             // Events           
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
-
-            //_tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
-
             ParametrsChangeByUser += FakeOutExample_ParametrsChangeByUser;
 
-            //_tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
+            Description = "An example of a robot going short after a false upside breakout.";
         }
         
         public override string GetNameStrategyType()
         {
             return "FakeOutExample";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
         }
+
+        private BotTabSimple _tab;
+
+        // Basic Settings
+        private StrategyParameterString Regime;
+
+        public StrategyParameterInt CandlesForPcLevel;
+
+        public StrategyParameterInt MinutsForExit;
+
+        // Indicator setting 
+        public StrategyParameterInt PeriodPC;
+
+        // Indicator
+        Aindicator _PC;
+
+        private bool _signalSell;
+
+        private decimal _hLevelOne;
 
         //Indicator Update event
         private void FakeOutExample_ParametrsChangeByUser()
@@ -109,8 +77,6 @@ namespace OsEngine.Robots._MyRobots
             _PC.Reload();
         }
 
-
-
         //Line
         LineHorisontal _lineOnPrimeChart;
 
@@ -119,13 +85,12 @@ namespace OsEngine.Robots._MyRobots
         List<decimal> methodsH = new List<decimal>();
 
         List<decimal> localHighV = new List<decimal>();
+
         List<int> localHighI = new List<int>();
 
 
+// LOGIC
 
-        ////////////////////////////
-        // LOGIC
-        ////////////////////////////
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
@@ -152,9 +117,7 @@ namespace OsEngine.Robots._MyRobots
 
             LevelsFromPc();
             
-
             List<Position> openPositions = _tab.PositionsOpenAll;
-
 
             // If there are positions, then go to the position closing method
             if (openPositions != null && openPositions.Count != 0)
@@ -272,8 +235,6 @@ namespace OsEngine.Robots._MyRobots
         
         // Chart Visual Elements
 
-        #region Lines
-
         private void LineH1() // Local High Level line
         {
             List<Candle> candles = _tab.CandlesFinishedOnly;
@@ -303,7 +264,6 @@ namespace OsEngine.Robots._MyRobots
             }
         }
 
-        
         private void PointH1() //Local High Marker
         {
             List<Candle> candles = _tab.CandlesFinishedOnly;
@@ -324,31 +284,21 @@ namespace OsEngine.Robots._MyRobots
             _tab.SetChartElement(point);
         }
 
-        #endregion
-
         //Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicators
             Candle lastCandle = candles[candles.Count - 1];
             decimal lastCandleClose = lastCandle.Close;
-            decimal lastCandleHigh = lastCandle.High;
-
-
             decimal _localHighV = localHighV[localHighV.Count - 1];
 
-
             //Short
-            _signalSell = lastCandle.Close < _hLevelOne &&
+            _signalSell = lastCandleClose < _hLevelOne &&
                           _localHighV > _hLevelOne;
 
-            
-            if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+            if (_signalSell)
             {
-                if (_signalSell)
-                {
-                    _tab.SellAtMarket(1);
-                }
+                _tab.SellAtMarket(1);
             }
         }
 

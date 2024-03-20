@@ -17,6 +17,7 @@ ElementsOnChartSampleBot&&Include&&Simple 1*&MACD*&
 EnginePair&blank strategy for manual pair trading&Include&&Pair 1*&&
 Fisher&Fisher based on multithreading Entering a position - we are waiting for a sharp price deviation  by the specified number of percent from the edge of the order book. Exit a position when the price rolls back by 50 percent or more of the entry price. Those. if the price has returned half or more of the original movement.&Include&&Simple 1*&Sma*&
 FundBalanceDivergenceBot&The countertrend bots Buy: 1. FBD more Indicator Divergence. Sell: 1. FBD is less than negative Indicator Divergence. Exit: after N number of days.&Include&&Simple 1*&FBD*&
+FakeOutExample&An example of a robot going short after a false upside breakout.&Include&&Simple 1*&PriceChannel*&
 GridSample&Logic of the first Buy: if there are N candles falling down, we place the first order according to the close of the last candle. Next: buy if the price is greater than entryUpPrice or less than entryDownPrice. Exit: by stop&Include&&Simple 1*&&
 HighFrequencyTrader&robot analyzing the density of the market depth&Include&&Simple 1*&&
 IndexArbitrageClassic&Classic trading with two index&Include&&Index 2*Screener 2*&&
