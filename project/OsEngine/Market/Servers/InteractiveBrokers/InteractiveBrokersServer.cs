@@ -236,7 +236,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         public void ShowSecuritySubscribleUi()
         {
             IbContractStorageUi ui = new IbContractStorageUi(_secIB, this);
-            ui.Show();
+            ui.ShowDialog();
             _secIB = ui.SecToSubscrible;
             GetSecurities();
         }

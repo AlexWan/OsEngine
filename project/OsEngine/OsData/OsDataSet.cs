@@ -18,6 +18,7 @@ using System.Text;
 using System.Xml;
 using System.Reflection;
 using OsEngine.Market.Servers.Hitbtc;
+using System.Globalization;
 
 namespace OsEngine.OsData
 {
@@ -2037,8 +2038,17 @@ namespace OsEngine.OsData
             TfMarketDepthIsOn = Convert.ToBoolean(saveArray[18]);
 
             Enum.TryParse(saveArray[19], out Source);
-            TimeStart = Convert.ToDateTime(saveArray[20]);
-            TimeEnd = Convert.ToDateTime(saveArray[21]);
+            try
+            {
+                TimeStart = Convert.ToDateTime(saveArray[20], CultureInfo.InvariantCulture);
+                TimeEnd = Convert.ToDateTime(saveArray[21], CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                TimeStart = Convert.ToDateTime(saveArray[20]);
+                TimeEnd = Convert.ToDateTime(saveArray[21]);
+            }
+
             MarketDepthDepth = Convert.ToInt32(saveArray[22]);
             NeadToUpdate = Convert.ToBoolean(saveArray[23]);
         }
@@ -2070,8 +2080,8 @@ namespace OsEngine.OsData
             result += TfMarketDepthIsOn + "%";
 
             result += Source + "%";
-            result += TimeStart + "%";
-            result += TimeEnd + "%";
+            result += TimeStart.ToString(CultureInfo.InvariantCulture) + "%";
+            result += TimeEnd.ToString(CultureInfo.InvariantCulture) + "%";
             result += MarketDepthDepth + "%";
             result += NeadToUpdate + "%";
 

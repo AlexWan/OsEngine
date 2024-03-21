@@ -16,6 +16,7 @@ using OsEngine.Robots;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Globalization;
 
 namespace OsEngine.OsOptimizer
 {
@@ -104,8 +105,8 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_filterProfitFactorValue);
                     writer.WriteLine(_filterProfitFactorIsOn);
 
-                    writer.WriteLine(_timeStart);
-                    writer.WriteLine(_timeEnd);
+                    writer.WriteLine(_timeStart.ToString(CultureInfo.InvariantCulture));
+                    writer.WriteLine(_timeEnd.ToString(CultureInfo.InvariantCulture));
                     writer.WriteLine(_percentOnFilration);
 
                     writer.WriteLine(_filterDealsCountValue);
@@ -141,19 +142,19 @@ namespace OsEngine.OsOptimizer
                 {
                     _threadsCount = Convert.ToInt32(reader.ReadLine());
                     _strategyName = reader.ReadLine();
-                    _startDepozit = Convert.ToDecimal(reader.ReadLine());
-                    _filterProfitValue = Convert.ToDecimal(reader.ReadLine());
+                    _startDepozit = reader.ReadLine().ToDecimal();
+                    _filterProfitValue = reader.ReadLine().ToDecimal();
                     _filterProfitIsOn = Convert.ToBoolean(reader.ReadLine());
-                    _filterMaxDrowDownValue = Convert.ToDecimal(reader.ReadLine());
+                    _filterMaxDrowDownValue = reader.ReadLine().ToDecimal();
                     _filterMaxDrowDownIsOn = Convert.ToBoolean(reader.ReadLine());
-                    _filterMiddleProfitValue = Convert.ToDecimal(reader.ReadLine());
+                    _filterMiddleProfitValue = reader.ReadLine().ToDecimal();
                     _filterMiddleProfitIsOn = Convert.ToBoolean(reader.ReadLine());
-                    _filterProfitFactorValue = Convert.ToDecimal(reader.ReadLine());
+                    _filterProfitFactorValue = reader.ReadLine().ToDecimal();
                     _filterProfitFactorIsOn = Convert.ToBoolean(reader.ReadLine());
 
-                    _timeStart = Convert.ToDateTime(reader.ReadLine());
-                    _timeEnd = Convert.ToDateTime(reader.ReadLine());
-                    _percentOnFilration = Convert.ToDecimal(reader.ReadLine());
+                    _timeStart = Convert.ToDateTime(reader.ReadLine(),CultureInfo.InvariantCulture);
+                    _timeEnd = Convert.ToDateTime(reader.ReadLine(), CultureInfo.InvariantCulture);
+                    _percentOnFilration = reader.ReadLine().ToDecimal();
 
                     _filterDealsCountValue = Convert.ToInt32(reader.ReadLine());
                     _filterDealsCountIsOn = Convert.ToBoolean(reader.ReadLine());
@@ -161,7 +162,7 @@ namespace OsEngine.OsOptimizer
                     _iterationCount = Convert.ToInt32(reader.ReadLine());
                     _commissionType = (ComissionType) Enum.Parse(typeof(ComissionType), 
                         reader.ReadLine() ?? ComissionType.None.ToString());
-                    _commissionValue = Convert.ToDecimal(reader.ReadLine());
+                    _commissionValue = reader.ReadLine().ToDecimal();
                     _lastInSample = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
@@ -1483,9 +1484,9 @@ namespace OsEngine.OsOptimizer
 
             result += TypeFaze.ToString() + "%";
 
-            result += _timeStart.ToString() + "%";
+            result += _timeStart.ToString(CultureInfo.InvariantCulture) + "%";
 
-            result += _timeEnd.ToString() + "%";
+            result += _timeEnd.ToString(CultureInfo.InvariantCulture) + "%";
 
             result += Days.ToString() + "%";
 
@@ -1498,9 +1499,9 @@ namespace OsEngine.OsOptimizer
 
             Enum.TryParse(str[0], out TypeFaze);
 
-            _timeStart = Convert.ToDateTime(str[1]);
+            _timeStart = Convert.ToDateTime(str[1], CultureInfo.InvariantCulture);
 
-            _timeEnd = Convert.ToDateTime(str[2]);
+            _timeEnd = Convert.ToDateTime(str[2], CultureInfo.InvariantCulture);
 
             Days = Convert.ToInt32(str[3]);
         }

@@ -140,10 +140,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 _tcpReader = null;
             }
 
-            _namesSecuritiesWhoOptOnTrades = new List<string>();
-
-            _namesSecuritiesWhoOptOnMarketDepth = new List<string>();
-
             if (ConnectionFail != null)
             {
                 ConnectionFail();
@@ -282,36 +278,11 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         private List<SecurityIb> _serverSecurities;
 
         /// <summary>
-        /// list of securities on which we have already subscribed to receive trades
-        /// перечень бумаг по которым мы уже подписались на получение трейдов
-        /// </summary>
-        private List<string> _namesSecuritiesWhoOptOnTrades;
-
-        /// <summary>
-        /// list of securities on which we have already subscribed to receive depths
-        /// перечень бумаг по которым мы уже подписались на получение стаканов
-        /// </summary>
-        private List<string> _namesSecuritiesWhoOptOnMarketDepth;
-
-        /// <summary>
         /// subscribe to ticks
         /// подписываемся на тики
         /// </summary>
         public void GetMarketDataToSecurity(SecurityIb contract)
         {
-            if (_namesSecuritiesWhoOptOnTrades == null)
-            {
-                _namesSecuritiesWhoOptOnTrades = new List<string>();
-            }
-
-            if (_namesSecuritiesWhoOptOnTrades.Find(
-                    s => s == contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange) != null)
-            {
-                return;
-            }
-
-            _namesSecuritiesWhoOptOnTrades.Add(contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange);
-
             if (!_isConnected)
                 return;
             try
@@ -435,18 +406,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         /// </summary>
         public void GetMarketDepthToSecurity(SecurityIb contract)
         {
-            if (_namesSecuritiesWhoOptOnMarketDepth == null)
-            {
-                _namesSecuritiesWhoOptOnMarketDepth = new List<string>();
-            }
-
-            if (_namesSecuritiesWhoOptOnMarketDepth.Find(
-                    s => s == contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange) != null)
-            {
-                return;
-            }
-
-            _namesSecuritiesWhoOptOnMarketDepth.Add(contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange);
 
             // _twsServer.reqMktDepthEx(contractIb.ConId, contractIb, 10, new TagValueList());
             if (!_isConnected)
