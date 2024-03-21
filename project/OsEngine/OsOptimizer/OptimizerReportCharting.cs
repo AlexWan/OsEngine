@@ -19,7 +19,8 @@ namespace OsEngine.OsOptimizer
             WindowsFormsHost hostStepsOfOptimization, 
             WindowsFormsHost hostRobustness,
             System.Windows.Controls.ComboBox boxTypeSort, 
-            System.Windows.Controls.Label labelRobustnessMetricaValue)
+            System.Windows.Controls.Label labelRobustnessMetricaValue,
+            System.Windows.Controls.ComboBox boxTypeSortBotNum)
         {
             _sortBotsType = SortBotsType.TotalProfit;
             _currentCulture = OsLocalization.CurCulture;
@@ -42,6 +43,16 @@ namespace OsEngine.OsOptimizer
 
             _boxTypeSort = boxTypeSort;
 
+            _boxTypeSortBotNum = boxTypeSortBotNum;
+
+            for(int i = 0;i < 99;i++)
+            {
+                _boxTypeSortBotNum.Items.Add(i.ToString());
+            }
+
+            _boxTypeSortBotNum.SelectedItem = "0";
+            _boxTypeSortBotNum.SelectionChanged += _boxTypeSortBotNum_SelectionChanged;
+
             CreateStepsOfOptimization();
             CreateRobustnessChart();
         }
@@ -50,7 +61,26 @@ namespace OsEngine.OsOptimizer
 
         private System.Windows.Controls.ComboBox _boxTypeSort;
 
+        private System.Windows.Controls.ComboBox _boxTypeSortBotNum;
+
         System.Windows.Controls.Label _labelRobustnessMetricaValue;
+
+        private void _boxTypeSortBotNum_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                _sortBotPercent = Convert.ToInt32(_boxTypeSortBotNum.SelectedItem.ToString());
+
+                if (_reports != null)
+                {
+                    ReLoad(_reports);
+                }
+            }
+            catch
+            {
+
+            }
+        }
 
         void _gridResults_SelectionChanged(object sender, EventArgs e)
         {
@@ -115,7 +145,8 @@ namespace OsEngine.OsOptimizer
             {
                 _reports = reports;
 
-                if (_reports.Count <= 1)
+                if (_reports == null 
+                    || _reports.Count <= 1)
                 {
                     return;
                 }
@@ -124,6 +155,8 @@ namespace OsEngine.OsOptimizer
                 {
                     SortResults(reports[i].Reports);
                 }
+
+                GetBestBotNum(reports[0].Reports);
 
                 UpdGridStepsOfOptimization();
                 UpdateRobustnessChart();
@@ -151,6 +184,26 @@ namespace OsEngine.OsOptimizer
                         reports[i2 + 1] = glass;
                     }
                 }
+            }
+        }
+
+        private void GetBestBotNum(List<OptimizerReport> reports)
+        {
+            if(_sortBotPercent == 0)
+            {
+                _sortBotNumber = 0;
+                return;
+            }
+
+            decimal countBotsPercent = reports.Count / 100m;
+
+            decimal result = countBotsPercent * _sortBotPercent;
+
+            _sortBotNumber = Convert.ToInt32(result);
+
+            if(_sortBotNumber > reports.Count)
+            {
+                _sortBotNumber = reports.Count - 1;
             }
         }
 
@@ -206,6 +259,10 @@ namespace OsEngine.OsOptimizer
         } 
 
         private SortBotsType _sortBotsType;
+
+        private int _sortBotPercent = 0;
+
+        private int _sortBotNumber = 0;
 
         private List<OptimazerFazeReport> _reports;
 
@@ -343,14 +400,14 @@ namespace OsEngine.OsOptimizer
 
                     if (curReport.Faze.TypeFaze == OptimizerFazeType.InSample)
                     {
-                        inSampleReport = curReport.Reports[0];
+                        inSampleReport = curReport.Reports[_sortBotNumber];
                     }
 
                     OptimizerReport reportToPaint;
 
                     if (curReport.Faze.TypeFaze == OptimizerFazeType.InSample)
                     {
-                        reportToPaint = curReport.Reports[0];
+                        reportToPaint = curReport.Reports[_sortBotNumber];
                     }
                     else // if(curReport.Faze.TypeFaze == OptimizerFazeType.OutOfSample)
                     {
@@ -522,7 +579,7 @@ namespace OsEngine.OsOptimizer
 
                     if (curReport.Faze.TypeFaze == OptimizerFazeType.InSample)
                     {
-                        inSampleReport = curReport.Reports[0];
+                        inSampleReport = curReport.Reports[_sortBotNumber];
                     }
 
                     if (curReport.Faze.TypeFaze == OptimizerFazeType.OutOfSample)
@@ -729,7 +786,7 @@ namespace OsEngine.OsOptimizer
 
                     if (curReport.Faze.TypeFaze == OptimizerFazeType.InSample)
                     {
-                        inSampleReport = curReport.Reports[0];
+                        inSampleReport = curReport.Reports[_sortBotNumber];
                     }
 
                     if (curReport.Faze.TypeFaze == OptimizerFazeType.OutOfSample)
@@ -856,9 +913,10 @@ namespace OsEngine.OsOptimizer
         public void ActivateAverageProfitChart(WindowsFormsHost hostAverageProfit)
         {
             _hostAverageProfitChart = hostAverageProfit;
-
+            
             CreateAverageProfitChart();
-            UpdateAverageProfitChart();
+             
+            ReLoad(_reports);
         }
 
         private void CreateAverageProfitChart()
@@ -927,10 +985,9 @@ namespace OsEngine.OsOptimizer
                 for (int i = 0; i < _reports.Count; i += 2)
                 {
                     // берём из ИнСампле таблицу роботов
-                    SortResults(_reports[i].Reports);
                     List<OptimizerReport> bots = _reports[i].Reports;
 
-                    OptimizerReport bestBot = _reports[i].Reports[0];
+                    OptimizerReport bestBot = _reports[i].Reports[_sortBotNumber];
 
                     // находим этого робота в аутОфСемпл
 
@@ -1051,7 +1108,8 @@ namespace OsEngine.OsOptimizer
         {
             _hostProfitFactor = hostProfitFactor;
             CreateProfitFactorChart();
-            UpdateProfitFactorChart();
+
+            ReLoad(_reports);
         }
 
         private void CreateProfitFactorChart()
@@ -1123,7 +1181,6 @@ namespace OsEngine.OsOptimizer
                 for (int i = 0; i < _reports.Count; i += 2)
                 {
                     // берём из ИнСампле таблицу роботов
-                    SortResults(_reports[i].Reports);
                     List<OptimizerReport> bots = _reports[i].Reports;
 
                     OptimizerReport bestBot = _reports[i].Reports[0];

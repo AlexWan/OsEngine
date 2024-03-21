@@ -54,6 +54,7 @@
                                     <WindowsFormsHost x:Name="HostStepsOfOptimizationTable"  Foreground="Black" Margin="0,37,287,229"/>
                                     <ComboBox Name="ComboBoxSortResultsType" HorizontalAlignment="Left" Margin="182,10,0,0" VerticalAlignment="Top" Width="214" Height="22"/>
                                     <Label Name="LabelSortBy" Content="Sort by" HorizontalAlignment="Left" Margin="28,10,0,0" VerticalAlignment="Top"/>
+                                    <ComboBox x:Name="ComboBoxSortResultsBotNumPercent" HorizontalAlignment="Left" Margin="407,10,0,0" VerticalAlignment="Top" Width="67" Height="22"/>
                                 </Grid>
                             </TabItem>
                         </TabControl>

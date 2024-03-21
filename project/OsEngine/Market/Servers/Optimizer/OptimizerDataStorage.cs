@@ -1675,6 +1675,11 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                     storage = LoadCandlesFromFolder(security, timeFrame, timeStart, timeEnd);
 
+                    if(storage == null)
+                    {
+                        return null;
+                    }
+
                     storage.TimeFrame = timeFrame;
 
                     if (storage == null)

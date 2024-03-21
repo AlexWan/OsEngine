@@ -185,7 +185,8 @@ namespace OsEngine.OsOptimizer
                 HostStepsOfOptimizationTable,
                 HostRobustness,
                 ComboBoxSortResultsType, 
-                LabelRobustnessMetricValue);
+                LabelRobustnessMetricValue,
+                ComboBoxSortResultsBotNumPercent);
 
             _resultsCharting.ActivateTotalProfitChart(WindowsFormsHostTotalProfit, ComboBoxTotalProfit);
 
