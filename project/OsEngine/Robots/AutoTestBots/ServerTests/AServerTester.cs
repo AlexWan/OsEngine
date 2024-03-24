@@ -80,7 +80,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             buttonConnectionTest5.UserClickOnButtonEvent += ButtonConnectionTest5_UserClickOnButtonEvent;
             C5_SecuritiesClass = CreateParameter("Sec class connection test 5", "Futures", "C5");
             C5_SecuritiesCount = CreateParameter("Sec count connection test 5", 15, 1, 150, 1, "C5");
-            C5_Portfolio = CreateParameter("Portfolio connection test 5", "portfolioName", "C5");
 
             StrategyParameterButton buttonConnectionTest5_ShowScreener = CreateParameterButton("Show screener. test connection 5", "C5");
             buttonConnectionTest5_ShowScreener.UserClickOnButtonEvent += ButtonConnectionTest5_ShowScreener_UserClickOnButtonEvent;
@@ -189,7 +188,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString C5_SecuritiesClass;
         StrategyParameterInt C5_SecuritiesCount;
         StrategyParameterString C5_TimeFrame;
-        StrategyParameterString C5_Portfolio;
 
         StrategyParameterString O1_SecurityName;
         StrategyParameterString O1_SecurityClass;
@@ -683,7 +681,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     Conn_5_Screener tester = new Conn_5_Screener();
                     tester.SecuritiesClass = C5_SecuritiesClass.ValueString;
                     tester.SecuritiesCount = C5_SecuritiesCount.ValueInt;
-                    tester.Portfolio = C5_Portfolio.ValueString;
                     tester.TimeFrame = C5_TimeFrame.ValueString;
 
                     tester.LogMessage += SendNewLogMessage;

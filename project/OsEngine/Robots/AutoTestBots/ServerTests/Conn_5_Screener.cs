@@ -17,8 +17,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public int SecuritiesCount = 15;
 
-        public string Portfolio = "";
-
         public string TimeFrame = "";
 
         public IServerPermission Permission;
@@ -30,7 +28,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if(myServer == null ||
                 myServer.ServerStatus == ServerConnectStatus.Disconnect)
             {
-                this.SetNewError("Error 0. Connection server status disconnect");
+                this.SetNewError("Error 1. Connection server status disconnect");
                 TestEnded();
                 return;
             }
@@ -39,28 +37,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if(Permission == null)
             {
-                this.SetNewError("Error 1. No serverPermission to server: " + myServer.ServerType);
+                this.SetNewError("Error 2. No serverPermission to server: " + myServer.ServerType);
                 TestEnded();
                 return;
             }
 
             if(SecuritiesCount < 15)
             {
-                this.SetNewError("Error 2. You indicated the number of papers is less than 15. You can't do that." );
+                this.SetNewError("Error 3. You indicated the number of papers is less than 15. You can't do that." );
                 TestEnded();
                 return;
             }
 
             if(string.IsNullOrEmpty(SecuritiesClass))
             {
-                this.SetNewError("Error 3. You did not specify the class of securities to be subscribed to");
-                TestEnded();
-                return;
-            }
-
-            if (string.IsNullOrEmpty(Portfolio))
-            {
-                this.SetNewError("Error 4. You did not specify the name of portfolio to be subscribed to");
+                this.SetNewError("Error 4. You did not specify the class of securities to be subscribed to");
                 TestEnded();
                 return;
             }
@@ -242,22 +233,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<Portfolio> portfolios = _myServer.Portfolios;
 
-            Portfolio myPortfolio = null;
-
-            for(int i = 0;i < portfolios.Count;i++)
+            if(_myServer.Portfolios.Count == 0)
             {
-                if (portfolios[i].Number == Portfolio)
-                {
-                    myPortfolio = portfolios[i];
-                    break;
-                }
-            }
-
-            if(myPortfolio == null)
-            {
-                this.SetNewError("Error 26. No portfolio in server. Name: " + Portfolio);
+                this.SetNewError("Error 26. No portfolio in server." );
                 return;
             }
+
+            Portfolio myPortfolio = portfolios[0];
 
             // 3 берём бумаги которые надо подключить
 
