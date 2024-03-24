@@ -861,6 +861,10 @@
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPositions.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqServer.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqServerPermission.cs" />
+    <Compile Include="Market\Servers\Woo\Entity\ResponseMessageRest.cs" />
+    <Compile Include="Market\Servers\Woo\Entity\ResponseWebSocketMessage.cs" />
+    <Compile Include="Market\Servers\Woo\WooServer.cs" />
+    <Compile Include="Market\Servers\Woo\WooServerPermission.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\RequestMessagesRest.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\RequestMessagesWebSocket.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\ResponseMessageRest.cs" />
