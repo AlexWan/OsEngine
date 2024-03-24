@@ -76,6 +76,27 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             C4_SecuritiesNames = CreateParameter("Sec name connection test 4", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "C4");
             C4_SecuritiesClass = CreateParameter("Sec class connection test 4", "Futures", "C4");
 
+            StrategyParameterButton buttonConnectionTest5 = CreateParameterButton("Start test connection 5", "C5");
+            buttonConnectionTest5.UserClickOnButtonEvent += ButtonConnectionTest5_UserClickOnButtonEvent;
+            C5_SecuritiesClass = CreateParameter("Sec class connection test 5", "Futures", "C5");
+            C5_SecuritiesCount = CreateParameter("Sec count connection test 5", 15, 1, 150, 1, "C5");
+            C5_Portfolio = CreateParameter("Portfolio connection test 5", "portfolioName", "C5");
+
+            StrategyParameterButton buttonConnectionTest5_ShowScreener = CreateParameterButton("Show screener. test connection 5", "C5");
+            buttonConnectionTest5_ShowScreener.UserClickOnButtonEvent += ButtonConnectionTest5_ShowScreener_UserClickOnButtonEvent;
+            List<string> timeFrames = new List<string>();
+            timeFrames.Add(TimeFrame.Sec1.ToString()); timeFrames.Add(TimeFrame.Sec2.ToString());
+            timeFrames.Add(TimeFrame.Sec5.ToString()); timeFrames.Add(TimeFrame.Sec10.ToString());
+            timeFrames.Add(TimeFrame.Sec15.ToString()); timeFrames.Add(TimeFrame.Sec20.ToString());
+            timeFrames.Add(TimeFrame.Sec30.ToString()); timeFrames.Add(TimeFrame.Min1.ToString());
+            timeFrames.Add(TimeFrame.Min2.ToString()); timeFrames.Add(TimeFrame.Min3.ToString());
+            timeFrames.Add(TimeFrame.Min5.ToString()); timeFrames.Add(TimeFrame.Min10.ToString());
+            timeFrames.Add(TimeFrame.Min15.ToString()); timeFrames.Add(TimeFrame.Min20.ToString());
+            timeFrames.Add(TimeFrame.Min30.ToString()); timeFrames.Add(TimeFrame.Min45.ToString());
+            timeFrames.Add(TimeFrame.Hour1.ToString()); timeFrames.Add(TimeFrame.Hour2.ToString());
+            timeFrames.Add(TimeFrame.Hour4.ToString()); timeFrames.Add(TimeFrame.Day.ToString());
+            C5_TimeFrame = CreateParameter("Sec timeFrame connection test 5", "Min1", timeFrames.ToArray(), "C5");
+
             StrategyParameterButton buttonOrdersTest1 = CreateParameterButton("Start test orders 1", "O1");
             buttonOrdersTest1.UserClickOnButtonEvent += ButtonOrdersTest1_UserClickOnButtonEvent;
             O1_PortfolioName = CreateParameter("Portfolio. orders test 1", "BinanceFutures", "O1");
@@ -164,6 +185,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString C4_SecuritiesNames;
         StrategyParameterString C4_SecuritiesSeparator;
         StrategyParameterString C4_SecuritiesClass;
+
+        StrategyParameterString C5_SecuritiesClass;
+        StrategyParameterInt C5_SecuritiesCount;
+        StrategyParameterString C5_TimeFrame;
+        StrategyParameterString C5_Portfolio;
 
         StrategyParameterString O1_SecurityName;
         StrategyParameterString O1_SecurityClass;
@@ -359,6 +385,42 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
+        private void ButtonConnectionTest5_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Conn_5;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonConnectionTest5_ShowScreener_UserClickOnButtonEvent()
+        {
+           if(_testers == null ||
+                _testers.Count == 0)
+            {
+                SendNewLogMessage("No test in array",LogMessageType.Error);
+                return;
+            }
+
+            AServerTester test = _testers[0];
+
+            if(test.GetType().Name != "Conn_5_Screener")
+            {
+                SendNewLogMessage("We need to run a test first. Conn_5_Screener", LogMessageType.Error);
+                return;
+            }
+
+            Conn_5_Screener testScreener = (Conn_5_Screener)test;
+
+            testScreener.ShowDialog();
+
+        }
+
         private void ButtonOrdersTest1_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
@@ -457,7 +519,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            for(int i = 0; servers != null && i < servers.Count;i++)
+            if (servers.Count > 1)
+            {
+                _threadIsWork = false;
+                SendNewLogMessage("You've created more than one server! Tests are not possible. Only one at a time!", LogMessageType.Error);
+                return;
+            }
+
+            for (int i = 0; servers != null && i < servers.Count;i++)
             {
                 string servType = servers[i].GetType().BaseType.ToString();
 
@@ -602,6 +671,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     tester.SecutiesToSubscrible = C4_SecuritiesNames.ValueString;
                     tester.SecuritiesClass = C4_SecuritiesClass.ValueString;
                     tester.SecuritiesSeparator = C4_SecuritiesSeparator.ValueString;
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
+                else if (CurTestType == ServerTestType.Conn_5)
+                {
+                    Conn_5_Screener tester = new Conn_5_Screener();
+                    tester.SecuritiesClass = C5_SecuritiesClass.ValueString;
+                    tester.SecuritiesCount = C5_SecuritiesCount.ValueInt;
+                    tester.Portfolio = C5_Portfolio.ValueString;
+                    tester.TimeFrame = C5_TimeFrame.ValueString;
+
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -754,6 +838,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         Conn_2,
         Conn_3,
         Conn_4,
+        Conn_5,
         Order_1,
         Order_2,
         Order_3,

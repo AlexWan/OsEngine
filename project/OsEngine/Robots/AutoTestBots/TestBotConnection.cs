@@ -180,8 +180,8 @@ namespace OsEngine.Robots.AutoTestBots
 
         private int ReloadTabs(IServer server)
         {
-            
-            var securities = new List<ActivatedSecurity>();
+
+            List<ActivatedSecurity> securities = new List<ActivatedSecurity>();
             for (int i = 0; i < server.Securities.Count; i++)
             {
 

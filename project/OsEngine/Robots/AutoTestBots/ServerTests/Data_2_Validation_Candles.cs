@@ -593,6 +593,34 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 timeFrameSpan = new TimeSpan(0, 24, 0, 0);
             }
+            else if (timeFrame == TimeFrame.Sec1)
+            {
+                timeFrameSpan = new TimeSpan(0, 0, 0, 1);
+            }
+            else if (timeFrame == TimeFrame.Sec2)
+            {
+                timeFrameSpan = new TimeSpan(0, 0, 0, 2);
+            }
+            else if (timeFrame == TimeFrame.Sec5)
+            {
+                timeFrameSpan = new TimeSpan(0, 0, 0, 5);
+            }
+            else if (timeFrame == TimeFrame.Sec10)
+            {
+                timeFrameSpan = new TimeSpan(0, 0, 0, 10);
+            }
+            else if (timeFrame == TimeFrame.Sec15)
+            {
+                timeFrameSpan = new TimeSpan(0, 0, 0, 15);
+            }
+            else if (timeFrame == TimeFrame.Sec20)
+            {
+                timeFrameSpan = new TimeSpan(0, 0, 0, 20);
+            }
+            else if (timeFrame == TimeFrame.Sec30)
+            {
+                timeFrameSpan = new TimeSpan(0, 0, 0, 30);
+            }
 
             return timeFrameSpan;
         }

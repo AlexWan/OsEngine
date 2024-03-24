@@ -1936,7 +1936,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// send new message
         /// </summary>
-        protected void SendNewLogMessage(string message, LogMessageType type)
+        public void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {

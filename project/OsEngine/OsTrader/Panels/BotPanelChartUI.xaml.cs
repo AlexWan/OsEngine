@@ -82,24 +82,31 @@ namespace OsEngine.OsTrader.Panels
 
         private void UpdateTabsInStopLimitViewer()
         {
-            List<BotTabSimple> allTabs = new List<BotTabSimple>();
+            try
+            {
+                List<BotTabSimple> allTabs = new List<BotTabSimple>();
 
-            if (_panel.TabsSimple != null)
-            {
-                allTabs.AddRange(_panel.TabsSimple);
-            }
-            if (_panel.TabsScreener != null)
-            {
-                for (int i = 0; i < _panel.TabsScreener.Count; i++)
+                if (_panel.TabsSimple != null)
                 {
-                    if (_panel.TabsScreener[i].Tabs != null)
+                    allTabs.AddRange(_panel.TabsSimple);
+                }
+                if (_panel.TabsScreener != null)
+                {
+                    for (int i = 0; i < _panel.TabsScreener.Count; i++)
                     {
-                        allTabs.AddRange(_panel.TabsScreener[i].Tabs);
+                        if (_panel.TabsScreener[i].Tabs != null)
+                        {
+                            allTabs.AddRange(_panel.TabsScreener[i].Tabs);
+                        }
                     }
                 }
-            }
 
-            _stopLimitsViewer.LoadTabToWatch(allTabs);
+                _stopLimitsViewer.LoadTabToWatch(allTabs);
+            }
+            catch(Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void BotPanelChartUi_Closed(object sender, EventArgs e)

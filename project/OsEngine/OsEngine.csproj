@@ -1024,6 +1024,7 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Conn_2_SubscrAllSec.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Conn_3_Stress_Memory.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Conn_4_Validation_Candles.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_5_Screener.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_1_Integrity.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_2_Validation_Candles.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_3_Validation_Trades.cs" />
