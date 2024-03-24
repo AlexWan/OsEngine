@@ -411,6 +411,7 @@
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
     <Compile Include="Entity\TimeFrameBuilder.cs" />
@@ -468,79 +469,31 @@
     <Compile Include="Market\Connectors\MassSourcesCreator.cs" />
     <Compile Include="Market\ServerMasterOrdersPainter.cs" />
     <Compile Include="Market\ServerMasterSourcesPainter.cs" />
-    <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
-    <Compile Include="Market\Connectors\ConnectorCandles.cs" />
-    <Compile Include="Market\Connectors\OrderExecutionEmulator.cs" />
-    <Compile Include="Market\ServerMaster.cs" />
-    <Compile Include="Market\ServerMasterUi.xaml.cs">
-      <DependentUpon>ServerMasterUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Entity\CandleManager.cs" />
-    <Compile Include="Entity\Candle.cs" />
-    <Compile Include="Entity\CandleSeries.cs" />
-    <Compile Include="Entity\Position.cs" />
-    <Compile Include="Entity\PositionOpenerToStop.cs" />
-    <Compile Include="Entity\MarketDepth.cs" />
-    <Compile Include="Entity\MyTrade.cs" />
-    <Compile Include="Entity\Order.cs" />
-    <Compile Include="Entity\SecuritiesUi.xaml.cs">
-      <DependentUpon>SecuritiesUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Entity\SecurityUi.xaml.cs">
-      <DependentUpon>SecurityUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Entity\Portfolio.cs" />
-    <Compile Include="Entity\PositionOnBoard.cs" />
-    <Compile Include="Entity\Security.cs" />
-    <Compile Include="Entity\Trade.cs" />
-    <Compile Include="Entity\NumberGen.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\Bollinger.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\BollingerUi.xaml.cs">
-      <DependentUpon>BollingerUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Charts\CandleChart\Indicators\Fractail.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\FractalUi.xaml.cs">
-      <DependentUpon>FractalUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Indicators\IIndicator.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\MovingAverage.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\MovingAverageUi.xaml.cs">
-      <DependentUpon>MovingAverageUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Charts\CandleChart\Indicators\Rsi.cs" />
-    <Compile Include="Charts\CandleChart\Indicators\RsiUi.xaml.cs">
-      <DependentUpon>RsiUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Entity\PositionUi.xaml.cs">
-      <DependentUpon>PositionUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
     <Compile Include="Market\Servers\Alor\AlorServer.cs" />
     <Compile Include="Market\Servers\Alor\AlorServerPermission.cs" />
-    <Compile Include="Market\Servers\Alor\Json\AlorPortfolioRest.cs" />
+    <Compile Include="Market\Servers\Alor\Json\OrdersAlorRequest.cs" />
     <Compile Include="Market\Servers\Alor\Json\AlorPortfolioSocket.cs" />
+    <Compile Include="Market\Servers\Alor\Json\AlorPortfolioRest.cs" />
     <Compile Include="Market\Servers\Alor\Json\AlorSecurity.cs" />
     <Compile Include="Market\Servers\Alor\Json\CandlesHistoryAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\MarketDepthAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\MyTradeAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\OrderAlor.cs" />
-    <Compile Include="Market\Servers\Alor\Json\OrdersAlorRequest.cs" />
     <Compile Include="Market\Servers\Alor\Json\PositionOnBoardAlor.cs" />
-    <Compile Include="Market\Servers\Alor\Json\QuotesAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscrible.cs" />
     <Compile Include="Market\Servers\Alor\Json\SoketBaseMessage.cs" />
     <Compile Include="Market\Servers\Alor\Json\TokenResponse.cs" />
+    <Compile Include="Market\Servers\Alor\Json\QuotesAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\TradesHistoryAlor.cs" />
     <Compile Include="Market\Servers\AServer.cs" />
     <Compile Include="Market\Servers\AServerParameterUi.xaml.cs">
       <DependentUpon>AServerParameterUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsBridgeWrapper.cs" />
+    <Compile Include="Market\Servers\AstsBridge\AstsBridgeServer.cs" />
     <Compile Include="Market\Servers\AstsBridge\AstsServerUi.xaml.cs">
       <DependentUpon>AstsServerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Market\Servers\Binance\Futures\BinanceClientFutures.cs" />
     <Compile Include="Market\Servers\Binance\Futures\BinanceFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\Binance\Futures\BinanceServerFutures.cs" />
@@ -550,7 +503,6 @@
     <Compile Include="Market\Servers\Binance\Futures\Entity\OrderUpdResponse.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\TradesResponseReserches.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceClientSpot.cs" />
-    <Compile Include="Market\Servers\Binance\Spot\BinanceServerSpot.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\AccountResponse.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\AccountResponseMargin.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\BinanceTime.cs" />
@@ -563,6 +515,7 @@
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\OutboundAccountInfo.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\SecurityResponce.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\TradeResponse.cs" />
+    <Compile Include="Market\Servers\Binance\Spot\BinanceServerSpot.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotServerPermission.cs" />
     <Compile Include="Market\Servers\BingX\BingXFutures\BingXFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\BingX\BingXFutures\BingXServerFutures.cs" />
@@ -610,9 +563,9 @@
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexTrades.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServer.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampClient.cs" />
-    <Compile Include="Market\Servers\BitStamp\BitStampEntity\JsonResponse.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampEntity\RequestAuthenticator.cs" />
     <Compile Include="Market\Servers\BitStamp\BitStampServer.cs" />
+    <Compile Include="Market\Servers\BitStamp\BitStampEntity\JsonResponse.cs" />
     <Compile Include="Market\Servers\Bybit\BybitServer.cs" />
     <Compile Include="Market\Servers\Bybit\BybitServerPermission.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\ResponseRestMessage.cs" />
@@ -622,13 +575,9 @@
     <Compile Include="Market\Servers\Deribit\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\Deribit\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
-    <Compile Include="Market\Servers\Entity\MarshalUTF8.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
     <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
-    <Compile Include="Market\Servers\Entity\RateGate.cs" />
     <Compile Include="Market\Servers\Entity\ServerParameter.cs" />
-    <Compile Include="Market\Servers\Entity\ServerWorkingTimeSettings.cs" />
-    <Compile Include="Market\Servers\Entity\TimeManager.cs" />
     <Compile Include="Market\Servers\ExMo\ExmoClient.cs" />
     <Compile Include="Market\Servers\ExMo\ExmoServer.cs" />
     <Compile Include="Market\Servers\Finam\FinamServer.cs" />
@@ -682,6 +631,7 @@
     <Compile Include="Market\Servers\Huobi\Futures\Entities\TradeInfo.cs" />
     <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServer.cs" />
     <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServerPermission.cs" />
+    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServerPermission.cs" />
     <Compile Include="Market\Servers\Huobi\Request\GetRequest.cs" />
     <Compile Include="Market\Servers\Huobi\Request\PrivateUrlBuilder.cs" />
     <Compile Include="Market\Servers\Huobi\Request\PublicUrlBuilder.cs" />
@@ -697,7 +647,6 @@
     <Compile Include="Market\Servers\Huobi\Response\WebSocketResponseBase.cs" />
     <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotSecurityCreator.cs" />
     <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServer.cs" />
-    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServerPermission.cs" />
     <Compile Include="Market\Servers\InteractiveBrokers\IbClient.cs" />
     <Compile Include="Market\Servers\InteractiveBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
@@ -707,6 +656,7 @@
     <Compile Include="Market\Servers\IServer.cs" />
     <Compile Include="Market\Servers\IServerPermission.cs" />
     <Compile Include="Market\Servers\IServerRealization.cs" />
+    <Compile Include="Market\Servers\Entity\RateGate.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenClient.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\EnumerableExtensions.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenOrder.cs" />
@@ -792,7 +742,6 @@
     <Compile Include="Market\Servers\Lmax\Tags.cs" />
     <Compile Include="Market\Servers\MFD\MfdServer.cs" />
     <Compile Include="Market\Servers\MFD\MfdServerPermission.cs" />
-    <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssDataServer.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssPermission.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
@@ -813,11 +762,11 @@
     <Compile Include="Market\Servers\OKX\OkxClient.cs" />
     <Compile Include="Market\Servers\OKX\OkxServer.cs" />
     <Compile Include="Market\Servers\OKX\OkxServerPermission.cs" />
+    <Compile Include="Market\Servers\Optimizer\OptimizerServer.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorage.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml.cs">
       <DependentUpon>OptimizerDataStorageUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\Optimizer\OptimizerServer.cs" />
     <Compile Include="Market\Servers\Pionex\Entity\OrdersPionexRequest.cs" />
     <Compile Include="Market\Servers\Pionex\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\Pionex\Entity\ResponseWebSocketMessage.cs" />
@@ -827,11 +776,12 @@
     <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
-    <Compile Include="Market\Servers\Quik\QuikDde.cs" />
-    <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
-    <Compile Include="Market\Servers\Quik\Trans2Quik.cs" />
+    <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerCandleStorage.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
+    <Compile Include="Market\Servers\Entity\MarshalUTF8.cs" />
+    <Compile Include="Market\Servers\Entity\ServerWorkingTimeSettings.cs" />
+    <Compile Include="Market\Servers\Entity\TimeManager.cs" />
     <Compile Include="Market\Servers\Tester\GoToUi.xaml.cs">
       <DependentUpon>GoToUi.xaml</DependentUpon>
     </Compile>
@@ -839,6 +789,56 @@
     <Compile Include="Market\Servers\Tester\TesterServerUi.xaml.cs">
       <DependentUpon>TesterServerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Quik\QuikDde.cs" />
+    <Compile Include="Market\Connectors\ConnectorCandles.cs" />
+    <Compile Include="Market\Servers\Quik\Trans2Quik.cs" />
+    <Compile Include="Market\Connectors\OrderExecutionEmulator.cs" />
+    <Compile Include="Market\ServerMaster.cs" />
+    <Compile Include="Market\ServerMasterUi.xaml.cs">
+      <DependentUpon>ServerMasterUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\CandleManager.cs" />
+    <Compile Include="Entity\Candle.cs" />
+    <Compile Include="Entity\CandleSeries.cs" />
+    <Compile Include="Entity\Position.cs" />
+    <Compile Include="Entity\PositionOpenerToStop.cs" />
+    <Compile Include="Entity\MarketDepth.cs" />
+    <Compile Include="Entity\MyTrade.cs" />
+    <Compile Include="Entity\Order.cs" />
+    <Compile Include="Entity\SecuritiesUi.xaml.cs">
+      <DependentUpon>SecuritiesUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\SecurityUi.xaml.cs">
+      <DependentUpon>SecurityUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\Portfolio.cs" />
+    <Compile Include="Entity\PositionOnBoard.cs" />
+    <Compile Include="Entity\Security.cs" />
+    <Compile Include="Entity\Trade.cs" />
+    <Compile Include="Entity\NumberGen.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\Bollinger.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\BollingerUi.xaml.cs">
+      <DependentUpon>BollingerUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Fractail.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\FractalUi.xaml.cs">
+      <DependentUpon>FractalUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Indicators\IIndicator.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MovingAverage.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\MovingAverageUi.xaml.cs">
+      <DependentUpon>MovingAverageUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Charts\CandleChart\Indicators\Rsi.cs" />
+    <Compile Include="Charts\CandleChart\Indicators\RsiUi.xaml.cs">
+      <DependentUpon>RsiUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Entity\PositionUi.xaml.cs">
+      <DependentUpon>PositionUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
+    <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
+    <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServerPermission.cs" />
     <Compile Include="Market\Servers\Tinkoff\TinkoffClient.cs" />
@@ -861,10 +861,6 @@
     <Compile Include="Market\Servers\Transaq\TransaqEntity\TransaqPositions.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqServer.cs" />
     <Compile Include="Market\Servers\Transaq\TransaqServerPermission.cs" />
-    <Compile Include="Market\Servers\Woo\Entity\ResponseMessageRest.cs" />
-    <Compile Include="Market\Servers\Woo\Entity\ResponseWebSocketMessage.cs" />
-    <Compile Include="Market\Servers\Woo\WooServer.cs" />
-    <Compile Include="Market\Servers\Woo\WooServerPermission.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\RequestMessagesRest.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\RequestMessagesWebSocket.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\Entity\ResponseMessageRest.cs" />
@@ -1454,6 +1450,34 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Market\Servers\AServerParameterUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Finam\FinamServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\InteractiveBrokers\IbContractStorageUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Tester\GoToUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Tester\TesterServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Market\ServerMasterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1510,37 +1534,9 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Servers\AServerParameterUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
-    <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
-    <Page Include="Market\Servers\Finam\FinamServerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
-    <Page Include="Market\Servers\InteractiveBrokers\IbContractStorageUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
-    <Page Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
-    <Page Include="Market\Servers\Tester\GoToUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
-    <Page Include="Market\Servers\Tester\TesterServerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
     <Page Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml">
       <SubType>Designer</SubType>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\SupportTable\SupportTableUi.xaml">
       <SubType>Designer</SubType>
@@ -1874,7 +1870,9 @@
   <ItemGroup>
     <Resource Include="Images\MainWIndow\gear.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Market\Servers\Huobi\FuturesSwap\Entities\" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\generateButton.png" />
   </ItemGroup>

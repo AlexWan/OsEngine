@@ -57,7 +57,6 @@ using OsEngine.Market.Servers.BingX.BingXFutures;
 using OsEngine.Market.Servers.Deribit;
 using OsEngine.Market.Servers.XT.XTSpot;
 using OsEngine.Market.Servers.Pionex;
-using OsEngine.Market.Servers.Woo;
 
 namespace OsEngine.Market
 {
@@ -197,7 +196,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BingXFutures);
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.PionexSpot);
-                serverTypes.Add(ServerType.Woo);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -276,7 +274,6 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                serverTypes.Add(ServerType.Woo);
                 serverTypes.Add(ServerType.TinkoffInvestments);
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.Deribit);
@@ -547,10 +544,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.PionexSpot)
                 {
                     newServer = new PionexServerSpot();
-                }
-                else if (type == ServerType.Woo)
-                {
-                    newServer = new WooServer();
                 }
 
                 if (newServer == null)
@@ -1102,10 +1095,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new PionexServerSpotPermission();
                 }
-                else if (type == ServerType.Woo)
-                {
-                    serverPermission = new WooServerPermission();
-                }
 
                 if (serverPermission != null)
                 {
@@ -1522,10 +1511,5 @@ namespace OsEngine.Market
         /// Pionex exchange
         /// </summary>
         PionexSpot,
-
-        /// <summary>
-        /// Woox exchange
-        /// </summary>
-        Woo,
     }
 }
