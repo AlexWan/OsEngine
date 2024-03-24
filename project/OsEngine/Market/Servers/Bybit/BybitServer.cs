@@ -1441,9 +1441,20 @@ namespace OsEngine.Market.Servers.Bybit
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].execTime));
                     myTrade.NumberOrderParent = responseMyTrades.data[i].orderId;
                     myTrade.NumberTrade = responseMyTrades.data[i].execId;
-                    myTrade.Volume = responseMyTrades.data[i].execQty.Replace('.', ',').ToDecimal();
-                    myTrade.Price = responseMyTrades.data[i].execPrice.Replace('.', ',').ToDecimal();
+                    myTrade.Price = responseMyTrades.data[i].execPrice.ToDecimal();
                     myTrade.Side = responseMyTrades.data[i].side.ToUpper().Equals("BUY") ? Side.Buy : Side.Sell;
+
+                    if (responseMyTrades.data[i].category == Category.spot.ToString() && myTrade.Side == Side.Buy && !string.IsNullOrWhiteSpace(responseMyTrades.data[i].execFee))   // комиссия на споте при покупке берется с купленой монеты
+                    {
+                        myTrade.Volume = responseMyTrades.data[i].execQty.ToDecimal() - responseMyTrades.data[i].execFee.ToDecimal();
+                    }
+                    else
+                    {
+                        myTrade.Volume = responseMyTrades.data[i].execQty.ToDecimal();
+                    }
+
+
+                    
 
                     MyTradeEvent?.Invoke(myTrade);
                 }
@@ -1499,9 +1510,8 @@ namespace OsEngine.Market.Servers.Bybit
                     newOrder.NumberMarket = responseMyTrades.data[i].orderId;
                     newOrder.Side = responseMyTrades.data[i].side.ToUpper().Contains("BUY") ? Side.Buy : Side.Sell;
                     newOrder.State = stateType;
-                  
-                    newOrder.Volume = responseMyTrades.data[i].qty.Replace('.', ',').ToDecimal();
-                    newOrder.Price = responseMyTrades.data[i].price.Replace('.', ',').ToDecimal();
+             
+                    newOrder.Price = responseMyTrades.data[i].price.ToDecimal();
                     newOrder.ServerType = ServerType.Bybit;
                     newOrder.PortfolioNumber = "BybitUNIFIED";
 
