@@ -1431,8 +1431,16 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 cmd += "<client>" + order.PortfolioNumber + "</client>";
             }
-
-            cmd += "<price>" + order.Price.ToString().Replace(',', '.') + "</price>";
+            if (order.TypeOrder == OrderPriceType.Limit)
+            {
+                cmd += "<price>" + order.Price.ToString().Replace(',', '.') + "</price>";
+            }
+            else if (order.TypeOrder == OrderPriceType.Market)
+            {
+                cmd += "<bymarket/>";
+                //cmd += "<price>" + "0" + "</price>";
+            }
+            
             cmd += "<quantity>" + order.Volume + "</quantity>";
             cmd += "<buysell>" + side + "</buysell>";
             cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
@@ -1444,6 +1452,15 @@ namespace OsEngine.Market.Servers.Transaq
             }
             
             cmd += "</command>";
+
+            lock (_sendOrdersLocker)
+            {
+                _sendOrders.Add(order);
+                if (_sendOrders.Count > 500)
+                {
+                    _sendOrders.RemoveAt(0);
+                }
+            }
 
             // sending command / отправка команды
             string res = _client.ConnectorSendCommand(cmd);
@@ -1457,6 +1474,8 @@ namespace OsEngine.Market.Servers.Transaq
             }
             else
             {
+
+                
                 order.NumberUser = result.TransactionId;
                 order.State = OrderStateType.Activ;
             }
@@ -1465,6 +1484,10 @@ namespace OsEngine.Market.Servers.Transaq
 
             MyOrderEvent?.Invoke(order);
         }
+
+        List<Order> _sendOrders = new List<Order>();
+
+        private string _sendOrdersLocker = "sendOrdersLocker";
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
@@ -1655,6 +1678,23 @@ namespace OsEngine.Market.Servers.Transaq
                 newOrder.ServerType = ServerType.Transaq;
                 newOrder.PortfolioNumber = string.IsNullOrEmpty(order.Union) ? order.Client : order.Union;
 
+                lock (_sendOrdersLocker)
+                {
+                    if(string.IsNullOrEmpty(newOrder.NumberMarket) == false
+                        && newOrder.NumberUser != 0
+                        && newOrder.NumberMarket != "0")
+                    {
+                        for (int i2 = _sendOrders.Count - 1; i2 > -1; i2--)
+                        {
+                            if (_sendOrders[i2].NumberUser == newOrder.NumberUser)
+                            {
+                                newOrder.TypeOrder = _sendOrders[i2].TypeOrder;
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 if (order.Status == "active")
                 {
                     newOrder.State = OrderStateType.Activ;
@@ -1664,6 +1704,12 @@ namespace OsEngine.Market.Servers.Transaq
                          order.Status == "disabled" ||
                          order.Status == "removed")
                 {
+                    if(order.Status == "removed"
+                        && string.IsNullOrEmpty(order.Result) == false)
+                    {
+                        SendLogMessage(order.Result,LogMessageType.Error);
+                    }
+
                     newOrder.State = OrderStateType.Cancel;
                 }
                 else if (order.Status == "matched")
@@ -1675,6 +1721,10 @@ namespace OsEngine.Market.Servers.Transaq
                          order.Status == "failed" ||
                          order.Status == "refused")
                 {
+                    if (string.IsNullOrEmpty(order.Result) == false)
+                    {
+                        SendLogMessage(order.Result, LogMessageType.Error);
+                    }
                     newOrder.State = OrderStateType.Fail;
                 }
                 else if (order.Status == "forwarding" ||

@@ -110,7 +110,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
