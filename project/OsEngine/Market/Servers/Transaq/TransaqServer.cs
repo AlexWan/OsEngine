@@ -702,44 +702,58 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void _client_ClientsInfoUpdate(Client clientInfo)
         {
-            if (_clients == null)
+            try
             {
-                _clients = new List<Client>();
-            }
+                if (_clients == null)
+                {
+                    _clients = new List<Client>();
+                }
 
-            if (!string.IsNullOrEmpty(clientInfo.Union))
-            {
-                var needClient = _clients.Find(c => string.IsNullOrEmpty(clientInfo.Union));
+                if (!string.IsNullOrEmpty(clientInfo.Union))
+                {
+                    var needClient = _clients.Find(c => string.IsNullOrEmpty(clientInfo.Union));
 
-                if (needClient == null)
+                    if (needClient == null)
+                    {
+                        _clients.Add(clientInfo);
+                    }
+                }
+                else
                 {
                     _clients.Add(clientInfo);
                 }
             }
-            else
+            catch (Exception error)
             {
-                _clients.Add(clientInfo);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
         private void _client_ClientOnUpdatePortfolio(string portfolio)
         {
-            if (_portfolios == null)
+            try
             {
-                _portfolios = new List<Portfolio>();
+                if (_portfolios == null)
+                {
+                    _portfolios = new List<Portfolio>();
+                }
+
+                Portfolio unitedPortfolio = ParsePortfolio(portfolio);
+
+                Portfolio needPortfolio = _portfolios.Find(p => p.Number == unitedPortfolio.Number);
+
+                if (needPortfolio != null)
+                {
+                    _portfolios.Remove(needPortfolio);
+                }
+                _portfolios.Add(unitedPortfolio);
+
+                PortfolioEvent?.Invoke(_portfolios);
             }
-
-            var unitedPortfolio = ParsePortfolio(portfolio);
-
-            var needPortfolio = _portfolios.Find(p => p.Number == unitedPortfolio.Number);
-
-            if (needPortfolio != null)
+            catch(Exception error)
             {
-                _portfolios.Remove(needPortfolio);
+                SendLogMessage(error.ToString(),LogMessageType.Error);
             }
-            _portfolios.Add(unitedPortfolio);
-
-            PortfolioEvent?.Invoke(_portfolios);
         }
 
         private Portfolio ParsePortfolio(string data)
@@ -759,15 +773,30 @@ namespace OsEngine.Market.Servers.Transaq
 
             var openEquity = root.SelectSingleNode("open_equity");
             var equity = root.SelectSingleNode("equity");
-            var block = root.SelectSingleNode("maint_req");
+            var block = root.SelectSingleNode("go");
+            var cover = root.SelectSingleNode("cover");
 
             var allSecurity = root.GetElementsByTagName("security");
 
             var portfolio = new Portfolio();
 
-            if (openEquity != null) portfolio.ValueBegin = openEquity.InnerText.ToDecimal();
-            if (equity != null) portfolio.ValueCurrent = equity.InnerText.ToDecimal();
-            if (block != null) portfolio.ValueBlocked = block.InnerText.ToDecimal();
+            if (openEquity != null)
+            { 
+                portfolio.ValueBegin = openEquity.InnerText.ToDecimal(); 
+            }
+            if (equity != null) 
+            { 
+                portfolio.ValueCurrent = equity.InnerText.ToDecimal(); 
+            }
+            if (equity != null 
+                && cover != null
+                && block != null)
+            {
+                portfolio.ValueBlocked = 
+                    (equity.InnerText.ToDecimal() 
+                    - cover.InnerText.ToDecimal())
+                    + block.InnerText.ToDecimal();
+            }
 
             if (!string.IsNullOrEmpty(union))
             {
@@ -802,19 +831,27 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void _client_ClientOnUpdateLimits(ClientLimits clientLimits)
         {
-            if (_portfolios == null)
+            try
             {
-                return;
+                if (_portfolios == null)
+                {
+                    return;
+                }
+
+                var needPortfolio = _portfolios.Find(p => p.Number == clientLimits.Client);
+
+                if (needPortfolio != null)
+                {
+                    InitPortfolio(needPortfolio, clientLimits);
+                }
+
+                PortfolioEvent?.Invoke(_portfolios);
+
             }
-
-            var needPortfolio = _portfolios.Find(p => p.Number == clientLimits.Client);
-
-            if (needPortfolio != null)
+            catch (Exception error)
             {
-                InitPortfolio(needPortfolio, clientLimits);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            PortfolioEvent?.Invoke(_portfolios);
         }
 
         private Portfolio InitPortfolio(Portfolio portfolio, ClientLimits clientLimits)
@@ -827,18 +864,11 @@ namespace OsEngine.Market.Servers.Transaq
             return portfolio;
         }
 
-        private decimal _blocked = 0;
-
         private void _client_ClientOnUpdatePositions(TransaqPositions transaqPositions)
         {
             if (_portfolios == null)
             {
                 _portfolios = new List<Portfolio>();
-            }
-
-            if (transaqPositions.Forts_money != null)
-            {
-                _blocked = Convert.ToDecimal(transaqPositions.Forts_money.Blocked.Replace(".", ","));
             }
 
             if (transaqPositions.Forts_position.Count == 0)
