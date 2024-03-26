@@ -1405,111 +1405,131 @@ namespace OsEngine.Market.Servers.Transaq
 
         #region 8 Trade
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SendOrder(Order order)
         {
-            string side = order.Side == Side.Buy ? "B" : "S";
+            try
+            {
+                string side = order.Side == Side.Buy ? "B" : "S";
 
-            Security needSec = _securities.Find(
-                s => s.Name == order.SecurityNameCode &&
-                s.NameClass == order.SecurityClassCode);
+                Security needSec = _securities.Find(
+                    s => s.Name == order.SecurityNameCode &&
+                    s.NameClass == order.SecurityClassCode);
 
-            if(needSec == null)
-            {
-                needSec = _securities.Find(
-                s => s.Name == order.SecurityNameCode);
-            }
-
-            string cmd = "<command id=\"neworder\">";
-            cmd += "<security>";
-            cmd += "<board>" + needSec.NameClass + "</board>";
-            cmd += "<seccode>" + needSec.Name + "</seccode>";
-            cmd += "</security>";
-
-            if (order.PortfolioNumber.StartsWith("United_"))
-            {
-                var union = order.PortfolioNumber.Split('_')[1];
-                cmd += "<union>" + union + "</union>";
-            }
-            else
-            {
-                cmd += "<client>" + order.PortfolioNumber + "</client>";
-            }
-            if (order.TypeOrder == OrderPriceType.Limit)
-            {
-                cmd += "<price>" + order.Price.ToString().Replace(',', '.') + "</price>";
-            }
-            else if (order.TypeOrder == OrderPriceType.Market)
-            {
-                cmd += "<bymarket/>";
-                //cmd += "<price>" + "0" + "</price>";
-            }
-            
-            cmd += "<quantity>" + order.Volume + "</quantity>";
-            cmd += "<buysell>" + side + "</buysell>";
-            cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
-            cmd += "<unfilled> PutInQueue </unfilled>";
-
-            if (needSec.NameClass == "TQBR")
-            {
-                cmd += "<usecredit> true </usecredit>";
-            }
-            
-            cmd += "</command>";
-
-            lock (_sendOrdersLocker)
-            {
-                _sendOrders.Add(order);
-                if (_sendOrders.Count > 500)
+                if (needSec == null)
                 {
-                    _sendOrders.RemoveAt(0);
+                    needSec = _securities.Find(
+                    s => s.Name == order.SecurityNameCode);
                 }
+
+                string cmd = "<command id=\"neworder\">";
+                cmd += "<security>";
+                cmd += "<board>" + needSec.NameClass + "</board>";
+                cmd += "<seccode>" + needSec.Name + "</seccode>";
+                cmd += "</security>";
+
+                if (order.PortfolioNumber.StartsWith("United_"))
+                {
+                    var union = order.PortfolioNumber.Split('_')[1];
+                    cmd += "<union>" + union + "</union>";
+                }
+                else
+                {
+                    cmd += "<client>" + order.PortfolioNumber + "</client>";
+                }
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    cmd += "<price>" + order.Price.ToString().Replace(',', '.') + "</price>";
+                }
+                else if (order.TypeOrder == OrderPriceType.Market)
+                {
+                    cmd += "<bymarket/>";
+                    //cmd += "<price>" + "0" + "</price>";
+                }
+
+                cmd += "<quantity>" + order.Volume + "</quantity>";
+                cmd += "<buysell>" + side + "</buysell>";
+                cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
+                cmd += "<unfilled> PutInQueue </unfilled>";
+
+                if (needSec.NameClass == "TQBR")
+                {
+                    cmd += "<usecredit> true </usecredit>";
+                }
+
+                cmd += "</command>";
+
+                lock (_sendOrdersLocker)
+                {
+                    _sendOrders.Add(order);
+                    if (_sendOrders.Count > 500)
+                    {
+                        _sendOrders.RemoveAt(0);
+                    }
+                }
+
+                // sending command / отправка команды
+                string res = _client.ConnectorSendCommand(cmd);
+
+                if(res == null)
+                {
+                    order.State = OrderStateType.Fail;
+                    SendLogMessage("SendOrderFall. Order num: " + order.NumberUser, LogMessageType.Error);
+                }
+
+                var result = _client.Deserialize<Result>(res);
+
+                if (!result.Success)
+                {
+                    order.State = OrderStateType.Fail;
+                    SendLogMessage("SendOrderFall" + result.Message, LogMessageType.Error);
+                }
+                else
+                {
+                    order.NumberUser = result.TransactionId;
+                    order.State = OrderStateType.Activ;
+                }
+
+                order.TimeCallBack = ServerTime;
+
+                MyOrderEvent?.Invoke(order);
             }
-
-            // sending command / отправка команды
-            string res = _client.ConnectorSendCommand(cmd);
-
-            var result = _client.Deserialize<Result>(res);
-
-            if (!result.Success)
+            catch (Exception ex)
             {
-                order.State = OrderStateType.Fail;
-                SendLogMessage("SendOrderFall" + result.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-            else
-            {
-
-                
-                order.NumberUser = result.TransactionId;
-                order.State = OrderStateType.Activ;
-            }
-
-            order.TimeCallBack = ServerTime;
-
-            MyOrderEvent?.Invoke(order);
         }
 
         List<Order> _sendOrders = new List<Order>();
 
         private string _sendOrdersLocker = "sendOrdersLocker";
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        public void CancelOrder(Order order)
+        {
+            try
+            {
+                string cmd = "<command id=\"cancelorder\">";
+                cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
+                cmd += "</command>";
+
+                // отправка команды
+                string res = _client.ConnectorSendCommand(cmd);
+
+                if (!res.StartsWith("<result success=\"true\""))
+                {
+                    SendLogMessage("CancelOrder method error " + res, LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
 
-        }
-
-        public void CancelOrder(Order order)
-        {
-            string cmd = "<command id=\"cancelorder\">";
-            cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
-            cmd += "</command>";
-
-            // отправка команды
-            string res = _client.ConnectorSendCommand(cmd);
-
-            if (!res.StartsWith("<result success=\"true\""))
-            {
-                SendLogMessage("CancelOrder method error " + res, LogMessageType.Error);
-            }
         }
 
         public void CancelAllOrders()
