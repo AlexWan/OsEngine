@@ -64,9 +64,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             StrategyParameterButton buttonConnectionTest1 = CreateParameterButton("Start test connection 1", "C1");
             buttonConnectionTest1.UserClickOnButtonEvent += ButtonConnectionTest1_UserClickOnButtonEvent;
 
+            C2_SecuritiesClass = CreateParameter("Sec class connection test 2", "Futures", "C2");
             StrategyParameterButton buttonConnectionTest2 = CreateParameterButton("Start test connection 2", "C2");
             buttonConnectionTest2.UserClickOnButtonEvent += ButtonConnectionTest2_UserClickOnButtonEvent;
 
+            C3_SecuritiesClass = CreateParameter("Sec class connection test 3", "Futures", "C3");
             StrategyParameterButton buttonConnectionTest3 = CreateParameterButton("Start test connection 3", "C3");
             buttonConnectionTest3.UserClickOnButtonEvent += ButtonConnectionTest3_UserClickOnButtonEvent;
 
@@ -180,6 +182,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString D5_SecuritiesNames;
         StrategyParameterString D5_SecuritiesSeparator;
         StrategyParameterString D5_SecurityClass;
+
+        StrategyParameterString C2_SecuritiesClass;
+
+        StrategyParameterString C3_SecuritiesClass;
 
         StrategyParameterString C4_SecuritiesNames;
         StrategyParameterString C4_SecuritiesSeparator;
@@ -646,6 +652,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 else if (CurTestType == ServerTestType.Conn_2)
                 {
                     Conn_2_SubscrAllSec tester = new Conn_2_SubscrAllSec();
+                    tester.SecClass = C2_SecuritiesClass.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -656,6 +663,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 else if (CurTestType == ServerTestType.Conn_3)
                 {
                     Conn_3_Stress_Memory tester = new Conn_3_Stress_Memory();
+                    tester.SecClass = C3_SecuritiesClass.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);

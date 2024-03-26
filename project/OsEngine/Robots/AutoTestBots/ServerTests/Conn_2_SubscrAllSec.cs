@@ -8,6 +8,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
     public class Conn_2_SubscrAllSec : AServerTester
     {
+        public string SecClass = "Futures";
+
         public override void Process()
         {
             AServer myServer = Server;
@@ -63,14 +65,26 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void TestSubscrible()
         {
-            List<Security> secs = Server.Securities;
+            List<Security> securitiesAll = Server.Securities;
+
+            List<Security> secs = new List<Security>();
+
+            for(int i = 0;i < securitiesAll.Count;i++)
+            {
+                if (securitiesAll[i].NameClass == SecClass)
+                {
+                    secs.Add(securitiesAll[i]);
+                }
+            }
 
             if(secs == null || secs.Count == 0)
             {
                 this.SetNewError(
-                "Error 3. No securities in server!");
+                "Error 3. No securities in server! Class: " + SecClass);
                 return;
             }
+
+            this.SetNewServiceInfo("Total Securities to subscrible: " + secs.Count);
 
             DateTime endWaitTime = DateTime.Now.AddMinutes(10);
 

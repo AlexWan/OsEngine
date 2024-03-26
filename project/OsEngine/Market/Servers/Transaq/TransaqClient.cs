@@ -71,7 +71,6 @@ namespace OsEngine.Market.Servers.Transaq
                 _loadSecInfoUpdate = loadSecInfoUpdate;
 
                 ConnectorInitialize();
-                Thread.Sleep(1000);
 
                 // formation of the command text / формирование текста команды
                 string cmd = "<command id=\"connect\">";

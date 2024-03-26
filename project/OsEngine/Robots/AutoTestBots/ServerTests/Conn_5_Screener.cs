@@ -278,7 +278,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 Thread.Sleep(1000);
 
-                if(timeStart.AddMinutes(10) < timeStart)
+                if(timeStart.AddMinutes(10) < DateTime.Now)
                 {
                     this.SetNewServiceInfo("End by time awaiting");
                     break;

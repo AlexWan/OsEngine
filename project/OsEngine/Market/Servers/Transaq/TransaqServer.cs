@@ -221,8 +221,8 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (ServerStatus != ServerConnectStatus.Connect)
             {
-                ConnectEvent?.Invoke();
                 ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent?.Invoke();
             }
         }
 
@@ -232,8 +232,8 @@ namespace OsEngine.Market.Servers.Transaq
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
-                DisconnectEvent?.Invoke();
                 ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -332,7 +332,7 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     continue;
                 }
-                if (_lastUpdateSecurityArrayTime.AddSeconds(5) > DateTime.Now)
+                if (_lastUpdateSecurityArrayTime.AddSeconds(3) > DateTime.Now)
                 {
                     continue;
                 }
@@ -1073,6 +1073,15 @@ namespace OsEngine.Market.Servers.Transaq
                         }
                     }
 
+                    for (int i = 1; series.CandlesAll != null && i < series.CandlesAll.Count; i++)
+                    {
+                        if (series.CandlesAll[i-1].TimeStart == series.CandlesAll[i].TimeStart)
+                        {
+                            series.CandlesAll.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
                     series.UpdateAllCandles();
                     series.IsStarted = true;
                     return;
@@ -1483,16 +1492,18 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     order.State = OrderStateType.Fail;
                     SendLogMessage("SendOrderFall" + result.Message, LogMessageType.Error);
+                    
+                    if(MyOrderEvent != null)
+                    {
+                        MyOrderEvent(order);
+                    }
                 }
                 else
                 {
                     order.NumberUser = result.TransactionId;
-                    order.State = OrderStateType.Activ;
                 }
 
                 order.TimeCallBack = ServerTime;
-
-                MyOrderEvent?.Invoke(order);
             }
             catch (Exception ex)
             {
