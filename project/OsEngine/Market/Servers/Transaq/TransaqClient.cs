@@ -190,7 +190,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// обработчик данных пришедших через каллбек
         /// </summary>
         /// <param name="pData">data from Transaq / данные, поступившие от транзака</param>
-        bool CallBackDataHandler(IntPtr pData)
+        private bool CallBackDataHandler(IntPtr pData)
         {
             string data = MarshalUtf8.PtrToStringUtf8(pData);
 
@@ -201,23 +201,43 @@ namespace OsEngine.Market.Servers.Transaq
             return true;
         }
 
+        private string _commandLocker = "commandSendLocker";
+
         /// <summary>
         /// sent the command
         /// отправить команду
         /// </summary>
         /// <param name="command">command as a XML document / команда в виде XML документа</param>
         /// <returns>result of sending command/результат отправки команды</returns>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public string ConnectorSendCommand(string command)
         {
-            IntPtr pData = MarshalUtf8.StringToHGlobalUtf8(command);
-            IntPtr pResult = SendCommand(pData);
+            try
+            {
+                lock(_commandLocker)
+                {
+                    IntPtr pData = MarshalUtf8.StringToHGlobalUtf8(command);
+                    IntPtr pResult = SendCommand(pData);
 
-            string result = MarshalUtf8.PtrToStringUtf8(pResult);
+                    string result = MarshalUtf8.PtrToStringUtf8(pResult);
 
-            Marshal.FreeHGlobal(pData);
-            FreeMemory(pResult);
+                    Marshal.FreeHGlobal(pData);
+                    FreeMemory(pResult);
 
-            return result;
+                    return result;
+                }
+            }
+            catch (AccessViolationException e)
+            {
+                // no message
+                return null;
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(),LogMessageType.Error);
+                return null;
+            }
+
         }
 
         private List<string> _securityInfos = new List<string>();
@@ -324,6 +344,12 @@ namespace OsEngine.Market.Servers.Transaq
                                 if (data.Contains("Время действия Вашего пароля истекло"))
                                 {
                                     NeedChangePassword?.Invoke();
+
+                                    if(IsConnected == true)
+                                    {
+                                        IsConnected = false;
+                                        Disconnected?.Invoke();
+                                    }
                                 }
                             }
                             else if (data.StartsWith("<server_status"))
@@ -334,8 +360,22 @@ namespace OsEngine.Market.Servers.Transaq
 
                                 if (status.Connected == "true")
                                 {
-                                    IsConnected = true;
-                                    Connected?.Invoke();
+                                    if(IsConnected == false 
+                                        && data.Contains("recover=\"true\"") == false)
+                                    {
+                                        IsConnected = true;
+                                        Connected?.Invoke();
+                                    }
+                                    else
+                                    {
+                                        if (data.Contains("recover=\"true\""))
+                                        {
+                                            SendLogMessage("Transaq client status error: <Reconnect>", LogMessageType.Error);
+
+                                            IsConnected = false;
+                                            Disconnected?.Invoke();
+                                        }
+                                    }
                                 }
                                 else if (status.Connected == "false")
                                 {
@@ -344,10 +384,38 @@ namespace OsEngine.Market.Servers.Transaq
                                 }
                                 else if (status.Connected == "error")
                                 {
-                                    SendLogMessage(status.Text, LogMessageType.Error);
+                                    SendLogMessage("Transaq client status error: " + status.Text, LogMessageType.Error);
+
+                                    if (IsConnected == true)
+                                    {
+                                        IsConnected = false;
+                                        Disconnected?.Invoke();
+                                    }
+                                }
+                                else
+                                {
+
                                 }
                             }
                             else if (data.StartsWith("<error>"))
+                            {
+                                SendLogMessage(data, LogMessageType.Error);
+                            }
+                            else if (data.StartsWith("<news_header>"))
+                            {
+                                // пришла новость с рынка
+                                //SendLogMessage(data, LogMessageType.Error);
+                            }
+                            else if (data.StartsWith("<markets>")
+                                || data.StartsWith("<boards>")
+                                || data.StartsWith("<portfolio_mct client")
+                                || data.StartsWith("<overnight status=")
+                                 || data.StartsWith("<union id=")
+                                || data.StartsWith("<candlekinds>"))
+                            {
+                               // do nothin
+                            }
+                            else // if (data.StartsWith("<error>"))
                             {
                                 SendLogMessage(data, LogMessageType.Error);
                             }

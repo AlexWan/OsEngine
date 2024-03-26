@@ -29,15 +29,7 @@ namespace OsEngine.Market.Servers.Transaq
     {
         public TransaqServer()
         {
-            WorkingTimeSettings = new ServerWorkingTimeSettings()
-            {
-                StartSessionTime = new TimeSpan(6, 55, 0),
-                EndSessionTime = new TimeSpan(23, 50, 0),
-                WorkingAtWeekend = false,
-                ServerTimeZone = "Russian Standard Time",
-            };
-
-            ServerRealization = new TransaqServerRealization(WorkingTimeSettings);
+            ServerRealization = new TransaqServerRealization();
 
             CreateParameterString(OsLocalization.Market.Message63, "");
             CreateParameterPassword(OsLocalization.Market.Message64, "");
@@ -61,8 +53,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
-        public ServerWorkingTimeSettings WorkingTimeSettings;
-
         public void GetCandleHistory(CandleSeries series)
         {
             ((TransaqServerRealization)ServerRealization).GetCandleHistory(series);
@@ -73,10 +63,8 @@ namespace OsEngine.Market.Servers.Transaq
     {
         #region 1 Constructor, Status, Connection
 
-        public TransaqServerRealization(ServerWorkingTimeSettings workingTimeSettings)
+        public TransaqServerRealization()
         {
-            _workingTimeSettings = workingTimeSettings;
-
             ServerStatus = ServerConnectStatus.Disconnect;
 
             _logPath = AppDomain.CurrentDomain.BaseDirectory + @"Engine\TransaqLog";
@@ -152,7 +140,6 @@ namespace OsEngine.Market.Servers.Transaq
 
             _cancellationToken = _cancellationTokenSource.Token;
 
-            Task.Run(new Action(SessionTimeHandler), _cancellationToken);
         }
 
         public void Dispose()
@@ -311,36 +298,6 @@ namespace OsEngine.Market.Servers.Transaq
             catch (Exception ex)
             {
                 window.TextInfo.Text = ex.ToString();
-            }
-        }
-
-        private readonly ServerWorkingTimeSettings _workingTimeSettings;
-
-        public bool ServerInWork = true;
-
-        private void SessionTimeHandler()
-        {
-            while (!_cancellationToken.IsCancellationRequested)
-            {
-                var serverCurrentTime = TimeManager.GetExchangeTime(_workingTimeSettings.ServerTimeZone);
-
-                if ((!_workingTimeSettings.WorkingAtWeekend && serverCurrentTime.DayOfWeek == (DayOfWeek.Saturday | DayOfWeek.Sunday)) ||
-                    serverCurrentTime.TimeOfDay < _workingTimeSettings.StartSessionTime ||
-                    serverCurrentTime.TimeOfDay > _workingTimeSettings.EndSessionTime)
-                {
-                    ServerInWork = false;
-
-                    if (_client.IsConnected)
-                    {
-                        _client.Dispose();
-                    }
-                }
-                else
-                {
-                    ServerInWork = true;
-                }
-
-                Thread.Sleep(15000);
             }
         }
 
@@ -619,11 +576,6 @@ namespace OsEngine.Market.Servers.Transaq
                         continue;
                     }
 
-                    if (ServerInWork == false)
-                    {
-                        continue;
-                    }
-
                     if (_client == null)
                     {
                         continue;
@@ -641,6 +593,20 @@ namespace OsEngine.Market.Servers.Transaq
 
                     for (int i = 0; i < _clients.Count; i++)
                     {
+                        if (ServerStatus == ServerConnectStatus.Disconnect)
+                        {
+                            break;
+                        }
+                        if (_client == null)
+                        {
+                            break;
+                        }
+
+                        if (!_client.IsConnected)
+                        {
+                            break;
+                        }
+
                         Client client = _clients[i];
 
                         string command;
@@ -653,7 +619,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (res != "<result success=\"true\"/>")
                             {
-                                SendLogMessage("CycleGettingPortfolios method error " + res, LogMessageType.Error);
+                                // whait
                                 Thread.Sleep(5000);
                             }
                         }
@@ -672,7 +638,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (res != "<result success=\"true\"/>")
                             {
-                                SendLogMessage("CycleGettingPortfolios method error " + res, LogMessageType.Error);
+                                // whait
                                 Thread.Sleep(5000);
                             }
                         }
@@ -684,7 +650,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (res != "<result success=\"true\"/>")
                             {
-                                SendLogMessage("CycleGettingPortfolios method error " + res, LogMessageType.Error);
+                                // whait
                                 Thread.Sleep(5000);
                             }
                         }
@@ -1037,13 +1003,20 @@ namespace OsEngine.Market.Servers.Transaq
                 cmd += "</command>";
 
                 // sending command / отправка команды
-                string res = _client.ConnectorSendCommand(cmd);
+                string res = _client?.ConnectorSendCommand(cmd);
 
                 if (res != "<result success=\"true\"/>")
                 {
                     if (countTry >= 3)
                     {
-                        SendLogMessage(res, LogMessageType.Error);
+                        SendLogMessage(OsLocalization.Market.Message95 + "  " + res, LogMessageType.Error);
+
+                        if(ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+
                         return;
                     }
                     else
@@ -1997,6 +1970,11 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void SendLogMessage(string message, LogMessageType type)
         {
+            if(type == LogMessageType.Error)
+            {
+
+            }
+
             if (LogMessageEvent != null)
             {
                 LogMessageEvent(message, type);
