@@ -40,7 +40,7 @@ namespace OsEngine.Market.SupportTable
 
             SupportConnection tinkoff = new SupportConnection()
             {
-                ServerType = ServerType.Tinkoff,
+                ServerType = ServerType.TinkoffInvestments,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Moex\\Tinkoff.png",
                 LingSiteUrl = "",

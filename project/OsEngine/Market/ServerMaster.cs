@@ -38,7 +38,6 @@ using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
-using OsEngine.Market.Servers.Tinkoff;
 using OsEngine.Market.Servers.TinkoffInvestments;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.Bybit;
@@ -164,7 +163,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
-                serverTypes.Add(ServerType.Tinkoff);
                 serverTypes.Add(ServerType.TinkoffInvestments);
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
@@ -439,10 +437,6 @@ namespace OsEngine.Market
                 if (type == ServerType.MoexDataServer)
                 {
                     newServer = new MoexDataServer();
-                }
-                if (type == ServerType.Tinkoff)
-                {
-                    newServer = new TinkoffServer();
                 }
                 if (type == ServerType.TinkoffInvestments)
                 {
@@ -1058,10 +1052,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new FinamServerPermission();
                 }
-                else if (type == ServerType.Tinkoff)
-                {
-                    serverPermission = new TinkoffServerPermission();
-                }
                 else if (type == ServerType.TinkoffInvestments)
                 {
                     serverPermission = new TinkoffInvestmentsServerPermission();
@@ -1277,12 +1267,6 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
-
-        /// <summary>
-        /// connection to Russian broker Tinkoff Invest
-        /// подключение к Тинькофф Инвест (выдающих кредиты под 70% годовых)
-        /// </summary>
-        Tinkoff,
 
         /// <summary>
         /// connection to Russian broker Tinkoff Investments
