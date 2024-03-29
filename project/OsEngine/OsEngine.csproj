@@ -742,6 +742,13 @@
     <Compile Include="Market\Servers\Lmax\Tags.cs" />
     <Compile Include="Market\Servers\MFD\MfdServer.cs" />
     <Compile Include="Market\Servers\MFD\MfdServerPermission.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\MoexAlgopackAuth.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseCandles.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseDepth.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseSecurities.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseTrades.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServer.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServerPermission.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssDataServer.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssPermission.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />

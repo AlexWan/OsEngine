@@ -57,6 +57,7 @@ using OsEngine.Market.Servers.Deribit;
 using OsEngine.Market.Servers.XT.XTSpot;
 using OsEngine.Market.Servers.Pionex;
 using OsEngine.Market.Servers.Woo;
+using OsEngine.Market.Servers.MoexAlgopack;
 
 namespace OsEngine.Market
 {
@@ -196,7 +197,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
-
+                serverTypes.Add(ServerType.MoexAlgopack);
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
@@ -282,7 +283,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
-
+                serverTypes.Add(ServerType.MoexAlgopack);
                 serverTypes.Add(ServerType.AscendEx_BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
@@ -381,6 +382,10 @@ namespace OsEngine.Market
                 if (type == ServerType.BingXSpot)
                 {
                     newServer = new BingXServerSpot();
+                }
+                if (type == ServerType.MoexAlgopack)
+                {
+                    newServer = new MoexAlgopackServer();
                 }
                 if (type == ServerType.XTSpot)
                 {
@@ -988,6 +993,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new KuCoinFuturesServerPermission();
                 }
+                else if (type == ServerType.MoexAlgopack)
+                {
+                    serverPermission = new MoexAlgopackServerPermission();
+                }
                 else if (type == ServerType.XTSpot)
                 {
                     serverPermission = new XTSpotServerPermission();
@@ -1511,5 +1520,10 @@ namespace OsEngine.Market
         /// Woo exchange
         /// </summary>
         Woo,
+
+        /// <summary>
+        /// MoexAlgopack data-server
+        /// </summary>
+        MoexAlgopack,
     }
 }
