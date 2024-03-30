@@ -136,6 +136,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             O5_Volume = CreateParameter("Volume. orders test 5", 0.01m, 1, 1, 1, "O5");
             O5_CountOrders = CreateParameter("Count orders test 5", 5, 1, 1, 1, "O5");
 
+            StrategyParameterButton buttonOrdersTest6 = CreateParameterButton("Start test orders 6", "O6");
+            buttonOrdersTest6.UserClickOnButtonEvent += ButtonOrdersTest6_UserClickOnButtonEvent;
+            O6_SecurityName = CreateParameter("Sec name. orders test 6", "ETHUSDT", "O6");
+            O6_SecurityClass = CreateParameter("Sec class. orders test 6", "Futures", "O6");
+            O6_PortfolioName = CreateParameter("Portfolio. orders test 6", "BinanceFutures", "O6");
+            O6_Volume = CreateParameter("Volume. orders test 6", 0.01m, 1, 1, 1, "O6");
+            O6_FakeBigPrice = CreateParameter("Fake big price. orders test 6", 0.01m, 1, 1, 1, "O6");
+            O6_FakeSmallPrice = CreateParameter("Fake small price. orders test 6", 0.01m, 1, 1, 1, "O6");
+
             StrategyParameterButton buttonPortfolioTest1 = CreateParameterButton("Start test portfolio 1", "P1");
             buttonPortfolioTest1.UserClickOnButtonEvent += ButtonPortfolioTest1_UserClickOnButtonEvent;
             P1_PortfolioName = CreateParameter("Portfolio.  portfolio 1", "BinanceFutures", "P1");
@@ -222,6 +231,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString O5_PortfolioName;
         StrategyParameterDecimal O5_Volume;
         StrategyParameterInt O5_CountOrders;
+
+        StrategyParameterString O6_SecurityName;
+        StrategyParameterString O6_SecurityClass;
+        StrategyParameterString O6_PortfolioName;
+        StrategyParameterDecimal O6_Volume;
+        StrategyParameterDecimal O6_FakeBigPrice;
+        StrategyParameterDecimal O6_FakeSmallPrice;
 
         StrategyParameterString P1_SecurityName;
         StrategyParameterString P1_SecurityClass;
@@ -485,6 +501,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
 
             CurTestType = ServerTestType.Order_5;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonOrdersTest6_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_6;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -771,6 +800,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
+                else if (CurTestType == ServerTestType.Order_6)
+                {
+                    Orders_6_ChangePriceError tester = new Orders_6_ChangePriceError();
+                    tester.SecurityNameToTrade = O6_SecurityName.ValueString;
+                    tester.SecurityClassToTrade = O6_SecurityClass.ValueString;
+                    tester.PortfolioName = O6_PortfolioName.ValueString;
+                    tester.VolumeToTrade = O6_Volume.ValueDecimal;
+                    tester.FakeBigPrice = O6_FakeBigPrice.ValueDecimal;
+                    tester.FakeSmallPrice = O6_FakeSmallPrice.ValueDecimal;
+
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
                 else if (CurTestType == ServerTestType.Portfolio_1)
                 {
                     Portfolio_1_Validation tester = new Portfolio_1_Validation();
@@ -849,6 +895,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         Order_3,
         Order_4,
         Order_5,
+        Order_6,
         Portfolio_1,
     }
 
