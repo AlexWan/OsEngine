@@ -1447,15 +1447,17 @@ namespace OsEngine.Market.Servers.Bybit
                     if (responseMyTrades.data[i].category == Category.spot.ToString() && myTrade.Side == Side.Buy && !string.IsNullOrWhiteSpace(responseMyTrades.data[i].execFee))   // комиссия на споте при покупке берется с купленой монеты
                     {
                         myTrade.Volume = responseMyTrades.data[i].execQty.ToDecimal() - responseMyTrades.data[i].execFee.ToDecimal();
+                        int decimalVolum = GetDecimalsVolume(responseMyTrades.data[i].execQty); 
+                        if (decimalVolum > 0) 
+                        {
+                            myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
+                        }
                     }
                     else
                     {
                         myTrade.Volume = responseMyTrades.data[i].execQty.ToDecimal();
                     }
-
-
                     
-
                     MyTradeEvent?.Invoke(myTrade);
                 }
             }
@@ -1875,6 +1877,7 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     parameters["marketUnit"] = "baseCoin";
                 }
+
                 parameters["orderLinkId"] = MyIDPrefix + order.NumberUser.ToString();
                 parameters["positionIdx"] = 0;// hedge_mode;
 
