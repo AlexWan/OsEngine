@@ -741,7 +741,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
             #region 8 Queries
 
             private readonly RateGate _rateGateGetData = new RateGate(95, TimeSpan.FromSeconds(10));
-            
+
             HttpClient _httpPublicClient = new HttpClient(handler);
 
             private List<Security> _subscribledSecurities = new List<Security>();

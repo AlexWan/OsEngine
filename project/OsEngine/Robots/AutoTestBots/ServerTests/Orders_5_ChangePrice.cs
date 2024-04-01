@@ -132,6 +132,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (order != null)
                 {
+                    Thread.Sleep(500);
                     ChangeOrderPrice(order, mySecurity);
                     Thread.Sleep(2000);
                     CancelOrder(order);
@@ -151,6 +152,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (order != null)
                 {
+                    Thread.Sleep(500);
                     ChangeOrderPrice(order, mySecurity);
                     Thread.Sleep(2000);
                     CancelOrder(order);
@@ -269,11 +271,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.Side == Side.Buy)
             {
-                newOrderPrice = Math.Round(bid - (bid * 0.005m),security.Decimals);
+                newOrderPrice = Math.Round(bid - (bid * 0.01m),security.Decimals);
             }
             else if (order.Side == Side.Sell)
             {
-                newOrderPrice = Math.Round(ask + (ask * 0.005m), security.Decimals);
+                newOrderPrice = Math.Round(ask + (ask * 0.01m), security.Decimals);
             }
 
             while(order.Price ==  newOrderPrice)

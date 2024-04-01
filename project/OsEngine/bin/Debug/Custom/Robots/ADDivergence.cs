@@ -5,7 +5,6 @@ using System.Linq;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
-using OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;

@@ -10,8 +10,6 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Logging;
-using System.Runtime.CompilerServices;
-using OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema;
 
 /* Description
 trading robot for osengine
