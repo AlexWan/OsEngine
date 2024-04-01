@@ -2053,24 +2053,17 @@ namespace OsEngine.Market.Servers.Alor
                         MyOrderEvent(order);
                     }
 
-                    return;
+                    //return;
                 }
                 else
                 {
-                    SendLogMessage("Order Fail. Status: "
+                    SendLogMessage("Change price order Fail. Status: "
                         + response.StatusCode + "  " + order.SecurityNameCode, LogMessageType.Error);
 
                     if (response.Content != null)
                     {
                         SendLogMessage("Fail reasons: "
                       + response.Content, LogMessageType.Error);
-                    }
-
-                    order.State = OrderStateType.Fail;
-
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
                     }
                 }
 

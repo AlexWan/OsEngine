@@ -124,7 +124,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (order != null)
             {
                 ChangeOrderPrice(order, mySecurity);
-                Thread.Sleep(2000);
+                Thread.Sleep(10000);
                 CancelOrder(order);
             }
             else
@@ -142,7 +142,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (order2 != null)
             {
                 ChangeOrderPrice(order2, mySecurity);
-                Thread.Sleep(2000);
+                Thread.Sleep(10000);
                 CancelOrder(order2);
             }
             else
