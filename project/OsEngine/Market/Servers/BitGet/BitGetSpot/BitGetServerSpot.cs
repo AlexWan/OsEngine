@@ -7,6 +7,7 @@ using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -51,6 +52,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
+
+            ServicePointManager.SecurityProtocol =
+            SecurityProtocolType.Ssl3
+            | SecurityProtocolType.Tls11
+            | SecurityProtocolType.Tls;
 
             HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + "/api/spot/v1/public/time").Result;
             string json = responseMessage.Content.ReadAsStringAsync().Result;

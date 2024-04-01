@@ -63,6 +63,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
 
+            ServicePointManager.SecurityProtocol =
+                SecurityProtocolType.Ssl3 
+                | SecurityProtocolType.Tls11 
+                | SecurityProtocolType.Tls;
+           
             string requestStr = "/api/mix/v1/market/contracts?productType=umcbl";
             RestRequest requestRest = new RestRequest(requestStr, Method.GET);
             IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
