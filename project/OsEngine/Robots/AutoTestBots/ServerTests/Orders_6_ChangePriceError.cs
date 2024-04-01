@@ -254,9 +254,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ChangeOrderPrice(Order order, Security security)
         {
-            decimal newOrderPriceFakeBig = order.Price;
+            decimal newOrderPriceFakeBig = FakeBigPrice;
 
-            decimal newOrderPriceFakeSmall = order.Price;
+            decimal newOrderPriceFakeSmall = FakeSmallPrice;
 
             Server.ChangeOrderPrice(order, newOrderPriceFakeBig);
             Server.ChangeOrderPrice(order, newOrderPriceFakeSmall);

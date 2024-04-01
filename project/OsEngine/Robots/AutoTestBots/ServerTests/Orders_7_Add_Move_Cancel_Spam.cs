@@ -3,10 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Market;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
-    public class Proff_Test_1_AddAndCancel_Limit : AServerTester
+    public class Orders_7_Add_Move_Cancel_Spam : AServerTester
     {
         public string SecurityNameToTrade = "ETHUSDT";
 
@@ -22,14 +23,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (Server.ServerStatus != ServerConnectStatus.Connect)
             {
-                this.SetNewError("Error 0. Server Status Disconnect");
-                TestEnded();
-                return;
-            }
-
-            if (CountOrders < 40)
-            {
-                this.SetNewError("Error 1. Iteration Count < 40.");
+                this.SetNewError("Error 1. Server Status Disconnect");
                 TestEnded();
                 return;
             }
@@ -63,9 +57,25 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
+            IServerPermission serverPermission = ServerMaster.GetServerPermission(_myServer.ServerType);
+
+            if (serverPermission == null)
+            {
+                SetNewError("Error 4. No server permission.");
+                TestEnded();
+                return;
+            }
+
+            if (serverPermission.IsCanChangeOrderPrice == false)
+            {
+                SetNewServiceInfo("No permission. Server can`t change order price. Test over");
+                TestEnded();
+                return;
+            }
+
             if (VolumeToTrade <= 0)
             {
-                SetNewError("Error 4. Volume is zero");
+                SetNewError("Error 6. Volume is zero");
                 TestEnded();
                 return;
             }
@@ -81,7 +91,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeStartWait < DateTime.Now)
                 {
-                    SetNewError("Error 5. No market depth after 2 minutes");
+                    SetNewError("Error 7. No market depth after 2 minutes");
                     TestEnded();
                     return;
                 }
@@ -92,7 +102,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (md.Asks.Count == 0 ||
                 md.Bids.Count == 0)
             {
-                SetNewError("Error 6. No bid or ask in Market Depth");
+                SetNewError("Error 8. No bid or ask in Market Depth");
                 TestEnded();
                 return;
             }
@@ -100,7 +110,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (md.Asks[0].Price == 0 ||
                 md.Bids[0].Price == 0)
             {
-                SetNewError("Error 7. Bid or Ask is zero price");
+                SetNewError("Error 9. Bid or Ask is zero price");
                 TestEnded();
                 return;
             }
@@ -109,37 +119,38 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
 
-            for (int i = 0; i < CountOrders; i++)
-            {
-                Order order = SendBuyOrder(mySecurity, price);
+            Order order = SendBuyOrder(mySecurity, price);
 
-                if (order != null)
-                {
-                    CancelOrder(order);
-                }
-                else
-                {
-                    TestEnded();
-                    return;
-                }
+            if (order != null)
+            {
+                ChangeOrderPrice(order, mySecurity);
+                Thread.Sleep(2000);
+                CancelOrder(order);
+            }
+            else
+            {
+                TestEnded();
+                return;
             }
 
             Thread.Sleep(10000);
 
-            for (int i = 0; i < CountOrders; i++)
-            {
-                Order order = SendSellOrder(mySecurity, price);
+            // ордер на продажу
 
-                if (order != null)
-                {
-                    CancelOrder(order);
-                }
-                else
-                {
-                    TestEnded();
-                    return;
-                }
+            Order order2 = SendSellOrder(mySecurity, price);
+
+            if (order2 != null)
+            {
+                ChangeOrderPrice(order2, mySecurity);
+                Thread.Sleep(2000);
+                CancelOrder(order2);
             }
+            else
+            {
+                TestEnded();
+                return;
+            }
+
 
             TestEnded();
         }
@@ -161,7 +172,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.01m, mySec.Decimals); // проскальзывание 1%
+            price = Math.Round(price - price * 0.005m, mySec.Decimals);
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
             _whaitSide = Side.Buy;
@@ -177,19 +188,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 8. No Active order from server BuyLimit");
+                    this.SetNewError("Error 10. No Active order from server Buy");
                     return null;
                 }
 
                 if (_ordersActive.Count != 0)
                 {
-                    this.SetNewServiceInfo("BuyLimit Active order income Check!");
+                    this.SetNewServiceInfo("Buy Active order income Check!");
                     order = _ordersActive[0];
                     break;
                 }
                 else
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(1);
                 }
             }
 
@@ -202,7 +213,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price + price * 0.01m, mySec.Decimals); // проскальзывание 1%
+            price = Math.Round(price + price * 0.005m, mySec.Decimals);
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
             _whaitSide = Side.Sell;
@@ -218,25 +229,63 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 9. No reject order from server SellLimit");
+                    this.SetNewError("Error 11. No reject order from server Sell");
                     return null;
                 }
 
                 if (_ordersActive.Count != 0)
                 {
-                    this.SetNewServiceInfo("SellLimit Active order income Check!");
+                    this.SetNewServiceInfo("Sell Active order income Check!");
                     order = _ordersActive[0];
                     break;
                 }
                 else
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(1);
                 }
             }
 
             ClearOrders();
 
             return order;
+        }
+
+        private void ChangeOrderPrice(Order order, Security security)
+        {
+            decimal newOrderPrice = 0;
+
+            decimal bid = _md.Bids[0].Price;
+            decimal ask = _md.Asks[0].Price;
+
+            if (order.Side == Side.Buy)
+            {
+                newOrderPrice = Math.Round(bid - (bid * 0.01m), security.Decimals);
+            }
+            else if (order.Side == Side.Sell)
+            {
+                newOrderPrice = Math.Round(ask + (ask * 0.01m), security.Decimals);
+            }
+
+            while (order.Price == newOrderPrice)
+            {
+                newOrderPrice += security.PriceStep;
+            }
+
+            for(int i = 0;i < CountOrders;i++)
+            {
+                Server.ChangeOrderPrice(order, newOrderPrice);
+
+                if (order.Side == Side.Buy)
+                {
+                    newOrderPrice = newOrderPrice - security.PriceStep;
+                }
+                else if (order.Side == Side.Sell)
+                {
+                    newOrderPrice = newOrderPrice + security.PriceStep;
+                }
+            }
+
+            ClearOrders();
         }
 
         private void CancelOrder(Order order)
@@ -251,7 +300,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 10. No reject order from server CancelOrder");
+                    this.SetNewError("Error 18. No reject order from server CancelOrder");
                     return;
                 }
 
@@ -308,7 +357,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (order.State == OrderStateType.None)
             {
-                this.SetNewError("Error 11. Order whith state NONE");
+                this.SetNewError("Error 19. Order whith state NONE");
                 return;
             }
 
@@ -362,66 +411,66 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.Side != _whaitSide)
             {
-                this.SetNewError("Error 12. Whait side note equal. Whait: " + _whaitSide
+                this.SetNewError("Error 20. Whait side note equal. Whait: " + _whaitSide
                     + " Side in order: " + order.Side);
                 return false;
             }
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-                this.SetNewError("Error 13. Order Type is note Liimt. Real type: " + order.TypeOrder);
+                this.SetNewError("Error 21. Order Type is note Liimt. Real type: " + order.TypeOrder);
                 return false;
             }
 
 
             if (order.TimeCallBack == DateTime.MinValue)
             {
-                this.SetNewError("Error 14. TimeCallBack is MinValue");
+                this.SetNewError("Error 22. TimeCallBack is MinValue");
                 return false;
             }
 
             if (order.TimeDone == DateTime.MinValue &&
                 order.State == OrderStateType.Done)
             {
-                this.SetNewError("Error 15. Order Done, buy TimeDone is MinValue");
+                this.SetNewError("Error 23. Order Done, buy TimeDone is MinValue");
                 return false;
             }
 
             if (order.TimeCancel == DateTime.MinValue &&
                 order.State == OrderStateType.Cancel)
             {
-                this.SetNewError("Error 16. Order Cancel, buy TimeCancel is MinValue");
+                this.SetNewError("Error 24. Order Cancel, buy TimeCancel is MinValue");
                 return false;
             }
 
             if (order.NumberUser == 0)
             {
-                this.SetNewError("Error 17. NumberUser is zero");
+                this.SetNewError("Error 25. NumberUser is zero");
                 return false;
             }
 
             if (order.State != OrderStateType.Fail
                 && string.IsNullOrEmpty(order.NumberMarket))
             {
-                this.SetNewError("Error 18. NumberMarket is null or empty");
+                this.SetNewError("Error 26. NumberMarket is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.SecurityNameCode))
             {
-                this.SetNewError("Error 19. SecurityNameCode is null or empty");
+                this.SetNewError("Error 27. SecurityNameCode is null or empty");
                 return false;
             }
 
             if (string.IsNullOrEmpty(order.PortfolioNumber))
             {
-                this.SetNewError("Error 20. PortfolioNumber is null or empty");
+                this.SetNewError("Error 28. PortfolioNumber is null or empty");
                 return false;
             }
 
             if (order.Side == Side.None)
             {
-                this.SetNewError("Error 21. Side is None");
+                this.SetNewError("Error 29. Side is None");
                 return false;
             }
 
@@ -429,7 +478,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 && order.TypeOrder != OrderPriceType.Market
                 && order.Price <= 0)
             {
-                this.SetNewError("Error 22. Price is zero");
+                this.SetNewError("Error 30. Price is zero");
                 return false;
             }
 
@@ -437,7 +486,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 order.State != OrderStateType.Cancel &&
                 order.Volume <= 0)
             {
-                this.SetNewError("Error 23. Volume is zero");
+                this.SetNewError("Error 31. Volume is zero");
                 return false;
             }
 

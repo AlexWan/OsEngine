@@ -280,7 +280,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             while(order.Price ==  newOrderPrice)
             {
-                order.Price += security.PriceStep;
+                newOrderPrice += security.PriceStep;
             }
 
             Server.ChangeOrderPrice(order, newOrderPrice);

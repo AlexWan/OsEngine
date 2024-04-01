@@ -145,6 +145,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             O6_FakeBigPrice = CreateParameter("Fake big price. orders test 6", 0.01m, 1, 1, 1, "O6");
             O6_FakeSmallPrice = CreateParameter("Fake small price. orders test 6", 0.01m, 1, 1, 1, "O6");
 
+            StrategyParameterButton buttonOrdersTest7 = CreateParameterButton("Start test orders 7", "O7");
+            buttonOrdersTest7.UserClickOnButtonEvent += ButtonOrdersTest7_UserClickOnButtonEvent;
+            O7_PortfolioName = CreateParameter("Portfolio. orders test 7", "BinanceFutures", "O7");
+            O7_SecurityName = CreateParameter("Sec name. orders test 7", "ETHUSDT", "O7");
+            O7_SecurityClass = CreateParameter("Sec class. orders test 7", "Futures", "O7");
+            O7_Volume = CreateParameter("Volume. orders test 7", 0.01m, 1, 1, 1, "O7");
+            O7_CountOrders = CreateParameter("Count orders test 7", 5, 1, 1, 1, "O7");
+
             StrategyParameterButton buttonPortfolioTest1 = CreateParameterButton("Start test portfolio 1", "P1");
             buttonPortfolioTest1.UserClickOnButtonEvent += ButtonPortfolioTest1_UserClickOnButtonEvent;
             P1_PortfolioName = CreateParameter("Portfolio.  portfolio 1", "BinanceFutures", "P1");
@@ -152,6 +160,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             P1_SecurityClass = CreateParameter("Sec class.  portfolio 1", "Futures", "P1");
             P1_AssetInPortfolioName = CreateParameter("Asset In portfolio 1", "ETH", "P1");
             P1_Volume = CreateParameter("Volume.  portfolio 1", 0.01m, 1, 1, 1, "P1");
+
+
 
         }
 
@@ -239,11 +249,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterDecimal O6_FakeBigPrice;
         StrategyParameterDecimal O6_FakeSmallPrice;
 
+        StrategyParameterString O7_SecurityName;
+        StrategyParameterString O7_SecurityClass;
+        StrategyParameterString O7_PortfolioName;
+        StrategyParameterDecimal O7_Volume;
+        StrategyParameterInt O7_CountOrders;
+
         StrategyParameterString P1_SecurityName;
         StrategyParameterString P1_SecurityClass;
         StrategyParameterString P1_AssetInPortfolioName;
         StrategyParameterString P1_PortfolioName;
         StrategyParameterDecimal P1_Volume;
+
 
         #endregion
 
@@ -514,6 +531,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
 
             CurTestType = ServerTestType.Order_6;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonOrdersTest7_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_7;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -817,6 +847,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
+                else if (CurTestType == ServerTestType.Order_7)
+                {
+                    Orders_7_Add_Move_Cancel_Spam tester = new Orders_7_Add_Move_Cancel_Spam();
+                    tester.SecurityNameToTrade = O7_SecurityName.ValueString;
+                    tester.SecurityClassToTrade = O7_SecurityClass.ValueString;
+                    tester.PortfolioName = O7_PortfolioName.ValueString;
+                    tester.VolumeToTrade = O7_Volume.ValueDecimal;
+                    tester.CountOrders = O7_CountOrders.ValueInt;
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
                 else if (CurTestType == ServerTestType.Portfolio_1)
                 {
                     Portfolio_1_Validation tester = new Portfolio_1_Validation();
@@ -896,6 +941,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         Order_4,
         Order_5,
         Order_6,
+        Order_7,
         Portfolio_1,
     }
 
