@@ -10,6 +10,8 @@ using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
+using OsEngine.Layout;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace OsEngine.Entity
 {
@@ -17,7 +19,7 @@ namespace OsEngine.Entity
     {
         private List<IIStrategyParameter> _parameters;
 
-        public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings)
+        public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings, BotPanel panel)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -39,7 +41,8 @@ namespace OsEngine.Entity
             {
                 Title = settings.Title;
             }
-            
+
+            Title += " / " + panel.NameStrategyUniq;
 
             List<List<IIStrategyParameter>> sorted = GetParamSortedByTabName();
 
@@ -64,6 +67,8 @@ namespace OsEngine.Entity
 
             this.Activate();
             this.Focus();
+
+            GlobalGUILayout.Listen(this, "botPanelParameters_" + panel.NameStrategyUniq);
         }
 
         private void ParemetrsUi_Closed(object sender, EventArgs e)
