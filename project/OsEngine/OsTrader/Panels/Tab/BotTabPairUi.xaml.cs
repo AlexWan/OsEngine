@@ -104,14 +104,24 @@ namespace OsEngine.OsTrader.Panels.Tab
             ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Off.ToString());
             ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Limit.ToString());
             ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Market.ToString());
-            ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
+
+            if(_pair.Tab1.StartProgram == StartProgram.IsOsTrader)
+            {
+                ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
+            }
+
             ComboBoxSec1Regime.SelectedItem = _pair.Sec1TradeRegime.ToString();
             ComboBoxSec1Regime.SelectionChanged += ComboBoxSec1Regime_SelectionChanged;
 
             ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Off.ToString());
             ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Limit.ToString());
             ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Market.ToString());
-            ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
+
+            if (_pair.Tab2.StartProgram == StartProgram.IsOsTrader)
+            {
+                ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
+            }
+            
             ComboBoxSec2Regime.SelectedItem = _pair.Sec2TradeRegime.ToString();
             ComboBoxSec2Regime.SelectionChanged += ComboBoxSec2Regime_SelectionChanged;
 
