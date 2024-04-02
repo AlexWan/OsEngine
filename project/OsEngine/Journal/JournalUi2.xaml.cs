@@ -26,7 +26,6 @@ using MenuItem = System.Windows.Forms.MenuItem;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using System.Threading;
 using OsEngine.Layout;
-using System.Security.Cryptography;
 
 namespace OsEngine.Journal
 {
@@ -2579,7 +2578,8 @@ namespace OsEngine.Journal
 
         private void CreateBotsGrid()
         {
-            _gridLeftBotsPanel = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
+            _gridLeftBotsPanel 
+                = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
 
             _gridLeftBotsPanel.AllowUserToResizeRows = true;
             _gridLeftBotsPanel.ScrollBars = ScrollBars.Vertical;
@@ -2656,11 +2656,18 @@ namespace OsEngine.Journal
                 rows.AddRange(GetGroupRowList(groups[i], allGroups));
             }
 
+            int showRowNum = _gridLeftBotsPanel.FirstDisplayedScrollingRowIndex;
+
             _gridLeftBotsPanel.Rows.Clear();
 
             for(int i = 0;i < rows.Count;i++)
             {
                 _gridLeftBotsPanel.Rows.Add(rows[i]);
+            }
+
+            if(showRowNum > 0)
+            {
+                _gridLeftBotsPanel.FirstDisplayedScrollingRowIndex = showRowNum;
             }
 
             _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
