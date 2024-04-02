@@ -2216,6 +2216,19 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
+                if (ServerRealization.ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("AServer Error. You can't Execute order when server status Disconnect "
+                        + order.NumberUser, LogMessageType.Error);
+
+                    order.State = OrderStateType.Fail;
+                    _ordersToSend.Enqueue(order);
+
+                    SendLogMessage(OsLocalization.Market.Message17 + order.NumberUser +
+                                   OsLocalization.Market.Message18, LogMessageType.Error);
+                    return;
+                }
+
                 order.TimeCreate = ServerTime;
 
                 OrderAserverSender ord = new OrderAserverSender();
@@ -2248,13 +2261,15 @@ namespace OsEngine.Market.Servers
             {
                 if (string.IsNullOrEmpty(order.NumberMarket))
                 {
-                    SendLogMessage("You can't change order price an order without a stock exchange number " + order.NumberUser, LogMessageType.System);
+                    SendLogMessage("AServer Error. You can't change order price an order without a stock exchange number " 
+                        + order.NumberUser, LogMessageType.Error);
                     return;
                 }
 
                 if(ServerRealization.ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("You can't change order price when server status Disconnect " + order.NumberUser, LogMessageType.System);
+                    SendLogMessage("AServer Error. You can't change order price when server status Disconnect " 
+                        + order.NumberUser, LogMessageType.Error);
                     return;
                 }
 
@@ -2293,7 +2308,56 @@ namespace OsEngine.Market.Servers
 
                 if (string.IsNullOrEmpty(order.NumberMarket))
                 {
-                    SendLogMessage("You can't revoke an order without a stock exchange number " + order.NumberUser, LogMessageType.System);
+                    SendLogMessage("AServer Error. You can't cancel an order without a stock exchange number " 
+                        + order.NumberUser, LogMessageType.Error);
+                    return;
+                }
+
+                if (ServerRealization.ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("AServer Error. You can't cancel order when server status Disconnect " 
+                        + order.NumberUser, LogMessageType.Error);
+                    return;
+                }
+
+                OrderCounter saveOrder = null;
+
+                for (int i = 0;i < _canceledOrders.Count;i++)
+                {
+                    if (_canceledOrders[i].NumberMarket == order.NumberMarket)
+                    {
+                        saveOrder = _canceledOrders[i];
+                        break;
+                    }
+                }
+
+                if(saveOrder == null)
+                {
+                    saveOrder = new OrderCounter();
+                    saveOrder.NumberMarket = order.NumberMarket;
+                    _canceledOrders.Add(saveOrder);
+
+                    if(_canceledOrders.Count > 50)
+                    {
+                        _canceledOrders.RemoveAt(0);
+                    }
+                }
+
+                saveOrder.NumberOfCalls++;
+
+                if(saveOrder.NumberOfCalls >= 5)
+                {
+                    saveOrder.NumberOfErrors++;
+
+                    if( saveOrder.NumberOfErrors <= 3 )
+                    {
+                        SendLogMessage(
+                        "AServer Error. You can't cancel order. There have already been five attempts to cancel order. "
+                         + "NumberUser: "+ order.NumberUser
+                         + " NumberMarket: " + order.NumberMarket
+                         , LogMessageType.Error);
+                    }
+
                     return;
                 }
 
@@ -2312,6 +2376,8 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        List<OrderCounter> _canceledOrders = new List<OrderCounter>();
+
         /// <summary>
         /// cancel all orders from trading system
         /// </summary>
@@ -2322,6 +2388,8 @@ namespace OsEngine.Market.Servers
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
+                    SendLogMessage("AServer Error. You can't cancel all orders when server status Disconnect "
+                        , LogMessageType.Error);
                     return;
                 }
 
@@ -2345,6 +2413,8 @@ namespace OsEngine.Market.Servers
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
+                    SendLogMessage("AServer Error. You can't cancel orders to Security when server status Disconnect "
+                    , LogMessageType.Error);
                     return;
                 }
 
@@ -2452,5 +2522,15 @@ namespace OsEngine.Market.Servers
         Execute,
         Cancel,
         ChangePrice
+    }
+
+    public class OrderCounter
+    {
+        public string NumberMarket;
+
+        public int NumberOfCalls;
+
+        public int NumberOfErrors;
+
     }
 }
