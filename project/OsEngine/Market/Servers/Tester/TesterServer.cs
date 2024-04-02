@@ -13,8 +13,10 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
+using OsEngine.Market.Servers.Bitfinex.BitfitnexEntity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace OsEngine.Market.Servers.Tester
 {
@@ -2242,7 +2244,8 @@ namespace OsEngine.Market.Servers.Tester
                 time = lastCandle.TimeStart;
             }
 
-            if (time <= order.TimeCallBack && !order.IsStopOrProfit)
+            if (time <= order.TimeCallBack 
+                && order.IsStopOrProfit != true)
             {
                 //CanselOnBoardOrder(order);
                 return false;
@@ -2275,6 +2278,28 @@ namespace OsEngine.Market.Servers.Tester
                 return true;
             }
 
+            if (order.TypeOrder == OrderPriceType.Market)
+            {
+                if (order.TimeCreate >= lastCandle.TimeStart)
+                {
+                    return false;
+                }
+
+                decimal realPrice = lastCandle.Open;
+
+                ExecuteOnBoardOrder(order, realPrice, time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                return true;
+            }
 
             // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
@@ -2451,6 +2476,29 @@ namespace OsEngine.Market.Servers.Tester
                 return true;
             }
 
+            if (order.TypeOrder == OrderPriceType.Market)
+            {
+                if (order.TimeCreate >= lastTrade.Time)
+                {
+                    return false;
+                }
+
+                decimal realPrice = lastTrade.Price;
+
+                ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                return true;
+            }
+
             // check whether the order passed/проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
@@ -2579,8 +2627,40 @@ namespace OsEngine.Market.Servers.Tester
 
             if (time <= order.TimeCallBack && !order.IsStopOrProfit)
             {
-                CanselOnBoardOrder(order);
+                //CanselOnBoardOrder(order);
                 return false;
+            }
+
+            if (order.TypeOrder == OrderPriceType.Market)
+            {
+                if (order.TimeCreate >= lastMarketDepth.Time)
+                {
+                    return false;
+                }
+
+                decimal realPrice = 0;
+
+                if(order.Side == Side.Buy)
+                {
+                    realPrice = sellBestPrice;
+                }
+                else //if(order.Side == Side.Sell)
+                {
+                    realPrice = buyBestPrice;
+                }
+
+                ExecuteOnBoardOrder(order, realPrice, lastMarketDepth.Time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                return true;
             }
 
             // check whether the order passed / проверяем, прошёл ли ордер
