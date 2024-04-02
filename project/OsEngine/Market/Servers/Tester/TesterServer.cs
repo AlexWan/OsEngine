@@ -106,6 +106,23 @@ namespace OsEngine.Market.Servers.Tester
 
         }
 
+        public bool GuiIsOpenFullSettings
+        {
+            get
+            {
+                return _guiIsOpenFullSettings;
+            }
+            set
+            {
+                if(_guiIsOpenFullSettings != value)
+                {
+                    _guiIsOpenFullSettings = value;
+                    Save();
+                }
+            }
+        }
+        private bool _guiIsOpenFullSettings;
+
         void _ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _ui = null;
@@ -162,7 +179,7 @@ namespace OsEngine.Market.Servers.Tester
                     _slipageToStopOrder = Convert.ToInt32(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out _orderExecutionType);
                     _profitMarketIsOn = Convert.ToBoolean(reader.ReadLine());
-                    
+                    _guiIsOpenFullSettings = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -191,6 +208,7 @@ namespace OsEngine.Market.Servers.Tester
                     writer.WriteLine(_slipageToStopOrder);
                     writer.WriteLine(_orderExecutionType);
                     writer.WriteLine(_profitMarketIsOn);
+                    writer.WriteLine(_guiIsOpenFullSettings);
 
                     writer.Close();
                 }
