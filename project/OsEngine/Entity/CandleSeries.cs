@@ -99,6 +99,11 @@ namespace OsEngine.Entity
         public bool IsMergedByCandlesFromFile;
 
         /// <summary>
+        /// whether the data series has been merged with trades data from the file system
+        /// </summary>
+        public bool IsMergedByTradesFromFile;
+
+        /// <summary>
         /// security on which the candles are assembled
         /// </summary>
         public Security Security;
@@ -226,6 +231,58 @@ namespace OsEngine.Entity
             UpdateChangeCandle();
 
             _isStarted = true;
+        }
+
+        /// <summary>
+        /// Load trades into existing candles
+        /// </summary>
+        public void LoadTradesInCandles(List<Trade> trades)
+        {
+            if(CandlesAll == null ||
+                CandlesAll.Count < 2)
+            {
+                return;
+            }
+
+            int candleIndex = 0;
+
+            for(int i = 0;i < trades.Count;i++)
+            {
+                Trade trade = trades[i];
+
+                if(trade == null)
+                {
+                    continue;
+                }
+
+                for(int j = candleIndex; j < CandlesAll.Count;j++)
+                {
+                    candleIndex = j;
+
+                    Candle candle = CandlesAll[j];
+
+                    if(j+1 == CandlesAll.Count)
+                    {
+                        candle.Trades.Add(trade);
+                        break;
+                    }
+
+                    Candle nextCandle = CandlesAll[j + 1];
+
+                    if(candle == null ||
+                        nextCandle == null)
+                    {
+                        continue;
+                    }
+
+                    if(trade.Time > candle.TimeStart &&
+                       trade.Time < nextCandle.TimeStart)
+                    {
+                        candle.Trades.Add(trade);
+                        break;
+                    }
+                }
+            }
         }
 
         #endregion
@@ -504,6 +561,7 @@ namespace OsEngine.Entity
 
             return newTrades;
         }
+
         private int _lastTradeIndex;
         private DateTime _lastTradeTime;
         List<string> _lastTradeIds = new List<string>();

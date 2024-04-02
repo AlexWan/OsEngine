@@ -1439,6 +1439,21 @@ namespace OsEngine.Market.Servers
                 }
             }
 
+            if(series.IsMergedByTradesFromFile == false)
+            {
+                series.IsMergedByTradesFromFile = true;
+
+                if (_neadToSaveTicksParam.Value == true)
+                {
+                    List<Trade> trades = GetAllTradesToSecurity(series.Security);
+
+                    if(trades != null && trades.Count > 0)
+                    {
+                        series.LoadTradesInCandles(trades);
+                    }
+                }
+            }
+
             if (_needToRemoveCandlesFromMemory.Value == true
                 && series.CandlesAll.Count > _neadToSaveCandlesCountParam.Value
                 && _serverTime.Minute % 15 == 0
