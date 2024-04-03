@@ -394,6 +394,7 @@ namespace OsEngine.Market.Servers.Alor
                         || newSecurity.SecurityType == SecurityType.Option)
                     {
                         newSecurity.PriceStepCost = item.pricestep.ToDecimal();
+
                         if(newSecurity.PriceStepCost <= 0)
                         {
                             newSecurity.PriceStepCost = newSecurity.PriceStep;
