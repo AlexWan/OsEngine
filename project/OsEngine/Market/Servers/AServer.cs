@@ -1443,7 +1443,8 @@ namespace OsEngine.Market.Servers
             {
                 series.IsMergedByTradesFromFile = true;
 
-                if (_neadToSaveTicksParam.Value == true)
+                if (_neadToSaveTicksParam.Value == true
+                    && series.TimeFrameBuilder.SaveTradesInCandles)
                 {
                     List<Trade> trades = GetAllTradesToSecurity(series.Security);
 

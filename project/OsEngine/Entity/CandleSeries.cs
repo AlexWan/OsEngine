@@ -275,11 +275,15 @@ namespace OsEngine.Entity
                         continue;
                     }
 
-                    if(trade.Time > candle.TimeStart &&
+                    if(trade.Time >= candle.TimeStart &&
                        trade.Time < nextCandle.TimeStart)
                     {
                         candle.Trades.Add(trade);
                         break;
+                    }
+                    else
+                    {
+
                     }
                 }
             }

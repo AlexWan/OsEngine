@@ -99,13 +99,14 @@ namespace OsEngine.Market.Servers
         private void TickSaverSpaceInOneFile()
         {
             _tradeSaveInfo = new List<TradeSaveInfo>();
-            try
+
+            if (!Directory.Exists(_pathName))
             {
-                if (!Directory.Exists(_pathName))
-                {
-                    Directory.CreateDirectory(_pathName);
-                }
-                while (true)
+                Directory.CreateDirectory(_pathName);
+            }
+            while (true)
+            {
+                try
                 {
                     Thread.Sleep(15000);
 
@@ -122,6 +123,11 @@ namespace OsEngine.Market.Servers
                     if (_weLoadTrades == false)
                     {
                         continue;
+                    }
+
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
                     }
 
                     List<Trade>[] allTrades = _server.AllTrades;
@@ -185,12 +191,13 @@ namespace OsEngine.Market.Servers
                         tradeInfo.LastSaveIndex = allTrades[i1].Count - 1;
                         writer.Close();
 
+
                     }
                 }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
             }
         }
 
@@ -254,9 +261,11 @@ namespace OsEngine.Market.Servers
                         {
                             Trade newTrade = new Trade();
 
+                            string curTrade = tradesInStr[i2];
+
                             try
                             {
-                                newTrade.SetTradeFromString(tradesInStr[i2]);
+                                newTrade.SetTradeFromString(curTrade);
                             }
                             catch
                             {
