@@ -331,6 +331,11 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.description;
 
+                    if(newSecurity.Name == "USDRUBF")
+                    {
+
+                    }
+
                     if (newSecurity.SecurityType == SecurityType.Option)
                     {
                         newSecurity.NameClass = "Option";
@@ -390,7 +395,26 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
 
-                    _securities.Add(newSecurity);
+                    if (newSecurity.SecurityType == SecurityType.Futures 
+                        || newSecurity.SecurityType == SecurityType.Option)
+                    {
+                        newSecurity.PriceStepCost = item.pricestep.ToDecimal();
+                        if(newSecurity.PriceStepCost <= 0)
+                        {
+                            newSecurity.PriceStepCost = newSecurity.PriceStep;
+                        }
+                    }
+
+                    if(string.IsNullOrEmpty(item.priceMax) == false)
+                    {
+                        newSecurity.PriceLimitHigh = item.priceMax.ToDecimal();
+                    }
+                    if (string.IsNullOrEmpty(item.priceMin) == false)
+                    {
+                        newSecurity.PriceLimitLow = item.priceMin.ToDecimal();
+                    }
+
+                     _securities.Add(newSecurity);
                 }
                    
             }
