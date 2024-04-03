@@ -331,11 +331,6 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.description;
 
-                    if(newSecurity.Name == "USDRUBF")
-                    {
-
-                    }
-
                     if (newSecurity.SecurityType == SecurityType.Option)
                     {
                         newSecurity.NameClass = "Option";
@@ -415,8 +410,7 @@ namespace OsEngine.Market.Servers.Alor
                     }
 
                      _securities.Add(newSecurity);
-                }
-                   
+                }  
             }
             catch (Exception e)
             {

@@ -326,6 +326,9 @@ namespace OsEngine.Market.Servers.Transaq
                                     continue;
                                 }
                                 _securityInfos.Add(data);
+
+                                UpdateSecurity?.Invoke(_securityInfos);
+
                                 continue;
                             }
                             else if (data.StartsWith("<securities>"))
@@ -405,8 +408,7 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<server_status"))
                             {
-                                UpdateSecurity?.Invoke(_securityInfos);
-
+   
                                 ServerStatus status = Deserialize<ServerStatus>(data);
 
                                 if (status.Connected == "true")
@@ -506,6 +508,11 @@ namespace OsEngine.Market.Servers.Transaq
         public List<Security> DeserializeSecurities(string data)
         {
             return _deserializer.Deserialize<List<Security>>(new RestResponse() { Content = data }); ;
+        }
+
+        public SecurityInfo DeserializeSpecification(string data)
+        {
+            return _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data }); ;
         }
 
         #region outgoing events / Исходящие события

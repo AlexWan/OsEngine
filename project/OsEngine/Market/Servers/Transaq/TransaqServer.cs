@@ -40,7 +40,7 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
-            CreateParameterBoolean(OsLocalization.Market.UseSecInfoUpdates, false);
+            CreateParameterBoolean(OsLocalization.Market.UseSecInfoUpdates, true);
             CreateParameterButton(OsLocalization.Market.ButtonNameChangePassword);
 
             ServerParameters[4].Comment = OsLocalization.Market.Label107;
@@ -133,6 +133,7 @@ namespace OsEngine.Market.Servers.Transaq
             _client.NewCandles += _client_ClientOnNewCandles;
             _client.NeedChangePassword += _client_NeedChangePassword;
             _client.NewTicks += _client_NewTicks;
+            _client.UpdateSecurity += _client_UpdateSecurity;
 
             _client.Connect(useSecUpdates);
 
@@ -314,6 +315,53 @@ namespace OsEngine.Market.Servers.Transaq
 
         private ConcurrentQueue<string> _transaqSecurities = new ConcurrentQueue<string>();
 
+        private List<string> _secsSpecification = new List<string>();
+
+        private void _client_UpdateSecurity(List<string> secs)
+        {
+            _secsSpecification = secs;
+
+            if(_securities == null ||
+                _securities.Count == 0)
+            {
+                return;
+            }
+
+            if (_secsSpecification != null 
+                && _secsSpecification.Count != 0)
+            {
+                for (int i = 0; i < _secsSpecification.Count; i++)
+                {
+                    SecurityInfo secInfo = _client.DeserializeSpecification(_secsSpecification[i]);
+
+                    for (int j = 0; j < _securities.Count; j++)
+                    {
+                        Security secCur = _securities[j];
+
+                        if (secCur.NameId == secInfo.Secid)
+                        {
+                            if (string.IsNullOrEmpty(secInfo.Maxprice) == false)
+                            {
+                                secCur.PriceLimitHigh = secInfo.Maxprice.ToDecimal();
+                            }
+
+                            if (string.IsNullOrEmpty(secInfo.Minprice) == false)
+                            {
+                                secCur.PriceLimitLow = secInfo.Minprice.ToDecimal();
+                            }
+
+                            if (string.IsNullOrEmpty(secInfo.Buy_deposit) == false)
+                            {
+                                secCur.Go = secInfo.Buy_deposit.ToDecimal();
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         private void _client_ClientOnUpdatePairs(string securities)
         {
             _transaqSecurities.Enqueue(securities);
@@ -357,6 +405,39 @@ namespace OsEngine.Market.Servers.Transaq
             if(_securities.Count == 0)
             {
                 return;
+            }
+
+            if(_secsSpecification != null)
+            {
+                for(int i = 0;i < _secsSpecification.Count;i++)
+                {
+                    SecurityInfo secInfo = _client.DeserializeSpecification(_secsSpecification[i]);
+
+                    for(int j = 0;j < _securities.Count;j++)
+                    {
+                        Security secCur = _securities[j];
+
+                        if (secCur.NameId == secInfo.Secid)
+                        {
+                            if (string.IsNullOrEmpty(secInfo.Maxprice) == false)
+                            {
+                                secCur.PriceLimitHigh = secInfo.Maxprice.ToDecimal();
+                            }
+
+                            if (string.IsNullOrEmpty(secInfo.Minprice) == false)
+                            {
+                                secCur.PriceLimitLow = secInfo.Minprice.ToDecimal();
+                            }
+
+                            if(string.IsNullOrEmpty(secInfo.Buy_deposit) == false)
+                            {
+                                secCur.Go = secInfo.Buy_deposit.ToDecimal();
+                            }
+                            
+                            break;
+                        }
+                    }
+                }
             }
 
             SecurityEvent?.Invoke(_securities);
