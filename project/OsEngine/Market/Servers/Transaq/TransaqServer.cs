@@ -8,6 +8,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
+using OsEngine.OsData;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -40,7 +41,6 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
-            CreateParameterBoolean(OsLocalization.Market.UseSecInfoUpdates, true);
             CreateParameterButton(OsLocalization.Market.ButtonNameChangePassword);
 
             ServerParameters[4].Comment = OsLocalization.Market.Label107;
@@ -113,8 +113,7 @@ namespace OsEngine.Market.Servers.Transaq
             _useCurrency = ((ServerParameterBool)ServerParameters[6]).Value;
             _useOptions = ((ServerParameterBool)ServerParameters[7]).Value;
             _useOther = ((ServerParameterBool)ServerParameters[8]).Value;
-            var useSecUpdates = ((ServerParameterBool)ServerParameters[9]).Value;
-            var btn = ((ServerParameterButton)ServerParameters[10]);
+            ServerParameterButton btn = ((ServerParameterButton)ServerParameters[9]);
 
             btn.UserClickButton += () => { ButtonClickChangePasswordWindowShow(); };
 
@@ -135,7 +134,7 @@ namespace OsEngine.Market.Servers.Transaq
             _client.NewTicks += _client_NewTicks;
             _client.UpdateSecurity += _client_UpdateSecurity;
 
-            _client.Connect(useSecUpdates);
+            _client.Connect();
 
             _cancellationTokenSource = new CancellationTokenSource();
 
@@ -315,11 +314,28 @@ namespace OsEngine.Market.Servers.Transaq
 
         private ConcurrentQueue<string> _transaqSecurities = new ConcurrentQueue<string>();
 
-        private List<string> _secsSpecification = new List<string>();
+        private List<SecurityInfo> _secsSpecification = new List<SecurityInfo>();
 
-        private void _client_UpdateSecurity(List<string> secs)
+        private void _client_UpdateSecurity(SecurityInfo secs)
         {
-            _secsSpecification = secs;
+            _lastUpdateSecurityArrayTime = DateTime.Now;
+
+            bool isInArray = false;
+
+            for(int i = 0;i < _secsSpecification.Count;i++)
+            {
+                if (_secsSpecification[i].Secid == secs.Secid)
+                {
+                    _secsSpecification[i] = secs;
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if(isInArray == false)
+            {
+                _secsSpecification.Add(secs);
+            }
 
             if(_securities == null ||
                 _securities.Count == 0)
@@ -332,7 +348,7 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 for (int i = 0; i < _secsSpecification.Count; i++)
                 {
-                    SecurityInfo secInfo = _client.DeserializeSpecification(_secsSpecification[i]);
+                    SecurityInfo secInfo = _secsSpecification[i];
 
                     for (int j = 0; j < _securities.Count; j++)
                     {
@@ -411,7 +427,7 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 for(int i = 0;i < _secsSpecification.Count;i++)
                 {
-                    SecurityInfo secInfo = _client.DeserializeSpecification(_secsSpecification[i]);
+                    SecurityInfo secInfo = _secsSpecification[i];
 
                     for(int j = 0;j < _securities.Count;j++)
                     {
@@ -554,13 +570,14 @@ namespace OsEngine.Market.Servers.Transaq
                         decimal.TryParse(securityData.Point_cost, NumberStyles.Float, CultureInfo.InvariantCulture, out pointCost);
                     }
 
-                    if (security.PriceStep > 1)
+                    if (security.SecurityType == SecurityType.Futures
+                    || security.SecurityType == SecurityType.Option)
                     {
-                        security.PriceStepCost = security.PriceStep * pointCost / 100;
+                        security.PriceStepCost = pointCost;
                     }
                     else
                     {
-                        security.PriceStepCost = pointCost / 100;
+                        security.PriceStepCost = security.PriceStep;
                     }
 
                     security.State = securityData.Active == "true" ? SecurityStateType.Activ : SecurityStateType.Close;

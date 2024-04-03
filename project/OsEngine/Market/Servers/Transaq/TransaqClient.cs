@@ -57,19 +57,15 @@ namespace OsEngine.Market.Servers.Transaq
             converter.Start();
         }
 
-        private bool _loadSecInfoUpdate = false;
-
         /// <summary>
         /// connecto to the exchange
         /// установить соединение с биржей 
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void Connect(bool loadSecInfoUpdate)
+        public void Connect()
         {
             try
             {
-                _loadSecInfoUpdate = loadSecInfoUpdate;
-
                 ConnectorInitialize();
 
                 // formation of the command text / формирование текста команды
@@ -290,8 +286,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
-        private List<string> _securityInfos = new List<string>();
-
         /// <summary>
         /// takes messages from the shared queue, converts them to C# classes, and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
@@ -321,15 +315,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (data.StartsWith("<sec_info_upd>"))
                             {
-                                if (!_loadSecInfoUpdate)
-                                {
-                                    continue;
-                                }
-                                _securityInfos.Add(data);
-
-                                UpdateSecurity?.Invoke(_securityInfos);
-
-                                continue;
+                                SecurityInfo newInfo = DeserializeSpecification(data);
+                                UpdateSecurity?.Invoke(newInfo);
                             }
                             else if (data.StartsWith("<securities>"))
                             {
@@ -605,7 +592,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// updated security
         /// обновились данные по инструменту
         /// </summary>
-        public event Action<List<string>> UpdateSecurity;
+        public event Action<SecurityInfo> UpdateSecurity;
 
         #endregion
 
