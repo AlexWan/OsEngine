@@ -58,6 +58,7 @@ using OsEngine.Market.Servers.Deribit;
 using OsEngine.Market.Servers.XT.XTSpot;
 using OsEngine.Market.Servers.Pionex;
 using OsEngine.Market.Servers.Woo;
+using OsEngine.Market.Servers.HTX.Spot;
 
 namespace OsEngine.Market
 {
@@ -198,6 +199,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
+                serverTypes.Add(ServerType.HTXSpot);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -300,6 +302,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Woo);
+                serverTypes.Add(ServerType.HTXSpot);
 
                 return serverTypes;
             }
@@ -551,6 +554,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.Woo)
                 {
                     newServer = new WooServer();
+                }               
+                else if (type == ServerType.HTXSpot)
+                {
+                    newServer = new HTXSpotServer();
                 }
 
                 if (newServer == null)
@@ -1105,6 +1112,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.Woo)
                 {
                     serverPermission = new WooServerPermission();
+                }                
+                else if (type == ServerType.HTXSpot)
+                {
+                    serverPermission = new HTXSpotServerPermission();
                 }
 
                 if (serverPermission != null)
@@ -1527,5 +1538,10 @@ namespace OsEngine.Market
         /// Woo exchange
         /// </summary>
         Woo,
+
+        /// <summary>
+        /// HTXSpot exchange
+        /// </summary>
+        HTXSpot,
     }
 }
