@@ -1090,7 +1090,6 @@ namespace OsEngine.Entity
 
                 if(serverType == ServerType.QuikDde
                     || serverType == ServerType.QuikLua
-                    || serverType == ServerType.Transaq
                     || serverType == ServerType.Plaza)
                 {
                     return true;

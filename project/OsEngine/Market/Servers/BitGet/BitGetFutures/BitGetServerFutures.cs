@@ -63,6 +63,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
 
+            ServicePointManager.SecurityProtocol =
+                SecurityProtocolType.Ssl3 
+                | SecurityProtocolType.Tls11 
+                | SecurityProtocolType.Tls;
+           
             string requestStr = "/api/mix/v1/market/contracts?productType=umcbl";
             RestRequest requestRest = new RestRequest(requestStr, Method.GET);
             IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
@@ -74,11 +79,24 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     TimeToSendPing = DateTime.Now;
                     TimeToUprdatePortfolio = DateTime.Now;
                     FIFOListWebSocketMessage = new ConcurrentQueue<string>();
-                    StartMessageReader();
-                    StartCheckAliveWebSocket();
+
+                    Thread thread = new Thread(MessageReader);
+                    thread.IsBackground = true;
+                    thread.Name = "MessageReaderBitGet";
+                    thread.Start();
+
+                    Thread thread2 = new Thread(CheckAliveWebSocket);
+                    thread2.IsBackground = true;
+                    thread2.Name = "CheckAliveWebSocket";
+                    thread2.Start();
+
                     CreateWebSocketConnection();
-                    StartUpdatePortfolio();
-                    
+
+                    Thread thread3 = new Thread(UpdatingPortfolio);
+                    thread3.IsBackground = true;
+                    thread3.Name = "UpdatingPortfolio";
+                    thread3.Start();
+
                     _lastConnectionStartTime = DateTime.Now;
                 }
                 catch (Exception exeption)
@@ -299,14 +317,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void StartMessageReader()
-        {
-            Thread thread = new Thread(MessageReader);
-            thread.IsBackground = true;
-            thread.Name = "MessageReaderBitGet";
-            thread.Start();
-        }
-
         private void MessageReader()
         {
             Thread.Sleep(5000);
@@ -386,47 +396,48 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 catch (Exception exeption)
                 {
-                    HandlerExeption(exeption);
+                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    Thread.Sleep(3000);
                 }
             }
-        }
-
-        private void StartCheckAliveWebSocket()
-        {
-            Thread thread = new Thread(CheckAliveWebSocket);
-            thread.IsBackground = true;
-            thread.Name = "CheckAliveWebSocket";
-            thread.Start();
         }
 
         private void CheckAliveWebSocket()
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(1000);
-
-                if (webSocket != null &&
-                    (webSocket.State == WebSocketState.Open ||
-                    webSocket.State == WebSocketState.Connecting)
-                    )
+                try
                 {
-                    if (TimeToSendPing.AddSeconds(30) < DateTime.Now)
+                    Thread.Sleep(1000);
+
+                    if (webSocket != null &&
+                        (webSocket.State == WebSocketState.Open ||
+                        webSocket.State == WebSocketState.Connecting)
+                        )
                     {
-                        lock(_socketLocker)
+                        if (TimeToSendPing.AddSeconds(30) < DateTime.Now)
                         {
-                            webSocket.Send("ping");
+                            lock (_socketLocker)
+                            {
+                                webSocket.Send("ping");
+                            }
+
+                            TimeToSendPing = DateTime.Now;
                         }
-                        
-                        TimeToSendPing = DateTime.Now;
+                    }
+                    else
+                    {
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
                     }
                 }
-                else
+                catch(Exception ex)
                 {
-                    if(ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(3000);
                 }
             }
         }
@@ -903,26 +914,25 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             return res + PriceEndStep;
         }
 
-        private void StartUpdatePortfolio()
-        {
-            Thread thread = new Thread(UpdatingPortfolio);
-            thread.IsBackground = true;
-            thread.Name = "UpdatingPortfolio";
-            thread.Start();
-        }
-
         private void UpdatingPortfolio()
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(5000);
-
-                if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
+                try
                 {
-                    CreateQueryPortfolio();
-                    TimeToUprdatePortfolio = DateTime.Now;
-                }
+                    Thread.Sleep(5000);
 
+                    if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
+                    {
+                        CreateQueryPortfolio();
+                        TimeToUprdatePortfolio = DateTime.Now;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    SendLogMessage(ex.ToString(),LogMessageType.Error);
+                    Thread.Sleep(3000);
+                }
             }
         }
 

@@ -99,9 +99,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер на покупку
 
-            decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
-
-            SendBuyOrder(mySecurity, price);
+            SendBuyOrder(mySecurity, md.Asks[0].Price);
 
             if (this._errors != null &&
                 this._errors.Count > 0)
@@ -112,9 +110,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер на продажу
 
-            price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
-
-            SendSellOrder(mySecurity, price);
+            SendSellOrder(mySecurity, md.Bids[0].Price);
 
             TestEnded();
         }

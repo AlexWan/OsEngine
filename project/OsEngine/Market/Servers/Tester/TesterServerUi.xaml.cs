@@ -9,10 +9,13 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using Grpc.Core;
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Layout;
 using OsEngine.Logging;
 using Color = System.Drawing.Color;
 
@@ -216,6 +219,13 @@ namespace OsEngine.Market.Servers.Tester
 
             this.Activate();
             this.Focus();
+
+            if(server.GuiIsOpenFullSettings)
+            {
+                ButtonSinhronazer_Click(null, null);
+            }
+
+            GlobalGUILayout.Listen(this, "testerServerGui");
         }
 
         private CultureInfo _currentCulture;
@@ -559,6 +569,7 @@ namespace OsEngine.Market.Servers.Tester
                 ResizeMode = System.Windows.ResizeMode.CanResize;
                 ComboBoxDataType.Visibility = Visibility.Visible;
                 ComboBoxSets.Visibility = Visibility.Visible;
+                _server.GuiIsOpenFullSettings = true;
             }
             else
             {
@@ -577,6 +588,7 @@ namespace OsEngine.Market.Servers.Tester
                 ComboBoxSets.Visibility = Visibility.Hidden;
                 Height = 130;
                 Width = 670;
+                _server.GuiIsOpenFullSettings = false;
             }
         }
 

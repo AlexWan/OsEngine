@@ -870,34 +870,81 @@ namespace OsEngine.Market.Servers.Woo
 
             if (item.asks.Count > 0)
             {
-                for (int i = 0; i < 25; i++)
+                for (int i = 0; i < 25 && i < item.asks.Count; i++)
                 {
-                    ascs.Add(new MarketDepthLevel()
+                    if (item.asks[i].Count < 2)
                     {
-                        Ask = item.asks[i][1].ToString().ToDecimal(),
-                        Price = item.asks[i][0].ToString().ToDecimal()
-                    });
+                        continue;
+                    }
+
+                    decimal ask = item.asks[i][1].ToString().ToDecimal();
+                    decimal price = item.asks[i][0].ToString().ToDecimal();
+
+                    if(ask == 0 ||
+                        price == 0)
+                    {
+                        continue;
+                    }
+
+                    MarketDepthLevel level = new MarketDepthLevel();
+                    level.Ask = ask;
+                    level.Price = price;
+                    ascs.Add(level);
                 }
             }
 
             if (item.bids.Count > 0)
             {
-                for (int i = 0; i < 25; i++)
+                for (int i = 0; i < 25 && i < item.bids.Count; i++)
                 {
-                    bids.Add(new MarketDepthLevel()
+                    if (item.bids[i].Count < 2)
                     {
-                        Bid = item.bids[i][1].ToString().ToDecimal(),
-                        Price = item.bids[i][0].ToString().ToDecimal()
-                    });
+                        continue;
+                    }
+
+                    decimal bid = item.bids[i][1].ToString().ToDecimal();
+                    decimal price = item.bids[i][0].ToString().ToDecimal();
+
+                    if (bid == 0 ||
+                        price == 0)
+                    {
+                        continue;
+                    }
+
+                    MarketDepthLevel level = new MarketDepthLevel();
+                    level.Bid = bid;
+                    level.Price = price;
+                    bids.Add(level);
                 }
+            }
+
+            if(ascs.Count == 0 ||
+                bids.Count == 0)
+            {
+                return;
             }
 
             marketDepth.Asks = ascs;
             marketDepth.Bids = bids;
-            marketDepth.Time = DateTime.UtcNow;
+            marketDepth.Time 
+                = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
+
+            if(marketDepth.Time < _lastTimeMd)
+            {
+                marketDepth.Time = _lastTimeMd;
+            }
+            else if (marketDepth.Time == _lastTimeMd)
+            {
+                _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
+                marketDepth.Time = _lastTimeMd;
+            }
+
+            _lastTimeMd = marketDepth.Time;
 
             MarketDepthEvent(marketDepth);
         }
+
+        private DateTime _lastTimeMd;
 
         private void UpdatePortfolioFromSubscrible(string message)
         {

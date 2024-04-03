@@ -4566,7 +4566,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _acebergMaker.ClearAcebergs();
+                _acebergMaker?.ClearAcebergs();
             }
             catch (Exception error)
             {

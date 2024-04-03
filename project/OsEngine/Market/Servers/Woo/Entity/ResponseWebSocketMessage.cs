@@ -29,6 +29,8 @@ namespace OsEngine.Market.Servers.Woo.Entity
     {
         public Data data { get; set; }
 
+        public string ts { get; set; }
+
         public class Data
         {
             public List<List<string>> asks { get; set; }

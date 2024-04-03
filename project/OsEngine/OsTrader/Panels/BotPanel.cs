@@ -847,7 +847,7 @@ position => position.State != PositionStateType.OpeningFail
 
             if (_paramUi == null)
             {
-                _paramUi = new ParemetrsUi(_parameters, ParamGuiSettings);
+                _paramUi = new ParemetrsUi(_parameters, ParamGuiSettings, this);
                 _paramUi.Show();
                 _paramUi.Closing += _paramUi_Closing;
             }
@@ -1936,7 +1936,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// send new message
         /// </summary>
-        protected void SendNewLogMessage(string message, LogMessageType type)
+        public void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {

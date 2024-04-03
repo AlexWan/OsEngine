@@ -7,6 +7,7 @@ using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -52,6 +53,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
 
+            ServicePointManager.SecurityProtocol =
+            SecurityProtocolType.Ssl3
+            | SecurityProtocolType.Tls11
+            | SecurityProtocolType.Tls;
+
             HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + "/api/spot/v1/public/time").Result;
             string json = responseMessage.Content.ReadAsStringAsync().Result;
 
@@ -62,10 +68,23 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     TimeLastSendPing = DateTime.Now;
                     TimeToUprdatePortfolio = DateTime.Now;
                     FIFOListWebSocketMessage = new ConcurrentQueue<string>();
-                    StartCheckAliveWebSocket();
-                    StartMessageReader();
+
+                    Thread thread = new Thread(CheckAliveWebSocket);
+                    thread.IsBackground = true;
+                    thread.Name = "CheckAliveWebSocket";
+                    thread.Start();
+
+                    Thread thread3 = new Thread(MessageReader);
+                    thread3.IsBackground = true;
+                    thread3.Name = "MessageReaderBitGet";
+                    thread3.Start();
+
                     CreateWebSocketConnection();
-                    StartUpdatePortfolio();
+
+                    Thread thread2 = new Thread(UpdatingPortfolio);
+                    thread2.IsBackground = true;
+                    thread2.Name = "UpdatingPortfolio";
+                    thread2.Start();
                 }
                 catch (Exception exeption)
                 {
@@ -236,24 +255,25 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             CreateQueryPortfolio(true);
         }
 
-        private void StartUpdatePortfolio()
-        {
-            Thread thread = new Thread(UpdatingPortfolio);
-            thread.IsBackground = true;
-            thread.Name = "UpdatingPortfolio";
-            thread.Start();
-        }
-
         private void UpdatingPortfolio()
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(5000);
-
-                if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
+                try
                 {
-                    CreateQueryPortfolio(false);
-                    TimeToUprdatePortfolio = DateTime.Now;
+                    Thread.Sleep(5000);
+
+                    if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
+                    {
+                        CreateQueryPortfolio(false);
+                        TimeToUprdatePortfolio = DateTime.Now;
+                    }
+                }
+                catch
+                (Exception ex)
+                {
+                    Thread.Sleep(1000);
+                    SendLogMessage(ex.ToString(),LogMessageType.Error);
                 }
             }
         }
@@ -482,37 +502,36 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private DateTime TimeLastSendPing = DateTime.Now;
 
-        private void StartCheckAliveWebSocket()
-        {
-            Thread thread = new Thread(CheckAliveWebSocket);
-            thread.IsBackground = true;
-            thread.Name = "CheckAliveWebSocket";
-            thread.Start();
-        }
-
         private void CheckAliveWebSocket()
         {
             while (IsDispose == false)
             {
-                Thread.Sleep(3000);
-
-                if (webSocket != null &&
-                    (webSocket.State == WebSocketState.Open ||
-                    webSocket.State == WebSocketState.Connecting)
-                    )
+                try
                 {
-                    if (TimeLastSendPing.AddSeconds(50) < DateTime.Now)
+                    Thread.Sleep(3000);
+                    if (webSocket != null &&
+                       (webSocket.State == WebSocketState.Open ||
+                        webSocket.State == WebSocketState.Connecting)
+                        )
                     {
-                        lock (_socketLocker)
+                        if (TimeLastSendPing.AddSeconds(50) < DateTime.Now)
                         {
-                            webSocket.Send("ping");
-                            TimeLastSendPing = DateTime.Now;
+                            lock (_socketLocker)
+                            {
+                                webSocket.Send("ping");
+                                TimeLastSendPing = DateTime.Now;
+                            }
                         }
                     }
+                    else
+                    {
+                        Dispose();
+                    }
                 }
-                else
+                catch(Exception error)
                 {
-                    Dispose();
+                    SendLogMessage(error.ToString(),LogMessageType.Error);
+                    Thread.Sleep(1000);
                 }
             }
         }
@@ -539,14 +558,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         #endregion
 
         #region 10 WebSocket parsing the messages
-
-        private void StartMessageReader()
-        {
-            Thread thread = new Thread(MessageReader);
-            thread.IsBackground = true;
-            thread.Name = "MessageReaderBitGet";
-            thread.Start();
-        }
 
         private ConcurrentQueue<string> FIFOListWebSocketMessage = new ConcurrentQueue<string>();
 
@@ -629,7 +640,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
                 catch (Exception exeption)
                 {
-                    HandlerExeption(exeption);
+                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    Thread.Sleep(3000);
                 }
             }
         }

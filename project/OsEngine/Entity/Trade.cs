@@ -182,8 +182,8 @@ namespace OsEngine.Entity
             {
                 Bid = sIn[7].ToDecimal();
                 Ask = sIn[8].ToDecimal();
-                BidsVolume = Convert.ToInt32(sIn[9]);
-                AsksVolume = Convert.ToInt32(sIn[10]);
+                BidsVolume = sIn[9].ToDecimal();
+                AsksVolume = sIn[10].ToDecimal();
             }
         }
 

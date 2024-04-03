@@ -750,6 +750,13 @@
     <Compile Include="Market\Servers\Lmax\Tags.cs" />
     <Compile Include="Market\Servers\MFD\MfdServer.cs" />
     <Compile Include="Market\Servers\MFD\MfdServerPermission.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\MoexAlgopackAuth.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseCandles.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseDepth.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseSecurities.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseTrades.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServer.cs" />
+    <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServerPermission.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssDataServer.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssPermission.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
@@ -849,17 +856,6 @@
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServerPermission.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffClient.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\Account.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\CandleTinkoff.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\LastPrices.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\MarketDepthTinkoff.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\OrdersTInkoff.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\Portfolios.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\Securities.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffJsonSchema\TinkoffTrades.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffServer.cs" />
-    <Compile Include="Market\Servers\Tinkoff\TinkoffServerPermission.cs" />
     <Compile Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml.cs">
       <DependentUpon>ChangeTransaqPassword.xaml</DependentUpon>
     </Compile>
@@ -1032,6 +1028,7 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Conn_2_SubscrAllSec.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Conn_3_Stress_Memory.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Conn_4_Validation_Candles.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Conn_5_Screener.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_1_Integrity.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_2_Validation_Candles.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_3_Validation_Trades.cs" />
@@ -1042,7 +1039,9 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_3_MarketOrders.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_4_LimitCancel.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_5_ChangePrice.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_6_ChangePriceError.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Portfolio_1_Validation.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_7_Add_Move_Cancel_Spam.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_2_MarketDepth.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_1_Securities.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_3_Trades.cs" />
@@ -1100,7 +1099,6 @@
     <Compile Include="Robots\Screeners\SmaScreener.cs" />
     <Compile Include="Robots\TechSamples\ElementsOnChartSampleBot.cs" />
     <Compile Include="Robots\TechSamples\FakeOutExample.cs" />
-    <Compile Include="Robots\TechSamples\TinkoffGetRealCandlesSample.cs" />
     <Compile Include="Robots\AutoTestBots\TestBotTradesInCandlesTest.cs" />
     <Compile Include="Robots\TechSamples\TradeLineExample.cs" />
     <Compile Include="Robots\Trend\EnvelopTrend.cs" />

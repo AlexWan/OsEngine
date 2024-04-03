@@ -979,6 +979,9 @@ namespace OsEngine.Language
         public string ServerParamToken => OsLocalization.ConvertToLocString(
             "Eng:Token_" +
             "Ru:Token_");
+        public string ServerParamSubscription => OsLocalization.ConvertToLocString(
+            "Eng:Paid subscription_" +
+            "Ru:Платная подписка_");
 
         public string ServerParamGrpcConnection => OsLocalization.ConvertToLocString(
            "Eng:Сonnection in router_" +

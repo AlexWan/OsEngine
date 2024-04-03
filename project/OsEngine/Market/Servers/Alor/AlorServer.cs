@@ -390,9 +390,27 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
 
-                    _securities.Add(newSecurity);
-                }
-                   
+                    if (newSecurity.SecurityType == SecurityType.Futures 
+                        || newSecurity.SecurityType == SecurityType.Option)
+                    {
+                        newSecurity.PriceStepCost = item.pricestep.ToDecimal();
+                        if(newSecurity.PriceStepCost <= 0)
+                        {
+                            newSecurity.PriceStepCost = newSecurity.PriceStep;
+                        }
+                    }
+
+                    if(string.IsNullOrEmpty(item.priceMax) == false)
+                    {
+                        newSecurity.PriceLimitHigh = item.priceMax.ToDecimal();
+                    }
+                    if (string.IsNullOrEmpty(item.priceMin) == false)
+                    {
+                        newSecurity.PriceLimitLow = item.priceMin.ToDecimal();
+                    }
+
+                     _securities.Add(newSecurity);
+                }  
             }
             catch (Exception e)
             {
@@ -2053,24 +2071,17 @@ namespace OsEngine.Market.Servers.Alor
                         MyOrderEvent(order);
                     }
 
-                    return;
+                    //return;
                 }
                 else
                 {
-                    SendLogMessage("Order Fail. Status: "
+                    SendLogMessage("Change price order Fail. Status: "
                         + response.StatusCode + "  " + order.SecurityNameCode, LogMessageType.Error);
 
                     if (response.Content != null)
                     {
                         SendLogMessage("Fail reasons: "
                       + response.Content, LogMessageType.Error);
-                    }
-
-                    order.State = OrderStateType.Fail;
-
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
                     }
                 }
 

@@ -304,8 +304,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     if (SeriesIsOk(series[i]))
                     {
                         this.SetNewServiceInfo(
-                        "Candles OK: " + series[i].Security.Name + 
-                        " TF: " + series[i].TimeFrame.ToString());
+                        "Candles OK: " + series[i].Security.Name +
+                        " TF: " + series[i].TimeFrame.ToString() +
+                        " Count: " + series[i].CandlesAll.Count.ToString());
                         series.RemoveAt(i);
                         break;
                     }

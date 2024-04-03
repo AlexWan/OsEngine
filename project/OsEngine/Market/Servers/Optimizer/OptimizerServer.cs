@@ -654,6 +654,29 @@ namespace OsEngine.Market.Servers.Optimizer
                 return true;
             }
 
+            if (order.TypeOrder == OrderPriceType.Market)
+            {
+                if (order.TimeCreate >= lastCandle.TimeStart)
+                {
+                    return false;
+                }
+
+                decimal realPrice = lastCandle.Open;
+
+                ExecuteOnBoardOrder(order, realPrice, time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                return true;
+            }
+
 
             // check whether the order passed / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
@@ -790,6 +813,36 @@ namespace OsEngine.Market.Servers.Optimizer
                 return false;
             }
 
+            if (order.IsStopOrProfit)
+            {
+                decimal realPrice = order.Price;
+                ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, 0);
+                return true;
+            }
+
+            if (order.TypeOrder == OrderPriceType.Market)
+            {
+                if (order.TimeCreate >= lastTrade.Time)
+                {
+                    return false;
+                }
+
+                decimal realPrice = lastTrade.Price;
+
+                ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                return true;
+            }
+
             // check the order / проверяем, прошёл ли ордер
             if (order.Side == Side.Buy)
             {
@@ -904,8 +957,40 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (time <= order.TimeCallBack && !order.IsStopOrProfit)
             {
-                CanselOnBoardOrder(order);
+                // CanselOnBoardOrder(order);
                 return false;
+            }
+
+            if (order.TypeOrder == OrderPriceType.Market)
+            {
+                if (order.TimeCreate >= lastMarketDepth.Time)
+                {
+                    return false;
+                }
+
+                decimal realPrice = 0;
+
+                if (order.Side == Side.Buy)
+                {
+                    realPrice = maxPrice;
+                }
+                else //if(order.Side == Side.Sell)
+                {
+                    realPrice = minPrice;
+                }
+
+                ExecuteOnBoardOrder(order, realPrice, lastMarketDepth.Time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                return true;
             }
 
             // check the order / проверяем, прошёл ли ордер

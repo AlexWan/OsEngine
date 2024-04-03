@@ -655,17 +655,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Number of trades in a candle
         /// </summary>
-        public int CountTradeInCandle;
+        public int CountTradeInCandle = 100;
 
         /// <summary>
         /// Volume to close the candle
         /// </summary>
-        public decimal VolumeToCloseCandleInVolumeType;
+        public decimal VolumeToCloseCandleInVolumeType = 1000;
 
         /// <summary>
         /// Movement to close the candle in Renco type candles
         /// </summary>
-        public decimal RencoPunktsToCloseCandleInRencoType;
+        public decimal RencoPunktsToCloseCandleInRencoType = 100;
 
         /// <summary>
         /// Do we build shadows in candles like Renco
@@ -675,7 +675,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Delta period
         /// </summary>
-        public decimal DeltaPeriods;
+        public decimal DeltaPeriods = 1000;
 
         /// <summary>
         /// Candle Items Range

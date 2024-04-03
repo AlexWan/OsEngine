@@ -57,45 +57,56 @@ namespace OsEngine.Market.Servers.Transaq
             converter.Start();
         }
 
-        private bool _loadSecInfoUpdate = false;
-
         /// <summary>
         /// connecto to the exchange
         /// установить соединение с биржей 
         /// </summary>
-        public void Connect(bool loadSecInfoUpdate)
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        public void Connect()
         {
-            _loadSecInfoUpdate = loadSecInfoUpdate;
+            try
+            {
+                ConnectorInitialize();
 
-            ConnectorInitialize();
-            Thread.Sleep(1000);
+                // formation of the command text / формирование текста команды
+                string cmd = "<command id=\"connect\">";
+                cmd = cmd + "<login>" + Login + "</login>";
+                cmd = cmd + "<password>" + Password + "</password>";
+                cmd = cmd + "<host>" + ServerIp + "</host>";
+                cmd = cmd + "<port>" + ServerPort + "</port>";
+                cmd = cmd + "<push_pos_equity>" + 3 + "</push_pos_equity>";
+                cmd = cmd + "<rqdelay>100</rqdelay>";
+                cmd = cmd + "</command>";
 
-            // formation of the command text / формирование текста команды
-            string cmd = "<command id=\"connect\">";
-            cmd = cmd + "<login>" + Login + "</login>";
-            cmd = cmd + "<password>" + Password + "</password>";
-            cmd = cmd + "<host>" + ServerIp + "</host>";
-            cmd = cmd + "<port>" + ServerPort + "</port>";
-            cmd = cmd + "<push_pos_equity>" + 3 + "</push_pos_equity>";
-            cmd = cmd + "<rqdelay>100</rqdelay>";
-            cmd = cmd + "</command>";
-
-            // sending the command / отправка команды
-            ConnectorSendCommand(cmd);
+                // sending the command / отправка команды
+                ConnectorSendCommand(cmd);
+            }
+            catch(Exception e)
+            {
+                SendLogMessage(e.ToString(),LogMessageType.Error);
+            }
         }
 
         /// <summary>
         /// disconnect to exchange
         /// разорвать соединение с биржей 
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Disconnect()
         {
-            // formation of the command text / формирование текста команды
-            string cmd = "<command id=\"disconnect\">";
-            cmd = cmd + "</command>";
+            try
+            {
+                // formation of the command text / формирование текста команды
+                string cmd = "<command id=\"disconnect\">";
+                cmd = cmd + "</command>";
 
-            // sending the command / отправка команды
-            ConnectorSendCommand(cmd);
+                // sending the command / отправка команды
+                ConnectorSendCommand(cmd);
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -114,22 +125,30 @@ namespace OsEngine.Market.Servers.Transaq
         /// bring the program to the start time. Clear all objects involved in connecting to the server
         /// привести программу к моменту запуска. Очистить все объекты участвующие в подключении к серверу
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Dispose()
         {
-            _isDisposed = true;
-
-            Disconnect();
-            Thread.Sleep(2000);
-            var res = ConnectorUnInitialize();
-
-            if (res)
+            try
             {
-                IsConnected = false;
+                _isDisposed = true;
 
-                if (Disconnected != null)
+                Disconnect();
+                Thread.Sleep(2000);
+                var res = ConnectorUnInitialize();
+
+                if (res)
                 {
-                    Disconnected();
+                    IsConnected = false;
+
+                    if (Disconnected != null)
+                    {
+                        Disconnected();
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(),LogMessageType.Error);
             }
         }
 
@@ -137,22 +156,31 @@ namespace OsEngine.Market.Servers.Transaq
         /// Initializes the library: starts the callback queue processing thread
         /// Выполняет инициализацию библиотеки: запускает поток обработки очереди обратных вызовов
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public bool ConnectorInitialize()
         {
-            IntPtr pResult = Initialize(MarshalUtf8.StringToHGlobalUtf8(LogPath), 1);
-
-            if (!pResult.Equals(IntPtr.Zero))
+            try
             {
-                MarshalUtf8.PtrToStringUtf8(pResult);
+                IntPtr pResult = Initialize(MarshalUtf8.StringToHGlobalUtf8(LogPath), 1);
 
-                FreeMemory(pResult);
+                if (!pResult.Equals(IntPtr.Zero))
+                {
+                    MarshalUtf8.PtrToStringUtf8(pResult);
 
-                return false;
+                    FreeMemory(pResult);
+
+                    return false;
+                }
+                else
+                {
+                    FreeMemory(pResult);
+                    return true;
+                }
             }
-            else
+            catch (Exception e)
             {
-                FreeMemory(pResult);
-                return true;
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+                return false;
             }
         }
 
@@ -160,20 +188,29 @@ namespace OsEngine.Market.Servers.Transaq
         /// Shuts down the internal threads of the library, including completing thread queue callbacks
         /// Выполняет остановку внутренних потоков библиотеки, в том числе завершает поток обработки очереди обратных вызовов
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public bool ConnectorUnInitialize()
         {
-            IntPtr pResult = UnInitialize();
+            try
+            {
+                IntPtr pResult = UnInitialize();
 
-            if (!pResult.Equals(IntPtr.Zero))
-            {
-                MarshalUtf8.PtrToStringUtf8(pResult);
-                FreeMemory(pResult);
-                return false;
+                if (!pResult.Equals(IntPtr.Zero))
+                {
+                    MarshalUtf8.PtrToStringUtf8(pResult);
+                    FreeMemory(pResult);
+                    return false;
+                }
+                else
+                {
+                    FreeMemory(pResult);
+                    return true;
+                }
             }
-            else
+            catch (Exception e)
             {
-                FreeMemory(pResult);
-                return true;
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+                return false;
             }
         }
 
@@ -190,16 +227,27 @@ namespace OsEngine.Market.Servers.Transaq
         /// обработчик данных пришедших через каллбек
         /// </summary>
         /// <param name="pData">data from Transaq / данные, поступившие от транзака</param>
-        bool CallBackDataHandler(IntPtr pData)
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        private bool CallBackDataHandler(IntPtr pData)
         {
-            string data = MarshalUtf8.PtrToStringUtf8(pData);
+            try
+            {
+                string data = MarshalUtf8.PtrToStringUtf8(pData);
 
-            _newMessage.Enqueue(data);
+                _newMessage.Enqueue(data);
 
-            FreeMemory(pData);
+                FreeMemory(pData);
 
-            return true;
+                return true;
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+                return false;
+            }
         }
+
+        private string _commandLocker = "commandSendLocker";
 
         /// <summary>
         /// sent the command
@@ -207,25 +255,42 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         /// <param name="command">command as a XML document / команда в виде XML документа</param>
         /// <returns>result of sending command/результат отправки команды</returns>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public string ConnectorSendCommand(string command)
         {
-            IntPtr pData = MarshalUtf8.StringToHGlobalUtf8(command);
-            IntPtr pResult = SendCommand(pData);
+            try
+            {
+                lock(_commandLocker)
+                {
+                    IntPtr pData = MarshalUtf8.StringToHGlobalUtf8(command);
+                    IntPtr pResult = SendCommand(pData);
 
-            string result = MarshalUtf8.PtrToStringUtf8(pResult);
+                    string result = MarshalUtf8.PtrToStringUtf8(pResult);
 
-            Marshal.FreeHGlobal(pData);
-            FreeMemory(pResult);
+                    Marshal.FreeHGlobal(pData);
+                    FreeMemory(pResult);
 
-            return result;
+                    return result;
+                }
+            }
+            catch (AccessViolationException e)
+            {
+                // no message
+                return null;
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(),LogMessageType.Error);
+                return null;
+            }
+
         }
-
-        private List<string> _securityInfos = new List<string>();
 
         /// <summary>
         /// takes messages from the shared queue, converts them to C# classes, and sends them to up
         /// берет сообщения из общей очереди, конвертирует их в классы C# и отправляет на верх
         /// </summary>
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void Converter()
         {
             while (true)
@@ -250,12 +315,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (data.StartsWith("<sec_info_upd>"))
                             {
-                                if (!_loadSecInfoUpdate)
-                                {
-                                    continue;
-                                }
-                                _securityInfos.Add(data);
-                                continue;
+                                SecurityInfo newInfo = DeserializeSpecification(data);
+                                UpdateSecurity?.Invoke(newInfo);
                             }
                             else if (data.StartsWith("<securities>"))
                             {
@@ -324,18 +385,37 @@ namespace OsEngine.Market.Servers.Transaq
                                 if (data.Contains("Время действия Вашего пароля истекло"))
                                 {
                                     NeedChangePassword?.Invoke();
+
+                                    if(IsConnected == true)
+                                    {
+                                        IsConnected = false;
+                                        Disconnected?.Invoke();
+                                    }
                                 }
                             }
                             else if (data.StartsWith("<server_status"))
                             {
-                                UpdateSecurity?.Invoke(_securityInfos);
-
+   
                                 ServerStatus status = Deserialize<ServerStatus>(data);
 
                                 if (status.Connected == "true")
                                 {
-                                    IsConnected = true;
-                                    Connected?.Invoke();
+                                    if(IsConnected == false 
+                                        && data.Contains("recover=\"true\"") == false)
+                                    {
+                                        IsConnected = true;
+                                        Connected?.Invoke();
+                                    }
+                                    else
+                                    {
+                                        if (data.Contains("recover=\"true\""))
+                                        {
+                                            SendLogMessage("Transaq client status error: <Reconnect>", LogMessageType.Error);
+
+                                            IsConnected = false;
+                                            Disconnected?.Invoke();
+                                        }
+                                    }
                                 }
                                 else if (status.Connected == "false")
                                 {
@@ -344,10 +424,38 @@ namespace OsEngine.Market.Servers.Transaq
                                 }
                                 else if (status.Connected == "error")
                                 {
-                                    SendLogMessage(status.Text, LogMessageType.Error);
+                                    SendLogMessage("Transaq client status error: " + status.Text, LogMessageType.Error);
+
+                                    if (IsConnected == true)
+                                    {
+                                        IsConnected = false;
+                                        Disconnected?.Invoke();
+                                    }
+                                }
+                                else
+                                {
+
                                 }
                             }
                             else if (data.StartsWith("<error>"))
+                            {
+                                SendLogMessage(data, LogMessageType.Error);
+                            }
+                            else if (data.StartsWith("<news_header>"))
+                            {
+                                // пришла новость с рынка
+                                //SendLogMessage(data, LogMessageType.Error);
+                            }
+                            else if (data.StartsWith("<markets>")
+                                || data.StartsWith("<boards>")
+                                || data.StartsWith("<portfolio_mct client")
+                                || data.StartsWith("<overnight status=")
+                                 || data.StartsWith("<union id=")
+                                || data.StartsWith("<candlekinds>"))
+                            {
+                               // do nothin
+                            }
+                            else // if (data.StartsWith("<error>"))
                             {
                                 SendLogMessage(data, LogMessageType.Error);
                             }
@@ -387,6 +495,11 @@ namespace OsEngine.Market.Servers.Transaq
         public List<Security> DeserializeSecurities(string data)
         {
             return _deserializer.Deserialize<List<Security>>(new RestResponse() { Content = data }); ;
+        }
+
+        public SecurityInfo DeserializeSpecification(string data)
+        {
+            return _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data }); ;
         }
 
         #region outgoing events / Исходящие события
@@ -479,7 +592,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// updated security
         /// обновились данные по инструменту
         /// </summary>
-        public event Action<List<string>> UpdateSecurity;
+        public event Action<SecurityInfo> UpdateSecurity;
 
         #endregion
 

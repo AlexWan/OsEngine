@@ -38,7 +38,6 @@ using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
-using OsEngine.Market.Servers.Tinkoff;
 using OsEngine.Market.Servers.TinkoffInvestments;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.Bybit;
@@ -58,7 +57,6 @@ using OsEngine.Market.Servers.Deribit;
 using OsEngine.Market.Servers.XT.XTSpot;
 using OsEngine.Market.Servers.Pionex;
 using OsEngine.Market.Servers.Woo;
-using OsEngine.Market.Servers.HTX.Spot;
 
 namespace OsEngine.Market
 {
@@ -165,7 +163,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
-                serverTypes.Add(ServerType.Tinkoff);
                 serverTypes.Add(ServerType.TinkoffInvestments);
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
@@ -199,7 +196,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
-                serverTypes.Add(ServerType.HTXSpot);
 
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
@@ -286,7 +282,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
-
+                serverTypes.Add(ServerType.MoexAlgopack);
                 serverTypes.Add(ServerType.AscendEx_BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
@@ -387,6 +383,10 @@ namespace OsEngine.Market
                 {
                     newServer = new BingXServerSpot();
                 }
+                if (type == ServerType.MoexAlgopack)
+                {
+                    newServer = new MoexAlgopackServer();
+                }
                 if (type == ServerType.XTSpot)
                 {
                     newServer = new XTServerSpot();
@@ -442,10 +442,6 @@ namespace OsEngine.Market
                 if (type == ServerType.MoexDataServer)
                 {
                     newServer = new MoexDataServer();
-                }
-                if (type == ServerType.Tinkoff)
-                {
-                    newServer = new TinkoffServer();
                 }
                 if (type == ServerType.TinkoffInvestments)
                 {
@@ -1001,6 +997,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new KuCoinFuturesServerPermission();
                 }
+                else if (type == ServerType.MoexAlgopack)
+                {
+                    serverPermission = new MoexAlgopackServerPermission();
+                }
                 else if (type == ServerType.XTSpot)
                 {
                     serverPermission = new XTSpotServerPermission();
@@ -1064,10 +1064,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.Finam)
                 {
                     serverPermission = new FinamServerPermission();
-                }
-                else if (type == ServerType.Tinkoff)
-                {
-                    serverPermission = new TinkoffServerPermission();
                 }
                 else if (type == ServerType.TinkoffInvestments)
                 {
@@ -1288,12 +1284,6 @@ namespace OsEngine.Market
         /// Тип сервера не назначен
         /// </summary>
         None,
-
-        /// <summary>
-        /// connection to Russian broker Tinkoff Invest
-        /// подключение к Тинькофф Инвест (выдающих кредиты под 70% годовых)
-        /// </summary>
-        Tinkoff,
 
         /// <summary>
         /// connection to Russian broker Tinkoff Investments
@@ -1538,10 +1528,5 @@ namespace OsEngine.Market
         /// Woo exchange
         /// </summary>
         Woo,
-
-        /// <summary>
-        /// HTXSpot exchange
-        /// </summary>
-        HTXSpot,
     }
 }

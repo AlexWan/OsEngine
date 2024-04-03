@@ -23,7 +23,7 @@ namespace OsEngine.Market.Servers.Alor.Json
         public string marginrate { get; set; }
         public string pricestep { get; set; }
         public string priceMax { get; set; }
-        public string priceMi { get; set; }
+        public string priceMin { get; set; }
         public string theorPrice { get; set; }
         public string theorPriceLimit { get; set; }
         public string volatility { get; set; }

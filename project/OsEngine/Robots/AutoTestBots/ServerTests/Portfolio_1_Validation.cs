@@ -144,9 +144,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 2 ордер на покупку
 
-            decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
-
-            SendBuyOrder(mySecurity, price);
+            SendBuyOrder(mySecurity, md.Asks[0].Price);
 
             if (this._errors != null &&
                 this._errors.Count > 0)
@@ -191,7 +189,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return false;
             }
 
-            SendSellOrder(mySecurity, price);
+            SendSellOrder(mySecurity, md.Bids[0].Price);
 
             // 5 ждём когда состояние портфеля изменится
 
@@ -231,9 +229,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 2 ордер на покупку
 
-            decimal price = Math.Round((md.Asks[0].Price + md.Bids[0].Price) / 2, mySecurity.Decimals);
-
-            SendSellOrder(mySecurity, price);
+            SendSellOrder(mySecurity, md.Bids[0].Price);
             
             if (this._errors != null &&
                 this._errors.Count > 0)
@@ -278,7 +274,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return false;
             }
 
-            SendBuyOrder(mySecurity, price);
+            SendBuyOrder(mySecurity, md.Asks[0].Price);
 
             // 5 ждём когда состояние портфеля изменится
 

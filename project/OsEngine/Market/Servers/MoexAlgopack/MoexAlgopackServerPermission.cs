@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OsEngine.Market.Servers.Tinkoff
+﻿namespace OsEngine.Market.Servers.MoexAlgopack
 {
-    public class TinkoffServerPermission : IServerPermission
+    public class MoexAlgopackServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.Tinkoff; }
+            get { return ServerType.MoexAlgopack; }
         }
 
         #region DataFeedPermissions
@@ -19,90 +13,117 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             get { return false; }
         }
+
         public bool DataFeedTf2SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf20SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf30SecondCanLoad
         {
             get { return false; }
         }
-        public bool DataFeedTf1MinuteCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTf2MinuteCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTf5MinuteCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTf10MinuteCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTf15MinuteCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTf30MinuteCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTf1HourCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTf2HourCanLoad
-        {
-            get { return false; }
-        }
-        public bool DataFeedTf4HourCanLoad
-        {
-            get { return false; }
-        }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
         }
 
+        public bool DataFeedTf1MinuteCanLoad
+        {
+            get { return true; }
+        }
+
+        public bool DataFeedTf2MinuteCanLoad
+        {
+            get { return true; }
+        }
+
+        public bool DataFeedTf5MinuteCanLoad
+        {
+            get { return true; }
+        }
+
+        public bool DataFeedTf10MinuteCanLoad
+        {
+            get { return true; }
+        }
+
+        public bool DataFeedTf15MinuteCanLoad
+        {
+            get { return true; }
+        }
+
+        public bool DataFeedTf30MinuteCanLoad
+        {
+            get { return true; }
+        }
+
+        public bool DataFeedTf1HourCanLoad
+        {
+            get { return true; }
+        }
+
+        public bool DataFeedTf2HourCanLoad
+        {
+            get { return true; }
+        }
+
+        public bool DataFeedTf4HourCanLoad
+        {
+            get { return true; }
+        }
+        
         #endregion
 
         #region Trade permission
 
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
 
-        public bool IsTradeServer
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
+        {
+            get { return 5; }
+        }
+
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
+        }
+        
+        public bool UseStandartCandlesStarter
         {
             get { return true; }
         }
 
-        public bool IsCanChangeOrderPrice
+        public bool IsUseLotToCalculateProfit
         {
             get { return false; }
         }
@@ -111,25 +132,20 @@ namespace OsEngine.Market.Servers.Tinkoff
         {
             get { return _tradeTimeFramePermission; }
         }
-
-        public int WaitTimeSecondsAfterFirstStartToSendOrders
-        {
-            get { return 5; }
-        }
-
+        
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
-                TimeFrameSec2IsOn = false,
-                TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
-                TimeFrameSec15IsOn = false,
-                TimeFrameSec20IsOn = false,
-                TimeFrameSec30IsOn = false,
-                TimeFrameMin1IsOn = false,
-                TimeFrameMin2IsOn = false,
-                TimeFrameMin3IsOn = false,
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
+                TimeFrameMin1IsOn = true,
+                TimeFrameMin2IsOn = true,
+                TimeFrameMin3IsOn = true,
                 TimeFrameMin5IsOn = true,
                 TimeFrameMin10IsOn = true,
                 TimeFrameMin15IsOn = true,
@@ -142,22 +158,6 @@ namespace OsEngine.Market.Servers.Tinkoff
                 TimeFrameDayIsOn = false
             };
 
-
-        public bool UseStandartCandlesStarter
-        {
-            get { return false; }
-        }
-
-        public bool IsUseLotToCalculateProfit
-        {
-            get { return true; }
-        }
-
-        public bool ManuallyClosePositionOnBoard_IsOn
-        {
-            get { return false; }
-        }
-
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
             get { return null; }
@@ -166,6 +166,16 @@ namespace OsEngine.Market.Servers.Tinkoff
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
             get { return null; }
+        }
+
+        public bool ManuallyClosePositionOnBoard_IsOn
+        {
+            get { return false; }
+        }
+        
+        public bool IsTradeServer
+        {
+            get { return true; }
         }
 
         #endregion

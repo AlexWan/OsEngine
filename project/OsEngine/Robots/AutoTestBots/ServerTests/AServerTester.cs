@@ -64,9 +64,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             StrategyParameterButton buttonConnectionTest1 = CreateParameterButton("Start test connection 1", "C1");
             buttonConnectionTest1.UserClickOnButtonEvent += ButtonConnectionTest1_UserClickOnButtonEvent;
 
+            C2_SecuritiesClass = CreateParameter("Sec class connection test 2", "Futures", "C2");
             StrategyParameterButton buttonConnectionTest2 = CreateParameterButton("Start test connection 2", "C2");
             buttonConnectionTest2.UserClickOnButtonEvent += ButtonConnectionTest2_UserClickOnButtonEvent;
 
+            C3_SecuritiesClass = CreateParameter("Sec class connection test 3", "Futures", "C3");
             StrategyParameterButton buttonConnectionTest3 = CreateParameterButton("Start test connection 3", "C3");
             buttonConnectionTest3.UserClickOnButtonEvent += ButtonConnectionTest3_UserClickOnButtonEvent;
 
@@ -75,6 +77,26 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             C4_SecuritiesSeparator = CreateParameter("Securities separator test 4", "_", "C4");
             C4_SecuritiesNames = CreateParameter("Sec name connection test 4", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "C4");
             C4_SecuritiesClass = CreateParameter("Sec class connection test 4", "Futures", "C4");
+
+            StrategyParameterButton buttonConnectionTest5 = CreateParameterButton("Start test connection 5", "C5");
+            buttonConnectionTest5.UserClickOnButtonEvent += ButtonConnectionTest5_UserClickOnButtonEvent;
+            C5_SecuritiesClass = CreateParameter("Sec class connection test 5", "Futures", "C5");
+            C5_SecuritiesCount = CreateParameter("Sec count connection test 5", 15, 1, 150, 1, "C5");
+
+            StrategyParameterButton buttonConnectionTest5_ShowScreener = CreateParameterButton("Show screener. test connection 5", "C5");
+            buttonConnectionTest5_ShowScreener.UserClickOnButtonEvent += ButtonConnectionTest5_ShowScreener_UserClickOnButtonEvent;
+            List<string> timeFrames = new List<string>();
+            timeFrames.Add(TimeFrame.Sec1.ToString()); timeFrames.Add(TimeFrame.Sec2.ToString());
+            timeFrames.Add(TimeFrame.Sec5.ToString()); timeFrames.Add(TimeFrame.Sec10.ToString());
+            timeFrames.Add(TimeFrame.Sec15.ToString()); timeFrames.Add(TimeFrame.Sec20.ToString());
+            timeFrames.Add(TimeFrame.Sec30.ToString()); timeFrames.Add(TimeFrame.Min1.ToString());
+            timeFrames.Add(TimeFrame.Min2.ToString()); timeFrames.Add(TimeFrame.Min3.ToString());
+            timeFrames.Add(TimeFrame.Min5.ToString()); timeFrames.Add(TimeFrame.Min10.ToString());
+            timeFrames.Add(TimeFrame.Min15.ToString()); timeFrames.Add(TimeFrame.Min20.ToString());
+            timeFrames.Add(TimeFrame.Min30.ToString()); timeFrames.Add(TimeFrame.Min45.ToString());
+            timeFrames.Add(TimeFrame.Hour1.ToString()); timeFrames.Add(TimeFrame.Hour2.ToString());
+            timeFrames.Add(TimeFrame.Hour4.ToString()); timeFrames.Add(TimeFrame.Day.ToString());
+            C5_TimeFrame = CreateParameter("Sec timeFrame connection test 5", "Min1", timeFrames.ToArray(), "C5");
 
             StrategyParameterButton buttonOrdersTest1 = CreateParameterButton("Start test orders 1", "O1");
             buttonOrdersTest1.UserClickOnButtonEvent += ButtonOrdersTest1_UserClickOnButtonEvent;
@@ -114,6 +136,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             O5_Volume = CreateParameter("Volume. orders test 5", 0.01m, 1, 1, 1, "O5");
             O5_CountOrders = CreateParameter("Count orders test 5", 5, 1, 1, 1, "O5");
 
+            StrategyParameterButton buttonOrdersTest6 = CreateParameterButton("Start test orders 6", "O6");
+            buttonOrdersTest6.UserClickOnButtonEvent += ButtonOrdersTest6_UserClickOnButtonEvent;
+            O6_SecurityName = CreateParameter("Sec name. orders test 6", "ETHUSDT", "O6");
+            O6_SecurityClass = CreateParameter("Sec class. orders test 6", "Futures", "O6");
+            O6_PortfolioName = CreateParameter("Portfolio. orders test 6", "BinanceFutures", "O6");
+            O6_Volume = CreateParameter("Volume. orders test 6", 0.01m, 1, 1, 1, "O6");
+            O6_FakeBigPrice = CreateParameter("Fake big price. orders test 6", 0.01m, 1, 1, 1, "O6");
+            O6_FakeSmallPrice = CreateParameter("Fake small price. orders test 6", 0.01m, 1, 1, 1, "O6");
+
+            StrategyParameterButton buttonOrdersTest7 = CreateParameterButton("Start test orders 7", "O7");
+            buttonOrdersTest7.UserClickOnButtonEvent += ButtonOrdersTest7_UserClickOnButtonEvent;
+            O7_PortfolioName = CreateParameter("Portfolio. orders test 7", "BinanceFutures", "O7");
+            O7_SecurityName = CreateParameter("Sec name. orders test 7", "ETHUSDT", "O7");
+            O7_SecurityClass = CreateParameter("Sec class. orders test 7", "Futures", "O7");
+            O7_Volume = CreateParameter("Volume. orders test 7", 0.01m, 1, 1, 1, "O7");
+            O7_CountOrders = CreateParameter("Count orders test 7", 5, 1, 1, 1, "O7");
+
             StrategyParameterButton buttonPortfolioTest1 = CreateParameterButton("Start test portfolio 1", "P1");
             buttonPortfolioTest1.UserClickOnButtonEvent += ButtonPortfolioTest1_UserClickOnButtonEvent;
             P1_PortfolioName = CreateParameter("Portfolio.  portfolio 1", "BinanceFutures", "P1");
@@ -121,6 +160,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             P1_SecurityClass = CreateParameter("Sec class.  portfolio 1", "Futures", "P1");
             P1_AssetInPortfolioName = CreateParameter("Asset In portfolio 1", "ETH", "P1");
             P1_Volume = CreateParameter("Volume.  portfolio 1", 0.01m, 1, 1, 1, "P1");
+
+
 
         }
 
@@ -161,9 +202,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString D5_SecuritiesSeparator;
         StrategyParameterString D5_SecurityClass;
 
+        StrategyParameterString C2_SecuritiesClass;
+
+        StrategyParameterString C3_SecuritiesClass;
+
         StrategyParameterString C4_SecuritiesNames;
         StrategyParameterString C4_SecuritiesSeparator;
         StrategyParameterString C4_SecuritiesClass;
+
+        StrategyParameterString C5_SecuritiesClass;
+        StrategyParameterInt C5_SecuritiesCount;
+        StrategyParameterString C5_TimeFrame;
 
         StrategyParameterString O1_SecurityName;
         StrategyParameterString O1_SecurityClass;
@@ -193,11 +242,25 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterDecimal O5_Volume;
         StrategyParameterInt O5_CountOrders;
 
+        StrategyParameterString O6_SecurityName;
+        StrategyParameterString O6_SecurityClass;
+        StrategyParameterString O6_PortfolioName;
+        StrategyParameterDecimal O6_Volume;
+        StrategyParameterDecimal O6_FakeBigPrice;
+        StrategyParameterDecimal O6_FakeSmallPrice;
+
+        StrategyParameterString O7_SecurityName;
+        StrategyParameterString O7_SecurityClass;
+        StrategyParameterString O7_PortfolioName;
+        StrategyParameterDecimal O7_Volume;
+        StrategyParameterInt O7_CountOrders;
+
         StrategyParameterString P1_SecurityName;
         StrategyParameterString P1_SecurityClass;
         StrategyParameterString P1_AssetInPortfolioName;
         StrategyParameterString P1_PortfolioName;
         StrategyParameterDecimal P1_Volume;
+
 
         #endregion
 
@@ -359,6 +422,42 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
+        private void ButtonConnectionTest5_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Conn_5;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonConnectionTest5_ShowScreener_UserClickOnButtonEvent()
+        {
+           if(_testers == null ||
+                _testers.Count == 0)
+            {
+                SendNewLogMessage("No test in array",LogMessageType.Error);
+                return;
+            }
+
+            AServerTester test = _testers[0];
+
+            if(test.GetType().Name != "Conn_5_Screener")
+            {
+                SendNewLogMessage("We need to run a test first. Conn_5_Screener", LogMessageType.Error);
+                return;
+            }
+
+            Conn_5_Screener testScreener = (Conn_5_Screener)test;
+
+            testScreener.ShowDialog();
+
+        }
+
         private void ButtonOrdersTest1_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
@@ -424,6 +523,32 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             worker.Start();
         }
 
+        private void ButtonOrdersTest6_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_6;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonOrdersTest7_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_7;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
         private void ButtonPortfolioTest1_UserClickOnButtonEvent()
         {
             if (_threadIsWork == true)
@@ -457,7 +582,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            for(int i = 0; servers != null && i < servers.Count;i++)
+            if (servers.Count > 1)
+            {
+                _threadIsWork = false;
+                SendNewLogMessage("You've created more than one server! Tests are not possible. Only one at a time!", LogMessageType.Error);
+                return;
+            }
+
+            for (int i = 0; servers != null && i < servers.Count;i++)
             {
                 string servType = servers[i].GetType().BaseType.ToString();
 
@@ -579,6 +711,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 else if (CurTestType == ServerTestType.Conn_2)
                 {
                     Conn_2_SubscrAllSec tester = new Conn_2_SubscrAllSec();
+                    tester.SecClass = C2_SecuritiesClass.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -589,6 +722,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 else if (CurTestType == ServerTestType.Conn_3)
                 {
                     Conn_3_Stress_Memory tester = new Conn_3_Stress_Memory();
+                    tester.SecClass = C3_SecuritiesClass.ValueString;
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -602,6 +736,20 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     tester.SecutiesToSubscrible = C4_SecuritiesNames.ValueString;
                     tester.SecuritiesClass = C4_SecuritiesClass.ValueString;
                     tester.SecuritiesSeparator = C4_SecuritiesSeparator.ValueString;
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
+                else if (CurTestType == ServerTestType.Conn_5)
+                {
+                    Conn_5_Screener tester = new Conn_5_Screener();
+                    tester.SecuritiesClass = C5_SecuritiesClass.ValueString;
+                    tester.SecuritiesCount = C5_SecuritiesCount.ValueInt;
+                    tester.TimeFrame = C5_TimeFrame.ValueString;
+
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -682,6 +830,38 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
                     tester.Start();
                 }
+                else if (CurTestType == ServerTestType.Order_6)
+                {
+                    Orders_6_ChangePriceError tester = new Orders_6_ChangePriceError();
+                    tester.SecurityNameToTrade = O6_SecurityName.ValueString;
+                    tester.SecurityClassToTrade = O6_SecurityClass.ValueString;
+                    tester.PortfolioName = O6_PortfolioName.ValueString;
+                    tester.VolumeToTrade = O6_Volume.ValueDecimal;
+                    tester.FakeBigPrice = O6_FakeBigPrice.ValueDecimal;
+                    tester.FakeSmallPrice = O6_FakeSmallPrice.ValueDecimal;
+
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
+                else if (CurTestType == ServerTestType.Order_7)
+                {
+                    Orders_7_Add_Move_Cancel_Spam tester = new Orders_7_Add_Move_Cancel_Spam();
+                    tester.SecurityNameToTrade = O7_SecurityName.ValueString;
+                    tester.SecurityClassToTrade = O7_SecurityClass.ValueString;
+                    tester.PortfolioName = O7_PortfolioName.ValueString;
+                    tester.VolumeToTrade = O7_Volume.ValueDecimal;
+                    tester.CountOrders = O7_CountOrders.ValueInt;
+                    tester.LogMessage += SendNewLogMessage;
+                    tester.TestEndEvent += Tester_TestEndEvent;
+                    _testers.Add(tester);
+                    tester.Server = (AServer)servers[i];
+                    SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                    tester.Start();
+                }
                 else if (CurTestType == ServerTestType.Portfolio_1)
                 {
                     Portfolio_1_Validation tester = new Portfolio_1_Validation();
@@ -754,11 +934,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         Conn_2,
         Conn_3,
         Conn_4,
+        Conn_5,
         Order_1,
         Order_2,
         Order_3,
         Order_4,
         Order_5,
+        Order_6,
+        Order_7,
         Portfolio_1,
     }
 
