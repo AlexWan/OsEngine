@@ -25,14 +25,15 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
 
     public class ResponseChannelBook
     {
-        public string ch { get; set; }
-        public string ts { get; set; }
+        public string ch { get; set; }        
         public Tick tick { get; set; }
+        public string ts { get; set; }
 
         public class Tick
         {
             public List<List<string>> asks { get; set; }
-            public List<List<string>> bids { get; set; }           
+            public List<List<string>> bids { get; set; }
+            
         }
     }
 
@@ -52,7 +53,8 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
             public string clientOrderId { get; set; }
             public string orderStatus { get; set; }
             public string orderId { get; set; }
-            public string type { get; set; }          
+            public string type { get; set; }            
+            public string lastActTime { get; set; }
         }
     }
 

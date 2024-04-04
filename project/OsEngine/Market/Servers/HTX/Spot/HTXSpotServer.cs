@@ -46,7 +46,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
             threadMessageReaderPrivate.Start();
 
-            //Thread.Sleep(5000);
             Thread threadUpdatePortfolio = new Thread(ThreadUpdatePortfolio);
             threadUpdatePortfolio.IsBackground = true;
             threadUpdatePortfolio.Name = "ThreadUpdatePortfolio";
@@ -118,9 +117,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-            _privateUriBuilder = null;
-            _signer = null;
-
+                       
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -351,7 +348,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 allCandles.AddRange(candles);
 
-                startTimeData = endTimeData.AddMinutes(tfTotalMinutes);
+                startTimeData = endTimeData;
                 endTimeData = startTimeData.AddMinutes(tfTotalMinutes * _limitCandles);
 
                 if (startTimeData >= DateTime.UtcNow)
@@ -433,7 +430,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 string topic = $"market.{security}.kline.{interval}";
 
                 string request = $"{{ \"req\": \"{topic}\",\"id\": \"{clientId}\", \"from\":{fromTimeStamp}, \"to\":{toTimeStamp} }}";
-                                
+
                 _webSocketPublic.Send(request);
 
                 DateTime startLoadingTime = DateTime.Now;
@@ -476,7 +473,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 candle.State = CandleState.Finished;
                 candle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(long.Parse(item[i].id));
-                candle.Volume = item[i].volume.ToDecimal();
+                candle.Volume = item[i].vol.ToDecimal();
                 candle.Close = item[i].close.ToDecimal();
                 candle.High = item[i].high.ToDecimal();
                 candle.Low = item[i].low.ToDecimal();
@@ -525,16 +522,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             _webSocketPublic.OnError += webSocketPublic_OnError;
             _webSocketPublic.OnClose += webSocketPublic_OnClose;
 
-            _webSocketPublic.Connect();
-
-            _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
-            _webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
-            _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
-            _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
-            _webSocketPrivate.OnError += webSocketPrivate_OnError;
-            _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
-
-            _webSocketPrivate.Connect();
+            _webSocketPublic.Connect();          
         }
 
         private void DeleteWebscoektConnection()
@@ -555,25 +543,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 _webSocketPublic.OnError -= webSocketPublic_OnError;
                 _webSocketPublic.OnClose -= webSocketPublic_OnClose;
                 _webSocketPublic = null;
-            }
-
-            if (_webSocketPrivate != null)
-            {
-                try
-                {
-                    _webSocketPrivate.Close();
-                }
-                catch
-                {
-                    // ignore
-                }
-
-                _webSocketPrivate.OnOpen -= webSocketPrivate_OnOpen;
-                _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
-                _webSocketPrivate.OnError -= webSocketPrivate_OnError;
-                _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
-                _webSocketPrivate = null;
-            }
+            }           
         }
 
         #endregion
@@ -625,9 +595,25 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {
-                SendLogMessage("Connection Closed by HTXSpot. WebSocket Public Closed Event", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                SendLogMessage("Connection Closed by HTXSpot. WebSocket Public Closed Event", LogMessageType.System);
+
+                if (_webSocketPrivate != null)
+                {
+                    try
+                    {
+                        _webSocketPrivate.Close();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
+                    _webSocketPrivate.OnOpen -= webSocketPrivate_OnOpen;
+                    _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
+                    _webSocketPrivate.OnError -= webSocketPrivate_OnError;
+                    _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
+                    _webSocketPrivate = null;
+                }
             }
         }
 
@@ -636,12 +622,18 @@ namespace OsEngine.Market.Servers.HTX.Spot
             SendLogMessage("Connection Websocket Public Open", LogMessageType.System);
             if (ServerStatus != ServerConnectStatus.Connect 
                 && _webSocketPublic != null
-                && _webSocketPublic.ReadyState == WebSocketState.Open)
+                && _webSocketPublic.ReadyState == WebSocketState.Open
+                )
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
-            }
-                      
+                _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+                _webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+                _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
+                _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
+                _webSocketPrivate.OnError += webSocketPrivate_OnError;
+                _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
+
+                _webSocketPrivate.Connect();
+            }                      
         }
 
         private void webSocketPrivate_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
@@ -689,7 +681,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {
-                SendLogMessage("Connection Closed by HTXSpot. WebSocket Private Closed Event", LogMessageType.Error);
+                SendLogMessage("Connection Closed by HTXSpot. WebSocket Private Closed Event", LogMessageType.System);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
             }
@@ -698,8 +690,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
         private void webSocketPrivate_OnOpen(object sender, EventArgs e)
         {
             SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
-            
-            if (ServerStatus != ServerConnectStatus.Connect
+
+            if (ServerStatus != ServerConnectStatus.Connect               
                 && _webSocketPrivate != null
                 && _webSocketPrivate.ReadyState == WebSocketState.Open)
             {
@@ -1035,7 +1027,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             MyTradeEvent(myTrade);
 
-            if (item.orderStatus.Equals("partial-filled"))
+            if (item.orderStatus.Equals("partial-filled") || item.orderStatus.Equals("filled"))
             {
                 Order newOrder = new Order();
                 newOrder.ServerType = ServerType.HTXSpot;
@@ -1082,13 +1074,22 @@ namespace OsEngine.Market.Servers.HTX.Spot
             {
                 return;
             }
-            if (item.eventType.Equals("creation"))
+            if (item.eventType.Equals("creation") || item.eventType.Equals("cancellation"))
             {
                 Order newOrder = new Order();
+
+                if (item.eventType.Equals("creation"))
+                {
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.orderCreateTime));
+                    newOrder.TimeCreate = newOrder.TimeCallBack;
+                }
+                else if (item.eventType.Equals("cancellation"))
+                {
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.lastActTime));
+                }
+                
                 newOrder.ServerType = ServerType.HTXSpot;
-                newOrder.SecurityNameCode = item.symbol;
-                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.orderCreateTime));
-                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.orderCreateTime));
+                newOrder.SecurityNameCode = item.symbol;                
                 newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
                 newOrder.NumberMarket = item.orderId.ToString();
                 newOrder.Side = item.type.Split('-')[0].Equals("buy") ? Side.Buy : Side.Sell;

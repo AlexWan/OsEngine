@@ -69,6 +69,7 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
     public class ResponseMessageCandles
     {
         public List<Data> data { get; set; }
+        public string rep {  get; set; }
 
         public class Data
         {           
@@ -76,7 +77,7 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
             public string close { get; set; }
             public string high { get; set; }
             public string low { get; set; }
-            public string volume { get; set; }
+            public string vol { get; set; }
             public string id { get; set; } //timestamp
         }
     }
