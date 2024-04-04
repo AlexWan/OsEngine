@@ -8,7 +8,6 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
-using OsEngine.OsTrader.AdminPanelApi;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

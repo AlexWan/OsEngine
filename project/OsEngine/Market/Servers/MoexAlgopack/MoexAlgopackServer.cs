@@ -48,6 +48,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
             }
 
             private bool _isAuthorized = false;
+
             public void Connect()
             {
                 _username = ((ServerParameterString)ServerParameters[0]).Value;
@@ -105,15 +106,25 @@ namespace OsEngine.Market.Servers.MoexAlgopack
             #region 2 Properties
 
             public DateTime ServerTime { get; set; }
+
             static HttpClientHandler handler = new HttpClientHandler();
+
             public List<IServerParameter> ServerParameters { get; set; }
+
             private string _username;
+
             private string _password;
+
             private bool _isPaidSubscription;
+
             private const string BaseUrl = "https://iss.moex.com/iss";
+
             public event Action<Order> MyOrderEvent;
+
             public event Action<MyTrade> MyTradeEvent;
+
             public event Action<MarketDepth> MarketDepthEvent;
+
             public event Action<Trade> NewTradesEvent;
 
             #endregion
@@ -248,6 +259,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
                 PortfolioEvent?.Invoke(new List<Portfolio>() {portfolio});
             }
+
             public event Action<List<Portfolio>> PortfolioEvent;
             
             #endregion
@@ -255,7 +267,9 @@ namespace OsEngine.Market.Servers.MoexAlgopack
             #region 5 Data
 
             private readonly object _locker = new object();
+
             private ConcurrentQueue<Trade> _recievedTrades = new ConcurrentQueue<Trade>();
+
             private DateTime _lastMdTime = DateTime.MinValue;
             
             public void GetNewData()
