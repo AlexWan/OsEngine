@@ -721,7 +721,9 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetBidAsk(decimal bid, decimal ask)
         {
-            if (State == PositionStateType.Open)
+            if (State == PositionStateType.Open
+                || State == PositionStateType.Closing
+                || State == PositionStateType.ClosingFail)
             {
                 if (_openOrders == null ||
                     _openOrders.Count == 0)

@@ -8,7 +8,6 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.Transaq.TransaqEntity;
-using OsEngine.OsData;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -178,7 +177,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             _cancellationTokenSource?.Cancel();
 
-            _transaqSecurities = new ConcurrentQueue<string>();
+            _transaqSecuritiesInString = new ConcurrentQueue<string>();
 
             _securities = new List<Security>();
 
@@ -312,7 +311,9 @@ namespace OsEngine.Market.Servers.Transaq
 
         private List<Security> _securities = new List<Security>();
 
-        private ConcurrentQueue<string> _transaqSecurities = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _transaqSecuritiesInString = new ConcurrentQueue<string>();
+
+        private List<TransaqEntity.Security> _transaqSecurities = new List<TransaqEntity.Security>();
 
         private List<SecurityInfo> _secsSpecification = new List<SecurityInfo>();
 
@@ -380,7 +381,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void _client_ClientOnUpdatePairs(string securities)
         {
-            _transaqSecurities.Enqueue(securities);
+            _transaqSecuritiesInString.Enqueue(securities);
             _lastUpdateSecurityArrayTime = DateTime.Now;
         }
 
@@ -406,11 +407,11 @@ namespace OsEngine.Market.Servers.Transaq
 
             DateTime timeStart = DateTime.Now;
 
-            while (_transaqSecurities.IsEmpty == false)
+            while (_transaqSecuritiesInString.IsEmpty == false)
             {
                 string curArray = null;
 
-                if (_transaqSecurities.TryDequeue(out curArray))
+                if (_transaqSecuritiesInString.TryDequeue(out curArray))
                 {
                     CreateSecurities(curArray);
                 }
@@ -475,6 +476,22 @@ namespace OsEngine.Market.Servers.Transaq
                     if (!CheckFilter(securityData))
                     {
                         continue;
+                    }
+
+                    bool isInArray = false;
+
+                    for(int i = 0;i < _transaqSecurities.Count;i++)
+                    {
+                        if (_transaqSecurities[i].Secid == securityData.Secid)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if(isInArray == false)
+                    {
+                        _transaqSecurities.Add(securityData);
                     }
 
                     Security security = new Security();
@@ -573,7 +590,14 @@ namespace OsEngine.Market.Servers.Transaq
                     if (security.SecurityType == SecurityType.Futures
                     || security.SecurityType == SecurityType.Option)
                     {
-                        security.PriceStepCost = pointCost;
+                        if (security.PriceStep > 1)
+                        {
+                            security.PriceStepCost = security.PriceStep * pointCost / 100;
+                        }
+                        else
+                        {
+                            security.PriceStepCost = pointCost / 100;
+                        }
                     }
                     else
                     {

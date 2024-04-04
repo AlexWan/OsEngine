@@ -781,6 +781,7 @@ namespace OsEngine.Journal.Internal
                 for (int i = positions.Count - 1; i > -1; i--)
                 {
                     if (positions[i].State == PositionStateType.Open 
+                        || positions[i].State == PositionStateType.Closing
                         || positions[i].State == PositionStateType.ClosingFail)
                     {
                         decimal profitOld = positions[i].ProfitOperationPunkt;
