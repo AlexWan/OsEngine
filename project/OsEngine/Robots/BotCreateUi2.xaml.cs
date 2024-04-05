@@ -488,6 +488,9 @@ namespace OsEngine.Robots
             }
 
             _lastLoadDescriptions = descriptions;
+					
+            UpdateSearchResults();
+            UpdateSearchPanel();
         }
 
         private void ReColorTable()
