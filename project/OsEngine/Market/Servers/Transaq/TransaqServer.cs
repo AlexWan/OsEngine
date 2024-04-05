@@ -2054,7 +2054,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (needDepth.Time <= _lastMdTime)
                 {
-                    needDepth.Time = _lastMdTime.AddMilliseconds(1);
+                    needDepth.Time = _lastMdTime.AddTicks(1);
                 }
 
                 _lastMdTime = needDepth.Time;

@@ -1487,7 +1487,7 @@ namespace OsEngine.Market.Servers.Alor
             if(_lastMdTime != DateTime.MinValue &&
                 _lastMdTime >= depth.Time)
             {
-                depth.Time = _lastMdTime.AddMilliseconds(1);
+                depth.Time = _lastMdTime.AddTicks(1);
             }
 
             _lastMdTime = depth.Time;

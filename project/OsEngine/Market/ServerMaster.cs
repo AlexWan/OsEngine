@@ -185,7 +185,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.Zb);
                 serverTypes.Add(ServerType.Hitbtc);
-                serverTypes.Add(ServerType.HuobiSpot);
+                serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HuobiFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
@@ -202,7 +202,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
-                serverTypes.Add(ServerType.HTXSpot);
+                
 
                 serverTypes.Add(ServerType.AstsBridge);
 
