@@ -58,6 +58,7 @@ using OsEngine.Market.Servers.XT.XTSpot;
 using OsEngine.Market.Servers.Pionex;
 using OsEngine.Market.Servers.Woo;
 using OsEngine.Market.Servers.MoexAlgopack;
+using OsEngine.Market.Servers.HTX.Spot;
 
 namespace OsEngine.Market
 {
@@ -201,6 +202,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
+                serverTypes.Add(ServerType.HTXSpot);
 
                 serverTypes.Add(ServerType.AstsBridge);
 
@@ -299,6 +301,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Woo);
+                serverTypes.Add(ServerType.HTXSpot);
 
                 return serverTypes;
             }
@@ -550,6 +553,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.Woo)
                 {
                     newServer = new WooServer();
+                }
+                else if (type == ServerType.HTXSpot)
+                {
+                    newServer = new HTXSpotServer();
                 }
 
                 if (newServer == null)
@@ -1105,6 +1112,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new WooServerPermission();
                 }
+                else if (type == ServerType.HTXSpot)
+                {
+                    serverPermission = new HTXSpotServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1525,5 +1536,10 @@ namespace OsEngine.Market
         /// MoexAlgopack data-server
         /// </summary>
         MoexAlgopack,
+
+        /// <summary>
+        /// HTXSpot exchange
+        /// </summary>
+        HTXSpot,
     }
 }

@@ -617,6 +617,10 @@
     <Compile Include="Market\Servers\Hitbtc\HitbtcClient.cs" />
     <Compile Include="Market\Servers\Hitbtc\HitbtcEntity.cs" />
     <Compile Include="Market\Servers\Hitbtc\HitbtcServer.cs" />
+    <Compile Include="Market\Servers\HTX\Spot\Entity\GetRequest.cs" />
+    <Compile Include="Market\Servers\HTX\Spot\Entity\PrivateUrlBuilder.cs" />
+    <Compile Include="Market\Servers\HTX\Spot\Entity\RequestWebsocketMessage.cs" />
+    <Compile Include="Market\Servers\HTX\Spot\Entity\Signer.cs" />
     <Compile Include="Market\Servers\Huobi\Entities\GetAccountBalanceResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Entities\GetAccountInfoResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Entities\GetSymbolsResponse.cs" />
@@ -647,6 +651,10 @@
     <Compile Include="Market\Servers\Huobi\Response\WebSocketResponseBase.cs" />
     <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotSecurityCreator.cs" />
     <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServer.cs" />
+    <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseMessageRest.cs" />
+    <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseWebSocketMessage.cs" />
+    <Compile Include="Market\Servers\HTX\Spot\HTXSpotServer.cs" />
+    <Compile Include="Market\Servers\HTX\Spot\HTXSpotServerPermission.cs" />
     <Compile Include="Market\Servers\InteractiveBrokers\IbClient.cs" />
     <Compile Include="Market\Servers\InteractiveBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
