@@ -536,7 +536,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// Cancel
         /// </summary>
-        Cancel
+        Cancel,
+
+        /// <summary>
+        /// Status did not change after Active. Possible error
+        /// </summary>
+        LostAfterActive
     }
 
     /// <summary>
