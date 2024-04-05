@@ -59,7 +59,8 @@ namespace OsEngine.Market.SupportTable
 
         private DataGridView GetDiscountGridSupport()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             // 0 лого
             // 1 Имя
@@ -67,6 +68,7 @@ namespace OsEngine.Market.SupportTable
             // 3 Скидка
 
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            newGrid.ScrollBars = ScrollBars.Vertical;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
 
@@ -120,7 +122,8 @@ namespace OsEngine.Market.SupportTable
 
         private DataGridView GetNoDiscountGridSupport()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             // 0 лого
             // 1 Имя
@@ -128,6 +131,7 @@ namespace OsEngine.Market.SupportTable
             // 3 Скидка
 
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            newGrid.ScrollBars = ScrollBars.Vertical;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
             

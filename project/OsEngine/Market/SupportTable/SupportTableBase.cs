@@ -51,7 +51,7 @@ namespace OsEngine.Market.SupportTable
             SupportConnection quikLua = new SupportConnection()
             {
                 ServerType = ServerType.QuikLua,
-                SupportType = SupportServerType.Standart,
+                SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Moex\\QLua.png",
                 LingSiteUrl = "",
                 Discount = 0
@@ -185,9 +185,9 @@ namespace OsEngine.Market.SupportTable
 
             SupportConnection huobi = new SupportConnection()
             {
-                ServerType = ServerType.HuobiSpot,
+                ServerType = ServerType.HTXSpot,
                 SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Huobi.png",
+                LinqToLogo = "\\Images\\Connections\\Crypto\\HTX.png",
                 LingSiteUrl = "https://www.htx.com/ru-ru/v/register/double-invite/web/?inviter_id=11345710&invite_code=jxbn7223",
                 Discount = 30
             };
@@ -197,7 +197,7 @@ namespace OsEngine.Market.SupportTable
             {
                 ServerType = ServerType.HuobiFutures,
                 SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Huobi.png",
+                LinqToLogo = "\\Images\\Connections\\Crypto\\HTX.png",
                 LingSiteUrl = "https://www.htx.com/ru-ru/v/register/double-invite/web/?inviter_id=11345710&invite_code=jxbn7223",
                 Discount = 30
             };
@@ -262,6 +262,16 @@ namespace OsEngine.Market.SupportTable
                 Discount = 10
             };
             supportList.Add(pionex);
+
+            SupportConnection woo = new SupportConnection()
+            {
+                ServerType = ServerType.Woo,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\Woox.png",
+                LingSiteUrl = "https://x.woo.org/register?ref=QMXPT8MR",
+                Discount = 5
+            };
+            supportList.Add(woo);
 
             SupportConnection bitmex = new SupportConnection()
             {
