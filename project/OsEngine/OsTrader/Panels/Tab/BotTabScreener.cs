@@ -1726,6 +1726,31 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
+            for (int i = 0; i < indFirst.DataSeries.Count; i++)
+            {
+                IndicatorDataSeries paramFirst = indFirst.DataSeries[i];
+                IndicatorDataSeries paramSecond = second.DataSeries[i];
+
+                if (paramFirst.ChartPaintType != paramSecond.ChartPaintType)
+                {
+                    paramSecond.ChartPaintType = paramFirst.ChartPaintType;
+                    isChange = true;
+                }
+
+                if (paramFirst.Color != paramSecond.Color)
+                {
+                    paramSecond.Color = paramFirst.Color;
+                    isChange = true;
+                }
+
+                if (paramFirst.IsPaint != paramSecond.IsPaint)
+                {
+                    paramSecond.IsPaint = paramFirst.IsPaint;
+                    isChange = true;
+                }
+            }
+
+
             return isChange;
         }
 
