@@ -226,6 +226,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
             
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         /// <summary>
         /// subscribe
         /// подписаться 

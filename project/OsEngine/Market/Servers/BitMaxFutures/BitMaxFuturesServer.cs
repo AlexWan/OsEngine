@@ -324,6 +324,16 @@ namespace OsEngine.Market.Servers.BitMaxFutures
             //null
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region Portfolio

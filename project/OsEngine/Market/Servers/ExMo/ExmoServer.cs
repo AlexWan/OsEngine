@@ -158,6 +158,16 @@ namespace OsEngine.Market.Servers.ExMo
 
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         /// <summary>
         /// subscribe
         /// подписаться 

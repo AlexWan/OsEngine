@@ -1690,6 +1690,16 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 9 Incoming streams data

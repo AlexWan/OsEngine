@@ -750,6 +750,16 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 MyOrderEvent?.Invoke(order);
             }
 
+            public void GetAllActivOrders()
+            {
+
+            }
+
+            public void GetOrderStatus(Order order)
+            {
+
+            }
+
             #endregion
 
             #region 8 Queries

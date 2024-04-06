@@ -2203,6 +2203,16 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         private List<Order> GetAllOrdersFromExchange()
         {
             List<Order> orders = new List<Order>();

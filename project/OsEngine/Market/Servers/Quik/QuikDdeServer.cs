@@ -685,6 +685,16 @@ namespace OsEngine.Market.Servers.Quik
            
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         /// <summary>
         /// convert Os.Engine order to string for placing in QUIK 
         /// преобразовать ордер Os.Engine в строку выставления ордера Квик

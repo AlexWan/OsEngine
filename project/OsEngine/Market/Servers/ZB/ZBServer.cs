@@ -263,6 +263,16 @@ namespace OsEngine.Market.Servers.ZB
             _wsSource?.SendMessage(jsonContent.ToString());
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         private void StartMessageReader()
         {
             Task.Run(() => MessageReader(_cancelTokenSource.Token), _cancelTokenSource.Token);

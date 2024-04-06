@@ -942,6 +942,16 @@ namespace OsEngine.Market.Servers.QuikLua
 
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         private List<string> subscribedBook = new List<string>();
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]

@@ -1292,6 +1292,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 12 Queries

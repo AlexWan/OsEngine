@@ -249,6 +249,16 @@ namespace OsEngine.Market.Servers.Hitbtc
 
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region parsing incoming data / разбор входящих данных

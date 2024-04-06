@@ -190,6 +190,16 @@ namespace OsEngine.Market.Servers.Lmax
 
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         /// <summary>
 		/// subscribe to get instrument data
         /// подписаться на получение данных по инструменту

@@ -748,6 +748,16 @@ namespace OsEngine.Market.Servers.Huobi.Spot
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         public void Subscrible(Security security)
         {
             string topic = $"market.{security.Name}.trade.detail";

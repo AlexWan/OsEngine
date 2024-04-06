@@ -171,6 +171,16 @@ namespace OsEngine.Market.Servers.BitStamp
 
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         /// <summary>
         /// subscribe
         /// подписаться 
