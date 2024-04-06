@@ -6,41 +6,49 @@
         {
             get { return ServerType.KuCoinSpot; }
         }
-        
+
         #region DataFeedPermissions
+
         public bool DataFeedTf1SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf2SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf20SecondCanLoad
         {
             get { return false; ; }
         }
+
         public bool DataFeedTf30SecondCanLoad
         {
             get { return false; }
         }
-        
+
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
@@ -50,47 +58,57 @@
         {
             get { return true; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
             get { return true; }
         }
-        
+
 
         #endregion
 
         #region Trade permission
+
         public bool MarketOrdersIsSupport
         {
             get { return true; }
         }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 1; }
@@ -110,11 +128,11 @@
             get { return false; }
         }
 
-       public TimeFramePermission TradeTimeFramePermission
+        public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
         }
-        
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
@@ -140,7 +158,7 @@
                 TimeFrameDayIsOn = false
             };
 
-        
+
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
             get { return null; }
@@ -155,9 +173,20 @@
         {
             get { return false; }
         }
+
         public bool IsTradeServer
         {
             get { return true; }
+        }
+
+        public bool CanQueryOrdersAfterReconnect
+        {
+            get { return false; }
+        }
+
+        public bool CanQueryOrderStatus
+        {
+            get { return false; }
         }
 
         #endregion

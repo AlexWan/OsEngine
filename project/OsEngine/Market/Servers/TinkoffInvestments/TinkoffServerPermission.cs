@@ -189,6 +189,16 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             }
         }
 
+        public bool CanQueryOrdersAfterReconnect
+        {
+            get { return false; }
+        }
+
+        public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

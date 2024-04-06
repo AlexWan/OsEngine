@@ -188,6 +188,16 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
+        public bool CanQueryOrdersAfterReconnect
+        {
+            get { return false; }
+        }
+
+        public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

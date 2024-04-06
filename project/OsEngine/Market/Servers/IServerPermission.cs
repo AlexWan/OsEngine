@@ -1,4 +1,5 @@
-﻿using OsEngine.Entity;
+﻿using OsEngine.Charts.CandleChart.Indicators;
+using OsEngine.Entity;
 using System.Windows.Documents;
 
 namespace OsEngine.Market.Servers
@@ -66,6 +67,10 @@ namespace OsEngine.Market.Servers
         string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName { get; }
 
         string[] ManuallyClosePositionOnBoard_ExceptionPositionNames { get; }
+
+        bool CanQueryOrdersAfterReconnect { get; }
+
+        bool CanQueryOrderStatus { get; }
 
         #endregion
 
