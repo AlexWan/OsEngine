@@ -115,9 +115,15 @@ namespace OsEngine.Market.Servers
 
                 _serverIsCreated = true;
 
+                _ordersHub = new AServerOrdersHub(this);
+                _ordersHub.LogMessageEvent += SendLogMessage;
+                _ordersHub.GetAllActivOrdersOnReconnectEvent += _ordersHub_GetAllActivOrdersOnReconnectEvent;
+                _ordersHub.ActivStateOrderCheckStatusEvent += _ordersHub_ActivStateOrderCheckStatusEvent;
+                _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
             }
             get { return _serverRealization; }
         }
+
         private IServerRealization _serverRealization;
 
         #endregion
@@ -2251,6 +2257,8 @@ namespace OsEngine.Market.Servers
                 ord.Order = order;
                 ord.OrderSendType = OrderSendType.Execute;
 
+                _ordersHub.SetOrderFromOsEngine(order);
+
                 _ordersToExecute.Enqueue(ord);
 
                 SendLogMessage(OsLocalization.Market.Message19 + order.Price +
@@ -2470,6 +2478,8 @@ namespace OsEngine.Market.Servers
 
             myOrder.ServerType = ServerType;
 
+            _ordersHub.SetOrderFromApi(myOrder);
+
             _ordersToSend.Enqueue(myOrder);
 
             for (int i = 0; i < _myTrades.Count; i++)
@@ -2495,6 +2505,38 @@ namespace OsEngine.Market.Servers
         /// external systems requested order cancellation
         /// </summary>
         public event Action<Order> UserSetOrderOnCancel;
+
+        #endregion
+
+        #region Orders Hub
+
+        AServerOrdersHub _ordersHub;
+
+        private void _ordersHub_GetAllActivOrdersOnReconnectEvent()
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
+            _serverRealization.GetAllActivOrders();
+        }
+
+        private void _ordersHub_LostOrderEvent(Order order)
+        {
+
+
+
+
+        }
+
+        private void _ordersHub_ActivStateOrderCheckStatusEvent(Order order)
+        {
+
+
+
+
+        }
 
         #endregion
 
