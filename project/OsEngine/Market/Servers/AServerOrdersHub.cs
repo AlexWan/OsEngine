@@ -112,10 +112,15 @@ namespace OsEngine.Market.Servers
                     {
                         CheckReconnectStatus();
                     }
-                  
+
+                    if (_server.ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        continue;
+                    }
+
                     // 2 загружаем ордера внутрь из очередей и из баз. Сохраняем
 
-                    if(_canQueryOrderStatus)
+                    if (_canQueryOrderStatus)
                     {
                         ManageOrders();
                     }
@@ -205,6 +210,8 @@ namespace OsEngine.Market.Servers
         {
             // 1 удаляем все ордера старше 24 часов
 
+            bool orderIsDelete = false;
+
             for (int i = 0; i < _ordersActiv.Count; i++)
             {
                 Order order = _ordersActiv[i].Order;
@@ -220,6 +227,7 @@ namespace OsEngine.Market.Servers
 
                     _ordersActiv.RemoveAt(i);
                     i--;
+                    orderIsDelete = true;
                 }
 
                 if (order.TimeCallBack != DateTime.MinValue
@@ -233,6 +241,7 @@ namespace OsEngine.Market.Servers
 
                     _ordersActiv.RemoveAt(i);
                     i--;
+                    orderIsDelete = true;
                 }
             }
 
@@ -251,10 +260,14 @@ namespace OsEngine.Market.Servers
 
                     _ordersActiv.RemoveAt(i);
                     i--;
+                    orderIsDelete = true;
                 }
             }
 
-
+            if(orderIsDelete)
+            {
+                SaveOrdersInFile();
+            }
         }
 
         private void GetOrdersFromQueue()

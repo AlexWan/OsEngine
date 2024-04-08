@@ -1041,6 +1041,7 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_4_LimitCancel.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_5_ChangePrice.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_6_ChangePriceError.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_8_RequestOnReconnect.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Portfolio_1_Validation.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_7_Add_Move_Cancel_Spam.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_2_MarketDepth.cs" />
