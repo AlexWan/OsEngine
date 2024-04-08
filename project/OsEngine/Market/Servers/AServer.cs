@@ -2514,30 +2514,48 @@ namespace OsEngine.Market.Servers
 
         private void _ordersHub_GetAllActivOrdersOnReconnectEvent()
         {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
+            try
             {
-                return;
-            }
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
 
-            _serverRealization.GetAllActivOrders();
+                _serverRealization.GetAllActivOrders();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
         }
 
         private void _ordersHub_LostOrderEvent(Order order)
         {
+            string message = "ORDER LOST!!! Five times we've requested his status. There's no answer! \n";
 
+            message += "Security: " + order.SecurityNameCode + "\n";
+            message += "Class: " + order.SecurityClassCode + "\n";
+            message += "NumberUser: " + order.NumberUser + "\n";
+            message += "NumberMarket: " + order.NumberMarket + "\n";
 
-
-
+            SendLogMessage(message, LogMessageType.Error);
         }
 
         private void _ordersHub_ActivStateOrderCheckStatusEvent(Order order)
         {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
+            try
             {
-                return;
-            }
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
 
-            _serverRealization.GetOrderStatus(order);
+                _serverRealization.GetOrderStatus(order);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion

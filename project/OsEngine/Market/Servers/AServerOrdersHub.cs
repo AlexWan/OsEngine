@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Text;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
 
@@ -15,37 +10,32 @@ namespace OsEngine.Market.Servers
 {
     public class AServerOrdersHub
     {
-        public AServerOrdersHub(AServer server) 
+        #region Constructor, Settings
+
+        public AServerOrdersHub(AServer server)
         {
             _server = server;
 
             IServerPermission permission = ServerMaster.GetServerPermission(server.ServerType);
 
-            if(permission == null)
+            if (permission == null)
             {
                 return;
             }
 
-            if(permission.CanQueryOrdersAfterReconnect)
+            if (permission.CanQueryOrdersAfterReconnect == false
+                && permission.CanQueryOrderStatus == false)
             {
-                _canQueryOrdersAfterReconnect = true;
-                Thread worker = new Thread(ThreadWorkerAreaQueryOrdersAfterReconnect);
-                worker.Name = "ThreadWorkerAreaQueryOrdersAfterReconnect";
-                worker.Start();
+                return;
             }
 
-            if(permission.CanQueryOrderStatus)
-            {
-                _canQueryOrderStatus = true;
+            _canQueryOrdersAfterReconnect = permission.CanQueryOrdersAfterReconnect;
+            _canQueryOrderStatus = permission.CanQueryOrderStatus;
 
-                Thread worker = new Thread(ThreadWorkerAreaQueryOrderStatus);
-                worker.Name = "ThreadWorkerAreaQueryOrderStatus";
-                worker.Start();
+            Thread worker = new Thread(ThreadWorkerArea);
+            worker.Name = "AServerOrdersHubThreadWorker";
+            worker.Start();
 
-                Thread worker2 = new Thread(ThreadWorkerAreaLoadSaveOrders);
-                worker2.Name = "ThreadWorkerAreaLoadSaveOrders";
-                worker2.Start();
-            }
         }
 
         AServer _server;
@@ -55,6 +45,8 @@ namespace OsEngine.Market.Servers
         bool _canQueryOrderStatus;
 
         bool _fullLogIsOn = false;
+
+        #endregion
 
         #region Set orders
 
@@ -67,9 +59,11 @@ namespace OsEngine.Market.Servers
 
             _ordersFromOsEngineQueue.Enqueue(order);
 
-            if(_fullLogIsOn)
+            if (_fullLogIsOn)
             {
-                SendLogMessage("New order in OsEngine. NumUser: " + order.NumberUser, LogMessageType.System);
+                SendLogMessage("New order in OsEngine. NumUser: " + order.NumberUser
+                     + " State: " + order.State
+                    , LogMessageType.System);
             }
         }
 
@@ -85,7 +79,9 @@ namespace OsEngine.Market.Servers
             if (_fullLogIsOn)
             {
                 SendLogMessage("New order in Api. NumUser: " + order.NumberUser
-                    + " NumMarket: " + order.NumberMarket, LogMessageType.System);
+                    + " NumMarket: " + order.NumberMarket
+                    + " State: " + order.State
+                    , LogMessageType.System);
             }
         }
 
@@ -95,13 +91,9 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Orders Hub
+        #region Main Tread
 
-        private List<Order> _ordersActiv = new List<Order>();
-
-        bool _ordersIsLoaded = false;
-
-        private void ThreadWorkerAreaLoadSaveOrders()
+        private void ThreadWorkerArea()
         {
             while (true)
             {
@@ -114,16 +106,25 @@ namespace OsEngine.Market.Servers
                         return;
                     }
 
-                    if(_ordersIsLoaded == false)
+                    // 1 проверяем не надо ли запросить список активных ордеров после переподключения
+                    
+                    if(_canQueryOrdersAfterReconnect)
                     {
-                        _ordersIsLoaded = true;
-                        LoadOrdersFromFile();
+                        CheckReconnectStatus();
                     }
+                  
+                    // 2 загружаем ордера внутрь из очередей и из баз. Сохраняем
 
-                    if(_orderFromApiQueue.IsEmpty == false
-                        || _ordersFromOsEngineQueue.IsEmpty == false)
+                    if(_canQueryOrderStatus)
                     {
-                        GetOrdersFromQueue();
+                        ManageOrders();
+                    }
+                   
+                    // 3 проверка статусов ордеров
+
+                    if(_canQueryOrderStatus)
+                    {
+                        CheckOrdersStatus();
                     }
 
                 }
@@ -133,6 +134,127 @@ namespace OsEngine.Market.Servers
                     Thread.Sleep(5000);
                 }
             }
+        }
+
+        #endregion
+
+        #region Query orders after reconnect
+
+        private void CheckReconnectStatus()
+        {
+            if (_server.ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                _lastDisconnectTime = DateTime.Now;
+                _checkOrdersAfterLastConnect = false;
+                return;
+            }
+
+            if (_checkOrdersAfterLastConnect == true)
+            {
+                return;
+            }
+
+            if (_lastDisconnectTime.AddSeconds(15) < DateTime.Now)
+            {
+                _checkOrdersAfterLastConnect = true;
+
+                if (GetAllActivOrdersOnReconnectEvent != null)
+                {
+                    GetAllActivOrdersOnReconnectEvent();
+
+                    if (_fullLogIsOn)
+                    {
+                        SendLogMessage("Event: GetAllActivOrdersOnReconnectEvent", LogMessageType.System);
+                    }
+                }
+            }
+        }
+
+        private DateTime _lastDisconnectTime;
+
+        private bool _checkOrdersAfterLastConnect = false;
+
+        public event Action GetAllActivOrdersOnReconnectEvent;
+
+        #endregion
+
+        #region Orders Hub
+
+        private List<OrderToWatch> _ordersActiv = new List<OrderToWatch>();
+
+        bool _ordersIsLoaded = false;
+
+        private void ManageOrders()
+        {
+            if (_ordersIsLoaded == false)
+            {
+                _ordersIsLoaded = true;
+                LoadOrdersFromFile();
+            }
+
+            if (_orderFromApiQueue.IsEmpty == false
+                || _ordersFromOsEngineQueue.IsEmpty == false)
+            {
+                GetOrdersFromQueue();
+            }
+
+            TryRemoveOrders();
+        }
+
+        private void TryRemoveOrders()
+        {
+            // 1 удаляем все ордера старше 24 часов
+
+            for (int i = 0; i < _ordersActiv.Count; i++)
+            {
+                Order order = _ordersActiv[i].Order;
+
+                if(order.TimeCreate != DateTime.MinValue 
+                    && order.TimeCreate.AddDays(1) < DateTime.Now)
+                {
+                    SendLogMessage("Order remove BY TIME 1. NumUser: " + order.NumberUser
+                     + " NumMarket: " + order.NumberMarket
+                     + " Status: " + order.State
+                     + " TimeCreate: " + order.TimeCreate
+                     , LogMessageType.System);
+
+                    _ordersActiv.RemoveAt(i);
+                    i--;
+                }
+
+                if (order.TimeCallBack != DateTime.MinValue
+                    && order.TimeCallBack.AddDays(1) < DateTime.Now)
+                {
+                    SendLogMessage("Order remove BY TIME 2. NumUser: " + order.NumberUser
+                    + " NumMarket: " + order.NumberMarket
+                    + " Status: " + order.State
+                    + " TimeCallBack: " + order.TimeCallBack
+                    , LogMessageType.System);
+
+                    _ordersActiv.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            // 2 удаляем окончательно потерянные ордера о которых на верх уже выслали сообщение
+
+            for (int i = 0; i < _ordersActiv.Count; i++)
+            {
+                OrderToWatch order = _ordersActiv[i];
+
+                if (order.IsFinallyLost)
+                {
+                    SendLogMessage("Order remove BY FINALLY LOST. NumUser: " + order.Order.NumberUser
+                     + " NumMarket: " + order.Order.NumberMarket
+                     + " Status: " + order.Order.State
+                     , LogMessageType.System);
+
+                    _ordersActiv.RemoveAt(i);
+                    i--;
+                }
+            }
+
+
         }
 
         private void GetOrdersFromQueue()
@@ -145,7 +267,10 @@ namespace OsEngine.Market.Servers
 
                 if(_ordersFromOsEngineQueue.TryDequeue(out newOpenOrder))
                 {
-                    _ordersActiv.Add(newOpenOrder);
+                    OrderToWatch orderToWatch = new OrderToWatch();
+                    orderToWatch.Order = newOpenOrder;
+
+                    _ordersActiv.Add(orderToWatch);
                 }
             }
 
@@ -173,7 +298,7 @@ namespace OsEngine.Market.Servers
 
             for (int i = 0;i < _ordersActiv.Count;i++)
             {
-                Order curOrderFromOsEngine = _ordersActiv[i];
+                Order curOrderFromOsEngine = _ordersActiv[i].Order;
 
                 if(orderFromApi.NumberUser != curOrderFromOsEngine.NumberUser)
                 {
@@ -185,7 +310,8 @@ namespace OsEngine.Market.Servers
                     || orderFromApi.State == OrderStateType.Pending)
                 {
                     
-                    _ordersActiv[i] = orderFromApi;
+                    _ordersActiv[i].Order = orderFromApi;
+                    _ordersActiv[i].CountEventsFromApi++;
 
                     if (_fullLogIsOn)
                     {
@@ -243,8 +369,7 @@ namespace OsEngine.Market.Servers
                             Order newOrder = new Order();
                             newOrder.SetOrderFromString(orderInString);
 
-                            if (newOrder.State == OrderStateType.None
-                                || newOrder.State == OrderStateType.Fail
+                            if (newOrder.State == OrderStateType.Fail
                                 || newOrder.State == OrderStateType.Cancel
                                 || newOrder.State == OrderStateType.Done)
                             {
@@ -256,8 +381,10 @@ namespace OsEngine.Market.Servers
                                 }
                                 continue;
                             }
+                            OrderToWatch orderToWatch = new OrderToWatch();
+                            orderToWatch.Order = newOrder;
 
-                            _ordersActiv.Add(newOrder);
+                            _ordersActiv.Add(orderToWatch);
 
                             if (_fullLogIsOn)
                             {
@@ -286,7 +413,7 @@ namespace OsEngine.Market.Servers
                 {
                     for (int i = 0; i < _ordersActiv.Count; i++)
                     {
-                        writer.WriteLine(_ordersActiv[i].GetStringForSave());
+                        writer.WriteLine(_ordersActiv[i].Order.GetStringForSave());
                     }
 
                     writer.Close();
@@ -300,100 +427,154 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Query orders after reconnect
-
-        private void ThreadWorkerAreaQueryOrdersAfterReconnect()
-        {
-            while (true)
-            {
-                try
-                {
-                    Thread.Sleep(1000);
-
-                    if (MainWindow.ProccesIsWorked == false)
-                    {
-                        return;
-                    }
-
-                    if(_server.ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        _lastDisconnectTime = DateTime.Now;
-                        _checkOrdersAfterLastConnect = false;
-                        continue;
-                    }
-
-                    if(_checkOrdersAfterLastConnect == true)
-                    {
-                        continue;
-                    }
-
-                    if(_lastDisconnectTime.AddSeconds(15) < DateTime.Now)
-                    {
-                        _checkOrdersAfterLastConnect = true;
-
-                        if(GetAllActivOrdersOnReconnectEvent != null)
-                        {
-                            GetAllActivOrdersOnReconnectEvent();
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage(e.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
-                }
-            }
-        }
-
-        private DateTime _lastDisconnectTime;
-
-        private bool _checkOrdersAfterLastConnect = false;
-
-        public event Action GetAllActivOrdersOnReconnectEvent;
-
-        #endregion
-
         #region Query order status
 
-        private void ThreadWorkerAreaQueryOrderStatus()
+        private void CheckOrdersStatus()
         {
-            while(true)
+            if (_server.ServerStatus != ServerConnectStatus.Connect)
             {
-                try
-                {
-                    Thread.Sleep(1000);
+                return;
+            }
 
-                    if (MainWindow.ProccesIsWorked == false)
-                    {
-                        return;
-                    }
-
-                    // Что должен делать этот поток:
-
-                    // 1 копируем ордера из массива живых ордеров в свой массив
-                    // 2 удаляем лимитки с дед статусами
-
-                    // проверки
-                    // статусы маркет ордеров начинаем вызывать через 5ть секунд как увидели
-                    // статусы лимиток начинаем вызывать когда цена пересекла цену ордера. Через пять секунд
-                    // статусы лимиток дополнительно проверяем раз в 5ть минут. 
-
-
-
-
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage(e.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
-                }
+            for (int i = 0;i < _ordersActiv.Count;i++)
+            {
+                CheckOrderState(_ordersActiv[i]);
             }
         }
 
-        public void SetBidAsk(decimal bid, decimal ask, Security security)
+        private void CheckOrderState(OrderToWatch order)
         {
-            // это мы должны проверять тут лимитки от OsEngine
+            if(order.IsFinallyLost)
+            {
+                return;
+            }
 
+            if(order.CountTriesToGetOrderStatus >= 5)
+            {
+                order.IsFinallyLost = true;
+
+                if(LostOrderEvent != null)
+                {
+                    LostOrderEvent(order.Order);
+                }
+            }
+
+            if (order.LastTryGetStatusTime == DateTime.MinValue)
+            {
+                order.LastTryGetStatusTime = DateTime.Now;
+            }
+
+            if(order.Order.TypeOrder == OrderPriceType.Market)
+            {
+                CheckMarketOrder(order);
+            }
+            else if (order.Order.TypeOrder == OrderPriceType.Limit)
+            {
+                CheckLimitOrder(order);
+            }
+        }
+
+        private void CheckMarketOrder(OrderToWatch order)
+        {
+            if(order.CountEventsFromApi == 0
+                && order.CountTriesToGetOrderStatus == 0
+                && order.LastTryGetStatusTime.AddSeconds(5) < DateTime.Now)
+            { // не пришло ни одного отклика от АПИ. Запрашиваем статус ордера в первый раз
+                order.CountTriesToGetOrderStatus++;
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
+                if (_fullLogIsOn)
+                {
+                    SendLogMessage("Ask order status. Market. No response from API after 5 sec NumUser: " + order.Order.NumberUser
+                        + " NumMarket: " + order.Order.NumberMarket
+                        + " Status: " + order.Order.State
+                        + " Try: " + order.CountTriesToGetOrderStatus
+                        , LogMessageType.System);
+                }
+
+                return;
+            }
+
+            if (order.Order.State == OrderStateType.None
+             && order.LastTryGetStatusTime.AddSeconds(5 * order.CountTriesToGetOrderStatus) < DateTime.Now)
+            { // не пришёл статус Activ. Всё ещё NONE
+                // периоды запросов: через 5 сек. через 5 сек. через 10 сек. через 15 сек. через 20 сек. Всё.
+                order.CountTriesToGetOrderStatus++;
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
+                if (_fullLogIsOn)
+                {
+                    SendLogMessage("Ask order status. Market. No response from API. sec NumUser: " + order.Order.NumberUser
+                        + " NumMarket: " + order.Order.NumberMarket
+                        + " Status: " + order.Order.State
+                        + " Try: " + order.CountTriesToGetOrderStatus
+                        , LogMessageType.System);
+                }
+
+                return;
+            }
+
+        }
+
+        private void CheckLimitOrder(OrderToWatch order)
+        {
+            if (order.CountEventsFromApi == 0
+               && order.CountTriesToGetOrderStatus == 0
+               && order.LastTryGetStatusTime.AddSeconds(5) < DateTime.Now)
+            { // не пришло ни одного отклика от АПИ. Запрашиваем статус ордера в первый раз
+                order.CountTriesToGetOrderStatus++;
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
+                if (_fullLogIsOn)
+                {
+                    SendLogMessage("Ask order status. Limit. No response from API after 5 sec NumUser: " + order.Order.NumberUser
+                        + " NumMarket: " + order.Order.NumberMarket
+                        + " Status: " + order.Order.State
+                        + " Try: " + order.CountTriesToGetOrderStatus
+                        , LogMessageType.System);
+                }
+
+                return;
+            }
+
+            if (order.Order.State == OrderStateType.None
+             && order.LastTryGetStatusTime.AddSeconds(5 * order.CountTriesToGetOrderStatus) < DateTime.Now)
+            {   // не пришёл статус Activ. Всё ещё NONE
+                // периоды запросов: через 5 сек. через 5 сек. через 10 сек. через 15 сек. через 20 сек. Всё.
+                order.CountTriesToGetOrderStatus++;
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
+                if (_fullLogIsOn)
+                {
+                    SendLogMessage("Ask order status. Limit. No response from API. sec NumUser: " + order.Order.NumberUser
+                        + " NumMarket: " + order.Order.NumberMarket
+                        + " Status: " + order.Order.State
+                        + " Try: " + order.CountTriesToGetOrderStatus
+                        , LogMessageType.System);
+                }
+
+                return;
+            }
+
+            if (order.LastTryGetStatusTime.AddSeconds(300) < DateTime.Now)
+            {   // статусы лимиток дополнительно проверяем раз в 5ть минут. 
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
+                if (_fullLogIsOn)
+                {
+                    SendLogMessage("Ask order status. Limit. Standart ask in five minutes. NumUser: " + order.Order.NumberUser
+                        + " NumMarket: " + order.Order.NumberMarket
+                        + " Status: " + order.Order.State
+                        , LogMessageType.System);
+                }
+
+                return;
+            }
         }
 
         public event Action<Order> ActivStateOrderCheckStatusEvent;
@@ -401,8 +582,6 @@ namespace OsEngine.Market.Servers
         public event Action<Order> LostOrderEvent;
 
         #endregion
-
-   
 
         #region Log
 
@@ -425,25 +604,17 @@ namespace OsEngine.Market.Servers
         #endregion
     }
 
-    public class OrderToSave
+    public class OrderToWatch
     {
         public Order Order;
 
         public int CountTriesToGetOrderStatus;
 
+        public int CountEventsFromApi;
+
+        public bool IsFinallyLost;
+
         public DateTime LastTryGetStatusTime;
 
-        public string GetSaveString()
-        {
-
-            return null;
-        }
-
-        public void LoadFromString(string str)
-        {
-
-
-
-        }
     }
 }

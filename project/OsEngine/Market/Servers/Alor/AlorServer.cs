@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using WebSocket4Net;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -990,6 +989,8 @@ namespace OsEngine.Market.Servers.Alor
 
         private bool _socketPortfolioIsActive;
 
+        private string _activationLocker = "activationLocker";
+
         private void CheckActivationSockets()
         {
             if (_socketDataIsActive == false)
@@ -1004,9 +1005,15 @@ namespace OsEngine.Market.Servers.Alor
 
             try
             {
-                SendLogMessage("All sockets activated. Connect State", LogMessageType.System);
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                lock(_activationLocker)
+                {
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        SendLogMessage("All sockets activated. Connect State", LogMessageType.System);
+                        ServerStatus = ServerConnectStatus.Connect;
+                        ConnectEvent();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -2191,73 +2198,68 @@ namespace OsEngine.Market.Servers.Alor
         {
             ///md/v2/Clients/MOEX/D39004/orders?format=Simple
 
-            for(int i = 0;i < this._myPortfolious.Count;i++)
-            {
-                string portfolioName = _myPortfolious[i].Number.Split('_')[0];
+            List<Order> orders = GetAllOrdersFromExchange();
 
-                if(string.IsNullOrEmpty(portfolioName))
+            for(int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if(orders[i] == null)
                 {
                     continue;
                 }
 
-                string endPoint = "/md/v2/Clients/MOEX/" + portfolioName + "/orders?format=Simple";
-                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("accept", "application/json");
-
-                RestClient client = new RestClient(_restApiHost);
-
-                IRestResponse response = client.Execute(requestRest);
-
-                if(response.StatusCode == HttpStatusCode.OK)
+                if (orders[i].State != OrderStateType.Activ
+                    && orders[i].State != OrderStateType.Patrial
+                    && orders[i].State != OrderStateType.Pending)
                 {
-                    string responseString = response.Content;
-
-                    if(string.IsNullOrEmpty(responseString) == false)
-                    {
-                        DisassembleOrdersFromRest(responseString, _myPortfolious[i].Number);
-                    }
+                    continue;
                 }
-                else
+
+                orders[i].TimeCreate = orders[i].TimeCallBack;
+
+                if (MyOrderEvent != null)
                 {
-
-                }
-            }
-        }
-
-        private void DisassembleOrdersFromRest(string ordersArray,string portfolioName)
-        {
-            if(ordersArray == "[]")
-            {
-                return;
-            }    
-
-            List<OrderAlor> ordersAlor = JsonConvert.DeserializeAnonymousType(ordersArray, new List<OrderAlor>());
-
-            if(ordersAlor == null ||
-                ordersAlor.Count == 0)
-            {
-                return;
-            }
-
-            for(int i = 0;i < ordersAlor.Count;i++)
-            {
-                Order osEngineOrder = ConvertToOsEngineOrder(ordersAlor[i], portfolioName);
-                osEngineOrder.TimeCreate = osEngineOrder.TimeCallBack;
-
-                if (osEngineOrder != null &&
-                    MyOrderEvent != null)
-                {
-                    MyOrderEvent(osEngineOrder);
+                    MyOrderEvent(orders[i]);
                 }
             }
         }
 
         public void GetOrderStatus(Order order)
         {
+            List<Order> orders = GetAllOrdersFromExchange();
 
+            if(orders == null ||
+                orders.Count == 0)
+            {
+                return;
+            }
 
+            Order orderOnMarket = null;
 
+            for(int i = 0;i < orders.Count;i++)
+            {
+                Order curOder = orders[i];
+
+                if (order.NumberUser != 0
+                    && curOder.NumberUser != 0
+                    && curOder.NumberUser == order.NumberUser)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+
+                if(order.NumberMarket != null 
+                    && order.NumberMarket == curOder.NumberMarket)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+            }
+
+            if (orderOnMarket != null && 
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
         }
 
         private List<Order> GetAllOrdersFromExchange()
