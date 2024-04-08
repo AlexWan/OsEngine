@@ -163,7 +163,7 @@
 
         public bool CanQueryOrderStatus
         {
-            get { return true; }
+            get { return false; }
         }
     }
 }

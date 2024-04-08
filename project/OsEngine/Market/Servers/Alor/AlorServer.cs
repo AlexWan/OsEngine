@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using WebSocket4Net;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -1070,6 +1071,7 @@ namespace OsEngine.Market.Servers.Alor
             AlorSocketSubscription ordersSub = new AlorSocketSubscription();
             ordersSub.SubType = AlorSubType.Orders;
             ordersSub.Guid = subObjOrders.guid;
+            ordersSub.ServiceInfo = portfolioName;
 
             _subscriptionsPortfolio.Add(ordersSub);
             _webSocketPortfolio.Send(messageOrderSub);
@@ -1565,7 +1567,7 @@ namespace OsEngine.Market.Servers.Alor
                         }
                         else if (_subscriptionsPortfolio[i].SubType == AlorSubType.Orders)
                         {
-                            UpDateMyOrder(baseMessage.data.ToString());
+                            UpDateMyOrder(baseMessage.data.ToString(), _subscriptionsPortfolio[i].ServiceInfo);
                             break;
                         }
                     }
@@ -1641,17 +1643,12 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private void UpDateMyOrder(string data)
+        private void UpDateMyOrder(string data, string portfolioName)
         {
             OrderAlor baseMessage =
             JsonConvert.DeserializeAnonymousType(data, new OrderAlor());
 
-            if(string.IsNullOrEmpty(baseMessage.comment))
-            {
-                return;
-            }
-
-            Order order = ConvertToOsEngineOrder(baseMessage);
+            Order order = ConvertToOsEngineOrder(baseMessage, portfolioName);
 
             if(order == null)
             {
@@ -1681,29 +1678,16 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private Order ConvertToOsEngineOrder(OrderAlor baseMessage)
+        private Order ConvertToOsEngineOrder(OrderAlor baseMessage, string portfolioName)
         {
             Order order = new Order();
 
             order.SecurityNameCode = baseMessage.symbol;
             order.Volume = baseMessage.qty.ToDecimal();
 
-            bool securityInArray = false;
-            for (int i = 0; i < _securitiesAndPortfolious.Count; i++)
-            {
-                if (_securitiesAndPortfolious[i].Security == order.SecurityNameCode)
-                {
-                    order.PortfolioNumber = _securitiesAndPortfolious[i].Portfolio;
-                    securityInArray = true;
-                    break;
-                }
-            }
 
-            if (securityInArray == false)
-            {
-                order.PortfolioNumber = baseMessage.exchange;
-            }
-
+            order.PortfolioNumber = portfolioName;
+            
             if (baseMessage.type == "limit")
             {
                 order.Price = baseMessage.price.ToDecimal();
@@ -1720,7 +1704,7 @@ namespace OsEngine.Market.Servers.Alor
             }
             catch
             {
-                return null;
+                // ignore
             }
 
             order.NumberMarket = baseMessage.id;
@@ -2205,11 +2189,74 @@ namespace OsEngine.Market.Servers.Alor
 
         public void GetAllActivOrders()
         {
+            ///md/v2/Clients/MOEX/D39004/orders?format=Simple
 
+            for(int i = 0;i < this._myPortfolious.Count;i++)
+            {
+                string portfolioName = _myPortfolious[i].Number.Split('_')[0];
+
+                if(string.IsNullOrEmpty(portfolioName))
+                {
+                    continue;
+                }
+
+                string endPoint = "/md/v2/Clients/MOEX/" + portfolioName + "/orders?format=Simple";
+                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                requestRest.AddHeader("accept", "application/json");
+
+                RestClient client = new RestClient(_restApiHost);
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if(response.StatusCode == HttpStatusCode.OK)
+                {
+                    string responseString = response.Content;
+
+                    if(string.IsNullOrEmpty(responseString) == false)
+                    {
+                        DisassembleOrdersFromRest(responseString, _myPortfolious[i].Number);
+                    }
+                }
+                else
+                {
+
+                }
+            }
+        }
+
+        private void DisassembleOrdersFromRest(string ordersArray,string portfolioName)
+        {
+            if(ordersArray == "[]")
+            {
+                return;
+            }    
+
+            List<OrderAlor> ordersAlor = JsonConvert.DeserializeAnonymousType(ordersArray, new List<OrderAlor>());
+
+            if(ordersAlor == null ||
+                ordersAlor.Count == 0)
+            {
+                return;
+            }
+
+            for(int i = 0;i < ordersAlor.Count;i++)
+            {
+                Order osEngineOrder = ConvertToOsEngineOrder(ordersAlor[i], portfolioName);
+                osEngineOrder.TimeCreate = osEngineOrder.TimeCallBack;
+
+                if (osEngineOrder != null &&
+                    MyOrderEvent != null)
+                {
+                    MyOrderEvent(osEngineOrder);
+                }
+            }
         }
 
         public void GetOrderStatus(Order order)
         {
+
+
 
         }
 
@@ -2298,7 +2345,7 @@ namespace OsEngine.Market.Servers.Alor
 
                         for(int i = 0;i < orders.Count;i++)
                         {
-                            Order newOrd = ConvertToOsEngineOrder(orders[i]);
+                            Order newOrd = ConvertToOsEngineOrder(orders[i], portfolio);
 
                             if(newOrd == null)
                             {

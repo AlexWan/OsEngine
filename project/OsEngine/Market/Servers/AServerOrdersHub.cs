@@ -84,7 +84,8 @@ namespace OsEngine.Market.Servers
 
             if (_fullLogIsOn)
             {
-                SendLogMessage("New order in Api. NumUser: " + order.NumberUser, LogMessageType.System);
+                SendLogMessage("New order in Api. NumUser: " + order.NumberUser
+                    + " NumMarket: " + order.NumberMarket, LogMessageType.System);
             }
         }
 
@@ -96,7 +97,7 @@ namespace OsEngine.Market.Servers
 
         #region Orders Hub
 
-        private List<Order> _ordersFromOsEngine = new List<Order>();
+        private List<Order> _ordersActiv = new List<Order>();
 
         bool _ordersIsLoaded = false;
 
@@ -144,7 +145,7 @@ namespace OsEngine.Market.Servers
 
                 if(_ordersFromOsEngineQueue.TryDequeue(out newOpenOrder))
                 {
-                    _ordersFromOsEngine.Add(newOpenOrder);
+                    _ordersActiv.Add(newOpenOrder);
                 }
             }
 
@@ -154,7 +155,7 @@ namespace OsEngine.Market.Servers
 
                 if (_orderFromApiQueue.TryDequeue(out newOrder))
                 {
-              // 2 перегружаем ордера которые пришли из АПИ в хранилище ордеров которые сгенерировал OsEngine
+                   // 2 перегружаем ордера которые пришли из АПИ в хранилище ордеров которые сгенерировал OsEngine
                     TrySetOrderInHub(newOrder);
                 }
             }
@@ -168,9 +169,11 @@ namespace OsEngine.Market.Servers
         {
             // удаляем всё что исполнилось или отменено или ошибочно
 
-            for (int i = 0;i < _ordersFromOsEngine.Count;i++)
+            bool isInArray = false;
+
+            for (int i = 0;i < _ordersActiv.Count;i++)
             {
-                Order curOrderFromOsEngine = _ordersFromOsEngine[i];
+                Order curOrderFromOsEngine = _ordersActiv[i];
 
                 if(orderFromApi.NumberUser != curOrderFromOsEngine.NumberUser)
                 {
@@ -182,12 +185,13 @@ namespace OsEngine.Market.Servers
                     || orderFromApi.State == OrderStateType.Pending)
                 {
                     
-                    _ordersFromOsEngine[i] = orderFromApi;
+                    _ordersActiv[i] = orderFromApi;
 
                     if (_fullLogIsOn)
                     {
-                        SendLogMessage("New order alive status. NumUser: " + orderFromApi.NumberUser +
-                            " Status: " + orderFromApi.State, LogMessageType.System);
+                        SendLogMessage("New order alive status. NumUser: " + orderFromApi.NumberUser
+                           + " NumMarket: " + orderFromApi.NumberMarket
+                           + " Status: " + orderFromApi.State, LogMessageType.System);
                     }
 
                     break;
@@ -197,12 +201,13 @@ namespace OsEngine.Market.Servers
                     || orderFromApi.State == OrderStateType.Done
                     || orderFromApi.State == OrderStateType.LostAfterActive)
                 {
-                    _ordersFromOsEngine.RemoveAt(i);
+                    _ordersActiv.RemoveAt(i);
 
                     if (_fullLogIsOn)
                     {
-                        SendLogMessage("New order dead status. NumUser: " + orderFromApi.NumberUser +
-                            " Status: " + orderFromApi.State, LogMessageType.System);
+                        SendLogMessage("New order dead status. NumUser: " + orderFromApi.NumberUser
+                             + " NumMarket: " + orderFromApi.NumberMarket
+                             + " Status: " + orderFromApi.State, LogMessageType.System);
                     }
 
                     break;
@@ -210,9 +215,9 @@ namespace OsEngine.Market.Servers
                 else
                 {
                     SendLogMessage(
-                        "Error status error. State: " + orderFromApi.State 
-                        + " Order numberUser: " + orderFromApi.NumberUser
-                         + " Order numberMarket: " + orderFromApi.NumberMarket
+                        "Error status. State: " + orderFromApi.State 
+                        + " NumUser: " + orderFromApi.NumberUser
+                         + " NumMarket: " + orderFromApi.NumberMarket
                          + " Connection: " + orderFromApi.ServerType
                         , LogMessageType.Error);
                 }
@@ -245,18 +250,20 @@ namespace OsEngine.Market.Servers
                             {
                                 if (_fullLogIsOn)
                                 {
-                                    SendLogMessage("Bad State order LOAD. Ignore. NumUser: " + newOrder.NumberUser +
-                                        " Status: " + newOrder.State, LogMessageType.System);
+                                    SendLogMessage("Bad State order LOAD. Ignore. NumUser: " + newOrder.NumberUser
+                                        + " NumMarket: " + newOrder.NumberMarket
+                                        + " Status: " + newOrder.State, LogMessageType.System);
                                 }
                                 continue;
                             }
 
-                            _ordersFromOsEngine.Add(newOrder);
+                            _ordersActiv.Add(newOrder);
 
                             if (_fullLogIsOn)
                             {
-                                SendLogMessage("New alive order LOAD. NumUser: " + newOrder.NumberUser +
-                                    " Status: " + newOrder.State, LogMessageType.System);
+                                SendLogMessage("New alive order LOAD. NumUser: " + newOrder.NumberUser
+                                    + " NumMarket: " + newOrder.NumberMarket
+                                    + " Status: " + newOrder.State, LogMessageType.System);
                             }
                         }
                     }
@@ -277,9 +284,9 @@ namespace OsEngine.Market.Servers
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _server.ServerType.ToString() + @"ordersHub.txt", false)
                     )
                 {
-                    for (int i = 0; i < _ordersFromOsEngine.Count; i++)
+                    for (int i = 0; i < _ordersActiv.Count; i++)
                     {
-                        writer.WriteLine(_ordersFromOsEngine[i].GetStringForSave());
+                        writer.WriteLine(_ordersActiv[i].GetStringForSave());
                     }
 
                     writer.Close();
@@ -290,6 +297,59 @@ namespace OsEngine.Market.Servers
                 // ignore
             }
         }
+
+        #endregion
+
+        #region Query orders after reconnect
+
+        private void ThreadWorkerAreaQueryOrdersAfterReconnect()
+        {
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(1000);
+
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    if(_server.ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        _lastDisconnectTime = DateTime.Now;
+                        _checkOrdersAfterLastConnect = false;
+                        continue;
+                    }
+
+                    if(_checkOrdersAfterLastConnect == true)
+                    {
+                        continue;
+                    }
+
+                    if(_lastDisconnectTime.AddSeconds(15) < DateTime.Now)
+                    {
+                        _checkOrdersAfterLastConnect = true;
+
+                        if(GetAllActivOrdersOnReconnectEvent != null)
+                        {
+                            GetAllActivOrdersOnReconnectEvent();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private DateTime _lastDisconnectTime;
+
+        private bool _checkOrdersAfterLastConnect = false;
+
+        public event Action GetAllActivOrdersOnReconnectEvent;
 
         #endregion
 
@@ -307,6 +367,18 @@ namespace OsEngine.Market.Servers
                     {
                         return;
                     }
+
+                    // Что должен делать этот поток:
+
+                    // 1 копируем ордера из массива живых ордеров в свой массив
+                    // 2 удаляем лимитки с дед статусами
+
+                    // проверки
+                    // статусы маркет ордеров начинаем вызывать через 5ть секунд как увидели
+                    // статусы лимиток начинаем вызывать когда цена пересекла цену ордера. Через пять секунд
+                    // статусы лимиток дополнительно проверяем раз в 5ть минут. 
+
+
 
 
                 }
@@ -330,34 +402,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Query orders after reconnect
-
-        private void ThreadWorkerAreaQueryOrdersAfterReconnect()
-        {
-            while (true)
-            {
-                try
-                {
-                    Thread.Sleep(1000);
-
-                    if (MainWindow.ProccesIsWorked == false)
-                    {
-                        return;
-                    }
-
-
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage(e.ToString(),LogMessageType.Error);
-                    Thread.Sleep(5000);
-                }
-            }
-        }
-
-        public event Action GetAllActivOrdersOnReconnectEvent;
-
-        #endregion
+   
 
         #region Log
 
@@ -378,5 +423,27 @@ namespace OsEngine.Market.Servers
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+    }
+
+    public class OrderToSave
+    {
+        public Order Order;
+
+        public int CountTriesToGetOrderStatus;
+
+        public DateTime LastTryGetStatusTime;
+
+        public string GetSaveString()
+        {
+
+            return null;
+        }
+
+        public void LoadFromString(string str)
+        {
+
+
+
+        }
     }
 }

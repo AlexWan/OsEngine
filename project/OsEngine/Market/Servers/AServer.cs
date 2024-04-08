@@ -2532,10 +2532,12 @@ namespace OsEngine.Market.Servers
 
         private void _ordersHub_ActivStateOrderCheckStatusEvent(Order order)
         {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
 
-
-
-
+            _serverRealization.GetOrderStatus(order);
         }
 
         #endregion

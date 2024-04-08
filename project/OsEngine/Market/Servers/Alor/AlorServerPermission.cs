@@ -190,7 +190,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus

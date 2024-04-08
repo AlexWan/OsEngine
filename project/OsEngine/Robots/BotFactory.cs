@@ -23,6 +23,7 @@ using OsEngine.Robots.Patterns;
 using OsEngine.Robots.Trend;
 using OsEngine.Robots.OnScriptIndicators;
 using OsEngine.Robots.Screeners;
+using System.Windows;
 
 namespace OsEngine.Robots
 {
@@ -432,8 +433,15 @@ namespace OsEngine.Robots
                 {
                     return null;
                 }
-
-                bot = Serialize(myPath, nameClass, name, startProgram);
+                try
+                {
+                    bot = Serialize(myPath, nameClass, name, startProgram);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show("BotFactory. Serialization error: " + e.ToString());
+                    return null;
+                }
             }
 
             bot.IsScript = true;
@@ -459,14 +467,23 @@ namespace OsEngine.Robots
         {
             // 1 we try to clone from previously serialized objects. It's faster than raising from a file
 
-            for (int i = 0; i < _serializedPanels.Count; i++)
+            try
             {
-                if (_serializedPanels[i].GetType().Name == nameClass)
+                for (int i = 0; i < _serializedPanels.Count; i++)
                 {
-                    object[] param = new object[] { name, startProgram };
-                    BotPanel newPanel = (BotPanel)Activator.CreateInstance(_serializedPanels[i].GetType(), param);
-                    return newPanel;
+                    if (_serializedPanels[i].GetType().Name == nameClass)
+                    {
+                        object[] param = new object[] { name, startProgram };
+                        BotPanel newPanel = (BotPanel)Activator.CreateInstance(_serializedPanels[i].GetType(), param);
+                        return newPanel;
+                    }
                 }
+
+            }
+            catch (Exception e)
+            {
+                string errorString = e.ToString();
+                throw new Exception(errorString);
             }
 
             // serialize from file
