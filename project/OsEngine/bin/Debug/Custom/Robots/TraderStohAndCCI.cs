@@ -92,8 +92,8 @@ namespace OsEngine.Robots.AO
             _Stoh = IndicatorsFactory.CreateIndicatorByName("Stochastic", name + "Stoh", false);
             _Stoh = (Aindicator)_tab.CreateCandleIndicator(_Stoh, "NewArea0");
             ((IndicatorParameterInt)_Stoh.Parameters[0]).ValueInt = StochPeriod1.ValueInt;
-            ((IndicatorParameterInt)_Stoh.Parameters[1]).ValueInt = StochPeriod1.ValueInt;
-            ((IndicatorParameterInt)_Stoh.Parameters[2]).ValueInt = StochPeriod1.ValueInt;
+            ((IndicatorParameterInt)_Stoh.Parameters[1]).ValueInt = StochPeriod2.ValueInt;
+            ((IndicatorParameterInt)_Stoh.Parameters[2]).ValueInt = StochPeriod3.ValueInt;
             _Stoh.Save();
 
             // Exit
@@ -122,8 +122,8 @@ namespace OsEngine.Robots.AO
             _CCI.Save();
             _CCI.Reload();
             ((IndicatorParameterInt)_Stoh.Parameters[0]).ValueInt = StochPeriod1.ValueInt;
-            ((IndicatorParameterInt)_Stoh.Parameters[1]).ValueInt = StochPeriod1.ValueInt;
-            ((IndicatorParameterInt)_Stoh.Parameters[2]).ValueInt = StochPeriod1.ValueInt;
+            ((IndicatorParameterInt)_Stoh.Parameters[1]).ValueInt = StochPeriod2.ValueInt;
+            ((IndicatorParameterInt)_Stoh.Parameters[2]).ValueInt = StochPeriod3.ValueInt;
             _Stoh.Save();
             _Stoh.Reload();
         }
@@ -192,7 +192,7 @@ namespace OsEngine.Robots.AO
 
             // The prev value of the indicator
             _prevCCI = _CCI.DataSeries[0].Values[_CCI.DataSeries[0].Values.Count - 2];
-            _prevStoh = _CCI.DataSeries[0].Values[_CCI.DataSeries[0].Values.Count - 2];
+            _prevStoh = _Stoh.DataSeries[0].Values[_Stoh.DataSeries[0].Values.Count - 2];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
