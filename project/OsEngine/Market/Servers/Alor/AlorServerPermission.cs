@@ -195,7 +195,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
