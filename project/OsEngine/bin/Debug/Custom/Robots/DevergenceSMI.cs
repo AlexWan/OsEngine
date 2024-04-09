@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Drawing;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
@@ -10,7 +9,6 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Logging;
-using OsEngine.Indicators.My_ind;
 
 /* Description
 trading robot for osengine

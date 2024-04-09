@@ -902,34 +902,36 @@ namespace OsEngine.Robots
             try
             {
                 bot = BotFactory.GetStrategyForName(className, "", StartProgram.IsTester, isScript);
+
+
+                BotDescription description = new BotDescription();
+
+                description.ClassName = className;
+
+                description.Description = bot.Description;
+
+                if (isScript)
+                {
+                    description.Location = BotCreationType.Script;
+                }
+                else
+                {
+                    description.Location = BotCreationType.Include;
+                }
+
+                description.Sources = GetSourcesFromBot(bot);
+
+                description.Indicators = GetIndicatorsFromBot(bot);
+
+                bot.Delete();
+
+                return description;
+
             }
             catch
             {
                 return null;
             }
-
-            BotDescription description = new BotDescription();
-
-            description.ClassName = className;
-
-            description.Description = bot.Description;
-
-            if (isScript)
-            {
-                description.Location = BotCreationType.Script;
-            }
-            else
-            {
-                description.Location = BotCreationType.Include;
-            }
-
-            description.Sources = GetSourcesFromBot(bot);
-
-            description.Indicators = GetIndicatorsFromBot(bot);
-
-            bot.Delete();
-
-            return description;
         }
 
         #region поиск по таблице

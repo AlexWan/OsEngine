@@ -1035,6 +1035,7 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_3_Validation_Trades.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_4_Stress_Candles.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_5_Stress_Trades.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_10_RequestLostDoneOrder.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_1_FakeOrders.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_2_LimitsExecute.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_3_MarketOrders.cs" />
@@ -1042,6 +1043,7 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_5_ChangePrice.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_6_ChangePriceError.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_8_RequestOnReconnect.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_9_RequestLostActivOrder.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Portfolio_1_Validation.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_7_Add_Move_Cancel_Spam.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Var_2_MarketDepth.cs" />

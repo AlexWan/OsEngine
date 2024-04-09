@@ -2247,7 +2247,7 @@ namespace OsEngine.Market.Servers.Alor
                     break;
                 }
 
-                if(order.NumberMarket != null 
+                if(string.IsNullOrEmpty(order.NumberMarket) == false 
                     && order.NumberMarket == curOder.NumberMarket)
                 {
                     orderOnMarket = curOder;
@@ -2255,10 +2255,45 @@ namespace OsEngine.Market.Servers.Alor
                 }
             }
 
+            if(orderOnMarket == null)
+            {
+                return;
+            }
+
             if (orderOnMarket != null && 
                 MyOrderEvent != null)
             {
                 MyOrderEvent(orderOnMarket);
+            }
+
+            if(orderOnMarket.State == OrderStateType.Done 
+                || orderOnMarket.State == OrderStateType.Patrial)
+            {
+                List<MyTrade> tradesBySecurity 
+                    = GetMyTradesBySecurity(order.SecurityNameCode, order.PortfolioNumber.Split('_')[0]);
+
+                if(tradesBySecurity == null)
+                {
+                    return;
+                }
+
+                List<MyTrade> tradesByMyOrder = new List<MyTrade>();
+
+                for(int i = 0;i < tradesBySecurity.Count;i++)
+                {
+                    if (tradesBySecurity[i].NumberOrderParent == orderOnMarket.NumberMarket)
+                    {
+                        tradesByMyOrder.Add(tradesBySecurity[i]);
+                    }
+                }
+
+                for(int i = 0;i < tradesByMyOrder.Count;i++)
+                {
+                    if(MyTradeEvent != null)
+                    {
+                        MyTradeEvent(tradesByMyOrder[i]);
+                    }
+                }
             }
         }
 
@@ -2362,6 +2397,89 @@ namespace OsEngine.Market.Servers.Alor
                     }
                 }
                 else if(response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+
+                    if (response.Content != null)
+                    {
+                        SendLogMessage("Fail reasons: "
+                      + response.Content, LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+        private List<MyTrade> GetMyTradesBySecurity(string security, string portfolio)
+        {
+            try
+            {
+                // /md/v2/Clients/MOEX/D39004/LKOH/trades?format=Simple
+
+                string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/" + security + "/trades?format=Simple";
+
+                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                requestRest.AddHeader("accept", "application/json");
+
+                RestClient client = new RestClient(_restApiHost);
+
+                IRestResponse response = client.Execute(requestRest);
+
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string respString = response.Content;
+
+                    if (respString == "[]")
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        List<MyTradeAlorRest> allTradesJson 
+                            = JsonConvert.DeserializeAnonymousType(respString, new List<MyTradeAlorRest>());
+
+                        List<MyTrade> osEngineOrders = new List<MyTrade>();
+
+                        for (int i = 0; i < allTradesJson.Count; i++)
+                        {
+                            MyTradeAlorRest tradeRest = allTradesJson[i];
+
+                            MyTrade newTrade = new MyTrade();
+                            newTrade.SecurityNameCode = security;
+                            newTrade.NumberTrade = tradeRest.id;
+                            newTrade.NumberOrderParent = tradeRest.orderno;
+                            newTrade.Volume = tradeRest.qty.ToDecimal();
+                            newTrade.Price = tradeRest.price.ToDecimal();
+                            newTrade.Time =  ConvertToDateTimeFromTimeAlorData(tradeRest.date);
+
+                            if (tradeRest.side == "buy")
+                            {
+                                newTrade.Side = Side.Buy;
+                            }
+                            else
+                            {
+                                newTrade.Side = Side.Sell;
+                            }
+
+                            osEngineOrders.Add(newTrade);
+                        }
+
+                        return osEngineOrders;
+
+                    }
+                }
+                else if (response.StatusCode == HttpStatusCode.NotFound)
                 {
                     return null;
                 }

@@ -833,9 +833,13 @@ namespace OsEngine.Market.Servers
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
                         {
-                            if (NewOrderIncomeEvent != null)
+                            if(TestValue_CanSendOrdersUp)
                             {
-                                NewOrderIncomeEvent(order);
+                                if (NewOrderIncomeEvent != null)
+                                {
+                                    NewOrderIncomeEvent(order);
+                                }
+                                _ordersHub.SetOrderFromApi(order);
                             }
                         }
                     }
@@ -846,9 +850,12 @@ namespace OsEngine.Market.Servers
 
                         if (_myTradesToSend.TryDequeue(out myTrade))
                         {
-                            if (NewMyTradeEvent != null)
+                            if(TestValue_CanSendOrdersUp)
                             {
-                                NewMyTradeEvent(myTrade);
+                                if (NewMyTradeEvent != null)
+                                {
+                                    NewMyTradeEvent(myTrade);
+                                }
                             }
                         }
                     }
@@ -976,6 +983,8 @@ namespace OsEngine.Market.Servers
         /// queue of new orders
         /// </summary>
         private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
+
+        public bool TestValue_CanSendOrdersUp = true;
 
         /// <summary>
         /// queue of ticks
@@ -2477,8 +2486,6 @@ namespace OsEngine.Market.Servers
             }
 
             myOrder.ServerType = ServerType;
-
-            _ordersHub.SetOrderFromApi(myOrder);
 
             _ordersToSend.Enqueue(myOrder);
 

@@ -165,8 +165,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             for(int i = 0;i < _ordersActive.Count;i++)
             {
                 SetNewServiceInfo("API send Activ order. NumUser: " + _ordersActive[i].NumberUser + 
-                     "NumMarket: "  + _ordersActive[i].NumberMarket + 
-                     "Security: " + _ordersActive[i].SecurityNameCode);
+                     " NumMarket: "  + _ordersActive[i].NumberMarket + 
+                     " Security: " + _ordersActive[i].SecurityNameCode);
             }
            
             // 5 отзываем ордер
@@ -187,8 +187,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             _md = md;
         }
 
-        Side _whaitSide;
-
         private Order SendBuyOrder(Security mySec, decimal price)
         {
             decimal volume = VolumeToTrade;
@@ -196,7 +194,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             price = Math.Round(price - price * 0.01m, mySec.Decimals); // проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
-            _whaitSide = Side.Buy;
 
             Server.ExecuteOrder(newOrder);
 

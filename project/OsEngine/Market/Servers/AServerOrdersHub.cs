@@ -493,9 +493,6 @@ namespace OsEngine.Market.Servers
                 && order.CountTriesToGetOrderStatus == 0
                 && order.LastTryGetStatusTime.AddSeconds(5) < DateTime.Now)
             { // не пришло ни одного отклика от АПИ. Запрашиваем статус ордера в первый раз
-                order.CountTriesToGetOrderStatus++;
-                ActivStateOrderCheckStatusEvent(order.Order);
-                order.LastTryGetStatusTime = DateTime.Now;
 
                 if (_fullLogIsOn)
                 {
@@ -506,16 +503,18 @@ namespace OsEngine.Market.Servers
                         , LogMessageType.System);
                 }
 
+                order.CountTriesToGetOrderStatus++;
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
                 return;
             }
 
             if (order.Order.State == OrderStateType.None
-             && order.LastTryGetStatusTime.AddSeconds(5 * order.CountTriesToGetOrderStatus) < DateTime.Now)
+                 && order.CountTriesToGetOrderStatus > 0
+                 && order.LastTryGetStatusTime.AddSeconds(5 * order.CountTriesToGetOrderStatus) < DateTime.Now)
             { // не пришёл статус Activ. Всё ещё NONE
-                // периоды запросов: через 5 сек. через 5 сек. через 10 сек. через 15 сек. через 20 сек. Всё.
-                order.CountTriesToGetOrderStatus++;
-                ActivStateOrderCheckStatusEvent(order.Order);
-                order.LastTryGetStatusTime = DateTime.Now;
+              // периоды запросов: через 5 сек. через 5 сек. через 10 сек. через 15 сек. через 20 сек. Всё.
 
                 if (_fullLogIsOn)
                 {
@@ -526,9 +525,13 @@ namespace OsEngine.Market.Servers
                         , LogMessageType.System);
                 }
 
+                order.CountTriesToGetOrderStatus++;
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
+
                 return;
             }
-
         }
 
         private void CheckLimitOrder(OrderToWatch order)
@@ -537,9 +540,6 @@ namespace OsEngine.Market.Servers
                && order.CountTriesToGetOrderStatus == 0
                && order.LastTryGetStatusTime.AddSeconds(5) < DateTime.Now)
             { // не пришло ни одного отклика от АПИ. Запрашиваем статус ордера в первый раз
-                order.CountTriesToGetOrderStatus++;
-                ActivStateOrderCheckStatusEvent(order.Order);
-                order.LastTryGetStatusTime = DateTime.Now;
 
                 if (_fullLogIsOn)
                 {
@@ -550,16 +550,18 @@ namespace OsEngine.Market.Servers
                         , LogMessageType.System);
                 }
 
+                order.CountTriesToGetOrderStatus++;
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
                 return;
             }
 
             if (order.Order.State == OrderStateType.None
-             && order.LastTryGetStatusTime.AddSeconds(5 * order.CountTriesToGetOrderStatus) < DateTime.Now)
+                && order.CountTriesToGetOrderStatus > 0
+                && order.LastTryGetStatusTime.AddSeconds(5 * order.CountTriesToGetOrderStatus) < DateTime.Now)
             {   // не пришёл статус Activ. Всё ещё NONE
                 // периоды запросов: через 5 сек. через 5 сек. через 10 сек. через 15 сек. через 20 сек. Всё.
-                order.CountTriesToGetOrderStatus++;
-                ActivStateOrderCheckStatusEvent(order.Order);
-                order.LastTryGetStatusTime = DateTime.Now;
 
                 if (_fullLogIsOn)
                 {
@@ -570,13 +572,15 @@ namespace OsEngine.Market.Servers
                         , LogMessageType.System);
                 }
 
+                order.CountTriesToGetOrderStatus++;
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
+
                 return;
             }
 
             if (order.LastTryGetStatusTime.AddSeconds(300) < DateTime.Now)
             {   // статусы лимиток дополнительно проверяем раз в 5ть минут. 
-                ActivStateOrderCheckStatusEvent(order.Order);
-                order.LastTryGetStatusTime = DateTime.Now;
 
                 if (_fullLogIsOn)
                 {
@@ -586,6 +590,8 @@ namespace OsEngine.Market.Servers
                         , LogMessageType.System);
                 }
 
+                ActivStateOrderCheckStatusEvent(order.Order);
+                order.LastTryGetStatusTime = DateTime.Now;
                 return;
             }
         }

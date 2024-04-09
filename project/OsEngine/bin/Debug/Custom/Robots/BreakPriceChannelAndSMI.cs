@@ -1,6 +1,5 @@
 ﻿using OsEngine.Entity;
 using OsEngine.Indicators;
-using OsEngine.Market.Servers.Tinkoff.TinkoffJsonSchema;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Security.Cryptography;
 
 /* Description
 trading robot for osengine

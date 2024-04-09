@@ -115,7 +115,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 30; }
+            get { return 10; }
         }
 
         public bool IsCanChangeOrderPrice
