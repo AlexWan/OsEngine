@@ -3,8 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using LiteDB;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using System.Linq;
 
 namespace OsEngine.Market.Servers
 {
@@ -365,19 +367,31 @@ namespace OsEngine.Market.Servers
 
         private void LoadOrdersFromFile()
         {
-            if (!File.Exists(@"Engine\" + _server.ServerType.ToString() + @"ordersHub.txt"))
-            {
-                return;
-            }
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + _server.ServerType.ToString() + @"ordersHub.txt"))
-                {
-                    while(reader.EndOfStream == false)
-                    {
-                        string orderInString = reader.ReadLine();
+                string dir = Directory.GetCurrentDirectory();
+                dir += "\\Engine\\DataBases\\";
 
-                        if(string.IsNullOrEmpty(orderInString) == false)
+                if (Directory.Exists(dir) == false)
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                dir += _server.ServerType + "_active_orders.db";
+
+                using (LiteDatabase db = new LiteDatabase(dir))
+                {
+                    var collection = db.GetCollection<OrderToSave>("orders");
+
+                    List<OrderToSave> col = collection.FindAll().ToList();
+
+                    for (int i = 0; i < col.Count; i++)
+                    {
+                        OrderToSave curOrdInBd = col[i];
+
+                        string orderInString = curOrdInBd.SaveString;
+
+                        if (string.IsNullOrEmpty(orderInString) == false)
                         {
                             Order newOrder = new Order();
                             newOrder.SetOrderFromString(orderInString);
@@ -407,13 +421,11 @@ namespace OsEngine.Market.Servers
                             }
                         }
                     }
-
-                    reader.Close();
                 }
             }
             catch (Exception e)
             {
-                SendLogMessage(e.ToString(), LogMessageType.Error); 
+                SendLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
 
@@ -421,20 +433,116 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + _server.ServerType.ToString() + @"ordersHub.txt", false)
-                    )
+                string dir = Directory.GetCurrentDirectory();
+                dir += "\\Engine\\DataBases\\";
+
+                if (Directory.Exists(dir) == false)
                 {
+                    Directory.CreateDirectory(dir);
+                }
+
+                dir += _server.ServerType + "_active_orders.db";
+
+                using (LiteDatabase db = new LiteDatabase(dir))
+                {
+                    var collection = db.GetCollection<OrderToSave>("orders");
+
+                    List<OrderToSave> col = collection.FindAll().ToList();
+
+                    // 1 вставляем в базу ордера которые сейчас есть в массиве активных ордеров
+
                     for (int i = 0; i < _ordersActiv.Count; i++)
                     {
-                        writer.WriteLine(_ordersActiv[i].Order.GetStringForSave());
+                        OrderToSave orderToSave = new OrderToSave();
+                        orderToSave.NumberId = i;
+                        orderToSave.NumberMarket = _ordersActiv[i].Order.NumberMarket;
+                        orderToSave.NumberUser = _ordersActiv[i].Order.NumberUser;
+                        orderToSave.SaveString = _ordersActiv[i].Order.GetStringForSave().ToString();
+
+                        bool isInArray = false;
+
+                        for (int j = 0; j < col.Count; j++)
+                        {
+                            OrderToSave curOrd = col[j];
+
+                            if (curOrd.NumberUser != 0 &&
+                                orderToSave.NumberUser != 0
+                                && curOrd.NumberUser == orderToSave.NumberUser)
+                            {
+                                col[j] = orderToSave;
+                                isInArray = true;
+                                break;
+                            }
+
+                            if (string.IsNullOrEmpty(curOrd.NumberMarket) == false
+                                && string.IsNullOrEmpty(orderToSave.NumberMarket) == false
+                                && curOrd.NumberMarket == orderToSave.NumberMarket)
+                            {
+                                col[j] = orderToSave;
+                                isInArray = true;
+                                break;
+                            }
+                        }
+
+                        if (isInArray == false)
+                        {
+                            col.Add(orderToSave);
+                        }
                     }
 
-                    writer.Close();
+                    // 2 удаляем лишние ордера из базы
+
+                    for (int i = 0; i < col.Count; i++)
+                    {
+                        OrderToSave curOrdInBd = col[i];
+
+                        bool isInArray = false;
+
+                        for (int j = 0; j < _ordersActiv.Count; j++)
+                        {
+                            OrderToWatch order = _ordersActiv[j];
+
+                            if (order.Order.NumberUser != 0 &&
+                                curOrdInBd.NumberUser != 0 &&
+                                order.Order.NumberUser == curOrdInBd.NumberUser)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                            if (string.IsNullOrEmpty(order.Order.NumberMarket) == false &&
+                                string.IsNullOrEmpty(curOrdInBd.NumberMarket) == false &&
+                                order.Order.NumberMarket == curOrdInBd.NumberMarket)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+
+                        if (isInArray == false)
+                        {
+                            col.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
+                    collection.DeleteAll();
+
+                    for (int i = 0; i < col.Count; i++)
+                    {
+                        collection.Insert(i, col[i]);
+                    }
+
+                    if (col.Count > 0)
+                    {
+                        collection.EnsureIndex(x => x.NumberId);
+                    }
+
+                    db.Commit();
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // ignore
+                SendLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
 
@@ -635,5 +743,16 @@ namespace OsEngine.Market.Servers
 
         public DateTime LastTryGetStatusTime;
 
+    }
+
+    public class OrderToSave
+    {
+        public int NumberId { get; set; }
+
+        public int NumberUser { get; set; }
+
+        public string NumberMarket { get; set; }
+
+        public string SaveString { get; set; }
     }
 }
