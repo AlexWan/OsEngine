@@ -93,7 +93,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Main Tread
+        #region Main Thread
 
         private void ThreadWorkerArea()
         {

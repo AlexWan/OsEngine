@@ -63,7 +63,7 @@ namespace OsEngine.OsTrader.Gui
             DataGridViewColumn colum01 = new DataGridViewColumn();
             colum01.CellTemplate = cell0;
             colum01.HeaderText = OsLocalization.Trader.Label175;//"Name";
-            colum01.ReadOnly = true;
+            colum01.ReadOnly = false;
             colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum01);
 
@@ -133,29 +133,79 @@ namespace OsEngine.OsTrader.Gui
 
             _grid.Click += _grid_Click;
             _grid.CellBeginEdit += _grid_CellBeginEdit;
+            _grid.CellEndEdit += _grid_CellEndEdit;
             _grid.MouseLeave += _grid_MouseLeave;
+        }
+
+        private void _grid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.ColumnIndex != 1)
+                {
+                    return;
+                }
+
+                if (_master.PanelsArray == null ||
+                    _master.PanelsArray.Count == 0)
+                {
+                    return;
+                }
+
+                int rowIndex = e.RowIndex;
+
+                if (rowIndex >= _grid.Rows.Count)
+                {
+                    return;
+                }
+
+                if (rowIndex >= _master.PanelsArray.Count)
+                {
+                    return;
+                }
+
+                string newName = _grid.Rows[rowIndex].Cells[1].Value.ToString();
+
+                _master.PanelsArray[rowIndex].PublicName = newName.Replace("@", "");
+                _master.Save();
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void _grid_MouseLeave(object sender, EventArgs e)
         {
-            _grid.ClearSelection();
+            try
+            {
+                _grid.ClearSelection();
+            }
+            catch (Exception ex) 
+            {
+                _master.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+            }
         }
 
 		private int prevActiveRow;
 
         private void _grid_Click(object sender, EventArgs e)
         {
-            if(_grid.SelectedCells.Count == 0)
-            {
-                return;
-            }
-
-
             try
             {
+                if (_grid.SelectedCells.Count == 0)
+                {
+                    return;
+                }
+
                 int coluIndex = _grid.SelectedCells[0].ColumnIndex;
 
                 int rowIndex = _grid.SelectedCells[0].RowIndex;
+
+                if(coluIndex < 3)
+                {
+                    return;
+                }
 
                 /*
     colum0.HeaderText = "Num";
@@ -235,16 +285,28 @@ namespace OsEngine.OsTrader.Gui
 
         private void _grid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
         {
-            if(_lastTimeClick.AddMilliseconds(500) > DateTime.Now)
+            try
             {
-                return;
+                if(e.ColumnIndex < 3)
+                {
+                    return;
+                }
+
+                if (_lastTimeClick.AddMilliseconds(500) > DateTime.Now)
+                {
+                    return;
+                }
+                _lastTimeClick = DateTime.Now;
+
+                _lastChangeRow = e.RowIndex;
+                _lastChangeColumn = e.ColumnIndex;
+
+                Task.Run(ChangeOnOffAwait);
             }
-            _lastTimeClick = DateTime.Now;
-
-            _lastChangeRow = e.RowIndex;
-            _lastChangeColumn = e.ColumnIndex;
-
-            Task.Run(ChangeOnOffAwait);
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         DateTime _lastTimeClick = DateTime.MinValue;
@@ -424,12 +486,21 @@ colum10.HeaderText = "Action";
             row.Cells[0].Value = num.ToString();
 
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[1].Value = bot.NameStrategyUniq;
 
+            if(string.IsNullOrEmpty(bot.PublicName) == false)
+            {
+                row.Cells[1].Value = bot.PublicName;
+            }
+            else
+            {
+                row.Cells[1].Value = bot.NameStrategyUniq;
+            }
+           
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[2].Value = bot.GetType().Name;
 
             row.Cells.Add(new DataGridViewTextBoxCell());
+
             if(bot.TabsSimple.Count != 0 &&
                 bot.TabsSimple[0].Securiti != null)
             {

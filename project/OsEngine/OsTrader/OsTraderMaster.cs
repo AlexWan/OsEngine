@@ -293,6 +293,14 @@ namespace OsEngine.OsTrader
                         bot = BotFactory.GetStrategyForName(names[1], names[0], _startProgram, false);
                     }
 
+                    if(names.Length >= 4)
+                    {
+                        if(string.IsNullOrEmpty(names[3]) == false)
+                        {
+                            bot.PublicName = names[3];
+                        }
+                    }
+
                     if (bot != null)
                     {
                         PanelsArray.Add(bot);
@@ -327,7 +335,7 @@ namespace OsEngine.OsTrader
         /// <summary>
         /// Save robots names
         /// </summary>
-        private void Save()
+        public void Save()
         {
             try
             {
@@ -339,13 +347,15 @@ namespace OsEngine.OsTrader
                         {
                             writer.WriteLine(PanelsArray[i].NameStrategyUniq + "@" +
                                              PanelsArray[i].GetNameStrategyType() +
-                                              "@" + false);
+                                              "@" + false
+                                              + "@" + PanelsArray[i].PublicName);
                         }
                         else
                         {
                             writer.WriteLine(PanelsArray[i].NameStrategyUniq + "@" +
                             PanelsArray[i].FileName +
-                            "@" + true);
+                            "@" + true
+                             + "@" + PanelsArray[i].PublicName);
                         }
                     }
 

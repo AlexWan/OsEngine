@@ -2196,8 +2196,6 @@ namespace OsEngine.Market.Servers.Alor
 
         public void GetAllActivOrders()
         {
-            ///md/v2/Clients/MOEX/D39004/orders?format=Simple
-
             List<Order> orders = GetAllOrdersFromExchange();
 
             for(int i = 0; orders != null && i < orders.Count; i++)

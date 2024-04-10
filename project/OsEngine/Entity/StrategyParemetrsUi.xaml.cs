@@ -42,7 +42,14 @@ namespace OsEngine.Entity
                 Title = settings.Title;
             }
 
-            Title += " / " + panel.NameStrategyUniq;
+            if(string.IsNullOrEmpty(panel.PublicName) == false)
+            {
+                Title += " / " + panel.PublicName;
+            }
+            else
+            {
+                Title += " / " + panel.NameStrategyUniq;
+            }
 
             List<List<IIStrategyParameter>> sorted = GetParamSortedByTabName();
 
