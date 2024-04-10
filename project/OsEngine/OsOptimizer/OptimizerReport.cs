@@ -188,7 +188,7 @@ namespace OsEngine.OsOptimizer
             BotName = bot.NameStrategyUniq;
             // фасуем отчёты по вкладкам
 
-            List<Position> allPositionsForAllTabs = new List<Position>();
+            List<Position> allPositionsForAllTabs = new List<Position>(); 
 
             for (int i = 0; i < bot.TabsSimple.Count; i++)
             {
@@ -196,6 +196,17 @@ namespace OsEngine.OsOptimizer
                 List<Position> positions =
                     bot.TabsSimple[i].GetJournal().AllPosition.FindAll(
                         pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.ClosingFail);
+
+                for(int j= 0;j< positions.Count;j++)
+                {
+                    Position pos = positions[j];
+                    if(pos.State == PositionStateType.Open ||
+                        pos.State == PositionStateType.Closing ||
+                        pos.State == PositionStateType.ClosingFail)
+                    {
+                        pos.SetBidAsk(bot.TabsSimple[i].PriceBestBid, bot.TabsSimple[i].PriceBestAsk);
+                    }
+                }
 
                 TabsReports.Add(tab);
 
