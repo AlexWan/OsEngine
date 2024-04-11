@@ -164,9 +164,20 @@ namespace OsEngine.OsTrader.Gui
                     return;
                 }
 
-                string newName = _grid.Rows[rowIndex].Cells[1].Value.ToString();
+                string newName = null;
 
-                _master.PanelsArray[rowIndex].PublicName = newName.Replace("@", "");
+                if (_grid.Rows[rowIndex].Cells[1].Value != null)
+                {
+                    newName = _grid.Rows[rowIndex].Cells[1].Value.ToString();
+                    newName = newName.Replace("@", "");
+                }
+                else
+                {
+                    newName = _master.PanelsArray[rowIndex].NameStrategyUniq;
+                    _grid.Rows[rowIndex].Cells[1].Value = newName;
+                }
+
+                _master.PanelsArray[rowIndex].PublicName = newName;
                 _master.Save();
             }
             catch (Exception ex)
