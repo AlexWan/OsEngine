@@ -3120,6 +3120,46 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Place a trailing stop order for a position by Market
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
+        public void CloseAtTrailingStopMarket(Position position, decimal priceActivation)
+        {
+            if (position.StopOrderIsActiv &&
+                position.Direction == Side.Buy &&
+                position.StopOrderRedLine > priceActivation)
+            {
+                return;
+            }
+
+            if (position.StopOrderIsActiv &&
+                position.Direction == Side.Sell &&
+                position.StopOrderRedLine < priceActivation)
+            {
+                return;
+            }
+
+            decimal volume = position.OpenVolume;
+
+            if (volume == 0)
+            {
+                return;
+            }
+
+            position.StopOrderIsActiv = false;
+
+            position.StopIsMarket = true;
+            position.StopOrderPrice = priceActivation;
+            position.StopOrderRedLine = priceActivation;
+            position.StopOrderIsActiv = true;
+
+            _chartMaster.SetPosition(_journal.AllPosition);
+            _journal.PaintPosition(position);
+            _journal.Save();
+        }
+
+        /// <summary>
         /// Place profit order for a position
         /// </summary>
         /// <param name="position">position to be closed</param>
