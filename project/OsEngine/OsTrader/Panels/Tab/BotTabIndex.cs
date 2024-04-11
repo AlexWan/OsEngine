@@ -2022,7 +2022,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (curCandles == null ||
                         curCandles.Count == 0)
                     {
-                        SendNewLogMessage("Can`t rebuild formula. One of securities with no candles!", LogMessageType.Error);
+                        SendNewLogMessage("Can`t rebuild formula. One of securities with no candles! " + tabsInIndex[i].SecurityName, LogMessageType.Error);
+                        
+                        if(_startProgram == StartProgram.IsTester)
+                        {
+                            SendNewLogMessage("To make the auto-formula work you must start the tester", LogMessageType.Error);
+                        }
+
                         return;
                     }
 
