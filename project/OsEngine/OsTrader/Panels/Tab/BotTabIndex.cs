@@ -2009,7 +2009,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (tabsInIndex == null ||
                     tabsInIndex.Count <= 1)
                 {
-                    SendNewLogMessage("Can`t rebuild formula. No sources", LogMessageType.Error);
+                    SendNewLogMessage(OsLocalization.Trader.Label392, LogMessageType.Error);
                     return;
                 }
 
@@ -2022,11 +2022,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (curCandles == null ||
                         curCandles.Count == 0)
                     {
-                        SendNewLogMessage("Can`t rebuild formula. One of securities with no candles! " + tabsInIndex[i].SecurityName, LogMessageType.Error);
+                        SendNewLogMessage(OsLocalization.Trader.Label393 + tabsInIndex[i].SecurityName, LogMessageType.Error);
                         
                         if(_startProgram == StartProgram.IsTester)
                         {
-                            SendNewLogMessage("To make the auto-formula work you must start the tester", LogMessageType.Error);
+                            SendNewLogMessage(OsLocalization.Trader.Label394, LogMessageType.Error);
                         }
 
                         return;
@@ -2040,7 +2040,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (endTime == DateTime.MinValue)
                 {
-                    SendNewLogMessage("Can`t rebuild formula. No candles", LogMessageType.Error);
+                    SendNewLogMessage(OsLocalization.Trader.Label395, LogMessageType.Error);
                     return;
                 }
 
@@ -2193,8 +2193,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (_writeLogMessageOnRebuild)
             {
-                string message = "Index was rebuild. Time: " + _lastTimeUpdateIndex;
-                message += " new formula: " + _index.UserFormula;
+                string message = OsLocalization.Trader.Label396 + _lastTimeUpdateIndex;
+                message += OsLocalization.Trader.Label397 + _index.UserFormula;
                 SendNewLogMessage(message, LogMessageType.Error);
             }
         }
