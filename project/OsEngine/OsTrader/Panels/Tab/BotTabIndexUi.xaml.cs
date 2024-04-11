@@ -72,6 +72,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             ComboBoxIndexMultType.Items.Add(IndexMultType.PriceWeighted.ToString());
             ComboBoxIndexMultType.Items.Add(IndexMultType.VolumeWeighted.ToString());
             ComboBoxIndexMultType.Items.Add(IndexMultType.EqualWeighted.ToString());
+            ComboBoxIndexMultType.Items.Add(IndexMultType.Cointegration.ToString());
             ComboBoxIndexMultType.SelectedItem = autoFormulaBuilder.IndexMultType.ToString();
             ComboBoxIndexMultType.SelectionChanged += ComboBoxIndexMultType_SelectionChanged;
 

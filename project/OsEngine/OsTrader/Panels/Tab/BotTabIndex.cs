@@ -2143,19 +2143,42 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             string formula = "";
 
-            for (int i = 0; i < secInIndex.Count; i++)
+            if (_indexMultType == IndexMultType.Cointegration)
             {
-                formula += "(" + secInIndex[i].Name + ")";
-
-                if (i + 1 < secInIndex.Count)
+                if(secInIndex.Count < 2
+                    || secInIndex[0].Candles == null 
+                    || secInIndex[0].Candles.Count < 10
+                     || secInIndex[1].Candles == null
+                    || secInIndex[1].Candles.Count < 10)
                 {
-                    formula += "+";
+                    return;
                 }
+
+                if(secInIndex[0].Mult == 0 ||
+                    secInIndex[1].Mult == 0)
+                {
+                    return;
+                }
+
+                formula = "(" + secInIndex[0].Name + "*" + secInIndex[0].Mult + ")";
+                formula += "-(" + secInIndex[1].Name + "*" + Convert.ToInt32(secInIndex[1].Mult) + ")";
+
+                _index.UserFormula = formula;
             }
+            else
+            {
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    formula += "(" + secInIndex[i].Name + ")";
 
-            //formula += "/" + tabToTrade.Name;
+                    if (i + 1 < secInIndex.Count)
+                    {
+                        formula += "+";
+                    }
+                }
 
-            _index.UserFormula = formula;
+                _index.UserFormula = formula;
+            }
 
             _lastTimeUpdate = timeCandle;
 
@@ -2252,6 +2275,71 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
                 }
+            }
+            else if(_indexMultType == IndexMultType.Cointegration)
+            {
+                if(secInIndex.Count < 2)
+                {
+                    return;
+                }
+
+                SecurityInIndex sec1 = secInIndex[0];
+                SecurityInIndex sec2 = secInIndex[1];
+
+                if(sec1.Candles == null ||
+                    sec1.Candles.Count == 0 ||
+                    sec2.Candles == null ||
+                    sec2.Candles.Count == 0)
+                {
+                    return;
+                }
+
+                int candleCount = 0;
+
+                DateTime startTimeLastDay = sec1.Candles[sec1.Candles.Count - 1].TimeStart;
+
+                int daysCount = 0;
+
+                for (int i = sec1.Candles.Count - 1; i > 0; i--)
+                {
+                    if (sec1.Candles[i].TimeStart.Day !=  startTimeLastDay.Day)
+                    {
+                        daysCount++;
+                        startTimeLastDay = sec1.Candles[i].TimeStart;
+
+                        if (daysCount >= daysLookBack)
+                        {
+                            break;
+                        }
+                    }
+                    candleCount++;
+                }
+
+                CointegrationBuilder builder = new CointegrationBuilder();
+                builder.CointegrationLookBack = candleCount;
+                builder.ReloadCointegration(sec1.Candles, sec2.Candles, false);
+
+                decimal mult2 = builder.CointegrationMult;
+                decimal mult1 = 1;
+
+                if(mult2 == 0)
+                {
+                    return;
+                }
+
+                while(true)
+                {
+                    if(mult2 > 10000)
+                    {
+                        break;
+                    }
+
+                    mult1 = mult1 * 10;
+                    mult2 = mult2 * 10;
+                }
+
+                sec1.Mult = mult1;
+                sec2.Mult = mult2;
             }
         }
 
@@ -2527,8 +2615,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         VolumeWeighted,
 
-        EqualWeighted
+        EqualWeighted,
 
+        Cointegration
     }
 
     /// <summary>
