@@ -605,7 +605,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     && formula[i] != '(' && formula[i] != ')' && formula[i] != 'A' && formula[i] != '1' && formula[i] != '0'
                     && formula[i] != '2' && formula[i] != '3' && formula[i] != '4' && formula[i] != '5'
                     && formula[i] != '6' && formula[i] != '7' && formula[i] != '8' && formula[i] != '9'
-                    && formula[i] != '.')
+                    && formula[i] != '.' && formula[i] != ',')
                 { // incomprehensible characters
                     SendNewLogMessage(OsLocalization.Trader.Label76, LogMessageType.Error);
                     return "";
@@ -907,8 +907,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 valOne[0] != 'B' && valTwo[0] != 'B')
             {
                 // both digit values
-                decimal one = Convert.ToDecimal(valOne, new CultureInfo("en-US"));
-                decimal two = Convert.ToDecimal(valTwo, new CultureInfo("en-US"));
+                decimal one = valOne.ToDecimal();
+                decimal two = valTwo.ToDecimal();
 
                 return ConcateDecimals(one, two, sign);
             }
@@ -1159,7 +1159,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 candlesOne = value.ValueCandles;
             }
 
-            decimal valueTwo = Convert.ToDecimal(valTwo, new CultureInfo("en-US"));
+            decimal valueTwo = valTwo.ToDecimal();
 
             string znak = "";
 
@@ -1242,7 +1242,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private string ConcateDecimalAndCandle(string valOne, string valTwo, string sign)
         {
             // take the first value
-            decimal valueOne = Convert.ToDecimal(valOne, new CultureInfo("en-US"));
+            decimal valueOne = valOne.ToDecimal();
 
             // take the second value
             List<Candle> candlesTwo = null;

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
-using OsEngine.Indicators;
-using OsEngine.Indicators.indicator;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Indicators;
 
 /* Description
 trading robot for osengine
