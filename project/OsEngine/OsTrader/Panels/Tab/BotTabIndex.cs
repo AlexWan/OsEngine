@@ -2240,25 +2240,34 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else if (_indexMultType == IndexMultType.VolumeWeighted)
             {
+                // 1. Делаем всё равномерно
+                decimal maxPriceInSecs = 0;
+
                 for (int i = 0; i < secInIndex.Count; i++)
                 {
-                    SetVolume(secInIndex[i], daysLookBack);
-
-                    if (i == 0)
+                    if (maxPriceInSecs < secInIndex[i].LastPrice)
                     {
-                        secInIndex[i].Mult = 100;
-                    }
-                    else
-                    {
-                        if (secInIndex[i].LastPrice == 0)
-                        {
-                            continue;
-                        }
-                        secInIndex[i].Mult = (secInIndex[0].LastPrice / secInIndex[i].LastPrice) * 100;
+                        maxPriceInSecs = secInIndex[i].LastPrice;
                     }
                 }
 
-                // 1 считаем суммарный объём
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    if (secInIndex[i].LastPrice == 0)
+                    {
+                        continue;
+                    }
+                    secInIndex[i].Mult = Math.Round(maxPriceInSecs / secInIndex[i].LastPrice,0);
+                }
+
+                // 2. считаем для каждого инструмента объём
+
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    SetVolume(secInIndex[i], daysLookBack);
+                }
+
+                // 3. считаем суммарный объём
 
                 decimal summVolume = 0;
 
@@ -2267,19 +2276,21 @@ namespace OsEngine.OsTrader.Panels.Tab
                     summVolume += secInIndex[i].SummVolume;
                 }
 
-                // 2 рассчитываем долю объёмов у всех инструментов в этих объёмах
+                // 4. рассчитываем долю объёмов у всех инструментов в этих объёмах
 
                 for (int i = 0; i < secInIndex.Count; i++)
                 {
-                    decimal partInIndex = (secInIndex[i].SummVolume / (summVolume / 100)) / 100;
-                    secInIndex[i].Mult = Math.Round(secInIndex[i].Mult * partInIndex, 0);
+                    decimal partInIndex = secInIndex[i].SummVolume / (summVolume / 100);
 
-                    if(secInIndex[i].Mult < 1)
+                    partInIndex = Math.Round(partInIndex, 0);
+
+                    if(partInIndex <= 0)
                     {
-                        secInIndex[i].Mult = 1;
+                        partInIndex = 1;
                     }
 
-                    secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
+                    secInIndex[i].Name = "(" + secInIndex[i].Name + "*" + secInIndex[i].Mult + ")";
+                    secInIndex[i].Name += "*" + partInIndex;
                 }
             }
             else if(_indexMultType == IndexMultType.Cointegration)
