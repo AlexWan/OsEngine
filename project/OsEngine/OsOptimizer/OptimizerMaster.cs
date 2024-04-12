@@ -264,9 +264,24 @@ namespace OsEngine.OsOptimizer
         /// show data storage settings
         /// показать настройки хранилища данных
         /// </summary>
-        public void ShowDataStorageDialog()
+        public bool ShowDataStorageDialog()
         {
+            TesterSourceDataType storageSource = Storage.SourceDataType;
+            string folder = Storage.PathToFolder;
+            TesterDataType storageDataType = Storage.TypeTesterData;
+            string setName = Storage.ActiveSet;
+
             Storage.ShowDialog();
+
+            if(storageSource != Storage.SourceDataType
+                || folder != Storage.PathToFolder 
+                || storageDataType != Storage.TypeTesterData
+                || setName != Storage.ActiveSet)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

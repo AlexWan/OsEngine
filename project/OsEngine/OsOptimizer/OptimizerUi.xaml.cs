@@ -734,7 +734,32 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonServerDialog_Click(object sender, RoutedEventArgs e)
         {
-            _master.ShowDataStorageDialog();
+            try
+            {
+                if (_master.ShowDataStorageDialog())
+                {
+                    // нужно перезагрузить робота. Данные изменились.
+
+                    if (_master.TabsSimpleNamesAndTimeFrames != null)
+                    {
+                        _master.TabsSimpleNamesAndTimeFrames.Clear();
+                    }
+
+                    if (_master.TabsIndexNamesAndTimeFrames != null)
+                    {
+                        _master.TabsIndexNamesAndTimeFrames.Clear();
+                    }
+
+                    if(_master.Fazes != null)
+                    {
+                        _master.Fazes.Clear();
+                    }
+                }
+            }
+            catch(Exception ex) 
+            {
+                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
         }
 
         private void CheckBoxLastInSample_Click(object sender, RoutedEventArgs e)

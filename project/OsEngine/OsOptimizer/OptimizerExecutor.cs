@@ -977,6 +977,8 @@ namespace OsEngine.OsOptimizer
                 return null;
             }
 
+            DateTime startTime = DateTime.Now;
+
             string botName = NumberGen.GetNumberDeal(StartProgram.IsOsOptimizer).ToString();
 
             List<string> names = new List<string> { botName };
@@ -1007,16 +1009,41 @@ namespace OsEngine.OsOptimizer
 
             server.TestingStart();
 
+            int countSameTime = 0;
+            DateTime timeServerLast = DateTime.MinValue;
+
             timeStartWaiting = DateTime.Now;
+
             while (bot.TabsSimple[0].CandlesAll == null
                    ||
                    bot.TabsSimple[0].TimeServerCurrent.AddHours(1) < reportFaze.Faze.TimeEnd)
             {
-                Thread.Sleep(20);
+                
+                Thread.Sleep(1000);
                 if (timeStartWaiting.AddSeconds(300) < DateTime.Now)
                 {
                     break;
                 }
+
+                if(timeServerLast == bot.TabsSimple[0].TimeServerCurrent)
+                {
+                    countSameTime++;
+
+                    if(countSameTime >= 5)
+                    { // пять раз подряд время сервера не меняется. Тест окончен
+                        break;
+                    }
+                }
+                else
+                {
+                    timeServerLast = bot.TabsSimple[0].TimeServerCurrent;
+                    countSameTime = 0;
+                }
+            }
+
+            if(startTime.AddSeconds(3) > DateTime.Now)
+            {
+                Thread.Sleep(3000);
             }
 
             awaitObj.Dispose();
