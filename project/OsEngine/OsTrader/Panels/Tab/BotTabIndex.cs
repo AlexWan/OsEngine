@@ -2168,8 +2168,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (_writeLogMessageOnRebuild)
             {
-                string message = OsLocalization.Trader.Label396 + _lastTimeUpdateIndex;
+                string message = _indexMultType.ToString() + " " 
+                    + OsLocalization.Trader.Label396 + _lastTimeUpdateIndex;
+
                 message += OsLocalization.Trader.Label397 + _index.UserFormula;
+
                 SendNewLogMessage(message, LogMessageType.Error);
             }
         }

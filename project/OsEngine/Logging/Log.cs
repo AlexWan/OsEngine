@@ -156,7 +156,7 @@ namespace OsEngine.Logging
             column0.CellTemplate = cell0;
             column0.HeaderText = OsLocalization.Logging.Column1;
             column0.ReadOnly = true;
-            column0.Width = 170;
+            column0.Width = 200;
 
             _grid.Columns.Add(column0);
 

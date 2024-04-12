@@ -38,9 +38,8 @@
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="DisabledBrush" EndPoint="0,1" StartPoint="0,0">
-            <GradientStop Color="#f4f4f4" Offset="0"/>
-            <GradientStop Color="#d7d7d7" Offset="0.7"/>
-            <GradientStop Color="#c2c2c2" Offset="1"/>
+            <GradientStop Color ="#111217"  Offset="1"/>
+            <GradientStop Color= "#111217" Offset="0.082"/>
         </LinearGradientBrush>
 
         <SolidColorBrush x:Key="DisabledBorderBrush" Color="#66000000" />
@@ -553,6 +552,17 @@
                             <ContentPresenter x:Name="ContentHost" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                             </ContentPresenter>
                         </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="{StaticResource DisabledForeground}"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Background" Value="{StaticResource DisabledBrush}"/>
+                                <Setter Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -652,6 +662,17 @@
                                 <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </Border>
                         </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="{StaticResource DisabledForeground}"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Background" Value="{StaticResource DisabledBrush}"/>
+                                <Setter Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
