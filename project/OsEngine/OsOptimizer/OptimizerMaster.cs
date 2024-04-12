@@ -1164,7 +1164,8 @@ namespace OsEngine.OsOptimizer
         {
             if (Fazes == null || Fazes.Count == 0)
             {
-                MessageBox.Show(OsLocalization.Optimizer.Message14);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message14);
+                ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message14, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
@@ -1173,11 +1174,11 @@ namespace OsEngine.OsOptimizer
                 return false;
             }
 
-
             if (TabsSimpleNamesAndTimeFrames == null ||
                 TabsSimpleNamesAndTimeFrames.Count == 0)
             {
-                MessageBox.Show(OsLocalization.Optimizer.Message15);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
+                ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
@@ -1190,7 +1191,8 @@ namespace OsEngine.OsOptimizer
                 Storage.SecuritiesTester == null ||
                 Storage.SecuritiesTester.Count == 0)
             {
-                MessageBox.Show(OsLocalization.Optimizer.Message16);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message16);
+                ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message16, LogMessageType.System);
 
                 if (NeadToMoveUiToEvent != null)
@@ -1202,7 +1204,8 @@ namespace OsEngine.OsOptimizer
 
             if (string.IsNullOrEmpty(_strategyName))
             {
-                MessageBox.Show(OsLocalization.Optimizer.Message17);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message17);
+                ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message17, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
@@ -1224,10 +1227,12 @@ namespace OsEngine.OsOptimizer
 
             if (onParamesReady == false)
             {
-                MessageBox.Show(OsLocalization.Optimizer.Message18);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message18);
+                ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message18, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
+
                     NeadToMoveUiToEvent(NeadToMoveUiTo.Parametrs);
                 }
                 return false;
@@ -1250,7 +1255,8 @@ namespace OsEngine.OsOptimizer
 
             if (onRgimeOff == true)
             {
-                MessageBox.Show(OsLocalization.Optimizer.Message41);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message41);
+                ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
                 if (NeadToMoveUiToEvent != null)
                 {
