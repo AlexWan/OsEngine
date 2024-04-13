@@ -10,7 +10,6 @@ using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Binance.Futures;
 using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMax;
@@ -24,14 +23,11 @@ using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.Huobi.Futures;
 using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.Huobi.Spot;
-using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.OKX;
 using OsEngine.Market.Servers.BitMaxFutures;
 using OsEngine.Market.Servers.BitGet.BitGetSpot;
 using OsEngine.Market.Servers.BitGet.BitGetFutures;
-using OsEngine.Market.Servers.GateIo.GateIoSpot;
-using OsEngine.Market.Servers.GateIo.GateIoFutures;
 
 namespace OsEngine.Entity
 {
@@ -333,28 +329,6 @@ namespace OsEngine.Entity
                             {
                                 List<Candle> candles = server.GetCandleHistory(series.Security.Name,
                                     series.TimeFrame);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
-                        else if (serverType == ServerType.BinanceFutures)
-                        {
-
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                BinanceServerFutures binance = (BinanceServerFutures)_server;
-                                List<Candle> candles = binance.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
                                 if (candles != null)
                                 {
                                     series.CandlesAll = candles;

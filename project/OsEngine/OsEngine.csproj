@@ -500,7 +500,6 @@
     <Compile Include="Market\Servers\AstsBridge\AstsServerUi.xaml.cs">
       <DependentUpon>AstsServerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\Binance\Futures\BinanceClientFutures.cs" />
     <Compile Include="Market\Servers\Binance\Futures\BinanceFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\Binance\Futures\BinanceServerFutures.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\AccountResponseFutures.cs" />
