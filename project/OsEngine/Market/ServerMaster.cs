@@ -59,7 +59,6 @@ using OsEngine.Market.Servers.Pionex;
 using OsEngine.Market.Servers.Woo;
 using OsEngine.Market.Servers.MoexAlgopack;
 using OsEngine.Market.Servers.HTX.Spot;
-using OsEngine.Market.Servers.HTX.Futures;
 
 namespace OsEngine.Market
 {
@@ -186,7 +185,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.Zb);
                 serverTypes.Add(ServerType.Hitbtc);
-                serverTypes.Add(ServerType.HuobiSpot);
+                serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HuobiFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
@@ -203,8 +202,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
-                serverTypes.Add(ServerType.HTXSpot);
-                serverTypes.Add(ServerType.HTXFutures);
+                
 
                 serverTypes.Add(ServerType.AstsBridge);
 
@@ -304,7 +302,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Woo);
                 serverTypes.Add(ServerType.HTXSpot);
-                serverTypes.Add(ServerType.HTXFutures);
 
                 return serverTypes;
             }
@@ -560,10 +557,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.HTXSpot)
                 {
                     newServer = new HTXSpotServer();
-                }
-                else if (type == ServerType.HTXFutures)
-                {
-                    newServer = new HTXFuturesServer();
                 }
 
                 if (newServer == null)
@@ -1123,10 +1116,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new HTXSpotServerPermission();
                 }
-                else if (type == ServerType.HTXFutures)
-                {
-                    serverPermission = new HTXFuturesServerPermission();
-                }
 
                 if (serverPermission != null)
                 {
@@ -1552,10 +1541,5 @@ namespace OsEngine.Market
         /// HTXSpot exchange
         /// </summary>
         HTXSpot,
-
-        /// <summary>
-        /// HTXFutures exchange
-        /// </summary>
-        HTXFutures,
     }
 }

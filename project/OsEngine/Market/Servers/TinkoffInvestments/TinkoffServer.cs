@@ -2258,7 +2258,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
                         order.Volume = state.LotsRequested;
                         order.VolumeExecute = state.LotsExecuted;
-                        order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialOrderPrice) : 0;
+                        order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialSecurityPrice) : 0;
                         order.TimeCallBack = state.OrderDate.ToDateTime();
                         order.SecurityClassCode = security.NameClass;
 
@@ -2618,6 +2618,16 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         private List<Order> GetAllOrdersFromExchange()
         {
             List<Order> orders = new List<Order>();
@@ -2666,7 +2676,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         
                         if (state.OrderType == OrderType.Limit)
                         {
-                            newOrder.Price = GetValue(state.InitialOrderPrice);
+                            newOrder.Price = GetValue(state.InitialSecurityPrice);
                         }
 
                         try

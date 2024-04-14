@@ -167,6 +167,16 @@ namespace OsEngine.Market.Servers.MOEX
             get { return null; }
         }
 
+        public bool CanQueryOrdersAfterReconnect
+        {
+            get { return false; }
+        }
+
+        public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

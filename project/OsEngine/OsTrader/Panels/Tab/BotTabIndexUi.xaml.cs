@@ -72,8 +72,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             ComboBoxIndexMultType.Items.Add(IndexMultType.PriceWeighted.ToString());
             ComboBoxIndexMultType.Items.Add(IndexMultType.VolumeWeighted.ToString());
             ComboBoxIndexMultType.Items.Add(IndexMultType.EqualWeighted.ToString());
+            ComboBoxIndexMultType.Items.Add(IndexMultType.Cointegration.ToString());
             ComboBoxIndexMultType.SelectedItem = autoFormulaBuilder.IndexMultType.ToString();
             ComboBoxIndexMultType.SelectionChanged += ComboBoxIndexMultType_SelectionChanged;
+
+            if (autoFormulaBuilder.IndexMultType == IndexMultType.Cointegration
+                 && ComboBoxIndexSecCount.IsEnabled != false)
+            {
+                ComboBoxIndexSecCount.SelectedItem = "2";
+                ComboBoxIndexSecCount.IsEnabled = false;
+            }
 
             for (int i = 1; i < 301; i++)
             {
@@ -150,6 +158,20 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (Enum.TryParse(ComboBoxIndexMultType.SelectedItem.ToString(), out multType))
             {
                 _spread.AutoFormulaBuilder.IndexMultType = multType;
+
+                if(multType == IndexMultType.Cointegration
+                    && ComboBoxIndexSecCount.IsEnabled != false)
+                {
+                    ComboBoxIndexSecCount.SelectedItem = "2";
+                    ComboBoxIndexSecCount.IsEnabled = false;
+                    _spread.AutoFormulaBuilder.IndexSecCount = 2;
+                }
+                
+                if(multType != IndexMultType.Cointegration &&
+                    ComboBoxIndexSecCount.IsEnabled != true)
+                {
+                    ComboBoxIndexSecCount.IsEnabled = true;
+                }
             }
         }
 

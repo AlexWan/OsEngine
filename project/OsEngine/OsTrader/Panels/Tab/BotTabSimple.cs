@@ -4,6 +4,7 @@
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -119,6 +120,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                         PositionOpenerToStop = stopLimitsFromJournal;
                     }
                     UpdateStopLimits();
+
+                    if(_senderThreadIsStarted == false)
+                    {
+                        _senderThreadIsStarted = true;
+
+                        Thread worker = new Thread(PositionsSenderThreadArea);
+                        worker.Name = "Static. BotTabSimple. PositionsSenderThreadArea";
+                        worker.Start();
+                    }
+
+                    _tabsToCheckPositionEvent.Add(this);
                 }
             }
             catch (Exception error)
@@ -413,6 +425,25 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if(TabDeletedEvent != null)
                 {
                     TabDeletedEvent();
+                }
+
+                if(StartProgram == StartProgram.IsOsTrader)
+                {
+                    try
+                    {
+                        for (int i = 0; i < _tabsToCheckPositionEvent.Count; i++)
+                        {
+                            if (_tabsToCheckPositionEvent[i].NameStrategy == this.NameStrategy)
+                            {
+                                _tabsToCheckPositionEvent.RemoveAt(i);
+                                break;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
                 }
             }
             catch (Exception error)
@@ -3089,6 +3120,46 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Place a trailing stop order for a position by Market
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
+        public void CloseAtTrailingStopMarket(Position position, decimal priceActivation)
+        {
+            if (position.StopOrderIsActiv &&
+                position.Direction == Side.Buy &&
+                position.StopOrderRedLine > priceActivation)
+            {
+                return;
+            }
+
+            if (position.StopOrderIsActiv &&
+                position.Direction == Side.Sell &&
+                position.StopOrderRedLine < priceActivation)
+            {
+                return;
+            }
+
+            decimal volume = position.OpenVolume;
+
+            if (volume == 0)
+            {
+                return;
+            }
+
+            position.StopOrderIsActiv = false;
+
+            position.StopIsMarket = true;
+            position.StopOrderPrice = priceActivation;
+            position.StopOrderRedLine = priceActivation;
+            position.StopOrderIsActiv = true;
+
+            _chartMaster.SetPosition(_journal.AllPosition);
+            _journal.PaintPosition(position);
+            _journal.Save();
+        }
+
+        /// <summary>
         /// Place profit order for a position
         /// </summary>
         /// <param name="position">position to be closed</param>
@@ -4668,17 +4739,37 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     CloseAllOrderToPosition(position);
 
-                    if (PositionClosingSuccesEvent != null)
-                    {
-                        PositionClosingSuccesEvent(position);
-                    }
-
                     if (StartProgram == StartProgram.IsOsTrader)
                     {
                         SetNewLogMessage(TabName + OsLocalization.Trader.Label71 + position.Number, LogMessageType.Trade);
+
+                        // высылаем оповещение, только если уже есть закрывающие MyTrades
+
+                        if (position.CloseOrders[position.CloseOrders.Count - 1].MyTrades != null
+                            && position.CloseOrders[position.CloseOrders.Count - 1].MyTrades.Count > 0)
+                        {
+                            if (PositionClosingSuccesEvent != null)
+                            {
+                                PositionClosingSuccesEvent(position);
+                            }
+                        }
+                        else
+                        {// иначе, высылаем в очередь ожидания MyTrades
+
+                            PositionAwaitMyTradesToSendEvent awaitPos = new PositionAwaitMyTradesToSendEvent();
+                            awaitPos.Position = position;
+                            awaitPos.TimeForcibleRemoval = DateTime.Now.AddSeconds(3);
+                            awaitPos.StateAwaitToSend = PositionStateType.Done;
+                            _positionsAwaitSendInEventsQueue.Enqueue(awaitPos);
+                        }
                     }
                     else
                     {
+                        if (PositionClosingSuccesEvent != null)
+                        {
+                            PositionClosingSuccesEvent(position);
+                        }
+
                         decimal profit = position.ProfitPortfolioPunkt;
 
                         if (_connector.ServerType == ServerType.Tester)
@@ -4707,11 +4798,36 @@ namespace OsEngine.OsTrader.Panels.Tab
                         SetNewLogMessage(TabName + OsLocalization.Trader.Label73 + position.Number, LogMessageType.Trade);
                     }
 
-                    if (PositionOpeningSuccesEvent != null)
+                    if(StartProgram == StartProgram.IsOsTrader)
                     {
-                        PositionOpeningSuccesEvent(position);
+                        // высылаем оповещение, только если уже есть закрывающие MyTrades
+
+                        if (position.OpenOrders[position.OpenOrders.Count - 1].MyTrades != null
+                            && position.OpenOrders[position.OpenOrders.Count - 1].MyTrades.Count > 0)
+                        {
+                            if (PositionOpeningSuccesEvent != null)
+                            {
+                                PositionOpeningSuccesEvent(position);
+                            }
+                        }
+                        else
+                        {// иначе, высылаем в очередь ожидания MyTrades
+
+                            PositionAwaitMyTradesToSendEvent awaitPos = new PositionAwaitMyTradesToSendEvent();
+                            awaitPos.Position = position;
+                            awaitPos.TimeForcibleRemoval = DateTime.Now.AddSeconds(3);
+                            awaitPos.StateAwaitToSend = PositionStateType.Open;
+                            _positionsAwaitSendInEventsQueue.Enqueue(awaitPos);
+                        }
                     }
-                    ManualReloadStopsAndProfitToPosition(position);
+                    else
+                    {
+                        if (PositionOpeningSuccesEvent != null)
+                        {
+                            PositionOpeningSuccesEvent(position);
+                        }
+                        ManualReloadStopsAndProfitToPosition(position);
+                    }
                 }
                 else if (position.State == PositionStateType.ClosingFail)
                 {
@@ -5158,6 +5274,127 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        // Sending events about changing position statuses, with MyTrades waiting
+
+        private static void PositionsSenderThreadArea()
+        {
+            Thread.Sleep(5000);
+
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(10);
+
+                    if(MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    for (int i = 0; i < _tabsToCheckPositionEvent.Count; i++)
+                    {
+                        if (_tabsToCheckPositionEvent[i] == null)
+                        {
+                            continue;
+                        }
+
+                        _tabsToCheckPositionEvent[i].CheckAwaitPositionsArea();
+                    }
+                }
+                catch
+                {
+                   // ignore
+                }
+            }
+        }
+
+        private static bool _senderThreadIsStarted = false;
+
+        private static List<BotTabSimple> _tabsToCheckPositionEvent = new List<BotTabSimple>();
+
+        ConcurrentQueue<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsQueue 
+            = new ConcurrentQueue<PositionAwaitMyTradesToSendEvent> ();
+
+        List<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsList 
+            = new List<PositionAwaitMyTradesToSendEvent>();
+
+        public void CheckAwaitPositionsArea()
+        {
+            try
+            {
+                // 1 разбираем очередь
+                while (_positionsAwaitSendInEventsQueue.IsEmpty == false)
+                {
+                    PositionAwaitMyTradesToSendEvent newPos = null;
+
+                    if (_positionsAwaitSendInEventsQueue.TryDequeue(out newPos))
+                    {
+                        _positionsAwaitSendInEventsList.Add(newPos);
+                    }
+                }
+
+                // 2 проверяем, не пора ли что-то выслать наверх
+
+                for (int i = 0; i < _positionsAwaitSendInEventsList.Count; i++)
+                {
+                    PositionAwaitMyTradesToSendEvent curPos = _positionsAwaitSendInEventsList[i];
+
+                    if (curPos.StateAwaitToSend == PositionStateType.Open)
+                    {
+                        if (curPos.TimeForcibleRemoval < DateTime.Now
+                           ||
+                           (curPos.Position.OpenOrders[curPos.Position.OpenOrders.Count - 1].MyTrades != null
+                                && curPos.Position.OpenOrders[curPos.Position.OpenOrders.Count - 1].MyTrades.Count > 0))
+                        {
+                            try
+                            {
+                                ManualReloadStopsAndProfitToPosition(curPos.Position);
+                                if (PositionOpeningSuccesEvent != null)
+                                {
+                                    PositionOpeningSuccesEvent(curPos.Position);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                SetNewLogMessage(ex.ToString(), LogMessageType.Error);
+                            }
+
+                            _positionsAwaitSendInEventsList.RemoveAt(i);
+                            i--;
+                            continue;
+                        }
+                    }
+                    else if (curPos.StateAwaitToSend == PositionStateType.Done)
+                    {
+                        if (curPos.TimeForcibleRemoval < DateTime.Now
+                           ||
+                           (curPos.Position.CloseOrders[curPos.Position.CloseOrders.Count - 1].MyTrades != null
+                                && curPos.Position.CloseOrders[curPos.Position.CloseOrders.Count - 1].MyTrades.Count > 0))
+                        {
+                            try
+                            {
+                                if (PositionClosingSuccesEvent != null)
+                                {
+                                    PositionClosingSuccesEvent(curPos.Position);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                SetNewLogMessage(ex.ToString(), LogMessageType.Error);
+                            }
+                            _positionsAwaitSendInEventsList.RemoveAt(i);
+                            i--;
+                            continue;
+                        }
+                    }
+                }
+            }
+            catch(Exception error)
+            {
+                SetNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
+        }
+
         // Outgoing events. Handlers for strategy
 
         /// <summary>
@@ -5293,5 +5530,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         public event Action<Position> PositionNeadToStopSend;
+    }
+
+    public class PositionAwaitMyTradesToSendEvent
+    {
+        public Position Position;
+
+        public DateTime TimeForcibleRemoval;
+
+        public PositionStateType StateAwaitToSend;
     }
 }

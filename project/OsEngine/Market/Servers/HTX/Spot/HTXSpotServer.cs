@@ -215,7 +215,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     newSecurity.Exchange = ServerType.HTXSpot.ToString();
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = "Spot";
+                    newSecurity.NameClass = item.qc;
                     newSecurity.NameId = item.symbol;
                     newSecurity.SecurityType = SecurityType.CurrencyPair;
                     newSecurity.DecimalsVolume = Convert.ToInt32(item.ap);
@@ -363,6 +363,18 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
 
             } while (true);
+
+            if(allCandles != null && allCandles.Count > 0)
+            {
+                for(int i = 1;i < allCandles.Count;i++)
+                {
+                    if (allCandles[i-1].TimeStart == allCandles[i].TimeStart)
+                    {
+                        allCandles.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
 
             return allCandles;
         }
@@ -994,10 +1006,21 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             marketDepth.Asks = asks;
             marketDepth.Bids = bids;
+
             marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
+
+            if (marketDepth.Time <= _lastMdTime)
+            {
+                marketDepth.Time = _lastMdTime.AddTicks(1);
+            }
+
+            _lastMdTime = marketDepth.Time;
+
 
             MarketDepthEvent(marketDepth);
         }
+
+        DateTime _lastMdTime;
 
         private string GetSecurityName(string ch)
         {
@@ -1270,6 +1293,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 12 Queries
@@ -1407,12 +1440,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             ResponseMessagePortfolios response = JsonConvert.DeserializeObject<ResponseMessagePortfolios>(json);
 
-            Portfolio portfolio = new Portfolio();
+            List<Portfolio> portfolios = new List<Portfolio>();
 
             List<ResponseMessagePortfolios.Data> item = response.data;
 
             for (int i = 0; i < item.Count; i++)
-            {                
+            {
+                Portfolio portfolio = new Portfolio();
+
                 portfolio.Number = $"HTX_{item[i].type}_{item[i].id}_Portfolio";
                 portfolio.ValueBegin = 1;
                 portfolio.ValueCurrent = 1;
@@ -1428,6 +1463,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     ResponseMessagePositions responsePosition = JsonConvert.DeserializeObject<ResponseMessagePositions>(JsonResponse);
+
+                    if(responsePosition.data == null)
+                    {
+                        continue;
+                    }
 
                     List<ResponseMessagePositions.Lists> positions = responsePosition.data.list;
 
@@ -1466,13 +1506,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         }
                         portfolio.SetNewPosition(pos);                        
                     }
-                    PortfolioEvent(new List<Portfolio> { portfolio });
+                    portfolios.Add(portfolio);
                 }
                 else
                 {
                     SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
                 }
             }
+
+            PortfolioEvent(portfolios);
         }
 
         public static string Decompress(byte[] input)

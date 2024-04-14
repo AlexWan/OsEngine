@@ -1364,6 +1364,16 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 11 Queries

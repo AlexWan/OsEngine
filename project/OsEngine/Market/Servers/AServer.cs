@@ -115,9 +115,15 @@ namespace OsEngine.Market.Servers
 
                 _serverIsCreated = true;
 
+                _ordersHub = new AServerOrdersHub(this);
+                _ordersHub.LogMessageEvent += SendLogMessage;
+                _ordersHub.GetAllActivOrdersOnReconnectEvent += _ordersHub_GetAllActivOrdersOnReconnectEvent;
+                _ordersHub.ActivStateOrderCheckStatusEvent += _ordersHub_ActivStateOrderCheckStatusEvent;
+                _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
             }
             get { return _serverRealization; }
         }
+
         private IServerRealization _serverRealization;
 
         #endregion
@@ -827,9 +833,13 @@ namespace OsEngine.Market.Servers
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
                         {
-                            if (NewOrderIncomeEvent != null)
+                            if(TestValue_CanSendOrdersUp)
                             {
-                                NewOrderIncomeEvent(order);
+                                if (NewOrderIncomeEvent != null)
+                                {
+                                    NewOrderIncomeEvent(order);
+                                }
+                                _ordersHub.SetOrderFromApi(order);
                             }
                         }
                     }
@@ -840,9 +850,12 @@ namespace OsEngine.Market.Servers
 
                         if (_myTradesToSend.TryDequeue(out myTrade))
                         {
-                            if (NewMyTradeEvent != null)
+                            if(TestValue_CanSendOrdersUp)
                             {
-                                NewMyTradeEvent(myTrade);
+                                if (NewMyTradeEvent != null)
+                                {
+                                    NewMyTradeEvent(myTrade);
+                                }
                             }
                         }
                     }
@@ -970,6 +983,8 @@ namespace OsEngine.Market.Servers
         /// queue of new orders
         /// </summary>
         private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
+
+        public bool TestValue_CanSendOrdersUp = true;
 
         /// <summary>
         /// queue of ticks
@@ -2251,6 +2266,8 @@ namespace OsEngine.Market.Servers
                 ord.Order = order;
                 ord.OrderSendType = OrderSendType.Execute;
 
+                _ordersHub.SetOrderFromOsEngine(order);
+
                 _ordersToExecute.Enqueue(ord);
 
                 SendLogMessage(OsLocalization.Market.Message19 + order.Price +
@@ -2495,6 +2512,58 @@ namespace OsEngine.Market.Servers
         /// external systems requested order cancellation
         /// </summary>
         public event Action<Order> UserSetOrderOnCancel;
+
+        #endregion
+
+        #region Orders Hub
+
+        AServerOrdersHub _ordersHub;
+
+        private void _ordersHub_GetAllActivOrdersOnReconnectEvent()
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                _serverRealization.GetAllActivOrders();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
+        private void _ordersHub_LostOrderEvent(Order order)
+        {
+            string message = "ORDER LOST!!! Five times we've requested his status. There's no answer! \n";
+
+            message += "Security: " + order.SecurityNameCode + "\n";
+            message += "Class: " + order.SecurityClassCode + "\n";
+            message += "NumberUser: " + order.NumberUser + "\n";
+            message += "NumberMarket: " + order.NumberMarket + "\n";
+
+            SendLogMessage(message, LogMessageType.Error);
+        }
+
+        private void _ordersHub_ActivStateOrderCheckStatusEvent(Order order)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                _serverRealization.GetOrderStatus(order);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         #endregion
 

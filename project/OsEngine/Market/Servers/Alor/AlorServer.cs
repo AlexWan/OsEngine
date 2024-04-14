@@ -989,6 +989,8 @@ namespace OsEngine.Market.Servers.Alor
 
         private bool _socketPortfolioIsActive;
 
+        private string _activationLocker = "activationLocker";
+
         private void CheckActivationSockets()
         {
             if (_socketDataIsActive == false)
@@ -1003,9 +1005,15 @@ namespace OsEngine.Market.Servers.Alor
 
             try
             {
-                SendLogMessage("All sockets activated. Connect State", LogMessageType.System);
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                lock(_activationLocker)
+                {
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        SendLogMessage("All sockets activated. Connect State", LogMessageType.System);
+                        ServerStatus = ServerConnectStatus.Connect;
+                        ConnectEvent();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1070,6 +1078,7 @@ namespace OsEngine.Market.Servers.Alor
             AlorSocketSubscription ordersSub = new AlorSocketSubscription();
             ordersSub.SubType = AlorSubType.Orders;
             ordersSub.Guid = subObjOrders.guid;
+            ordersSub.ServiceInfo = portfolioName;
 
             _subscriptionsPortfolio.Add(ordersSub);
             _webSocketPortfolio.Send(messageOrderSub);
@@ -1487,7 +1496,7 @@ namespace OsEngine.Market.Servers.Alor
             if(_lastMdTime != DateTime.MinValue &&
                 _lastMdTime >= depth.Time)
             {
-                depth.Time = _lastMdTime.AddMilliseconds(1);
+                depth.Time = _lastMdTime.AddTicks(1);
             }
 
             _lastMdTime = depth.Time;
@@ -1565,7 +1574,7 @@ namespace OsEngine.Market.Servers.Alor
                         }
                         else if (_subscriptionsPortfolio[i].SubType == AlorSubType.Orders)
                         {
-                            UpDateMyOrder(baseMessage.data.ToString());
+                            UpDateMyOrder(baseMessage.data.ToString(), _subscriptionsPortfolio[i].ServiceInfo);
                             break;
                         }
                     }
@@ -1641,17 +1650,12 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private void UpDateMyOrder(string data)
+        private void UpDateMyOrder(string data, string portfolioName)
         {
             OrderAlor baseMessage =
             JsonConvert.DeserializeAnonymousType(data, new OrderAlor());
 
-            if(string.IsNullOrEmpty(baseMessage.comment))
-            {
-                return;
-            }
-
-            Order order = ConvertToOsEngineOrder(baseMessage);
+            Order order = ConvertToOsEngineOrder(baseMessage, portfolioName);
 
             if(order == null)
             {
@@ -1681,29 +1685,16 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private Order ConvertToOsEngineOrder(OrderAlor baseMessage)
+        private Order ConvertToOsEngineOrder(OrderAlor baseMessage, string portfolioName)
         {
             Order order = new Order();
 
             order.SecurityNameCode = baseMessage.symbol;
             order.Volume = baseMessage.qty.ToDecimal();
 
-            bool securityInArray = false;
-            for (int i = 0; i < _securitiesAndPortfolious.Count; i++)
-            {
-                if (_securitiesAndPortfolious[i].Security == order.SecurityNameCode)
-                {
-                    order.PortfolioNumber = _securitiesAndPortfolious[i].Portfolio;
-                    securityInArray = true;
-                    break;
-                }
-            }
 
-            if (securityInArray == false)
-            {
-                order.PortfolioNumber = baseMessage.exchange;
-            }
-
+            order.PortfolioNumber = portfolioName;
+            
             if (baseMessage.type == "limit")
             {
                 order.Price = baseMessage.price.ToDecimal();
@@ -1720,7 +1711,7 @@ namespace OsEngine.Market.Servers.Alor
             }
             catch
             {
-                return null;
+                // ignore
             }
 
             order.NumberMarket = baseMessage.id;
@@ -2203,6 +2194,107 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
+        public void GetAllActivOrders()
+        {
+            List<Order> orders = GetAllOrdersFromExchange();
+
+            for(int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if(orders[i] == null)
+                {
+                    continue;
+                }
+
+                if (orders[i].State != OrderStateType.Activ
+                    && orders[i].State != OrderStateType.Patrial
+                    && orders[i].State != OrderStateType.Pending)
+                {
+                    continue;
+                }
+
+                orders[i].TimeCreate = orders[i].TimeCallBack;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+            List<Order> orders = GetAllOrdersFromExchange();
+
+            if(orders == null ||
+                orders.Count == 0)
+            {
+                return;
+            }
+
+            Order orderOnMarket = null;
+
+            for(int i = 0;i < orders.Count;i++)
+            {
+                Order curOder = orders[i];
+
+                if (order.NumberUser != 0
+                    && curOder.NumberUser != 0
+                    && curOder.NumberUser == order.NumberUser)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+
+                if(string.IsNullOrEmpty(order.NumberMarket) == false 
+                    && order.NumberMarket == curOder.NumberMarket)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+            }
+
+            if(orderOnMarket == null)
+            {
+                return;
+            }
+
+            if (orderOnMarket != null && 
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            if(orderOnMarket.State == OrderStateType.Done 
+                || orderOnMarket.State == OrderStateType.Patrial)
+            {
+                List<MyTrade> tradesBySecurity 
+                    = GetMyTradesBySecurity(order.SecurityNameCode, order.PortfolioNumber.Split('_')[0]);
+
+                if(tradesBySecurity == null)
+                {
+                    return;
+                }
+
+                List<MyTrade> tradesByMyOrder = new List<MyTrade>();
+
+                for(int i = 0;i < tradesBySecurity.Count;i++)
+                {
+                    if (tradesBySecurity[i].NumberOrderParent == orderOnMarket.NumberMarket)
+                    {
+                        tradesByMyOrder.Add(tradesBySecurity[i]);
+                    }
+                }
+
+                for(int i = 0;i < tradesByMyOrder.Count;i++)
+                {
+                    if(MyTradeEvent != null)
+                    {
+                        MyTradeEvent(tradesByMyOrder[i]);
+                    }
+                }
+            }
+        }
+
         private List<Order> GetAllOrdersFromExchange()
         {
             List<Order> orders = new List<Order>();
@@ -2288,7 +2380,7 @@ namespace OsEngine.Market.Servers.Alor
 
                         for(int i = 0;i < orders.Count;i++)
                         {
-                            Order newOrd = ConvertToOsEngineOrder(orders[i]);
+                            Order newOrd = ConvertToOsEngineOrder(orders[i], portfolio);
 
                             if(newOrd == null)
                             {
@@ -2303,6 +2395,89 @@ namespace OsEngine.Market.Servers.Alor
                     }
                 }
                 else if(response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+
+                    if (response.Content != null)
+                    {
+                        SendLogMessage("Fail reasons: "
+                      + response.Content, LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
+        private List<MyTrade> GetMyTradesBySecurity(string security, string portfolio)
+        {
+            try
+            {
+                // /md/v2/Clients/MOEX/D39004/LKOH/trades?format=Simple
+
+                string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/" + security + "/trades?format=Simple";
+
+                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                requestRest.AddHeader("accept", "application/json");
+
+                RestClient client = new RestClient(_restApiHost);
+
+                IRestResponse response = client.Execute(requestRest);
+
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string respString = response.Content;
+
+                    if (respString == "[]")
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        List<MyTradeAlorRest> allTradesJson 
+                            = JsonConvert.DeserializeAnonymousType(respString, new List<MyTradeAlorRest>());
+
+                        List<MyTrade> osEngineOrders = new List<MyTrade>();
+
+                        for (int i = 0; i < allTradesJson.Count; i++)
+                        {
+                            MyTradeAlorRest tradeRest = allTradesJson[i];
+
+                            MyTrade newTrade = new MyTrade();
+                            newTrade.SecurityNameCode = security;
+                            newTrade.NumberTrade = tradeRest.id;
+                            newTrade.NumberOrderParent = tradeRest.orderno;
+                            newTrade.Volume = tradeRest.qty.ToDecimal();
+                            newTrade.Price = tradeRest.price.ToDecimal();
+                            newTrade.Time =  ConvertToDateTimeFromTimeAlorData(tradeRest.date);
+
+                            if (tradeRest.side == "buy")
+                            {
+                                newTrade.Side = Side.Buy;
+                            }
+                            else
+                            {
+                                newTrade.Side = Side.Sell;
+                            }
+
+                            osEngineOrders.Add(newTrade);
+                        }
+
+                        return osEngineOrders;
+
+                    }
+                }
+                else if (response.StatusCode == HttpStatusCode.NotFound)
                 {
                     return null;
                 }

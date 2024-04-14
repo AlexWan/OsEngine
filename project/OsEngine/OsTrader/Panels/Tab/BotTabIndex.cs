@@ -605,7 +605,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     && formula[i] != '(' && formula[i] != ')' && formula[i] != 'A' && formula[i] != '1' && formula[i] != '0'
                     && formula[i] != '2' && formula[i] != '3' && formula[i] != '4' && formula[i] != '5'
                     && formula[i] != '6' && formula[i] != '7' && formula[i] != '8' && formula[i] != '9'
-                    && formula[i] != '.')
+                    && formula[i] != '.' && formula[i] != ',')
                 { // incomprehensible characters
                     SendNewLogMessage(OsLocalization.Trader.Label76, LogMessageType.Error);
                     return "";
@@ -907,8 +907,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 valOne[0] != 'B' && valTwo[0] != 'B')
             {
                 // both digit values
-                decimal one = Convert.ToDecimal(valOne, new CultureInfo("en-US"));
-                decimal two = Convert.ToDecimal(valTwo, new CultureInfo("en-US"));
+                decimal one = valOne.ToDecimal();
+                decimal two = valTwo.ToDecimal();
 
                 return ConcateDecimals(one, two, sign);
             }
@@ -1159,7 +1159,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 candlesOne = value.ValueCandles;
             }
 
-            decimal valueTwo = Convert.ToDecimal(valTwo, new CultureInfo("en-US"));
+            decimal valueTwo = valTwo.ToDecimal();
 
             string znak = "";
 
@@ -1242,7 +1242,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private string ConcateDecimalAndCandle(string valOne, string valTwo, string sign)
         {
             // take the first value
-            decimal valueOne = Convert.ToDecimal(valOne, new CultureInfo("en-US"));
+            decimal valueOne = valOne.ToDecimal();
 
             // take the second value
             List<Candle> candlesTwo = null;
@@ -2009,7 +2009,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (tabsInIndex == null ||
                     tabsInIndex.Count <= 1)
                 {
-                    SendNewLogMessage("Can`t rebuild formula. No sources", LogMessageType.Error);
+                    SendNewLogMessage(OsLocalization.Trader.Label392, LogMessageType.Error);
                     return;
                 }
 
@@ -2022,7 +2022,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (curCandles == null ||
                         curCandles.Count == 0)
                     {
-                        SendNewLogMessage("Can`t rebuild formula. One of securities with no candles!", LogMessageType.Error);
+                        SendNewLogMessage(OsLocalization.Trader.Label393 + tabsInIndex[i].SecurityName, LogMessageType.Error);
+                        
+                        if(_startProgram == StartProgram.IsTester)
+                        {
+                            SendNewLogMessage(OsLocalization.Trader.Label394, LogMessageType.Error);
+                        }
+
                         return;
                     }
 
@@ -2034,7 +2040,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (endTime == DateTime.MinValue)
                 {
-                    SendNewLogMessage("Can`t rebuild formula. No candles", LogMessageType.Error);
+                    SendNewLogMessage(OsLocalization.Trader.Label395, LogMessageType.Error);
                     return;
                 }
 
@@ -2137,9 +2143,78 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             // 4 рассчитываем у бумаг мультипликаторы
 
-            SetMultInSecurities(secInIndex, _daysLookBackInBuilding);
+            if(_indexMultType == IndexMultType.PriceWeighted)
+            {
+                SetFormulaPriceWeighted(secInIndex, _daysLookBackInBuilding);
+            }
+            else if (_indexMultType == IndexMultType.EqualWeighted)
+            {
+                SetFormulaEqualWeighted(secInIndex, _daysLookBackInBuilding);
+            }
+            else if (_indexMultType == IndexMultType.VolumeWeighted)
+            {
+                SetFormulaVolumeWeighted(secInIndex, _daysLookBackInBuilding);
+            }
+            else if (_indexMultType == IndexMultType.Cointegration)
+            {
+                SetFormulaCointegrationWeighted(secInIndex, _daysLookBackInBuilding);
+            }
 
-            // 5 Рассчитываем формулу
+            _lastTimeUpdate = timeCandle;
+
+            _lastTimeUpdateIndex = _lastTimeUpdate.ToString();
+
+            Save();
+
+            if (_writeLogMessageOnRebuild)
+            {
+                string message = _indexMultType.ToString() + " " 
+                    + OsLocalization.Trader.Label396 + _lastTimeUpdateIndex;
+
+                message += OsLocalization.Trader.Label397 + _index.UserFormula;
+
+                SendNewLogMessage(message, LogMessageType.Error);
+            }
+        }
+
+        private void SetFormulaPriceWeighted(List<SecurityInIndex> secInIndex, int daysLookBack)
+        {
+            string formula = "";
+
+            for (int i = 0; i < secInIndex.Count; i++)
+            {
+                formula +=  secInIndex[i].Name ;
+
+                if (i + 1 < secInIndex.Count)
+                {
+                    formula += "+";
+                }
+            }
+
+            _index.UserFormula = formula;
+        }
+
+        private void SetFormulaEqualWeighted(List<SecurityInIndex> secInIndex, int daysLookBack)
+        {
+            decimal maxPriceInSecs = 0;
+
+            for (int i = 0; i < secInIndex.Count; i++)
+            {
+                if (maxPriceInSecs < secInIndex[i].LastPrice)
+                {
+                    maxPriceInSecs = secInIndex[i].LastPrice;
+                }
+            }
+
+            for (int i = 0; i < secInIndex.Count; i++)
+            {
+                if (secInIndex[i].LastPrice == 0)
+                {
+                    continue;
+                }
+                secInIndex[i].Mult = maxPriceInSecs / secInIndex[i].LastPrice;
+                secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 8).ToString();
+            }
 
             string formula = "";
 
@@ -2153,106 +2228,154 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            //formula += "/" + tabToTrade.Name;
-
             _index.UserFormula = formula;
-
-            _lastTimeUpdate = timeCandle;
-
-            _lastTimeUpdateIndex = _lastTimeUpdate.ToString();
-            Save();
-
-            if (_writeLogMessageOnRebuild)
-            {
-                string message = "Index was rebuild. Time: " + _lastTimeUpdateIndex;
-                message += " new formula: " + _index.UserFormula;
-                SendNewLogMessage(message, LogMessageType.Error);
-            }
         }
 
-        /// <summary>
-        /// calculate securities weights in the index
-        /// </summary>
-        private void SetMultInSecurities(List<SecurityInIndex> secInIndex, int daysLookBack)
+        private void SetFormulaVolumeWeighted(List<SecurityInIndex> secInIndex, int daysLookBack)
         {
-            if (_indexMultType == IndexMultType.PriceWeighted)
+            // 1. Делаем всё равномерно
+            decimal maxPriceInSecs = 0;
+
+            for (int i = 0; i < secInIndex.Count; i++)
             {
-                decimal maxPriceInSecs = 0;
-
-                for (int i = 0; i < secInIndex.Count; i++)
+                if (maxPriceInSecs < secInIndex[i].LastPrice)
                 {
-                    if (maxPriceInSecs < secInIndex[i].LastPrice)
-                    {
-                        maxPriceInSecs = secInIndex[i].LastPrice;
-                    }
-                }
-
-                for (int i = 0; i < secInIndex.Count; i++)
-                {
-                    if (secInIndex[i].LastPrice == 0)
-                    {
-                        continue;
-                    }
-                    secInIndex[i].Mult = maxPriceInSecs / secInIndex[i].LastPrice;
-                    secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
+                    maxPriceInSecs = secInIndex[i].LastPrice;
                 }
             }
-            else if(_indexMultType == IndexMultType.EqualWeighted)
+
+            for (int i = 0; i < secInIndex.Count; i++)
             {
-                for (int i = 0; i < secInIndex.Count; i++)
+                if (secInIndex[i].LastPrice == 0)
                 {
-                    if (secInIndex[i].LastPrice == 0)
-                    {
-                        continue;
-                    }
-                    secInIndex[i].Mult = 1;
-                    secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
+                    continue;
+                }
+                secInIndex[i].Mult = Math.Round(maxPriceInSecs / secInIndex[i].LastPrice, 8);
+            }
+
+            // 2. считаем для каждого инструмента объём
+
+            for (int i = 0; i < secInIndex.Count; i++)
+            {
+                SetVolume(secInIndex[i], daysLookBack);
+            }
+
+            // 3. считаем суммарный объём
+
+            decimal summVolume = 0;
+
+            for (int i = 0; i < secInIndex.Count; i++)
+            {
+                summVolume += secInIndex[i].SummVolume;
+            }
+
+            // 4. рассчитываем долю объёмов у всех инструментов в этих объёмах
+
+            for (int i = 0; i < secInIndex.Count; i++)
+            {
+                decimal partInIndex = secInIndex[i].SummVolume / (summVolume / 100);
+
+                partInIndex = Math.Round(partInIndex, 8);
+
+                if (partInIndex <= 0)
+                {
+                    partInIndex = 1;
+                }
+
+                secInIndex[i].Name = "(" + secInIndex[i].Name + "*" + secInIndex[i].Mult + ")";
+                secInIndex[i].Name += "*" + partInIndex;
+            }
+
+            string formula = "";
+
+            for (int i = 0; i < secInIndex.Count; i++)
+            {
+                formula += "(" + secInIndex[i].Name + ")";
+
+                if (i + 1 < secInIndex.Count)
+                {
+                    formula += "+";
                 }
             }
-            else if (_indexMultType == IndexMultType.VolumeWeighted)
+
+            _index.UserFormula = formula;
+        }
+
+        private void SetFormulaCointegrationWeighted(List<SecurityInIndex> secInIndex, int daysLookBack)
+        {
+            if (secInIndex.Count < 2)
             {
-                for (int i = 0; i < secInIndex.Count; i++)
-                {
-                    SetVolume(secInIndex[i], daysLookBack);
-
-                    if (i == 0)
-                    {
-                        secInIndex[i].Mult = 100;
-                    }
-                    else
-                    {
-                        if (secInIndex[i].LastPrice == 0)
-                        {
-                            continue;
-                        }
-                        secInIndex[i].Mult = (secInIndex[0].LastPrice / secInIndex[i].LastPrice) * 100;
-                    }
-                }
-
-                // 1 считаем суммарный объём
-
-                decimal summVolume = 0;
-
-                for (int i = 0; i < secInIndex.Count; i++)
-                {
-                    summVolume += secInIndex[i].SummVolume;
-                }
-
-                // 2 рассчитываем долю объёмов у всех инструментов в этих объёмах
-
-                for (int i = 0; i < secInIndex.Count; i++)
-                {
-                    decimal partInIndex = (secInIndex[i].SummVolume / (summVolume / 100)) / 100;
-                    secInIndex[i].Mult = Math.Round(secInIndex[i].Mult * partInIndex, 0);
-
-                    if(secInIndex[i].Mult < 1)
-                    {
-                        secInIndex[i].Mult = 1;
-                    }
-
-                    secInIndex[i].Name = secInIndex[i].Name + "*" + Math.Round(secInIndex[i].Mult, 0).ToString();
-                }
+                return;
             }
+
+            SecurityInIndex sec1 = secInIndex[0];
+            SecurityInIndex sec2 = secInIndex[1];
+
+            if (sec1.Candles == null ||
+                sec1.Candles.Count == 0 ||
+                sec2.Candles == null ||
+                sec2.Candles.Count == 0)
+            {
+                return;
+            }
+
+            int candleCount = 0;
+
+            DateTime startTimeLastDay = sec1.Candles[sec1.Candles.Count - 1].TimeStart;
+
+            int daysCount = 0;
+
+            for (int i = sec1.Candles.Count - 1; i > 0; i--)
+            {
+                if (sec1.Candles[i].TimeStart.Day != startTimeLastDay.Day)
+                {
+                    daysCount++;
+                    startTimeLastDay = sec1.Candles[i].TimeStart;
+
+                    if (daysCount >= daysLookBack)
+                    {
+                        break;
+                    }
+                }
+                candleCount++;
+            }
+
+            CointegrationBuilder builder = new CointegrationBuilder();
+            builder.CointegrationLookBack = candleCount;
+            builder.ReloadCointegration(sec1.Candles, sec2.Candles, false);
+
+            decimal mult1 = 1;
+            decimal mult2 = builder.CointegrationMult;
+
+            if (mult2 == 0)
+            {
+                return;
+            }
+
+            sec1.Mult = mult1;
+            sec2.Mult = mult2;
+
+            if (secInIndex.Count < 2
+                  || secInIndex[0].Candles == null
+                  || secInIndex[0].Candles.Count < 10
+                   || secInIndex[1].Candles == null
+                  || secInIndex[1].Candles.Count < 10)
+            {
+                return;
+            }
+
+            if (secInIndex[0].Mult == 0 ||
+                secInIndex[1].Mult == 0)
+            {
+                return;
+            }
+
+            string formula = "";
+
+            formula = "(" + secInIndex[0].Name + "*" + secInIndex[0].Mult + ")";
+            formula += "-(" + secInIndex[1].Name + "*" + secInIndex[1].Mult + ")";
+
+            _index.UserFormula = formula;
         }
 
         /// <summary>
@@ -2527,8 +2650,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         VolumeWeighted,
 
-        EqualWeighted
+        EqualWeighted,
 
+        Cointegration
     }
 
     /// <summary>

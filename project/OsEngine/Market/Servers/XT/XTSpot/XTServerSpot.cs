@@ -1499,6 +1499,16 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 MyOrderEvent?.Invoke(order);
             }
 
+            public void GetAllActivOrders()
+            {
+
+            }
+
+            public void GetOrderStatus(Order order)
+            {
+
+            }
+
             #endregion
 
             #region 12 Queries

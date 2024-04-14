@@ -1053,7 +1053,6 @@ namespace OsEngine.Market.Servers.Huobi.Futures
             LogMessageEvent(messgae, logMessageType);
         }
 
-
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -1077,6 +1076,16 @@ namespace OsEngine.Market.Servers.Huobi.Futures
         public void ResearchTradesToOrders(List<Order> orders)
         {
            
+        }
+
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
         }
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)

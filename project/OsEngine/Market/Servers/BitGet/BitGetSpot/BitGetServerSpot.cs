@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using WebSocket4Net;
 
+
 namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 {
     public class BitGetServerSpot : AServer
@@ -108,6 +109,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             try
             {
                 _subscribledSecutiries.Clear();
+                _subscribledOrders.Clear();
                 DeleteWebscoektConnection();
             }
             catch (Exception exeption)
@@ -485,6 +487,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 SendLogMessage("Connection Closed by BitGet. WebSocket Closed Event", LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
+
             }
         }
 
@@ -548,6 +551,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 rateGateSubscrible.WaitToProceed();
                 CreateSubscribleSecurityMessageWebSocket(security);
+                CreateSubscribleOrders(security.Name);
             }
             catch (Exception exeption)
             {
@@ -807,8 +811,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     }
                     catch
                     {
-                        SendLogMessage("strage order num: " + item.clOrdId, LogMessageType.Error);
-                        return;
+                        // ignore
                     }
                 }
 
@@ -985,9 +988,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             rateGateCancelOrder.WaitToProceed();
 
+            string symbol = order.SecurityNameCode;
+
+            if(symbol.EndsWith("_SPBL") == false)
+            {
+                symbol += "_SPBL";
+            }
+
             string jsonRequest = JsonConvert.SerializeObject(new
             {
-                symbol = order.SecurityNameCode + "_SPBL",
+                symbol = symbol,
                 orderId = order.NumberMarket
             });
 
@@ -1036,6 +1046,95 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
+        public void GetAllActivOrders()
+        {
+            string jsonRequest = JsonConvert.SerializeObject(new
+            {
+                symbol = ""
+            });
+
+            string requestPath = "/api/spot/v1/trade/open-orders";
+            string url = BaseUrl + requestPath;
+            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            string signature = GenerateSignature(timestamp, "POST", requestPath, null, jsonRequest, SeckretKey);
+
+            HttpClient httpClient = new HttpClient();
+
+            httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
+            httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
+            httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
+            httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
+            httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
+
+            HttpResponseMessage resp = httpClient.PostAsync(url, new StringContent(jsonRequest, Encoding.UTF8, "application/json")).Result;
+
+            if(resp.StatusCode == HttpStatusCode.OK)
+            {
+                string ordersString = resp.Content.ReadAsStringAsync().Result;
+
+                ResponseMessageRest<List<ResponseOrder>> orderJson 
+                    = JsonConvert.DeserializeAnonymousType(ordersString, new ResponseMessageRest<List<ResponseOrder>>());
+
+                for(int i = 0;i < orderJson.data.Count;i++)
+                {
+
+                    Order newOrder = new Order();
+                    newOrder.SecurityNameCode = orderJson.data[i].symbol;
+                    newOrder.NumberMarket = orderJson.data[i].orderId;
+                    newOrder.State = OrderStateType.Activ;
+                    newOrder.PortfolioNumber = "BitGetSpot";
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderJson.data[i].cTime));
+                    newOrder.TimeCreate = newOrder.TimeCallBack;
+
+                    if (string.IsNullOrEmpty(orderJson.data[i].price) == false)
+                    {
+                        newOrder.Price = orderJson.data[i].price.ToDecimal();
+                    }
+
+                    newOrder.Volume = orderJson.data[i].quantity.ToDecimal();
+
+                    if (orderJson.data[i].orderType == "limit")
+                    {
+                        newOrder.TypeOrder = OrderPriceType.Limit;
+                    }
+                    else
+                    {
+                        newOrder.TypeOrder = OrderPriceType.Market;
+                    }
+
+                    if (orderJson.data[i].side == "buy")
+                    {
+                        newOrder.Side = Side.Buy;
+                    }
+                    else
+                    {
+                        newOrder.Side = Side.Sell;
+                    }
+
+                    if (string.IsNullOrEmpty(orderJson.data[i].clientOrderId) == false)
+                    {
+                        try
+                        {
+                            newOrder.NumberUser = Convert.ToInt32(orderJson.data[i].clientOrderId);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+
+                    CreateSubscribleOrders(newOrder.SecurityNameCode);
+
+                    MyOrderEvent(newOrder);
+                }
+            }
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 12 Queries
@@ -1048,6 +1147,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private List<string> _subscribledSecutiries = new List<string>();
 
+        private List<string> _subscribledOrders = new List<string>();
+
         private void CreateSubscribleSecurityMessageWebSocket(Security security)
         {
             if (IsDispose)
@@ -1055,21 +1156,49 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 return;
             }
 
-            for (int i = 0; i < _subscribledSecutiries.Count; i++)
+            lock (_socketLocker)
             {
-                if (_subscribledSecutiries[i].Equals(security.Name))
+                for (int i = 0; i < _subscribledSecutiries.Count; i++)
                 {
-                    return;
+                    if (_subscribledSecutiries[i].Equals(security.Name))
+                    {
+                        return;
+                    }
                 }
+
+                _subscribledSecutiries.Add(security.Name);
+
+
+                webSocket.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"sp\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
+                webSocket.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"sp\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
+            }
+        }
+
+        private void CreateSubscribleOrders(string secName)
+        {
+            if (IsDispose)
+            {
+                return;
             }
 
-            _subscribledSecutiries.Add(security.Name);
+            if(secName.EndsWith("_SPBL") == false)
+            {
+                secName = secName + "_SPBL";
+            }
 
             lock (_socketLocker)
             {
-                webSocket.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"sp\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
-                webSocket.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"sp\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
-                webSocket.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"spbl\",\"instId\": \"{security.Name}_SPBL\"}}]}}");
+                for (int i = 0; i < _subscribledOrders.Count; i++)
+                {
+                    if (_subscribledOrders[i].Equals(secName))
+                    {
+                        return;
+                    }
+                }
+
+                _subscribledOrders.Add(secName);
+
+                webSocket.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"spbl\",\"instId\": \"{secName}\"}}]}}");
             }
         }
 

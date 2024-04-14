@@ -1467,5 +1467,29 @@ namespace OsEngine.Language
         public string Label391 => OsLocalization.ConvertToLocString(
           "Eng:Please wait. Program modules are stopping_" +
           "Ru:Ждите. Идёт штатная остановка модулей программы_");
+
+        public string Label392 => OsLocalization.ConvertToLocString(
+          "Eng:Can`t rebuild formula. No sources_" +
+          "Ru:Невозможно перестроить формулу. Не подключены данные_");
+
+        public string Label393 => OsLocalization.ConvertToLocString(
+          "Eng:Can`t rebuild formula. One of securities with no candles!  _" +
+          "Ru:Невозможно перестроить формулу. По бумаге нет свечек  _");
+
+        public string Label394 => OsLocalization.ConvertToLocString(
+          "Eng:To make the auto-formula work you must start the tester_" +
+          "Ru:Невозможно перестроить формулу. Нужно включить трансляцию данных в тестере_");
+
+        public string Label395 => OsLocalization.ConvertToLocString(
+          "Eng:Can`t rebuild formula. No candles_" +
+          "Ru:Невозможно перестроить формулу. Нет свечек_");
+
+        public string Label396 => OsLocalization.ConvertToLocString(
+          "Eng:Index was rebuild. Time  _" +
+          "Ru:Индекс пересчитан. Время  _");
+
+        public string Label397 => OsLocalization.ConvertToLocString(
+          "Eng: new formula  _" +
+          "Ru: формула  _");
     }
 }

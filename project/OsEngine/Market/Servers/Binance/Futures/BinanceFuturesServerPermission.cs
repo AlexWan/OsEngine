@@ -144,7 +144,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public bool UseStandartCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsUseLotToCalculateProfit
@@ -187,6 +187,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 return values;
             }
+        }
+
+        public bool CanQueryOrdersAfterReconnect
+        {
+            get { return true; }
+        }
+
+        public bool CanQueryOrderStatus
+        {
+            get { return false; }
         }
 
         #endregion

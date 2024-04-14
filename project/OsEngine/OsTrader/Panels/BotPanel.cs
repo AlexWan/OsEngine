@@ -122,6 +122,11 @@ namespace OsEngine.OsTrader.Panels
         public string FileName;
 
         /// <summary>
+        /// the name the user wants to see in the interface
+        /// </summary>
+        public string PublicName;
+
+        /// <summary>
         /// the program that launched the robot. Tester  Robot  Optimizer
         /// </summary>
         public StartProgram StartProgram;

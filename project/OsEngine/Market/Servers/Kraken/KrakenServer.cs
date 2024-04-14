@@ -251,6 +251,16 @@ namespace OsEngine.Market.Servers.Kraken
 
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         /// <summary>
         /// subscribe
         /// подписаться 

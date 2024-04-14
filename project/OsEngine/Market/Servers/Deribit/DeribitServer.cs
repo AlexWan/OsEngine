@@ -1193,6 +1193,16 @@ namespace OsEngine.Market.Servers.Deribit
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 12 Queries

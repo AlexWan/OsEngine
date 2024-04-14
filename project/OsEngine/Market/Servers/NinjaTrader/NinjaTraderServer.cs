@@ -106,11 +106,17 @@ namespace OsEngine.Market.Servers.NinjaTrader
             _client.CancelOrder(order);
         }
 
-        /// <summary>
-        /// cancel all orders from trading system
-        /// отозвать все ордера из торговой системы
-        /// </summary>
         public void CancelAllOrders()
+        {
+
+        }
+
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
         {
 
         }

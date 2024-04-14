@@ -160,6 +160,16 @@ namespace OsEngine.Market.Servers.OKX
             _client.CancelOrder(order);
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         private void _client_MyOrderEventFail(Order order)
         {
             order.State = OrderStateType.Fail;

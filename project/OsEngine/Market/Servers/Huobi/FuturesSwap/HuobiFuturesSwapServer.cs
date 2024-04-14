@@ -724,11 +724,6 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             }
         }
 
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
 
@@ -764,6 +759,16 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
             {
                 SendLogMessage($"Error on order cancel num {order.NumberUser} : {cancelResponse.data.errors}", LogMessageType.Error);
             }
+        }
+
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
         }
 
         public void Subscrible(Security security)

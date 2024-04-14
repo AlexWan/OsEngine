@@ -937,7 +937,12 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        public void GetOrdersState(List<Order> orders)
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
         {
 
         }

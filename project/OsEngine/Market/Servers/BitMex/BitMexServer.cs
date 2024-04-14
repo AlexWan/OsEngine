@@ -287,6 +287,16 @@ namespace OsEngine.Market.Servers.BitMex
             return true;
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         /// <summary>
         /// subscribe to candles, all trades
         /// подписаться на свечи, все сделки 

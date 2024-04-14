@@ -155,5 +155,15 @@
         {
             get { return null; }
         }
+
+        public bool CanQueryOrdersAfterReconnect
+        {
+            get { return true; }
+        }
+
+        public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
     }
 }

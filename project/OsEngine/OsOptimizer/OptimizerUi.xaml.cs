@@ -231,8 +231,23 @@ namespace OsEngine.OsOptimizer
         private void StopUserActivity()
         {
             TabControlPrime.SelectedItem = TabControlPrime.Items[0];
-            TabControlPrime.IsEnabled = false;
+
+            TabItemParams.IsEnabled = false;
+            TabItemFazes.IsEnabled = false;
+            TabItemFilters.IsEnabled = false;
+            TabItemResults.IsEnabled = false;
             ComboBoxThreadsCount.IsEnabled = false;
+            ButtonResults.IsEnabled = false;
+            ButtonStrategySelect.IsEnabled = false;
+            ButtonStrategyReload.IsEnabled = false;
+            ButtonPositionSupport.IsEnabled = false;
+            TextBoxStartPortfolio.IsEnabled = false;
+            CommissionTypeComboBox.IsEnabled = false;
+            HostTabsSimple.IsEnabled = false;
+            HostTabsIndex.IsEnabled = false;
+            ButtonServerDialog.IsEnabled = false;
+            CommissionValueTextBox.IsEnabled = false;
+            TextBoxStrategyName.IsEnabled = false;
         }
 
         /// <summary>
@@ -250,8 +265,23 @@ namespace OsEngine.OsOptimizer
             ButtonGo.Content = OsLocalization.Optimizer.Label9;
             TabControlPrime.SelectedItem = TabControlPrime.Items[4];
             TabControlResults.SelectedItem = TabControlResults.Items[1];
-            TabControlPrime.IsEnabled = true;
+
+            TabItemParams.IsEnabled = true;
+            TabItemFazes.IsEnabled = true;
+            TabItemFilters.IsEnabled = true;
+            TabItemResults.IsEnabled = true;
             ComboBoxThreadsCount.IsEnabled = true;
+            ButtonResults.IsEnabled = true;
+            ButtonStrategySelect.IsEnabled = true;
+            ButtonStrategyReload.IsEnabled = true;
+            ButtonPositionSupport.IsEnabled = true;
+            TextBoxStartPortfolio.IsEnabled = true;
+            CommissionTypeComboBox.IsEnabled = true;
+            HostTabsSimple.IsEnabled = true;
+            HostTabsIndex.IsEnabled = true;
+            ButtonServerDialog.IsEnabled = true;
+            CommissionValueTextBox.IsEnabled = true;
+            TextBoxStrategyName.IsEnabled = true;
         }
 
         /// <summary>
@@ -704,7 +734,32 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonServerDialog_Click(object sender, RoutedEventArgs e)
         {
-            _master.ShowDataStorageDialog();
+            try
+            {
+                if (_master.ShowDataStorageDialog())
+                {
+                    // нужно перезагрузить робота. Данные изменились.
+
+                    if (_master.TabsSimpleNamesAndTimeFrames != null)
+                    {
+                        _master.TabsSimpleNamesAndTimeFrames.Clear();
+                    }
+
+                    if (_master.TabsIndexNamesAndTimeFrames != null)
+                    {
+                        _master.TabsIndexNamesAndTimeFrames.Clear();
+                    }
+
+                    if(_master.Fazes != null)
+                    {
+                        _master.Fazes.Clear();
+                    }
+                }
+            }
+            catch(Exception ex) 
+            {
+                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
         }
 
         private void CheckBoxLastInSample_Click(object sender, RoutedEventArgs e)

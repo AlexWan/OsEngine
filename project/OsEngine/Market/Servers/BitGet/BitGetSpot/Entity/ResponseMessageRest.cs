@@ -62,4 +62,22 @@
         public string feeCcy;
         public string fees;
     }
+
+    public class ResponseOrder
+    {
+        public string accountId;
+        public string symbol;
+        public string orderId;
+        public string clientOrderId;
+        public string price;
+        public string quantity;
+        public string orderType;
+        public string side;
+        public string status;
+        public string fillPrice;
+        public string fillQuantity;
+        public string fillTotalAmount;
+        public string enterPointSource;
+        public string cTime;
+    }
 }

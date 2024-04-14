@@ -1578,7 +1578,12 @@ namespace OsEngine.Market.Servers.Transaq
                     //cmd += "<price>" + "0" + "</price>";
                 }
 
-                cmd += "<quantity>" + order.Volume + "</quantity>";
+                string volume = order.Volume.ToString();
+
+                volume = volume.Replace(",0", "");
+                volume = volume.Replace(".0", "");
+
+                cmd += "<quantity>" + volume + "</quantity>";
                 cmd += "<buysell>" + side + "</buysell>";
                 cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
                 cmd += "<unfilled> PutInQueue </unfilled>";
@@ -1681,6 +1686,16 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
         {
 
         }
@@ -2049,7 +2064,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (needDepth.Time <= _lastMdTime)
                 {
-                    needDepth.Time = _lastMdTime.AddMilliseconds(1);
+                    needDepth.Time = _lastMdTime.AddTicks(1);
                 }
 
                 _lastMdTime = needDepth.Time;

@@ -1485,6 +1485,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 12 Queries

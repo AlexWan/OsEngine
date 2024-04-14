@@ -359,17 +359,18 @@ namespace OsEngine.Market.Servers.Bitfinex
             _client.SubscribleTradesAndDepths(security);
         }
 
-        /// <summary>
-        /// request orders state
-        /// запросить статус ордеров
-        /// </summary>
-        public void GetOrdersState(List<Order> orders)
+        public void GetAllActivOrders()
         {
-            
+
         }
 
-// parsing incoming data
-// разбор входящих данных
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
+        // parsing incoming data
+        // разбор входящих данных
 
         /// <summary>
         /// receive new message from client

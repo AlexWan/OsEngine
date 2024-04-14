@@ -1179,6 +1179,16 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 11 Queries

@@ -180,6 +180,16 @@ namespace OsEngine.Market.Servers.Binance.Spot
             _client.CancelAllOrders();
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         /// <summary>
         /// subscribe
         /// подписаться 

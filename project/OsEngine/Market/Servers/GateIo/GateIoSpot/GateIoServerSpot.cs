@@ -1293,6 +1293,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         private string GetHash(string input)
         {
             using (SHA512 sha512 = SHA512.Create())

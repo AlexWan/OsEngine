@@ -1068,6 +1068,16 @@ namespace OsEngine.Market.Servers.Pionex
             
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 11 Queries

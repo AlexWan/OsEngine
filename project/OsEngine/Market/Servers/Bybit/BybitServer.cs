@@ -2124,6 +2124,16 @@ namespace OsEngine.Market.Servers.Bybit
            
         }
 
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion 11
 
         #region 12 Query

@@ -115,7 +115,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 30; }
+            get { return 10; }
         }
 
         public bool IsCanChangeOrderPrice
@@ -129,6 +129,41 @@ namespace OsEngine.Market.Servers.Alor
         }
 
         public bool IsUseLotToCalculateProfit
+        {
+            get { return true; }
+        }
+
+        public bool ManuallyClosePositionOnBoard_IsOn
+        {
+            get { return true; }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
+        {
+            get { return null; }
+        }
+
+        public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
+        {
+            get
+            {
+                string[] values = new string[]
+                {
+                    "RUB",
+                    "USD",
+                    "EUR"
+                };
+
+                return values;
+            }
+        }
+
+        public bool CanQueryOrdersAfterReconnect
+        {
+            get { return true; }
+        }
+
+        public bool CanQueryOrderStatus
         {
             get { return true; }
         }
@@ -161,32 +196,6 @@ namespace OsEngine.Market.Servers.Alor
         TimeFrameHour4IsOn = true,
         TimeFrameDayIsOn = true
     };
-
-
-        public bool ManuallyClosePositionOnBoard_IsOn
-        {
-            get { return true; }
-        }
-
-        public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
-        {
-            get { return null; }
-        }
-
-        public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
-        {
-            get
-            {
-                string[] values = new string[]
-                {
-                    "RUB",
-                    "USD",
-                    "EUR"
-                };
-
-                return values;
-            }
-        }
 
         #endregion
     }
