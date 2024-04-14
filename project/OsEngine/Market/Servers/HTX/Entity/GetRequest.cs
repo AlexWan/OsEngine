@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OsEngine.Market.Servers.HTX.Spot.Entity
+namespace OsEngine.Market.Servers.HTX.Entity
 {
     public class GetRequest
     {

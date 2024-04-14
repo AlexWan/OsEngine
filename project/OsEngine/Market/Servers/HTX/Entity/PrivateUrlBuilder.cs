@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OsEngine.Market.Servers.HTX.Spot.Entity
+namespace OsEngine.Market.Servers.HTX.Entity
 {
     public class PrivateUrlBuilder
     {
