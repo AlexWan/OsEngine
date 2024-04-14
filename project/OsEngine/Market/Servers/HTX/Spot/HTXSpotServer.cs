@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using WebSocketSharp;
 using OsEngine.Market.Servers.HTX.Spot.Entity;
+using OsEngine.Market.Servers.HTX.Entity;
 using RestSharp;
 using System.IO.Compression;
 using System.IO;
