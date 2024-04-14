@@ -203,7 +203,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
-                serverTypes.Add(ServerType.HTXSpot);
+                serverTypes.Add(ServerType.HTXFutures);
 
                 serverTypes.Add(ServerType.AstsBridge);
 

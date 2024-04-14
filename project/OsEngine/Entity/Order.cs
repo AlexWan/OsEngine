@@ -378,9 +378,16 @@ namespace OsEngine.Entity
             result.Append(State + "@");
             result.Append(TypeOrder + "@");
             result.Append(TimeCallBack.ToString(CultureInfo) + "@");
-
             result.Append(SecurityNameCode + "@");
-            result.Append(PortfolioNumber.Replace('@', '%') + "@");
+
+            if(PortfolioNumber != null)
+            {
+                result.Append(PortfolioNumber.Replace('@', '%') + "@");
+            }
+            else
+            {
+                result.Append("" + "@");
+            }
 
             result.Append(TimeCreate.ToString(CultureInfo) + "@");
             result.Append(TimeCancel.ToString(CultureInfo) + "@");
