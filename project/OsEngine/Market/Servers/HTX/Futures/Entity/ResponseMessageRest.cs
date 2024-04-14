@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.HTX.Futures.Entity
 {
@@ -63,33 +62,9 @@ namespace OsEngine.Market.Servers.HTX.Futures.Entity
             public string id { get; set; } //timestamp
         }
     }
-    public class ResponsePing
-    {
-        public string ping { get; set; }
-    }
+    
     public class PlaceOrderResponse
     {
-        /// <summary>
-        /// Response status
-        /// </summary>
-        public string status { get; set; }
-
-        /*/// <summary>
-        /// Order id
-        /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string data;
-
-        /// <summary>
-        /// Error code
-        /// </summary>
-        [JsonProperty("err-code", NullValueHandling = NullValueHandling.Ignore)]
-        public string errorCode;
-
-        /// <summary>
-        /// Error message
-        /// </summary>
-        [JsonProperty("err-msg", NullValueHandling = NullValueHandling.Ignore)]
-        public string errorMessage;*/
+        public string status { get; set; }     
     }
 }

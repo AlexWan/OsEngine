@@ -70,30 +70,6 @@ namespace OsEngine.Market.Servers.HTX.Futures.Entity
         }
     }
 
-    public class ResponseChannelUpdateMyTrade
-    {
-        public Data data { get; set; }
-        public string code { get; set; }
-        public class Data
-        {
-            public string eventType { get; set; }
-            public string symbol { get; set; }
-            public string orderId { get; set; }
-            public string tradePrice { get; set; }
-            public string tradeVolume { get; set; }
-            public string orderSide { get; set; }
-            public string tradeId { get; set; }
-            public string tradeTime { get; set; }
-            public string accountId { get; set; }
-            public string source { get; set; }
-            public string orderPrice { get; set; }
-            public string orderSize { get; set; }
-            public string clientOrderId { get; set; }
-            public string orderCreateTime { get; set; }
-            public string orderStatus { get; set; }
-        }
-    }    
-
     public class ResponseChannelPortfolio
     {
         public List<Data> data { get; set; }
@@ -117,6 +93,16 @@ namespace OsEngine.Market.Servers.HTX.Futures.Entity
             public string volume { get; set; }
             public string frozen { get; set; }           
         }
+    }
+
+    public class ResponsePingPrivate
+    {
+        public string ts { get; set; }
+    }
+
+    public class ResponsePingPublic
+    {
+        public string ping { get; set; }
     }
 }
 

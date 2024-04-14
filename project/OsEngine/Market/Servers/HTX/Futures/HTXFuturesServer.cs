@@ -6,18 +6,14 @@ using OsEngine.Market.Servers.HTX.Entity;
 using OsEngine.Market.Servers.HTX.Futures.Entity;
 using RestSharp;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using WebSocketSharp;
-using static Kraken.WebSockets.KrakenApi;
 
 namespace OsEngine.Market.Servers.HTX.Futures
 {
@@ -50,11 +46,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
             threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
             threadMessageReaderPrivate.Start();
-
-           /* Thread threadUpdatePortfolio = new Thread(ThreadUpdatePortfolio);
-            threadUpdatePortfolio.IsBackground = true;
-            threadUpdatePortfolio.Name = "ThreadUpdatePortfolio";
-            threadUpdatePortfolio.Start();*/
         }
 
         public DateTime ServerTime { get; set; }
@@ -153,9 +144,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private string _baseUrl = "api.hbdm.com";
 
-        private string _webSocketUrlPublic = "wss://api.hbdm.com/ws";
+        private string _webSocketPathPublic = "/ws";
                
-        private string _webSocketUrlPrivate = "wss://api.hbdm.com/notification";
+        private string _webSocketPathPrivate = "/notification";
 
         private int _limitCandles = 1990;
                
@@ -170,8 +161,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
         private PrivateUrlBuilder _privateUriBuilder;
 
         private Signer _signer;
-
-        private string _allCandleSeries;
 
         #endregion
 
@@ -350,27 +339,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
             } while (true);
 
-            /*for (int i = 1; i < allCandles.Count; i++)
-            {
-                List<DateTime> list = new List<DateTime>();
-
-                if (allCandles[i].TimeStart == allCandles[i - 1].TimeStart)
-                {
-                    list.Add(allCandles[i].TimeStart);
-
-                }
-                if (list.Count > 0)
-                {
-                    string a = null;
-                    for (int j = 0; j < list.Count; j++)
-                    {
-                        a = a + list[j] + ",";
-                    }
-                    SendLogMessage(a, LogMessageType.Error);
-                }
-                
-            }*/
-
             return allCandles;
         }
 
@@ -485,7 +453,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     continue;
                 }
                 
-
                 Candle candle = new Candle();
 
                 candle.State = CandleState.Finished;
@@ -532,7 +499,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void CreateWebSocketConnection()
         {            
-            _webSocketPublic = new WebSocket(_webSocketUrlPublic);            
+            _webSocketPublic = new WebSocket($"wss://{_baseUrl}{_webSocketPathPublic}");            
             _webSocketPublic.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
             _webSocketPublic.OnOpen += webSocketPublic_OnOpen;
             _webSocketPublic.OnMessage += webSocketPublic_OnMessage;
@@ -554,12 +521,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     // ignore
                 }
-
-                _webSocketPublic.OnOpen -= webSocketPublic_OnOpen;
-                _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
-                _webSocketPublic.OnError -= webSocketPublic_OnError;
-                _webSocketPublic.OnClose -= webSocketPublic_OnClose;
-                _webSocketPublic = null;
             }           
         }
 
@@ -625,11 +586,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         // ignore
                     }
 
-                    _webSocketPrivate.OnOpen -= webSocketPrivate_OnOpen;
-                    _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
-                    _webSocketPrivate.OnError -= webSocketPrivate_OnError;
-                    _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
-                    _webSocketPrivate = null;
+                    _webSocketPublic.OnOpen -= webSocketPublic_OnOpen;
+                    _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
+                    _webSocketPublic.OnError -= webSocketPublic_OnError;
+                    _webSocketPublic.OnClose -= webSocketPublic_OnClose;
+                    _webSocketPublic = null;
                 }
             }
         }
@@ -642,7 +603,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 && _webSocketPublic.ReadyState == WebSocketState.Open
                 )
             {
-                _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+                _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
                 _webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
                 _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
@@ -650,9 +611,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
 
                 _webSocketPrivate.Connect();
-
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
             }                      
         }
 
@@ -701,6 +659,12 @@ namespace OsEngine.Market.Servers.HTX.Futures
         {
             if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {
+                _webSocketPrivate.OnOpen -= webSocketPrivate_OnOpen;
+                _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
+                _webSocketPrivate.OnError -= webSocketPrivate_OnError;
+                _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
+                _webSocketPrivate = null;
+
                 SendLogMessage("Connection Closed by HTXFutures. WebSocket Private Closed Event", LogMessageType.System);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
@@ -725,36 +689,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         #region 8 WebSocket check alive
 
-        private void ThreadUpdatePortfolio()
-        {
-            Thread.Sleep(5000);
-
-            while (true)
-            {
-                try
-                {
-                    Thread.Sleep(5000);
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(2000);
-                        continue;
-                    }
-                    CreateQueryPortfolio(false);
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
-                }
-            }
-        }
-
         #endregion
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         public void Subscrible(Security security)
         {
@@ -807,12 +746,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         if (message.Contains("ping"))
                         {                            
                             CreatePingMessageWebSocketPublic(message);
-                            continue;
-                        }
-
-                        if (message.Contains("kline"))
-                        {
-                            _allCandleSeries = message;
                             continue;
                         }
 
@@ -889,14 +822,17 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         if (message.Contains("orders."))
                         {
                             UpdateOrder(message);
+                            continue;
                         }
                         if (message.Contains("accounts."))
                         {
                             UpdatePortfolioFromSubscrible(message);
+                            continue;
                         }
                         if (message.Contains("positions."))
                         {
                             UpdatePositionFromSubscrible(message);
+                            continue;
                         }
                     }
                     catch (Exception exeption)
@@ -1251,7 +1187,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 jsonContent.Add("volume", order.Volume.ToString().Replace(",", "."));
                 jsonContent.Add("direction", order.Side == Side.Buy ? "buy" : "sell");
 
-                // если ордер открывающий позицию - тут "open", если закрывающий - "close"
                 if (order.PositionConditionType == OrderPositionConditionType.Close)
                 {
                     jsonContent.Add("offset", "close");
@@ -1296,6 +1231,14 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         public void CancelAllOrdersToSecurity(Security security)
         {            
+        }
+
+        public void GetAllActivOrders()
+        {
+        }
+
+        public void GetOrderStatus(Order order)
+        {
         }
 
         public void CancelOrder(Order order)
@@ -1387,7 +1330,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void CreatePingMessageWebSocketPublic(string message)
         {
-            ResponsePing response = JsonConvert.DeserializeObject<ResponsePing>(message);
+            ResponsePingPublic response = JsonConvert.DeserializeObject<ResponsePingPublic>(message);
 
             if (_webSocketPublic == null)
             {
@@ -1401,17 +1344,15 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void CreatePingMessageWebSocketPrivate(string message)
         {
-            ResponsePing response = JsonConvert.DeserializeObject<ResponsePing>(message);
+            ResponsePingPrivate response = JsonConvert.DeserializeObject<ResponsePingPrivate>(message);
 
             if (_webSocketPrivate == null)
             {
                 return;
             }
             else
-            {
-                
-                _webSocketPrivate.Send($"{{\"pong\": \"{response.ping}\"}}");
-                //_webSocketPrivate.Send($"{{\"op\": \"pong\", \"ts\": {response.ping} }}");
+            {                
+                _webSocketPrivate.Send($"{{\"pong\": \"{response.ts}\"}}");
             }
         }
 
@@ -1443,7 +1384,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
             {
                 for (int i = 0; i < _arrayPrivateChannels.Count; i++)
                 {
-
                     _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
                 }
             }
@@ -1570,7 +1510,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             request.AddParam("SignatureVersion", "2");
             request.AddParam("Timestamp", strDateTime);
 
-            string signature = _signer.Sign("GET", _baseUrl, "/notification", request.BuildParams());
+            string signature = _signer.Sign("GET", _baseUrl, _webSocketPathPrivate, request.BuildParams());
 
             WebSocketAuthenticationRequestFutures auth = new WebSocketAuthenticationRequestFutures();            
             auth.AccessKeyId = _accessKey;

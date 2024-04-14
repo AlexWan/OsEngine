@@ -159,7 +159,7 @@
             {
                 string[] values = new string[]
                 {                    
-                                      
+                   
                 };
 
                 return values;
@@ -173,6 +173,16 @@
         public bool IsTradeServer
         {
             get { return true; }
+        }
+
+        public bool CanQueryOrdersAfterReconnect
+        {
+            get { return false; }
+        }
+
+        public bool CanQueryOrderStatus
+        {
+            get { return false; }
         }
 
         #endregion
