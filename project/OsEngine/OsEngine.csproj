@@ -506,8 +506,9 @@
     <Compile Include="Market\Servers\Binance\Futures\Entity\AgregatedHistoryTrade.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\BinanceFutureseDepthResponse.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\OrderUpdResponse.cs" />
+    <Compile Include="Market\Servers\Binance\Futures\Entity\ResponceFutures.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\TradesResponseReserches.cs" />
-    <Compile Include="Market\Servers\Binance\Spot\BinanceClientSpot.cs" />
+    <Compile Include="Market\Servers\Binance\Spot\BinanceServerSpot.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\AccountResponse.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\AccountResponseMargin.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\BinanceTime.cs" />
@@ -520,7 +521,6 @@
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\OutboundAccountInfo.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\SecurityResponce.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\TradeResponse.cs" />
-    <Compile Include="Market\Servers\Binance\Spot\BinanceServerSpot.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotServerPermission.cs" />
     <Compile Include="Market\Servers\BingX\BingXFutures\BingXFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\BingX\BingXFutures\BingXServerFutures.cs" />

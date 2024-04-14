@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
@@ -6,7 +11,6 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Binance.Futures.Entity;
-using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
 using System.Collections.Concurrent;
@@ -16,6 +20,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WebSocket4Net;
 using TradeResponse = OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity.TradeResponse;
+using System.Net;
 
 namespace OsEngine.Market.Servers.Binance.Futures
 {
@@ -72,6 +77,27 @@ namespace OsEngine.Market.Servers.Binance.Futures
             ApiKey = ((ServerParameterString)ServerParameters[0]).Value;
             SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+
+            if (string.IsNullOrEmpty(ApiKey) ||
+                string.IsNullOrEmpty(SecretKey))
+            {
+                SendLogMessage("Can`t run Binance Futures connector. No keys", LogMessageType.Error);
+                return;
+            }
+
+            // check server availability for HTTP communication with it / проверяем доступность сервера для HTTP общения с ним
+            Uri uri = new Uri(_baseUrl + "/" + type_str_selector + "/v1/time");
+            try
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
+                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            }
+            catch
+            {
+                SendLogMessage("Can`t run Binance Futures connector. No internet connection", LogMessageType.Error);
+                return;
+            }
 
             if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
             {
@@ -2634,8 +2660,5 @@ namespace OsEngine.Market.Servers.Binance.Futures
         #endregion
     }
 
-    public class BinanceUserMessage
-    {
-        public string MessageStr;
-    }
+
 }

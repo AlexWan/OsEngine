@@ -494,7 +494,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.Binance)
                 {
-                    newServer = new BinanceServer();
+                    newServer = new BinanceServerSpot();
                 }
                 if (type == ServerType.BinanceFutures)
                 {

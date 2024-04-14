@@ -86,6 +86,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         #endregion
 
         #region Trade permission
+
         public bool MarketOrdersIsSupport
         {
             get { return true; }
@@ -138,7 +139,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public bool UseStandartCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsUseLotToCalculateProfit
