@@ -1069,8 +1069,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private Dictionary<string, WebSocket> _wsStreamsSecurityData = new Dictionary<string, WebSocket>();
 
+        private RateGate _rateGateCreateDisposeSockets = new RateGate(1, TimeSpan.FromSeconds(2));
+
         private void CreateDataStreams()
         {
+            _rateGateCreateDisposeSockets.WaitToProceed();
+
             if (_spotSocketClient == null)
             {
                 _spotSocketClient = CreateUserDataStream("api/v1/userDataStream", BinanceExchangeType.SpotExchange);
@@ -1109,6 +1113,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             try
             {
+                _rateGateCreateDisposeSockets.WaitToProceed();
+
                 if (_spotSocketClient != null)
                 {
                     _spotSocketClient.Opened -= Client_Opened;
@@ -1116,6 +1122,17 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     _spotSocketClient.Error -= Client_Error;
                     _spotSocketClient.MessageReceived -= _spotSocketClient_MessageReceived;
                     _spotSocketClient.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                if (_spotSocketClient != null)
+                {
                     _spotSocketClient.Dispose();
                 }
             }
@@ -1135,6 +1152,17 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     _marginSocketClient.Error -= Client_Error;
                     _marginSocketClient.MessageReceived -= _marginSocketClient_MessageReceived;
                     _marginSocketClient.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                if (_marginSocketClient != null)
+                {
                     _marginSocketClient.Dispose();
                 }
             }
@@ -1815,7 +1843,31 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
             else if (order.x == "FILLED")
             {
+                Order newOrder = new Order();
+                newOrder.SecurityNameCode = order.s;
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                newOrder.NumberUser = orderNumUser;
+                newOrder.NumberMarket = order.i.ToString();
+                newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
+                newOrder.State = OrderStateType.Done;
+                newOrder.Volume = order.q.ToDecimal();
+                newOrder.Price = order.p.ToDecimal();
+                newOrder.ServerType = ServerType.Binance;
+                newOrder.PortfolioNumber = "Binance";
 
+                if (order.o == "MARKET")
+                {
+                    newOrder.TypeOrder = OrderPriceType.Market;
+                }
+                else
+                {
+                    newOrder.TypeOrder = OrderPriceType.Limit;
+                }
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(newOrder);
+                }
             }
         }
 
@@ -2259,6 +2311,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             List<Order> openOrders = GetAllOpenOrders();
 
+            if (openOrders == null)
+            {
+                return;
+            }
+
             for (int i = 0; i < openOrders.Count; i++)
             {
                 CancelOrder(openOrders[i]);
@@ -2269,7 +2326,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             List<Order> openOrders = GetAllOpenOrders();
 
-            if(openOrders == null)
+            if (openOrders == null)
             {
                 return;
             }
@@ -2285,17 +2342,63 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public void GetOrderStatus(Order order)
         {
+            List<Order> allSecurityOrders = GetAllOrdersToSecurity(order.SecurityNameCode);
 
-        }
+            if(allSecurityOrders == null)
+            {
+                return;
+            }
 
-        public void GetOrdersState(List<Order> orders)
-        {
-            GetAllOrders(orders);
-        }
+            Order myOrderActualOnBoard = null;
 
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
+            for(int i = 0;i < allSecurityOrders.Count;i++)
+            {
+                Order curOrder = allSecurityOrders[i];
 
+                if(curOrder.NumberUser != 0 &&
+                    order.NumberUser != 0 &&
+                    curOrder.NumberUser ==  order.NumberUser)
+                {
+                    myOrderActualOnBoard = curOrder;
+                    break;
+                }
+
+                if(string.IsNullOrEmpty(curOrder.NumberMarket) == false &&
+                    string.IsNullOrEmpty(order.NumberMarket) == false 
+                    && curOrder.NumberMarket == order.NumberMarket)
+                {
+                    myOrderActualOnBoard = curOrder;
+                    break;
+                }
+            }
+
+            if(myOrderActualOnBoard == null)
+            {
+                return;
+            }
+
+            if(MyOrderEvent != null)
+            {
+                MyOrderEvent(myOrderActualOnBoard);
+            }
+
+            if(myOrderActualOnBoard.State == OrderStateType.Done ||
+                myOrderActualOnBoard.State == OrderStateType.Patrial)
+            { // запрашиваем MyTrades, если по ордеру были исполнения
+
+                List<MyTrade> tradesSpot = GetAllMyTradesToOrder(myOrderActualOnBoard);
+
+                if(tradesSpot != null)
+                {
+                    for(int i = 0;i < tradesSpot.Count;i++)
+                    {
+                        if(MyTradeEvent != null)
+                        {
+                            MyTradeEvent(tradesSpot[i]);
+                        }
+                    }
+                }
+            }
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -2312,150 +2415,150 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
-
         }
 
-        public bool GetAllOrders(List<Order> oldOpenOrders)
+        public List<MyTrade> GetAllMyTradesToOrder(Order order)
         {
-            List<string> namesSec = new List<string>();
+            string endPoint = "/api/v3/myTrades";
+            var param = new Dictionary<string, string>();
+            param.Add("symbol=", order.SecurityNameCode.ToUpper());
+            //param.Add("orderId=", order.NumberMarket);
+            param.Add("&limit=", "500");
+            var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, true);
 
-            for (int i = 0; i < oldOpenOrders.Count; i++)
+            if (res == null)
             {
-                if (namesSec.Find(name => name.Contains(oldOpenOrders[i].SecurityNameCode)) == null)
-                {
-                    namesSec.Add(oldOpenOrders[i].SecurityNameCode);
-                }
+                return null;
             }
+
+            HistoryMyTradeReport[] myTrades = JsonConvert.DeserializeObject<HistoryMyTradeReport[]>(res);
+
+            List<MyTrade> trades = new List<MyTrade>();
+
+            for(int i = 0;i < myTrades.Length;i++)
+            {
+                if(myTrades[i].orderId != order.NumberMarket)
+                {
+                    continue;
+                }
+
+                MyTrade newTrade = new MyTrade();
+                newTrade.SecurityNameCode = myTrades[i].symbol;
+                newTrade.NumberTrade = myTrades[i].id;
+                newTrade.NumberOrderParent = myTrades[i].orderId;
+                newTrade.Volume = myTrades[i].qty.ToDecimal();
+                newTrade.Price = myTrades[i].price.ToDecimal();
+                newTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myTrades[i].time));
+                newTrade.Side = order.Side;
+                trades.Add(newTrade);
+            }
+
+            return trades;
+        }
+
+        public List<Order> GetAllOrdersToSecurity(string securityName)
+        {
 
             string endPoint = "/api/v3/allOrders";
+            var param = new Dictionary<string, string>();
+            param.Add("symbol=", securityName.ToUpper());
+            param.Add("&limit=", "500");
+            var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, true);
 
-            List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
-
-            for (int i = 0; i < namesSec.Count; i++)
+            if (res == null)
             {
-                var param = new Dictionary<string, string>();
-                param.Add("symbol=", namesSec[i].ToUpper());
-                //param.Add("&recvWindow=" , "100");
-                //param.Add("&limit=", GetNonce());
-                param.Add("&limit=", "500");
-                //"symbol={symbol.ToUpper()}&recvWindow={recvWindow}"
-
-                var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, true);
-
-                if (res == null)
-                {
-                    continue;
-                }
-
-                HistoryOrderReport[] orders = JsonConvert.DeserializeObject<HistoryOrderReport[]>(res);
-
-                if (orders != null && orders.Length != 0)
-                {
-                    allOrders.AddRange(orders);
-                }
+                return null;
             }
 
-            for (int i = 0; i < oldOpenOrders.Count; i++)
+            HistoryOrderReport[] orders = JsonConvert.DeserializeObject<HistoryOrderReport[]>(res);
+
+            if(orders == null)
             {
-                if (oldOpenOrders[i].Volume == oldOpenOrders[i].VolumeExecute)
+                return null;
+            }
+
+            List<Order> result = new List<Order>();
+
+            for (int i = 0; i < orders.Length; i++)
+            {
+                HistoryOrderReport myOrder = orders[i];
+
+                Order newOrder = new Order();
+                newOrder.NumberMarket = orders[i].orderId;
+
+                if (orders[i].clientOrderId != null)
                 {
-                    continue;
-                }
-                HistoryOrderReport myOrder = allOrders.Find(ord => ord.orderId == oldOpenOrders[i].NumberMarket);
-
-                if (myOrder == null)
-                {
-                    for (int i2 = 0; i2 < allOrders.Count; i2++)
-                    {
-                        if (string.IsNullOrEmpty(allOrders[i2].clientOrderId))
-                        {
-                            continue;
-                        }
-
-                        string id = allOrders[i2].clientOrderId.Replace("x-RKXTQ2AK", "");
-
-                        try
-                        {
-                            if (Convert.ToInt32(id) == oldOpenOrders[i].NumberUser)
-                            {
-                                myOrder = allOrders[i2];
-                                break;
-                            }
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-                    }
-                }
-
-                if (myOrder == null)
-                {
-                    continue;
-                }
-
-                if (myOrder.status == "NEW")
-                { // order is active. Do nothing / ордер активен. Ничего не делаем
-                    continue;
-                }
-
-                else if (myOrder.status == "FILLED" ||
-                    myOrder.status == "PARTIALLY_FILLED")
-                { // order executed / ордер исполнен
-
+                    string id = orders[i].clientOrderId.Replace("x-RKXTQ2AK", "");
                     try
                     {
-                        if (myOrder.executedQty.ToDecimal() - oldOpenOrders[i].VolumeExecute <= 0)
-                        {
-                            continue;
-                        }
+                        newOrder.NumberUser = Convert.ToInt32(id);
                     }
                     catch
                     {
-                        continue;
+                        // ignore
                     }
+                }
 
+                newOrder.SecurityNameCode = orders[i].symbol;
+                newOrder.Price = orders[i].price.ToDecimal();
+                newOrder.Volume = orders[i].origQty.ToDecimal();
+                newOrder.ServerType = ServerType.Binance;
+                newOrder.PortfolioNumber = "BinanceSpot";
 
-                    MyTrade trade = new MyTrade();
-                    trade.NumberOrderParent = myOrder.orderId;
-                    trade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
-                    trade.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
-                    trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
-                    trade.Side = oldOpenOrders[i].Side;
-                    trade.Price = myOrder.price.ToDecimal();
-                    trade.Volume = myOrder.executedQty.ToDecimal() - oldOpenOrders[i].VolumeExecute;
-
-                    oldOpenOrders[i].SetTrade(trade);
-
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(trade);
-                    }
+                if (orders[i].side == "BUY")
+                {
+                    newOrder.Side = Side.Buy;
                 }
                 else
                 {
-                    Order newOrder = new Order();
-                    newOrder.NumberMarket = myOrder.orderId;
-                    newOrder.NumberUser = oldOpenOrders[i].NumberUser;
-                    newOrder.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
-                    newOrder.State = OrderStateType.Cancel;
-
-                    newOrder.Volume = oldOpenOrders[i].Volume;
-                    newOrder.VolumeExecute = oldOpenOrders[i].VolumeExecute;
-                    newOrder.Price = oldOpenOrders[i].Price;
-                    newOrder.TypeOrder = oldOpenOrders[i].TypeOrder;
-                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.updateTime));
-                    newOrder.TimeCancel = newOrder.TimeCallBack;
-                    newOrder.ServerType = ServerType.Binance;
-                    newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
-
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    newOrder.Side = Side.Sell;
                 }
+
+                if (orders[i].type == "MARKET")
+                {
+                    newOrder.TypeOrder = OrderPriceType.Market;
+                }
+                else
+                {
+                    newOrder.TypeOrder = OrderPriceType.Limit;
+                }
+
+                newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orders[i].time));
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orders[i].updateTime));
+
+                if (myOrder.status == "NEW")
+                { 
+                    newOrder.State = OrderStateType.Activ;
+                }
+                else if (myOrder.status == "FILLED")
+                {
+                    newOrder.State = OrderStateType.Done;
+                    newOrder.TimeDone = newOrder.TimeCallBack;
+                }
+                else if (myOrder.status == "PARTIALLY_FILLED")
+                {
+                    newOrder.State = OrderStateType.Patrial;
+                }
+                else if (myOrder.status == "CANCEL"
+                    || myOrder.status == "CANCELED"
+                    || myOrder.status == "EXPIRED")
+                {
+                    newOrder.State = OrderStateType.Cancel;
+                    newOrder.TimeCancel = newOrder.TimeCallBack;
+                }
+                else if (myOrder.status == "REJECTED")
+                {
+                    newOrder.State = OrderStateType.Fail;
+                }
+                else 
+                {
+
+                }
+
+                result.Add(newOrder);
             }
-            return true;
+
+            return result;
         }
 
         private List<Order> GetAllOpenOrders()
@@ -2502,7 +2605,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 newOrder.State = OrderStateType.Activ;
                 newOrder.Price = orders[i].price.ToDecimal();
                 newOrder.Volume = orders[i].origQty.ToDecimal();
-
+                newOrder.ServerType = ServerType.Binance;
                 newOrder.PortfolioNumber = "BinanceSpot";
 
                 if (orders[i].side == "BUY")
@@ -2525,8 +2628,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     // ignore
                 }
-
-                newOrder.ServerType = ServerType.Binance;
 
                 openOrders.Add(newOrder);
 
@@ -2614,7 +2715,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
                 if (ex.ToString().Contains("Unknown order sent"))
                 {
-                    SendLogMessage(ex.ToString(), LogMessageType.System);
+                    //SendLogMessage(ex.ToString(), LogMessageType.System);
                     return null;
                 }
 

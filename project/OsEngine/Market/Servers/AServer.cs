@@ -839,7 +839,16 @@ namespace OsEngine.Market.Servers
                                 {
                                     NewOrderIncomeEvent(order);
                                 }
+
                                 _ordersHub.SetOrderFromApi(order);
+
+                                for (int i = 0; i < _myTrades.Count; i++)
+                                {
+                                    if (_myTrades[i].NumberOrderParent == order.NumberMarket)
+                                    {
+                                        _myTradesToSend.Enqueue(_myTrades[i]);
+                                    }
+                                }
                             }
                         }
                     }
@@ -852,6 +861,9 @@ namespace OsEngine.Market.Servers
                         {
                             if(TestValue_CanSendOrdersUp)
                             {
+                                _myTrades.Add(myTrade);
+                                _neadToBeepOnTrade = true;
+
                                 if (NewMyTradeEvent != null)
                                 {
                                     NewMyTradeEvent(myTrade);
@@ -2107,8 +2119,6 @@ namespace OsEngine.Market.Servers
             }
 
             _myTradesToSend.Enqueue(trade);
-            _myTrades.Add(trade);
-            _neadToBeepOnTrade = true;
         }
 
         /// <summary>
@@ -2251,12 +2261,51 @@ namespace OsEngine.Market.Servers
                 {
                     SendLogMessage("AServer Error. You can't Execute order when server status Disconnect "
                         + order.NumberUser, LogMessageType.Error);
-
                     order.State = OrderStateType.Fail;
                     _ordersToSend.Enqueue(order);
 
-                    SendLogMessage(OsLocalization.Market.Message17 + order.NumberUser +
-                                   OsLocalization.Market.Message18, LogMessageType.Error);
+                    return;
+                }
+
+                if(_portfolios == null ||
+                    _portfolios.Count == 0)
+                {
+                    SendLogMessage("AServer Error. You can't Execute order when Portfolious is null "
+                       + order.NumberUser, LogMessageType.Error);
+                    order.State = OrderStateType.Fail;
+                    _ordersToSend.Enqueue(order);
+
+                    return;
+                }
+
+                if(string.IsNullOrEmpty(order.PortfolioNumber) == true)
+                {
+                    SendLogMessage("AServer Error. You can't Execute order without specifying his portfolio "
+                         + order.NumberUser, LogMessageType.Error);
+                    order.State = OrderStateType.Fail;
+                    _ordersToSend.Enqueue(order);
+
+                    return;
+                }
+
+                Portfolio myPortfolio = null;
+
+                for(int i = 0;i < _portfolios.Count;i++)
+                {
+                    if (_portfolios[i].Number ==  order.PortfolioNumber)
+                    {
+                        myPortfolio = _portfolios[i];
+                        break;
+                    }
+                }
+
+                if(myPortfolio == null)
+                {
+                    SendLogMessage("AServer Error. You can't Execute order. Error portfolio name: "
+                         + order.PortfolioNumber, LogMessageType.Error);
+                    order.State = OrderStateType.Fail;
+                    _ordersToSend.Enqueue(order);
+
                     return;
                 }
 
@@ -2488,14 +2537,6 @@ namespace OsEngine.Market.Servers
             myOrder.ServerType = ServerType;
 
             _ordersToSend.Enqueue(myOrder);
-
-            for (int i = 0; i < _myTrades.Count; i++)
-            {
-                if (_myTrades[i].NumberOrderParent == myOrder.NumberMarket)
-                {
-                    _myTradesToSend.Enqueue(_myTrades[i]);
-                }
-            }
         }
 
         /// <summary>

@@ -169,7 +169,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
