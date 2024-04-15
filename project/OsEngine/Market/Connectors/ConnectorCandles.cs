@@ -1606,6 +1606,12 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
+                if(StartProgram == StartProgram.IsTester ||
+                    StartProgram == StartProgram.IsOsOptimizer)
+                {
+                    order.TimeFrameInTester = TimeFrameBuilder.TimeFrame;
+                }
+
                 order.SecurityNameCode = SecurityName;
                 order.SecurityClassCode = SecurityClass;
                 order.PortfolioNumber = PortfolioName;

@@ -235,6 +235,8 @@ namespace OsEngine.Entity
 
         public ServerType ServerType;
 
+        public TimeFrame TimeFrameInTester;
+
         // deals with which the order was opened and calculation of the order execution price
 
         /// <summary>
