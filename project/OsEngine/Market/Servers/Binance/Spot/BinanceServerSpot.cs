@@ -1596,21 +1596,31 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             var order = JsonConvert.DeserializeAnonymousType(mes, new ExecutionReport());
 
-            string orderNumUser = order.C.Replace("x-RKXTQ2AK", "");
+            string orderNumUserInString = order.C.Replace("x-RKXTQ2AK", "");
 
-            if (string.IsNullOrEmpty(orderNumUser) ||
-                orderNumUser == "null")
+            if (string.IsNullOrEmpty(orderNumUserInString) ||
+                orderNumUserInString == "null")
             {
-                orderNumUser = order.c.Replace("x-RKXTQ2AK", "");
+                orderNumUserInString = order.c.Replace("x-RKXTQ2AK", "");
             }
 
+            int orderNumUser = 0;
+
+            try
+            {
+                orderNumUser = Convert.ToInt32(orderNumUserInString);
+            }
+            catch
+            {
+                // ignore
+            }
 
             if (order.x == "NEW")
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
                 newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                newOrder.NumberUser = orderNumUser;
 
                 newOrder.NumberMarket = order.i.ToString();
                 //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
@@ -1642,7 +1652,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 newOrder.SecurityNameCode = order.s;
                 newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
                 newOrder.TimeCancel = newOrder.TimeCallBack;
-                newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                newOrder.NumberUser = orderNumUser;
                 newOrder.NumberMarket = order.i.ToString();
                 newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                 newOrder.State = OrderStateType.Cancel;
@@ -1670,7 +1680,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
                 newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                newOrder.NumberUser = orderNumUser;
                 newOrder.NumberMarket = order.i.ToString();
                 newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                 newOrder.State = OrderStateType.Fail;
@@ -1707,7 +1717,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = order.s;
                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
-                    newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                    newOrder.NumberUser = orderNumUser;
 
                     newOrder.NumberMarket = order.i.ToString();
                     //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
@@ -1780,7 +1790,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 newOrder.SecurityNameCode = order.s;
                 newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
                 newOrder.TimeCancel = newOrder.TimeCallBack;
-                newOrder.NumberUser = Convert.ToInt32(orderNumUser);
+                newOrder.NumberUser = orderNumUser;
                 newOrder.NumberMarket = order.i.ToString();
                 newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
                 newOrder.State = OrderStateType.Cancel;
@@ -2257,7 +2267,20 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public void GetAllActivOrders()
         {
+            List<Order> openOrders = GetAllOpenOrders();
 
+            if(openOrders == null)
+            {
+                return;
+            }
+
+            for(int i = 0;i < openOrders.Count;i++) 
+            { 
+                if(MyOrderEvent != null)
+                {
+                    MyOrderEvent(openOrders[i]);
+                }
+            }
         }
 
         public void GetOrderStatus(Order order)
@@ -2441,9 +2464,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             string endPoint = "/api/v3/openOrders";
 
-            List<HistoryOrderReport> allOrders = new List<HistoryOrderReport>();
-
-
             var param = new Dictionary<string, string>();
 
             var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, true);
@@ -2455,64 +2475,61 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             HistoryOrderReport[] orders = JsonConvert.DeserializeObject<HistoryOrderReport[]>(res);
 
-            if (orders != null && orders.Length != 0)
+            if(orders == null)
             {
-                allOrders.AddRange(orders);
+                return null;
             }
-
-            // скачали, сортируем
 
             for (int i = 0; i < orders.Length; i++)
             {
+                Order newOrder = new Order();
+                newOrder.NumberMarket = orders[i].orderId;
 
-                for (int i2 = 0; i2 < allOrders.Count; i2++)
+                if (orders[i].clientOrderId != null)
                 {
-                    if (string.IsNullOrEmpty(allOrders[i2].clientOrderId))
-                    {
-                        continue;
-                    }
-
-                    Order newOrder = new Order();
-                    newOrder.NumberMarket = orders[i].orderId;
-
-                    if (allOrders[i2].clientOrderId != null)
-                    {
-                        string id = allOrders[i2].clientOrderId.Replace("x-RKXTQ2AK", "");
-                        try
-                        {
-                            newOrder.NumberUser = Convert.ToInt32(id);
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-
-                    }
-
-                    newOrder.SecurityNameCode = allOrders[i2].symbol;
-                    newOrder.State = OrderStateType.Activ;
-
-                    if (allOrders[i].type == "")
-                    {
-
-                    }
-
+                    string id = orders[i].clientOrderId.Replace("x-RKXTQ2AK", "");
                     try
                     {
-                        newOrder.Volume = allOrders[i2].origQty.ToDecimal();
+                        newOrder.NumberUser = Convert.ToInt32(id);
                     }
                     catch
                     {
                         // ignore
                     }
-
-                    newOrder.ServerType = ServerType.Binance;
-
-                    openOrders.Add(newOrder);
-
-
-
                 }
+
+                newOrder.SecurityNameCode = orders[i].symbol;
+                newOrder.State = OrderStateType.Activ;
+                newOrder.Price = orders[i].price.ToDecimal();
+                newOrder.Volume = orders[i].origQty.ToDecimal();
+
+                newOrder.PortfolioNumber = "BinanceSpot";
+
+                if (orders[i].side == "BUY")
+                {
+                    newOrder.Side = Side.Buy;
+                }
+                else
+                {
+                    newOrder.Side = Side.Sell;
+                }
+
+                newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orders[i].time));
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orders[i].updateTime));
+
+                try
+                {
+                    newOrder.Volume = orders[i].origQty.ToDecimal();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                newOrder.ServerType = ServerType.Binance;
+
+                openOrders.Add(newOrder);
+
             }
 
             return openOrders;

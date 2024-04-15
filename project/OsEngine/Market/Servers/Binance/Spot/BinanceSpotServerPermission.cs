@@ -164,7 +164,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
