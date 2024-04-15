@@ -611,6 +611,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 if (stepCandles != null)
                 {
+                    if(stepCandles.Count == 1 &&
+                        candles.Count > 1 &&
+                        stepCandles[0].TimeStart == candles[candles.Count-1].TimeStart)
+                    {
+                        break;
+                    }
+
                     candles.AddRange(stepCandles);
                     endTimeStep = stepCandles[stepCandles.Count - 1].TimeStart;
                 }
@@ -618,6 +625,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 startTimeStep = endTimeStep;
 
                 if (endTime < endTimeStep)
+                {
+                    break;
+                }
+
+                if(startTimeStep > endTime)
                 {
                     break;
                 }
