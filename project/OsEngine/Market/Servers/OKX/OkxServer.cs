@@ -533,7 +533,7 @@ namespace OsEngine.Market.Servers.OKX
         {
             _rateGateGetBalance.WaitToProceed();
             var url = $"{_baseUrl}{"api/v5/account/positions"}";
-            var res = GetBalanseOrMyTradesRequest(url);
+            var res = GetPrivateRequest(url);
             var contentStr = res.Content.ReadAsStringAsync().Result;
 
             if (res.StatusCode != System.Net.HttpStatusCode.OK)
@@ -549,7 +549,7 @@ namespace OsEngine.Market.Servers.OKX
             _rateGateGetBalance.WaitToProceed();
             var url = $"{_baseUrl}{"api/v5/account/balance"}";
 
-            var res = GetBalanseOrMyTradesRequest(url);
+            var res = GetPrivateRequest(url);
             var contentStr = res.Content.ReadAsStringAsync().Result;
 
             if (res.StatusCode != System.Net.HttpStatusCode.OK)
@@ -561,19 +561,6 @@ namespace OsEngine.Market.Servers.OKX
         }
 
         private string _lockerBalanceGeter = "locker balance and orders geter";
-
-        public HttpResponseMessage GetBalanseOrMyTradesRequest(string url)
-        {
-            lock (_lockerBalanceGeter)
-            {
-                if (_clientPrivateBalanceAndOrders == null)
-                {
-                    _clientPrivateBalanceAndOrders = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, null));
-                }
-
-                return _clientPrivateBalanceAndOrders.GetAsync(url).Result;
-            }
-        }
 
         List<PositionOnBoard> CoinsWithNonZeroBalance = new List<PositionOnBoard>();
 
@@ -1834,37 +1821,64 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                if ((OrderResponse.data[0].ordType.Equals("limit") ||
-                OrderResponse.data[0].ordType.Equals("market"))
-                &&
-                OrderResponse.data[0].state.Equals("filled"))
+                for(int i = 0;i < OrderResponse.data.Count;i++)
                 {
-                    OrderUpdate(OrderResponse, OrderStateType.Done);
-                }
+                    Order newOrder = null;
 
-                else if ((OrderResponse.data[0].ordType.Equals("limit") ||
-                   OrderResponse.data[0].ordType.Equals("market"))
+                    if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                    OrderResponse.data[i].ordType.Equals("market"))
                     &&
-                    OrderResponse.data[0].state.Equals("live"))
-                {
-                    OrderUpdate(OrderResponse, OrderStateType.Activ);
-                }
+                    OrderResponse.data[i].state.Equals("filled"))
+                    {
+                        newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Done);
+                    }
 
-                else if ((OrderResponse.data[0].ordType.Equals("limit") ||
-                    OrderResponse.data[0].ordType.Equals("market"))
-                    &&
-                    OrderResponse.data[0].state.Equals("canceled"))
-                {
-                    OrderUpdate(OrderResponse, OrderStateType.Cancel);
+                    else if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                       OrderResponse.data[i].ordType.Equals("market"))
+                        &&
+                        OrderResponse.data[i].state.Equals("live"))
+                    {
+                        newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Activ);
+                    }
+
+                    else if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                        OrderResponse.data[i].ordType.Equals("market"))
+                        &&
+                        OrderResponse.data[i].state.Equals("canceled"))
+                    {
+                        newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Cancel);
+                    }
+
+                    if(newOrder == null)
+                    {
+                        continue;
+                    }
+
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(newOrder);
+                    }
+
+                    if (newOrder.State == OrderStateType.Patrial ||
+                        newOrder.State == OrderStateType.Done)
+                    {
+
+                        List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
+
+                        for (int i2 = 0; i2 < tradesInOrder.Count; i2++)
+                        {
+                            MyTradeEvent(tradesInOrder[i2]);
+                        }
+                    }
                 }
             }
 
             GetPortfolios();
         }
 
-        private void OrderUpdate(ObjectChanel<OrderResponseData> OrderResponse, OrderStateType stateType)
+        private Order OrderUpdate(OrderResponseData OrderResponse, OrderStateType stateType)
         {
-            var item = OrderResponse.data[0];
+            var item = OrderResponse;
 
             Order newOrder = new Order();
             newOrder.SecurityNameCode = item.instId;
@@ -1904,7 +1918,8 @@ namespace OsEngine.Market.Servers.OKX
             {
                 newOrder.Price = item.avgPx.ToDecimal();
             }
-            else
+            else if (string.IsNullOrEmpty(item.px) == false
+                && item.px != "0")
             {
                 newOrder.Price = item.px.ToDecimal();
             }
@@ -1920,23 +1935,7 @@ namespace OsEngine.Market.Servers.OKX
 
             newOrder.ServerType = ServerType.OKX;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(newOrder);
-            }
-
-
-            if (stateType == OrderStateType.Patrial ||
-                stateType == OrderStateType.Done)
-            {
-
-                List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
-
-                for (int i = 0; i < tradesInOrder.Count; i++)
-                {
-                    MyTradeEvent(tradesInOrder[i]);
-                }
-            }
+            return newOrder;
         }
 
         public event Action<Order> MyOrderEvent;
@@ -2066,17 +2065,100 @@ namespace OsEngine.Market.Servers.OKX
 
         public void CancelAllOrders()
         {
-            //Empty
+            List<Order> orders = GetActivOrders();
+
+            if (orders == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                CancelOrder(orders[i]);
+            }
         }
 
         public void GetAllActivOrders()
         {
+            List<Order> orders = GetActivOrders();
 
+            if(orders == null)
+            {
+                return;
+            }
+
+            for(int i = 0;i < orders.Count;i++)
+            {
+                if(MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
         }
 
         public void GetOrderStatus(Order order)
         {
+            // GET / Order details
+            // GET /api/v5/trade/order?ordId=680800019749904384&instId=BTC-USDT
+        }
 
+        private List<Order> GetActivOrders()
+        {
+            // GET / Order List
+            // GET /api/v5/trade/orders-pending?ordType=post_only,fok,ioc&instType=SPOT
+
+            var url = $"{"https://www.okx.com/"}{"api/v5/trade/orders-pending"}";
+
+            var res = GetPrivateRequest(url);
+
+            var contentStr = res.Content.ReadAsStringAsync().Result;
+
+            if (res.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                SendLogMessage(contentStr, LogMessageType.Error);
+            }
+
+            OrdersResponce OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new OrdersResponce());
+
+            List<Order> orders = new List<Order>();
+
+            for (int i = 0; i < OrderResponse.data.Count; i++)
+            {
+                Order newOrder = null;
+
+                if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                OrderResponse.data[i].ordType.Equals("market"))
+                &&
+                OrderResponse.data[i].state.Equals("filled"))
+                {
+                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Done);
+                }
+
+                else if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                   OrderResponse.data[i].ordType.Equals("market"))
+                    &&
+                    OrderResponse.data[i].state.Equals("live"))
+                {
+                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Activ);
+                }
+
+                else if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                    OrderResponse.data[i].ordType.Equals("market"))
+                    &&
+                    OrderResponse.data[i].state.Equals("canceled"))
+                {
+                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Cancel);
+                }
+
+                if (newOrder == null)
+                {
+                    continue;
+                }
+
+                orders.Add(newOrder);
+            }
+
+            return orders;
         }
 
         private RateGate _rateGateGenerateToTrate = new RateGate(1, TimeSpan.FromMilliseconds(300));
@@ -2097,7 +2179,7 @@ namespace OsEngine.Market.Servers.OKX
 
             var url = $"{"https://www.okx.com/"}{"api/v5/trade/fills-history"}" + $"?ordId={order.NumberMarket}&" + $"instId={order.SecurityNameCode}&" + $"instType={TypeInstr}";
 
-            var res = GetBalanseOrMyTradesRequest(url);
+            var res = GetPrivateRequest(url);
 
             var contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -2231,6 +2313,18 @@ namespace OsEngine.Market.Servers.OKX
 
         HttpClient _httpPublicClient = new HttpClient();
 
+        public HttpResponseMessage GetPrivateRequest(string url)
+        {
+            lock (_lockerBalanceGeter)
+            {
+                if (_clientPrivateBalanceAndOrders == null)
+                {
+                    _clientPrivateBalanceAndOrders = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, null));
+                }
+
+                return _clientPrivateBalanceAndOrders.GetAsync(url).Result;
+            }
+        }
 
         #endregion
 

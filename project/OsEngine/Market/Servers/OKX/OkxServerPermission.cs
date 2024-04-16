@@ -84,7 +84,7 @@ namespace OsEngine.Market.Servers.OKX
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool MarketOrdersIsSupport
@@ -134,7 +134,7 @@ namespace OsEngine.Market.Servers.OKX
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = true,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = true
+                TimeFrameDayIsOn = false
             };
 
         public bool UseStandartCandlesStarter
@@ -164,7 +164,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus

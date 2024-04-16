@@ -17,6 +17,13 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public List<PositionResponseData> data;
     }
 
+    public class OrdersResponce
+    {
+        public string code;
+        public string msg;
+        public List<OrderResponseData> data;
+    }
+
     public class EventObjectChanelArgs
     {
         public string chanel;
