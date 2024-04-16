@@ -15,9 +15,6 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 using System.Text;
-using System.Xml;
-using System.Reflection;
-using OsEngine.Market.Servers.Hitbtc;
 using System.Globalization;
 
 namespace OsEngine.OsData
@@ -498,9 +495,16 @@ namespace OsEngine.OsData
         {
             string pathSecurityFolder = "Data\\" + SetName + "\\" + SecName.RemoveExcessFromSecurityName();
 
-            if (Directory.Exists(pathSecurityFolder))
+            try
             {
-                Directory.Delete(pathSecurityFolder, true);
+                if (Directory.Exists(pathSecurityFolder))
+                {
+                    Directory.Delete(pathSecurityFolder, true);
+                }
+            }
+            catch
+            {
+                // ignore
             }
 
             for (int i = 0; i < SecLoaders.Count; i++)
@@ -508,6 +512,8 @@ namespace OsEngine.OsData
                 SecLoaders[i].Delete();
                 SecLoaders[i].NewLogMessageEvent -= SendNewLogMessage;
             }
+
+            SecLoaders.Clear();
         }
 
         public void Load(string saveStr)
