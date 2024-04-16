@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading;
@@ -202,7 +203,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 ResponseMessageSecurities.Data item = response.data[i];
 
                 if (item.contract_status == "1")
-                {   
+                {
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = ServerType.HTXFutures.ToString();
@@ -1025,23 +1026,23 @@ namespace OsEngine.Market.Servers.HTX.Futures
             newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.ts));
             newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
             newOrder.ServerType = ServerType.HTXFutures;
-            newOrder.SecurityNameCode = JoinSecurityName(response.symbol, response.contract_type);                
+            newOrder.SecurityNameCode = JoinSecurityName(response.symbol, response.contract_type);
             newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
             newOrder.NumberMarket = response.order_id.ToString();
             newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
             newOrder.State = GetOrderState(response.status);
-            newOrder.Volume = response.volume.ToDecimal();                
+            newOrder.Volume = response.volume.ToDecimal();
             newOrder.Price = response.price.ToDecimal();
             newOrder.PortfolioNumber = $"HTXFuturesPortfolio";
-            newOrder.PositionConditionType = response.offset == "open"? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+            newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
 
             MyOrderEvent(newOrder);
 
             if (response.trade != null)
             {
                 UpdateMyTrade(response);
-            }                    
-        }
+            }           
+        }               
 
         private OrderStateType GetOrderState(string orderStateResponse)
         {
@@ -1199,7 +1200,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 jsonContent.Add("lever_rate", "10");
                 jsonContent.Add("order_price_type", "limit");
 
-                string url = _privateUriBuilder.Build("POST", $"/api/v1/contract_order");
+                string url = _privateUriBuilder.Build("POST", "/api/v1/contract_order");
                           
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
@@ -1208,11 +1209,17 @@ namespace OsEngine.Market.Servers.HTX.Futures
                                 
                 PlaceOrderResponse orderResponse = JsonConvert.DeserializeObject<PlaceOrderResponse>(responseMessage.Content);
 
-                if (orderResponse.status != "ok")
+                if (responseMessage.Content.Contains("error"))
                 {
                     order.State = OrderStateType.Fail;
                     MyOrderEvent(order);
                     SendLogMessage($"SendOrder. Error: {responseMessage.Content}", LogMessageType.Error);
+                }
+                else
+                {
+                    order.NumberMarket = orderResponse.data.order_id;
+                    order.State = OrderStateType.Pending;
+                    MyOrderEvent(order);
                 }
             }
             catch (Exception exception)
@@ -1223,22 +1230,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {            
-        }
-
-        public void CancelAllOrders()
-        {           
-        }
-
-        public void CancelAllOrdersToSecurity(Security security)
-        {            
-        }
-
-        public void GetAllActivOrders()
-        {
-        }
-
-        public void GetOrderStatus(Order order)
-        {
         }
 
         public void CancelOrder(Order order)
@@ -1279,6 +1270,285 @@ namespace OsEngine.Market.Servers.HTX.Futures
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+        }
+
+        public void CancelAllOrders()
+        {           
+        }
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {            
+        }
+
+        public void GetAllActivOrders()
+        {
+            List<Order> orders = GetAllOrdersFromExchange();
+
+            for (int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if (orders[i] == null)
+                {
+                    continue;
+                }
+
+                if (orders[i].State != OrderStateType.Activ
+                    && orders[i].State != OrderStateType.Patrial
+                    && orders[i].State != OrderStateType.Pending)
+                {
+                    continue;
+                }
+
+                orders[i].TimeCreate = orders[i].TimeCallBack;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
+        }
+
+        private List<Order> GetAllOrdersFromExchange()
+        {
+            List<Order> orders = new List<Order>();
+
+            try
+            {               
+                string url = _privateUriBuilder.Build("POST", "/api/v1/contract_openorders");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.POST);                        
+                IRestResponse responseMessage = client.Execute(request);
+
+                ResponseMessageAllOrders response = JsonConvert.DeserializeObject<ResponseMessageAllOrders>(responseMessage.Content);
+
+                List<ResponseMessageAllOrders.Orders> item = response.data.orders;
+
+                if (responseMessage.Content.Contains("error"))
+                {
+                    SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                }
+                else
+                {
+                    if (item != null && item.Count > 0)
+                    {
+                        for (int i = 0; i < item.Count; i++)
+                        {
+                            Order newOrder = new Order();
+
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].update_time));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+                            newOrder.ServerType = ServerType.HTXFutures;
+                            newOrder.SecurityNameCode = JoinSecurityName(item[i].symbol, item[i].contract_type);
+                            newOrder.NumberUser = Convert.ToInt32(item[i].client_order_id);
+                            newOrder.NumberMarket = item[i].order_id.ToString();
+                            newOrder.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
+                            newOrder.State = GetOrderState(item[i].status);
+                            newOrder.Volume = item[i].volume.ToDecimal();
+                            newOrder.Price = item[i].price.ToDecimal();
+                            newOrder.PortfolioNumber = $"HTXFuturesPortfolio";
+                            newOrder.PositionConditionType = item[i].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+
+                            orders.Add(newOrder);
+                        }
+                    }
+                }                               
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return orders;
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+            Order orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket);
+
+            if (orderFromExchange == null)
+            {
+                return;
+            }
+
+            Order orderOnMarket = null;
+
+            if (order.NumberUser != 0
+                && orderFromExchange.NumberUser != 0
+                && orderFromExchange.NumberUser == order.NumberUser)
+            {
+                orderOnMarket = orderFromExchange;                    
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket) == false
+                && order.NumberMarket == orderFromExchange.NumberMarket)
+            {
+                orderOnMarket = orderFromExchange;                   
+            }
+            
+            if (orderOnMarket == null)
+            {
+                return;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            if (orderOnMarket.State == OrderStateType.Done
+                || orderOnMarket.State == OrderStateType.Patrial)
+            {
+                List<MyTrade> tradesBySecurity
+                    = GetMyTradesBySecurity(order.SecurityNameCode, order.NumberMarket, order.TimeCreate);
+
+                if (tradesBySecurity == null)
+                {
+                    return;
+                }
+
+                List<MyTrade> tradesByMyOrder = new List<MyTrade>();
+
+                for (int i = 0; i < tradesBySecurity.Count; i++)
+                {
+                    if (tradesBySecurity[i].NumberOrderParent == orderOnMarket.NumberMarket)
+                    {
+                        tradesByMyOrder.Add(tradesBySecurity[i]);
+                    }
+                }
+
+                for (int i = 0; i < tradesByMyOrder.Count; i++)
+                {
+                    if (MyTradeEvent != null)
+                    {
+                        MyTradeEvent(tradesByMyOrder[i]);
+                    }
+                }
+            }
+        }
+
+        private Order GetOrderFromExchange(string securityNameCode, string numberMarket)
+        {
+            Order newOrder = new Order();
+
+            try
+            {
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+                
+                jsonContent.Add("order_id", numberMarket);
+                jsonContent.Add("symbol", securityNameCode.Split('_')[0]);
+
+                string url = _privateUriBuilder.Build("POST", "/api/v1/contract_order_info");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.POST);
+                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
+                IRestResponse responseMessage = client.Execute(request);
+
+                ResponseMessageGetOrder response = JsonConvert.DeserializeObject<ResponseMessageGetOrder>(responseMessage.Content);
+
+                List<ResponseMessageGetOrder.Data> item = response.data;
+
+                if (responseMessage.Content.Contains("error"))
+                {
+                    SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                }
+                else
+                {
+                    if (item != null && item.Count > 0)
+                    { 
+                        newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[0].created_at));
+                        newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[0].created_at));
+                        newOrder.ServerType = ServerType.HTXFutures;
+                        newOrder.SecurityNameCode = JoinSecurityName(item[0].symbol, item[0].contract_type);
+                        newOrder.NumberUser = Convert.ToInt32(item[0].client_order_id);
+                        newOrder.NumberMarket = item[0].order_id.ToString();
+                        newOrder.Side = item[0].direction.Equals("buy") ? Side.Buy : Side.Sell;
+                        newOrder.State = GetOrderState(item[0].status);
+                        newOrder.Volume = item[0].volume.ToDecimal();
+                        newOrder.Price = item[0].price.ToDecimal();
+                        newOrder.PortfolioNumber = $"HTXFuturesPortfolio";
+                        newOrder.PositionConditionType = item[0].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return newOrder;
+        }
+
+        private List<MyTrade> GetMyTradesBySecurity(string security, string orderId, DateTime createdOrderTime)
+        {
+            try
+            {
+                Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
+
+                jsonContent.Add("symbol", security.Split('_')[0]);
+                jsonContent.Add("order_id", Convert.ToInt64(orderId));
+                jsonContent.Add("created_at", TimeManager.GetTimeStampMilliSecondsToDateTime(createdOrderTime));
+                jsonContent.Add("order_type", 1);
+
+                string url = _privateUriBuilder.Build("POST", "/api/v1/contract_order_detail");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.POST);
+                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
+                IRestResponse responseMessage = client.Execute(request);
+
+                string respString = responseMessage.Content;                
+
+                if (!respString.Contains("error"))
+                {                      
+                    ResponseMessageGetMyTradesBySecurity orderResponse = JsonConvert.DeserializeObject<ResponseMessageGetMyTradesBySecurity>(respString);
+
+                    List<MyTrade> osEngineOrders = new List<MyTrade>();
+
+                    if (orderResponse.data.trades != null && orderResponse.data.trades.Count > 0)
+                    {
+                        for (int i = 0; i < orderResponse.data.trades.Count; i++)
+                        {
+                            MyTrade newTrade = new MyTrade();
+                            newTrade.SecurityNameCode = orderResponse.data.symbol;
+                            newTrade.NumberTrade = orderResponse.data.trades[i].trade_id;
+                            newTrade.NumberOrderParent = orderResponse.data.order_id;
+                            newTrade.Volume = orderResponse.data.trades[i].trade_volume.ToDecimal();
+                            newTrade.Price = orderResponse.data.trades[i].trade_price.ToDecimal();
+                            newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderResponse.data.trades[i].created_at));
+
+                            if (orderResponse.data.direction == "buy")
+                            {
+                                newTrade.Side = Side.Buy;
+                            }
+                            else
+                            {
+                                newTrade.Side = Side.Sell;
+                            }
+                            osEngineOrders.Add(newTrade);
+                        }
+                    }
+                    return osEngineOrders;
+                }
+                else if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+
+                    if (responseMessage.Content != null)
+                    {
+                        SendLogMessage("Fail reasons: "
+                      + responseMessage.Content, LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         #endregion
