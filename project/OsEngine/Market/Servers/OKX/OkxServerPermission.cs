@@ -138,7 +138,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool UseStandartCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsUseLotToCalculateProfit

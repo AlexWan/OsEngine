@@ -784,7 +784,6 @@
     <Compile Include="Market\Servers\OKX\Entity\SecurityResponce.cs" />
     <Compile Include="Market\Servers\OKX\Entity\TradeDetailsResponce.cs" />
     <Compile Include="Market\Servers\OKX\Entity\TradeResponse.cs" />
-    <Compile Include="Market\Servers\OKX\OkxClient.cs" />
     <Compile Include="Market\Servers\OKX\OkxServer.cs" />
     <Compile Include="Market\Servers\OKX\OkxServerPermission.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerServer.cs" />
