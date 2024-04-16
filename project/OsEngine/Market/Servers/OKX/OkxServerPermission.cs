@@ -44,7 +44,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2MinuteCanLoad
         {
@@ -89,11 +89,12 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
+
         public bool IsTradeServer
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsCanChangeOrderPrice

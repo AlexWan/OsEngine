@@ -690,8 +690,13 @@ namespace OsEngine.Market.Servers.OKX
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            List<Candle> candles = GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
+            CandlesResponce securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
 
+            List<Candle> candles = new List<Candle>();
+
+            ConvertCandles(securityResponce, candles);
+
+            candles.Reverse();
 
             if (candles != null && candles.Count != 0)
             {
@@ -701,19 +706,6 @@ namespace OsEngine.Market.Servers.OKX
                 }
                 candles[candles.Count - 1].State = CandleState.Started;
             }
-
-            return candles;
-        }
-
-        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf)
-        {
-            CandlesResponce securityResponce = GetResponseCandles(nameSec, tf);
-
-            List<Candle> candles = new List<Candle>();
-
-            ConvertCandles(securityResponce, candles);
-
-            candles.Reverse();
 
             return candles;
         }
@@ -805,6 +797,55 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            if(timeFrameBuilder.TimeFrame == TimeFrame.Min1
+                || timeFrameBuilder.TimeFrame == TimeFrame.Min2
+                || timeFrameBuilder.TimeFrame == TimeFrame.Min10)
+            {
+                return null;
+            }
+
+            if(actualTime > endTime)
+            {
+                return null;
+            }
+
+            if(startTime > endTime)
+            {
+                return null;
+            }
+
+            if (endTime > DateTime.Now)
+            {
+                endTime = DateTime.Now;
+            }
+
+            var CountCandlesNeedToLoad = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+
+            List<Candle> candles = GetCandleDataHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, CountCandlesNeedToLoad, TimeManager.GetTimeStampMilliSecondsToDateTime(endTime));
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                if (candles[i].TimeStart > endTime)
+                {
+                    candles.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            for (int i = 1; i < candles.Count; i++)
+            {
+                if (candles[i - 1].TimeStart == candles[i].TimeStart)
+                {
+                    candles.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            return candles;
+        }
+
         private int GetCountCandlesFromTimeInterval(DateTime startTime, DateTime endTime, TimeSpan timeFrameSpan)
         {
             TimeSpan timeSpanInterval = endTime - startTime;
@@ -823,17 +864,6 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            if (endTime > DateTime.Now)
-            {
-                endTime = DateTime.Now;
-            }
-
-            var CountCandlesNeedToLoad = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
-
-            return GetCandleDataHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, CountCandlesNeedToLoad, TimeManager.GetTimeStampMilliSecondsToDateTime(endTime));
-        }
 
         public void ResearchTradesToOrders(List<Order> orders)
         {
@@ -1981,9 +2011,13 @@ namespace OsEngine.Market.Servers.OKX
             newOrder.SecurityNameCode = item.instId;
             newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
 
-            if (item.clOrdId.Equals(String.Empty))
+            if(stateType == OrderStateType.Done)
             {
-                return;
+                newOrder.TimeDone = newOrder.TimeCallBack;
+            }
+            else if(stateType == OrderStateType.Cancel)
+            {
+                newOrder.TimeCancel = newOrder.TimeCallBack;
             }
 
             if (!item.clOrdId.Equals(String.Empty))
@@ -2003,10 +2037,28 @@ namespace OsEngine.Market.Servers.OKX
             }
 
             newOrder.State = stateType;
-            newOrder.Volume = item.sz.Replace('.', ',').ToDecimal();
-            newOrder.Price = item.avgPx.Replace('.', ',').ToDecimal() != 0 ? item.avgPx.Replace('.', ',').ToDecimal() : item.px.Replace('.', ',').ToDecimal();
+            newOrder.Volume = item.sz.ToDecimal();
+            newOrder.PortfolioNumber = "OKX";
+
+            if(string.IsNullOrEmpty(item.avgPx) == false)
+            {
+                newOrder.Price = item.avgPx.ToDecimal();
+            }
+            else
+            {
+                newOrder.Price = item.px.ToDecimal();
+            }
+            
+            if(item.ordType == "market")
+            {
+                newOrder.TypeOrder = OrderPriceType.Market;
+            }
+            else
+            {
+                newOrder.TypeOrder = OrderPriceType.Limit;
+            }
+
             newOrder.ServerType = ServerType.OKX;
-            newOrder.PortfolioNumber = newOrder.SecurityNameCode;
 
             if (MyOrderEvent != null)
             {
@@ -2017,6 +2069,7 @@ namespace OsEngine.Market.Servers.OKX
             if (stateType == OrderStateType.Patrial ||
                 stateType == OrderStateType.Done)
             {
+                
                 List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
 
                 for (int i = 0; i < tradesInOrder.Count; i++)
