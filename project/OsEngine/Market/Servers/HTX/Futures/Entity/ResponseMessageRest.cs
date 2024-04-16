@@ -1,5 +1,4 @@
-﻿using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.HTX.Futures.Entity
 {
@@ -66,78 +65,6 @@ namespace OsEngine.Market.Servers.HTX.Futures.Entity
     
     public class PlaceOrderResponse
     {
-        public string status { get; set; }    
-        public Data data { get; set; }
-
-        public class Data
-        {
-            public string order_id { get; set; }
-        }
-    }
-
-    public class ResponseMessageAllOrders
-    {
-
-        public Data data { get; set; }
-
-        public class Data
-        {
-            public List<Orders> orders { get; set; }
-        }
-        
-        public class Orders
-        {
-            public string symbol { get; set; }
-            public string contract_type { get; set; }
-            public string volume { get; set; }
-            public string price { get; set; }
-            public string direction { get; set; }
-            public string offset { get; set; }
-            public string status { get; set; }
-            public string order_id { get; set; }
-            public string created_at { get; set; }
-            public string update_time { get; set; }
-            public string client_order_id { get; set; }
-        }       
-    }
-
-    public class ResponseMessageGetOrder
-    {
-
-        public List<Data> data { get; set; }
-
-        public class Data
-        {
-            public string symbol { get; set; }
-            public string contract_type { get; set; }
-            public string volume { get; set; }
-            public string price { get; set; }
-            public string direction { get; set; }
-            public string offset { get; set; }
-            public string status { get; set; }
-            public string order_id { get; set; }
-            public string created_at { get; set; }
-            public string client_order_id { get; set; }
-        }
-    }
-
-    public class ResponseMessageGetMyTradesBySecurity
-    {
-        public Data data { get; set; }
-
-        public class Data
-        {
-            public List<Trades> trades { get; set; }
-            public string symbol { get; set; }
-            public string order_id { get; set; }
-            public string direction { get; set; }
-        }
-        public class Trades
-        {            
-            public string trade_id { get; set; }
-            public string trade_volume { get; set; }
-            public string trade_price { get; set; }            
-            public string created_at { get; set; }           
-        }
+        public string status { get; set; }     
     }
 }

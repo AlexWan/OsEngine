@@ -177,12 +177,12 @@
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return true; }
+            get { return false; }
         }
 
         #endregion
