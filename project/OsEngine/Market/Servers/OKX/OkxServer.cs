@@ -864,7 +864,6 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-
         public void ResearchTradesToOrders(List<Order> orders)
         {
 
@@ -1863,6 +1862,83 @@ namespace OsEngine.Market.Servers.OKX
             GetPortfolios();
         }
 
+        private void OrderUpdate(ObjectChanel<OrderResponseData> OrderResponse, OrderStateType stateType)
+        {
+            var item = OrderResponse.data[0];
+
+            Order newOrder = new Order();
+            newOrder.SecurityNameCode = item.instId;
+            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
+
+            if (stateType == OrderStateType.Done)
+            {
+                newOrder.TimeDone = newOrder.TimeCallBack;
+            }
+            else if (stateType == OrderStateType.Cancel)
+            {
+                newOrder.TimeCancel = newOrder.TimeCallBack;
+            }
+
+            if (!item.clOrdId.Equals(String.Empty))
+            {
+                newOrder.NumberUser = Convert.ToInt32(item.clOrdId);
+            }
+
+            newOrder.NumberMarket = item.ordId.ToString();
+
+            if (item.posSide == "net")
+            {
+                newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
+            }
+            else
+            {
+                newOrder.Side = item.posSide.Equals("long") ? Side.Buy : Side.Sell;
+            }
+
+            newOrder.State = stateType;
+            newOrder.Volume = item.sz.ToDecimal();
+            newOrder.PortfolioNumber = "OKX";
+
+            if (string.IsNullOrEmpty(item.avgPx) == false
+                && item.avgPx != "0")
+            {
+                newOrder.Price = item.avgPx.ToDecimal();
+            }
+            else
+            {
+                newOrder.Price = item.px.ToDecimal();
+            }
+
+            if (item.ordType == "market")
+            {
+                newOrder.TypeOrder = OrderPriceType.Market;
+            }
+            else
+            {
+                newOrder.TypeOrder = OrderPriceType.Limit;
+            }
+
+            newOrder.ServerType = ServerType.OKX;
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(newOrder);
+            }
+
+
+            if (stateType == OrderStateType.Patrial ||
+                stateType == OrderStateType.Done)
+            {
+
+                List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
+
+                for (int i = 0; i < tradesInOrder.Count; i++)
+                {
+                    MyTradeEvent(tradesInOrder[i]);
+                }
+            }
+        }
+
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
@@ -2001,82 +2077,6 @@ namespace OsEngine.Market.Servers.OKX
         public void GetOrderStatus(Order order)
         {
 
-        }
-
-        private void OrderUpdate(ObjectChanel<OrderResponseData> OrderResponse, OrderStateType stateType)
-        {
-            var item = OrderResponse.data[0];
-
-            Order newOrder = new Order();
-            newOrder.SecurityNameCode = item.instId;
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
-
-            if(stateType == OrderStateType.Done)
-            {
-                newOrder.TimeDone = newOrder.TimeCallBack;
-            }
-            else if(stateType == OrderStateType.Cancel)
-            {
-                newOrder.TimeCancel = newOrder.TimeCallBack;
-            }
-
-            if (!item.clOrdId.Equals(String.Empty))
-            {
-                newOrder.NumberUser = Convert.ToInt32(item.clOrdId);
-            }
-
-            newOrder.NumberMarket = item.ordId.ToString();
-
-            if (item.posSide == "net")
-            {
-                newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
-            }
-            else
-            {
-                newOrder.Side = item.posSide.Equals("long") ? Side.Buy : Side.Sell;
-            }
-
-            newOrder.State = stateType;
-            newOrder.Volume = item.sz.ToDecimal();
-            newOrder.PortfolioNumber = "OKX";
-
-            if(string.IsNullOrEmpty(item.avgPx) == false)
-            {
-                newOrder.Price = item.avgPx.ToDecimal();
-            }
-            else
-            {
-                newOrder.Price = item.px.ToDecimal();
-            }
-            
-            if(item.ordType == "market")
-            {
-                newOrder.TypeOrder = OrderPriceType.Market;
-            }
-            else
-            {
-                newOrder.TypeOrder = OrderPriceType.Limit;
-            }
-
-            newOrder.ServerType = ServerType.OKX;
-
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(newOrder);
-            }
-
-
-            if (stateType == OrderStateType.Patrial ||
-                stateType == OrderStateType.Done)
-            {
-                
-                List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
-
-                for (int i = 0; i < tradesInOrder.Count; i++)
-                {
-                    MyTradeEvent(tradesInOrder[i]);
-                }
-            }
         }
 
         private RateGate _rateGateGenerateToTrate = new RateGate(1, TimeSpan.FromMilliseconds(300));
