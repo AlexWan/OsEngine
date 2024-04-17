@@ -1058,7 +1058,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 newOrder.SecurityNameCode = item.symbol;
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.tradeTime));
                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.orderCreateTime));
-                newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                }
+                catch
+                {
+                    //ignore
+                }
+               
                 newOrder.NumberMarket = item.orderId.ToString();
                 newOrder.Side = item.orderSide.Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = GetOrderState(item.orderStatus);
@@ -1094,10 +1103,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return;
             }
 
-            if (string.IsNullOrEmpty(item.clientOrderId))
-            {
-                return;
-            }
             if (item.eventType.Equals("creation") || item.eventType.Equals("cancellation"))
             {
                 Order newOrder = new Order();
@@ -1113,8 +1118,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
                 
                 newOrder.ServerType = ServerType.HTXSpot;
-                newOrder.SecurityNameCode = item.symbol;                
-                newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                newOrder.SecurityNameCode = item.symbol;           
+                
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 newOrder.NumberMarket = item.orderId.ToString();
                 newOrder.Side = item.type.Split('-')[0].Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = GetOrderState(item.orderStatus);

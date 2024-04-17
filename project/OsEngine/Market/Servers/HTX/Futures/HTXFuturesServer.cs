@@ -56,9 +56,22 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _accessKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;
             
+            if(string.IsNullOrEmpty(_accessKey) ||
+                string.IsNullOrEmpty(_secretKey))
+            {
+                SendLogMessage("Connection can be open. No keys", LogMessageType.Error);
+                if(ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+                return;
+            }
+
             string url = $"https://{_baseUrl}/api/v1/timestamp";
             RestClient client = new RestClient(url);
             RestRequest request = new RestRequest(Method.GET);
+
             IRestResponse responseMessage = client.Execute(request);
   
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -76,20 +89,34 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     SendLogMessage(exeption.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection can be open. HTXFutures. Error request", LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
                 }
             }
             else
             {
                 SendLogMessage("Connection can be open. HTXFutures. Error request", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
         }
 
         public void Dispose()
         {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+
             try
             {
                 UnsubscribeFromAllWebSockets();
@@ -499,7 +526,10 @@ namespace OsEngine.Market.Servers.HTX.Futures
         private WebSocket _webSocketPrivate;
 
         private void CreateWebSocketConnection()
-        {            
+        {
+             _publicSocketOpen = false;
+             _privateSocketOpen = false;
+
             _webSocketPublic = new WebSocket($"wss://{_baseUrl}{_webSocketPathPublic}");            
             _webSocketPublic.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
             _webSocketPublic.OnOpen += webSocketPublic_OnOpen;
@@ -507,7 +537,16 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPublic.OnError += webSocketPublic_OnError;
             _webSocketPublic.OnClose += webSocketPublic_OnClose;
 
-            _webSocketPublic.Connect();          
+            _webSocketPublic.Connect();
+
+            _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
+            _webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+            _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
+            _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
+            _webSocketPrivate.OnError += webSocketPrivate_OnError;
+            _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
+
+            _webSocketPrivate.Connect();
         }
 
         private void DeleteWebscoektConnection()
@@ -516,14 +555,61 @@ namespace OsEngine.Market.Servers.HTX.Futures
             {
                 try
                 {
+                    _webSocketPublic.OnOpen -= webSocketPublic_OnOpen;
+                    _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
+                    _webSocketPublic.OnError -= webSocketPublic_OnError;
+                    _webSocketPublic.OnClose -= webSocketPublic_OnClose;
                     _webSocketPublic.Close();
                 }
                 catch
                 {
                     // ignore
                 }
-            }           
+                _webSocketPublic = null;
+            }
+
+            if (_webSocketPrivate != null)
+            {
+                try
+                {
+                    _webSocketPrivate.OnOpen -= webSocketPrivate_OnOpen;
+                    _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
+                    _webSocketPrivate.OnError -= webSocketPrivate_OnError;
+                    _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
+                    _webSocketPrivate.Close();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                _webSocketPrivate = null;
+            }
         }
+
+        private string _socketAcvateLocker = "socketAcvateLocker";
+
+        private void CheckSocketsActivate()
+        {
+            lock(_socketAcvateLocker)
+            {
+                if (_publicSocketOpen
+                    && _privateSocketOpen
+                    && ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Connect;
+
+                    if (ConnectEvent != null)
+                    {
+                        ConnectEvent();
+                    }
+                }
+            }
+        }
+
+        private bool _publicSocketOpen = false;
+
+        private bool _privateSocketOpen = false;
 
         #endregion
 
@@ -546,6 +632,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     return;
                 }
+
                 if (e == null)
                 {
                     return;
@@ -554,6 +641,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     return;
                 }
+
                 if (e.IsBinary)
                 {
                     _FIFOListWebSocketPublicMessage.Enqueue(Decompress(e.RawData));
@@ -572,47 +660,20 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void webSocketPublic_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
+            if (DisconnectEvent != null 
+                & ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage("Connection Closed by HTXSpot. WebSocket Public Closed Event", LogMessageType.System);
-
-                if (_webSocketPrivate != null)
-                {
-                    try
-                    {
-                        _webSocketPrivate.Close();
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    _webSocketPublic.OnOpen -= webSocketPublic_OnOpen;
-                    _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
-                    _webSocketPublic.OnError -= webSocketPublic_OnError;
-                    _webSocketPublic.OnClose -= webSocketPublic_OnClose;
-                    _webSocketPublic = null;
-                }
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
         private void webSocketPublic_OnOpen(object sender, EventArgs e)
         {
             SendLogMessage("Connection Websocket Public Open", LogMessageType.System);
-            if (ServerStatus != ServerConnectStatus.Connect 
-                && _webSocketPublic != null
-                && _webSocketPublic.ReadyState == WebSocketState.Open
-                )
-            {
-                _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
-                _webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
-                _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
-                _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
-                _webSocketPrivate.OnError += webSocketPrivate_OnError;
-                _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
-
-                _webSocketPrivate.Connect();
-            }                      
+            _publicSocketOpen = true;
+            CheckSocketsActivate();
         }
 
         private void webSocketPrivate_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
@@ -632,14 +693,17 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     return;
                 }
+
                 if (e == null)
                 {
                     return;
                 }
+
                 if (_FIFOListWebSocketPrivateMessage == null)
                 {
                     return;
                 }
+
                 if (e.IsBinary)
                 {
                     _FIFOListWebSocketPrivateMessage.Enqueue(Decompress(e.RawData));
@@ -658,14 +722,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
+            if (DisconnectEvent != null 
+                && ServerStatus != ServerConnectStatus.Disconnect)
             {
-                _webSocketPrivate.OnOpen -= webSocketPrivate_OnOpen;
-                _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
-                _webSocketPrivate.OnError -= webSocketPrivate_OnError;
-                _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
-                _webSocketPrivate = null;
-
                 SendLogMessage("Connection Closed by HTXFutures. WebSocket Private Closed Event", LogMessageType.System);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
@@ -674,16 +733,20 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void webSocketPrivate_OnOpen(object sender, EventArgs e)
         {
-            SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
-
-            if (ServerStatus != ServerConnectStatus.Connect               
-                && _webSocketPrivate != null
-                && _webSocketPrivate.ReadyState == WebSocketState.Open)
+            try
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
+
+                string authRequest = BuildSign(DateTime.UtcNow);
+                _webSocketPrivate.Send(authRequest);
+                _privateSocketOpen = true;
+
+                CheckSocketsActivate();
             }
-            CreateAuthMessageWebSocket();
+            catch(Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -883,8 +946,6 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void UpdateDepth(string message)
         {
-            Thread.Sleep(1);
-
             ResponseChannelBook responseDepth = JsonConvert.DeserializeObject<ResponseChannelBook>(message);
 
             ResponseChannelBook.Tick item = responseDepth.tick;
@@ -1027,8 +1088,18 @@ namespace OsEngine.Market.Servers.HTX.Futures
             newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
             newOrder.ServerType = ServerType.HTXFutures;
             newOrder.SecurityNameCode = JoinSecurityName(response.symbol, response.contract_type);
-            newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
+
+            try
+            {
+                newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
+            }
+            catch
+            {
+                // ignore
+            }
+
             newOrder.NumberMarket = response.order_id.ToString();
+
             newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
             newOrder.State = GetOrderState(response.status);
             newOrder.Volume = response.volume.ToDecimal();
@@ -1339,7 +1410,16 @@ namespace OsEngine.Market.Servers.HTX.Futures
                             newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
                             newOrder.ServerType = ServerType.HTXFutures;
                             newOrder.SecurityNameCode = JoinSecurityName(item[i].symbol, item[i].contract_type);
-                            newOrder.NumberUser = Convert.ToInt32(item[i].client_order_id);
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item[i].client_order_id);
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+
                             newOrder.NumberMarket = item[i].order_id.ToString();
                             newOrder.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
                             newOrder.State = GetOrderState(item[i].status);
@@ -1464,6 +1544,16 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         newOrder.NumberMarket = item[0].order_id.ToString();
                         newOrder.Side = item[0].direction.Equals("buy") ? Side.Buy : Side.Sell;
                         newOrder.State = GetOrderState(item[0].status);
+
+                        if(newOrder.State == OrderStateType.Done)
+                        {
+                            newOrder.TimeDone = newOrder.TimeCreate;
+                        }
+                        else if (newOrder.State == OrderStateType.Done)
+                        {
+                            newOrder.TimeCancel = newOrder.TimeCreate;
+                        }
+
                         newOrder.Volume = item[0].volume.ToDecimal();
                         newOrder.Price = item[0].price.ToDecimal();
                         newOrder.PortfolioNumber = $"HTXFuturesPortfolio";
@@ -1626,19 +1716,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
             }
         }
 
-        private void CreateAuthMessageWebSocket()
-        {
-            string authRequest = BuildSign(DateTime.UtcNow);
-            _webSocketPrivate.Send(authRequest);
-        }
-
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic == null)
-            {
-                return;
-            }
-            else
+            if (_webSocketPublic != null)
             {
                 for (int i = 0; i < _arrayPublicChannels.Count; i++)
                 {
@@ -1646,11 +1726,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 }
             }
 
-            if (_webSocketPrivate == null)
-            {
-                return;
-            }
-            else
+            if (_webSocketPrivate != null)
             {
                 for (int i = 0; i < _arrayPrivateChannels.Count; i++)
                 {
