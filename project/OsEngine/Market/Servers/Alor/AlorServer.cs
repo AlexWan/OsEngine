@@ -1690,8 +1690,16 @@ namespace OsEngine.Market.Servers.Alor
             Order order = new Order();
 
             order.SecurityNameCode = baseMessage.symbol;
-            order.Volume = baseMessage.qty.ToDecimal();
 
+            if(string.IsNullOrEmpty(baseMessage.filled) == false 
+                && baseMessage.filled != "0")
+            {
+                order.Volume = baseMessage.filled.ToDecimal();
+            }
+            else
+            {
+                order.Volume = baseMessage.qty.ToDecimal();
+            }
 
             order.PortfolioNumber = portfolioName;
             
