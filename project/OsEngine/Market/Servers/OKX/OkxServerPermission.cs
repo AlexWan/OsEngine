@@ -169,7 +169,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }

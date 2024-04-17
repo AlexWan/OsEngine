@@ -1862,10 +1862,9 @@ namespace OsEngine.Market.Servers.OKX
                     if (newOrder.State == OrderStateType.Patrial ||
                         newOrder.State == OrderStateType.Done)
                     {
-
                         List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
 
-                        for (int i2 = 0; i2 < tradesInOrder.Count; i2++)
+                        for (int i2 = 0; tradesInOrder != null && i2 < tradesInOrder.Count; i2++)
                         {
                             MyTradeEvent(tradesInOrder[i2]);
                         }
@@ -1900,7 +1899,8 @@ namespace OsEngine.Market.Servers.OKX
 
             newOrder.NumberMarket = item.ordId.ToString();
 
-            if (item.posSide == "net")
+            if (item.posSide == "net"
+                || item.posSide == "")
             {
                 newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
             }
@@ -1983,18 +1983,19 @@ namespace OsEngine.Market.Servers.OKX
 
             OrderRequest<OrderRequestArgsSwap> orderRequest = new OrderRequest<OrderRequestArgsSwap>();
             orderRequest.id = order.NumberUser.ToString();
-            orderRequest.args.Add(new OrderRequestArgsSwap()
-            {
-                side = order.Side.ToString().ToLower(),
-                instId = order.SecurityNameCode,
-                tdMode = "cash",
-                ordType = order.TypeOrder.ToString().ToLower(),
-                sz = order.Volume.ToString().Replace(",", "."),
-                px = order.Price.ToString().Replace(",", "."),
-                clOrdId = order.NumberUser.ToString(),
-                tag = "5faf8b0e85c1BCDE"
 
-            });
+            OrderRequestArgsSwap requesOrder = new OrderRequestArgsSwap();
+
+            requesOrder.side = order.Side.ToString().ToLower();
+            requesOrder.instId = order.SecurityNameCode;
+            requesOrder.tdMode = "cash";
+            requesOrder.ordType = "limit";
+            requesOrder.sz = order.Volume.ToString().Replace(",", ".");
+            requesOrder.px = order.Price.ToString().Replace(",", ".");
+            requesOrder.clOrdId = order.NumberUser.ToString();
+            requesOrder.tag = "5faf8b0e85c1BCDE";
+
+            orderRequest.args.Add(requesOrder);
 
             string json = JsonConvert.SerializeObject(orderRequest);
 
@@ -2100,6 +2101,98 @@ namespace OsEngine.Market.Servers.OKX
         {
             // GET / Order details
             // GET /api/v5/trade/order?ordId=680800019749904384&instId=BTC-USDT
+
+            string url = null;
+
+            if(string.IsNullOrEmpty(order.NumberMarket))
+            {
+                url =
+                    $"{"https://www.okx.com/"}{"api/v5/trade/order"}"
+                    + $"?clOrdId={order.NumberUser}&"
+                    + $"instId={order.SecurityNameCode}";
+            }
+            else
+            {
+                url =
+                    $"{"https://www.okx.com/"}{"api/v5/trade/order"}"
+                    + $"?ordId={order.NumberMarket}&"
+                    + $"clOrdId={order.NumberUser}&"
+                    + $"instId={order.SecurityNameCode}";
+            }
+
+            var res = GetPrivateRequest(url);
+
+            var contentStr = res.Content.ReadAsStringAsync().Result;
+
+            if (res.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                SendLogMessage(contentStr, LogMessageType.Error);
+                return;
+            }
+
+            OrdersResponce OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new OrdersResponce());
+
+            List<Order> orders = new List<Order>();
+
+            for (int i = 0; i < OrderResponse.data.Count; i++)
+            {
+                Order newOrder = null;
+
+                if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                OrderResponse.data[i].ordType.Equals("market"))
+                &&
+                OrderResponse.data[i].state.Equals("filled"))
+                {
+                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Done);
+                }
+
+                else if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                   OrderResponse.data[i].ordType.Equals("market"))
+                    &&
+                    OrderResponse.data[i].state.Equals("live"))
+                {
+                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Activ);
+                }
+
+                else if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                    OrderResponse.data[i].ordType.Equals("market"))
+                    &&
+                    OrderResponse.data[i].state.Equals("canceled"))
+                {
+                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Cancel);
+                }
+
+                if (newOrder == null)
+                {
+                    continue;
+                }
+
+                orders.Add(newOrder);
+            }
+
+            if(orders == null 
+                || orders.Count == 0)
+            {
+                return;
+            }
+
+            Order myOrder = orders[0];
+
+            if(MyOrderEvent != null)
+            {
+                MyOrderEvent(myOrder);
+            }
+
+            if(myOrder.State == OrderStateType.Done 
+                || myOrder.State == OrderStateType.Patrial)
+            {
+                List<MyTrade> myTrades = GenerateTradesToOrder(myOrder, 1);
+
+                for(int i = 0; myTrades != null &&  i < myTrades.Count; i++)
+                {
+                    MyTradeEvent(myTrades[i]);
+                }
+            }
         }
 
         private List<Order> GetActivOrders()
@@ -2116,6 +2209,7 @@ namespace OsEngine.Market.Servers.OKX
             if (res.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 SendLogMessage(contentStr, LogMessageType.Error);
+                return null;
             }
 
             OrdersResponce OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new OrdersResponce());
