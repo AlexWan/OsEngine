@@ -977,10 +977,10 @@ namespace OsEngine.Market.Servers.Transaq
                         PositionOnBoard pos = new PositionOnBoard()
                         {
                             SecurityNameCode = fortsPosition.Seccode,
-                            ValueBegin = Convert.ToDecimal(fortsPosition.Startnet.Replace(".", ",")),
-                            ValueCurrent = Convert.ToDecimal(fortsPosition.Totalnet.Replace(".", ",")),
-                            ValueBlocked = Convert.ToDecimal(fortsPosition.Openbuys.Replace(".", ",")) +
-                                           Convert.ToDecimal(fortsPosition.Opensells.Replace(".", ",")),
+                            ValueBegin = fortsPosition.Startnet.ToDecimal(),
+                            ValueCurrent = fortsPosition.Totalnet.ToDecimal(),
+                            ValueBlocked = fortsPosition.Openbuys.ToDecimal() +
+                                           fortsPosition.Opensells.ToDecimal(),
                             PortfolioName = needPortfolio.Number,
 
                         };
@@ -1047,9 +1047,9 @@ namespace OsEngine.Market.Servers.Transaq
                         {
                             SecurityNameCode = tick.Seccode,
                             Id = tick.Tradeno,
-                            Price = Convert.ToDecimal(tick.Price.Replace(".", ",")),
+                            Price = tick.Price.ToDecimal(),
                             Side = tick.Buysell == "B" ? Side.Buy : Side.Sell,
-                            Volume = Convert.ToDecimal(tick.Quantity.Replace(".", ",")),
+                            Volume = tick.Quantity.ToDecimal(),
                             Time = DateTime.Parse(tick.Tradetime),
                         });
                     }
@@ -1237,11 +1237,11 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     osCandles.Add(new Candle()
                     {
-                        Open = Convert.ToDecimal(candle.Open.Replace(".", ",")),
-                        High = Convert.ToDecimal(candle.High.Replace(".", ",")),
-                        Low = Convert.ToDecimal(candle.Low.Replace(".", ",")),
-                        Close = Convert.ToDecimal(candle.Close.Replace(".", ",")),
-                        Volume = Convert.ToDecimal(candle.Volume.Replace(".", ",")),
+                        Open = candle.Open.ToDecimal(),
+                        High = candle.High.ToDecimal(),
+                        Low = candle.Low.ToDecimal(),
+                        Close = candle.Close.ToDecimal(),
+                        Volume = candle.Volume.ToDecimal(),
                         TimeStart = DateTime.Parse(candle.Date),
                     });
                 }
@@ -1844,8 +1844,8 @@ namespace OsEngine.Market.Servers.Transaq
                 newOrder.NumberMarket = order.Orderno;
                 newOrder.TimeCallBack = order.Time != null ? DateTime.Parse(order.Time) : ServerTime;
                 newOrder.Side = order.Buysell == "B" ? Side.Buy : Side.Sell;
-                newOrder.Volume = Convert.ToDecimal(order.Quantity);
-                newOrder.Price = Convert.ToDecimal(order.Price.Replace(".", ","));
+                newOrder.Volume = order.Quantity.ToDecimal();
+                newOrder.Price = order.Price.ToDecimal();
                 newOrder.ServerType = ServerType.Transaq;
                 newOrder.PortfolioNumber = string.IsNullOrEmpty(order.Union) ? order.Client : order.Union;
 
@@ -2112,12 +2112,18 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 TransaqEntity.Trade t = trades[i];
 
+                if(string.IsNullOrEmpty(t.Price)
+                    || string.IsNullOrEmpty(t.Quantity))
+                {
+                    continue;
+                }
+
                 Trade trade = new Trade();
                 trade.SecurityNameCode = t.Seccode;
                 trade.Id = t.Tradeno;
-                trade.Price = Convert.ToDecimal(t.Price.Replace(".", ","));
+                trade.Price = t.Price.ToDecimal();
                 trade.Side = t.Buysell == "B" ? Side.Buy : Side.Sell;
-                trade.Volume = Convert.ToDecimal(t.Quantity.Replace(".", ","));
+                trade.Volume = t.Quantity.ToDecimal();
                 trade.Time = DateTime.Parse(t.Time);
                 
                 NewTradesEvent?.Invoke(trade);

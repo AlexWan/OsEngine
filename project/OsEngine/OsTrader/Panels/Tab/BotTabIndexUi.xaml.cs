@@ -343,6 +343,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _sourcesGrid.Rows.Clear();
 
+            string formula = _spread.UserFormula;
+
             for (int i = 0; i < _spread.Tabs.Count; i++)
             {
                 DataGridViewRow row = new DataGridViewRow();
