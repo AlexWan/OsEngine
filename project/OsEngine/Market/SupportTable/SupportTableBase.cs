@@ -195,7 +195,7 @@ namespace OsEngine.Market.SupportTable
 
             SupportConnection huobiF = new SupportConnection()
             {
-                ServerType = ServerType.HuobiFutures,
+                ServerType = ServerType.HTXFutures,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\HTX.png",
                 LingSiteUrl = "https://www.htx.com/ru-ru/v/register/double-invite/web/?inviter_id=11345710&invite_code=jxbn7223",
