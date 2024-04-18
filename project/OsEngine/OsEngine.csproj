@@ -640,16 +640,6 @@
     <Compile Include="Market\Servers\Huobi\Entities\GetSymbolsResponse.cs" />
     <Compile Include="Market\Servers\Huobi\FuturesSwap\HuobiFuturesSwapServer.cs" />
     <Compile Include="Market\Servers\Huobi\FuturesSwap\HuobiFuturesSwapServerPermission.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\CancelFuturesOrderResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\FuturesAccountInfo.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\FuturesPing.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\FuturesSymbol.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\OrderFuturesNotify.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\PlaceFuturesOrderResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\TradeInfo.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServer.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServerPermission.cs" />
-    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServerPermission.cs" />
     <Compile Include="Market\Servers\Huobi\Request\GetRequest.cs" />
     <Compile Include="Market\Servers\Huobi\Request\PrivateUrlBuilder.cs" />
     <Compile Include="Market\Servers\Huobi\Request\PublicUrlBuilder.cs" />
@@ -663,8 +653,6 @@
     <Compile Include="Market\Servers\Huobi\Response\SubscribeDepthResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Response\SubscribeTradeResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Response\WebSocketResponseBase.cs" />
-    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotSecurityCreator.cs" />
-    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServer.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\HTX\Spot\HTXSpotServer.cs" />

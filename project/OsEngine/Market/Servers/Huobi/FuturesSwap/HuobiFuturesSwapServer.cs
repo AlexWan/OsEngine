@@ -12,10 +12,10 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.Huobi.Futures.Entities;
 using OsEngine.Market.Servers.Huobi.Request;
 using OsEngine.Market.Servers.Huobi.Response;
 using OsEngine.Market.Services;
+
 namespace OsEngine.Market.Servers.Huobi.FuturesSwap
 {
     public class HuobiFuturesSwapServer : AServer
@@ -1038,5 +1038,171 @@ namespace OsEngine.Market.Servers.Huobi.FuturesSwap
         public string low;
         public string open;
         public string vol;
+    }
+
+    public class FuturesAccountInfo
+    {
+        public string status;
+
+        public List<AccountData> data;
+
+        public long ts;
+    }
+
+    public class CancelFuturesOrderResponse
+    {
+        public string status { get; set; }
+        public OrderCancelData data { get; set; }
+        public long ts { get; set; }
+    }
+
+    public class OrderCancelData
+    {
+        public IList<object> errors { get; set; }
+        public string successes { get; set; }
+    }
+
+    public class AccountData
+    {
+        public string userid;
+
+        public string margin_asset;
+
+        public string margin_static;
+
+        public string cross_margin_static;
+
+        public string margin_frozen;
+
+        public string withdraw_available;
+
+        public string cross_risk_rate;
+
+        public object[] cross_swap;
+
+        public object[] cross_future;
+
+        public object[] isolated_swap;
+    }
+
+    public class TradeData
+    {
+        public decimal amount { get; set; }
+        public long ts { get; set; }
+        public long id { get; set; }
+        public decimal price { get; set; }
+        public string direction { get; set; }
+    }
+
+    public class Tick
+    {
+        public long id { get; set; }
+        public long ts { get; set; }
+        public IList<TradeData> data { get; set; }
+    }
+
+    public class TradeInfo
+    {
+        public string ch { get; set; }
+        public long ts { get; set; }
+        public Tick tick { get; set; }
+    }
+
+    public class FuturesPing
+    {
+        public string op { get; set; }
+        public long ts { get; set; }
+    }
+
+    public class FuturesSymbolResponse
+    {
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("data")]
+        public IList<Datum> Data { get; set; }
+
+        [JsonProperty("ts")]
+        public long Ts { get; set; }
+    }
+
+    public class Datum
+    {
+
+        [JsonProperty("symbol")]
+        public string Symbol { get; set; }
+
+        [JsonProperty("contract_code")]
+        public string ContractCode { get; set; }
+
+        [JsonProperty("contract_type")]
+        public string ContractType { get; set; }
+
+        [JsonProperty("contract_size")]
+        public decimal ContractSize { get; set; }
+
+        [JsonProperty("price_tick")]
+        public decimal PriceTick { get; set; }
+
+        [JsonProperty("delivery_date")]
+        public string DeliveryDate { get; set; }
+
+        [JsonProperty("create_date")]
+        public string CreateDate { get; set; }
+
+        [JsonProperty("contract_status")]
+        public int ContractStatus { get; set; }
+    }
+
+    public class TradeNotify
+    {
+        public string id { get; set; }
+        public decimal trade_id { get; set; }
+        public decimal trade_volume { get; set; }
+        public decimal trade_price { get; set; }
+        public decimal trade_fee { get; set; }
+        public decimal trade_turnover { get; set; }
+        public long created_at { get; set; }
+        public string role { get; set; }
+    }
+
+    public class PlaceFuturesOrderResponse
+    {
+        public string status { get; set; }
+        public long order_id { get; set; }
+        public string order_id_str { get; set; }
+        public int client_order_id { get; set; }
+        public long ts { get; set; }
+    }
+
+    public class OrderFuturesNotify
+    {
+        public string op { get; set; }
+        public string topic { get; set; }
+        public long ts { get; set; }
+        public string symbol { get; set; }
+        public string contract_type { get; set; }
+        public string contract_code { get; set; }
+        public decimal volume { get; set; }
+        public decimal price { get; set; }
+        public string order_price_type { get; set; }
+        public string direction { get; set; }
+        public string offset { get; set; }
+        public int status { get; set; }
+        public decimal lever_rate { get; set; }
+        public long order_id { get; set; }
+        public string order_id_str { get; set; }
+        public int? client_order_id { get; set; }
+        public string order_source { get; set; }
+        public int order_type { get; set; }
+        public long created_at { get; set; }
+        public decimal trade_volume { get; set; }
+        public decimal trade_turnover { get; set; }
+        public decimal fee { get; set; }
+        public decimal trade_avg_price { get; set; }
+        public decimal margin_frozen { get; set; }
+        public decimal profit { get; set; }
+        public string fee_asset { get; set; }
+        public IList<TradeNotify> trade { get; set; }
     }
 }
