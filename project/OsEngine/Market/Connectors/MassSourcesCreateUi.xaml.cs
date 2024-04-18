@@ -276,6 +276,8 @@ namespace OsEngine.Market.Connectors
 
         public MassSourcesCreator SourcesCreator;
 
+        public bool IsAssepted;
+
         public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
         {
             if (CheckBoxSaveTradeArrayInCandle.Dispatcher.CheckAccess() == false)
@@ -1528,7 +1530,7 @@ namespace OsEngine.Market.Connectors
             try
             {
                 SourcesCreator = GetCurSettings();
-
+                IsAssepted = true;
                 Close();
             }
             catch (Exception error)

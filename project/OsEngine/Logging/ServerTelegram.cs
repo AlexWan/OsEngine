@@ -196,7 +196,7 @@ namespace OsEngine.Logging
                     if(!_messagesQueue.TryDequeue(out (string, LogMessage) msg)) 
                         continue;
 
-                    if (msg.Item2.Type == LogMessageType.Error || msg.Item2.Type == LogMessageType.ConnectorError)
+                    if (msg.Item2.Type == LogMessageType.Error)
                     {
                         msg.Item2.Message = "__" + msg.Item2.Message + "__";
                     }
@@ -326,10 +326,10 @@ namespace OsEngine.Logging
     public class Response
     {
         public bool ok { get; set; }
-        public Result[] result { get; set; }
+        public ResultTelegram[] result { get; set; }
     }
 
-    public class Result
+    public class ResultTelegram
     {
         public int update_id { get; set; }
         public Callback_Query callback_query { get; set; }

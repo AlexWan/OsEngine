@@ -223,44 +223,37 @@ namespace OsEngine.Logging
                 return;
             }
 
-            if (message.Type == LogMessageType.ConnectorError)
+            if (TelegramSendOn)
             {
-                ServerTelegram.GetServer().Send(message, _name);
-            }
-            else
-            {
-                if (TelegramSendOn)
+                if (message.Type == LogMessageType.Connect &&
+                    TelegramConnectSendOn)
                 {
-                    if (message.Type == LogMessageType.Connect &&
-                        TelegramConnectSendOn)
-                    {
-                        ServerTelegram.GetServer().Send(message, _name);
-                    }
-                    if (message.Type == LogMessageType.Error &&
-                        TelegramErrorSendOn)
-                    {
-                        ServerTelegram.GetServer().Send(message, _name);
-                    }
-                    if (message.Type == LogMessageType.Signal &&
-                        TelegramSignalSendOn)
-                    {
-                        ServerTelegram.GetServer().Send(message, _name);
-                    }
-                    if (message.Type == LogMessageType.System &&
-                        TelegramSystemSendOn)
-                    {
-                        ServerTelegram.GetServer().Send(message, _name);
-                    }
-                    if (message.Type == LogMessageType.Trade &&
-                        TelegramTradeSendOn)
-                    {
-                        ServerTelegram.GetServer().Send(message, _name);
-                    }
-                    if (message.Type == LogMessageType.User &&
-                        TelegramUserSendOn)
-                    {
-                        ServerTelegram.GetServer().Send(message, _name);
-                    }
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Error &&
+                    TelegramErrorSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Signal &&
+                    TelegramSignalSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.System &&
+                    TelegramSystemSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Trade &&
+                    TelegramTradeSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.User &&
+                    TelegramUserSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
                 }
             }
             

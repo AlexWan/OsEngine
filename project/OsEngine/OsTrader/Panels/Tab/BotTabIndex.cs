@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
@@ -222,8 +223,32 @@ namespace OsEngine.OsTrader.Panels.Tab
             MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
             ui.ShowDialog();
 
-            creator = ui.SourcesCreator;
+            if(ui.IsAssepted == false)
+            {
+                return;
+            }
 
+            // 1 удаляем источники с другим ТФ, от того что сейчас выбрал юзер
+
+            bool isDeleteTab = false;
+
+            for (int i = 0; i < Tabs.Count; i++)
+            {
+                if (Tabs[i].TimeFrame != creator.TimeFrame)
+                {
+                    Tabs[i].Delete();
+                    Tabs.RemoveAt(i);
+                    isDeleteTab = true;
+                }
+            }
+
+            if(isDeleteTab == true)
+            {
+                Save();
+            }
+
+            // 2 создаём источники которые выбрал пользователь
+            creator = ui.SourcesCreator;
             if (creator.SecuritiesNames != null &&
                 creator.SecuritiesNames.Count != 0)
             {
@@ -234,6 +259,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Save();
             }
+
             ui.SourcesCreator = null;
         }
 
@@ -344,9 +370,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             for (int i = 0; i < Tabs.Count; i++)
             {
                 if (Tabs[i].SecurityName == security.SecurityName &&
-                    Tabs[i].ServerType == creator.ServerType)
+                    Tabs[i].ServerType == creator.ServerType &&
+                    Tabs[i].TimeFrame == creator.TimeFrame)
                 {
                     return;
+                }
+
+                if (Tabs[i].SecurityName == security.SecurityName &&
+                    Tabs[i].ServerType == creator.ServerType &&
+                    Tabs[i].TimeFrame != creator.TimeFrame)
+                {
+                    Tabs[i].Delete();
+                    Tabs.RemoveAt(i);
                 }
             }
 
@@ -548,6 +583,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Candles = new List<Candle>();
                 _chartMaster.Clear();
 
+                if(_startProgram == StartProgram.IsOsTrader)
+                {
+                    Thread.Sleep(1000);
+                }
+
                 if (Tabs == null || Tabs.Count == 0)
                 {
                     return;
@@ -565,6 +605,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (val != null)
                     {
                         Candles = val.ValueCandles;
+
+                        _chartMaster.SetCandles(Candles);
+
+                        if (_startProgram == StartProgram.IsOsTrader)
+                        {
+                            Thread.Sleep(1000);
+                        }
 
                         _chartMaster.SetCandles(Candles);
 

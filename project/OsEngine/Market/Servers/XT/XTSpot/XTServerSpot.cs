@@ -78,7 +78,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         _listenKey = GetListenKey();
                         if (string.IsNullOrEmpty(_listenKey))
                         {
-                            SendLogMessage("Check the Public and Private Key!", LogMessageType.ConnectorError);
+                            SendLogMessage("Check the Public and Private Key!", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
 
                             DisconnectEvent?.Invoke();
@@ -95,14 +95,14 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     catch (Exception exception)
                     {
                         SendLogMessage(exception.ToString(), LogMessageType.Error);
-                        SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.ConnectorError);
+                        SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent?.Invoke();
                     }
                 }
                 else
                 {
-                    SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.ConnectorError);
+                    SendLogMessage("Connection cannot be open. XT. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent?.Invoke();
                 }
@@ -198,24 +198,24 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         else
                         {
                             SendLogMessage($"GetSecurities return code: {stateResponse.rc}\n"
-                                           + $"Message Code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                                           + $"Message Code: {stateResponse.mc}", LogMessageType.Error);
                         }
                     }
                     else
                     {
                         SendLogMessage($"GetSecurities> Http State Code: {responseMessage.StatusCode}",
-                            LogMessageType.ConnectorError);
+                            LogMessageType.Error);
 
                         if (stateResponse != null && stateResponse.rc != null)
                         {
                             SendLogMessage($"Return Code: {stateResponse.rc}\n"
-                                           + $"Message Code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                                           + $"Message Code: {stateResponse.mc}", LogMessageType.Error);
                         }
                     }
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("GetSecurities error: " + exception.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage("GetSecurities error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -296,7 +296,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     }
                     catch(Exception error)
                     {
-                        SendLogMessage(error.ToString(), LogMessageType.ConnectorError);
+                        SendLogMessage(error.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -449,7 +449,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
                 catch
                 {
-                    SendLogMessage("Create WebSocket Connection error.", LogMessageType.ConnectorError);
+                    SendLogMessage("Create WebSocket Connection error.", LogMessageType.Error);
                 }
             }
 
@@ -520,7 +520,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 
                 if (error.Exception != null)
                 {
-                    SendLogMessage("WebSocketPublic Error: " + error.Exception.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPublic Error: " + error.Exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -530,7 +530,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 
                 if (error.Exception != null)
                 {
-                    SendLogMessage("WebSocketPublicTrades Error: " + error.Exception.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPublicTrades Error: " + error.Exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -539,7 +539,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 SuperSocket.ClientEngine.ErrorEventArgs error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
                 if (error.Exception != null)
                 {
-                    SendLogMessage("WebSocketPrivate Error" + error.Exception.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPrivate Error" + error.Exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -572,7 +572,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("WebSocketPublic Message Received error: " + error.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPublic Message Received error: " + error.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -605,7 +605,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("WebSocketPublicTrades Message Received error: " + error.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPublicTrades Message Received error: " + error.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -638,7 +638,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage("WebSocketPrivate Message Received error: " + error.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPrivate Message Received error: " + error.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -646,7 +646,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("WebSocketPublic Connection Closed by XT. WebSocket Closed Event", LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPublic Connection Closed by XT. WebSocket Closed Event", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent?.Invoke();
                 }
@@ -656,7 +656,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("WebSocketPublicTrades Connection Closed by XT. WebSocket Closed Event", LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPublicTrades Connection Closed by XT. WebSocket Closed Event", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent?.Invoke();
                 }
@@ -666,7 +666,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("WebSocketPrivate Connection Closed by XT. WebSocket Closed Event", LogMessageType.ConnectorError);
+                    SendLogMessage("WebSocketPrivate Connection Closed by XT. WebSocket Closed Event", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent?.Invoke();
                 }
@@ -755,7 +755,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     }
                     catch(Exception error)
                     {
-                        SendLogMessage(error.ToString(), LogMessageType.ConnectorError);
+                        SendLogMessage(error.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -780,7 +780,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -845,7 +845,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     catch (Exception exception)
                     {
                         Thread.Sleep(2000);
-                        SendLogMessage("PublicMessageReader error: " + exception.ToString(), LogMessageType.ConnectorError);
+                        SendLogMessage("PublicMessageReader error: " + exception.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -895,7 +895,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     catch (Exception exception)
                     {
                         Thread.Sleep(2000);
-                        SendLogMessage("PublicTradesMessageReader error: " + exception.ToString(), LogMessageType.ConnectorError);
+                        SendLogMessage("PublicTradesMessageReader error: " + exception.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -951,7 +951,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     catch (Exception exception)
                     {
                         Thread.Sleep(2000);
-                        SendLogMessage("PrivateMessageReader error: " + exception.ToString(), LogMessageType.ConnectorError);
+                        SendLogMessage("PrivateMessageReader error: " + exception.ToString(), LogMessageType.Error);
                     }
                 }
             }
@@ -1236,7 +1236,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     }
                     catch
                     {
-                        SendLogMessage("Strange order num: " + item.ClientOrderId, LogMessageType.ConnectorError);
+                        SendLogMessage("Strange order num: " + item.ClientOrderId, LogMessageType.Error);
                         return;
                     }
                 }
@@ -1388,18 +1388,18 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         CreateOrderFail(order);
                         SendLogMessage($"SendOrder Fail, Code: {stateResponse.rc}\n"
-                            + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
                 else
                 {
                     CreateOrderFail(order);
-                    SendLogMessage($"SendOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.ConnectorError);
+                    SendLogMessage($"SendOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                     if (stateResponse != null && stateResponse.rc != null)
                     {
                         SendLogMessage($"SendOrder Fail, Code: {stateResponse.rc}\n"
-                            + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
             }
@@ -1442,7 +1442,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     else
                     {
                         SendLogMessage($"CancelAllOrdersToSecurity error, Code: {stateResponse.rc}\n"
-                            + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
                 else
@@ -1452,7 +1452,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     if (stateResponse != null && stateResponse.rc != null)
                     {
                         SendLogMessage($"CancelAllOrdersToSecurity error, Code: {stateResponse.rc}\n"
-                            + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
             }
@@ -1477,7 +1477,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         CreateOrderFail(order);
                         SendLogMessage($"CancelOrder error, Code: {stateResponse.rc}\n"
-                            + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
                 else
@@ -1488,7 +1488,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     if (stateResponse != null && stateResponse.rc != null)
                     {
                         SendLogMessage($"CancelOrder error, Code: {stateResponse.rc}\n"
-                            + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
             }
@@ -1545,7 +1545,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         else
                         {
                             SendLogMessage($"GetListenKey error, Code: {stateResponse.rc}\n"
-                                           + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                         }
                     }
                     else
@@ -1555,14 +1555,14 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (stateResponse != null && stateResponse.rc != null)
                         {
                             SendLogMessage($"GetListenKey error, Code: {stateResponse.rc}\n"
-                                           + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                         }
                     }
 
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
                 
                 return listenKey;
@@ -1604,7 +1604,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         else
                         {
                             SendLogMessage($"CreateQueryPortfolio error, Code: {stateResponse.rc}\n" 
-                                           + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                         }
                     }
                     else
@@ -1614,13 +1614,13 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (stateResponse != null && stateResponse.rc != null)
                         {
                             SendLogMessage($"CreateQueryPortfolio error, Code: {stateResponse.rc}\n" 
-                                           + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                                           + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                         }
                     }
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("CreateQueryPortfolio error: " + exception.ToString(), LogMessageType.ConnectorError);
+                    SendLogMessage("CreateQueryPortfolio error: " + exception.ToString(), LogMessageType.Error);
                 }
             }
 
@@ -1705,7 +1705,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     else
                     {
                         SendLogMessage($"CreateQueryMyTrade error, Code: {stateResponse.rc}\n"
-                            + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
                 else
@@ -1715,7 +1715,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     if (stateResponse != null && stateResponse.rc != null)
                     {
                         SendLogMessage($"CreateQueryMyTrade error, Code: {stateResponse.rc}\n"
-                            + $"Message code: {stateResponse.mc}", LogMessageType.ConnectorError);
+                            + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                     }
                 }
             }
@@ -1762,11 +1762,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     }
                     
                     SendLogMessage($"CreateQueryCandles error, Code: {symbols.rc}\n" 
-                                   + $"Message code: {symbols.mc}", LogMessageType.ConnectorError);
+                                   + $"Message code: {symbols.mc}", LogMessageType.Error);
                     return null;
                 }
                 
-                SendLogMessage($"CreateQueryCandles error, State Code: {responseMessage.StatusCode}", LogMessageType.ConnectorError);
+                SendLogMessage($"CreateQueryCandles error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
                 
                 return null;
             }

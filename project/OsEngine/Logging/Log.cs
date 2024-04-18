@@ -556,7 +556,7 @@ namespace OsEngine.Logging
                     _messageSender.AddNewMessage(messageLog);
                 }
             }
-            if (type == LogMessageType.Error || type == LogMessageType.ConnectorError)
+            if (type == LogMessageType.Error || type == LogMessageType.Error)
             {
                 LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
                 SetNewErrorMessage(messageLog);
@@ -1040,10 +1040,5 @@ namespace OsEngine.Logging
         /// Запись в логе с прошлой сессии
         /// </summary>
         OldSession,
-
-        /// <summary>
-        /// Запись в логе с прошлой сессии
-        /// </summary>
-        ConnectorError,
     }
 }
