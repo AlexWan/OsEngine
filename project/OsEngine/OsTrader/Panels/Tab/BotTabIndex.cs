@@ -625,6 +625,31 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
         private string _userFormula;
 
+        public List<Security> SecuritiesInIndex = new List<Security>();
+
+        private void TryAddTradeSecurity(Security sec)
+        {
+            if(sec == null)
+            {
+                return;
+            }
+            bool isInArray = false;
+
+            for(int i = 0;i < SecuritiesInIndex.Count;i++)
+            {
+                if (SecuritiesInIndex[i].Name ==  sec.Name)
+                {
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if(isInArray == false)
+            {
+                SecuritiesInIndex.Add(sec);
+            }
+        }
+
         /// <summary>
         /// formula reduced to program format
         /// </summary>
@@ -1024,6 +1049,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
                 candlesOne = Tabs[iOne].Candles(true);
+                TryAddTradeSecurity(Tabs[iOne].Security);
             }
             if (candlesOne == null)
             {
@@ -1048,6 +1074,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
                 candlesTwo = Tabs[iOne].Candles(true);
+                TryAddTradeSecurity(Tabs[iOne].Security);
             }
             if (candlesTwo == null)
             {
@@ -1190,6 +1217,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
                 candlesOne = Tabs[iOne].Candles(true);
+                TryAddTradeSecurity(Tabs[iOne].Security);
                 if (candlesOne == null)
                 {
                     return valOne;
@@ -1298,6 +1326,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 int iOne = Convert.ToInt32(valTwo.Split('A')[1]);
                 candlesTwo = Tabs[iOne].Candles(true);
+                TryAddTradeSecurity(Tabs[iOne].Security);
             }
             if (candlesTwo == null)
             {

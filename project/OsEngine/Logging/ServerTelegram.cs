@@ -108,27 +108,34 @@ namespace OsEngine.Logging
         {
             while (true)
             {
-                HttpResponseMessage response = await _httpClient.GetAsync($"https://api.telegram.org/bot{BotToken}/getUpdates" +
-                                                          $"?offset={_lastUpdateId + 1}" +
-                                                          $"&timeout=2" +
-                                                          $"&allowed_updates=[\"message\"]");
-                
-                string responseContent = response.Content.ReadAsStringAsync().Result;
-                
-                Response updates = JsonConvert.DeserializeAnonymousType(responseContent, new Response());
-                
-                if (updates.result == null)
+                try
                 {
-                    continue;
-                }
-                foreach (var update in updates.result)
-                {
-                    if(update.message != null)
+                    HttpResponseMessage response = await _httpClient.GetAsync($"https://api.telegram.org/bot{BotToken}/getUpdates" +
+                                                        $"?offset={_lastUpdateId + 1}" +
+                                                        $"&timeout=2" +
+                                                        $"&allowed_updates=[\"message\"]");
+
+                    string responseContent = response.Content.ReadAsStringAsync().Result;
+
+                    Response updates = JsonConvert.DeserializeAnonymousType(responseContent, new Response());
+
+                    if (updates.result == null)
                     {
-                        HandleCallbackQuery(update.message);
+                        continue;
                     }
-                    
-                    _lastUpdateId = update.update_id;
+                    foreach (var update in updates.result)
+                    {
+                        if (update.message != null)
+                        {
+                            HandleCallbackQuery(update.message);
+                        }
+
+                        _lastUpdateId = update.update_id;
+                    }
+                }
+                catch
+                {
+                    Thread.Sleep(1000);
                 }
             }
         }

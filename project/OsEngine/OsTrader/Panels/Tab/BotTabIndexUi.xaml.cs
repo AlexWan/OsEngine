@@ -8,6 +8,8 @@ using System.Windows.Forms;
 using OsEngine.Language;
 using OsEngine.Entity;
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace OsEngine.OsTrader.Panels.Tab
 { 
@@ -262,7 +264,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void CreateTable()
         {
             _sourcesGrid = DataGridFactory.GetDataGridView(
-                DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
+                DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             _sourcesGrid.ScrollBars = ScrollBars.Vertical;
 
@@ -270,41 +272,63 @@ namespace OsEngine.OsTrader.Panels.Tab
             _sourcesGrid.CellClick += _sourcesGrid_CellClick;
 
             DataGridViewTextBoxCell fcell0 = new DataGridViewTextBoxCell();
+           
 
             DataGridViewColumn fcolumn0 = new DataGridViewColumn();
             fcolumn0.CellTemplate = fcell0;
-            fcolumn0.HeaderText = OsLocalization.Trader.Label82;
+            fcolumn0.HeaderText = OsLocalization.Trader.Label82; // Index number
             fcolumn0.ReadOnly = true;
             fcolumn0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _sourcesGrid.Columns.Add(fcolumn0);
 
             DataGridViewColumn fcolumn1 = new DataGridViewColumn();
             fcolumn1.CellTemplate = fcell0;
-            fcolumn1.HeaderText = OsLocalization.Trader.Label83;
+            fcolumn1.HeaderText = OsLocalization.Trader.Label83; // Security code
             fcolumn1.ReadOnly = true;
             fcolumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _sourcesGrid.Columns.Add(fcolumn1);
 
             DataGridViewColumn fcolumn2 = new DataGridViewColumn();
             fcolumn2.CellTemplate = fcell0;
-            fcolumn2.HeaderText = OsLocalization.Trader.Label178;
+            fcolumn2.HeaderText = OsLocalization.Trader.Label178; // Server
             fcolumn2.ReadOnly = true;
             fcolumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _sourcesGrid.Columns.Add(fcolumn2);
 
             DataGridViewColumn fcolumn3 = new DataGridViewColumn();
             fcolumn3.CellTemplate = fcell0;
-            fcolumn3.HeaderText = OsLocalization.Trader.Label179;
+            fcolumn3.HeaderText = OsLocalization.Trader.Label179; // Time frame
             fcolumn3.ReadOnly = true;
             fcolumn3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _sourcesGrid.Columns.Add(fcolumn3);
 
             DataGridViewColumn fcolumn4 = new DataGridViewColumn();
             fcolumn4.CellTemplate = fcell0;
-            fcolumn4.HeaderText = "";
+            fcolumn4.HeaderText = OsLocalization.Trader.Label398; // Last price
             fcolumn4.ReadOnly = true;
             fcolumn4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _sourcesGrid.Columns.Add(fcolumn4);
+
+            DataGridViewColumn fcolumn5 = new DataGridViewColumn();
+            fcolumn5.CellTemplate = fcell0;
+            fcolumn5.HeaderText = "";                             // Chart
+            fcolumn5.ReadOnly = true;
+            fcolumn5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _sourcesGrid.Columns.Add(fcolumn5);
+
+            DataGridViewColumn fcolumn6 = new DataGridViewColumn();
+            fcolumn6.CellTemplate = fcell0;
+            fcolumn6.HeaderText = "";                             // Set security
+            fcolumn6.ReadOnly = true;
+            fcolumn6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _sourcesGrid.Columns.Add(fcolumn6);
+
+            DataGridViewColumn fcolumn7 = new DataGridViewColumn();
+            fcolumn7.CellTemplate = fcell0;
+            fcolumn7.HeaderText = "";                             // Delete
+            fcolumn7.ReadOnly = true;
+            fcolumn7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _sourcesGrid.Columns.Add(fcolumn7);
 
             HostSecurity1.Child = _sourcesGrid;
         }
@@ -319,17 +343,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void _sourcesGrid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if(e.ColumnIndex != 4)
+            if(e.ColumnIndex == 6)
             {
-                return;
+                int index = _sourcesGrid.CurrentCell.RowIndex;
+                _spread.ShowIndexConnectorIndexDialog(index);
+                ReloadSecurityTable();
+                IndexOrSourcesChanged = true;
             }
-
-            int index = _sourcesGrid.CurrentCell.RowIndex;
-            _spread.ShowIndexConnectorIndexDialog(index);
-            ReloadSecurityTable();
-            IndexOrSourcesChanged = true;
-
-
         }
 
         private void ReloadSecurityTable()
@@ -341,9 +361,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             int showRow = _sourcesGrid.FirstDisplayedScrollingRowIndex;
 
+            int selectedSec = -1; 
+            
+            if(_sourcesGrid.SelectedCells != null &&
+                _sourcesGrid.SelectedCells.Count > 0)
+            {
+                selectedSec = _sourcesGrid.SelectedCells[0].RowIndex;
+            }
+
             _sourcesGrid.Rows.Clear();
 
             string formula = _spread.UserFormula;
+
+            List<Security> secInIndex = _spread.SecuritiesInIndex;
 
             for (int i = 0; i < _spread.Tabs.Count; i++)
             {
@@ -369,9 +399,50 @@ namespace OsEngine.OsTrader.Panels.Tab
                 row.Cells.Add((new DataGridViewTextBoxCell()));
                 row.Cells[3].Value = _spread.Tabs[i].TimeFrame.ToString();
 
+                row.Cells.Add((new DataGridViewTextBoxCell())); // LastPrice
+                // row.Cells[4].Value = _spread.Tabs[i].TimeFrame.ToString();
+
+                DataGridViewButtonCell buttonChart = new DataGridViewButtonCell();
+                buttonChart.Value = OsLocalization.Trader.Label172;
+                row.Cells.Add(buttonChart);
+
                 DataGridViewButtonCell button = new DataGridViewButtonCell(); 
                 button.Value = OsLocalization.Trader.Label235;
                 row.Cells.Add(button);
+
+                DataGridViewButtonCell buttonDelete = new DataGridViewButtonCell();
+                buttonDelete.Value = OsLocalization.Trader.Label39;
+                row.Cells.Add(buttonDelete);
+
+                if (secInIndex != null &&
+                    secInIndex.Count > 0)
+                {
+                    bool thisSecInIndex = false;
+
+                    for(int i2 = 0;i2 < secInIndex.Count;i2++)
+                    {
+                        if (secInIndex[i2].Name == _spread.Tabs[i].SecurityName)
+                        {
+                            thisSecInIndex = true;
+                            break;
+                        }
+                    }
+
+                    if(thisSecInIndex)
+                    {
+                        for(int i2 = 0;i2 < row.Cells.Count;i2++)
+                        {
+                            row.Cells[i2].Style.BackColor = Color.DarkGreen;
+                            row.Cells[i2].Style.SelectionBackColor = Color.Black;
+                            row.Cells[i2].Style.ForeColor = Color.White;
+                        }
+                    }
+                }
+
+                for (int i2 = 0; i2 < row.Cells.Count; i2++)
+                {
+                    row.Cells[i2].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                }
 
                 _sourcesGrid.Rows.Add(row);
             }
@@ -381,6 +452,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 showRow < _sourcesGrid.Rows.Count)
             {
                 _sourcesGrid.FirstDisplayedScrollingRowIndex = showRow;
+            }
+
+            if(selectedSec > 0
+                && selectedSec < _sourcesGrid.Rows.Count)
+            {
+                _sourcesGrid.Rows[selectedSec].Selected = true;
             }
         }
 
@@ -450,6 +527,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _spread.AutoFormulaBuilder.RebuildHard();
             TextboxUserFormula.Text = _spread.UserFormula;
+
+            ReloadSecurityTable();
         }
     }
 }
