@@ -11,6 +11,7 @@ using OsEngine.Market.Servers.Transaq.TransaqEntity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -904,13 +905,21 @@ namespace OsEngine.Market.Servers.Transaq
                 pos.SecurityNameCode = node.SelectSingleNode("seccode")?.InnerText;
                 pos.PortfolioName = portfolio.Number;
 
-                var begin = node.SelectSingleNode("open_balance")?.InnerText.ToDecimal();
-                var buy = node.SelectSingleNode("bought")?.InnerText.ToDecimal();
-                var sell = node.SelectSingleNode("sold")?.InnerText.ToDecimal();
+                XmlNode beginNode = node.SelectSingleNode("open_balance");
+                XmlNode buyNode = node.SelectSingleNode("bought");
+                XmlNode sellNode = node.SelectSingleNode("sold");
 
-                pos.ValueBegin = Convert.ToDecimal(begin);
-                pos.ValueCurrent = pos.ValueBegin + Convert.ToDecimal(buy - sell);
+                if(beginNode != null)
+                {
+                    pos.ValueBegin = beginNode.InnerText.ToDecimal();
+                }
 
+                if(buyNode != null && 
+                    sellNode != null)
+                {
+                    pos.ValueCurrent = pos.ValueBegin + buyNode.InnerText.ToDecimal() - sellNode.InnerText.ToDecimal();
+                }
+             
                 portfolio.SetNewPosition(pos);
             }
 
