@@ -595,6 +595,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ConvertedFormula = ConvertFormula(_userFormula);
 
+                SecuritiesInIndex.Clear();
+
                 string nameArray = Calculate(ConvertedFormula);
 
                 if (_valuesToFormula != null 
@@ -733,6 +735,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+               
+
                 if (string.IsNullOrWhiteSpace(formula))
                 {
                     return "";

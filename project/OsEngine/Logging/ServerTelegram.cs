@@ -11,32 +11,39 @@ namespace OsEngine.Logging
     public class ServerTelegram
     {
         private static ServerTelegram _server;
+
         private readonly HttpClient _httpClient;
+
         /// <summary>
         /// Last message Update Id
         /// -  ID последнего сообщения
         /// </summary>
         private long _lastUpdateId;
+
         /// <summary>
         /// Bot Token
         /// - Токен бота
         /// </summary>
         public string BotToken;
+
         /// <summary>
         /// Chat Id
         /// - ID чата
         /// </summary>
         public long ChatId;
+
         /// <summary>
         /// Processing Command from Telegram
         /// - Разрешение на обработку команд
         /// </summary>
         public bool ProcessingCommand;
+
         /// <summary>
         /// Shows whether the server is ready to work
         /// - Готов ли сервер к работе
         /// </summary>
         private static bool _isReady;
+
         /// <summary>
         /// Queue of messages
         /// - Очередь сообщений
@@ -51,7 +58,9 @@ namespace OsEngine.Logging
             }
             return _server;
         }
+
         //constructor - конструктор
+
         private ServerTelegram()
         {
             Load();
@@ -70,6 +79,7 @@ namespace OsEngine.Logging
             worker2.IsBackground = true;
             worker2.Start();
         }
+
         /// <summary>
         /// Send message to telegram
         /// - Отправка сообщения в телеграм
@@ -107,6 +117,7 @@ namespace OsEngine.Logging
                 //ignore
             }
         }
+
         /// <summary>
         /// Poll and handle updates (commands)
         /// - Прием и обработка обновлений (команд)
@@ -115,6 +126,11 @@ namespace OsEngine.Logging
         {
             while (true)
             {
+                if (MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
                 try
                 {
                     HttpResponseMessage response = _httpClient.GetAsync($"https://api.telegram.org/bot{BotToken}/getUpdates" +
@@ -149,6 +165,7 @@ namespace OsEngine.Logging
                 }
             }
         }
+
         /// <summary>
         /// command handler
         /// - обработчик команд
@@ -182,6 +199,7 @@ namespace OsEngine.Logging
                     break;
             }
         }
+
         /// <summary>
         /// message queue handling
         /// - обработка очереди сообщений
@@ -194,6 +212,11 @@ namespace OsEngine.Logging
             {
                 try
                 {
+                    if(MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
                     if (_messagesQueue == null)
                     {
                         Thread.Sleep(1000);
@@ -226,6 +249,7 @@ namespace OsEngine.Logging
                 }
             }
         }
+
         /// <summary>
         /// Create command event
         /// - Создание события c командой
@@ -236,6 +260,7 @@ namespace OsEngine.Logging
         {
             TelegramCommandEvent?.Invoke(botName, cmd);
         }
+
         public event Action<string, Command> TelegramCommandEvent;
 
         /// <summary>

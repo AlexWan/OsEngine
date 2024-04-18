@@ -10,12 +10,13 @@ using OsEngine.Entity;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 
 namespace OsEngine.OsTrader.Panels.Tab
-{ 
+{
     public partial class BotTabIndexUi
     {
-        
+
         public BotTabIndexUi(BotTabIndex spread)
         {
             InitializeComponent();
@@ -32,7 +33,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.Off.ToString());
             ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.OncePerWeek.ToString());
-            ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.OncePerDay.ToString()); 
+            ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.OncePerDay.ToString());
             ComboBoxRegime.Items.Add(IndexAutoFormulaBuilderRegime.OncePerHour.ToString());
             ComboBoxRegime.SelectedItem = autoFormulaBuilder.Regime.ToString();
             ComboBoxRegime.SelectionChanged += ComboBoxRegime_SelectionChanged;
@@ -120,11 +121,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             this.Closed += BotTabIndexUi_Closed;
             this.Activate();
             this.Focus();
+
+            Thread worker = new Thread(PricePainterThreadWorker);
+            worker.Name = "BotTabIndexPricePainter";
+            worker.Start();
         }
 
         private void CheckDayComboBox()
         {
-            if(_spread.AutoFormulaBuilder.Regime == IndexAutoFormulaBuilderRegime.OncePerWeek)
+            if (_spread.AutoFormulaBuilder.Regime == IndexAutoFormulaBuilderRegime.OncePerWeek)
             {
                 ComboBoxDayOfWeekToRebuildIndex.IsEnabled = true;
             }
@@ -136,7 +141,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void CheckHourComboBox()
         {
-            if (_spread.AutoFormulaBuilder.Regime == IndexAutoFormulaBuilderRegime.OncePerDay 
+            if (_spread.AutoFormulaBuilder.Regime == IndexAutoFormulaBuilderRegime.OncePerDay
                 || _spread.AutoFormulaBuilder.Regime == IndexAutoFormulaBuilderRegime.OncePerWeek)
             {
                 ComboBoxHourInDayToRebuildIndex.IsEnabled = true;
@@ -161,15 +166,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _spread.AutoFormulaBuilder.IndexMultType = multType;
 
-                if(multType == IndexMultType.Cointegration
+                if (multType == IndexMultType.Cointegration
                     && ComboBoxIndexSecCount.IsEnabled != false)
                 {
                     ComboBoxIndexSecCount.SelectedItem = "2";
                     ComboBoxIndexSecCount.IsEnabled = false;
                     _spread.AutoFormulaBuilder.IndexSecCount = 2;
                 }
-                
-                if(multType != IndexMultType.Cointegration &&
+
+                if (multType != IndexMultType.Cointegration &&
                     ComboBoxIndexSecCount.IsEnabled != true)
                 {
                     ComboBoxIndexSecCount.IsEnabled = true;
@@ -200,7 +205,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ComboBoxHourInDayToRebuildIndex_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            _spread.AutoFormulaBuilder.HourInDayToRebuildIndex 
+            _spread.AutoFormulaBuilder.HourInDayToRebuildIndex
                 = Convert.ToInt32(ComboBoxHourInDayToRebuildIndex.SelectedItem.ToString());
         }
 
@@ -218,7 +223,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             IndexAutoFormulaBuilderRegime curRegime;
 
-            if(Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(), out curRegime))
+            if (Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(), out curRegime))
             {
                 _spread.AutoFormulaBuilder.Regime = curRegime;
             }
@@ -236,6 +241,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
         {
+            _windowIsClosed = true;
+
             ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
             ComboBoxDayOfWeekToRebuildIndex.SelectionChanged -= ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
             ComboBoxHourInDayToRebuildIndex.SelectionChanged -= ComboBoxHourInDayToRebuildIndex_SelectionChanged;
@@ -257,6 +264,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             _spread = null;
         }
 
+        private bool _windowIsClosed;
+
         private BotTabIndex _spread;
 
         private DataGridView _sourcesGrid;
@@ -272,7 +281,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _sourcesGrid.CellClick += _sourcesGrid_CellClick;
 
             DataGridViewTextBoxCell fcell0 = new DataGridViewTextBoxCell();
-           
+
 
             DataGridViewColumn fcolumn0 = new DataGridViewColumn();
             fcolumn0.CellTemplate = fcell0;
@@ -311,44 +320,74 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn fcolumn5 = new DataGridViewColumn();
             fcolumn5.CellTemplate = fcell0;
-            fcolumn5.HeaderText = "";                             // Chart
+            fcolumn5.HeaderText = "";                             // Set security
             fcolumn5.ReadOnly = true;
-            fcolumn5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            fcolumn5.Width = 150;
             _sourcesGrid.Columns.Add(fcolumn5);
 
             DataGridViewColumn fcolumn6 = new DataGridViewColumn();
             fcolumn6.CellTemplate = fcell0;
-            fcolumn6.HeaderText = "";                             // Set security
+            fcolumn6.HeaderText = "";                             // Delete
             fcolumn6.ReadOnly = true;
             fcolumn6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _sourcesGrid.Columns.Add(fcolumn6);
-
-            DataGridViewColumn fcolumn7 = new DataGridViewColumn();
-            fcolumn7.CellTemplate = fcell0;
-            fcolumn7.HeaderText = "";                             // Delete
-            fcolumn7.ReadOnly = true;
-            fcolumn7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _sourcesGrid.Columns.Add(fcolumn7);
 
             HostSecurity1.Child = _sourcesGrid;
         }
 
         void Grid1CellValueChangeClick(object sender, DataGridViewCellEventArgs e)
         {
-            int index = _sourcesGrid.CurrentCell.RowIndex;
-            _spread.ShowIndexConnectorIndexDialog(index);
-            ReloadSecurityTable();
-            IndexOrSourcesChanged = true;
-        }
-
-        private void _sourcesGrid_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if(e.ColumnIndex == 6)
+            try
             {
                 int index = _sourcesGrid.CurrentCell.RowIndex;
                 _spread.ShowIndexConnectorIndexDialog(index);
                 ReloadSecurityTable();
                 IndexOrSourcesChanged = true;
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.Message);
+                ui.ShowDialog();
+            }
+        }
+
+        private void _sourcesGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.ColumnIndex == 5)
+                { // connection dialog
+                    int index = _sourcesGrid.CurrentCell.RowIndex;
+                    _spread.ShowIndexConnectorIndexDialog(index);
+                    ReloadSecurityTable();
+                    IndexOrSourcesChanged = true;
+                }
+                else if (e.ColumnIndex == 6)
+                { // delete
+                    if (string.IsNullOrEmpty(_spread.UserFormula) == false)
+                    {
+                        AcceptDialogUi acceptDialog = new AcceptDialogUi(OsLocalization.Trader.Label399);
+
+                        acceptDialog.ShowDialog();
+
+                        if (acceptDialog.UserAcceptActioin)
+                        {
+                            _spread.DeleteSecurityTab(e.RowIndex);
+                            _spread.SecuritiesInIndex.Clear();
+                            ReloadSecurityTable();
+                        }
+                    }
+                    else
+                    {
+                        _spread.DeleteSecurityTab(e.RowIndex);
+                        ReloadSecurityTable();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.Message);
+                ui.ShowDialog();
             }
         }
 
@@ -361,9 +400,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             int showRow = _sourcesGrid.FirstDisplayedScrollingRowIndex;
 
-            int selectedSec = -1; 
-            
-            if(_sourcesGrid.SelectedCells != null &&
+            int selectedSec = -1;
+
+            if (_sourcesGrid.SelectedCells != null &&
                 _sourcesGrid.SelectedCells.Count > 0)
             {
                 selectedSec = _sourcesGrid.SelectedCells[0].RowIndex;
@@ -380,7 +419,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 DataGridViewRow row = new DataGridViewRow();
 
                 row.Cells.Add((new DataGridViewTextBoxCell()));
-                row.Cells[0].Value = "A"+i;
+                row.Cells[0].Value = "A" + i;
 
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 if (string.IsNullOrWhiteSpace(_spread.Tabs[i].SecurityName))
@@ -392,7 +431,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     row.Cells[1].Value = _spread.Tabs[i].SecurityName;
                 }
-                
+
                 row.Cells.Add((new DataGridViewTextBoxCell()));
                 row.Cells[2].Value = _spread.Tabs[i].ServerType.ToString();
 
@@ -402,11 +441,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 row.Cells.Add((new DataGridViewTextBoxCell())); // LastPrice
                 // row.Cells[4].Value = _spread.Tabs[i].TimeFrame.ToString();
 
-                DataGridViewButtonCell buttonChart = new DataGridViewButtonCell();
-                buttonChart.Value = OsLocalization.Trader.Label172;
-                row.Cells.Add(buttonChart);
-
-                DataGridViewButtonCell button = new DataGridViewButtonCell(); 
+                DataGridViewButtonCell button = new DataGridViewButtonCell();
                 button.Value = OsLocalization.Trader.Label235;
                 row.Cells.Add(button);
 
@@ -419,7 +454,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     bool thisSecInIndex = false;
 
-                    for(int i2 = 0;i2 < secInIndex.Count;i2++)
+                    for (int i2 = 0; i2 < secInIndex.Count; i2++)
                     {
                         if (secInIndex[i2].Name == _spread.Tabs[i].SecurityName)
                         {
@@ -428,9 +463,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                     }
 
-                    if(thisSecInIndex)
+                    if (thisSecInIndex)
                     {
-                        for(int i2 = 0;i2 < row.Cells.Count;i2++)
+                        for (int i2 = 0; i2 < row.Cells.Count; i2++)
                         {
                             row.Cells[i2].Style.BackColor = Color.DarkGreen;
                             row.Cells[i2].Style.SelectionBackColor = Color.Black;
@@ -454,7 +489,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _sourcesGrid.FirstDisplayedScrollingRowIndex = showRow;
             }
 
-            if(selectedSec > 0
+            if (selectedSec > 0
                 && selectedSec < _sourcesGrid.Rows.Count)
             {
                 _sourcesGrid.Rows[selectedSec].Selected = true;
@@ -482,7 +517,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            if(_spread.UserFormula != TextboxUserFormula.Text 
+            if (_spread.UserFormula != TextboxUserFormula.Text
                 || IndexOrSourcesChanged == true)
             {
                 _spread.UserFormula = TextboxUserFormula.Text;
@@ -529,6 +564,77 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextboxUserFormula.Text = _spread.UserFormula;
 
             ReloadSecurityTable();
+        }
+
+        private void PricePainterThreadWorker()
+        {
+            while(true)
+            {
+                Thread.Sleep(3000);
+
+                if(_windowIsClosed)
+                {
+                    return;
+                }
+
+                if(MainWindow.ProccesIsWorked == false)
+                {
+                    return;
+                }
+
+                PaintPrices();
+            }
+        }
+
+        private void PaintPrices()
+        {
+            try
+            {
+                if (_sourcesGrid.InvokeRequired)
+                {
+                    _sourcesGrid.Invoke(new Action(PaintPrices));
+                    return;
+                }
+
+                for (int i = 0; i < _spread.Tabs.Count; i++)
+                {
+                    DataGridViewRow row = _sourcesGrid.Rows[i];
+
+                    if(row == null)
+                    {
+                        continue;
+                    }
+
+                    DataGridViewCell priceCell = row.Cells[4];
+
+                    if(priceCell == null)
+                    {
+                        continue;
+                    }
+
+                    List<Candle> candles = _spread.Tabs[i].Candles(false);
+
+                    decimal price = 0;
+
+                    if (candles != null 
+                        && candles.Count > 0)
+                    {
+                        price = candles[candles.Count - 1].Close;
+                    }
+
+                    string priceInStr = price.ToString();
+
+                    if(priceCell.Value == null 
+                        || priceCell.Value.ToString() != priceInStr)
+                    {
+                        priceCell.Value = priceInStr;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
     }
 }
