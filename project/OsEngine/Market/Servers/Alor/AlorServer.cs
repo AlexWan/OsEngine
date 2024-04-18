@@ -364,7 +364,18 @@ namespace OsEngine.Market.Servers.Alor
                     }
                     else if (item.type == "CS")
                     {
-                        newSecurity.NameClass = "Stock";
+                        if (item.board == "TQBR")
+                        {
+                            newSecurity.NameClass = "Stock";
+                        }
+                        else if (item.board == "FQBR")
+                        {
+                            newSecurity.NameClass = "Stock World";
+                        }
+                        else 
+                        {
+                            newSecurity.NameClass = "Stock";
+                        }
                     }
 		            else if (item.type == "CORP")
                     {
