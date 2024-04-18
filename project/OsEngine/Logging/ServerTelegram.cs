@@ -75,63 +75,73 @@ namespace OsEngine.Logging
         /// - Отправка сообщения в телеграм
         /// </summary>
         /// <param name="messageText"></param>
-        private async void SendMessageAsync(string messageText)
+        private void SendMessageAsync(string messageText)
         {
-            string replyKeyboardJson = $@"
-            {{""keyboard"": 
+            try
+            {
+                string replyKeyboardJson = $@"
+                    {{""keyboard"": 
                     [
                         [{{""text"": ""StopAllBots""}}, {{""text"": ""StartAllBots""}}],
                         [{{""text"": ""CancelAllActiveOrders""}}, {{""text"": ""GetStatus""}}]
                     ],
-             ""resize_keyboard"": true
-            }}";
+                    ""resize_keyboard"": true
+                    }}";
 
-            if(!ProcessingCommand)
-            {
-                replyKeyboardJson = @"{""keyboard"": [[]]}";
-            }
+                if(!ProcessingCommand)
+                {
+                    replyKeyboardJson = @"{""keyboard"": [[]]}";
+                }
             
-            messageText = CheckString(messageText);
-            string requestUrl = $"https://api.telegram.org/bot{BotToken}/sendMessage?chat_id={ChatId}" +
-                                $"&text={Uri.EscapeDataString(messageText)}" +
-                                $"&parse_mode=MarkdownV2" +
-                                $"&reply_markup={Uri.EscapeDataString(replyKeyboardJson)}"; 
+                messageText = CheckString(messageText);
+                string requestUrl = $"https://api.telegram.org/bot{BotToken}/sendMessage?chat_id={ChatId}" +
+                                    $"&text={Uri.EscapeDataString(messageText)}" +
+                                    $"&parse_mode=MarkdownV2" +
+                                    $"&reply_markup={Uri.EscapeDataString(replyKeyboardJson)}"; 
 
-            HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+                HttpResponseMessage response = _httpClient.GetAsync(requestUrl).Result;
+                string responseContent = response.Content.ReadAsStringAsync().Result;
+            }
+            catch
+            {
+                //ignore
+            }
         }
         /// <summary>
         /// Poll and handle updates (commands)
         /// - Прием и обработка обновлений (команд)
         /// </summary>
-        private async void PollAndHandleUpdatesAsync()
+        private void PollAndHandleUpdatesAsync()
         {
             while (true)
             {
                 try
                 {
-                    HttpResponseMessage response = await _httpClient.GetAsync($"https://api.telegram.org/bot{BotToken}/getUpdates" +
-                                                        $"?offset={_lastUpdateId + 1}" +
-                                                        $"&timeout=2" +
-                                                        $"&allowed_updates=[\"message\"]");
-
+                    HttpResponseMessage response = _httpClient.GetAsync($"https://api.telegram.org/bot{BotToken}/getUpdates" +
+                                                                        $"?offset={_lastUpdateId + 1}" +
+                                                                        $"&timeout=2" +
+                                                                        $"&allowed_updates=[\"message\"]").Result;
+                
                     string responseContent = response.Content.ReadAsStringAsync().Result;
-
+                
                     Response updates = JsonConvert.DeserializeAnonymousType(responseContent, new Response());
-
+                
                     if (updates.result == null)
                     {
                         continue;
                     }
-                    foreach (var update in updates.result)
-                    {
-                        if (update.message != null)
-                        {
-                            HandleCallbackQuery(update.message);
-                        }
 
-                        _lastUpdateId = update.update_id;
+                    for (int i = 0; i < updates.result.Length; i++)
+                    {
+                        if(updates.result[i].message != null)
+                        {
+                            HandleCallbackQuery(updates.result[i].message);
+                        }
+                    
+                        _lastUpdateId = updates.result[i].update_id;
                     }
+                    
+                    
                 }
                 catch
                 {
