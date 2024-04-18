@@ -12,7 +12,6 @@ using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Windows.Controls;

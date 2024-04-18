@@ -548,6 +548,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _spread.DeleteSecurityTab(0);
                 }
 
+                _spread.SecuritiesInIndex.Clear();
+
                 ReloadSecurityTable();
                 IndexOrSourcesChanged = true;
             }
