@@ -43,6 +43,10 @@ namespace OsEngine.Language
             "Eng:Configure server_" +
             "Ru:Настроить сервер рассылки_");
 
+        public string Button3 => OsLocalization.ConvertToLocString(
+            "Eng:Configure Telegram_" +
+            "Ru:Настроить Телеграм_");
+
         public string Label1 => OsLocalization.ConvertToLocString(
             "Eng:On_" +
             "Ru:Включен_");
@@ -126,5 +130,25 @@ namespace OsEngine.Language
         public string Label21 => OsLocalization.ConvertToLocString(
            "Eng:Webhook server_" +
            "Ru:Вебхук сервер_");
+
+        public string Label22 => OsLocalization.ConvertToLocString(
+            "Eng:Telegram server_" +
+            "Ru:Телеграм сервер_");
+        
+        public string Label23 => OsLocalization.ConvertToLocString(
+            "Eng:Bot token_" +
+            "Ru:Бот Токен_");
+
+        public string Label24 => OsLocalization.ConvertToLocString(
+            "Eng:Chat ID_" +
+            "Ru:Чат ID_");
+
+        public string Label25 => OsLocalization.ConvertToLocString(
+            "Eng:Check input Chat Id. Only numbers are acceptable_" +
+            "Ru:Проверьте чат ID. Допустимы только цифры_");
+
+        public string Label26 => OsLocalization.ConvertToLocString(
+            "Eng:User_" +
+            "Ru:Пользователь_");
     }
 }

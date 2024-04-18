@@ -20,6 +20,7 @@ using System.Windows;
 using System.Xml;
 using Candle = OsEngine.Entity.Candle;
 using Order = OsEngine.Entity.Order;
+using Result = OsEngine.Market.Servers.Transaq.TransaqEntity.Result;
 using Security = OsEngine.Entity.Security;
 using Trade = OsEngine.Entity.Trade;
 

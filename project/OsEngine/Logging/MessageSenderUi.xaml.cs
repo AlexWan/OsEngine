@@ -33,13 +33,16 @@ namespace OsEngine.Logging
             Label3.Content = OsLocalization.Logging.Label3;
             Label4.Content = OsLocalization.Logging.Label4;
             Label19.Content = OsLocalization.Logging.Label19;
+            Label22.Content = OsLocalization.Logging.Label22;
             Label5.Content = OsLocalization.Logging.Label5;
             Label52.Content = OsLocalization.Logging.Label5;
             Label53.Content = OsLocalization.Logging.Label5;
+            Label54.Content = OsLocalization.Logging.Label5;    
             ButtonAccept.Content = OsLocalization.Logging.Button1;
             ButtonSmsGlobeSet.Content = OsLocalization.Logging.Button2;
             ButtonMailGlobeSet.Content = OsLocalization.Logging.Button2;
             ButtonWebhookGlobeSet.Content = OsLocalization.Logging.Button2;
+            ButtonTelegramGlobeSet.Content = OsLocalization.Logging.Button3;
 
             CheckBoxSmsSignal.Content = OsLocalization.Logging.Label6;
             CheckBoxSmsTrade.Content = OsLocalization.Logging.Label7;
@@ -58,6 +61,13 @@ namespace OsEngine.Logging
             CheckBoxWebhookError.Content = OsLocalization.Logging.Label8;
             CheckBoxWebhookSystem.Content = OsLocalization.Logging.Label9;
             CheckBoxWebhookConnect.Content = OsLocalization.Logging.Label10;
+
+            CheckBoxTelegramSignal.Content = OsLocalization.Logging.Label6;
+            CheckBoxTelegramTrade.Content = OsLocalization.Logging.Label7;
+            CheckBoxTelegramError.Content = OsLocalization.Logging.Label8;
+            CheckBoxTelegramSystem.Content = OsLocalization.Logging.Label9;
+            CheckBoxTelegramConnect.Content = OsLocalization.Logging.Label10;
+            CheckBoxTelegramUser.Content = OsLocalization.Logging.Label26;
 
             this.Activate();
             this.Focus();
@@ -87,6 +97,24 @@ namespace OsEngine.Logging
             CheckBoxWebhookSystem.IsChecked = _sender.WebhookSystemSendOn;
             CheckBoxWebhookConnect.IsChecked = _sender.WebhookConnectSendOn;
 
+            ComboBoxModeTelegram.Items.Add(OsLocalization.Logging.Label1);
+            ComboBoxModeTelegram.Items.Add(OsLocalization.Logging.Label2);
+
+            if (_sender.TelegramSendOn)
+            {
+                ComboBoxModeTelegram.Text = OsLocalization.Logging.Label1;
+            }
+            else
+            {
+                ComboBoxModeTelegram.Text = OsLocalization.Logging.Label2;
+            }
+
+            CheckBoxTelegramSignal.IsChecked = _sender.TelegramSignalSendOn;
+            CheckBoxTelegramTrade.IsChecked = _sender.TelegramTradeSendOn;
+            CheckBoxTelegramError.IsChecked = _sender.TelegramErrorSendOn;
+            CheckBoxTelegramSystem.IsChecked = _sender.TelegramSystemSendOn;
+            CheckBoxTelegramConnect.IsChecked = _sender.TelegramConnectSendOn;
+            CheckBoxTelegramUser.IsChecked = _sender.TelegramUserSendOn;  
 
             ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label1);
             ComboBoxModeMail.Items.Add(OsLocalization.Logging.Label2);
@@ -147,6 +175,22 @@ namespace OsEngine.Logging
             _sender.WebhookSystemSendOn = CheckBoxWebhookSystem.IsChecked.Value;
             _sender.WebhookConnectSendOn = CheckBoxWebhookConnect.IsChecked.Value;
 
+            if (ComboBoxModeTelegram.Text == OsLocalization.Logging.Label1)
+            {
+                _sender.TelegramSendOn = true;
+            }
+            else
+            {
+                _sender.TelegramSendOn = false;
+            }
+
+            _sender.TelegramSignalSendOn = CheckBoxTelegramSignal.IsChecked.Value;
+            _sender.TelegramTradeSendOn = CheckBoxTelegramTrade.IsChecked.Value;
+            _sender.TelegramErrorSendOn = CheckBoxTelegramError.IsChecked.Value;
+            _sender.TelegramSystemSendOn = CheckBoxTelegramSystem.IsChecked.Value;
+            _sender.TelegramConnectSendOn = CheckBoxTelegramConnect.IsChecked.Value;
+            _sender.TelegramUserSendOn = CheckBoxTelegramUser.IsChecked.Value;
+
 
             if (ComboBoxModeMail.Text == OsLocalization.Logging.Label1)
             {
@@ -157,11 +201,11 @@ namespace OsEngine.Logging
                 _sender.MailSendOn = false;
             }
 
-           _sender.MailSignalSendOn =  CheckBoxMailSignal.IsChecked.Value;
-           _sender.MailTradeSendOn = CheckBoxMailTrade.IsChecked.Value;
-           _sender.MailErrorSendOn = CheckBoxMailError.IsChecked.Value;
-           _sender.MailSystemSendOn = CheckBoxMailSystem.IsChecked.Value;
-           _sender.MailConnectSendOn = CheckBoxMailConnect.IsChecked.Value;
+            _sender.MailSignalSendOn =  CheckBoxMailSignal.IsChecked.Value;
+            _sender.MailTradeSendOn = CheckBoxMailTrade.IsChecked.Value;
+            _sender.MailErrorSendOn = CheckBoxMailError.IsChecked.Value;
+            _sender.MailSystemSendOn = CheckBoxMailSystem.IsChecked.Value;
+            _sender.MailConnectSendOn = CheckBoxMailConnect.IsChecked.Value;
 
 
             if (ComboBoxModeSms.Text == OsLocalization.Logging.Label1)
@@ -178,6 +222,7 @@ namespace OsEngine.Logging
             _sender.SmsErrorSendOn = CheckBoxSmsError.IsChecked.Value;
             _sender.SmsSystemSendOn = CheckBoxSmsSystem.IsChecked.Value;
             _sender.SmsConnectSendOn = CheckBoxSmsConnect.IsChecked.Value;
+            
             _sender.Save();
         }
 
@@ -200,6 +245,16 @@ namespace OsEngine.Logging
         private void ButtonSmsGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the SMS messaging server / кнопка настроить сервер Смс рассылки
         {
             ServerSms.GetSmsServer().ShowDialog();
+        }
+
+        private void ButtonTelegramGlobeSet_Click(object sender, RoutedEventArgs e) // button to configure the Telegram server / кнопка настроить сервер Telegram
+        {
+            ServerTelegram.GetServer().ShowDialog();
+        }
+
+        private void ComboBoxModeMail_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+
         }
     }
 }
