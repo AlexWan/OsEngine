@@ -10,7 +10,6 @@ using System.Windows;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
@@ -20,11 +19,8 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
-using OsEngine.Market.Servers.Huobi.Futures;
 using OsEngine.Market.Servers.Huobi.FuturesSwap;
-using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.InteractiveBrokers;
-using OsEngine.Market.Servers.OKX;
 using OsEngine.Market.Servers.BitMaxFutures;
 using OsEngine.Market.Servers.BitGet.BitGetSpot;
 using OsEngine.Market.Servers.BitGet.BitGetFutures;
@@ -295,27 +291,6 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.Binance)
-                        {
-                            BinanceServer binance = (BinanceServer)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                List<Candle> candles = binance.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
                         else if (serverType == ServerType.InteractiveBrokers)
                         {
                             InteractiveBrokersServer server = (InteractiveBrokersServer)_server;
@@ -454,48 +429,6 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.HuobiSpot)
-                        {
-                            HuobiSpotServer huobiSpot = (HuobiSpotServer)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                List<Candle> candles = huobiSpot.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
-                        else if (serverType == ServerType.HuobiFutures)
-                        {
-                            HuobiFuturesServer huobi = (HuobiFuturesServer)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                List<Candle> candles = huobi.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
                         else if (serverType == ServerType.HuobiFuturesSwap)
                         {
                             HuobiFuturesSwapServer huobi = (HuobiFuturesSwapServer)_server;
@@ -552,29 +485,6 @@ namespace OsEngine.Entity
                             else
                             {
                                 List<Candle> candles = bitGet.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
-
-                        else if (serverType == ServerType.OKX)
-                        {
-
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                OkxServer okx = (OkxServer)_server;
-                                List<Candle> candles = okx.GetCandleHistory(series.Security.Name,
                                     series.TimeFrameSpan);
                                 if (candles != null)
                                 {

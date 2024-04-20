@@ -282,7 +282,27 @@ namespace OsEngine.Market
 
                 lock (_lockerOrders)
                 {
-                    Order myOrder = _orders.Find(order1 => order1.NumberUser == order.NumberUser);
+                    Order myOrder = null;
+
+                    for(int i = 0;i < _orders.Count;i++)
+                    {
+                        Order curOrder = _orders[i];
+
+                        if(curOrder.NumberUser != 0 &&
+                            order.NumberUser != 0 
+                            && curOrder.NumberUser == order.NumberUser)
+                        {
+                            myOrder = curOrder;
+                            break;
+                        }
+                        if(string.IsNullOrEmpty(curOrder.NumberMarket) == false &&
+                            string.IsNullOrEmpty(order.NumberMarket) == false &&
+                            curOrder.NumberMarket == order.NumberMarket)
+                        {
+                            myOrder = curOrder;
+                            break;
+                        }
+                    }
 
                     if (myOrder == null)
                     {
@@ -447,7 +467,11 @@ namespace OsEngine.Market
                     nRow.Cells[10].Value = ordersToPaint[i].TypeOrder;
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[11].Value = ordersToPaint[i].TimeRoundTrip;
+
+                    if (ordersToPaint[i].TimeRoundTrip > new TimeSpan(0, 0, 0, 0))
+                    {
+                        nRow.Cells[11].Value = ordersToPaint[i].TimeRoundTrip;
+                    }
 
                     gridToPaint.Rows.Add(nRow);
                 }

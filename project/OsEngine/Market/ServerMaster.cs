@@ -33,8 +33,6 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
-using OsEngine.Market.Servers.Huobi.Futures;
-using OsEngine.Market.Servers.Huobi.Spot;
 using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
@@ -188,7 +186,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Zb);
                 serverTypes.Add(ServerType.Hitbtc);
                 serverTypes.Add(ServerType.HTXSpot);
-                serverTypes.Add(ServerType.HuobiFutures);
+                serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
@@ -205,7 +203,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.HTXSpot);
-                serverTypes.Add(ServerType.HTXSwap);
 
                 serverTypes.Add(ServerType.AstsBridge);
 
@@ -298,15 +295,14 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Bitfinex);
                 serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.Exmo);
-                serverTypes.Add(ServerType.HuobiSpot);
-                serverTypes.Add(ServerType.HuobiFutures);
+                serverTypes.Add(ServerType.HTXSpot);
+                serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HuobiFuturesSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Woo);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
-                serverTypes.Add(ServerType.HTXSwap);
 
                 return serverTypes;
             }
@@ -435,14 +431,6 @@ namespace OsEngine.Market
                 {
                     newServer = new HuobiFuturesSwapServer();
                 }
-                if (type == ServerType.HuobiFutures)
-                {
-                    newServer = new HuobiFuturesServer();
-                }
-                if (type == ServerType.HuobiSpot)
-                {
-                    newServer = new HuobiSpotServer();
-                }
                 if (type == ServerType.MfdWeb)
                 {
                     newServer = new MfdServer();
@@ -497,7 +485,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.Binance)
                 {
-                    newServer = new BinanceServer();
+                    newServer = new BinanceServerSpot();
                 }
                 if (type == ServerType.BinanceFutures)
                 {
@@ -1085,14 +1073,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new TinkoffInvestmentsServerPermission();
                 }
-                else if (type == ServerType.HuobiSpot)
-                {
-                    serverPermission = new HuobiSpotServerPermission();
-                }
-                else if (type == ServerType.HuobiFutures)
-                {
-                    serverPermission = new HuobiFuturesServerPermission();
-                }
                 else if (type == ServerType.HuobiFuturesSwap)
                 {
                     serverPermission = new HuobiFuturesSwapServerPermission();
@@ -1467,16 +1447,6 @@ namespace OsEngine.Market
         /// MFD web server
         /// </summary>
         MfdWeb,
-
-        /// <summary>
-        /// Huobi Spot
-        /// </summary>
-        HuobiSpot,
-
-        /// <summary>
-        /// Huobi Futures
-        /// </summary>
-        HuobiFutures,
 
         /// <summary>
         /// Huobi Futures Swap

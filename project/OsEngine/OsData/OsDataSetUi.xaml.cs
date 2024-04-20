@@ -335,31 +335,25 @@ namespace OsEngine.OsData
         /// </summary>
         private void EnableControls(bool Enabled=true)
         {
-            CheckBoxTf1SecondIsOn.IsEnabled = Enabled;
-            CheckBoxTf2SecondIsOn.IsEnabled = Enabled;
-            CheckBoxTf5SecondIsOn.IsEnabled = Enabled;
-            CheckBoxTf10SecondIsOn.IsEnabled = Enabled;
-            CheckBoxTf15SecondIsOn.IsEnabled = Enabled;
-            CheckBoxTf20SecondIsOn.IsEnabled = Enabled;
-            CheckBoxTf30SecondIsOn.IsEnabled = Enabled;
-            CheckBoxTf1MinuteIsOn.IsEnabled = Enabled;
-            CheckBoxTf2MinuteIsOn.IsEnabled = Enabled;
-            CheckBoxTf5MinuteIsOn.IsEnabled = Enabled;
-            CheckBoxTf10MinuteIsOn.IsEnabled = Enabled;
-            CheckBoxTf15MinuteIsOn.IsEnabled = Enabled;
-            CheckBoxTf30MinuteIsOn.IsEnabled = Enabled;
-            CheckBoxTf1HourIsOn.IsEnabled = Enabled;
-            CheckBoxTf2HourIsOn.IsEnabled = Enabled;
-            CheckBoxTf4HourIsOn.IsEnabled = Enabled;
-            CheckBoxTfTickIsOn.IsEnabled = Enabled;
-            CheckBoxTfMarketDepthIsOn.IsEnabled = Enabled;
+            
             ComboBoxSource.IsEnabled = Enabled;
             DatePickerTimeStart.IsEnabled = Enabled;
             DatePickerTimeEnd.IsEnabled = Enabled;
-            CheckBoxNeadToUpDate.IsEnabled = Enabled;
+
             ButtonAddSecurity.IsEnabled = Enabled;
             ButtonDelSecurity.IsEnabled = Enabled;
             ComboBoxMarketDepthDepth.IsEnabled = Enabled;
+
+            if(Enabled == false)
+            {
+                StopUsePanelOne.Width = 338;
+                StopUsePanelTwo.Width = 106;
+            }
+            else
+            {
+                StopUsePanelOne.Width = 1;
+                StopUsePanelTwo.Width = 1;
+            }
         }
 
         /// <summary>

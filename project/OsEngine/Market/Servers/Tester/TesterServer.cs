@@ -2179,15 +2179,10 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < OrdersActiv.Count; i++)
             {
-
                 Order order = OrdersActiv[i];
                 // check availability of securities on the market / проверяем наличие инструмента на рынке
-                SecurityTester security =
-                    _candleSeriesTesterActivate.Find(
-                        tester =>
-                            tester.Security.Name == order.SecurityNameCode &&
-                            (tester.LastCandle != null || tester.LastTradeSeries != null ||
-                             tester.LastMarketDepth != null));
+
+                SecurityTester security = GetMySecurity(order);
 
                 if (security == null)
                 {
@@ -3985,6 +3980,7 @@ namespace OsEngine.Market.Servers.Tester
             orderOnBoard.Comment = order.Comment;
             orderOnBoard.LifeTime = order.LifeTime;
             orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
+            orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
 
             OrdersActiv.Add(orderOnBoard);
 
@@ -4010,7 +4006,8 @@ namespace OsEngine.Market.Servers.Tester
 
             if (orderOnBoard.IsStopOrProfit)
             {
-                SecurityTester security = _candleSeriesTesterActivate.Find(tester => tester.Security.Name == order.SecurityNameCode);
+                SecurityTester security = GetMySecurity(order);
+
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках
                     if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
@@ -4028,6 +4025,49 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+        private SecurityTester GetMySecurity(Order order)
+        {
+            SecurityTester security = null;
+
+            if(TypeTesterData == TesterDataType.Candle)
+            {
+                for(int i = 0;i < _candleSeriesTesterActivate.Count;i++)
+                {
+                    if (_candleSeriesTesterActivate[i].Security.Name == order.SecurityNameCode 
+                        && _candleSeriesTesterActivate[i].TimeFrame == order.TimeFrameInTester)
+                    {
+                        security = _candleSeriesTesterActivate[i];
+                        break;
+                    }
+                }
+
+                if(security == null)
+                {
+                    security =
+                         _candleSeriesTesterActivate.Find(
+                             tester =>
+                                 tester.Security.Name == order.SecurityNameCode
+                                 &&
+                                 (tester.LastCandle != null
+                                 || tester.LastTradeSeries != null
+                                 || tester.LastMarketDepth != null));
+                }
+            }
+            else
+            {
+                security =
+                     _candleSeriesTesterActivate.Find(
+                         tester =>
+                             tester.Security.Name == order.SecurityNameCode
+                             &&
+                             (tester.LastCandle != null
+                             || tester.LastTradeSeries != null
+                             || tester.LastMarketDepth != null));
+            }
+
+            return security;
+        }
+
         /// <summary>
         /// Order price change
         /// </summary>
@@ -4037,7 +4077,6 @@ namespace OsEngine.Market.Servers.Tester
         {
 
         }
-
 
         /// <summary>
 		/// cancel order from the exchange

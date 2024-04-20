@@ -509,7 +509,12 @@ namespace OsEngine.Entity
                 }
                 
                 openOrder.TimeCancel = newOrder.TimeCancel;
-                openOrder.VolumeExecute = newOrder.VolumeExecute;
+
+                if(openOrder.MyTrades == null ||
+                    openOrder.MyTrades.Count == 0)
+                { // если трейдов ещё нет, допускается установка значение исполненного объёма по записи в ордере
+                    openOrder.VolumeExecute = newOrder.VolumeExecute;
+                }
 
                 if (openOrder.State == OrderStateType.Done 
                     && openOrder.TradesIsComing 
@@ -584,7 +589,12 @@ namespace OsEngine.Entity
                     closeOrder.TimeCallBack = newOrder.TimeCallBack;
                 }
                 closeOrder.TimeCancel = newOrder.TimeCancel;
-                closeOrder.VolumeExecute = newOrder.VolumeExecute;
+
+                if (closeOrder.MyTrades == null ||
+                   closeOrder.MyTrades.Count == 0)
+                { // если трейдов ещё нет, допускается установка значение исполненного объёма по записи в ордере
+                    closeOrder.VolumeExecute = newOrder.VolumeExecute;
+                }
 
                 if (closeOrder.State == OrderStateType.Done && OpenVolume == 0)
                 {

@@ -364,7 +364,18 @@ namespace OsEngine.Market.Servers.Alor
                     }
                     else if (item.type == "CS")
                     {
-                        newSecurity.NameClass = "Stock";
+                        if (item.board == "TQBR")
+                        {
+                            newSecurity.NameClass = "Stock";
+                        }
+                        else if (item.board == "FQBR")
+                        {
+                            newSecurity.NameClass = "Stock World";
+                        }
+                        else 
+                        {
+                            newSecurity.NameClass = "Stock";
+                        }
                     }
 		            else if (item.type == "CORP")
                     {
@@ -1690,8 +1701,16 @@ namespace OsEngine.Market.Servers.Alor
             Order order = new Order();
 
             order.SecurityNameCode = baseMessage.symbol;
-            order.Volume = baseMessage.qty.ToDecimal();
 
+            if(string.IsNullOrEmpty(baseMessage.filled) == false 
+                && baseMessage.filled != "0")
+            {
+                order.Volume = baseMessage.filled.ToDecimal();
+            }
+            else
+            {
+                order.Volume = baseMessage.qty.ToDecimal();
+            }
 
             order.PortfolioNumber = portfolioName;
             

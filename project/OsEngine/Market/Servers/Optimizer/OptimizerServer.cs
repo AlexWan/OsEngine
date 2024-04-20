@@ -557,12 +557,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 Order order = OrdersActiv[i];
                 // check instrument availability on the market / проверяем наличие инструмента на рынке
-                SecurityOptimizer security =
-                    _candleSeriesTesterActivate.Find(
-                        tester =>
-                            tester.Security.Name == order.SecurityNameCode &&
-                            (tester.LastCandle != null || tester.LastTradeSeries != null ||
-                             tester.LastMarketDepth != null));
+                SecurityOptimizer security = GetMySecurity(order);
 
                 if (security == null)
                 {
@@ -1890,6 +1885,7 @@ namespace OsEngine.Market.Servers.Optimizer
             orderOnBoard.Comment = order.Comment;
             orderOnBoard.LifeTime = order.LifeTime;
             orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
+            orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
 
             OrdersActiv.Add(orderOnBoard);
 
@@ -1904,7 +1900,9 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     return;
                 }
-                SecurityOptimizer security = _candleSeriesTesterActivate.Find(tester => tester.Security.Name == order.SecurityNameCode);
+
+                SecurityOptimizer security = GetMySecurity(order);
+
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках
                     if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
@@ -1913,6 +1911,49 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                 }
             }
+        }
+
+        private SecurityOptimizer GetMySecurity(Order order)
+        {
+            SecurityOptimizer security = null;
+
+            if (TypeTesterData == TesterDataType.Candle)
+            {
+                for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                {
+                    if (_candleSeriesTesterActivate[i].Security.Name == order.SecurityNameCode
+                        && _candleSeriesTesterActivate[i].TimeFrame == order.TimeFrameInTester)
+                    {
+                        security = _candleSeriesTesterActivate[i];
+                        break;
+                    }
+                }
+
+                if (security == null)
+                {
+                    security =
+                         _candleSeriesTesterActivate.Find(
+                             tester =>
+                                 tester.Security.Name == order.SecurityNameCode
+                                 &&
+                                 (tester.LastCandle != null
+                                 || tester.LastTradeSeries != null
+                                 || tester.LastMarketDepth != null));
+                }
+            }
+            else
+            {
+                security =
+                     _candleSeriesTesterActivate.Find(
+                         tester =>
+                             tester.Security.Name == order.SecurityNameCode
+                             &&
+                             (tester.LastCandle != null
+                             || tester.LastTradeSeries != null
+                             || tester.LastMarketDepth != null));
+            }
+
+            return security;
         }
 
         /// <summary>

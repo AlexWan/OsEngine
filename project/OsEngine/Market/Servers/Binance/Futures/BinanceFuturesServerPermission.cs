@@ -196,7 +196,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

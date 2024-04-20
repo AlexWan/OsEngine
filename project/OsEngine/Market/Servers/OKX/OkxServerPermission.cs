@@ -44,7 +44,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf2MinuteCanLoad
         {
@@ -84,16 +84,17 @@ namespace OsEngine.Market.Servers.OKX
         }
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
+
         public bool IsTradeServer
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsCanChangeOrderPrice
@@ -133,12 +134,12 @@ namespace OsEngine.Market.Servers.OKX
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = true,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = true
+                TimeFrameDayIsOn = false
             };
 
         public bool UseStandartCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsUseLotToCalculateProfit
@@ -163,12 +164,12 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }

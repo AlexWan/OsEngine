@@ -416,6 +416,10 @@
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Logging\ServerTelegram.cs" />
+    <Compile Include="Logging\ServerTelegramUi.xaml.cs">
+      <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\AServerOrdersHub.cs" />
     <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
@@ -506,8 +510,9 @@
     <Compile Include="Market\Servers\Binance\Futures\Entity\AgregatedHistoryTrade.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\BinanceFutureseDepthResponse.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\OrderUpdResponse.cs" />
+    <Compile Include="Market\Servers\Binance\Futures\Entity\ResponceFutures.cs" />
     <Compile Include="Market\Servers\Binance\Futures\Entity\TradesResponseReserches.cs" />
-    <Compile Include="Market\Servers\Binance\Spot\BinanceClientSpot.cs" />
+    <Compile Include="Market\Servers\Binance\Spot\BinanceServerSpot.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\AccountResponse.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\AccountResponseMargin.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\BinanceTime.cs" />
@@ -520,7 +525,6 @@
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\OutboundAccountInfo.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\SecurityResponce.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotEntity\TradeResponse.cs" />
-    <Compile Include="Market\Servers\Binance\Spot\BinanceServerSpot.cs" />
     <Compile Include="Market\Servers\Binance\Spot\BinanceSpotServerPermission.cs" />
     <Compile Include="Market\Servers\BingX\BingXFutures\BingXFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\BingX\BingXFutures\BingXServerFutures.cs" />
@@ -641,16 +645,6 @@
     <Compile Include="Market\Servers\Huobi\Entities\GetSymbolsResponse.cs" />
     <Compile Include="Market\Servers\Huobi\FuturesSwap\HuobiFuturesSwapServer.cs" />
     <Compile Include="Market\Servers\Huobi\FuturesSwap\HuobiFuturesSwapServerPermission.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\CancelFuturesOrderResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\FuturesAccountInfo.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\FuturesPing.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\FuturesSymbol.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\OrderFuturesNotify.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\PlaceFuturesOrderResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\Entities\TradeInfo.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServer.cs" />
-    <Compile Include="Market\Servers\Huobi\Futures\HuobiFuturesServerPermission.cs" />
-    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServerPermission.cs" />
     <Compile Include="Market\Servers\Huobi\Request\GetRequest.cs" />
     <Compile Include="Market\Servers\Huobi\Request\PrivateUrlBuilder.cs" />
     <Compile Include="Market\Servers\Huobi\Request\PublicUrlBuilder.cs" />
@@ -664,8 +658,6 @@
     <Compile Include="Market\Servers\Huobi\Response\SubscribeDepthResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Response\SubscribeTradeResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Response\WebSocketResponseBase.cs" />
-    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotSecurityCreator.cs" />
-    <Compile Include="Market\Servers\Huobi\Spot\HuobiSpotServer.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\HTX\Spot\HTXSpotServer.cs" />
@@ -789,7 +781,6 @@
     <Compile Include="Market\Servers\OKX\Entity\SecurityResponce.cs" />
     <Compile Include="Market\Servers\OKX\Entity\TradeDetailsResponce.cs" />
     <Compile Include="Market\Servers\OKX\Entity\TradeResponse.cs" />
-    <Compile Include="Market\Servers\OKX\OkxClient.cs" />
     <Compile Include="Market\Servers\OKX\OkxServer.cs" />
     <Compile Include="Market\Servers\OKX\OkxServerPermission.cs" />
     <Compile Include="Market\Servers\Optimizer\OptimizerServer.cs" />
@@ -1465,6 +1456,10 @@
     <Page Include="Logging\LogErrorUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Logging\ServerTelegramUi.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Logging\ServerWebhookUi.xaml">
       <Generator>MSBuild:Compile</Generator>

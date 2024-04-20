@@ -1,4 +1,7 @@
 ﻿
+using OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity;
+using System.Collections.Generic;
+
 namespace OsEngine.Market.Servers.Binance.Futures.Entity
 {
     public class OrderBinFutResp
@@ -38,4 +41,38 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
         public OrderBinFutResp o; // order
 
     }
+
+    public class OrderOpenRestRespFut
+    {
+        public string avgPrice; //": "0.00000",
+        public string clientOrderId; //": "abc",
+        public string cumQuote; //": "0",
+        public string executedQty; //": "0",
+        public string orderId; //": 1917641,
+        public string origQty; //": "0.40",
+        public string origType; //": "TRAILING_STOP_MARKET",
+        public string price; //": "0",
+        public string reduceOnly; //": false,
+        public string side; //": "BUY",
+        public string positionSide; //": "SHORT",
+        public string status; //": "NEW",
+        public string stopPrice; //": "9300",                // please ignore when order type is TRAILING_STOP_MARKET
+        public string closePosition; //": false,   // if Close-All
+        public string symbol; //": "BTCUSDT",
+        public string time; //": 1579276756075,              // order time
+        public string timeInForce; //": "GTC",
+        public string type; //": "TRAILING_STOP_MARKET",
+        public string activatePrice; //": "9020",            // activation price, only return with TRAILING_STOP_MARKET order
+        public string priceRate; //": "0.3",                 // callback rate, only return with TRAILING_STOP_MARKET order
+        public string updateTime; //": 1579276756075,        // update time
+        public string workingType; //": "CONTRACT_PRICE",
+        public string priceProtect; //": false,            // if conditional order trigger is protected  
+        public string priceMatch; //": "NONE",              //price match mode
+        public string selfTradePreventionMode; //": "NONE", //self trading preventation mode
+        public string goodTillDate; //": 0      //order pre-set auot cancel time for TIF GTD order
+
+
+    }
+
+
 }

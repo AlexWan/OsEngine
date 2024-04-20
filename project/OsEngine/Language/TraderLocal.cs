@@ -1491,5 +1491,13 @@ namespace OsEngine.Language
         public string Label397 => OsLocalization.ConvertToLocString(
           "Eng: new formula  _" +
           "Ru: формула  _");
+
+        public string Label398 => OsLocalization.ConvertToLocString(
+          "Eng: Last price  _" +
+          "Ru: Цена _");
+
+        public string Label399 => OsLocalization.ConvertToLocString(
+          "Eng: After removing security, you will need to rebuild the formula!  _" +
+          "Ru: После удаления инструмента, Вам нужно будет перестроить формулу! _");
     }
 }

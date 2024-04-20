@@ -6,7 +6,6 @@
 using System;
 using System.IO;
 using OsEngine.Entity;
-using OsEngine.Market;
 
 namespace OsEngine.Logging
 {
@@ -20,13 +19,23 @@ namespace OsEngine.Logging
  // настройки рассылки
 
         public bool WebhookSendOn;
-
+        
         public bool WebhookSystemSendOn;
         public bool WebhookSignalSendOn;
         public bool WebhookErrorSendOn;
         public bool WebhookConnectSendOn;
         public bool WebhookTradeSendOn;
         public bool WebhookNoNameSendOn;
+
+        public bool TelegramSendOn;
+
+        public bool TelegramSystemSendOn;
+        public bool TelegramSignalSendOn;
+        public bool TelegramErrorSendOn;
+        public bool TelegramConnectSendOn;
+        public bool TelegramTradeSendOn;
+        public bool TelegramNoNameSendOn;
+        public bool TelegramUserSendOn;
 
         public bool MailSendOn;
 
@@ -113,6 +122,16 @@ namespace OsEngine.Logging
                     WebhookTradeSendOn = Convert.ToBoolean(reader.ReadLine());
                     WebhookNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
 
+                    TelegramSendOn = Convert.ToBoolean(reader.ReadLine());
+
+                    TelegramSystemSendOn = Convert.ToBoolean(reader.ReadLine());
+                    TelegramSignalSendOn = Convert.ToBoolean(reader.ReadLine());
+                    TelegramErrorSendOn = Convert.ToBoolean(reader.ReadLine());
+                    TelegramConnectSendOn = Convert.ToBoolean(reader.ReadLine());
+                    TelegramTradeSendOn = Convert.ToBoolean(reader.ReadLine());
+                    TelegramNoNameSendOn = Convert.ToBoolean(reader.ReadLine());
+                    TelegramUserSendOn = Convert.ToBoolean(reader.ReadLine());
+
                     reader.Close();
                 }
             }
@@ -159,6 +178,17 @@ namespace OsEngine.Logging
                     writer.WriteLine(WebhookConnectSendOn);
                     writer.WriteLine(WebhookTradeSendOn);
                     writer.WriteLine(WebhookNoNameSendOn);
+
+                    writer.WriteLine(TelegramSendOn);
+
+                    writer.WriteLine(TelegramSystemSendOn);
+                    writer.WriteLine(TelegramSignalSendOn);
+                    writer.WriteLine(TelegramErrorSendOn);
+                    writer.WriteLine(TelegramConnectSendOn);
+                    writer.WriteLine(TelegramTradeSendOn);
+                    writer.WriteLine(TelegramNoNameSendOn);
+                    writer.WriteLine(TelegramUserSendOn);
+                    
                     writer.Close();
                 }
             }
@@ -193,6 +223,40 @@ namespace OsEngine.Logging
                 return;
             }
 
+            if (TelegramSendOn)
+            {
+                if (message.Type == LogMessageType.Connect &&
+                    TelegramConnectSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Error &&
+                    TelegramErrorSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Signal &&
+                    TelegramSignalSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.System &&
+                    TelegramSystemSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.Trade &&
+                    TelegramTradeSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+                if (message.Type == LogMessageType.User &&
+                    TelegramUserSendOn)
+                {
+                    ServerTelegram.GetServer().Send(message, _name);
+                }
+            }
+            
             if (WebhookSendOn)
             {
                 if (message.Type == LogMessageType.Connect &&

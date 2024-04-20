@@ -556,7 +556,7 @@ namespace OsEngine.Logging
                     _messageSender.AddNewMessage(messageLog);
                 }
             }
-            if (type == LogMessageType.Error)
+            if (type == LogMessageType.Error || type == LogMessageType.Error)
             {
                 LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
                 SetNewErrorMessage(messageLog);

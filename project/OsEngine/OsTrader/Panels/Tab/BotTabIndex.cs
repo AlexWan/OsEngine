@@ -12,8 +12,8 @@ using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
@@ -222,8 +222,32 @@ namespace OsEngine.OsTrader.Panels.Tab
             MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
             ui.ShowDialog();
 
-            creator = ui.SourcesCreator;
+            if(ui.IsAssepted == false)
+            {
+                return;
+            }
 
+            // 1 удаляем источники с другим ТФ, от того что сейчас выбрал юзер
+
+            bool isDeleteTab = false;
+
+            for (int i = 0; i < Tabs.Count; i++)
+            {
+                if (Tabs[i].TimeFrame != creator.TimeFrame)
+                {
+                    Tabs[i].Delete();
+                    Tabs.RemoveAt(i);
+                    isDeleteTab = true;
+                }
+            }
+
+            if(isDeleteTab == true)
+            {
+                Save();
+            }
+
+            // 2 создаём источники которые выбрал пользователь
+            creator = ui.SourcesCreator;
             if (creator.SecuritiesNames != null &&
                 creator.SecuritiesNames.Count != 0)
             {
@@ -234,6 +258,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Save();
             }
+
             ui.SourcesCreator = null;
         }
 
@@ -344,9 +369,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             for (int i = 0; i < Tabs.Count; i++)
             {
                 if (Tabs[i].SecurityName == security.SecurityName &&
-                    Tabs[i].ServerType == creator.ServerType)
+                    Tabs[i].ServerType == creator.ServerType &&
+                    Tabs[i].TimeFrame == creator.TimeFrame)
                 {
                     return;
+                }
+
+                if (Tabs[i].SecurityName == security.SecurityName &&
+                    Tabs[i].ServerType == creator.ServerType &&
+                    Tabs[i].TimeFrame != creator.TimeFrame)
+                {
+                    Tabs[i].Delete();
+                    Tabs.RemoveAt(i);
                 }
             }
 
@@ -548,12 +582,19 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Candles = new List<Candle>();
                 _chartMaster.Clear();
 
+                if(_startProgram == StartProgram.IsOsTrader)
+                {
+                    Thread.Sleep(1000);
+                }
+
                 if (Tabs == null || Tabs.Count == 0)
                 {
                     return;
                 }
 
                 ConvertedFormula = ConvertFormula(_userFormula);
+
+                SecuritiesInIndex.Clear();
 
                 string nameArray = Calculate(ConvertedFormula);
 
@@ -568,6 +609,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         _chartMaster.SetCandles(Candles);
 
+                        if (_startProgram == StartProgram.IsOsTrader)
+                        {
+                            Thread.Sleep(1000);
+                        }
+
+                        _chartMaster.SetCandles(Candles);
+
                         if (SpreadChangeEvent != null && EventsIsOn == true)
                         {
                             SpreadChangeEvent(Candles);
@@ -577,6 +625,31 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
         private string _userFormula;
+
+        public List<Security> SecuritiesInIndex = new List<Security>();
+
+        private void TryAddTradeSecurity(Security sec)
+        {
+            if(sec == null)
+            {
+                return;
+            }
+            bool isInArray = false;
+
+            for(int i = 0;i < SecuritiesInIndex.Count;i++)
+            {
+                if (SecuritiesInIndex[i].Name ==  sec.Name)
+                {
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if(isInArray == false)
+            {
+                SecuritiesInIndex.Add(sec);
+            }
+        }
 
         /// <summary>
         /// formula reduced to program format
@@ -661,6 +734,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+               
+
                 if (string.IsNullOrWhiteSpace(formula))
                 {
                     return "";
@@ -977,6 +1052,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
                 candlesOne = Tabs[iOne].Candles(true);
+                TryAddTradeSecurity(Tabs[iOne].Security);
             }
             if (candlesOne == null)
             {
@@ -1001,6 +1077,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
                 candlesTwo = Tabs[iOne].Candles(true);
+                TryAddTradeSecurity(Tabs[iOne].Security);
             }
             if (candlesTwo == null)
             {
@@ -1143,6 +1220,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
                 candlesOne = Tabs[iOne].Candles(true);
+                TryAddTradeSecurity(Tabs[iOne].Security);
                 if (candlesOne == null)
                 {
                     return valOne;
@@ -1251,6 +1329,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 int iOne = Convert.ToInt32(valTwo.Split('A')[1]);
                 candlesTwo = Tabs[iOne].Candles(true);
+                TryAddTradeSecurity(Tabs[iOne].Security);
             }
             if (candlesTwo == null)
             {

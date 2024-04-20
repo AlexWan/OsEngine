@@ -94,6 +94,12 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public void Dispose()
         {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+
             try
             {
                 UnsubscribeFromAllWebSockets();
@@ -118,12 +124,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                       
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
         }
 
         public ServerType ServerType
@@ -527,21 +527,38 @@ namespace OsEngine.Market.Servers.HTX.Spot
         private WebSocket _webSocketPrivate;
 
         private void CreateWebSocketConnection()
-        {            
-            _webSocketPublic = new WebSocket(_webSocketUrlPublic);            
+        {
+            _publicSocketActivate = false;
+            _privateSocketActivate = false;
+
+            _webSocketPublic = new WebSocket(_webSocketUrlPublic);
             _webSocketPublic.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
             _webSocketPublic.OnOpen += webSocketPublic_OnOpen;
             _webSocketPublic.OnMessage += webSocketPublic_OnMessage;
             _webSocketPublic.OnError += webSocketPublic_OnError;
             _webSocketPublic.OnClose += webSocketPublic_OnClose;
 
-            _webSocketPublic.Connect();          
+            _webSocketPublic.Connect();
+
+            _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+            _webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+            _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
+            _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
+            _webSocketPrivate.OnError += webSocketPrivate_OnError;
+            _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
+
+            _webSocketPrivate.Connect();
         }
 
         private void DeleteWebscoektConnection()
         {
             if (_webSocketPublic != null)
             {
+                _webSocketPublic.OnOpen -= webSocketPublic_OnOpen;
+                _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
+                _webSocketPublic.OnError -= webSocketPublic_OnError;
+                _webSocketPublic.OnClose -= webSocketPublic_OnClose;
+               
                 try
                 {
                     _webSocketPublic.Close();
@@ -550,13 +567,57 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     // ignore
                 }
-
-                _webSocketPublic.OnOpen -= webSocketPublic_OnOpen;
-                _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
-                _webSocketPublic.OnError -= webSocketPublic_OnError;
-                _webSocketPublic.OnClose -= webSocketPublic_OnClose;
                 _webSocketPublic = null;
-            }           
+            }
+
+            if (_webSocketPublic != null)
+            {
+                _webSocketPrivate.OnOpen -= webSocketPrivate_OnOpen;
+                _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
+                _webSocketPrivate.OnError -= webSocketPrivate_OnError;
+                _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
+               
+                try
+                {
+                    _webSocketPrivate.Close();
+                }
+                catch
+                {
+                    // ignore
+                }
+                _webSocketPrivate = null;
+            }
+        }
+
+        private bool _publicSocketActivate = false;
+
+        private bool _privateSocketActivate = false;
+
+        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSockets";
+
+        private void CheckActivationSockets()
+        {
+            lock (_lockerCheckActivateionSockets)
+            {
+                if(_publicSocketActivate == false)
+                {
+                    return;
+                }
+                if (_privateSocketActivate == false)
+                {
+                    return;
+                }
+
+                if(ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Connect;
+
+                    if(ConnectEvent != null)
+                    {
+                        ConnectEvent();
+                    }
+                }
+            }
         }
 
         #endregion
@@ -566,6 +627,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
         private void webSocketPublic_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             WebSocketSharp.ErrorEventArgs error = e;
+
             if (error.Exception != null)
             {
                 SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
@@ -606,52 +668,25 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void webSocketPublic_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
+            if (DisconnectEvent != null 
+                && ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage("Connection Closed by HTXSpot. WebSocket Public Closed Event", LogMessageType.System);
-
-                if (_webSocketPrivate != null)
-                {
-                    try
-                    {
-                        _webSocketPrivate.Close();
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    _webSocketPrivate.OnOpen -= webSocketPrivate_OnOpen;
-                    _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
-                    _webSocketPrivate.OnError -= webSocketPrivate_OnError;
-                    _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
-                    _webSocketPrivate = null;
-                }
             }
         }
 
         private void webSocketPublic_OnOpen(object sender, EventArgs e)
         {
             SendLogMessage("Connection Websocket Public Open", LogMessageType.System);
-            if (ServerStatus != ServerConnectStatus.Connect 
-                && _webSocketPublic != null
-                && _webSocketPublic.ReadyState == WebSocketState.Open
-                )
-            {
-                _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
-                _webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
-                _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
-                _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
-                _webSocketPrivate.OnError += webSocketPrivate_OnError;
-                _webSocketPrivate.OnClose += webSocketPrivate_OnClose;
 
-                _webSocketPrivate.Connect();
-            }                      
+            _publicSocketActivate = true;
+            CheckActivationSockets();
         }
 
         private void webSocketPrivate_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             WebSocketSharp.ErrorEventArgs error = e;
+
             if (error.Exception != null)
             {
                 SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
@@ -692,7 +727,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
+            if (DisconnectEvent != null 
+                & ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage("Connection Closed by HTXSpot. WebSocket Private Closed Event", LogMessageType.System);
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -704,14 +740,18 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
 
-            if (ServerStatus != ServerConnectStatus.Connect               
-                && _webSocketPrivate != null
-                && _webSocketPrivate.ReadyState == WebSocketState.Open)
+            _privateSocketActivate = true;
+            CheckActivationSockets();
+
+            try
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                string authRequest = BuildSign(DateTime.UtcNow);
+                _webSocketPrivate.Send(authRequest);
             }
-            CreateAuthMessageWebSocket();
+            catch
+            {
+
+            }
         }
 
         #endregion
@@ -1058,7 +1098,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 newOrder.SecurityNameCode = item.symbol;
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.tradeTime));
                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.orderCreateTime));
-                newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                }
+                catch
+                {
+                    //ignore
+                }
+               
                 newOrder.NumberMarket = item.orderId.ToString();
                 newOrder.Side = item.orderSide.Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = GetOrderState(item.orderStatus);
@@ -1094,10 +1143,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return;
             }
 
-            if (string.IsNullOrEmpty(item.clientOrderId))
-            {
-                return;
-            }
             if (item.eventType.Equals("creation") || item.eventType.Equals("cancellation"))
             {
                 Order newOrder = new Order();
@@ -1113,8 +1158,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
                 
                 newOrder.ServerType = ServerType.HTXSpot;
-                newOrder.SecurityNameCode = item.symbol;                
-                newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                newOrder.SecurityNameCode = item.symbol;           
+                
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 newOrder.NumberMarket = item.orderId.ToString();
                 newOrder.Side = item.type.Split('-')[0].Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = GetOrderState(item.orderStatus);
@@ -1373,19 +1427,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
-        private void CreateAuthMessageWebSocket()
-        {
-            string authRequest = BuildSign(DateTime.UtcNow);
-            _webSocketPrivate.Send(authRequest);
-        }
-
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic == null)
-            {
-                return;
-            }
-            else
+            if (_webSocketPublic != null)
             {
                 for (int i = 0; i < _arrayPublicChannels.Count; i++)
                 {
@@ -1393,12 +1437,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
             }
 
-            if (_webSocketPrivate == null)
-            {
-                return;
-            }
-            else
-            {
+            if (_webSocketPrivate != null)
+            { 
                 for (int i = 0; i < _arrayPrivateChannels.Count; i++)
                 {
 
