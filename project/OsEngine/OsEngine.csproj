@@ -631,6 +631,11 @@
     <Compile Include="Market\Servers\HTX\Entity\PrivateUrlBuilder.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\RequestWebsocketMessage.cs" />
     <Compile Include="Market\Servers\HTX\Entity\Signer.cs" />
+    <Compile Include="Market\Servers\HTX\Swap\Entity\RequestWebsocketMessage.cs" />
+    <Compile Include="Market\Servers\HTX\Swap\Entity\ResponseMessageRest.cs" />
+    <Compile Include="Market\Servers\HTX\Swap\Entity\ResponseWebSocketMessage.cs" />
+    <Compile Include="Market\Servers\HTX\Swap\HTXSwapServer.cs" />
+    <Compile Include="Market\Servers\HTX\Swap\HTXSwapServerPermission.cs" />
     <Compile Include="Market\Servers\Huobi\Entities\GetAccountBalanceResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Entities\GetAccountInfoResponse.cs" />
     <Compile Include="Market\Servers\Huobi\Entities\GetSymbolsResponse.cs" />
