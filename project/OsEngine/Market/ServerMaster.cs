@@ -60,6 +60,7 @@ using OsEngine.Market.Servers.Woo;
 using OsEngine.Market.Servers.MoexAlgopack;
 using OsEngine.Market.Servers.HTX.Spot;
 using OsEngine.Market.Servers.HTX.Futures;
+using OsEngine.Market.Servers.HTX.Swap;
 
 namespace OsEngine.Market
 {
@@ -204,6 +205,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.HTXSpot);
+                serverTypes.Add(ServerType.HTXSwap);
 
                 serverTypes.Add(ServerType.AstsBridge);
 
@@ -304,6 +306,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Woo);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
+                serverTypes.Add(ServerType.HTXSwap);
 
                 return serverTypes;
             }
@@ -563,6 +566,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.HTXFutures)
                 {
                     newServer = new HTXFuturesServer();
+                }
+                else if (type == ServerType.HTXSwap)
+                {
+                    newServer = new HTXSwapServer();
                 }
 
                 if (newServer == null)
@@ -1126,6 +1133,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new HTXFuturesServerPermission();
                 }
+                else if (type == ServerType.HTXSwap)
+                {
+                    serverPermission = new HTXSwapServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1556,5 +1567,10 @@ namespace OsEngine.Market
         /// HTXFutures exchange
         /// </summary>
         HTXFutures,
+
+        /// <summary>
+        /// HTXSwap exchange
+        /// </summary>
+        HTXSwap,
     }
 }
