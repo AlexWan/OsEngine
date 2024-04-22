@@ -38,6 +38,22 @@ namespace OsEngine.PrimeSettings
                 }
             };
 
+            ComboBoxTimeFormat.Items.Add("H:mm:ss");
+            ComboBoxTimeFormat.Items.Add("h:mm:ss tt");
+            ComboBoxTimeFormat.SelectedItem = OsLocalization.LongTimePattern;
+            ComboBoxTimeFormat.SelectionChanged += delegate
+            {
+                OsLocalization.LongTimePattern = ComboBoxTimeFormat.SelectedItem.ToString();
+            };
+
+            ComboBoxDateFormat.Items.Add("dd.MM.yyyy");
+            ComboBoxDateFormat.Items.Add("M/d/yyyy");
+            ComboBoxDateFormat.SelectedItem = OsLocalization.ShortDatePattern;
+            ComboBoxDateFormat.SelectionChanged += delegate
+            {
+                OsLocalization.ShortDatePattern = ComboBoxDateFormat.SelectedItem.ToString();
+            };
+
             CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActiv;
             CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActiv;
             CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActiv;
@@ -66,6 +82,8 @@ namespace OsEngine.PrimeSettings
         {
             MainItem.Header = OsLocalization.PrimeSettings.Title;
             LanguageLabel.Content = OsLocalization.PrimeSettings.LanguageLabel;
+            LabelTimeFormat.Content = OsLocalization.PrimeSettings.TimeFormat;
+            LabelDateFormat.Content = OsLocalization.PrimeSettings.DateFormat;
             ShowExtraLogWindowLabel.Content = OsLocalization.PrimeSettings.ShowExtraLogWindowLabel;
             ExtraLogSound.Content = OsLocalization.PrimeSettings.ExtraLogSoundLabel;
             TransactionSoundLabel.Content = OsLocalization.PrimeSettings.TransactionSoundLabel;

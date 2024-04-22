@@ -81,6 +81,12 @@ namespace OsEngine.Language
             "Eng:Reboot Ligth on error_" +
             "Ru:Перезагрузка лайта при ошибке_");
 
+        public string TimeFormat => OsLocalization.ConvertToLocString(
+            "Eng:Time format" +
+            "_Ru:Формат времени_");
 
+        public string DateFormat => OsLocalization.ConvertToLocString(
+           "Eng:Date format" +
+           "_Ru:Формат даты_");
     }
 }

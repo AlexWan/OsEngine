@@ -25,6 +25,7 @@ using Color = System.Drawing.Color;
 using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
 using OsEngine.Charts.CandleChart.ChartAddons; //AVP ChartRoulette
+using OsEngine.Language;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -1332,6 +1333,8 @@ namespace OsEngine.Charts.CandleChart
         /// культура отрисовки данных
         /// </summary>
         private CultureInfo _culture = new CultureInfo("ru-RU");
+
+        private CultureInfo _cultureInterfaces = OsLocalization.CurCulture;
 
         /// <summary>
         /// candle drawing
@@ -6875,6 +6878,8 @@ namespace OsEngine.Charts.CandleChart
             return min;
         }
 
+
+
         /// <summary>
         /// redraw lines on the X-axis
         /// перерисовать линии на оси Икс
@@ -6948,12 +6953,11 @@ namespace OsEngine.Charts.CandleChart
                 value = 0;
             }
 
-
             for (int i = 0; i < labelCount; i++)
             {
                 area.AxisX.CustomLabels[i].FromPosition = value - area.AxisX.Interval * 0.7;
                 area.AxisX.CustomLabels[i].ToPosition = value + area.AxisX.Interval * 0.7;
-                area.AxisX.CustomLabels[i].Text = _myCandles[(int)value].TimeStart.ToString();
+                area.AxisX.CustomLabels[i].Text = _myCandles[(int)value].TimeStart.ToString(_cultureInterfaces);
                 
                 value += area.AxisX.Interval;
 

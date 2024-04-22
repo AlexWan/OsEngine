@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Windows;
+using WebSocketSharp;
 
 namespace OsEngine.Language
 {
@@ -49,11 +50,75 @@ namespace OsEngine.Language
             }
         }
 
+
+        // h:mm:ss tt
+        // H:mm:ss
+        public static string LongTimePattern
+        {
+            get
+            {
+                return _longTimePattern;
+            }
+            set
+            {
+                if (_longTimePattern != value)
+                {
+                    _longTimePattern = value;
+                    Save();
+                }
+            }
+        }
+
+        private static string _longTimePattern;
+
+        // M/d/yyyy
+        // dd.MM.yyyy
+        public static string ShortDatePattern
+        {
+            get
+            {
+                return _shortDatePattern;
+            }
+            set
+            {
+                if (_shortDatePattern != value)
+                {
+                    _shortDatePattern = value;
+                    Save();
+                }
+            }
+        }
+
+        private static string _shortDatePattern;
+
         public static CultureInfo CurCulture
         {
             get
             {
-                return new CultureInfo(CurLocalizationCode);
+                CultureInfo culture = new CultureInfo(CurLocalizationCode);
+
+                if(_longTimePattern != null)
+                {
+                    culture.DateTimeFormat.LongTimePattern = _longTimePattern;
+                }
+
+                if (_shortDatePattern != null)
+                {
+                    culture.DateTimeFormat.ShortDatePattern = _shortDatePattern;
+                    if(_shortDatePattern == "M/d/yyyy")
+                    {
+                        culture.DateTimeFormat.DateSeparator = "/";
+                        culture.DateTimeFormat.AMDesignator = "AM";
+                        culture.DateTimeFormat.PMDesignator = "PM";
+                    }
+                    else
+                    {
+                        culture.DateTimeFormat.DateSeparator = ".";
+                    }
+                }
+                
+
+                return culture;
             }
         }
 
@@ -110,7 +175,8 @@ namespace OsEngine.Language
                 )
                 {
                     writer.WriteLine(_curLocalization);
-
+                    writer.WriteLine(_longTimePattern);
+                    writer.WriteLine(_shortDatePattern);
                     writer.Close();
                 }
             }
@@ -127,6 +193,8 @@ namespace OsEngine.Language
         {
             if (!File.Exists(@"Engine\local.txt"))
             {
+                _longTimePattern = "H:mm:ss";
+                _shortDatePattern = "dd.MM.yyyy";
                 return;
             }
             try
@@ -134,6 +202,8 @@ namespace OsEngine.Language
                 using (StreamReader reader = new StreamReader(@"Engine\local.txt"))
                 {
                     Enum.TryParse(reader.ReadLine(), true, out _curLocalization);
+                    _longTimePattern = reader.ReadLine();
+                    _shortDatePattern = reader.ReadLine();
                     reader.Close();
                 }
 
@@ -143,6 +213,15 @@ namespace OsEngine.Language
             catch 
             {
                
+            }
+
+            if(string.IsNullOrEmpty(_longTimePattern))
+            {
+                _longTimePattern = "H:mm:ss";
+            }
+            if(string.IsNullOrEmpty(_shortDatePattern))
+            {
+                _shortDatePattern = "dd.MM.yyyy";
             }
         }
 
