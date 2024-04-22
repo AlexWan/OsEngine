@@ -724,7 +724,11 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-            _botsInTest.Add(bot);
+            lock (_serverRemoveLocker)
+            {
+                _botsInTest.Add(bot);
+            }
+
             server.TestingStart();
         }
 
@@ -1088,28 +1092,24 @@ namespace OsEngine.OsOptimizer
 
             PrimeProgressChangeEvent?.Invoke(serverNum, _countAllServersMax);
 
+            BotPanel bot = null;
+            OptimizerServer server = null;
+
             lock (_serverRemoveLocker)
             {
-                BotPanel bot = _botsInTest.Find(
-                b =>
-                b != null &&
-                b.TabsSimple[0] != null &&
-                b.TabsSimple[0].Connector != null &&
-                b.TabsSimple[0].Connector.ServerUid == serverNum);
-
-                if (bot != null)
+                for (int i = 0; i < _botsInTest.Count; i++)
                 {
-                    // записываем результаты тестов, когда они пройдут
-                    ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
-                    // уничтожаем робота
-                    bot.Clear();
-                    bot.Delete();
+                    BotPanel curBot = _botsInTest[i];
 
-                   _botsInTest.Remove(bot);
-                }
-                else
-                {
-
+                    if(curBot != null 
+                        && curBot.TabsSimple[0] != null 
+                        && curBot.TabsSimple[0].Connector != null 
+                        && curBot.TabsSimple[0].Connector.ServerUid == serverNum)
+                    {
+                        bot = curBot;
+                        _botsInTest.RemoveAt(i);
+                        break;
+                    }
                 }
 
                 for (int i = 0; i < _servers.Count; i++)
@@ -1118,11 +1118,24 @@ namespace OsEngine.OsOptimizer
                     {
                         _servers[i].TestingEndEvent -= server_TestingEndEvent;
                         _servers[i].TestintProgressChangeEvent -= server_TestintProgressChangeEvent;
-                        _servers[i].ClearDelete();
+                        server = _servers[i];
                         _servers.RemoveAt(i);
                         break;
                     }
                 }
+            }
+
+            if (bot != null)
+            {
+                ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
+                // уничтожаем робота
+                bot.Clear();
+                bot.Delete();
+            }
+
+            if(server != null)
+            {
+                ServerMaster.RemoveOptimizerServer(server);
             }
         }
 
@@ -1146,7 +1159,6 @@ namespace OsEngine.OsOptimizer
                 TestingProgressChangeEvent(curVal, maxVal, numServer);
             }
         }
-
 
         /// <summary>
         /// event: the state of progress has changed

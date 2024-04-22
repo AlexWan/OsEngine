@@ -123,17 +123,17 @@ namespace OsEngine.Logging
             _startProgram = startProgram;
             _currentCulture = OsLocalization.CurCulture;
 
-            lock (_starterLocker)
-            {
-                if (_watcher == null)
-                {
-                    CreateErrorLogGreed();
-                    Activate();
-                }
-            }
-
             if (_startProgram != StartProgram.IsOsOptimizer)
             {
+                lock (_starterLocker)
+                {
+                    if (_watcher == null)
+                    {
+                        CreateErrorLogGreed();
+                        Activate();
+                    }
+                }
+
                 CreateGrid();
                 AddToLogsToCheck(this);
             }
