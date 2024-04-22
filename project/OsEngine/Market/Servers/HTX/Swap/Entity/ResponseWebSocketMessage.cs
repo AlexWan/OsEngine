@@ -79,6 +79,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
             public string symbol { get; set; }
             public string margin_balance { get; set; }
             public string margin_frozen { get; set; }
+            public string margin_asset { get; set; }
         }
     }
 
@@ -89,7 +90,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         public class Data
         {
             public string symbol { get; set; }
-            public string contract_type { get; set; }
+            public string contract_code { get; set; }
             public string volume { get; set; }
             public string frozen { get; set; }           
         }

@@ -16,7 +16,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         }
     }
 
-    public class ResponseMessagePortfolios
+    public class ResponseMessagePortfoliosCoin
     {
         public List<Data> data { get; set; }
 
@@ -29,7 +29,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         }
     }
 
-    public class ResponseMessagePositions
+    public class ResponseMessagePositionsCoin
     {
         public List<Data> data { get; set; }
 
@@ -37,11 +37,22 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         {
             public string contract_code { get; set; }
             public string symbol { get; set; }
-            public string contract_type { get; set; }
             public string volume { get; set; }
             public string frozen { get; set; }
         }
     }
+
+    public class ResponseMessagePortfoliosUsdt
+    {
+        public List<Data> data { get; set; }
+
+        public class Data
+        {            
+            public string margin_static { get; set; }
+            public string margin_asset { get; set; }
+            public string margin_frozen { get; set; }
+        }      
+    }      
 
     public class ResponseMessageCandles
     {
@@ -82,7 +93,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         public class Orders
         {
             public string symbol { get; set; }
-            public string contract_type { get; set; }
+            public string contract_code { get; set; }
             public string volume { get; set; }
             public string price { get; set; }
             public string direction { get; set; }
@@ -103,7 +114,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         public class Data
         {
             public string symbol { get; set; }
-            public string contract_type { get; set; }
+            public string contract_code { get; set; }
             public string volume { get; set; }
             public string price { get; set; }
             public string direction { get; set; }
@@ -122,7 +133,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         public class Data
         {
             public List<Trades> trades { get; set; }
-            public string symbol { get; set; }
+            public string contract_code { get; set; }
             public string order_id { get; set; }
             public string direction { get; set; }
         }

@@ -110,4 +110,80 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
         [JsonProperty("err-msg", NullValueHandling = NullValueHandling.Ignore)]
         public string errorMessage;
     }
+
+    public class ResponseMessageAllOrders
+    {
+
+        public List<Data> data { get; set; }
+
+        public class Data
+        {
+            public string symbol { get; set; }
+            public string id { get; set; }
+            public string price { get; set; }
+            public string amount { get; set; }
+            public string type { get; set; }
+            public string source { get; set; }
+            public string state { get; set; }
+            [JsonProperty("account-id", NullValueHandling = NullValueHandling.Ignore)]
+            public string account_id { get; set; }
+
+            [JsonProperty("created-at", NullValueHandling = NullValueHandling.Ignore)]           
+            public string created_at { get; set; }
+
+            [JsonProperty("client-order-id", NullValueHandling = NullValueHandling.Ignore)]
+            public string client_order_id { get; set; }           
+        }
+    }
+
+    public class ResponseMessageGetOrder
+    {
+
+        public Data data { get; set; }
+
+        public class Data
+        {
+            public string symbol { get; set; }
+            public string id { get; set; }
+            public string price { get; set; }
+            public string amount { get; set; }
+            public string type { get; set; }
+            public string source { get; set; }
+            public string state { get; set; }
+            [JsonProperty("account-id", NullValueHandling = NullValueHandling.Ignore)]
+            public string account_id { get; set; }
+
+            [JsonProperty("created-at", NullValueHandling = NullValueHandling.Ignore)]
+            public string created_at { get; set; }
+
+            [JsonProperty("client-order-id", NullValueHandling = NullValueHandling.Ignore)]
+            public string client_order_id { get; set; }
+        }
+    }
+
+    public class ResponseMessageGetMyTradesBySecurity
+    {
+        public List<Data> data { get; set; }
+
+        public class Data
+        {
+            public string symbol { get; set; }
+            public string id { get; set; }
+            public string price { get; set; }
+
+            [JsonProperty("filled-amount", NullValueHandling = NullValueHandling.Ignore)]
+            public string filled_amount { get; set; }
+            public string type { get; set; }
+            public string source { get; set; }
+            
+            [JsonProperty("order-id", NullValueHandling = NullValueHandling.Ignore)]
+            public string order_id { get; set; }
+
+            [JsonProperty("created-at", NullValueHandling = NullValueHandling.Ignore)]
+            public string created_at { get; set; }
+
+            [JsonProperty("trade-id", NullValueHandling = NullValueHandling.Ignore)]
+            public string trade_id { get; set; }
+        }
+    }
 }
