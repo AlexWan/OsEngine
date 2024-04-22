@@ -1,10 +1,10 @@
-﻿namespace OsEngine.Market.Servers.HTX.Spot
+﻿namespace OsEngine.Market.Servers.HTX.Swap
 {
-    public class HTXSpotServerPermission : IServerPermission
+    public class HTXSwapServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.HTXSpot; }
+            get { return ServerType.HTXSwap; }
         }
 
         #region DataFeedPermissions
@@ -100,7 +100,7 @@
         }
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 15; }
+            get { return 10; }
         }
 
         public bool IsCanChangeOrderPrice
@@ -159,7 +159,7 @@
             {
                 string[] values = new string[]
                 {                    
-                                      
+                   
                 };
 
                 return values;
