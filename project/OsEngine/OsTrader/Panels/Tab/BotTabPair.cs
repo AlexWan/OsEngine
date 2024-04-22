@@ -461,9 +461,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 using (StreamReader reader = new StreamReader(@"Engine\" + TabName + @"StandartPairsSettings.txt"))
                 {
                     Sec1Slippage = reader.ReadLine().ToDecimal();
-                    Sec1Volume = Convert.ToInt32(reader.ReadLine());
+                    Sec1Volume = reader.ReadLine().ToDecimal();
                     Sec2Slippage = reader.ReadLine().ToDecimal();
-                    Sec2Volume = Convert.ToInt32(reader.ReadLine());
+                    Sec2Volume = reader.ReadLine().ToDecimal();
                     CorrelationLookBack = Convert.ToInt32(reader.ReadLine());
                     CointegrationDeviation = reader.ReadLine().ToDecimal();
                     CointegrationLookBack = Convert.ToInt32(reader.ReadLine());
@@ -1889,9 +1889,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     PairNum = Convert.ToInt32(reader.ReadLine());
 
                     Sec1Slippage = reader.ReadLine().ToDecimal();
-                    Sec1Volume = Convert.ToInt32(reader.ReadLine());
+                    Sec1Volume = reader.ReadLine().ToDecimal();
                     Sec2Slippage = reader.ReadLine().ToDecimal();
-                    Sec2Volume = Convert.ToInt32(reader.ReadLine());
+                    Sec2Volume = reader.ReadLine().ToDecimal();
                     CorrelationLookBack = Convert.ToInt32(reader.ReadLine());
                     CointegrationDeviation = reader.ReadLine().ToDecimal();
                     CointegrationLookBack = Convert.ToInt32(reader.ReadLine());

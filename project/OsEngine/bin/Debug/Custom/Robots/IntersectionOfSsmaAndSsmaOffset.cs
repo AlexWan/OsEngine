@@ -61,23 +61,22 @@ namespace OsEngine.Robots.MyRobots
             TimeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Indicator Settings
-            _periodSsmaFast = CreateParameter("fast Ssma1 period", 250, 50, 500, 50, "Indicator");
-            _periodSsmaSlow = CreateParameter("slow Ssma2 period", 1000, 500, 1500, 100, "Indicator");
-            _periodOffset = CreateParameter("offset SSma2 period", 0, 3, 10, 11, "Indicator");
+            _periodSsmaFast = CreateParameter("fast Ssma1 period", 25, 10, 200, 10, "Indicator");
+            _periodSsmaSlow = CreateParameter("slow Ssma2 period", 150, 50, 500, 10, "Indicator");
+            _periodOffset = CreateParameter("offset SSma2", 5, 3, 100, 1, "Indicator");
            
             // Creating an indicator Ssma1
             _ssma1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "Ssma1", canDelete: false);
             _ssma1 = (Aindicator)_tab.CreateCandleIndicator(_ssma1, nameArea: "Prime");
             ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
-            _ssma1.ParametersDigit[0].Value = _periodSsmaFast.ValueInt;
             _ssma1.DataSeries[0].Color = Color.Red;
             _ssma1.Save();
 
             // Creating indicator Ssma2
             _ssma2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "OffsetSsma", name: name + "Ssma2", canDelete: false);
             _ssma2 = (Aindicator)_tab.CreateCandleIndicator(_ssma2, nameArea: "Prime");
-            _ssma2.ParametersDigit[0].Value = _periodSsmaSlow.ValueInt;
-            _ssma2.ParametersDigit[1].Value = _periodOffset.ValueInt;
+            ((IndicatorParameterInt)_ssma2.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
+            ((IndicatorParameterInt)_ssma2.Parameters[1]).ValueInt = _periodOffset.ValueInt;
             _ssma2.DataSeries[0].Color = Color.Green;
             _ssma2.Save();
 
@@ -100,7 +99,9 @@ namespace OsEngine.Robots.MyRobots
             ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
             _ssma1.Save();
             _ssma1.Reload();
+
             ((IndicatorParameterInt)_ssma2.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
+            ((IndicatorParameterInt)_ssma2.Parameters[1]).ValueInt = _periodOffset.ValueInt;
             _ssma2.Save();
             _ssma2.Reload();
         }
