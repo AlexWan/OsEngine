@@ -50,7 +50,6 @@ namespace OsEngine.Language
             }
         }
 
-
         // h:mm:ss tt
         // H:mm:ss
         public static string LongTimePattern

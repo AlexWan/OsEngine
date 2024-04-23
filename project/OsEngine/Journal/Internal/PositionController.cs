@@ -1810,10 +1810,13 @@ namespace OsEngine.Journal.Internal
 
             try
             {
-                MenuItem[] items = new MenuItem[1];
+                MenuItem[] items = new MenuItem[2];
 
                 items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem12 };
-                items[0].Click += PositionScrollOnChart_Click;
+                items[0].Click += ClosedPosesGrid_PositionScrollOnChart_Click;
+
+                items[1] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem9 };
+                items[1].Click += ClosedPosesGrid_PositionDelete_Click;
 
                 ContextMenu menu = new ContextMenu(items);
 
@@ -1830,7 +1833,7 @@ namespace OsEngine.Journal.Internal
         /// the user has ordered to find position on chart 
         /// пользователь заказал найти позиции на графике
         /// </summary>
-        void PositionScrollOnChart_Click(object sender, EventArgs e)
+        void ClosedPosesGrid_PositionScrollOnChart_Click(object sender, EventArgs e)
         {
             try
             {
@@ -1854,6 +1857,45 @@ namespace OsEngine.Journal.Internal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        void ClosedPosesGrid_PositionDelete_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int number = -1;
+                try
+                {
+                    number = Convert.ToInt32(_gridCloseDeal.Rows[_gridCloseDeal.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                if(number == -1)
+                {
+                    return;
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
+                ui.ShowDialog();
+
+                if(ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                if (UserSelectActionEvent != null)
+                {
+                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.DeletePos);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
 
         // work with context menu
 
