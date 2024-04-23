@@ -1294,16 +1294,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
                 
                 jsonContent.Add("direction", order.Side == Side.Buy ? "buy" : "sell");
+                jsonContent.Add("volume", (order.Volume / GetSecurityLot(order.SecurityNameCode)).ToString().Replace(",", "."));
 
                 if (order.PositionConditionType == OrderPositionConditionType.Close)
                 {
                     jsonContent.Add("offset", "close");
-                    jsonContent.Add("volume", (order.Volume / GetSecurityLot(order.SecurityNameCode)).ToString().Replace(",", "."));
                 }
                 else
                 {
                     jsonContent.Add("offset", "open");
-                    jsonContent.Add("volume", order.Volume.ToString().Replace(",", "."));
                 }
 
                 jsonContent.Add("lever_rate", "10");
