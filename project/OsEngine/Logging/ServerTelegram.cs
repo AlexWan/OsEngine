@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
+using System.Windows;
 
 namespace OsEngine.Logging
 {
@@ -258,7 +259,14 @@ namespace OsEngine.Logging
         /// <param name="cmd"></param>
         public void ExecuteCommand(string botName, Command cmd)
         {
-            TelegramCommandEvent?.Invoke(botName, cmd);
+            try
+            {
+                TelegramCommandEvent?.Invoke(botName, cmd);
+            }
+            catch(Exception ex) 
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         public event Action<string, Command> TelegramCommandEvent;
@@ -312,30 +320,37 @@ namespace OsEngine.Logging
         /// </summary>
         public void Load()
         {
-            if (File.Exists(@"Engine\telegramSet.txt"))
+            try
             {
-                StreamReader reader = new StreamReader(@"Engine\telegramSet.txt");
-                BotToken = reader.ReadLine();
-                ChatId = Convert.ToInt64(reader.ReadLine());
-                
-                if(reader.ReadLine() == "true")
+                if (File.Exists(@"Engine\telegramSet.txt"))
                 {
-                    ProcessingCommand = true;
+                    StreamReader reader = new StreamReader(@"Engine\telegramSet.txt");
+                    BotToken = reader.ReadLine();
+                    ChatId = Convert.ToInt64(reader.ReadLine());
+
+                    if (reader.ReadLine() == "true")
+                    {
+                        ProcessingCommand = true;
+                    }
+                    else
+                    {
+                        ProcessingCommand = false;
+                    }
+
+                    _isReady = true;
+                    reader.Close();
                 }
                 else
                 {
+                    BotToken = string.Empty;
+                    ChatId = 0;
                     ProcessingCommand = false;
+                    _isReady = false;
                 }
-                
-                _isReady = true;
-                reader.Close();
             }
-            else
+            catch
             {
-                BotToken = string.Empty;
-                ChatId = 0;
-                ProcessingCommand = false;    
-                _isReady = false;
+                // ignore
             }
         }
 
@@ -345,11 +360,24 @@ namespace OsEngine.Logging
         /// </summary>
         public void Save()
         {
-            StreamWriter writer = new StreamWriter(@"Engine\telegramSet.txt");
-            writer.WriteLine(BotToken);
-            writer.WriteLine(ChatId);
-            writer.WriteLine(ProcessingCommand);
-            writer.Close();
+            try
+            {
+                StreamWriter writer = new StreamWriter(@"Engine\telegramSet.txt");
+                writer.WriteLine(BotToken);
+                writer.WriteLine(ChatId);
+                writer.WriteLine(ProcessingCommand);
+                writer.Close();
+
+                if(string.IsNullOrEmpty(BotToken) == false &&
+                    ChatId != 0)
+                {
+                    _isReady = true;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         /// <summary>
