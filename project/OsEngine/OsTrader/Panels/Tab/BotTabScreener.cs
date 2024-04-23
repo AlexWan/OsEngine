@@ -1075,6 +1075,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 return;
             }
+
+            if (_host.Dispatcher.CheckAccess() == false)
+            {
+                _host.Dispatcher.Invoke(new Action(StopPaint));
+                return;
+            }
+
             _host.Child = null;
             _host = null;
         }

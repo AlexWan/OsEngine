@@ -335,6 +335,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     candles.RemoveAt(0);
                 }
 
+                if (candles.Count == 0)
+                {
+                    break;
+                }
+
                 Candle last = candles[candles.Count - 1];
 
                 if (last.TimeStart >= endTime)
@@ -1720,17 +1725,31 @@ namespace OsEngine.Market.Servers.HTX.Futures
         {
             if (_webSocketPublic != null)
             {
-                for (int i = 0; i < _arrayPublicChannels.Count; i++)
+                try
                 {
-                    _webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
+                    for (int i = 0; i < _arrayPublicChannels.Count; i++)
+                    {
+                        _webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
+                    }
+                }
+                catch
+                {
+                    // ignore
                 }
             }
 
             if (_webSocketPrivate != null)
             {
-                for (int i = 0; i < _arrayPrivateChannels.Count; i++)
+                try
                 {
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
+                    for (int i = 0; i < _arrayPrivateChannels.Count; i++)
+                    {
+                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
+                    }
+                }
+                catch
+                {
+                    // ignore
                 }
             }
         }

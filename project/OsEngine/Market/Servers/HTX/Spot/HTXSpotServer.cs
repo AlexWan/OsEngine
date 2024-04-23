@@ -59,7 +59,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             _accessKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;
-            
+
+            if (string.IsNullOrEmpty(_accessKey) ||
+                string.IsNullOrEmpty(_secretKey))
+            {
+                SendLogMessage("Can`t run HTX connector. No keys", LogMessageType.Error);
+                return;
+            }
+
             string url = $"https://{_baseUrl}/v2/market-status";
             RestClient client = new RestClient(url);
             RestRequest request = new RestRequest(Method.GET);
@@ -1752,18 +1759,32 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             if (_webSocketPublic != null)
             {
-                for (int i = 0; i < _arrayPublicChannels.Count; i++)
+                try
                 {
-                    _webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
+                    for (int i = 0; i < _arrayPublicChannels.Count; i++)
+                    {
+                        _webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
+                    }
+                }
+                catch
+                {
+                    // ignore
                 }
             }
 
             if (_webSocketPrivate != null)
-            { 
-                for (int i = 0; i < _arrayPrivateChannels.Count; i++)
+            {
+                try
                 {
+                    for (int i = 0; i < _arrayPrivateChannels.Count; i++)
+                    {
 
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
+                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
+                    }
+                }
+                catch
+                {
+                    // ignore
                 }
             }
         }

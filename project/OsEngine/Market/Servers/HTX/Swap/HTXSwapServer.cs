@@ -62,6 +62,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
             _accessKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;
 
+            if (string.IsNullOrEmpty(_accessKey) ||
+             string.IsNullOrEmpty(_secretKey))
+            {
+                SendLogMessage("Can`t run HTX connector. No keys", LogMessageType.Error);
+                return;
+            }
+
             if ("USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
             {
                 _pathWsPublic = "/linear-swap-ws";
@@ -330,9 +337,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     break;
                 }
 
-                if (allCandles.Count > 0 && allCandles[allCandles.Count - 1].TimeStart == candles[0].TimeStart)
+                if (allCandles.Count > 0 
+                    && allCandles[allCandles.Count - 1].TimeStart == candles[0].TimeStart)
                 {
                     candles.RemoveAt(0);
+                }
+
+                if(candles.Count == 0)
+                {
+                    break;
                 }
 
                 Candle last = candles[candles.Count - 1];
@@ -592,7 +605,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private bool _privateSocketActivate = false;
 
-        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSockets";
+        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsHtxSwap";
 
         private void CheckActivationSockets()
         {
@@ -1718,27 +1731,34 @@ namespace OsEngine.Market.Servers.HTX.Swap
               
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic == null)
+         
+            if (_webSocketPublic != null)
             {
-                
-            }
-            else
-            {
-                for (int i = 0; i < _arrayPublicChannels.Count; i++)
+                try
                 {
-                    _webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
+                    for (int i = 0; i < _arrayPublicChannels.Count; i++)
+                    {
+                        _webSocketPublic.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPublicChannels[i]}\"}}");
+                    }
+                }
+                catch
+                {
+                    // ignore
                 }
             }
 
-            if (_webSocketPrivate == null)
+            if (_webSocketPrivate != null)
             {
-                return;
-            }
-            else
-            {
-                for (int i = 0; i < _arrayPrivateChannels.Count; i++)
+                try
                 {
-                    _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
+                    for (int i = 0; i < _arrayPrivateChannels.Count; i++)
+                    {
+                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{_arrayPrivateChannels[i]}\"}}");
+                    }
+                }
+                catch
+                {
+                    // ignore
                 }
             }
         }

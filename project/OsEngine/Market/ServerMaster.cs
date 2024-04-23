@@ -33,7 +33,6 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
-using OsEngine.Market.Servers.Huobi.FuturesSwap;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
 using OsEngine.Market.Servers.TinkoffInvestments;
@@ -187,7 +186,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Hitbtc);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
-                serverTypes.Add(ServerType.HuobiFuturesSwap);
+                serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Bitmax_AscendexFutures);
@@ -202,7 +201,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
-                serverTypes.Add(ServerType.HTXSpot);
+                
 
                 serverTypes.Add(ServerType.AstsBridge);
 
@@ -297,12 +296,10 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
-                serverTypes.Add(ServerType.HuobiFuturesSwap);
+                serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Woo);
-                serverTypes.Add(ServerType.HTXSpot);
-                serverTypes.Add(ServerType.HTXFutures);
 
                 return serverTypes;
             }
@@ -426,10 +423,6 @@ namespace OsEngine.Market
                 if (type == ServerType.OKX)
                 {
                     newServer = new OkxServer();
-                }
-                if (type == ServerType.HuobiFuturesSwap)
-                {
-                    newServer = new HuobiFuturesSwapServer();
                 }
                 if (type == ServerType.MfdWeb)
                 {
@@ -1073,10 +1066,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new TinkoffInvestmentsServerPermission();
                 }
-                else if (type == ServerType.HuobiFuturesSwap)
-                {
-                    serverPermission = new HuobiFuturesSwapServerPermission();
-                }
                 else if (type == ServerType.GateIoFutures)
                 {
                     serverPermission = new GateIoServerFuturesPermission();
@@ -1447,11 +1436,6 @@ namespace OsEngine.Market
         /// MFD web server
         /// </summary>
         MfdWeb,
-
-        /// <summary>
-        /// Huobi Futures Swap
-        /// </summary>
-        HuobiFuturesSwap,
 
         /// <summary>
         /// Bybit exchange

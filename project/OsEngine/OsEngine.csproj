@@ -640,24 +640,6 @@
     <Compile Include="Market\Servers\HTX\Swap\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\HTX\Swap\HTXSwapServer.cs" />
     <Compile Include="Market\Servers\HTX\Swap\HTXSwapServerPermission.cs" />
-    <Compile Include="Market\Servers\Huobi\Entities\GetAccountBalanceResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Entities\GetAccountInfoResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Entities\GetSymbolsResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\FuturesSwap\HuobiFuturesSwapServer.cs" />
-    <Compile Include="Market\Servers\Huobi\FuturesSwap\HuobiFuturesSwapServerPermission.cs" />
-    <Compile Include="Market\Servers\Huobi\Request\GetRequest.cs" />
-    <Compile Include="Market\Servers\Huobi\Request\PrivateUrlBuilder.cs" />
-    <Compile Include="Market\Servers\Huobi\Request\PublicUrlBuilder.cs" />
-    <Compile Include="Market\Servers\Huobi\Request\Signer.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\CancelOrderByClientResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\GetCandlestickResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\GZipDecompresser.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\MarketDataPingMessage.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\PingMessage.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\PlaceOrderResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\SubscribeDepthResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\SubscribeTradeResponse.cs" />
-    <Compile Include="Market\Servers\Huobi\Response\WebSocketResponseBase.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\HTX\Spot\HTXSpotServer.cs" />
@@ -1893,9 +1875,7 @@
   <ItemGroup>
     <Resource Include="Images\MainWIndow\gear.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Market\Servers\Huobi\FuturesSwap\Entities\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Resource Include="Images\generateButton.png" />
   </ItemGroup>
