@@ -15,6 +15,7 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using WebSocketSharp;
+using OsEngine.Market;
 
 namespace OsEngine.Market.Servers.HTX.Swap
 {
@@ -205,6 +206,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private bool _usdtSwapValue;
 
+        private List<Security> _listSecuritys;
+
         #endregion
 
         #region 3 Securities
@@ -266,6 +269,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
             }
             SecurityEvent(securities);
+
+            _listSecuritys = securities;
         }
                
         public event Action<List<Security>> SecurityEvent;
@@ -1135,6 +1140,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
 
             Order newOrder = new Order();
+
+            for (int i = 0; i < _listSecuritys.Count; i++)
+            {
+                if (_listSecuritys[i].Name.Equals(response.contract_code)) 
+                {
+                    newOrder.Volume = response.volume.ToDecimal() * _listSecuritys[i].Lot;
+                    break;
+                }
+            }
+            
             newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.ts));
             newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
             newOrder.ServerType = ServerType.HTXFutures;
@@ -1143,7 +1158,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
             newOrder.NumberMarket = response.order_id.ToString();
             newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
             newOrder.State = GetOrderState(response.status);
-            newOrder.Volume = response.volume.ToDecimal();
             newOrder.Price = response.price.ToDecimal();
             newOrder.PortfolioNumber = $"HTXSwapPortfolio";
             newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
@@ -1214,7 +1228,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     pos.PortfolioName = "HTXSwapPortfolio";
                     pos.SecurityNameCode = _usdtSwapValue ? item[i].margin_asset : item[i].symbol;
-                    //pos.SecurityNameCode = item[i].symbol;
                     pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
                     pos.ValueCurrent = item[i].margin_balance.ToDecimal();
 
