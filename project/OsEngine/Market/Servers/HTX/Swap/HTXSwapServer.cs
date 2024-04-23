@@ -15,6 +15,10 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using WebSocketSharp;
+using OsEngine.Market;
+using Com.Lmax.Api.Internal;
+using OsEngine.Market.Servers.OKX.Entity;
+using System.Windows.Media;
 
 namespace OsEngine.Market.Servers.HTX.Swap
 {
@@ -205,6 +209,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private bool _usdtSwapValue;
 
+        private List<Security> _listSecuritys;
+
         #endregion
 
         #region 3 Securities
@@ -236,7 +242,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private void UpdateSecurity(string json)
         {
-            ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(json); ;
+            ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(json);
 
             List<Security> securities = new List<Security>();
 
@@ -266,6 +272,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
             }
             SecurityEvent(securities);
+
+            _listSecuritys = securities;
         }
                
         public event Action<List<Security>> SecurityEvent;
@@ -1107,14 +1115,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
             for (int i = 0; i < response.trade.Count; i++)
             {
                 MyTrade myTrade = new MyTrade();
-
+                               
                 myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.trade[i].created_at));
                 myTrade.NumberOrderParent = response.order_id;
                 myTrade.NumberTrade = response.trade[i].id;
                 myTrade.Price = response.trade[i].trade_price.ToDecimal();
                 myTrade.SecurityNameCode = response.contract_code; 
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
-                myTrade.Volume = response.trade[i].trade_volume.ToDecimal();
+                myTrade.Volume = GetSecurityLot(response.contract_code) * response.trade[i].trade_volume.ToDecimal();
 
                 MyTradeEvent(myTrade);
             }            
@@ -1135,6 +1143,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
 
             Order newOrder = new Order();
+
             newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.ts));
             newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
             newOrder.ServerType = ServerType.HTXFutures;
@@ -1143,10 +1152,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
             newOrder.NumberMarket = response.order_id.ToString();
             newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
             newOrder.State = GetOrderState(response.status);
-            newOrder.Volume = response.volume.ToDecimal();
             newOrder.Price = response.price.ToDecimal();
             newOrder.PortfolioNumber = $"HTXSwapPortfolio";
             newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+            newOrder.Volume = GetSecurityLot(response.contract_code) * response.volume.ToDecimal();
 
             MyOrderEvent(newOrder);
 
@@ -1214,7 +1223,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     pos.PortfolioName = "HTXSwapPortfolio";
                     pos.SecurityNameCode = _usdtSwapValue ? item[i].margin_asset : item[i].symbol;
-                    //pos.SecurityNameCode = item[i].symbol;
                     pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
                     pos.ValueCurrent = item[i].margin_balance.ToDecimal();
 
@@ -1248,8 +1256,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     pos.PortfolioName = "HTXSwapPortfolio";
                     pos.SecurityNameCode = item[i].contract_code;
-                    pos.ValueBlocked = item[i].frozen.ToDecimal();
-                    pos.ValueCurrent = item[i].volume.ToDecimal();
+                    pos.ValueBlocked = GetSecurityLot(item[i].contract_code) * item[i].frozen.ToDecimal();
+                    pos.ValueCurrent = GetSecurityLot(item[i].contract_code) * item[i].volume.ToDecimal();
 
                     portfolio.SetNewPosition(pos);
                 }
@@ -1284,16 +1292,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("contract_code", order.SecurityNameCode);
                 jsonContent.Add("client_order_id", order.NumberUser.ToString());
                 jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
-                jsonContent.Add("volume", order.Volume.ToString().Replace(",", "."));
+                
                 jsonContent.Add("direction", order.Side == Side.Buy ? "buy" : "sell");
 
                 if (order.PositionConditionType == OrderPositionConditionType.Close)
                 {
                     jsonContent.Add("offset", "close");
+                    jsonContent.Add("volume", (order.Volume / GetSecurityLot(order.SecurityNameCode)).ToString().Replace(",", "."));
                 }
                 else
                 {
                     jsonContent.Add("offset", "open");
+                    jsonContent.Add("volume", order.Volume.ToString().Replace(",", "."));
                 }
 
                 jsonContent.Add("lever_rate", "10");
@@ -1442,7 +1452,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             newOrder.NumberMarket = item[i].order_id.ToString();
                             newOrder.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
                             newOrder.State = GetOrderState(item[i].status);
-                            newOrder.Volume = item[i].volume.ToDecimal();
+                            newOrder.Volume = GetSecurityLot(item[i].contract_code) * item[i].volume.ToDecimal();
                             newOrder.Price = item[i].price.ToDecimal();
                             newOrder.PortfolioNumber = $"HTXSwapPortfolio";
                             newOrder.PositionConditionType = item[i].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
@@ -1563,7 +1573,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         newOrder.NumberMarket = item[0].order_id.ToString();
                         newOrder.Side = item[0].direction.Equals("buy") ? Side.Buy : Side.Sell;
                         newOrder.State = GetOrderState(item[0].status);
-                        newOrder.Volume = item[0].volume.ToDecimal();
+                        newOrder.Volume = GetSecurityLot(item[0].contract_code) * item[0].volume.ToDecimal();
                         newOrder.Price = item[0].price.ToDecimal();
                         newOrder.PortfolioNumber = $"HTXSwapPortfolio";
                         newOrder.PositionConditionType = item[0].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
@@ -1586,8 +1596,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 jsonContent.Add("contract_code", security.Split('_')[0]);
                 jsonContent.Add("order_id", Convert.ToInt64(orderId));
                 jsonContent.Add("created_at", TimeManager.GetTimeStampMilliSecondsToDateTime(createdOrderTime));
-                //jsonContent.Add("order_type", 1);
-
+                
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_detail");
 
                 RestClient client = new RestClient(url);
@@ -1611,7 +1620,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             newTrade.SecurityNameCode = orderResponse.data.contract_code;
                             newTrade.NumberTrade = orderResponse.data.trades[i].trade_id;
                             newTrade.NumberOrderParent = orderResponse.data.order_id;
-                            newTrade.Volume = orderResponse.data.trades[i].trade_volume.ToDecimal();
+                            newTrade.Volume = GetSecurityLot(orderResponse.data.contract_code) * orderResponse.data.trades[i].trade_volume.ToDecimal();
                             newTrade.Price = orderResponse.data.trades[i].trade_price.ToDecimal();
                             newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderResponse.data.trades[i].created_at));
 
@@ -1836,12 +1845,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     pos.PortfolioName = "HTXSwapPortfolio";
                     pos.SecurityNameCode = itemPosition[j].contract_code;
-                    pos.ValueBlocked = itemPosition[j].frozen.ToDecimal();
-                    pos.ValueCurrent = itemPosition[j].volume.ToDecimal();
+                    pos.ValueBlocked = GetSecurityLot(itemPosition[j].contract_code) * itemPosition[j].frozen.ToDecimal();
+                    pos.ValueCurrent = GetSecurityLot(itemPosition[j].contract_code) * itemPosition[j].volume.ToDecimal();
 
                     if (IsUpdateValueBegin)
                     {
-                        pos.ValueBegin = itemPosition[j].volume.ToDecimal();
+                        pos.ValueBegin = GetSecurityLotFirstLoad(itemPosition[j].contract_code) * itemPosition[j].volume.ToDecimal();
                     }
                     portfolio.SetNewPosition(pos);
                 }
@@ -1926,16 +1935,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     for (int j = 0; j < itemPosition.Count; j++)
                     {
+                        decimal lot = GetSecurityLot(itemPosition[j].contract_code);
+
                         PositionOnBoard pos = new PositionOnBoard();
 
                         pos.PortfolioName = "HTXSwapPortfolio";
                         pos.SecurityNameCode = itemPosition[j].contract_code;
-                        pos.ValueBlocked = itemPosition[j].frozen.ToDecimal();
-                        pos.ValueCurrent = itemPosition[j].volume.ToDecimal();
+                        pos.ValueBlocked = lot * itemPosition[j].frozen.ToDecimal();
+                        pos.ValueCurrent = lot * itemPosition[j].volume.ToDecimal();
 
                         if (IsUpdateValueBegin)
                         {
-                            pos.ValueBegin = itemPosition[j].volume.ToDecimal();
+                            pos.ValueBegin = GetSecurityLotFirstLoad(itemPosition[j].contract_code) * itemPosition[j].volume.ToDecimal();
                         }
                         portfolio.SetNewPosition(pos);
                     }
@@ -1987,7 +1998,58 @@ namespace OsEngine.Market.Servers.HTX.Swap
             
             return JsonConvert.SerializeObject(auth);
         }
-        
+
+        private decimal GetSecurityLot(string contract_code)
+        {
+            if (_listSecuritys == null)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < _listSecuritys.Count; i++)
+            {
+                if (_listSecuritys[i].Name.Equals(contract_code))
+                {
+                    return _listSecuritys[i].Lot;
+                }
+            }
+            return 0;
+        }
+
+        private decimal GetSecurityLotFirstLoad(string contract_code)
+        {
+            try
+            {
+                string url = $"https://{_baseUrl}{_pathRest}/v1/swap_contract_info";
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+                string JsonResponse = responseMessage.Content;
+
+                if (!JsonResponse.Contains("error"))
+                {
+                    ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(JsonResponse);
+
+                    for (int i = 0; i < response.data.Count; i++)
+                    {
+                        if (response.data[i].contract_code.Equals(contract_code))
+                        {
+                            return response.data[i].contract_size.ToDecimal();
+                        }
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                }
+            } 
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return 0;
+        }
+
         #endregion
 
         #region 13 Log
