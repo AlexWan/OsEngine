@@ -15,10 +15,6 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using WebSocketSharp;
-using OsEngine.Market;
-using Com.Lmax.Api.Internal;
-using OsEngine.Market.Servers.OKX.Entity;
-using System.Windows.Media;
 
 namespace OsEngine.Market.Servers.HTX.Swap
 {
