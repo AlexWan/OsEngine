@@ -96,6 +96,11 @@ namespace OsEngine.Language
             {
                 CultureInfo culture = new CultureInfo(CurLocalizationCode);
 
+                if(_longTimePattern == null)
+                {
+                    Load();
+                }
+
                 if(_longTimePattern != null)
                 {
                     culture.DateTimeFormat.LongTimePattern = _longTimePattern;
