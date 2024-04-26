@@ -16,6 +16,7 @@ import "google/api/field_behavior.proto";
 service OrdersStreamService {
   //Stream сделок пользователя
   rpc TradesStream(TradesStreamRequest) returns (stream TradesStreamResponse);
+  rpc OrderStateStream(OrderStateStreamRequest) returns (stream OrderStateStreamResponse);
 }
 
 service OrdersService {/* Сервис предназначен для работы с торговыми поручениями:</br> **1**.
@@ -213,7 +214,7 @@ message GetMaxLotsResponse {
   }
 }
 
-
+//Запрос получения предварительной стоимости заявки
 message GetOrderPriceRequest {
   string account_id = 1; //Номер счета
   string instrument_id = 2; //Идентификатор инструмента, принимает значения Figi или instrument_uid
@@ -222,6 +223,7 @@ message GetOrderPriceRequest {
   int64 quantity = 13; //Количество лотов
 }
 
+//Предварительная стоимость заявки
 message GetOrderPriceResponse {
   MoneyValue total_order_amount = 1; //Итоговая стоимость заявки
   MoneyValue initial_order_amount = 5; //Стоимость заявки без комиссий, НКД, ГО (для фьючерсов — стоимость контрактов)
@@ -244,6 +246,98 @@ message GetOrderPriceResponse {
   message ExtraFuture {
     MoneyValue initial_margin = 2; //Гарантийное обеспечение для фьючерса
   }
+}
+
+//Запрос установки стрим-соединения торговых поручений
+message OrderStateStreamRequest {
+  repeated string accounts = 1; //Идентификаторы счетов.
+  optional int32 ping_delay_millis = 15; //Задержка пинг сообщений milliseconds 1000-120000, default 120000
+}
+
+//Информация по заявкам
+message OrderStateStreamResponse {
+  oneof payload {
+    OrderState order_state = 1; //Информация об исполнении торгового поручения.
+    Ping ping = 2; //Проверка активности стрима.
+    SubscriptionResponse subscription = 3; //Ответ на запрос на подписку.
+  }
+
+  message SubscriptionResponse {
+    string tracking_id = 1; //Уникальный идентификатор запроса, подробнее: [tracking_id](https://russianinvestments.github.io/investAPI/grpc#tracking-id).
+    SubscriptionStatus status = 2; //Статус подписки.
+    string stream_id = 4; //Идентификатор открытого соединения
+    repeated string accounts = 5; //Идентификаторы счетов.
+    optional ErrorDetail error = 7;
+
+    enum SubscriptionStatus {
+      SUBSCRIPTION_STATUS_UNSPECIFIED = 0; //Статус подписки не определен.
+      SUBSCRIPTION_STATUS_OK = 1; //Подписка успешно установлена.
+      SUBSCRIPTION_STATUS_ERROR = 13; //Ошибка подписки
+    }
+
+    message ErrorDetail {
+      string code = 1; //Код ошибки.
+      string message = 3; //Описание ошибки.
+    }
+  }
+
+  //Заявка
+  message OrderState {
+    string order_id = 1; //Биржевой идентификатор заявки
+    optional string order_request_id = 2; //Идентификатор ключа идемпотентности, переданный клиентом, в формате UID. Максимальная длина 36 символов.
+    string client_code = 3; //Код клиента на бирже
+    google.protobuf.Timestamp created_at = 4; //Дата создания заявки
+    OrderExecutionReportStatus execution_report_status = 5; //Статус заявки
+    optional StatusCauseInfo status_info = 6; //Дополнительная информация по статусу
+    string ticker = 7; //Тикер инструмента
+    string class_code = 8; //Класс-код (секция торгов)
+    int32 lot_size = 9; //Лотность инструмента заявки
+    OrderDirection direction = 10; //Направление заявки
+    TimeInForceType time_in_force = 11; //Алгоритм исполнения поручения
+    OrderType order_type = 12; //Тип заявки
+    string account_id = 13; //Номер счета
+    MoneyValue initial_order_price = 22; //Начальная цена заявки
+    MoneyValue order_price = 23; //Цена выставления заявки
+    optional MoneyValue amount = 24; //Предрассчитанная стоимость полной заявки
+    MoneyValue executed_order_price = 25; //Исполненная средняя цена одного инструмента в заявке
+    string currency = 26; //Валюта исполнения
+    int64 lots_requested = 27; //Запрошено лотов
+    int64 lots_executed = 28; //Исполнено лотов
+    int64 lots_left = 29; //Число неисполненных лотов по заявке
+    int64 lots_cancelled = 30; //Отмененные лоты
+    optional MarkerType marker = 31; //Спецсимвол
+    repeated OrderTrade trades = 33; //	Список сделок
+    google.protobuf.Timestamp completion_time = 35; //Время исполнения заявки
+    string exchange = 36; //Код биржи
+    string instrument_uid = 41; //UID идентификатор инструмента
+  }
+
+  //Маркер
+  enum MarkerType {
+    MARKER_UNKNOWN = 0; //не определено
+    MARKER_BROKER = 1; //сделки брокера
+    MARKER_CHAT = 2; //исполнение поручение, полученного от клиента через каналы связи
+    MARKER_PAPER = 3; //исполнение поручение, полученного от клиента в бумажной форме
+    MARKER_MARGIN = 4; //принудительное закрытие позиций
+    MARKER_TKBNM = 5; //сделки по управлению ликвидностью
+    MARKER_SHORT = 6; //сделки РЕПО по привлечению у клиентов бумаг
+    MARKER_SPECMM = 7; //перенос временно непокрытых позиций
+    MARKER_PO = 8;
+  }
+  
+  //Дополнительная информация по статусу заявки
+  enum StatusCauseInfo {
+    CAUSE_UNSPECIFIED = 0; //Не определено
+    CAUSE_CANCELLED_BY_CLIENT = 15; //Отменено клиентом
+    CAUSE_CANCELLED_BY_EXCHANGE = 1; //Отменено биржей
+    CAUSE_CANCELLED_NOT_ENOUGH_POSITION = 2; //Заявка не выставлена из-за нехватки средств
+    CAUSE_CANCELLED_BY_CLIENT_BLOCK = 3; //Отменено из-за блокировки клиента
+    CAUSE_REJECTED_BY_BROKER = 4; //Отклонено брокером
+    CAUSE_REJECTED_BY_EXCHANGE = 5; //Отклонено биржей
+    CAUSE_CANCELLED_BY_BROKER = 6; //Отменено брокером
+  }
+
+
 }
 
 //Направление операции.
@@ -271,6 +365,7 @@ enum OrderExecutionReportStatus {
   EXECUTION_REPORT_STATUS_PARTIALLYFILL = 5; //Частично исполнена
 }
 
+//Алгоритм исполнения заявки
 enum TimeInForceType {
   TIME_IN_FORCE_UNSPECIFIED = 0; //Значение не определено см. TIME_IN_FORCE_DAY
   TIME_IN_FORCE_DAY = 1; //Заявка действует до конца торгового дня. Значение по умолчанию
