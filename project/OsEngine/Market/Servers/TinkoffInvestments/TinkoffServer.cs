@@ -20,6 +20,10 @@ using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
+using OsEngine.Market.Servers.Alor.Json;
+using RestSharp;
+using OsEngine.Market.Servers.Transaq.TransaqEntity;
+using OsEngine.Market.Servers.OKX.Entity;
 
 namespace OsEngine.Market.Servers.TinkoffInvestments
 {
@@ -268,7 +272,9 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         private string _customTerminalId; // id to avoid duplicate order error
         private bool _filterOutNonMarketData; // отфльтровать кухню выходного дня
         private string _accessToken;
-        
+
+        private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
+
         #endregion
 
         #region 3 Securities
@@ -1486,7 +1492,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     }
                 }
                 
-                if (_subscribedSecurities.Count == 150)
+                if (_subscribedSecurities.Count == 300) // 300 - max marketdata subscriptions (600 = 300 trades + 300 orderbooks )
                 {
                     _useStreamForMarketData = false;
                 }
@@ -2242,12 +2248,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
                         Order order = new Order();
 
-                        if (!state.OrderRequestId.Contains(":")) // значит сделка была вручную и это не наш ордер
+                        if (!_orderNumbers.ContainsKey(state.OrderRequestId)) // значит сделка была вручную и это не наш ордер
                         {
                             continue;
                         }
 
-                        order.NumberUser = Convert.ToInt32(state.OrderRequestId.Split(':')[1]); // отрезаем id терминала
+                        order.NumberUser = _orderNumbers[state.OrderRequestId];
                         order.NumberMarket = state.OrderId;
                         order.SecurityNameCode = security.Name;
                         order.PortfolioNumber = tradesResponse.OrderTrades.AccountId;
@@ -2369,7 +2375,14 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 request.Price = ConvertToQuotation(order.Price);
                 request.InstrumentId = security.NameId;
                 request.AccountId = order.PortfolioNumber;
-                request.OrderId = _customTerminalId + ":" + order.NumberUser.ToString();
+
+                // генерируем новый номер ордера и добавляем его в словарь
+                Guid newUid = Guid.NewGuid();
+                string orderId = newUid.ToString();
+
+                _orderNumbers.Add(orderId, order.NumberUser);
+
+                request.OrderId = orderId;
 
                 PostOrderResponse response = null;
 
@@ -2449,7 +2462,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 ReplaceOrderRequest request = new ReplaceOrderRequest();
                 request.AccountId = order.PortfolioNumber;
                 request.OrderId = order.NumberMarket;
-                request.IdempotencyKey = _customTerminalId + ":" + newOrderNumber.ToString();
+
+                Guid newUid = Guid.NewGuid();
+                string orderId = newUid.ToString();
+                _orderNumbers.Add(orderId, order.NumberUser);
+                
+                request.IdempotencyKey = orderId;
                 request.Quantity = Convert.ToInt32(order.Volume - order.VolumeExecute);
 
                 if (request.Quantity <= 0 || order.State != OrderStateType.Activ)
@@ -2620,12 +2638,155 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         public void GetAllActivOrders()
         {
+            List<Order> orders = GetAllOrdersFromExchange();
 
+            for (int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if (orders[i] == null)
+                {
+                    continue;
+                }
+
+                if (orders[i].State != OrderStateType.Activ
+                    && orders[i].State != OrderStateType.Patrial
+                    && orders[i].State != OrderStateType.Pending)
+                {
+                    continue;
+                }
+
+                orders[i].TimeCreate = orders[i].TimeCallBack;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
         }
 
         public void GetOrderStatus(Order order)
         {
+            _rateGateOrders.WaitToProceed();
+            
+            try
+            {
+                // запрашиваем состояние ордера
+                GetOrderStateRequest getOrderStateRequest = new GetOrderStateRequest();
+                getOrderStateRequest.OrderId = order.NumberMarket;
+                getOrderStateRequest.AccountId = order.PortfolioNumber;
 
+                OrderState state = null;
+                try
+                {
+                    _rateGateOrders.WaitToProceed();
+                    state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.Error);
+
+                    Thread.Sleep(1);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error getting order state " + order.SecurityNameCode + " exception: " + ex.ToString(), LogMessageType.Error);
+                    SendLogMessage("Server data was: " + state.ToString(), LogMessageType.Error);
+
+                    Thread.Sleep(1);
+                    return;
+                }
+                Order newOrder = new Order();
+
+                if (!_orderNumbers.ContainsKey(state.OrderRequestId))
+                {
+                    order.NumberUser = order.NumberUser != 0 ? order.NumberUser : NumberGen.GetNumberOrder(StartProgram.IsOsTrader);
+                    _orderNumbers.Add(state.OrderRequestId, order.NumberUser);
+                }
+
+                newOrder.NumberUser = _orderNumbers[state.OrderRequestId];
+                newOrder.NumberMarket = state.OrderId;
+                newOrder.SecurityNameCode = order.SecurityNameCode;
+                newOrder.PortfolioNumber = order.PortfolioNumber;
+                newOrder.Side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
+                newOrder.TypeOrder = state.OrderType == OrderType.Limit
+                    ? OrderPriceType.Limit
+                    : OrderPriceType.Market;
+
+                newOrder.Volume = state.LotsRequested;
+                newOrder.VolumeExecute = state.LotsExecuted;
+                newOrder.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialSecurityPrice) : 0;
+                newOrder.TimeCallBack = state.OrderDate.ToDateTime();
+                newOrder.SecurityClassCode = order.SecurityClassCode;
+
+                if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
+                {
+                    newOrder.State = OrderStateType.None;
+                }
+                else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusFill)
+                {
+                    newOrder.State = OrderStateType.Done;
+                }
+                else if (state.ExecutionReportStatus ==
+                         OrderExecutionReportStatus.ExecutionReportStatusRejected)
+                {
+                    newOrder.State = OrderStateType.Fail;
+                }
+                else if (state.ExecutionReportStatus ==
+                         OrderExecutionReportStatus.ExecutionReportStatusCancelled)
+                {
+                    newOrder.State = OrderStateType.Cancel;
+                }
+                else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
+                {
+                    newOrder.State = OrderStateType.Activ;
+                }
+                else if (state.ExecutionReportStatus ==
+                         OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
+                {
+                    newOrder.State = OrderStateType.Patrial;
+                }
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(newOrder);
+                }
+
+                if (newOrder.State == OrderStateType.Done || newOrder.State == OrderStateType.Patrial)
+                {
+                    // add all trades for this order
+                    for (int i = 0; i < state.Stages.Count; i++)
+                    {
+                        OrderStage stage = state.Stages[i];
+
+                        MyTrade trade = new MyTrade();
+
+                        trade.SecurityNameCode = order.SecurityNameCode;
+                        trade.Price = GetValue(stage.Price);
+                        trade.Volume = stage.Quantity;
+                        trade.NumberOrderParent = state.OrderId;
+                        trade.NumberTrade = stage.TradeId;
+                        trade.Time = stage.ExecutionTime.ToDateTime();
+                        trade.Side = state.Direction == OrderDirection.Buy
+                            ? Side.Buy
+                            : Side.Sell;
+
+                        if (MyTradeEvent != null)
+                        {
+                            MyTradeEvent(trade);
+                        }
+                    }
+                }
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.Error);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Get order state request error. " + exception.ToString(), LogMessageType.Error);
+            }
         }
 
         private List<Order> GetAllOrdersFromExchange()
@@ -2678,16 +2839,18 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         {
                             newOrder.Price = GetValue(state.InitialSecurityPrice);
                         }
-
-                        try
+                        
+                        string orderId = state.OrderRequestId;
+                        
+                        if (_orderNumbers.ContainsKey(orderId))
                         {
-                            newOrder.NumberUser = Convert.ToInt32(state.OrderRequestId.Split(':')[1]);
+                            newOrder.NumberUser = _orderNumbers[orderId];
                         }
-                        catch
+                        else
                         {
                             return null;
                         }
-
+                        
                         newOrder.NumberMarket = state.OrderId;
                         newOrder.TimeCallBack = state.OrderDate.ToDateTime();
                         newOrder.Side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
@@ -2739,11 +2902,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
             return null;
         }
-
+        
         #endregion
 
         #region 10 Helpers
-
+        
         private string GetGRPCErrorMessage(RpcException exception)
         {
             string message = "no server message";

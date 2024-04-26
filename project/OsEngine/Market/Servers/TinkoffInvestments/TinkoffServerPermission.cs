@@ -191,12 +191,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
