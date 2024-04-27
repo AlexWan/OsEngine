@@ -124,7 +124,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _rateGate = new RateGate(280, TimeSpan.FromSeconds(60)); // макс 1500 / 5 мин
+        private RateGate _generalRateGate1 = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // 100 запросов в 10 секунд
+        private RateGate _generalRateGate2 = new RateGate(1, TimeSpan.FromSeconds(1 / 1000)); // 1000 запросов в 10 секунд
+        private RateGate _generalRateGate3 = new RateGate(1, TimeSpan.FromSeconds(1 / 1000)); // 1000 запросов в 10 секунд
 
         public string _publicKey;
 
@@ -138,7 +140,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public void GetSecurities()
         {
-            _rateGate.WaitToProceed();
+            _generalRateGate1.WaitToProceed();
 
             try
             {
@@ -230,9 +232,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             CreateQueryPositions();
         }
 
+        private RateGate _positionsRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд 
+
         private void CreateQueryPositions()
         {
-            _rateGate.WaitToProceed();
+            _generalRateGate3.WaitToProceed();
+            _positionsRateGate.WaitToProceed();
 
             try
             {
@@ -273,9 +278,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
+
+        private RateGate _portfolioRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
         private void CreateQueryPortfolio()
         {
-            _rateGate.WaitToProceed();
+            _generalRateGate3.WaitToProceed();
+            _portfolioRateGate.WaitToProceed();
 
             try
             {
@@ -426,19 +434,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             return RequestCandleHistory(security.Name, tf);
         }
 
-        private DateTime _timeLastRequestCandleHistory = DateTime.Now;
-
         private List<Candle> RequestCandleHistory(string nameSec, string tameFrame, long limit = 500, long fromTimeStamp = 0, long toTimeStamp = 0)
         {
-            _rateGate.WaitToProceed();
-
-            while (true)
-            {
-                if (_timeLastRequestCandleHistory.AddMilliseconds(100) > DateTime.Now)
-                    continue;
-                else
-                    break;
-            }
+            _generalRateGate1.WaitToProceed();
 
             try
             {
@@ -463,8 +461,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     string json = responseMessage.Content.ReadAsStringAsync().Result;
-
-                    _timeLastRequestCandleHistory = DateTime.Now;
 
                     try
                     {
@@ -563,9 +559,10 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            // если endTime превышает реальное время, то запрос на скачивание не пройдет и выдаст ошибку. Это условие это исправляет.
             if (endTime > actualTime)
             {
-                endTime = DateTime.Now;
+                endTime = DateTime.UtcNow;
             }
 
             if (!CheckTime(startTime, endTime, actualTime))
@@ -1030,13 +1027,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             try
             {
-                TradeUpdateEvent responceOrder = JsonConvert.DeserializeObject<TradeUpdateEvent>(message);
+                TradeUpdateEvent responseOrder = JsonConvert.DeserializeObject<TradeUpdateEvent>(message);
 
                 Order newOrder = new Order();
 
                 OrderStateType orderState = OrderStateType.None;
 
-                switch (responceOrder.o.X)
+                switch (responseOrder.o.X)
                 {
                     case "FILLED":
                         orderState = OrderStateType.Done;
@@ -1058,17 +1055,17 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         break;
                 }
 
-                newOrder.NumberUser = Convert.ToInt32(responceOrder.o.c);
-                newOrder.NumberMarket = responceOrder.o.i.ToString();
-                newOrder.SecurityNameCode = responceOrder.o.s;
-                newOrder.SecurityClassCode = responceOrder.o.N;
+                newOrder.NumberUser = Convert.ToInt32(responseOrder.o.c);
+                newOrder.NumberMarket = responseOrder.o.i.ToString();
+                newOrder.SecurityNameCode = responseOrder.o.s;
+                newOrder.SecurityClassCode = responseOrder.o.N;
                 newOrder.PortfolioNumber = "BingXFutures";
-                newOrder.Side = responceOrder.o.S.Equals("BUY") ? Side.Buy : Side.Sell;
-                newOrder.Price = responceOrder.o.p.Replace('.', ',').ToDecimal();
-                newOrder.Volume = responceOrder.o.q.Replace('.', ',').ToDecimal();
+                newOrder.Side = responseOrder.o.S.Equals("BUY") ? Side.Buy : Side.Sell;
+                newOrder.Price = responseOrder.o.p.Replace('.', ',').ToDecimal();
+                newOrder.Volume = responseOrder.o.q.Replace('.', ',').ToDecimal();
                 newOrder.State = orderState;
-                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceOrder.E));
-                newOrder.TypeOrder = responceOrder.o.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseOrder.E));
+                newOrder.TypeOrder = responseOrder.o.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
                 newOrder.ServerType = ServerType.BingXFutures;
 
                 MyOrderEvent(newOrder);
@@ -1088,8 +1085,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private void UpdateMyTrade(string message)
         {
-            _rateGate.WaitToProceed();
-
             try
             {
                 TradeUpdateEvent responseOrder = JsonConvert.DeserializeObject<TradeUpdateEvent>(message);
@@ -1184,9 +1179,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         #region 10 Trade
 
+        private RateGate _sendOrderRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
+
         public void SendOrder(Order order)
         {
-            _rateGate.WaitToProceed();
+            _generalRateGate3.WaitToProceed();
+            _sendOrderRateGate.WaitToProceed();
 
             _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
 
@@ -1311,9 +1309,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         }
 
+        private RateGate _cancelOrderRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
+
         public void CancelOrder(Order order)
         {
-            _rateGate.WaitToProceed();
+            _generalRateGate3.WaitToProceed();
+            _cancelOrderRateGate.WaitToProceed();
 
             RestClient client = new RestClient(_baseUrl);
             RestRequest request = new RestRequest("/openApi/swap/v2/trade/order", Method.DELETE);
@@ -1364,14 +1365,268 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
+        private RateGate _getOpenOrdersRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
+
         public void GetAllActivOrders()
         {
+            _generalRateGate3.WaitToProceed();
+            _getOpenOrdersRateGate.WaitToProceed();
 
+            try
+            {
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/swap/v2/trade/openOrders", Method.GET);
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string parameters = $"timestamp={timeStamp}";
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseFuturesBingXMessage<OpenOrdersData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<OpenOrdersData>>(json.Content);
+                    if (response.code == "0")
+                    {
+                        for (int i = 0; i < response.data.orders.Count; i++)
+                        {
+                            Order openOrder = new Order();
+
+                            switch (response.data.orders[i].status)
+                            {
+                                case "FILLED":
+                                    openOrder.State = OrderStateType.Done;
+                                    break;
+                                case "PARTIALLY_FILLED":
+                                    openOrder.State = OrderStateType.Patrial;
+                                    break;
+                                case "CANCELED":
+                                    openOrder.State = OrderStateType.Cancel;
+                                    break;
+                                case "NEW":
+                                    openOrder.State = OrderStateType.Activ;
+                                    break;
+                                case "EXPIRED":
+                                    openOrder.State = OrderStateType.Fail;
+                                    break;
+                                case "PENDING":
+                                    openOrder.State = OrderStateType.Activ;
+                                    break;
+                                default:
+                                    openOrder.State = OrderStateType.None;
+                                    break;
+                            }
+
+                            string numberUser = response.data.orders[i].clientOrderId;
+
+                            if (numberUser != "")
+                            {
+                                openOrder.NumberUser = Convert.ToInt32(response.data.orders[i].clientOrderId);
+                            }
+                            openOrder.NumberMarket = response.data.orders[i].orderId.ToString();
+                            openOrder.SecurityNameCode = response.data.orders[i].symbol;
+                            openOrder.SecurityClassCode = response.data.orders[i].symbol.Split('-')[1];
+                            openOrder.PortfolioNumber = "BingXFutures";
+                            openOrder.Side = response.data.orders[i].side.Equals("BUY") ? Side.Buy : Side.Sell;
+                            openOrder.Price = response.data.orders[i].price.Replace('.', ',').ToDecimal();
+                            openOrder.Volume = response.data.orders[i].origQty.Replace('.', ',').ToDecimal();
+                            openOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.orders[i].time));
+                            openOrder.TypeOrder = response.data.orders[i].type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                            openOrder.ServerType = ServerType.BingXFutures;
+
+                            if (MyOrderEvent != null)
+                            {
+                                MyOrderEvent(openOrder);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get open orders error: code - {response.code} | message - {response.msg}", LogMessageType.Trade);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         public void GetOrderStatus(Order order)
         {
+            GetOrderStatusBySecurity(order);
 
+            GetMyTradesBySecurity(order);
+        }
+
+        private RateGate _getMyTradesRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
+
+        private void GetMyTradesBySecurity(Order order)
+        {
+            _generalRateGate2.WaitToProceed();
+            _getMyTradesRateGate.WaitToProceed();
+
+            try
+            {
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/swap/v2/trade/allFillOrders", Method.GET);
+
+                string startTs = TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.Now.AddDays(-1)).ToString();
+                string endTs = TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.Now.AddDays(1)).ToString();
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string parameters = $"timestamp={timeStamp}&orderId={order.NumberMarket}&tradingUnit=COIN&startTs={startTs}&endTs={endTs}";
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("orderId", order.NumberMarket);
+                request.AddParameter("tradingUnit", "COIN");
+                request.AddParameter("startTs", startTs);
+                request.AddParameter("endTs", endTs);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseFuturesBingXMessage<FillOrdersData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<FillOrdersData>>(json.Content);
+
+                    if (response.code == "0")
+                    {
+                        for (int i = 0; i < response.data.fill_orders.Count; i++)
+                        {
+                            if (response.data.fill_orders[i].orderId != order.NumberMarket)
+                            {
+                                continue;
+                            }
+
+                            MyTrade newTrade = new MyTrade();
+
+                            newTrade.Time = Convert.ToDateTime(response.data.fill_orders[i].filledTime);
+                            newTrade.SecurityNameCode = response.data.fill_orders[i].symbol;
+                            newTrade.NumberOrderParent = response.data.fill_orders[i].orderId;
+                            newTrade.Price = response.data.fill_orders[i].price.ToDecimal();
+                            newTrade.NumberTrade = TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.Now).ToString();
+                            newTrade.Side = response.data.fill_orders[i].side.Contains("BUY") ? Side.Buy : Side.Sell;
+                            newTrade.Volume = response.data.fill_orders[i].volume.ToDecimal();
+
+                            if (MyTradeEvent != null)
+                            {
+                                MyTradeEvent(newTrade);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private RateGate _getOrderStatusRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
+
+        private void GetOrderStatusBySecurity(Order order)
+        {
+            _generalRateGate2.WaitToProceed();
+            _getOrderStatusRateGate.WaitToProceed();
+
+            try
+            {
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/swap/v2/trade/order", Method.GET);
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string parameters = $"timestamp={timeStamp}&symbol={order.SecurityNameCode}&orderId={order.NumberMarket}&clientOrderID={order.NumberUser}";
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", order.SecurityNameCode);
+                request.AddParameter("orderId", order.NumberMarket);
+                request.AddParameter("clientOrderID", order.NumberUser);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseFuturesBingXMessage<OrderData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<OrderData>>(json.Content);
+                    if (response.code == "0")
+                    {
+                        Order openOrder = new Order();
+
+                        switch (response.data.order.status)
+                        {
+                            case "FILLED":
+                                openOrder.State = OrderStateType.Done;
+                                break;
+                            case "PARTIALLY_FILLED":
+                                openOrder.State = OrderStateType.Patrial;
+                                break;
+                            case "CANCELLED":
+                                openOrder.State = OrderStateType.Cancel;
+                                break;
+                            case "NEW":
+                                openOrder.State = OrderStateType.Activ;
+                                break;
+                            case "EXPIRED":
+                                openOrder.State = OrderStateType.Fail;
+                                break;
+                            case "PENDING":
+                                openOrder.State = OrderStateType.Activ;
+                                break;
+                            default:
+                                openOrder.State = OrderStateType.None;
+                                break;
+                        }
+
+                        string numberUser = response.data.order.clientOrderId;
+
+                        if (numberUser != "")
+                        {
+                            openOrder.NumberUser = Convert.ToInt32(response.data.order.clientOrderId);
+                        }
+                        openOrder.NumberMarket = response.data.order.orderId.ToString();
+                        openOrder.SecurityNameCode = response.data.order.symbol;
+                        openOrder.SecurityClassCode = response.data.order.symbol.Split('-')[1];
+                        openOrder.PortfolioNumber = "BingXFutures";
+                        openOrder.Side = response.data.order.side.Equals("BUY") ? Side.Buy : Side.Sell;
+                        openOrder.Price = response.data.order.price.Replace('.', ',').ToDecimal();
+                        openOrder.Volume = response.data.order.origQty.Replace('.', ',').ToDecimal();
+                        openOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.order.time));
+                        openOrder.TypeOrder = response.data.order.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                        openOrder.ServerType = ServerType.BingXFutures;
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(openOrder);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get order status error: code - {response.code} | message - {response.msg}", LogMessageType.Trade);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1382,9 +1637,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private readonly HttpClient _httpPublicClient = new HttpClient();
 
+
+        private RateGate _createListenKeyRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
+
         private string CreateListenKey()
         {
-            _rateGate.WaitToProceed();
+            _generalRateGate2.WaitToProceed();
 
             try
             {
@@ -1409,6 +1667,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         }
 
         private DateTime _timeLastUpdateListenKey = DateTime.MinValue;
+
+        private RateGate _requestListenKeyRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
 
         private void RequestListenKey()
         {
@@ -1435,7 +1695,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         continue;
                     }
 
-                    _rateGate.WaitToProceed();
+                    _generalRateGate2.WaitToProceed();
+                    _requestListenKeyRateGate.WaitToProceed();
 
                     string endpoint = "/openApi/user/auth/userDataStream";
 
