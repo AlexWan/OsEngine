@@ -46,6 +46,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         public BitGetServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            Thread thread3 = new Thread(UpdatingPortfolio);
+            thread3.IsBackground = true;
+            thread3.Name = "UpdatingPortfolio";
+            thread3.Start();
         }
 
         public ServerConnectStatus ServerStatus { get; set; }
@@ -92,10 +97,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                     CreateWebSocketConnection();
 
-                    Thread thread3 = new Thread(UpdatingPortfolio);
-                    thread3.IsBackground = true;
-                    thread3.Name = "UpdatingPortfolio";
-                    thread3.Start();
+
 
                     _lastConnectionStartTime = DateTime.Now;
                 }
@@ -498,6 +500,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             if (Positions != null)
             {
+                List<PositionOnBoard> currentPositions = new List<PositionOnBoard>();
+
                 for (int i = 0; i < Positions.data.Count; i++)
                 {
                     PositionOnBoard pos = new PositionOnBoard();
@@ -525,7 +529,58 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         pos.ValueBegin = pos.ValueCurrent;
                     }
 
-                    portfolio.SetNewPosition(pos);
+                    currentPositions.Add(pos);
+                }
+
+                // добавляем в общий массив имеющихся позиций, если ещё не добавили
+                for(int i = 0;i < currentPositions.Count;i++)
+                {
+                    PositionOnBoard curPos = currentPositions[i];
+
+                    bool isInArray = false;
+
+                    for(int j = 0;j < _allPositions.Count;j++)
+                    {
+                        if(curPos.SecurityNameCode == _allPositions[j].SecurityNameCode)
+                        {
+                            isInArray = true;
+                            _allPositions[j] = curPos;
+                            break;
+                        }
+                    }
+
+                    if(isInArray == false)
+                    {
+                        _allPositions.Add(curPos);
+                    }
+                }
+
+                // проверяем чтобы все обнулённые позиции были с правильными значениями
+
+                for (int i = 0; i < _allPositions.Count; i++)
+                {
+                    PositionOnBoard curPos = _allPositions[i];
+
+                    bool isInArray = false;
+
+                    for (int j = 0; j < currentPositions.Count; j++)
+                    {
+                        if (curPos.SecurityNameCode == currentPositions[j].SecurityNameCode)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        curPos.ValueCurrent = 0;
+                    }
+                }
+
+                for(int i = 0;i < _allPositions.Count;i++)
+                {
+                    portfolio.SetNewPosition(_allPositions[i]);
                 }
             }
 
@@ -533,6 +588,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
+
+        private List<PositionOnBoard> _allPositions = new List<PositionOnBoard>();
 
         private void UpdateTrade(string message)
         {
@@ -689,6 +746,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     TrySendMyTradeInEvent(myTrade);
 
                     newOrder.Price = item.fillPx.ToDecimal();
+
+                    if(DateTime.Now.AddSeconds(-45) < TimeToUprdatePortfolio)
+                    {
+                        TimeToUprdatePortfolio = DateTime.Now.AddSeconds(-45);
+                    }
                 }
                 else if (stateType == OrderStateType.Done)
                 {
@@ -709,6 +771,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
 
                     newOrder.Price = item.fillPx.ToDecimal();
+
+                    if (DateTime.Now.AddSeconds(-45) < TimeToUprdatePortfolio)
+                    {
+                        TimeToUprdatePortfolio = DateTime.Now.AddSeconds(-45);
+                    }
                 }
 
                 MyOrderEvent(newOrder);
@@ -916,11 +983,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void UpdatingPortfolio()
         {
-            while (IsDispose == false)
+            while (true)
             {
                 try
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(1000);
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        TimeToUprdatePortfolio = DateTime.Now;
+                        continue;
+                    }
 
                     if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
                     {

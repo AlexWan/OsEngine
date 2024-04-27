@@ -43,6 +43,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         public BitGetServerSpotRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            Thread thread2 = new Thread(UpdatingPortfolio);
+            thread2.IsBackground = true;
+            thread2.Name = "UpdatingPortfolio";
+            thread2.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -82,10 +87,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                     CreateWebSocketConnection();
 
-                    Thread thread2 = new Thread(UpdatingPortfolio);
-                    thread2.IsBackground = true;
-                    thread2.Name = "UpdatingPortfolio";
-                    thread2.Start();
+
                 }
                 catch (Exception exeption)
                 {
@@ -259,11 +261,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private void UpdatingPortfolio()
         {
-            while (IsDispose == false)
+            while (true)
             {
                 try
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(1000);
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        TimeToUprdatePortfolio = DateTime.Now;
+                        continue;
+                    }
 
                     if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
                     {
@@ -832,6 +840,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 {
                     // как только приходит ордер исполненный или частично исполненный триггер на запрос моего трейда по имени бумаги
                     CreateQueryMyTrade(newOrder.SecurityNameCode + "_SPBL", newOrder.NumberMarket);
+
+                    if (DateTime.Now.AddSeconds(-45) < TimeToUprdatePortfolio)
+                    {
+                        TimeToUprdatePortfolio = DateTime.Now.AddSeconds(-45);
+                    }
                 }
                 MyOrderEvent(newOrder);
             }
