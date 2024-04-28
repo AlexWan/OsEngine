@@ -103,7 +103,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 catch (Exception exeption)
                 {
-                    HandlerExeption(exeption);
+                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
                     IsDispose = true;
                     SendLogMessage("Connection can be open. BitGet. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
@@ -131,7 +131,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception exeption)
             {
-                HandlerExeption(exeption);
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
 
             FIFOListWebSocketMessage = new ConcurrentQueue<string>();
@@ -154,7 +154,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception exeption)
             {
-                HandlerExeption(exeption);
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
         }
 
@@ -201,7 +201,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception exeption)
             {
-                HandlerExeption(exeption);
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
         }
 
@@ -232,7 +232,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception exeption)
             {
-                HandlerExeption(exeption);
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
             finally
             {
@@ -310,7 +310,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (error.Exception != null)
                 {
-                    HandlerExeption(error.Exception);
+                     SendLogMessage(error.Exception.ToString(),LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -582,6 +582,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     portfolio.SetNewPosition(_allPositions[i]);
                 }
+            }
+            else
+            {
+                SendLogMessage("BITGET ERROR. NO POSITIONS IN REQUEST. ", LogMessageType.Error);
             }
 
             _portfolioIsStarted = true;
@@ -1208,7 +1212,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception exception)
             {
-                HandlerExeption(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1248,7 +1252,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
             catch (Exception exception)
             {
-                HandlerExeption(exception);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -1395,34 +1399,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         }
 
         #endregion
-
-        private void HandlerExeption(Exception exception)
-        {
-            if (exception is AggregateException)
-            {
-                AggregateException httpError = (AggregateException)exception;
-
-                foreach (var item in httpError.InnerExceptions)
-
-                {
-                    if (item is NullReferenceException == false)
-                    {
-                        if(item.InnerException == null)
-                        {
-                            return;
-                        }
-                        SendLogMessage(item.InnerException.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                    }
-                }
-            }
-            else
-            {
-                if (exception is NullReferenceException == false)
-                {
-                    SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
-                }
-            }
-        }
 
         private int GetCountCandlesToLoad()
         {
