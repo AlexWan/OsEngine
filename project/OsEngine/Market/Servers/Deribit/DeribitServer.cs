@@ -10,6 +10,10 @@ using System.Text;
 using System.Threading;
 using WebSocket4Net;
 using OsEngine.Market.Servers.Deribit.Entity;
+using RestSharp;
+using Com.Lmax.Api.Internal;
+using System.Diagnostics;
+
 
 // API doc - https://docs.deribit.com/
 
@@ -846,11 +850,10 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 for (int i = 0; i < item.asks.Count; i++)
                 {
-                    ascs.Add(new MarketDepthLevel()
-                    {
-                        Ask = item.asks[i][1].ToString().ToDecimal(),
-                        Price = item.asks[i][0].ToString().ToDecimal()
-                    });
+                    MarketDepthLevel level = new MarketDepthLevel();
+                    level.Ask = item.asks[i][1].ToString().ToDecimal();
+                    level.Price = item.asks[i][0].ToString().ToDecimal();
+                    ascs.Add(level);                                        
                 }
             }
 
@@ -858,11 +861,10 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 for (int i = 0; i < item.bids.Count; i++)
                 {
-                    bids.Add(new MarketDepthLevel()
-                    {
-                        Bid = item.bids[i][1].ToString().ToDecimal(),
-                        Price = item.bids[i][0].ToString().ToDecimal()
-                    });
+                    MarketDepthLevel level = new MarketDepthLevel();
+                    level.Bid = item.bids[i][1].ToString().ToDecimal();
+                    level.Price = item.bids[i][0].ToString().ToDecimal();
+                    bids.Add(level);
                 }
             }
 
@@ -1108,7 +1110,7 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 // order.State = OrderStateType.Fail;
 
-                SendLogMessage($"ChangeOrderPrice FAIL. Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                SendLogMessage($"ChangeOrderPrice FAIL. Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.System);
             }
         }
 
@@ -1195,12 +1197,251 @@ namespace OsEngine.Market.Servers.Deribit
 
         public void GetAllActivOrders()
         {
+            List<Order> orders = GetAllOrdersFromExchange();
 
+            for (int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if (orders[i] == null)
+                {
+                    continue;
+                }
+
+                if (orders[i].State != OrderStateType.Activ
+                    && orders[i].State != OrderStateType.Patrial
+                    && orders[i].State != OrderStateType.Pending)
+                {
+                    continue;
+                }
+
+                orders[i].TimeCreate = orders[i].TimeCallBack;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
+        }
+
+        private List<Order> GetAllOrdersFromExchange()
+        {
+            List<Order> orders = new List<Order>();
+
+            try
+            {
+                for (int i = 0; i < _listCurrency.Count; i++)
+                {
+                    string stringPositionRequests = $"api/v2/private/get_open_orders_by_currency?currency={_listCurrency[i]}";
+
+                    HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                    string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                    ResponseMessageAllOrders response = JsonConvert.DeserializeObject<ResponseMessageAllOrders>(json);
+
+                    List<ResponseMessageAllOrders.Result> item = response.result;
+
+                    if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        if (item != null && item.Count > 0)
+                        {
+                            for (int j = 0; j < item.Count; j++)
+                            {
+                                Order newOrder = new Order();
+
+                                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[j].last_update_timestamp));
+                                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[j].creation_timestamp));
+                                newOrder.ServerType = ServerType.Deribit;
+                                newOrder.SecurityNameCode = item[j].instrument_name;
+                                newOrder.NumberUser = Convert.ToInt32(item[j].label);                               
+                                newOrder.NumberMarket = item[j].order_id.ToString();
+                                newOrder.Side = item[j].direction.Equals("buy") ? Side.Buy : Side.Sell;
+                                newOrder.State = GetOrderState(item[i].order_state);
+                                newOrder.Volume = item[i].amount.ToDecimal();
+                                newOrder.Price = item[i].price.ToDecimal();
+                                newOrder.PortfolioNumber = $"DeribitPortfolio";
+
+                                orders.Add(newOrder);
+                            }
+                        }                        
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
+               
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return orders;
         }
 
         public void GetOrderStatus(Order order)
         {
+            Order orderFromExchange = GetOrderFromExchange(order.NumberMarket);
 
+            if (orderFromExchange == null)
+            {
+                return;
+            }
+
+            Order orderOnMarket = null;
+
+            if (order.NumberUser != 0
+                && orderFromExchange.NumberUser != 0
+                && orderFromExchange.NumberUser == order.NumberUser)
+            {
+                orderOnMarket = orderFromExchange;
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket) == false
+                && order.NumberMarket == orderFromExchange.NumberMarket)
+            {
+                orderOnMarket = orderFromExchange;
+            }
+
+            if (orderOnMarket == null)
+            {
+                return;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            if (orderOnMarket.State == OrderStateType.Done
+                || orderOnMarket.State == OrderStateType.Patrial)
+            {
+                List<MyTrade> tradesBySecurity
+                    = GetMyTradesBySecurity(order.NumberMarket);
+
+                if (tradesBySecurity == null)
+                {
+                    return;
+                }
+
+                List<MyTrade> tradesByMyOrder = new List<MyTrade>();
+
+                for (int i = 0; i < tradesBySecurity.Count; i++)
+                {
+                    if (tradesBySecurity[i].NumberOrderParent == orderOnMarket.NumberMarket)
+                    {
+                        tradesByMyOrder.Add(tradesBySecurity[i]);
+                    }
+                }
+
+                for (int i = 0; i < tradesByMyOrder.Count; i++)
+                {
+                    if (MyTradeEvent != null)
+                    {
+                        MyTradeEvent(tradesByMyOrder[i]);
+                    }
+                }
+            }
+        }
+
+        private Order GetOrderFromExchange(string numberMarket)
+        {
+            Order newOrder = new Order();
+
+            try
+            {
+                string stringPositionRequests = $"api/v2/private/get_order_state?order_id={numberMarket}";
+
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                ResponseMessageGetOrder response = JsonConvert.DeserializeObject<ResponseMessageGetOrder>(json);
+
+                ResponseMessageGetOrder.Result item = response.result;
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.last_update_timestamp));
+                    newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.creation_timestamp));
+                    newOrder.ServerType = ServerType.Deribit;
+                    newOrder.SecurityNameCode = item.instrument_name;
+                    newOrder.NumberUser = Convert.ToInt32(item.label);
+                    newOrder.NumberMarket = item.order_id.ToString();
+                    newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
+                    newOrder.State = GetOrderState(item.order_state);
+                    newOrder.Volume = item.amount.ToDecimal();
+                    newOrder.Price = item.price.ToDecimal();
+                    newOrder.PortfolioNumber = $"DeribitPortfolio";
+                }
+                else
+                {
+                    SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return newOrder;
+        }
+
+        private List<MyTrade> GetMyTradesBySecurity(string orderId)
+        {
+            try
+            {
+                string stringPositionRequests = $"api/v2/private/get_user_trades_by_order?order_id={orderId}";
+
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                                
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageGetMyTradesBySecurity orderResponse = JsonConvert.DeserializeObject<ResponseMessageGetMyTradesBySecurity>(json);
+
+                    List<ResponseMessageGetMyTradesBySecurity.Result> item = orderResponse.result;
+
+                    List<MyTrade> osEngineOrders = new List<MyTrade>();
+
+                    if (item != null && item.Count > 0)
+                    {
+                        for (int i = 0; i < item.Count; i++)
+                        {
+                            MyTrade newTrade = new MyTrade();
+                            newTrade.SecurityNameCode = item[i].instrument_name;
+                            newTrade.NumberTrade = item[i].trade_id;
+                            newTrade.NumberOrderParent = item[i].order_id;
+                            newTrade.Volume = item[i].amount.ToDecimal();
+                            newTrade.Price = item[i].price.ToDecimal();
+                            newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[i].timestamp));
+
+                            if (item[i].direction == "buy")
+                            {
+                                newTrade.Side = Side.Buy;
+                            }
+                            else
+                            {
+                                newTrade.Side = Side.Sell;
+                            }
+                            osEngineOrders.Add(newTrade);
+                        }
+                    }
+                    return osEngineOrders;
+                }               
+                else
+                {
+                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+
+                    if (responseMessage.Content != null)
+                    {
+                        SendLogMessage("Fail reasons: "
+                      + responseMessage.Content, LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         #endregion
