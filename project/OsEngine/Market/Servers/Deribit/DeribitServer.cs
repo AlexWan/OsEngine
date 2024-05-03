@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using WebSocket4Net;
 using OsEngine.Market.Servers.Deribit.Entity;
+using System.Security.Cryptography;
 
 // API doc - https://docs.deribit.com/
 
@@ -56,12 +57,12 @@ namespace OsEngine.Market.Servers.Deribit
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;
             if (((ServerParameterEnum)ServerParameters[2]).Value == "Real")
             {
-                _baseUrl = "https://www.deribit.com/";
+                _baseUrl = "https://www.deribit.com";
                 _webSocketUrl = "wss://www.deribit.com/ws/api/v2";
             }
             else
             {
-                _baseUrl = "https://test.deribit.com/";
+                _baseUrl = "https://test.deribit.com";
                 _webSocketUrl = "wss://test.deribit.com/ws/api/v2";
             }
 
@@ -74,10 +75,9 @@ namespace OsEngine.Market.Servers.Deribit
                 _postOnly = "false";
             }
 
-
-            HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + "api/v2/public/test?").Result;
+            HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + "/api/v2/public/get_currencies?").Result;
             string json = responseMessage.Content.ReadAsStringAsync().Result;
-
+                        
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 try
@@ -103,6 +103,12 @@ namespace OsEngine.Market.Servers.Deribit
 
         public void Dispose()
         {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+
             try
             {
                 UnsubscribeFromAllWebSockets();
@@ -126,13 +132,7 @@ namespace OsEngine.Market.Servers.Deribit
                 SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketMessage = new ConcurrentQueue<string>();
-
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
+            FIFOListWebSocketMessage = new ConcurrentQueue<string>();            
         }
 
         public ServerType ServerType
@@ -166,7 +166,7 @@ namespace OsEngine.Market.Servers.Deribit
 
         private int _limitCandles = 5000;
 
-        private List<string> _listCurrency = new List<string>() { "BTC", "ETH", "USDC", "USDT" }; // список валют на бирже
+        private List<string> _listCurrency = new List<string>() { "BTC", "ETH", "USDC", "USDT", "SOL", "MATIC", "XRP" }; // список валют на бирже
         
         private List<string> _arrayChannelsBook = new List<string>();
         
@@ -184,7 +184,7 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 for (int i = 0; i < _listCurrency.Count; i++) // получаем список бумаг по всем валютам
                 {
-                    string stringApiRequests = $"api/v2/public/get_instruments?currency={_listCurrency[i]}";
+                    string stringApiRequests = $"/api/v2/public/get_instruments?currency={_listCurrency[i]}";
 
                     HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + stringApiRequests).Result;
                     string json = responseMessage.Content.ReadAsStringAsync().Result;
@@ -207,7 +207,7 @@ namespace OsEngine.Market.Servers.Deribit
 
         private void UpdateSecurity(string json)
         {
-            ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(json); ;
+            ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(json);
 
             List<Security> securities = new List<Security>();
 
@@ -413,7 +413,7 @@ namespace OsEngine.Market.Servers.Deribit
                 queryParam += $"start_timestamp={fromTimeStamp}&";
                 queryParam += $"end_timestamp={toTimeStamp}";
 
-                string requestUri = _baseUrl + $"api/v2/public/get_tradingview_chart_data?" + queryParam;
+                string requestUri = _baseUrl + $"/api/v2/public/get_tradingview_chart_data?" + queryParam;
 
                 HttpResponseMessage responseMessage = _httpClient.GetAsync(requestUri).Result;
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
@@ -463,7 +463,6 @@ namespace OsEngine.Market.Servers.Deribit
 
                 candles.Add(candle);
             }
-
             return candles;
         }
 
@@ -496,15 +495,11 @@ namespace OsEngine.Market.Servers.Deribit
 
         private void CreateWebSocketConnection()
         {
-            webSocket = new WebSocket(_webSocketUrl);
-            webSocket.EnableAutoSendPing = true;
-            webSocket.AutoSendPingInterval = 10;
-
+            webSocket = new WebSocket(_webSocketUrl);            
             webSocket.Opened += WebSocket_Opened;
             webSocket.Closed += WebSocket_Closed;
             webSocket.MessageReceived += WebSocket_MessageReceived;
             webSocket.Error += WebSocket_Error;
-
             webSocket.Open();
 
         }
@@ -616,15 +611,15 @@ namespace OsEngine.Market.Servers.Deribit
 
                     if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
                     {
-                        string json = JsonConvert.SerializeObject(new
-                        {
-                            jsonrpc = "2.0",
-                            method = "public/test",
-                            id = 0,
-                            @params = new { }
-                        });
+                        JsonRequest jsonRequest = new JsonRequest();
+                        jsonRequest.id = 0;
+                        jsonRequest.method = "public/test";
+                        jsonRequest.@params = new JsonRequest.Params();
+                        
+                        string json = JsonConvert.SerializeObject(jsonRequest);
 
                         webSocket.Send(json);
+
                         _timeLastSendPing = DateTime.Now;
                     }
 
@@ -846,11 +841,10 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 for (int i = 0; i < item.asks.Count; i++)
                 {
-                    ascs.Add(new MarketDepthLevel()
-                    {
-                        Ask = item.asks[i][1].ToString().ToDecimal(),
-                        Price = item.asks[i][0].ToString().ToDecimal()
-                    });
+                    MarketDepthLevel level = new MarketDepthLevel();
+                    level.Ask = item.asks[i][1].ToString().ToDecimal();
+                    level.Price = item.asks[i][0].ToString().ToDecimal();
+                    ascs.Add(level);                                        
                 }
             }
 
@@ -858,11 +852,10 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 for (int i = 0; i < item.bids.Count; i++)
                 {
-                    bids.Add(new MarketDepthLevel()
-                    {
-                        Bid = item.bids[i][1].ToString().ToDecimal(),
-                        Price = item.bids[i][0].ToString().ToDecimal()
-                    });
+                    MarketDepthLevel level = new MarketDepthLevel();
+                    level.Bid = item.bids[i][1].ToString().ToDecimal();
+                    level.Price = item.bids[i][0].ToString().ToDecimal();
+                    bids.Add(level);
                 }
             }
 
@@ -1031,41 +1024,28 @@ namespace OsEngine.Market.Servers.Deribit
         {
             _rateGateSendOrder.WaitToProceed();
 
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 20,
-                method = order.Side.ToString() == "Buy" ? "private/buy" : "private/sell",
-                @params = new
-                {
-                    instrument_name = order.SecurityNameCode,
-                    amount = order.Volume,
-                    type = "limit",
-                    label = order.NumberUser,
-                    price = order.Price.ToString().ToDecimal(),
-                    post_only = _postOnly
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 20;
+            jsonRequest.method = order.Side.ToString() == "Buy" ? "private/buy" : "private/sell";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.instrument_name = order.SecurityNameCode;
+            jsonRequest.@params.amount = order.Volume;
+            jsonRequest.@params.label = order.NumberUser.ToString();
+            jsonRequest.@params.price = order.Price.ToString().ToDecimal();
 
-            if (order.TypeOrder == OrderPriceType.Market)
+            if (order.TypeOrder == OrderPriceType.Limit)
             {
-                jsonRequest = JsonConvert.SerializeObject(new
-                {
-                    jsonrpc = "2.0",
-                    id = 20,
-                    method = order.Side.ToString() == "Buy" ? "private/buy" : "private/sell",
-                    @params = new
-                    {
-                        instrument_name = order.SecurityNameCode,
-                        amount = order.Volume,
-                        type = "market",
-                        label = order.NumberUser,
-                        price = order.Price.ToString().ToDecimal()
-                    }
-                });
+                jsonRequest.@params.type = "limit";                
+                jsonRequest.@params.post_only = _postOnly;
             }
+            else
+            {
+                jsonRequest.@params.type = "market";
+            }            
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            string json = JsonConvert.SerializeObject(jsonRequest);
+           
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1073,7 +1053,6 @@ namespace OsEngine.Market.Servers.Deribit
                 ResponseMessageSendOrder response = JsonConvert.DeserializeObject<ResponseMessageSendOrder>(JsonResponse);
                 if (response.result.order.order_state == "open" || response.result.order.order_state == "filled")
                 {
-                    //order.State = OrderStateType.Activ;
                     order.NumberMarket = response.result.order.order_id;
                 }
             }
@@ -1088,27 +1067,23 @@ namespace OsEngine.Market.Servers.Deribit
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             _rateGateSendOrder.WaitToProceed();
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 20,
-                method = "private/edit",
-                @params = new
-                {
-                    order_id = order.NumberMarket,
-                    price = newPrice.ToString().ToDecimal(),
-                    amount = order.Volume
-                }
-            });
+          
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 21;
+            jsonRequest.method = "private/edit";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.order_id = order.NumberMarket;
+            jsonRequest.@params.price = newPrice.ToString().ToDecimal();
+            jsonRequest.@params.amount = order.Volume;
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            string json = JsonConvert.SerializeObject(jsonRequest);
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                // order.State = OrderStateType.Fail;
-
-                SendLogMessage($"ChangeOrderPrice FAIL. Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                SendLogMessage($"ChangeOrderPrice FAIL. Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.System);
             }
         }
 
@@ -1116,15 +1091,14 @@ namespace OsEngine.Market.Servers.Deribit
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 52,
-                method = "private/cancel_all",
-                @params = new { }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 52;
+            jsonRequest.method = "private/cancel_all";
+            jsonRequest.@params = new JsonRequest.Params();
+            
+            string json = JsonConvert.SerializeObject(jsonRequest);
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1137,19 +1111,16 @@ namespace OsEngine.Market.Servers.Deribit
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 51,
-                method = "private/cancel_all_by_instrument",
-                @params = new
-                {
-                    instrument_name = security.Name,
-                    type = "all"
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 51;
+            jsonRequest.method = "private/cancel_all_by_instrument";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.instrument_name = security.Name;
+            jsonRequest.@params.type = "all";
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            string json = JsonConvert.SerializeObject(jsonRequest);
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1167,18 +1138,15 @@ namespace OsEngine.Market.Servers.Deribit
                 return;
             }
 
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 50,
-                method = "private/cancel",
-                @params = new
-                {
-                    order_id = order.NumberMarket
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 50;
+            jsonRequest.method = "private/cancel";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.order_id = order.NumberMarket;
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            string json = JsonConvert.SerializeObject(jsonRequest);
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1189,18 +1157,255 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 order.State = OrderStateType.Cancel;
                 MyOrderEvent(order);
-
             }
         }
 
         public void GetAllActivOrders()
         {
+            List<Order> orders = GetAllOrdersFromExchange();
 
+            for (int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if (orders[i] == null)
+                {
+                    continue;
+                }
+
+                if (orders[i].State != OrderStateType.Activ
+                    && orders[i].State != OrderStateType.Patrial
+                    && orders[i].State != OrderStateType.Pending)
+                {
+                    continue;
+                }
+
+                orders[i].TimeCreate = orders[i].TimeCallBack;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
+        }
+
+        private List<Order> GetAllOrdersFromExchange()
+        {
+            List<Order> orders = new List<Order>();
+
+            try
+            {
+                for (int i = 0; i < _listCurrency.Count; i++)
+                {
+                    string stringPositionRequests = $"/api/v2/private/get_open_orders_by_currency?currency={_listCurrency[i]}";
+
+                    HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
+                    string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                    ResponseMessageAllOrders response = JsonConvert.DeserializeObject<ResponseMessageAllOrders>(json);
+
+                    List<ResponseMessageAllOrders.Result> item = response.result;
+
+                    if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        if (item != null && item.Count > 0)
+                        {
+                            for (int j = 0; j < item.Count; j++)
+                            {
+                                Order newOrder = new Order();
+
+                                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[j].last_update_timestamp));
+                                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[j].creation_timestamp));
+                                newOrder.ServerType = ServerType.Deribit;
+                                newOrder.SecurityNameCode = item[j].instrument_name;
+                                newOrder.NumberUser = Convert.ToInt32(item[j].label);                               
+                                newOrder.NumberMarket = item[j].order_id.ToString();
+                                newOrder.Side = item[j].direction.Equals("buy") ? Side.Buy : Side.Sell;
+                                newOrder.State = GetOrderState(item[j].order_state);
+                                newOrder.Volume = item[j].amount.ToDecimal();
+                                newOrder.Price = item[j].price.ToDecimal();
+                                newOrder.PortfolioNumber = "DeribitPortfolio";
+
+                                orders.Add(newOrder);
+                            }
+                        }                        
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                    }
+                }               
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return orders;
         }
 
         public void GetOrderStatus(Order order)
         {
+            Order orderFromExchange = GetOrderFromExchange(order.NumberMarket);
 
+            if (orderFromExchange == null)
+            {
+                return;
+            }
+
+            Order orderOnMarket = null;
+
+            if (order.NumberUser != 0
+                && orderFromExchange.NumberUser != 0
+                && orderFromExchange.NumberUser == order.NumberUser)
+            {
+                orderOnMarket = orderFromExchange;
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket) == false
+                && order.NumberMarket == orderFromExchange.NumberMarket)
+            {
+                orderOnMarket = orderFromExchange;
+            }
+
+            if (orderOnMarket == null)
+            {
+                return;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            if (orderOnMarket.State == OrderStateType.Done
+                || orderOnMarket.State == OrderStateType.Patrial)
+            {
+                List<MyTrade> tradesBySecurity
+                    = GetMyTradesBySecurity(order.NumberMarket);
+
+                if (tradesBySecurity == null)
+                {
+                    return;
+                }
+
+                List<MyTrade> tradesByMyOrder = new List<MyTrade>();
+
+                for (int i = 0; i < tradesBySecurity.Count; i++)
+                {
+                    if (tradesBySecurity[i].NumberOrderParent == orderOnMarket.NumberMarket)
+                    {
+                        tradesByMyOrder.Add(tradesBySecurity[i]);
+                    }
+                }
+
+                for (int i = 0; i < tradesByMyOrder.Count; i++)
+                {
+                    if (MyTradeEvent != null)
+                    {
+                        MyTradeEvent(tradesByMyOrder[i]);
+                    }
+                }
+            }
+        }
+
+        private Order GetOrderFromExchange(string numberMarket)
+        {
+            Order newOrder = new Order();
+
+            try
+            {
+                string stringPositionRequests = $"/api/v2/private/get_order_state?order_id={numberMarket}";
+
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                ResponseMessageGetOrder response = JsonConvert.DeserializeObject<ResponseMessageGetOrder>(json);
+
+                ResponseMessageGetOrder.Result item = response.result;
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.last_update_timestamp));
+                    newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.creation_timestamp));
+                    newOrder.ServerType = ServerType.Deribit;
+                    newOrder.SecurityNameCode = item.instrument_name;
+                    newOrder.NumberUser = Convert.ToInt32(item.label);
+                    newOrder.NumberMarket = item.order_id.ToString();
+                    newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
+                    newOrder.State = GetOrderState(item.order_state);
+                    newOrder.Volume = item.amount.ToDecimal();
+                    newOrder.Price = item.price.ToDecimal();
+                    newOrder.PortfolioNumber = "DeribitPortfolio";
+                }
+                else
+                {
+                    SendLogMessage($"GetOrderState. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return newOrder;
+        }
+
+        private List<MyTrade> GetMyTradesBySecurity(string orderId)
+        {
+            try
+            {
+                string stringPositionRequests = $"/api/v2/private/get_user_trades_by_order?order_id={orderId}";
+
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                                
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessageGetMyTradesBySecurity orderResponse = JsonConvert.DeserializeObject<ResponseMessageGetMyTradesBySecurity>(json);
+
+                    List<ResponseMessageGetMyTradesBySecurity.Result> item = orderResponse.result;
+
+                    List<MyTrade> osEngineOrders = new List<MyTrade>();
+
+                    if (item != null && item.Count > 0)
+                    {
+                        for (int i = 0; i < item.Count; i++)
+                        {
+                            MyTrade newTrade = new MyTrade();
+                            newTrade.SecurityNameCode = item[i].instrument_name;
+                            newTrade.NumberTrade = item[i].trade_id;
+                            newTrade.NumberOrderParent = item[i].order_id;
+                            newTrade.Volume = item[i].amount.ToDecimal();
+                            newTrade.Price = item[i].price.ToDecimal();
+                            newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[i].timestamp));
+
+                            if (item[i].direction == "buy")
+                            {
+                                newTrade.Side = Side.Buy;
+                            }
+                            else
+                            {
+                                newTrade.Side = Side.Sell;
+                            }
+                            osEngineOrders.Add(newTrade);
+                        }
+                    }
+                    return osEngineOrders;
+                }               
+                else
+                {
+                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+
+                    if (responseMessage.Content != null)
+                    {
+                        SendLogMessage("Fail reasons: "
+                      + responseMessage.Content, LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         #endregion
@@ -1260,23 +1465,19 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 return;
             }
-
             SendSubscrible(arrayChannels);
         }
 
         private void SendSubscrible(List<string> arrayChannels)
         {
-            string json = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                method = "public/subscribe",
-                id = 4,
-                @params = new
-                {
-                    channels = arrayChannels,
-                    access_token = _accessToken
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 4;
+            jsonRequest.method = "public/subscribe";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.channels = arrayChannels;
+            jsonRequest.@params.access_token = _accessToken;
+
+            string json = JsonConvert.SerializeObject(jsonRequest);
 
             webSocket.Send(json);
         }
@@ -1288,18 +1489,23 @@ namespace OsEngine.Market.Servers.Deribit
                 return;
             }
 
-            string json = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                method = "public/auth",
-                id = 1,
-                @params = new
-                {
-                    grant_type = "client_credentials",
-                    client_id = _clientID,
-                    client_secret = _secretKey
-                }
-            });
+            long timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            string nonce = "abcd";
+            string data = "";
+            string signature = GenerateSignature(_secretKey, timestamp, nonce, data);
+
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 8748;
+            jsonRequest.method = "public/auth";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.grant_type = "client_signature";
+            jsonRequest.@params.client_id = _clientID;
+            jsonRequest.@params.timestamp = timestamp;
+            jsonRequest.@params.signature = signature;
+            jsonRequest.@params.nonce = nonce;
+            jsonRequest.@params.data = data;
+
+            string json = JsonConvert.SerializeObject(jsonRequest);
 
             webSocket.Send(json);
         }
@@ -1311,13 +1517,12 @@ namespace OsEngine.Market.Servers.Deribit
                 return;
             }
 
-            string json = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                method = "public/unsubscribe_all",
-                id = 6,
-                @params = new { }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 6;
+            jsonRequest.method = "public/unsubscribe_all";
+            jsonRequest.@params = new JsonRequest.Params();
+           
+            string json = JsonConvert.SerializeObject(jsonRequest);
 
             webSocket.Send(json);
         }
@@ -1330,9 +1535,9 @@ namespace OsEngine.Market.Servers.Deribit
 
             try
             {
-                string stringPositionRequests = $"api/v2/private/get_account_summary?currency={currency}";
+                string stringPositionRequests = $"/api/v2/private/get_account_summary?currency={currency}";
 
-                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1343,7 +1548,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 else
                 {
-                    SendLogMessage($"Http State Code1: {responseMessage.StatusCode}, {json}", LogMessageType.Error);
+                    SendLogMessage($"CreateQueryPortfolio: {responseMessage.StatusCode}, {json}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1385,9 +1590,9 @@ namespace OsEngine.Market.Servers.Deribit
 
             try
             {
-                string stringPositionRequests = $"api/v2/private/get_positions?currency={currency}";
+                string stringPositionRequests = $"/api/v2/private/get_positions?currency={currency}";
 
-                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1397,7 +1602,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 else
                 {
-                    SendLogMessage($"Http State Code1: {responseMessage.StatusCode}, {json}", LogMessageType.Error);
+                    SendLogMessage($"CreateQueryPosition: {responseMessage.StatusCode}, {json}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1435,24 +1640,35 @@ namespace OsEngine.Market.Servers.Deribit
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
-        private HttpResponseMessage CreatePrivateQuery(string path, string method, string queryString, string body)
+        private HttpResponseMessage CreatePrivateQuery(string requestPath, string method, string requestBody)
         {
-            string requestPath = path;
-            string url = $"{_baseUrl}{requestPath}";
+            long timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            string nonce = "abcd";
+            string requestData = $"{method}\n{requestPath}\n{requestBody}\n";
+            string data = requestData;
+            string signature = GenerateSignature(_secretKey, timestamp, nonce, data);
+            string url = _baseUrl + requestPath;
+            string authValue = $"id={_clientID},ts={timestamp},sig={signature},nonce={nonce}";
 
-            HttpClient httpClient = new HttpClient();
-
-            string authValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_clientID}:{_secretKey}"));
-
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", authValue);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("deri-hmac-sha256", authValue);
 
             if (method.Equals("POST"))
             {
-                return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
+                return _httpClient.PostAsync(url, new StringContent(requestBody, Encoding.UTF8, "application/json")).Result;
             }
             else
             {
-                return httpClient.GetAsync(url).Result;
+                return _httpClient.GetAsync(url).Result;
+            }
+        }
+
+        static string GenerateSignature(string clientSecret, long timestamp, string nonce, string data)
+        {
+            using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(clientSecret)))
+            {
+                string message = $"{timestamp}\n{nonce}\n{data}";
+                byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+                return BitConverter.ToString(hash).Replace("-", "").ToLower();
             }
         }
 
