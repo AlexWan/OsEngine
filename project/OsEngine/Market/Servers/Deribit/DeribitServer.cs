@@ -12,7 +12,6 @@ using WebSocket4Net;
 using OsEngine.Market.Servers.Deribit.Entity;
 using System.Security.Cryptography;
 
-
 // API doc - https://docs.deribit.com/
 
 namespace OsEngine.Market.Servers.Deribit
@@ -76,10 +75,9 @@ namespace OsEngine.Market.Servers.Deribit
                 _postOnly = "false";
             }
 
-
-            HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + "/api/v2/public/test?").Result;
+            HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + "/api/v2/public/get_currencies?").Result;
             string json = responseMessage.Content.ReadAsStringAsync().Result;
-
+                        
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 try
@@ -105,6 +103,12 @@ namespace OsEngine.Market.Servers.Deribit
 
         public void Dispose()
         {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+
             try
             {
                 UnsubscribeFromAllWebSockets();
@@ -128,13 +132,7 @@ namespace OsEngine.Market.Servers.Deribit
                 SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketMessage = new ConcurrentQueue<string>();
-
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
+            FIFOListWebSocketMessage = new ConcurrentQueue<string>();            
         }
 
         public ServerType ServerType
@@ -168,7 +166,7 @@ namespace OsEngine.Market.Servers.Deribit
 
         private int _limitCandles = 5000;
 
-        private List<string> _listCurrency = new List<string>() { "BTC", "ETH", "USDC", "USDT" }; // список валют на бирже
+        private List<string> _listCurrency = new List<string>() { "BTC", "ETH", "USDC", "USDT", "SOL", "MATIC", "XRP" }; // список валют на бирже
         
         private List<string> _arrayChannelsBook = new List<string>();
         
@@ -209,7 +207,7 @@ namespace OsEngine.Market.Servers.Deribit
 
         private void UpdateSecurity(string json)
         {
-            ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(json); ;
+            ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(json);
 
             List<Security> securities = new List<Security>();
 
@@ -465,7 +463,6 @@ namespace OsEngine.Market.Servers.Deribit
 
                 candles.Add(candle);
             }
-
             return candles;
         }
 
@@ -498,15 +495,11 @@ namespace OsEngine.Market.Servers.Deribit
 
         private void CreateWebSocketConnection()
         {
-            webSocket = new WebSocket(_webSocketUrl);
-            webSocket.EnableAutoSendPing = true;
-            webSocket.AutoSendPingInterval = 10;
-
+            webSocket = new WebSocket(_webSocketUrl);            
             webSocket.Opened += WebSocket_Opened;
             webSocket.Closed += WebSocket_Closed;
             webSocket.MessageReceived += WebSocket_MessageReceived;
             webSocket.Error += WebSocket_Error;
-
             webSocket.Open();
 
         }
@@ -618,15 +611,15 @@ namespace OsEngine.Market.Servers.Deribit
 
                     if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
                     {
-                        string json = JsonConvert.SerializeObject(new
-                        {
-                            jsonrpc = "2.0",
-                            method = "public/test",
-                            id = 0,
-                            @params = new { }
-                        });
+                        JsonRequest jsonRequest = new JsonRequest();
+                        jsonRequest.id = 0;
+                        jsonRequest.method = "public/test";
+                        jsonRequest.@params = new JsonRequest.Params();
+                        
+                        string json = JsonConvert.SerializeObject(jsonRequest);
 
                         webSocket.Send(json);
+
                         _timeLastSendPing = DateTime.Now;
                     }
 
@@ -1031,41 +1024,28 @@ namespace OsEngine.Market.Servers.Deribit
         {
             _rateGateSendOrder.WaitToProceed();
 
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 20,
-                method = order.Side.ToString() == "Buy" ? "private/buy" : "private/sell",
-                @params = new
-                {
-                    instrument_name = order.SecurityNameCode,
-                    amount = order.Volume,
-                    type = "limit",
-                    label = order.NumberUser,
-                    price = order.Price.ToString().ToDecimal(),
-                    post_only = _postOnly
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 20;
+            jsonRequest.method = order.Side.ToString() == "Buy" ? "private/buy" : "private/sell";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.instrument_name = order.SecurityNameCode;
+            jsonRequest.@params.amount = order.Volume;
+            jsonRequest.@params.label = order.NumberUser.ToString();
+            jsonRequest.@params.price = order.Price.ToString().ToDecimal();
 
-            if (order.TypeOrder == OrderPriceType.Market)
+            if (order.TypeOrder == OrderPriceType.Limit)
             {
-                jsonRequest = JsonConvert.SerializeObject(new
-                {
-                    jsonrpc = "2.0",
-                    id = 20,
-                    method = order.Side.ToString() == "Buy" ? "private/buy" : "private/sell",
-                    @params = new
-                    {
-                        instrument_name = order.SecurityNameCode,
-                        amount = order.Volume,
-                        type = "market",
-                        label = order.NumberUser,
-                        price = order.Price.ToString().ToDecimal()
-                    }
-                });
+                jsonRequest.@params.type = "limit";                
+                jsonRequest.@params.post_only = _postOnly;
             }
+            else
+            {
+                jsonRequest.@params.type = "market";
+            }            
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
+            string json = JsonConvert.SerializeObject(jsonRequest);
+           
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1087,20 +1067,18 @@ namespace OsEngine.Market.Servers.Deribit
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             _rateGateSendOrder.WaitToProceed();
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 20,
-                method = "private/edit",
-                @params = new
-                {
-                    order_id = order.NumberMarket,
-                    price = newPrice.ToString().ToDecimal(),
-                    amount = order.Volume
-                }
-            });
+          
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 21;
+            jsonRequest.method = "private/edit";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.order_id = order.NumberMarket;
+            jsonRequest.@params.price = newPrice.ToString().ToDecimal();
+            jsonRequest.@params.amount = order.Volume;
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
+            string json = JsonConvert.SerializeObject(jsonRequest);
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1113,15 +1091,14 @@ namespace OsEngine.Market.Servers.Deribit
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 52,
-                method = "private/cancel_all",
-                @params = new { }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 52;
+            jsonRequest.method = "private/cancel_all";
+            jsonRequest.@params = new JsonRequest.Params();
+            
+            string json = JsonConvert.SerializeObject(jsonRequest);
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1134,19 +1111,16 @@ namespace OsEngine.Market.Servers.Deribit
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 51,
-                method = "private/cancel_all_by_instrument",
-                @params = new
-                {
-                    instrument_name = security.Name,
-                    type = "all"
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 51;
+            jsonRequest.method = "private/cancel_all_by_instrument";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.instrument_name = security.Name;
+            jsonRequest.@params.type = "all";
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
+            string json = JsonConvert.SerializeObject(jsonRequest);
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1164,18 +1138,15 @@ namespace OsEngine.Market.Servers.Deribit
                 return;
             }
 
-            string jsonRequest = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 50,
-                method = "private/cancel",
-                @params = new
-                {
-                    order_id = order.NumberMarket
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 50;
+            jsonRequest.method = "private/cancel";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.order_id = order.NumberMarket;
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
+            string json = JsonConvert.SerializeObject(jsonRequest);
+
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1248,10 +1219,10 @@ namespace OsEngine.Market.Servers.Deribit
                                 newOrder.NumberUser = Convert.ToInt32(item[j].label);                               
                                 newOrder.NumberMarket = item[j].order_id.ToString();
                                 newOrder.Side = item[j].direction.Equals("buy") ? Side.Buy : Side.Sell;
-                                newOrder.State = GetOrderState(item[i].order_state);
-                                newOrder.Volume = item[i].amount.ToDecimal();
-                                newOrder.Price = item[i].price.ToDecimal();
-                                newOrder.PortfolioNumber = $"DeribitPortfolio";
+                                newOrder.State = GetOrderState(item[j].order_state);
+                                newOrder.Volume = item[j].amount.ToDecimal();
+                                newOrder.Price = item[j].price.ToDecimal();
+                                newOrder.PortfolioNumber = "DeribitPortfolio";
 
                                 orders.Add(newOrder);
                             }
@@ -1367,7 +1338,7 @@ namespace OsEngine.Market.Servers.Deribit
                 }
                 else
                 {
-                    SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                    SendLogMessage($"GetOrderState. Http State Code: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1499,17 +1470,14 @@ namespace OsEngine.Market.Servers.Deribit
 
         private void SendSubscrible(List<string> arrayChannels)
         {
-            string json = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                method = "public/subscribe",
-                id = 4,
-                @params = new
-                {
-                    channels = arrayChannels,
-                    access_token = _accessToken
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 4;
+            jsonRequest.method = "public/subscribe";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.channels = arrayChannels;
+            jsonRequest.@params.access_token = _accessToken;
+
+            string json = JsonConvert.SerializeObject(jsonRequest);
 
             webSocket.Send(json);
         }
@@ -1526,21 +1494,19 @@ namespace OsEngine.Market.Servers.Deribit
             string data = "";
             string signature = GenerateSignature(_secretKey, timestamp, nonce, data);
 
-            string json = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                id = 8748,
-                method = "public/auth",
-                @params = new
-                {
-                    grant_type = "client_signature",
-                    client_id = _clientID,
-                    timestamp = timestamp,
-                    signature = signature,
-                    nonce = nonce,
-                    data = data
-                }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 8748;
+            jsonRequest.method = "public/auth";
+            jsonRequest.@params = new JsonRequest.Params();
+            jsonRequest.@params.grant_type = "client_signature";
+            jsonRequest.@params.client_id = _clientID;
+            jsonRequest.@params.timestamp = timestamp;
+            jsonRequest.@params.signature = signature;
+            jsonRequest.@params.nonce = nonce;
+            jsonRequest.@params.data = data;
+
+            string json = JsonConvert.SerializeObject(jsonRequest);
+
             webSocket.Send(json);
         }
 
@@ -1551,13 +1517,12 @@ namespace OsEngine.Market.Servers.Deribit
                 return;
             }
 
-            string json = JsonConvert.SerializeObject(new
-            {
-                jsonrpc = "2.0",
-                method = "public/unsubscribe_all",
-                id = 6,
-                @params = new { }
-            });
+            JsonRequest jsonRequest = new JsonRequest();
+            jsonRequest.id = 6;
+            jsonRequest.method = "public/unsubscribe_all";
+            jsonRequest.@params = new JsonRequest.Params();
+           
+            string json = JsonConvert.SerializeObject(jsonRequest);
 
             webSocket.Send(json);
         }
@@ -1583,7 +1548,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 else
                 {
-                    SendLogMessage($"Http State Code1: {responseMessage.StatusCode}, {json}", LogMessageType.Error);
+                    SendLogMessage($"CreateQueryPortfolio: {responseMessage.StatusCode}, {json}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1637,7 +1602,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 else
                 {
-                    SendLogMessage($"Http State Code1: {responseMessage.StatusCode}, {json}", LogMessageType.Error);
+                    SendLogMessage($"CreateQueryPosition: {responseMessage.StatusCode}, {json}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1699,10 +1664,10 @@ namespace OsEngine.Market.Servers.Deribit
 
         static string GenerateSignature(string clientSecret, long timestamp, string nonce, string data)
         {
-            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(clientSecret)))
+            using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(clientSecret)))
             {
-                var message = $"{timestamp}\n{nonce}\n{data}";
-                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+                string message = $"{timestamp}\n{nonce}\n{data}";
+                byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
                 return BitConverter.ToString(hash).Replace("-", "").ToLower();
             }
         }
