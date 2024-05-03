@@ -10,9 +10,7 @@ using System.Text;
 using System.Threading;
 using WebSocket4Net;
 using OsEngine.Market.Servers.Deribit.Entity;
-using RestSharp;
-using Com.Lmax.Api.Internal;
-using System.Diagnostics;
+using System.Security.Cryptography;
 
 
 // API doc - https://docs.deribit.com/
@@ -60,12 +58,12 @@ namespace OsEngine.Market.Servers.Deribit
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;
             if (((ServerParameterEnum)ServerParameters[2]).Value == "Real")
             {
-                _baseUrl = "https://www.deribit.com/";
+                _baseUrl = "https://www.deribit.com";
                 _webSocketUrl = "wss://www.deribit.com/ws/api/v2";
             }
             else
             {
-                _baseUrl = "https://test.deribit.com/";
+                _baseUrl = "https://test.deribit.com";
                 _webSocketUrl = "wss://test.deribit.com/ws/api/v2";
             }
 
@@ -79,7 +77,7 @@ namespace OsEngine.Market.Servers.Deribit
             }
 
 
-            HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + "api/v2/public/test?").Result;
+            HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + "/api/v2/public/test?").Result;
             string json = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -188,7 +186,7 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 for (int i = 0; i < _listCurrency.Count; i++) // получаем список бумаг по всем валютам
                 {
-                    string stringApiRequests = $"api/v2/public/get_instruments?currency={_listCurrency[i]}";
+                    string stringApiRequests = $"/api/v2/public/get_instruments?currency={_listCurrency[i]}";
 
                     HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + stringApiRequests).Result;
                     string json = responseMessage.Content.ReadAsStringAsync().Result;
@@ -417,7 +415,7 @@ namespace OsEngine.Market.Servers.Deribit
                 queryParam += $"start_timestamp={fromTimeStamp}&";
                 queryParam += $"end_timestamp={toTimeStamp}";
 
-                string requestUri = _baseUrl + $"api/v2/public/get_tradingview_chart_data?" + queryParam;
+                string requestUri = _baseUrl + $"/api/v2/public/get_tradingview_chart_data?" + queryParam;
 
                 HttpResponseMessage responseMessage = _httpClient.GetAsync(requestUri).Result;
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
@@ -1067,7 +1065,7 @@ namespace OsEngine.Market.Servers.Deribit
                 });
             }
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1075,7 +1073,6 @@ namespace OsEngine.Market.Servers.Deribit
                 ResponseMessageSendOrder response = JsonConvert.DeserializeObject<ResponseMessageSendOrder>(JsonResponse);
                 if (response.result.order.order_state == "open" || response.result.order.order_state == "filled")
                 {
-                    //order.State = OrderStateType.Activ;
                     order.NumberMarket = response.result.order.order_id;
                 }
             }
@@ -1103,13 +1100,11 @@ namespace OsEngine.Market.Servers.Deribit
                 }
             });
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                // order.State = OrderStateType.Fail;
-
                 SendLogMessage($"ChangeOrderPrice FAIL. Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.System);
             }
         }
@@ -1126,7 +1121,7 @@ namespace OsEngine.Market.Servers.Deribit
                 @params = new { }
             });
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1151,7 +1146,7 @@ namespace OsEngine.Market.Servers.Deribit
                 }
             });
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1180,7 +1175,7 @@ namespace OsEngine.Market.Servers.Deribit
                 }
             });
 
-            HttpResponseMessage responseMessage = CreatePrivateQuery("api/v2/", "POST", null, jsonRequest);
+            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
@@ -1191,7 +1186,6 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 order.State = OrderStateType.Cancel;
                 MyOrderEvent(order);
-
             }
         }
 
@@ -1230,9 +1224,9 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 for (int i = 0; i < _listCurrency.Count; i++)
                 {
-                    string stringPositionRequests = $"api/v2/private/get_open_orders_by_currency?currency={_listCurrency[i]}";
+                    string stringPositionRequests = $"/api/v2/private/get_open_orders_by_currency?currency={_listCurrency[i]}";
 
-                    HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                    HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
                     string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                     ResponseMessageAllOrders response = JsonConvert.DeserializeObject<ResponseMessageAllOrders>(json);
@@ -1267,8 +1261,7 @@ namespace OsEngine.Market.Servers.Deribit
                     {
                         SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
                     }
-                }
-               
+                }               
             }
             catch (Exception exception)
             {
@@ -1349,9 +1342,9 @@ namespace OsEngine.Market.Servers.Deribit
 
             try
             {
-                string stringPositionRequests = $"api/v2/private/get_order_state?order_id={numberMarket}";
+                string stringPositionRequests = $"/api/v2/private/get_order_state?order_id={numberMarket}";
 
-                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 ResponseMessageGetOrder response = JsonConvert.DeserializeObject<ResponseMessageGetOrder>(json);
@@ -1370,7 +1363,7 @@ namespace OsEngine.Market.Servers.Deribit
                     newOrder.State = GetOrderState(item.order_state);
                     newOrder.Volume = item.amount.ToDecimal();
                     newOrder.Price = item.price.ToDecimal();
-                    newOrder.PortfolioNumber = $"DeribitPortfolio";
+                    newOrder.PortfolioNumber = "DeribitPortfolio";
                 }
                 else
                 {
@@ -1388,9 +1381,9 @@ namespace OsEngine.Market.Servers.Deribit
         {
             try
             {
-                string stringPositionRequests = $"api/v2/private/get_user_trades_by_order?order_id={orderId}";
+                string stringPositionRequests = $"/api/v2/private/get_user_trades_by_order?order_id={orderId}";
 
-                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
                                 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1501,7 +1494,6 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 return;
             }
-
             SendSubscrible(arrayChannels);
         }
 
@@ -1529,19 +1521,26 @@ namespace OsEngine.Market.Servers.Deribit
                 return;
             }
 
+            long timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            string nonce = "abcd";
+            string data = "";
+            string signature = GenerateSignature(_secretKey, timestamp, nonce, data);
+
             string json = JsonConvert.SerializeObject(new
             {
                 jsonrpc = "2.0",
+                id = 8748,
                 method = "public/auth",
-                id = 1,
                 @params = new
                 {
-                    grant_type = "client_credentials",
+                    grant_type = "client_signature",
                     client_id = _clientID,
-                    client_secret = _secretKey
+                    timestamp = timestamp,
+                    signature = signature,
+                    nonce = nonce,
+                    data = data
                 }
             });
-
             webSocket.Send(json);
         }
 
@@ -1571,9 +1570,9 @@ namespace OsEngine.Market.Servers.Deribit
 
             try
             {
-                string stringPositionRequests = $"api/v2/private/get_account_summary?currency={currency}";
+                string stringPositionRequests = $"/api/v2/private/get_account_summary?currency={currency}";
 
-                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1626,9 +1625,9 @@ namespace OsEngine.Market.Servers.Deribit
 
             try
             {
-                string stringPositionRequests = $"api/v2/private/get_positions?currency={currency}";
+                string stringPositionRequests = $"/api/v2/private/get_positions?currency={currency}";
 
-                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null, null);
+                HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -1676,24 +1675,35 @@ namespace OsEngine.Market.Servers.Deribit
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
-        private HttpResponseMessage CreatePrivateQuery(string path, string method, string queryString, string body)
+        private HttpResponseMessage CreatePrivateQuery(string requestPath, string method, string requestBody)
         {
-            string requestPath = path;
-            string url = $"{_baseUrl}{requestPath}";
+            long timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            string nonce = "abcd";
+            string requestData = $"{method}\n{requestPath}\n{requestBody}\n";
+            string data = requestData;
+            string signature = GenerateSignature(_secretKey, timestamp, nonce, data);
+            string url = _baseUrl + requestPath;
+            string authValue = $"id={_clientID},ts={timestamp},sig={signature},nonce={nonce}";
 
-            HttpClient httpClient = new HttpClient();
-
-            string authValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_clientID}:{_secretKey}"));
-
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", authValue);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("deri-hmac-sha256", authValue);
 
             if (method.Equals("POST"))
             {
-                return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
+                return _httpClient.PostAsync(url, new StringContent(requestBody, Encoding.UTF8, "application/json")).Result;
             }
             else
             {
-                return httpClient.GetAsync(url).Result;
+                return _httpClient.GetAsync(url).Result;
+            }
+        }
+
+        static string GenerateSignature(string clientSecret, long timestamp, string nonce, string data)
+        {
+            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(clientSecret)))
+            {
+                var message = $"{timestamp}\n{nonce}\n{data}";
+                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+                return BitConverter.ToString(hash).Replace("-", "").ToLower();
             }
         }
 
