@@ -21,7 +21,6 @@ using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.BitMaxFutures;
-using OsEngine.Market.Servers.BitGet.BitGetSpot;
 
 namespace OsEngine.Entity
 {
@@ -418,27 +417,6 @@ namespace OsEngine.Entity
                             else
                             {
                                 List<Candle> candles = hitbtc.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
-                        else if (serverType == ServerType.BitGetSpot)
-                        {
-                            BitGetServerSpot bitGet = (BitGetServerSpot)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                List<Candle> candles = bitGet.GetCandleHistory(series.Security.Name,
                                     series.TimeFrameSpan);
                                 if (candles != null)
                                 {
