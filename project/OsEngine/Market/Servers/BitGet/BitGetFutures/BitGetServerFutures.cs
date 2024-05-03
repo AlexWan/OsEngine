@@ -278,8 +278,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                     if (TimeToUprdatePortfolio.AddSeconds(50) < DateTime.Now)
                     {
-                        CreateQueryPortfolio();
                         TimeToUprdatePortfolio = DateTime.Now;
+                        Thread updater = new Thread(CreateQueryPortfolio);
+                        updater.Start();
                     }
                 }
                 catch (Exception ex)
@@ -290,10 +291,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        private RateGate _rateGatePortfolioUpdater = new RateGate(1, TimeSpan.FromMilliseconds(3000));
+
         private void CreateQueryPortfolio()
         {
             try
             {
+                _rateGatePortfolioUpdater.WaitToProceed();
+
                 IRestResponse responseMessage = CreatePrivateQuery("/api/mix/v1/account/accounts?productType=umcbl", Method.GET, null, null);
                 string json = responseMessage.Content;
 
