@@ -243,6 +243,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             price = Math.Round(price - price * 0.01m, mySec.Decimals); // проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
+            newOrder.PositionConditionType = OrderPositionConditionType.Close;
             _whaitSide = Side.Sell;
 
             Server.ExecuteOrder(newOrder);

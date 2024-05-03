@@ -3,6 +3,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.OKX.Entity;
 using OsEngine.Market.Servers.XT.XTSpot.Entity;
 using System;
 using System.Collections.Concurrent;
@@ -764,7 +765,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 9 Security Subscribed
 
-            private readonly RateGate _rateGateSubscribed = new RateGate(5, TimeSpan.FromSeconds(1));
+            private readonly RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
             public void Subscrible(Security security)
             {
@@ -1215,7 +1216,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 ResponseWebSocketOrder item = Order.Data;
 
-                OrderStateType stateType = GetOrderState(item.State, item.ExecutedQuantity, item.OriginalQuantity);
+                OrderStateType stateType = GetOrderState(item.State);
 
                 if (item.Type.Equals("Market", StringComparison.OrdinalIgnoreCase) 
                     && stateType == OrderStateType.Activ)
@@ -1265,13 +1266,13 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 if (stateType == OrderStateType.Done || stateType == OrderStateType.Patrial)
                 {
-                    CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, time);
+                    CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, 1);
                 }
 
                 MyOrderEvent?.Invoke(newOrder);
             }
 
-            private OrderStateType GetOrderState(string orderStatusResponse, string orderFilledSize, string orderOriginSize)
+            private OrderStateType GetOrderState(string orderStatusResponse)
             {
                 OrderStateType stateType;
 
@@ -1321,9 +1322,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 11 Trade
 
-            private readonly RateGate _rateGateSendOrder = new RateGate(45, TimeSpan.FromMilliseconds(1000));
+            private readonly RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-            private readonly RateGate _rateGateCancelOrder = new RateGate(90, TimeSpan.FromMilliseconds(1000));
+            private readonly RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(95));
 
             public void SendOrder(Order order)
             {
@@ -1378,7 +1379,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (order.TypeOrder == OrderPriceType.Market)
                         {
                             order.State = OrderStateType.Done;
-                            CreateQueryMyTrade(order.SecurityNameCode, stateResponse.result.orderId, TimeManager.GetUnixTimeStampMilliseconds());
+                            CreateQueryMyTrade(order.SecurityNameCode, stateResponse.result.orderId, 1);
                         }
                         order.NumberMarket = stateResponse.result.orderId;
 
@@ -1416,7 +1417,34 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public void CancelAllOrders()
             {
-                
+                _rateGateCancelOrder.WaitToProceed();
+
+                HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/open-order", "DELETE", null);
+                string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(jsonResponse, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK && stateResponse != null)
+                {
+                    if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.CurrentCulture))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage($"CancelAllOrders error, Code: {stateResponse.rc}\n"
+                                       + $"Message code: {stateResponse.mc}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"CancelAllOrders> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    if (stateResponse != null && stateResponse.rc != null)
+                    {
+                        SendLogMessage($"CancelAllOrders error, Code: {stateResponse.rc}\n"
+                                       + $"Message code: {stateResponse.mc}", LogMessageType.Error);
+                    }
+                }
             }
 
             public void CancelAllOrdersToSecurity(Security security)
@@ -1501,12 +1529,164 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public void GetAllActivOrders()
             {
+                List<Order> orders = GetAllOrdersFromExchange();
 
+                if(orders == null || orders.Count == 0)
+                {
+                    return;
+                }
+
+                for(int i = 0; i < orders.Count; i++)
+                {
+                    orders[i].TimeCreate = orders[i].TimeCallBack;
+                    MyOrderEvent?.Invoke(orders[i]);
+                }
+            }
+
+            private Order OrderUpdate(OrderResponse orderResponse, OrderStateType type)
+            {
+                OrderResponse item = orderResponse;
+
+                Order newOrder = new Order();
+                
+                newOrder.SecurityNameCode = item.symbol;
+                
+                if(!string.IsNullOrEmpty(item.updateTime))
+                {
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.updateTime));
+                }
+                else
+                {
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.time));
+                }
+                
+                if (type == OrderStateType.Done)
+                {
+                    newOrder.TimeDone = newOrder.TimeCallBack;
+                }
+                else if (type == OrderStateType.Cancel)
+                {
+                    newOrder.TimeCancel = newOrder.TimeCallBack;
+                }
+                
+                if (!string.IsNullOrEmpty(item.clientOrderId))
+                {
+                    newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
+                }
+
+                newOrder.NumberMarket = item.orderId;
+
+                newOrder.Side = item.side.Equals("BUY", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
+
+                newOrder.State = type;
+                newOrder.Volume = item.origQty.ToDecimal();
+                newOrder.PortfolioNumber = "XTSpot";
+
+                if (string.IsNullOrEmpty(item.avgPrice) == false
+                    && item.avgPrice != "0")
+                {
+                    newOrder.Price = item.avgPrice.ToDecimal();
+                }
+                else if (string.IsNullOrEmpty(item.price) == false
+                         && item.price != "0")
+                {
+                    newOrder.Price = item.price.ToDecimal();
+                }
+
+                newOrder.TypeOrder = item.type.Equals("MARKET", StringComparison.OrdinalIgnoreCase) ? OrderPriceType.Market : OrderPriceType.Limit;
+
+                newOrder.ServerType = ServerType.XTSpot;
+
+                return newOrder;
+            }
+            
+            private List<Order> GetAllOrdersFromExchange()
+            {
+                string url = "/v4/open-order";
+                string query = "bizType=SPOT";
+
+                HttpResponseMessage res = CreatePrivateQuery(url,"GET",query);
+
+                string contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage(contentStr, LogMessageType.Error);
+                    return null;
+                }
+
+                ResponseMessageRest<List<OrderResponse>> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseMessageRest<List<OrderResponse>>());
+
+                if (OrderResponse.rc != "0")
+                {
+                    SendLogMessage($"GetAllOrdersFromExchange> error, Code: {OrderResponse.rc}\n"
+                        + $"Message code: {OrderResponse.mc}", LogMessageType.Error);
+                    return null;
+                }   
+                
+                List<Order> orders = new List<Order>();
+
+                for (int i = 0; i < OrderResponse.result.Count; i++)
+                {
+                    Order newOrder = null;
+
+                    newOrder = OrderUpdate(OrderResponse.result[i], GetOrderState(OrderResponse.result[i].state));
+
+                    if (newOrder == null)
+                    {
+                        continue;
+                    }
+
+                    orders.Add(newOrder);
+                }
+
+                return orders;
             }
 
             public void GetOrderStatus(Order order)
             {
+                // GET /v4/order
+                string url = "/v4/order";
+                
+                string query = null;
+                
+                query = string.IsNullOrEmpty(order.NumberMarket) ? $"clientOrderId={order.NumberMarket}" : $"orderId={order.NumberMarket}";
 
+                HttpResponseMessage res = CreatePrivateQuery(url, "GET", query);
+
+                string contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage(contentStr, LogMessageType.Error);
+                    return;
+                }
+
+                ResponseMessageRest<OrderResponse> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseMessageRest<OrderResponse>());
+
+                if(OrderResponse.rc != "0")
+                {
+                    SendLogMessage($"GetOrderStatus error, code: {OrderResponse.rc}\n"
+                        + $"Message code: {OrderResponse.mc}", LogMessageType.Error);
+                    return;
+                }
+
+                Order newOrder = OrderUpdate(OrderResponse.result, GetOrderState(OrderResponse.result.state));
+                
+                if (newOrder == null)
+                {
+                    return;
+                }
+
+                Order myOrder = newOrder;
+
+                MyOrderEvent?.Invoke(myOrder);
+
+                if(myOrder.State == OrderStateType.Done 
+                   || myOrder.State == OrderStateType.Patrial)
+                {
+                    CreateQueryMyTrade(myOrder.SecurityNameCode,myOrder.NumberMarket,1);
+                }
             }
 
             #endregion
@@ -1519,7 +1699,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private readonly string _encry = "HmacSHA256";
 
-            private readonly RateGate _rateGateGetMyTradeState = new RateGate(8, TimeSpan.FromMilliseconds(1000));
+            private readonly RateGate _rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(90));
 
             HttpClient _httpPublicClient = new HttpClient();
 
@@ -1676,12 +1856,12 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
             }
 
-            private void CreateQueryMyTrade(string nameSec, string OrdId, long ts)
+            private void CreateQueryMyTrade(string nameSec, string OrdId, int serialStart)
             {
-                Thread.Sleep(2000);
                 _rateGateGetMyTradeState.WaitToProceed();
 
                 string queryString = $"orderId={OrdId}";
+                int startCount = serialStart;
 
                 HttpResponseMessage responseMessage = CreatePrivateQuery("/v4/trade", "GET", queryString);
                 string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
@@ -1696,8 +1876,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         
                         if (responseMyTrades.result.items.Count == 0)
                         {
-                            CreateQueryMyTrade(nameSec, OrdId, ts);
-                            return;
+                            if (startCount >= 4)
+                            {
+                                SendLogMessage($"Failed {startCount} attempts to receive trades for order #{OrdId}", LogMessageType.Error);
+                                return;
+                            }
+                            
+                            Thread.Sleep(200 * startCount);
+                            startCount++;
+                            CreateQueryMyTrade(nameSec, OrdId, startCount);
                         }
 
                         UpdateMyTrade(jsonResponse);

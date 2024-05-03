@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using OsEngine.Language;
@@ -35,6 +37,7 @@ namespace OsEngine.PrimeSettings
                 if (Enum.TryParse(ComboBoxLocalization.SelectedItem.ToString(), out newType))
                 {
                     OsLocalization.CurLocalization = newType;
+                    Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
                 }
             };
 
@@ -44,6 +47,7 @@ namespace OsEngine.PrimeSettings
             ComboBoxTimeFormat.SelectionChanged += delegate
             {
                 OsLocalization.LongTimePattern = ComboBoxTimeFormat.SelectedItem.ToString();
+                Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
             };
 
             ComboBoxDateFormat.Items.Add("dd.MM.yyyy");
@@ -52,6 +56,7 @@ namespace OsEngine.PrimeSettings
             ComboBoxDateFormat.SelectionChanged += delegate
             {
                 OsLocalization.ShortDatePattern = ComboBoxDateFormat.SelectedItem.ToString();
+                Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
             };
 
             CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActiv;

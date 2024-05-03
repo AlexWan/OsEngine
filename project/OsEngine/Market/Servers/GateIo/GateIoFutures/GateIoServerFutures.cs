@@ -897,23 +897,21 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        _timeLastSendPing = DateTime.Now;
                         Thread.Sleep(1000);
                         continue;
                     }
 
                     Thread.Sleep(3000);
 
-                    if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+                    if (_webSocket != null && 
+                        _webSocket.State == WebSocketState.Open)
                     {
                         if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
                         {
                             SendPing();
                             _timeLastSendPing = DateTime.Now;
                         }
-                    }
-                    else
-                    {
-                        Dispose();
                     }
                 }
                 catch (Exception e)

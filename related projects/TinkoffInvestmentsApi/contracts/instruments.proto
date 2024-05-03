@@ -168,6 +168,7 @@ message InstrumentRequest {
 //Запрос получения инструментов.
 message InstrumentsRequest {
   optional InstrumentStatus instrument_status = 1; //Статус запрашиваемых инструментов. Возможные значения: [InstrumentStatus](#instrumentstatus)
+  optional InstrumentExchangeType instrument_exchange = 2; // Тип площадки торговли. Возможные значения: [InstrumentExchangeType](#instrumentexchangetype)
 }
 //Параметры фильтрации опционов
 message FilterOptionsRequest {
@@ -462,6 +463,7 @@ message Bond {
   google.protobuf.Timestamp first_1day_candle_date = 62; //Дата первой дневной свечи.
   RiskLevel risk_level = 63; //Уровень риска.
   BrandData brand = 64; // Информация о бренде.
+  BondType bond_type = 65; // Тип облигации.
 }
 
 //Объект передачи информации о валюте.
@@ -549,6 +551,7 @@ message Etf {
   RealExchange real_exchange = 32; //Реальная площадка исполнения расчётов (биржа).
   string position_uid = 33; //Уникальный идентификатор позиции инструмента.
   string asset_uid = 34; //Уникальный идентификатор актива.
+  InstrumentExchangeType instrument_exchange = 35; //Тип площадки торговли.
 
   bool for_iis_flag = 41; //Признак доступности для ИИС.
   bool for_qual_investor_flag = 42; //Флаг отображающий доступность торговли инструментом только для квалифицированных инвесторов.
@@ -656,6 +659,7 @@ message Share {
   RealExchange real_exchange = 34; //Реальная площадка исполнения расчётов (биржа).
   string position_uid = 35; //Уникальный идентификатор позиции инструмента.
   string asset_uid = 36; //Уникальный идентификатор актива.
+  InstrumentExchangeType instrument_exchange = 37; //Тип площадки торговли.
 
   bool for_iis_flag = 46; //Признак доступности для ИИС.
   bool for_qual_investor_flag = 47; //Флаг отображающий доступность торговли инструментом только для квалифицированных инвесторов.
@@ -1248,7 +1252,7 @@ message GetAssetReportsRequest {
 //Отчеты эмитентов
 message GetAssetReportsResponse {
   repeated GetAssetReportsEvent events = 1; // Массив событий по облигации
-  
+
   //Отчет
   message GetAssetReportsEvent {
     string instrument_id = 1;  // Идентификатор инструмента.
@@ -1358,4 +1362,16 @@ enum RiskLevel {
   RISK_LEVEL_LOW = 1; //Низкий уровень риска
   RISK_LEVEL_MODERATE = 2; //Средний уровень риска
   RISK_LEVEL_HIGH = 3; //Высокий уровень риска
+}
+
+enum BondType {
+  BOND_TYPE_UNSPECIFIED = 0; // Тип облигации не определен.
+  BOND_TYPE_REPLACED = 1; // Замещающая облигация.
+}
+
+// Площадка торговли
+enum InstrumentExchangeType {
+  INSTRUMENT_EXCHANGE_UNSPECIFIED = 0; // Площадка торговли не определена.
+  INSTRUMENT_EXCHANGE_DEALER = 1; // Бумага, торгуемая у дилера.
+
 }

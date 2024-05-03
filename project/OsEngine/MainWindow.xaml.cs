@@ -25,6 +25,7 @@ using OsEngine.PrimeSettings;
 using OsEngine.Layout;
 using System.Collections.Generic;
 using OsEngine.Entity;
+using System.Globalization;
 
 namespace OsEngine
 {
@@ -106,6 +107,8 @@ namespace OsEngine
             _window = this;
 
             ServerMaster.ActivateLogging();
+
+            Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
 
             Task task = new Task(ThreadAreaGreeting);
             task.Start();

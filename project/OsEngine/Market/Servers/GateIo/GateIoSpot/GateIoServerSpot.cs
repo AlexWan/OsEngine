@@ -734,6 +734,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 {
                     if(ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        _timeLastSendPing = DateTime.Now;
                         Thread.Sleep(1000);
                         continue;
                     }
@@ -747,10 +748,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                             SendPing();
                             _timeLastSendPing = DateTime.Now;
                         }
-                    }
-                    else
-                    {
-                        Dispose();
                     }
                 }
                 catch(Exception error)

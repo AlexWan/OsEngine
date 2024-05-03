@@ -99,6 +99,7 @@ message StopOrder {
   TakeProfitType take_profit_type = 13; //Подтип стоп-заявки TakeProfit
   TrailingData trailing_data = 14; //Параметры трейлинг-стопа
   StopOrderStatusOption status = 15; //Статус заявки
+  ExchangeOrderType exchange_order_type = 16; //Тип дочерней биржевой заявки для тейкпрофита
   message TrailingData {
     Quotation indent = 1; //Отступ
     TrailingValueType indent_type = 2; //Тип величины отступа
