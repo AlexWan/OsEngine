@@ -42,7 +42,7 @@
         <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,29" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
         <CheckBox x:Name="CheckBoxTf4HourIsOn" Content="4 hour" HorizontalAlignment="Left" Margin="270,163,0,0" VerticalAlignment="Top" />
         <Rectangle x:Name="StopUsePanelOne" HorizontalAlignment="Left" Height="144" Margin="18,91,0,0" Stroke="Black" VerticalAlignment="Top" Width="338" Opacity="0.5" StrokeThickness="0"/>
-        <Rectangle x:Name="StopUsePanelTwo" HorizontalAlignment="Left" Height="26" Margin="297,298,0,0" Stroke="Black" VerticalAlignment="Top" Width="125" Opacity="0.5" StrokeThickness="0"/>
+        <Rectangle x:Name="StopUsePanelTwo" HorizontalAlignment="Left" Height="26" Margin="297,298,0,0" Stroke="Black" VerticalAlignment="Top" Width="130" Opacity="0.5" StrokeThickness="0"/>
        
     </Grid>
 </Window>
