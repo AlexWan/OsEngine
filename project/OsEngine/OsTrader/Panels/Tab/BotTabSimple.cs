@@ -3082,6 +3082,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Place a stop market order for a position
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
+        /// <param name="signalType">close position signal name</param>
+        public void CloseAtStopMarket(Position position, decimal priceActivation, string signalType)
+        {
+            position.SignalTypeClose = signalType;
+            CloseAtStopMarket(position, priceActivation);
+        }
+
+        /// <summary>
         /// Place a trailing stop order for a position
         /// </summary>
         /// <param name="position">position to be closed</param>
@@ -3157,6 +3169,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.SetPosition(_journal.AllPosition);
             _journal.PaintPosition(position);
             _journal.Save();
+        }
+
+        /// <summary>
+        /// Place a trailing stop order for a position by Market
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
+        /// <param name="signalType">close position signal name</param>
+        public void CloseAtTrailingStopMarket(Position position, decimal priceActivation, string signalType)
+        {
+            position.SignalTypeClose = signalType;
+            CloseAtTrailingStopMarket(position, priceActivation);
         }
 
         /// <summary>
@@ -3236,6 +3260,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        /// <summary>
+        /// Place profit market order for a position
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
+        /// <param name="signalType">close position signal name</param>
+        public void CloseAtProfitMarket(Position position, decimal priceActivation, string signalType)
+        {
+            position.SignalTypeClose = signalType;
+            CloseAtProfitMarket(position, priceActivation);
         }
 
         /// <summary>
