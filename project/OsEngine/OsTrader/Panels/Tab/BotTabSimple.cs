@@ -4777,13 +4777,16 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (StartProgram == StartProgram.IsOsTrader)
                     {
-                        SetNewLogMessage(TabName + OsLocalization.Trader.Label71 + position.Number, LogMessageType.Trade);
-
                         // высылаем оповещение, только если уже есть закрывающие MyTrades
 
                         if (position.CloseOrders[position.CloseOrders.Count - 1].MyTrades != null
                             && position.CloseOrders[position.CloseOrders.Count - 1].MyTrades.Count > 0)
                         {
+                            SetNewLogMessage(
+                                OsLocalization.Trader.Label408 
+                                + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n" 
+                                + position.PositionSpecification, LogMessageType.Trade);
+
                             if (PositionClosingSuccesEvent != null)
                             {
                                 PositionClosingSuccesEvent(position);
@@ -4810,6 +4813,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (_connector.ServerType == ServerType.Tester)
                         {
+                            SetNewLogMessage(
+                            OsLocalization.Trader.Label408
+                            + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
+                            + position.PositionSpecification, LogMessageType.Trade);
+
                             ((TesterServer)_connector.MyServer).AddProfit(profit);
                         }
                         else if (_connector.ServerType == ServerType.Optimizer)
@@ -4820,6 +4828,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.OpeningFail)
                 {
+                    if (StartProgram != StartProgram.IsOsOptimizer)
+                    {
+                        SetNewLogMessage(
+                        OsLocalization.Trader.Label72
+                        + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
+                        + position.PositionSpecification, LogMessageType.Trade);
+                    }
+
                     SetNewLogMessage(TabName + OsLocalization.Trader.Label72 + position.Number, LogMessageType.System);
 
                     if (PositionOpeningFailEvent != null)
@@ -4829,11 +4845,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.Open)
                 {
-                    if (StartProgram != StartProgram.IsOsOptimizer)
-                    {
-                        SetNewLogMessage(TabName + OsLocalization.Trader.Label73 + position.Number, LogMessageType.Trade);
-                    }
-
                     if(StartProgram == StartProgram.IsOsTrader)
                     {
                         // высылаем оповещение, только если уже есть закрывающие MyTrades
@@ -4841,6 +4852,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (position.OpenOrders[position.OpenOrders.Count - 1].MyTrades != null
                             && position.OpenOrders[position.OpenOrders.Count - 1].MyTrades.Count > 0)
                         {
+                            SetNewLogMessage(
+                            OsLocalization.Trader.Label407
+                            + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
+                            + position.PositionSpecification, LogMessageType.Trade);
+
                             if (PositionOpeningSuccesEvent != null)
                             {
                                 PositionOpeningSuccesEvent(position);
@@ -4858,6 +4874,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
+                        if(StartProgram == StartProgram.IsTester)
+                        {
+                            SetNewLogMessage(
+                            OsLocalization.Trader.Label407
+                            + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
+                            + position.PositionSpecification, LogMessageType.Trade);
+                        }
+
                         if (PositionOpeningSuccesEvent != null)
                         {
                             PositionOpeningSuccesEvent(position);
@@ -4867,9 +4891,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.ClosingFail)
                 {
-                    if (StartProgram == StartProgram.IsOsTrader)
+                    if (StartProgram != StartProgram.IsOsOptimizer)
                     {
-                        SetNewLogMessage(TabName + OsLocalization.Trader.Label74 + position.Number, LogMessageType.System);
+                        SetNewLogMessage(
+                        OsLocalization.Trader.Label74
+                        + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
+                        + position.PositionSpecification, LogMessageType.Trade);
                     }
 
                     if (ManualPositionSupport.DoubleExitIsOn &&
@@ -4895,7 +4922,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Open position volume changed
         /// </summary>
-        void _journal_PositionNetVolumeChangeEvent(Position position)
+        private void _journal_PositionNetVolumeChangeEvent(Position position)
         {
             if (PositionNetVolumeChangeEvent != null)
             {
@@ -5385,6 +5412,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                             try
                             {
                                 ManualReloadStopsAndProfitToPosition(curPos.Position);
+
+                                SetNewLogMessage(
+                                OsLocalization.Trader.Label407
+                                + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
+                                + curPos.Position.PositionSpecification, LogMessageType.Trade);
+
                                 if (PositionOpeningSuccesEvent != null)
                                 {
                                     PositionOpeningSuccesEvent(curPos.Position);
@@ -5409,6 +5442,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             try
                             {
+                                SetNewLogMessage(
+                                OsLocalization.Trader.Label408
+                                +", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
+                                + curPos.Position.PositionSpecification, LogMessageType.Trade);
+
                                 if (PositionClosingSuccesEvent != null)
                                 {
                                     PositionClosingSuccesEvent(curPos.Position);

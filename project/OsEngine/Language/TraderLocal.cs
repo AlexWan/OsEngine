@@ -290,10 +290,10 @@ namespace OsEngine.Language
 
         public string Label71 => OsLocalization.ConvertToLocString(
             "Eng: Closing Position. Number _" +
-            "Ru: Закрытие сделки номер _");
+            "Ru: Закрытие сделки. Номер _");
 
         public string Label72 => OsLocalization.ConvertToLocString(
-            "Eng: Position did not open. Number _" +
+            "Eng: Position did not open _" +
             "Ru: Сделка не открылась номер _");
 
         public string Label73 => OsLocalization.ConvertToLocString(
@@ -301,7 +301,7 @@ namespace OsEngine.Language
             "Ru: Открытие сделки номер _");
 
         public string Label74 => OsLocalization.ConvertToLocString(
-            "Eng: Position did not close. Number_" +
+            "Eng: Position did not close _" +
             "Ru: Сделка не закрылась номер _");
 
         public string Label75 => OsLocalization.ConvertToLocString(
@@ -1499,5 +1499,45 @@ namespace OsEngine.Language
         public string Label399 => OsLocalization.ConvertToLocString(
           "Eng: After removing security, you will need to rebuild the formula!  _" +
           "Ru: После удаления инструмента, Вам нужно будет перестроить формулу! _");
+
+        public string Label400 => OsLocalization.ConvertToLocString(
+          "Eng:Entry price_" +
+          "Ru:Цена входа_");
+
+        public string Label401 => OsLocalization.ConvertToLocString(
+          "Eng:Close price_" +
+          "Ru:Цена выхода_");
+
+        public string Label402 => OsLocalization.ConvertToLocString(
+          "Eng:Max volume_" +
+          "Ru:Максимальный объём_");
+
+        public string Label403 => OsLocalization.ConvertToLocString(
+         "Eng:Open volume_" +
+         "Ru:Открытый объём_");
+
+        public string Label404 => OsLocalization.ConvertToLocString(
+         "Eng:Profit abs_" +
+         "Ru:Профит abs_");
+
+        public string Label405 => OsLocalization.ConvertToLocString(
+         "Eng:Open signal_" +
+         "Ru:Сигнал на открытие_");
+
+        public string Label406 => OsLocalization.ConvertToLocString(
+        "Eng:Close signal_" +
+        "Ru:Сигнал на закрытие_");
+
+        public string Label407 => OsLocalization.ConvertToLocString(
+        "Eng:Position open_" +
+        "Ru:Позиция открыта_");
+
+        public string Label408 => OsLocalization.ConvertToLocString(
+        "Eng:Position closed_" +
+        "Ru:Позиция закрыта_");
+
+        public string Label409 => OsLocalization.ConvertToLocString(
+        "Eng:Source_" +
+        "Ru:Источник_");
     }
 }
