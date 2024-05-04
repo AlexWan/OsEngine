@@ -1020,14 +1020,17 @@ namespace OsEngine.Entity
                     result += OsLocalization.Trader.Label404 + ": " + ProfitPortfolioPunkt + "\n";
                 }
                 
-                result += OsLocalization.Trader.Label400 + ": " + EntryPrice;
-
-                if (State == PositionStateType.Done)
+                if(State != PositionStateType.OpeningFail)
                 {
-                    result += ", " + OsLocalization.Trader.Label401 + ": " + ClosePrice + " ";
-                }
+                    result += OsLocalization.Trader.Label400 + ": " + EntryPrice;
 
-                result += "\n";
+                    if (State == PositionStateType.Done)
+                    {
+                        result += ", " + OsLocalization.Trader.Label401 + ": " + ClosePrice + " ";
+                    }
+
+                    result += "\n";
+                }
 
                 if (OpenVolume == 0)
                 {
@@ -1052,7 +1055,6 @@ namespace OsEngine.Entity
                 return result;
             }
         }
-
 
         // profit for the portfolio
         

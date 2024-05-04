@@ -631,7 +631,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             if (TypeDoubleExitOrder == OrderPriceType.Market)
             {
-                bot.CloseAtMarket(position, position.OpenVolume);
+                bot.CloseAtMarket(position, position.OpenVolume, OsLocalization.Trader.Label410);
             }
             else if (TypeDoubleExitOrder == OrderPriceType.Limit)
             {
@@ -645,7 +645,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     price = bot.PriceBestAsk + GetEmergencyExitDistance(bot, position);
                 }
 
-                bot.CloseAtLimit(position, price, position.OpenVolume);
+                bot.CloseAtLimit(position, price, position.OpenVolume, OsLocalization.Trader.Label410);
             }
         }
 

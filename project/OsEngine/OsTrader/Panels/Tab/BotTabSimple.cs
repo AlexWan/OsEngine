@@ -4836,8 +4836,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                         + position.PositionSpecification, LogMessageType.Trade);
                     }
 
-                    SetNewLogMessage(TabName + OsLocalization.Trader.Label72 + position.Number, LogMessageType.System);
-
                     if (PositionOpeningFailEvent != null)
                     {
                         PositionOpeningFailEvent(position);

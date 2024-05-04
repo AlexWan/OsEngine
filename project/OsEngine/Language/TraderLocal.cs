@@ -285,8 +285,8 @@ namespace OsEngine.Language
             "Ru: Алерт Сигнал Лонг. Цена _");
 
         public string Label70 => OsLocalization.ConvertToLocString(
-            "Eng: Removed the order by time, number_" +
-            "Ru: Отозвали ордер по времени, номер _");
+            "Eng:Position Support. Removed the order by time, number_" +
+            "Ru:Сопровождение позиции. Отозвали ордер по времени, номер _");
 
         public string Label71 => OsLocalization.ConvertToLocString(
             "Eng: Closing Position. Number _" +
@@ -633,8 +633,8 @@ namespace OsEngine.Language
             "Ru:WilliamsR нижний предел_");
 
         public string Label157 => OsLocalization.ConvertToLocString(
-            "Eng: Withdrew the order on the rollback of the price in the marketDepth from the order price_" +
-            "Ru: Отозвали ордер по откату цены в стакане от цены ордера, номер _");
+            "Eng: Position support. Withdrew the order on the rollback of the price in the marketDepth from the order price_" +
+            "Ru: Сопровождение позиции. Отозвали ордер по откату цены в стакане от цены ордера, номер _");
 
         public string Label158 => OsLocalization.ConvertToLocString(
             "Eng: Values type_" +
@@ -1539,5 +1539,9 @@ namespace OsEngine.Language
         public string Label409 => OsLocalization.ConvertToLocString(
         "Eng:Source_" +
         "Ru:Источник_");
+
+        public string Label410 => OsLocalization.ConvertToLocString(
+        "Eng: Position support. Emergency position closing_" +
+        "Ru: Сопровождение позиции. Экстренное дозакрытие позиции_");
     }
 }
