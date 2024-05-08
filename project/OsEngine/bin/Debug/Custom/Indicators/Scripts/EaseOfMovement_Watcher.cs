@@ -3,12 +3,12 @@ using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+
+namespace OsEngine.Indicators.indicator
 {
-   // [IndicatorAttribute("EaseOfMovement_Oscillator")]
-    internal class EaseOfMovement_Oscillator : Aindicator
+   // [IndicatorAttribute("EaseOfMovement_Watcher")]
+    internal class EaseOfMovement_Watcher : Aindicator
     {
         public IndicatorParameterInt _periodMA;
         public IndicatorParameterInt _div;
@@ -26,15 +26,16 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         /// <summary>
         /// initialization
         /// </summary>
-        /// <param name="state">Indicator Configure</param>     
+        /// <param name="state">Indicator Configure</param>  
+
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
             {
                 _periodMA = CreateParameterInt("Period MA", 10);
-                _div = CreateParameterInt("volumeDiv", 100000);
+                _div = CreateParameterInt("volumeDiv", 10000);
 
-                _isUseStandartDeviation = CreateParameterBool("is Use Standart Deviation of EaseOfMovement SMA", true);
+                _isUseStandartDeviation = CreateParameterBool("is Use Standart Deviation of EOM", true);
 
                 _seriesEMVUp = CreateSeries("Series EaseOfMovement Up", Color.DarkGreen, IndicatorChartPaintType.Column, true);
                 _seriesEMVDown = CreateSeries("Series EaseOfMovement Down", Color.DarkRed, IndicatorChartPaintType.Column, true);
@@ -45,6 +46,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
                 _seriesEomRaw = CreateSeries("Eom Raw", Color.Blue, IndicatorChartPaintType.Line, false);
             }
         }
+
         /// <summary>
         /// an iterator method to fill the indicator
         /// </summary>
@@ -74,8 +76,8 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
                 if (standardDeviationList.Count > 1)
                 {
                     CalcStandardDeviation(standardDeviationList);
-                    _seriesEmvStDevUp.Values[index] = (decimal)(emvStDev > 0 ? Math.Round(emvStDev, 5) : Math.Round(-emvStDev, 5));
-                    _seriesEmvStDevDown.Values[index] = (decimal)(emvStDev < 0 ? Math.Round(emvStDev, 5) : Math.Round(-emvStDev, 5));
+                    _seriesEmvStDevUp.Values[index] = emvStDev > 0 ? Math.Round(emvStDev, 5) : Math.Round(-emvStDev, 5);
+                    _seriesEmvStDevDown.Values[index] = emvStDev < 0 ? Math.Round(emvStDev, 5) : Math.Round(-emvStDev, 5);
                 }
             }
         }
@@ -83,8 +85,8 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         #region 
         decimal emvSMA;
 
-        List<double> standardDeviationList = new List<double>();
-        double emvStDev;
+        List<decimal> standardDeviationList = new List<decimal>();
+        decimal emvStDev;
         #endregion
         /// <summary>
         /// Calculate Emv
@@ -114,7 +116,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
 
             return emvSMA;
         }
- 
+
         private decimal GetBoxRatio(List<Candle> candles, int index)
         {
             //getBoxRatio
@@ -133,7 +135,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
             return result;
         }
 
-        private  decimal DistanceMoved(List<Candle> candles, int index)
+        private decimal DistanceMoved(List<Candle> candles, int index)
         {
             //distanceMoved
             decimal high = candles[index].High;
@@ -162,18 +164,33 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
 
             return result / lenghtReal; ;
         }
-       
+
         /// <summary>
         ///calculate standard deviation
         /// </summary>
         /// <param name="standardDeviationList"></param>
-        public void CalcStandardDeviation(IEnumerable<double> standardDeviationList)
+        public void CalcStandardDeviation(List<decimal> standardDeviationList)
         {
-            if (standardDeviationList.Any())
+            decimal sd = 0;
+
+            if (standardDeviationList.Count > 0)
             {
-                double average = standardDeviationList.Average();
-                double sum = standardDeviationList.Sum(d => Math.Pow(d - average, 2));
-                emvStDev = Math.Sqrt((sum) / (standardDeviationList.Count() - 1)) * 2.5;
+                decimal average = 0;
+                for (int i = standardDeviationList.Count - _periodMA.ValueInt;i < standardDeviationList.Count; i++)
+                {
+                    average += standardDeviationList[i];
+                }
+
+                average = average / _periodMA.ValueInt;
+
+                for (int i = standardDeviationList.Count - _periodMA.ValueInt; i < standardDeviationList.Count; i++)
+                {
+                    decimal x = standardDeviationList[i] - average;
+                    double g = Math.Pow((double)x, 2.0);
+                    sd += (decimal)g;
+                }
+
+                emvStDev = (decimal)Math.Sqrt((double)sd / (_periodMA.ValueInt - 1)) * 2.5m;
             }
         }
         /// <summary>
@@ -181,15 +198,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         /// </summary>
         private void AddToListStandartDev()
         {
-            if (standardDeviationList.Count < _periodMA.ValueInt)
-            {
-                standardDeviationList.Add((double)emvSMA);
-            }
-            else if (standardDeviationList.Count >= _periodMA.ValueInt)
-            {
-                standardDeviationList.RemoveAt(0);
-                standardDeviationList.Add((double)emvSMA);
-            }
+            standardDeviationList.Add(emvSMA);
         }
     }
 }
