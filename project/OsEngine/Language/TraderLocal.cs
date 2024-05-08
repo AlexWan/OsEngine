@@ -1543,5 +1543,9 @@ namespace OsEngine.Language
         public string Label410 => OsLocalization.ConvertToLocString(
         "Eng: Position support. Emergency position closing_" +
         "Ru: Сопровождение позиции. Экстренное дозакрытие позиции_");
+
+        public string Label411 => OsLocalization.ConvertToLocString(
+        "Eng: Depth_" +
+        "Ru: Глубина_");
     }
 }
