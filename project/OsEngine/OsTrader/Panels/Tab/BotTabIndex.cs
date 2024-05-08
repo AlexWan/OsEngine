@@ -2300,7 +2300,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _lastTimeUpdateIndex = _lastTimeUpdate.ToString();
 
-            Save();
+            if (_startProgram == StartProgram.IsOsTrader)
+            {
+                Save();
+            }
 
             if (_writeLogMessageOnRebuild)
             {
