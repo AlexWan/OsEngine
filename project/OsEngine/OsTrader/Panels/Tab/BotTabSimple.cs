@@ -1715,6 +1715,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.ActivateType = activateType;
                 positionOpener.Side = Side.Buy;
                 positionOpener.SignalType = signalType;
+                positionOpener.OrderPriceType = OrderPriceType.Limit;
 
                 PositionOpenerToStop.Add(positionOpener);
                 UpdateStopLimits();
@@ -1723,7 +1724,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         /// <summary>
@@ -1776,6 +1776,54 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void BuyAtStop(decimal volume, decimal priceLimit, decimal priceRedLine, StopActivateType activateType, string signalType)
         {
             BuyAtStop(volume, priceLimit, priceRedLine, activateType, 1, signalType, PositionOpenerToStopLifeTimeType.CandlesCount);
+        }
+
+        /// <summary>
+        /// Enter position Long at price intersection by Market
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="priceLimit">order price</param>
+        /// <param name="priceRedLine">the price of the line, after reaching which a buy order will be placed</param>
+        /// <param name="activateType">activation type</param>
+        /// <param name="expiresBars">life time in candles count</param>
+        /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen</param>
+        /// <param name="lifeTimeType">order life type</param>
+        public void BuyAtStopMarket(decimal volume, decimal priceLimit, decimal priceRedLine,
+            StopActivateType activateType, int expiresBars, string signalType, PositionOpenerToStopLifeTimeType lifeTimeType)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
+                PositionOpenerToStopLimit positionOpener = new PositionOpenerToStopLimit();
+
+                positionOpener.Volume = volume;
+                positionOpener.Security = Securiti.Name;
+                positionOpener.Number = NumberGen.GetNumberDeal(StartProgram);
+                positionOpener.ExpiresBars = expiresBars;
+                positionOpener.TimeCreate = TimeServerCurrent;
+                positionOpener.OrderCreateBarNumber = CandlesFinishedOnly.Count;
+                positionOpener.TabName = TabName;
+                positionOpener.LifeTimeType = lifeTimeType;
+                positionOpener.PriceOrder = priceLimit;
+                positionOpener.PriceRedLine = priceRedLine;
+                positionOpener.ActivateType = activateType;
+                positionOpener.Side = Side.Buy;
+                positionOpener.SignalType = signalType;
+                positionOpener.OrderPriceType = OrderPriceType.Market;
+
+                PositionOpenerToStop.Add(positionOpener);
+                UpdateStopLimits();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -2403,6 +2451,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.ActivateType = activateType;
                 positionOpener.Side = Side.Sell;
                 positionOpener.SignalType = signalType;
+                positionOpener.OrderPriceType = OrderPriceType.Limit;
 
                 PositionOpenerToStop.Add(positionOpener);
                 UpdateStopLimits();
@@ -2465,6 +2514,55 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             SellAtStop(volume, priceLimit, priceRedLine, activateType, 1, signalType, PositionOpenerToStopLifeTimeType.CandlesCount);
         }
+
+        /// <summary>
+        /// Enter position Short at price intersection
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="priceLimit">order price</param>
+        /// <param name="priceRedLine">line price, after reaching which a sell order will be placed</param>
+        /// <param name="activateType">activation type</param>
+        /// <param name="expiresBars">life time in candles count</param>
+        /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen</param>
+        /// <param name="lifeTimeType">order life type</param>
+        public void SellAtStopMarket(decimal volume, decimal priceLimit, decimal priceRedLine,
+            StopActivateType activateType, int expiresBars, string signalType, PositionOpenerToStopLifeTimeType lifeTimeType)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
+                PositionOpenerToStopLimit positionOpener = new PositionOpenerToStopLimit();
+
+                positionOpener.Volume = volume;
+                positionOpener.Security = Securiti.Name;
+                positionOpener.Number = NumberGen.GetNumberDeal(StartProgram);
+                positionOpener.TabName = TabName;
+                positionOpener.ExpiresBars = expiresBars;
+                positionOpener.TimeCreate = TimeServerCurrent;
+                positionOpener.OrderCreateBarNumber = CandlesFinishedOnly.Count;
+                positionOpener.LifeTimeType = lifeTimeType;
+                positionOpener.PriceOrder = priceLimit;
+                positionOpener.PriceRedLine = priceRedLine;
+                positionOpener.ActivateType = activateType;
+                positionOpener.Side = Side.Sell;
+                positionOpener.SignalType = signalType;
+                positionOpener.OrderPriceType = OrderPriceType.Market;
+
+                PositionOpenerToStop.Add(positionOpener);
+                UpdateStopLimits();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
 
         /// <summary>
         /// Add new order to Short position at limit
@@ -4565,7 +4663,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (PositionOpenerToStop[i].Side == Side.Buy)
                         {
                             PositionOpenerToStopLimit opener = PositionOpenerToStop[i];
-                            Position pos = LongCreate(PositionOpenerToStop[i].PriceOrder, PositionOpenerToStop[i].Volume, OrderPriceType.Limit,
+                            Position pos = LongCreate(PositionOpenerToStop[i].PriceOrder, 
+                                PositionOpenerToStop[i].Volume, PositionOpenerToStop[i].OrderPriceType,
                                 ManualPositionSupport.SecondToOpen, true);
 
                             if (pos != null
@@ -4591,7 +4690,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                         else if (PositionOpenerToStop[i].Side == Side.Sell)
                         {
                             PositionOpenerToStopLimit opener = PositionOpenerToStop[i];
-                            Position pos = ShortCreate(PositionOpenerToStop[i].PriceOrder, PositionOpenerToStop[i].Volume, OrderPriceType.Limit,
+                            Position pos = ShortCreate(PositionOpenerToStop[i].PriceOrder, 
+                                PositionOpenerToStop[i].Volume, PositionOpenerToStop[i].OrderPriceType,
                                 ManualPositionSupport.SecondToOpen, true);
 
                             if (pos != null

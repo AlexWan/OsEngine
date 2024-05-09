@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Windows;
-using WebSocketSharp;
 
 namespace OsEngine.Language
 {
