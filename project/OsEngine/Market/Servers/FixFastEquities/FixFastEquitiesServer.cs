@@ -3,18 +3,31 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using Newtonsoft.Json;
 using OsEngine.Entity;
-using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.FixFastEquities.FIX;
 using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net;
+using System.IO;
 using System.Threading;
 using WebSocket4Net;
+
+using OpenFAST;
+using OpenFAST.Codec;
+using OpenFAST.Template;
+using OpenFAST.Template.Loader;
+using System.Net.Sockets;
+using System.Text;
+using System.Xml;
+using System.Net;
+using LiteDB;
+using System.Linq;
+using Grpc.Core;
+using OsEngine.Market.Servers.FixProtocolEntities;
+
 
 namespace OsEngine.Market.Servers.FixFastEquities
 {
@@ -25,16 +38,22 @@ namespace OsEngine.Market.Servers.FixFastEquities
             FixFastEquitiesServerRealization realization = new FixFastEquitiesServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString(OsLocalization.Market.ServerParamToken, "");
-            CreateParameterString(OsLocalization.Market.Label112, "");
-            CreateParameterString(OsLocalization.Market.Label113, "");
-            CreateParameterString(OsLocalization.Market.Label114, "");
-            CreateParameterString(OsLocalization.Market.Label115, "");
-            CreateParameterBoolean(OsLocalization.Market.UseStock, true);
-            CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
-            CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
-            CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
-            CreateParameterBoolean(OsLocalization.Market.UseOther, false);
+            // MFIX
+            CreateParameterString("MFIX Trade Sever Address", "");
+            CreateParameterString("MFIX Trade Sever Port", "");
+            CreateParameterString("MFIX Trade Sever TargetCompId", "");
+            CreateParameterString("MFIX Trade Capture Sever Address", "");
+            CreateParameterString("MFIX Trade Capture Sever Port", "");
+            CreateParameterString("MFIX Trade Capture Sever TargetCompId", "");
+            CreateParameterString("MFIX Trade Server Login", "");
+            CreateParameterPassword("MFIX Trade Server Password", "");
+            CreateParameterString("MFIX Trade Capture Server Login", "");
+            CreateParameterPassword("MFIX Trade Capture Server Password", "");
+            CreateParameterString("MFIX Trade Account", "");
+            CreateParameterString("MFIX Trade Client Code", "");
+
+            // FAST
+            CreateParameterPath("FIX/FAST Multicast Config Directory");
         }
     }
 
@@ -44,67 +63,123 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public FixFastEquitiesServerRealization()
         {
-            Thread worker = new Thread(ConnectionCheckThread);
-            worker.Name = "CheckAliveFixFastEquities";
-            worker.Start();
+            Thread worker0 = new Thread(InstrumentDefinitionsReader);
+            worker0.Name = "InstrumentsFixFastEquities";
+            worker0.Start();
 
-            Thread worker2 = new Thread(DataMessageReader);
-            worker2.Name = "DataMessageReaderFixFastEquities";
+            Thread worker1 = new Thread(TradesReader);
+            worker1.Name = "TradesFixFastEquities";
+            worker1.Start();
+
+            Thread worker2 = new Thread(OrdersReader);
+            worker2.Name = "OrdersFixFastEquities";
             worker2.Start();
 
-            Thread worker3 = new Thread(PortfolioMessageReader);
-            worker3.Name = "PortfolioMessageReaderFixFastEquities";
+            Thread worker3 = new Thread(MFIXTradeServerConnection);
+            worker3.Name = "MFIXTradeServerConnectionFixFastEquities";
             worker3.Start();
+
+            Thread worker4 = new Thread(MFIXTradeCaptureServerConnection);
+            worker4.Name = "MFIXTradeCaptureServerConnectionFixFastEquities";
+            worker4.Start();
+
+            //Thread worker = new Thread(ConnectionCheckThread);
+            //worker.Name = "CheckAliveFixFastEquities";
+            //worker.Start();
+
+            //Thread worker2 = new Thread(DataMessageReader);
+            //worker2.Name = "DataMessageReaderFixFastEquities";
+            //worker2.Start();
+
+            //Thread worker3 = new Thread(PortfolioMessageReader);
+            //worker3.Name = "PortfolioMessageReaderFixFastEquities";
+            //worker3.Start();
         }
 
         public void Connect()
         {
             try
-            {
-                
+            {                
                 _securities.Clear();
-                _myPortfolious.Clear();
-                _subscribledSecurities.Clear();
-                _lastGetLiveTimeToketTime = DateTime.MinValue;
+                _myPortfolios.Clear();
+                _subscribedSecurities.Clear();
+                
 
-                SendLogMessage("Start FixFastEquities Connection", LogMessageType.System);
+                SendLogMessage("Start FIX/FAST Equities Connection", LogMessageType.System);
 
-                _apiTokenRefresh = ((ServerParameterString)ServerParameters[0]).Value;
-                _portfolioSpotId = ((ServerParameterString)ServerParameters[1]).Value;
-                _portfolioFutId = ((ServerParameterString)ServerParameters[2]).Value;
-                _portfolioCurrencyId = ((ServerParameterString)ServerParameters[3]).Value;
-                _portfolioSpareId = ((ServerParameterString)ServerParameters[4]).Value;
+                _MFIXTradeServerAddress = ((ServerParameterString)ServerParameters[0]).Value;
+                _MFIXTradeServerPort = ((ServerParameterString)ServerParameters[1]).Value;
+                _MFIXTradeServerTargetCompId = ((ServerParameterString)ServerParameters[2]).Value;
+                _MFIXTradeCaptureServerAddress = ((ServerParameterString)ServerParameters[3]).Value;
+                _MFIXTradeCaptureServerPort = ((ServerParameterString)ServerParameters[4]).Value;
+                _MFIXTradeCaptureServerTargetCompId = ((ServerParameterString)ServerParameters[5]).Value;
+                
+                _MFIXTradeServerLogin = ((ServerParameterString)ServerParameters[6]).Value;
+                _MFIXTradeServerPassword = ((ServerParameterPassword)ServerParameters[7]).Value;
+                
+                _MFIXTradeCaptureServerLogin = ((ServerParameterString)ServerParameters[8]).Value;
+                _MFIXTradeCaptureServerPassword = ((ServerParameterPassword)ServerParameters[9]).Value;
 
-                if (string.IsNullOrEmpty(_apiTokenRefresh))
+                _MFIXTradeAccount = ((ServerParameterString)ServerParameters[10]).Value;         
+                _MFIXTradeClientCode = ((ServerParameterString)ServerParameters[11]).Value;
+
+                _ConfigDir = ((ServerParameterPath)ServerParameters[12]).Value;
+
+                if (string.IsNullOrEmpty(_MFIXTradeServerAddress) || string.IsNullOrEmpty(_MFIXTradeServerPort) || string.IsNullOrEmpty(_MFIXTradeServerTargetCompId))
                 {
-                    SendLogMessage("Connection terminated. You must specify the api token. You can get it on the FixFastEquities website",
-                        LogMessageType.Error);
+                    SendLogMessage("Connection terminated. You must specify FIX Trade Server Credentials", LogMessageType.Error);
                     return;
                 }
 
-                if (string.IsNullOrEmpty(_portfolioSpotId)
-                    && string.IsNullOrEmpty(_portfolioFutId)
-                    && string.IsNullOrEmpty(_portfolioCurrencyId)
-                    && string.IsNullOrEmpty(_portfolioSpareId))
+                if (string.IsNullOrEmpty(_MFIXTradeCaptureServerAddress) || string.IsNullOrEmpty(_MFIXTradeCaptureServerPort) || string.IsNullOrEmpty(_MFIXTradeCaptureServerTargetCompId))
                 {
-                    SendLogMessage("Connection terminated. You must specify the name of the portfolio to be traded. You can see it on the FixFastEquities website.",
-                    LogMessageType.Error);
+                    SendLogMessage("Connection terminated. You must specify FIX Trade Capture Server Credentials", LogMessageType.Error);
                     return;
                 }
 
-                //if (GetCurSessionToken() == false)
-                //{
-                //    SendLogMessage("Authorization Error. Probably an invalid token is specified. You can see it on the FixFastEquities website.",
-                //    LogMessageType.Error);
-                //    return;
-                //}
+                if (string.IsNullOrEmpty(_MFIXTradeServerLogin) || string.IsNullOrEmpty(_MFIXTradeServerPassword) || string.IsNullOrEmpty(_MFIXTradeCaptureServerLogin) || string.IsNullOrEmpty(_MFIXTradeCaptureServerPassword))
+                {
+                    SendLogMessage("Connection terminated. You must specify FIX Trade server and Trade Capture server login/password", LogMessageType.Error);
+                    return;
+                }
 
-                CreateWebSocketConnection();
+                if (string.IsNullOrEmpty(_MFIXTradeAccount) || string.IsNullOrEmpty(_MFIXTradeClientCode))
+                {
+                    SendLogMessage("Connection terminated. You must specify FIX Trade Account and Client Code", LogMessageType.Error);
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(_ConfigDir) || !System.IO.Directory.Exists(_ConfigDir) || !System.IO.File.Exists(_ConfigDir + "\\config.xml") || !System.IO.File.Exists(_ConfigDir + "\\template.xml"))
+                {
+                    SendLogMessage("Connection terminated. You must specify FIX/FAST Multicast Config Directory and it must contain config.xml and template.xml", LogMessageType.Error);
+                    return;
+                }
+
+                               
+                LoadFASTTemplates();
+                              
+                CreateSocketConnections();
                 
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void LoadFASTTemplates()
+        {
+            IMessageTemplateLoader loader = new XmlMessageTemplateLoader();
+            MessageTemplate[] templates;
+            using (FileStream stream = File.OpenRead(_ConfigDir + "\\template.xml"))
+            {
+                templates = loader.Load(stream);
+            }
+
+            _context = new OpenFAST.Context();
+            foreach (MessageTemplate tmplt in templates)
+            {
+                _context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
             }
         }
 
@@ -139,10 +214,10 @@ namespace OsEngine.Market.Servers.FixFastEquities
         public void Dispose()
         {
             _securities.Clear();
-            _myPortfolious.Clear();
+            _myPortfolios.Clear();
             _lastGetLiveTimeToketTime = DateTime.MinValue;
 
-            DeleteWebSocketConnection();
+           // DeleteWebSocketConnection();
 
             SendLogMessage("Connection Closed by FixFastEquities. WebSocket Data Closed Event", LogMessageType.System);
 
@@ -168,360 +243,98 @@ namespace OsEngine.Market.Servers.FixFastEquities
         #endregion
 
         #region 2 Properties
+                
+        private string _MFIXTradeServerAddress;
+        private string _MFIXTradeServerPort;
+        private string _MFIXTradeServerTargetCompId;
+        private string _MFIXTradeCaptureServerAddress;
+        private string _MFIXTradeCaptureServerPort;
+        private string _MFIXTradeCaptureServerTargetCompId;
+        private string _MFIXTradeServerLogin;
+        private string _MFIXTradeServerPassword;
+        private string _MFIXTradeCaptureServerLogin;
+        private string _MFIXTradeCaptureServerPassword;
+        private string _MFIXTradeAccount; // торговый счет
+        private string _MFIXTradeClientCode; // код клиента
 
-        private readonly string _restApiHost = "https://api.FixFastEquities.ru";
-        private readonly string _oauthApiHost = "https://oauth.FixFastEquities.ru";
+        private string _ConfigDir;
 
-        private bool _useStock = false;
-        private bool _useFutures = false;
-        private bool _useOptions = false;
-        private bool _useCurrency = false;
-        private bool _useOther = false;
+        private OpenFAST.Context _context;
+        
+        private Socket _instrumentSocketA;
+        private Socket _instrumentSocketB;
 
-        private string _portfolioSpotId;
-        private string _portfolioFutId;
-        private string _portfolioCurrencyId;
-        private string _portfolioSpareId;
-        private string _apiTokenRefresh;
-        private string _apiTokenReal; // life time 30 minutes
+        private Socket _tradesIncrementalSocketA;
+        private Socket _tradesIncrementalSocketB;
+        private Socket _tradesSnapshotSocketA;
+        private Socket _tradesSnapshotSocketB;
+
+        private Socket _ordersIncrementalSocketA;
+        private Socket _ordersIncrementalSocketB;
+
+        private Socket _MFIXTradeSocket;
+        private int _MFIXTradeMsgSeqNum;
+        private Socket _MFIXTradeCaptureSocket;
+        private int _MFIXTradeCaptureMsgSeqNum;
 
         #endregion
 
         #region 3 Securities
 
         public void GetSecurities()
-        {
-            //securities?sector=FOND&limit=1000
-            _useStock = ((ServerParameterBool)ServerParameters[5]).Value;
-            _useFutures = ((ServerParameterBool)ServerParameters[6]).Value;
-            _useCurrency = ((ServerParameterBool)ServerParameters[7]).Value;
-            _useOptions = ((ServerParameterBool)ServerParameters[8]).Value;
-            _useOther = ((ServerParameterBool)ServerParameters[9]).Value;
-
-            string apiEndpoint;
-
-            if (_useStock || _useOther)
-            {
-                apiEndpoint = $"/md/v2/Securities/MOEX?format=Simple&market=FOND&includeOld=false";
-                UpdateSec(apiEndpoint);
-            }
-
-            if (_useCurrency)
-            {
-                apiEndpoint = $"/md/v2/Securities/MOEX?format=Simple&market=CURR&includeOld=false";
-                UpdateSec(apiEndpoint);
-            }
-
-            if (_useFutures)
-            {
-                apiEndpoint = $"/md/v2/Securities/MOEX?format=Simple&market=FORTS&includeOld=false";
-                UpdateSec(apiEndpoint);
-            }
-
-            if (_useOptions)
-            {
-                apiEndpoint = $"/md/v2/Securities/MOEX?format=Simple&market=SPBX&includeOld=false";
-                UpdateSec(apiEndpoint);
-            }
-
-            if (_securities.Count > 0)
-            {
-                SendLogMessage("Securities loaded. Count: " + _securities.Count, LogMessageType.System);
-
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent.Invoke(_securities);
-                }
-            }
-
+        {                        
         }
 
         private List<Security> _securities = new List<Security>();
 
-        private void UpdateSec(string endPoint)
-        {
-            //curl - X GET "https://api.FixFastEquities.ru/md/v2/Securities/MOEX?format=Simple&market=FOND&includeOld=false" - H "accept: application/json"
-
-            try
-            {
-                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                RestClient client = new RestClient(_restApiHost);
-                IRestResponse response = client.Execute(requestRest);
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string content = response.Content;
-                    //List<FixFastEquitiesSecurity> securities = JsonConvert.DeserializeAnonymousType(content, new List<FixFastEquitiesSecurity>());
-                    //UpdateSecuritiesFromServer(securities);
-                }
-                else
-                {
-                    SendLogMessage("Securities request error. Status: " + response.StatusCode, LogMessageType.Error);
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage("Securities request error" + exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        //private void UpdateSecuritiesFromServer(List<FixFastEquitiesSecurity> stocks)
-        //{
-        //    try
-        //    {
-        //        if (stocks == null ||
-        //            stocks.Count == 0)
-        //        {
-        //            return;
-        //        }
-
-        //        for(int i = 0;i < stocks.Count;i++)
-        //        {
-        //            FixFastEquitiesSecurity item = stocks[i];
-
-        //            SecurityType instrumentType = GetSecurityType(item);
-
-        //            if (!CheckNeedSecurity(instrumentType))
-        //            {
-        //                continue;
-        //            }
-
-        //            if(instrumentType == SecurityType.None)
-        //            {
-        //                continue;
-        //            }
-
-        //            Security newSecurity = new Security();
-        //            newSecurity.SecurityType = instrumentType;
-        //            newSecurity.Exchange = item.exchange;
-        //            newSecurity.DecimalsVolume = 1;
-        //            newSecurity.Lot = item.lotsize.ToDecimal();
-        //            newSecurity.Name = item.symbol;
-        //            newSecurity.NameFull = item.description;
-
-        //            if (newSecurity.SecurityType == SecurityType.Option)
-        //            {
-        //                newSecurity.NameClass = "Option";
-        //            }
-        //            else if (item.type == null)
-        //            {
-        //                if(item.description.StartsWith("Индекс"))
-        //                {
-        //                    newSecurity.NameClass = "Index";
-        //                    newSecurity.SecurityType = SecurityType.Index;
-        //                }
-        //                else
-        //                {
-        //                    newSecurity.NameClass = "Unknown";
-        //                    newSecurity.SecurityType = SecurityType.None;
-        //                }
-        //            }
-        //            else if (item.type.StartsWith("Календарный спред"))
-        //            {
-        //                newSecurity.NameClass = "Futures spread";
-        //            }
-        //            else if (newSecurity.SecurityType == SecurityType.Futures)
-        //            {
-        //                newSecurity.NameClass = "Futures";
-        //                decimal go = item.marginbuy.ToDecimal();
-        //                newSecurity.Go = go;
-        //            }
-        //            else if (newSecurity.SecurityType == SecurityType.CurrencyPair)
-        //            {
-        //                newSecurity.NameClass = "Currency";
-        //            }
-        //            else if (item.type == "CS")
-        //            {
-        //                if (item.board == "TQBR")
-        //                {
-        //                    newSecurity.NameClass = "Stock";
-        //                }
-        //                else if (item.board == "FQBR")
-        //                {
-        //                    newSecurity.NameClass = "Stock World";
-        //                }
-        //                else 
-        //                {
-        //                    newSecurity.NameClass = "Stock";
-        //                }
-        //            }
-		      //      else if (item.type == "CORP")
-        //            {
-        //                newSecurity.NameClass = "Bond";
-        //            }
-        //            else if (item.type == "PS")
-        //            {
-        //                newSecurity.NameClass = "Stock Pref";
-        //            }
-        //            else if (newSecurity.SecurityType == SecurityType.Fund)
-        //            {
-        //                newSecurity.NameClass = "Fund";
-        //            }
-        //            else
-        //            {
-        //                newSecurity.NameClass = item.type;
-        //            }
-
-        //            newSecurity.NameId = item.shortname;
-                   
-        //            newSecurity.Decimals = GetDecimals(item.minstep.ToDecimal());
-        //            newSecurity.PriceStep = item.minstep.ToDecimal();
-        //            newSecurity.PriceStepCost = newSecurity.PriceStep;
-        //            newSecurity.State = SecurityStateType.Activ;
-
-        //            if (newSecurity.SecurityType == SecurityType.Futures 
-        //                || newSecurity.SecurityType == SecurityType.Option)
-        //            {
-        //                newSecurity.PriceStepCost = item.pricestep.ToDecimal();
-
-        //                if(newSecurity.PriceStepCost <= 0)
-        //                {
-        //                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-        //                }
-        //            }
-
-        //            if(string.IsNullOrEmpty(item.priceMax) == false)
-        //            {
-        //                newSecurity.PriceLimitHigh = item.priceMax.ToDecimal();
-        //            }
-        //            if (string.IsNullOrEmpty(item.priceMin) == false)
-        //            {
-        //                newSecurity.PriceLimitLow = item.priceMin.ToDecimal();
-        //            }
-
-        //             _securities.Add(newSecurity);
-        //        }  
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        SendLogMessage($"Error loading stocks: {e.Message}", LogMessageType.Error);
-        //    }
-        //}
-
-        //private SecurityType GetSecurityType(FixFastEquitiesSecurity security)
-        //{
-        //    var cfiCode = security.cfiCode;
-
-        //    if (cfiCode.StartsWith("F"))
-        //    {
-        //        return SecurityType.Futures;
-        //    }
-        //    else if (cfiCode.StartsWith("O"))
-        //    {
-        //        return SecurityType.Option;
-        //    }
-        //    else if (cfiCode.StartsWith("ES") || cfiCode.StartsWith("EP"))
-        //    {
-        //        return SecurityType.Stock;
-        //    }
-        //    else if (cfiCode.StartsWith("DB"))
-        //    { 
-        //        return SecurityType.Bond; 
-        //    }
-        //    else if(cfiCode.StartsWith("EUX"))
-        //    {
-        //        return SecurityType.Fund;
-        //    }
-
-        //    var board = security.board;
-        //    if (board == "CETS") return SecurityType.CurrencyPair;
-
-        //    return SecurityType.None;
-        //}
-
-        private bool CheckNeedSecurity(SecurityType instrumentType)
-        {
-            switch (instrumentType)
-            {
-                case SecurityType.Stock when _useStock:
-                case SecurityType.Futures when _useFutures:
-                case SecurityType.Option when _useOptions:
-                case SecurityType.CurrencyPair when _useCurrency:
-                case SecurityType.None when _useOther:
-                case SecurityType.Bond when _useOther:
-                case SecurityType.Index when _useOther:
-                case SecurityType.Fund when _useOther:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        private int GetDecimals(decimal x)
-        {
-            var precision = 0;
-            while (x * (decimal)Math.Pow(10, precision) != Math.Round(x * (decimal)Math.Pow(10, precision)))
-                precision++;
-            return precision;
-        }
-
         public event Action<List<Security>> SecurityEvent;
-
+        
         #endregion
 
         #region 4 Portfolios
 
-        private List<Portfolio> _myPortfolious = new List<Portfolio>();
+        private List<Portfolio> _myPortfolios = new List<Portfolio>();
 
         public void GetPortfolios()
-        {
-            if(string.IsNullOrEmpty(_portfolioSpotId) == false)
+        {            
+            Portfolio newPortfolio = new Portfolio();
+            newPortfolio.Number = _MFIXTradeAccount;
+            newPortfolio.ValueCurrent = 1;
+            _myPortfolios.Add(newPortfolio);
+
+            if (_myPortfolios.Count != 0)
             {
-                GetCurrentPortfolio(_portfolioSpotId, "SPOT");
+                PortfolioEvent(_myPortfolios);                
             }
 
-            if (string.IsNullOrEmpty(_portfolioFutId) == false)
-            {
-                GetCurrentPortfolio(_portfolioFutId, "FORTS");
-            }
-
-            if (string.IsNullOrEmpty(_portfolioCurrencyId) == false)
-            {
-                GetCurrentPortfolio(_portfolioCurrencyId, "CURR");
-            }
-
-            if (string.IsNullOrEmpty(_portfolioSpareId) == false)
-            {
-                GetCurrentPortfolio(_portfolioSpareId, "SPARE");
-            }
-
-            if(_myPortfolious.Count != 0)
-            {
-                if(PortfolioEvent != null)
-                {
-                    PortfolioEvent(_myPortfolious);
-                }
-            }
-
-            ActivatePortfolioSocket();
+            //ActivatePortfolioSocket();
         }
 
         private void GetCurrentPortfolio(string portfoliId, string namePrefix)
         {
             try
             {
-                string endPoint = $"/md/v2/clients/MOEX/{portfoliId}/summary?format=Simple";
-                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("accept", "application/json");
+                //string endPoint = $"/md/v2/clients/MOEX/{portfoliId}/summary?format=Simple";
+                //RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                ////requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                //requestRest.AddHeader("accept", "application/json");
 
-                RestClient client = new RestClient(_restApiHost);
+                //RestClient client = new RestClient(_restApiHost);
 
-                IRestResponse response = client.Execute(requestRest);
+                //IRestResponse response = client.Execute(requestRest);
 
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    //string content = response.Content;
-                    //FixFastEquitiesPortfolioRest portfolio = JsonConvert.DeserializeAnonymousType(content, new FixFastEquitiesPortfolioRest());
+                //if (response.StatusCode == HttpStatusCode.OK)
+                //{
+                //    //string content = response.Content;
+                //    //FixFastEquitiesPortfolioRest portfolio = JsonConvert.DeserializeAnonymousType(content, new FixFastEquitiesPortfolioRest());
 
-                    //ConvertToPortfolio(portfolio, portfoliId, namePrefix);
-                }
-                else
-                {
-                    SendLogMessage("Portfolio request error. Status: " 
-                        + response.StatusCode + "  " + namePrefix, LogMessageType.Error);
-                }
+                //    //ConvertToPortfolio(portfolio, portfoliId, namePrefix);
+                //}
+                //else
+                //{
+                //    SendLogMessage("Portfolio request error. Status: " 
+                //        + response.StatusCode + "  " + namePrefix, LogMessageType.Error);
+                //}
             }
             catch (Exception exception)
             {
@@ -534,7 +347,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         //    Portfolio newPortfolio = new Portfolio();
         //    newPortfolio.Number = name + "_" + prefix;
         //    newPortfolio.ValueCurrent = portfolio.buyingPower.ToDecimal();
-        //    _myPortfolious.Add(newPortfolio);
+        //    _myPortfolios.Add(newPortfolio);
         //}
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -867,52 +680,447 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         string _guidLocker = "guidLocker";
 
-        private void CreateWebSocketConnection()
+        private void CreateSocketConnections()
         {
             try
             {
-                _subscriptionsData.Clear();
-                _subscriptionsPortfolio.Clear();
+                //_subscriptionsData.Clear();
+                //_subscriptionsPortfolio.Clear();
 
-                if (_webSocketData != null)
+                // прочитать конфиг FIX/FAST соединения и создать сокеты
+
+                // Load the XML document
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(_ConfigDir + "\\config.xml");
+
+                // Find the 'channel' element
+                XmlNode channelNode = xmlDoc.SelectSingleNode("/configuration/channel[@id='FOND']");
+
+                // Extract 'id' and 'label' from the 'channel' element
+                string channelId = channelNode.Attributes["id"].Value;
+                string channelLabel = channelNode.Attributes["label"].Value;
+
+
+                XmlNodeList connectionNodes = channelNode.SelectSingleNode("connections").SelectNodes("connection");
+                foreach (XmlNode connectionNode in connectionNodes)
                 {
-                    return;
+                    string connectionId = connectionNode.Attributes["id"].Value;
+
+                    XmlNode typeNode = connectionNode.SelectSingleNode("type");
+                    string feedType = typeNode.Attributes["feed-type"].Value;
+
+                    XmlNodeList feedNodes = connectionNode.SelectNodes("feed");
+
+                    foreach (XmlNode feedNode in feedNodes)
+                    {
+                        // Extract 'id', 'src-ip', 'ip', and 'port' from each 'feed' element
+                        string feedId = feedNode.Attributes["id"].Value; // A / B
+                        string sourceAddressString = feedNode.SelectSingleNode("src-ip").InnerText;
+                        string multicastAddressString = feedNode.SelectSingleNode("ip").InnerText;
+                        string port = feedNode.SelectSingleNode("port").InnerText;
+
+                        // Create a UDP socket
+                        Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+                        //// Join the multicast group
+                        IPAddress multicastAddress = IPAddress.Parse(multicastAddressString);
+                        IPAddress sourceAddress = IPAddress.Parse(sourceAddressString);
+
+                        //// Bind the socket to the port
+                        //// Specify the local IP address and port to bind to.
+                        IPAddress localAddress = IPAddress.Any; // Listen on all available interfaces
+                        IPEndPoint localEndPoint = new IPEndPoint(localAddress, int.Parse(port));
+
+
+                        socket.Bind(localEndPoint);
+
+                        byte[] membershipAddresses = new byte[12]; // 3 IPs * 4 bytes (IPv4)
+                        Buffer.BlockCopy(multicastAddress.GetAddressBytes(), 0, membershipAddresses, 0, 4);
+                        Buffer.BlockCopy(sourceAddress.GetAddressBytes(), 0, membershipAddresses, 4, 4);
+                        Buffer.BlockCopy(localAddress.GetAddressBytes(), 0, membershipAddresses, 8, 4);
+                        socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddSourceMembership, membershipAddresses);
+
+
+                        if (feedType == "Instrument Replay")
+                        {
+                            if (feedId == "A")
+                            {
+                                _instrumentSocketA = socket;
+                            }
+
+                            if (feedId == "B")
+                            {
+                                _instrumentSocketB = socket;
+                            }
+                        }
+
+                        if (feedType == "Trades Incremental")
+                        {
+                            if (feedId == "A")
+                            {
+                                _tradesIncrementalSocketA = socket;
+                            }
+
+                            if (feedId == "B")
+                            {
+                                _tradesIncrementalSocketB = socket;
+                            }
+                        }
+
+                        if (feedType == "Trades Snapshot")
+                        {
+                            if (feedId == "A")
+                            {
+                                _tradesSnapshotSocketA = socket;
+                            }
+
+                            if (feedId == "B")
+                            {
+                                _tradesSnapshotSocketB = socket;
+                            }
+                        }
+
+                        if (feedType == "Orders Incremental")
+                        {
+                            if (feedId == "A")
+                            {
+                                _ordersIncrementalSocketA = socket;
+                            }
+
+                            if (feedId == "B")
+                            {
+                                _ordersIncrementalSocketB = socket;
+                            }
+                        }
+                    }
                 }
 
-                _socketDataIsActive = false;
-                _socketPortfolioIsActive = false;
+                // Подгружаем бумаги или восстанавливаем из файла
+                CreateSecurities();
 
-                lock (_socketLocker)
+                // Establish MFIX Trade Connection
+                EstablishMFIXTradeConnection(); 
+
+                try
                 {
-                    WebSocketDataMessage = new ConcurrentQueue<string>();
-                    WebSocketPortfolioMessage = new ConcurrentQueue<string>();
-
-                    _webSocketData = new WebSocket(_wsHost);
-                    _webSocketData.EnableAutoSendPing = true;
-                    _webSocketData.AutoSendPingInterval = 10;
-                    _webSocketData.Opened += WebSocketData_Opened;
-                    _webSocketData.Closed += WebSocketData_Closed;
-                    _webSocketData.MessageReceived += WebSocketData_MessageReceived;
-                    _webSocketData.Error += WebSocketData_Error;
-                    _webSocketData.Open();
-
-
-                    _webSocketPortfolio = new WebSocket(_wsHost);
-                    _webSocketPortfolio.EnableAutoSendPing = true;
-                    _webSocketPortfolio.AutoSendPingInterval = 10;
-                    _webSocketPortfolio.Opened += _webSocketPortfolio_Opened;
-                    _webSocketPortfolio.Closed += _webSocketPortfolio_Closed;
-                    _webSocketPortfolio.MessageReceived += _webSocketPortfolio_MessageReceived;
-                    _webSocketPortfolio.Error += _webSocketPortfolio_Error;
-                    _webSocketPortfolio.Open();
-
+                    SendLogMessage("All streams activated. Connect State", LogMessageType.System);
+                    ServerStatus = ServerConnectStatus.Connect;
+                    ConnectEvent();
                 }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+
+
+
+                //if (_webSocketData != null)
+                //{
+                //    return;
+                //}
+
+                //_socketDataIsActive = false;
+                //_socketPortfolioIsActive = false;
+
+                //lock (_socketLocker)
+                //{
+                //    WebSocketDataMessage = new ConcurrentQueue<string>();
+                //    WebSocketPortfolioMessage = new ConcurrentQueue<string>();
+
+                //    _webSocketData = new WebSocket(_wsHost);
+                //    _webSocketData.EnableAutoSendPing = true;
+                //    _webSocketData.AutoSendPingInterval = 10;
+                //    _webSocketData.Opened += WebSocketData_Opened;
+                //    _webSocketData.Closed += WebSocketData_Closed;
+                //    _webSocketData.MessageReceived += WebSocketData_MessageReceived;
+                //    _webSocketData.Error += WebSocketData_Error;
+                //    _webSocketData.Open();
+
+
+                //    _webSocketPortfolio = new WebSocket(_wsHost);
+                //    _webSocketPortfolio.EnableAutoSendPing = true;
+                //    _webSocketPortfolio.AutoSendPingInterval = 10;
+                //    _webSocketPortfolio.Opened += _webSocketPortfolio_Opened;
+                //    _webSocketPortfolio.Closed += _webSocketPortfolio_Closed;
+                //    _webSocketPortfolio.MessageReceived += _webSocketPortfolio_MessageReceived;
+                //    _webSocketPortfolio.Error += _webSocketPortfolio_Error;
+                //    _webSocketPortfolio.Open();
+
+                //}
 
             }
             catch (Exception exeption)
             {
                 SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void EstablishMFIXTradeConnection()
+        {
+            // 1. Создаем и отправляем два запроса на подключение (Logon)
+            _MFIXTradeMsgSeqNum = 1;
+            _MFIXTradeCaptureMsgSeqNum = 1;
+
+            //Создаем заголовк
+            Header tradeServerLogonHeader = new Header
+            {
+                BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
+                MsgType = "A", //Тип сообщения на установку сессии
+                SenderCompID = _MFIXTradeServerLogin,
+                TargetCompID = _MFIXTradeServerTargetCompId,
+                MsgSeqNum = _MFIXTradeMsgSeqNum++
+            };
+
+            Header tradeCaptureServerLogonHeader = new Header
+            {
+                BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
+                MsgType = "A", //Тип сообщения на установку сессии
+                SenderCompID = _MFIXTradeCaptureServerLogin,
+                TargetCompID = _MFIXTradeCaptureServerTargetCompId,
+                MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++
+            };
+
+            //Создаем сообщение на подключение onLogon
+            LogonMessage logonTServerMessageBody = new LogonMessage
+            {
+                EncryptMethod = 0,
+                HeartBtInt = 30,
+                ResetSeqNumFlag = true,
+                Password = _MFIXTradeServerPassword,
+            };
+
+            LogonMessage logonTCServerMessageBody = new LogonMessage
+            {
+                EncryptMethod = 0,
+                HeartBtInt = 30,
+                ResetSeqNumFlag = true,
+                Password = _MFIXTradeCaptureServerPassword,
+            };
+
+            //Вычисляем длину сообщения
+            tradeServerLogonHeader.BodyLength = tradeServerLogonHeader.GetHeaderSize() + logonTServerMessageBody.GetMessageSize();
+            tradeCaptureServerLogonHeader.BodyLength = tradeCaptureServerLogonHeader.GetHeaderSize() + logonTCServerMessageBody.GetMessageSize();
+
+            //Создаем концовку сообщения
+            Trailer tradeServerTrailer = new Trailer(tradeServerLogonHeader.ToString() + logonTServerMessageBody.ToString());
+            Trailer tradeCaptureServerTrailer = new Trailer(tradeCaptureServerLogonHeader.ToString() + logonTCServerMessageBody.ToString());
+
+            //Формируем полное готовое сообщение
+            string tradeServerLogonMessage = tradeServerLogonHeader.ToString() + logonTServerMessageBody.ToString() + tradeServerTrailer.ToString();
+            string tradeCaptureServerLogonMessage = tradeCaptureServerLogonHeader.ToString() + logonTCServerMessageBody.ToString() + tradeCaptureServerTrailer.ToString();
+
+            // 2. Создаем два сокета и подключаемся к ним
+            // MFIX Trade Server
+            IPAddress ipAddr = IPAddress.Parse(_MFIXTradeServerAddress);
+            IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, int.Parse(_MFIXTradeServerPort));
+
+            //Создаем сокет для подключения
+            _MFIXTradeSocket = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            //_MFIXTradeSocket.Blocking = false;
+            //Подключаемся
+            _MFIXTradeSocket.Connect(ipEndPoint);
+
+            // MFIX Trade Capture Server
+            ipAddr = IPAddress.Parse(_MFIXTradeCaptureServerAddress);
+            ipEndPoint = new IPEndPoint(ipAddr, int.Parse(_MFIXTradeCaptureServerPort));
+
+            //Создаем сокет для подключения
+            _MFIXTradeCaptureSocket = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            //_MFIXTradeCaptureSocket.Blocking = false;
+            //Подключаемся
+            _MFIXTradeCaptureSocket.Connect(ipEndPoint);
+                                   
+            //Отправляем сообщение
+            int bytesSent = _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(tradeServerLogonMessage));
+            bytesSent = _MFIXTradeCaptureSocket.Send(Encoding.UTF8.GetBytes(tradeCaptureServerLogonMessage));
+
+            bool tradeServerConnected = false;
+            bool tradeCaptureServerConnected = false;
+
+            //Получаем ответ от сервера
+            byte[] bytes = new byte[4096];
+            int bytesRec = 0;
+
+            while (tradeServerConnected == false || tradeCaptureServerConnected == false)
+            {
+                bytesRec = 0;
+                if (tradeCaptureServerConnected == false)
+                {
+                    bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
+
+                    if (bytesRec > 0)
+                    {
+                        string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                        FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
+
+                        if (fixMessage.MessageType == "Logon")
+                        {
+                            tradeCaptureServerConnected = true;
+                            SendLogMessage("MFIX Trade capture server connected", LogMessageType.System);
+                        }
+                    }
+                }
+
+                bytesRec = 0;
+                if (tradeServerConnected == false)
+                {
+                    bytesRec = _MFIXTradeSocket.Receive(bytes);
+
+                    if (bytesRec > 0)
+                    {
+                        string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                        FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
+
+                        if (fixMessage.MessageType == "Logon")
+                        {
+                            tradeServerConnected = true;
+                            SendLogMessage("MFIX Trade server connected", LogMessageType.System);
+                        }
+                    }
+                }                                
+
+                Thread.Sleep(100);
+            }
+        }
+
+        private void LoadSecuritiesFromFile()
+        {
+            try
+            {
+                string dir = Directory.GetCurrentDirectory();
+                dir += "\\Engine\\DataBases\\";
+
+                if (Directory.Exists(dir) == false)
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                dir += "FixFastEquitiesSecurities.db";
+
+                if (File.Exists(dir) == false)
+                {
+                    SendLogMessage("No saved securities in file", LogMessageType.System);
+                    return;
+                }
+
+                using (LiteDatabase db = new LiteDatabase(dir))
+                {
+                    var collection = db.GetCollection<SecurityToSave>("securities");
+
+                    List<SecurityToSave> col = collection.FindAll().ToList();
+
+                    for (int i = 0; i < col.Count; i++)
+                    {
+                        SecurityToSave curSec = col[i];
+
+                        Security newSecurity = new Security();
+                        newSecurity.Name = curSec.Name;
+                        newSecurity.NameId = curSec.NameId;
+                        newSecurity.NameFull = curSec.NameFull;
+                        newSecurity.NameClass = curSec.NameClass;
+                        newSecurity.Lot = curSec.Lot;
+                        newSecurity.PriceStep = curSec.PriceStep;
+                        newSecurity.PriceStepCost = curSec.PriceStep;
+                        newSecurity.Decimals = curSec.Decimals;
+                        newSecurity.DecimalsVolume = curSec.DecimalsVolume;
+                        newSecurity.Exchange = "MOEX";
+
+                        if (curSec.NameClass.Contains("Stock"))
+                            newSecurity.SecurityType = SecurityType.Stock;
+
+                        if (curSec.NameClass.Contains("Bond"))
+                            newSecurity.SecurityType = SecurityType.Bond;
+
+                        if (curSec.NameClass.Contains("Index"))
+                            newSecurity.SecurityType = SecurityType.Index;
+
+                        if (curSec.NameClass.Contains("Fund"))
+                            newSecurity.SecurityType = SecurityType.Fund;
+                        
+                        _securities.Add(newSecurity);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void SaveSecuritiesToFile()
+        {
+            try
+            {
+                string dir = Directory.GetCurrentDirectory();
+                dir += "\\Engine\\DataBases\\";
+
+                if (Directory.Exists(dir) == false)
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                dir += "FixFastEquitiesSecurities.db";
+
+                using (LiteDatabase db = new LiteDatabase(dir))
+                {
+                    var collection = db.GetCollection<SecurityToSave>("securities");
+                    collection.DeleteAll();
+
+                    for (int i = 0; i < _securities.Count; i++)
+                    {
+                        SecurityToSave secToSave = new SecurityToSave();
+                        secToSave.Name = _securities[i].Name;
+                        secToSave.NameId = _securities[i].NameId;
+                        secToSave.NameFull = _securities[i].NameFull;
+                        secToSave.NameClass = _securities[i].NameClass;
+                        secToSave.Lot = _securities[i].Lot;
+                        secToSave.PriceStep = _securities[i].PriceStep;
+                        secToSave.Decimals = _securities[i].Decimals;
+                        secToSave.DecimalsVolume = _securities[i].DecimalsVolume;
+                        
+                        collection.Insert(secToSave);
+                    }
+                    
+                    db.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CreateSecurities()
+        {
+            // 1. Проверяем есть ли уже бумаги в базе данных
+            // Если есть, то восстанавливаем их из базы данных
+            LoadSecuritiesFromFile();
+            if (_securities.Count > 0)
+            {
+                _allSecuritiesLoaded = true;
+
+                SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
+                SecurityEvent(_securities);
+                return;
+            }
+            
+            // 2. Если нет, то подгружаем их с сервера и сохраняем в базу данных
+            while (true)
+            {
+                Thread.Sleep(500);
+                if (!_allSecuritiesLoaded)
+                {
+                    continue;
+                }
+
+                break;
+            }
+            
+            SaveSecuritiesToFile();
+
+            SecurityEvent(_securities);
+            
+            SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
         }
 
         private void DeleteWebSocketConnection()
@@ -1008,21 +1216,21 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         private void ActivatePortfolioSocket()
         {
-            if (string.IsNullOrEmpty(_portfolioSpotId) == false)
+            if (string.IsNullOrEmpty(_MFIXTradeServerPort) == false)
             {
-                ActivateCurrentPortfolioListening(_portfolioSpotId);
+                ActivateCurrentPortfolioListening(_MFIXTradeServerPort);
             }
-            if (string.IsNullOrEmpty(_portfolioFutId) == false)
+            if (string.IsNullOrEmpty(_MFIXTradeCaptureServerAddress) == false)
             {
-                ActivateCurrentPortfolioListening(_portfolioFutId);
+                ActivateCurrentPortfolioListening(_MFIXTradeCaptureServerAddress);
             }
-            if (string.IsNullOrEmpty(_portfolioCurrencyId) == false)
+            if (string.IsNullOrEmpty(_MFIXTradeCaptureServerPort) == false)
             {
-                ActivateCurrentPortfolioListening(_portfolioCurrencyId);
+                ActivateCurrentPortfolioListening(_MFIXTradeCaptureServerPort);
             }
-            if (string.IsNullOrEmpty(_portfolioSpareId) == false)
+            if (string.IsNullOrEmpty(_MFIXTradeAccount) == false)
             {
-                ActivateCurrentPortfolioListening(_portfolioSpareId);
+                ActivateCurrentPortfolioListening(_MFIXTradeAccount);
             }
         }
 
@@ -1273,66 +1481,29 @@ namespace OsEngine.Market.Servers.FixFastEquities
         #endregion
 
         #region 8 WebSocket Security subscrible
-
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
-
-        List<Security> _subscribledSecurities = new List<Security>();
+                
+        List<Security> _subscribedSecurities = new List<Security>();
+        Dictionary<string, MarketDepth> _marketDepths = new Dictionary<string, MarketDepth>();
 
         public void Subscrible(Security security)
         {
-            try
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
             {
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                if (_subscribedSecurities[i].Name == security.Name)
                 {
-                    if (_subscribledSecurities[i].Name == security.Name)
-                    {
-                        return;
-                    }
+                    return;
                 }
-
-                rateGateSubscrible.WaitToProceed();
-
-                _subscribledSecurities.Add(security);
-
-                //// trades subscription
-
-                ////curl - X GET "https://apidev.FixFastEquities.ru/md/v2/Securities/MOEX/LKOH/alltrades?format=Simple&from=1593430060&to=1593430560&fromId=7796897024&toId=7796897280&take=10" - H "accept: application/json"
-
-                //RequestSocketSubscribleTrades subObjTrades = new RequestSocketSubscribleTrades();
-                //subObjTrades.code = security.Name;
-                //subObjTrades.guid = GetGuid();
-                //subObjTrades.token = _apiTokenReal;
-                //string messageTradeSub = JsonConvert.SerializeObject(subObjTrades);
-
-                //FixFastEquitiesSocketSubscription tradeSub = new FixFastEquitiesSocketSubscription();
-                //tradeSub.SubType = FixFastEquitiesSubType.Trades;
-                //tradeSub.ServiceInfo = security.Name;
-                //tradeSub.Guid = subObjTrades.guid;
-                //_subscriptionsData.Add(tradeSub);
-
-                //_webSocketData.Send(messageTradeSub);
-
-                //// market depth subscription
-
-                //RequestSocketSubscribleMarketDepth subObjMarketDepth = new RequestSocketSubscribleMarketDepth();
-                //subObjMarketDepth.code = security.Name;
-                //subObjMarketDepth.guid = GetGuid();
-                //subObjMarketDepth.token = _apiTokenReal;
-
-                //FixFastEquitiesSocketSubscription mdSub = new FixFastEquitiesSocketSubscription();
-                //mdSub.SubType = FixFastEquitiesSubType.MarketDepth;
-                //mdSub.ServiceInfo = security.Name;
-                //mdSub.Guid = subObjMarketDepth.guid;
-                //_subscriptionsData.Add(mdSub);
-
-                //string messageMdSub = JsonConvert.SerializeObject(subObjMarketDepth);
-
-                //_webSocketData.Send(messageMdSub);
-
             }
-            catch (Exception exeption)
+
+            _subscribedSecurities.Add(security);
+            
+            if (!_marketDepths.ContainsKey(security.Name))
             {
-                SendLogMessage(exeption.ToString(),LogMessageType.Error);
+                MarketDepth marketDepth = new MarketDepth();
+                marketDepth.SecurityNameCode = security.Name;
+                marketDepth.Time = DateTime.UtcNow;
+
+                _marketDepths.Add(security.Name, marketDepth);
             }
         }
 
@@ -1347,6 +1518,794 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private ConcurrentQueue<string> WebSocketDataMessage = new ConcurrentQueue<string>();
 
         private ConcurrentQueue<string> WebSocketPortfolioMessage = new ConcurrentQueue<string>();
+
+        private DateTime _lastInstrumentDefinitionsTime = DateTime.MinValue;
+        private bool _allSecuritiesLoaded = false;
+
+        private void InstrumentDefinitionsReader()
+        {
+            byte[] buffer = new byte[4096];
+            
+            List<int> snapshotIds = new List<int>();
+            List<Security> securities = new List<Security>();
+
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (_instrumentSocketA == null || _instrumentSocketB == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (_allSecuritiesLoaded)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    // читаем из потоков А и B
+                    // либо сразу обрабатываем либо перемещаем в очередь для разбора
+                    for (int s = 0; s < 2; s++)
+                    { 
+                        int length = s == 0 ? _instrumentSocketA.Receive(buffer) : _instrumentSocketB.Receive(buffer);
+
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        {
+                            FastDecoder decoder = new FastDecoder(_context, stream);
+                            OpenFAST.Message msg = decoder.ReadMessage();
+
+                            string msgType = msg.GetString("MessageType");
+                            int msgSeqNum = int.Parse(msg.GetString("MsgSeqNum"));
+                            
+                            if (msgType == "d") /// security definition
+                            {
+                                _lastInstrumentDefinitionsTime = DateTime.UtcNow;
+                                int totNumReports = int.Parse(msg.GetString("TotNumReports")); // общее число "бумаг" (возможны дубли)
+
+                                if (snapshotIds.FindIndex(nmb => nmb == msgSeqNum) != -1)
+                                {
+                                    if (snapshotIds.Count == totNumReports)
+                                    {
+                                        _securities = securities;
+                                        _allSecuritiesLoaded = true;
+                                    }
+
+                                    continue;
+                                }
+                                
+                                snapshotIds.Add(msgSeqNum);
+                                if (snapshotIds.Count % 1000 == 0)
+                                {
+                                    SendLogMessage($"Loading securities data: {snapshotIds.Count}/{totNumReports}", LogMessageType.System);
+                                }
+
+                                string symbol = msg.GetString("Symbol");
+                                string securityID = msg.IsDefined("SecurityID") ? msg.GetString("SecurityID") : msg.GetString("CFICode");
+                                string currency = msg.GetString("SettlCurrency");
+                                string marketCode = msg.GetString("MarketCode");
+
+                                if (marketCode != "FNDT")
+                                    continue;
+
+                                bool securityAlreadyPresent = false;
+                                for (int i = 0; i < securities.Count; i++)
+                                {
+                                    if (securities[i].Name == symbol && securities[i].NameId == securityID)
+                                    {
+                                        securityAlreadyPresent = true;
+                                        break;
+                                    }
+                                }
+
+                                if (securityAlreadyPresent)
+                                {
+                                    continue;
+                                }
+                                
+                                // Обрабатываем новые бумаги                            
+                                string eveningSession = msg.IsDefined("EveningSession") ? msg.GetString("EveningSession") : "неизвестно";
+                                string secDecimals = "0";// msg.IsDefined("GroupInstrAttrib") ? msg.GetGroup("GroupInstrAttrib").ToString() : "неизвестно";
+                                string lot = "1";
+
+                                string name = Encoding.UTF8.GetString(msg.GetBytes("EncodedSecurityDesc"));
+                                //Типбумаги ={ msg.GetString("SecurityType")}
+
+                                if (msg.IsDefined("MarketSegmentGrp"))
+                                {
+                                    SequenceValue secVal = msg.GetValue("MarketSegmentGrp") as SequenceValue;
+
+                                    for (int i = 0; i < secVal.Length; i++)
+                                    {
+                                        GroupValue groupVal = secVal[i] as GroupValue;
+
+                                        if (groupVal.IsDefined("RoundLot"))
+                                        {
+                                            lot = groupVal.GetValue("RoundLot").ToString();
+                                        }
+                                    }
+                                }
+
+                                if (msg.IsDefined("GroupInstrAttrib"))
+                                {
+                                    SequenceValue secVal = msg.GetValue("GroupInstrAttrib") as SequenceValue;
+
+                                    for (int i = 0; i < secVal.Length; i++)
+                                    {
+                                        GroupValue groupVal = secVal[i] as GroupValue;
+
+                                        if (groupVal.IsDefined("InstrAttribType"))
+                                        {
+                                            if (groupVal.GetValue("InstrAttribType").ToString() == "27")
+                                            {
+                                                secDecimals = groupVal.GetValue("InstrAttribValue").ToString();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Security newSecurity = new Security();
+                                newSecurity.Name = symbol;
+                                newSecurity.NameId = securityID;
+                                newSecurity.NameFull = name;
+                                newSecurity.Exchange = "MOEX";
+                                newSecurity.State = SecurityStateType.Activ;
+
+                                string productType = msg.IsDefined("Product") ? msg.GetString("Product") : "не определено";
+                                switch (productType)
+                                {
+                                    case "5":
+                                        newSecurity.SecurityType = SecurityType.Stock;
+                                        break;
+                                    case "3":
+                                    case "6":
+                                    case "11":
+                                        newSecurity.SecurityType = SecurityType.Bond;
+                                        break;
+
+                                    case "7":
+                                        newSecurity.SecurityType = SecurityType.Index;
+                                        break;
+                                    case "12":
+                                        newSecurity.SecurityType = SecurityType.Fund;
+                                        break;
+                                }
+
+                                newSecurity.NameClass = newSecurity.SecurityType.ToString() + " " + currency;
+                                newSecurity.Lot = lot.ToDecimal();
+
+                                if (msg.IsDefined("MinPriceIncrement"))
+                                {
+                                    newSecurity.PriceStep = msg.GetString("MinPriceIncrement").ToDecimal();
+                                }
+                                else
+                                {
+                                    newSecurity.PriceStep = 1;
+                                }
+
+                                if (newSecurity.PriceStep == 0)
+                                {
+                                    newSecurity.PriceStep = 1;
+                                }
+
+                                newSecurity.PriceStepCost = newSecurity.PriceStep;
+                                newSecurity.DecimalsVolume = 1;
+                                newSecurity.Decimals = int.Parse(secDecimals);
+
+                                //if (msg.IsDefined("MinPriceIncrement"))
+                                //newSecurity.PriceLimitHigh = item.priceMax.ToDecimal();
+                                //      if (string.IsNullOrEmpty(item.priceMin) == false)
+                                //            {
+                                //                newSecurity.PriceLimitLow = item.priceMin.ToDecimal();
+                                //            }
+
+                                securities.Add(newSecurity);
+                            }
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void TradesReader()
+        {
+            byte[] buffer = new byte[4096];
+                        
+
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (_tradesIncrementalSocketA == null || _tradesIncrementalSocketB == null || _tradesSnapshotSocketA == null || _tradesSnapshotSocketB == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    // читаем из потоков А и B
+                    // либо сразу обрабатываем либо перемещаем в очередь для разбора
+                    for (int s = 0; s < 2; s++)
+                    {
+                        int length = s == 0 ? _tradesIncrementalSocketA.Receive(buffer) : _tradesIncrementalSocketB.Receive(buffer);
+
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        {
+                            FastDecoder decoder = new FastDecoder(_context, stream);
+                            OpenFAST.Message msg = decoder.ReadMessage();
+
+                            string msgType = msg.GetString("MessageType");
+
+                            if (msgType == "X") /// Market Data - Incremental Refresh (X)
+                            {
+                                //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+
+                                if (msg.IsDefined("GroupMDEntries"))
+                                {
+                                    SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
+
+                                    for (int i = 0; i < secVal.Length; i++)
+                                    {
+                                        GroupValue groupVal = secVal[i] as GroupValue;
+                                                                                                                  
+
+                                        string name = groupVal.GetString("Symbol");
+
+                                        bool subscribed = false;
+                                        for (int k = 0; k < _subscribedSecurities.Count; k++)
+                                        {
+                                            if (_subscribedSecurities[k].Name == name)
+                                            {
+                                                subscribed = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!subscribed)
+                                            continue;
+
+                                        if (groupVal.IsDefined("MDEntryType") && groupVal.GetString("MDEntryType") == "z")
+                                        {
+                                            Trade trade = new Trade();
+                                            trade.SecurityNameCode = name;
+                                            trade.Price = groupVal.GetString("MDEntryPx").ToDecimal();
+                                            
+                                            string time = groupVal.GetString("MDEntryTime");
+                                            if (time.Length == 8)
+                                            {
+                                                time = "0" + time;
+                                            }
+
+                                            time = DateTime.UtcNow.ToString("ddMMyyyy") + time;
+
+                                            DateTime tradeDateTime = DateTime.ParseExact(time, "ddMMyyyyHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
+
+                                            trade.Time = tradeDateTime;
+
+
+                                            trade.Id = groupVal.GetString("MDEntryID");
+                                            trade.Side = groupVal.GetString("OrderSide") == "B" ? Side.Buy : Side.Sell;
+                                            trade.Volume = groupVal.GetString("MDEntrySize").ToDecimal();
+
+                                            if (NewTradesEvent != null)
+                                            {
+                                                NewTradesEvent(trade);
+                                            }
+                                        }
+                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    for (int s = 0; s < 2; s++)
+                    {
+                        int length = s == 0 ? _tradesSnapshotSocketA.Receive(buffer) : _tradesSnapshotSocketB.Receive(buffer);
+
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        {
+                            FastDecoder decoder = new FastDecoder(_context, stream);
+                            OpenFAST.Message msg = decoder.ReadMessage();
+
+                            string msgType = msg.GetString("MessageType");
+
+                            if (msgType == "W") /// Market Data - Snapshot/Full Refresh (W)
+                            {
+                                //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+                                string name = msg.GetString("Symbol");
+                                bool subscribed = false;
+                                for (int k = 0; k < _subscribedSecurities.Count; k++)
+                                {
+                                    if (_subscribedSecurities[k].Name == name)
+                                    {
+                                        subscribed = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!subscribed)
+                                    continue;
+
+                                if (msg.IsDefined("GroupMDEntries"))
+                                {
+                                    SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
+
+                                    for (int i = 0; i < secVal.Length; i++)
+                                    {
+                                        GroupValue groupVal = secVal[i] as GroupValue;
+                                        
+                                        if (groupVal.IsDefined("MDEntryType") && groupVal.GetString("MDEntryType") == "z")
+                                        {
+                                            Trade trade = new Trade();
+                                            trade.SecurityNameCode = name;
+                                            trade.Price = groupVal.GetString("MDEntryPx").ToDecimal();
+
+                                            string time = groupVal.GetString("MDEntryTime");
+                                            if (time.Length == 8)
+                                            {
+                                                time = "0" + time;
+                                            }
+                                            
+                                            time = DateTime.UtcNow.ToString("ddMMyyyy") + time;
+
+                                            DateTime tradeDateTime = DateTime.ParseExact(time, "ddMMyyyyHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
+                                            
+
+                                            trade.Time = tradeDateTime;
+                                           
+
+                                            trade.Id = groupVal.GetString("MDEntryID");
+                                            trade.Side = groupVal.GetString("OrderSide") == "B" ? Side.Buy : Side.Sell;
+                                            trade.Volume = groupVal.GetString("MDEntrySize").ToDecimal();
+
+                                            if (NewTradesEvent != null)
+                                            {
+                                                NewTradesEvent(trade);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void OrdersReader()
+        {
+            byte[] buffer = new byte[4096];
+            List<int> mdEntryIdsList = new List<int>();
+
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (_ordersIncrementalSocketA == null || _ordersIncrementalSocketB == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    // читаем из потоков А и B
+                    // либо сразу обрабатываем либо перемещаем в очередь для разбора
+                    for (int s = 0; s < 2; s++)
+                    {
+                        int length = s == 0 ? _ordersIncrementalSocketA.Receive(buffer) : _ordersIncrementalSocketB.Receive(buffer);
+
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        {
+                            FastDecoder decoder = new FastDecoder(_context, stream);
+                            OpenFAST.Message msg = decoder.ReadMessage();
+
+                            string msgType = msg.GetString("MessageType");
+
+                            if (msgType == "X") /// Market Data - Incremental Refresh (X)
+                            {
+                                //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+
+                                if (msg.IsDefined("GroupMDEntries"))
+                                {
+                                    SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
+
+                                    for (int i = 0; i < secVal.Length; i++)
+                                    {
+                                        GroupValue groupVal = secVal[i] as GroupValue;
+
+
+                                        string name = groupVal.GetString("Symbol");
+                                        
+                                        bool subscribed = false;
+                                        for (int k = 0; k < _subscribedSecurities.Count; k++)
+                                        {
+                                            if (_subscribedSecurities[k].Name == name)
+                                            {
+                                                subscribed = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!subscribed)
+                                            continue;
+
+                                        if (!groupVal.IsDefined("MDEntryType"))
+                                            continue;
+
+                                        int mdEntryId = groupVal.GetInt("MDEntryID");
+
+                                        if (mdEntryIdsList.Contains(mdEntryId))
+                                            continue;
+
+                                        mdEntryIdsList.Add(mdEntryId);
+                                        
+                                        string mdEntryType = groupVal.GetString("MDEntryType");
+                                        string mdUpdateAction = groupVal.GetString("MDUpdateAction");
+
+                                        if (mdEntryType == "0" || mdEntryType == "1") // order book
+                                        {
+                                            decimal price = groupVal.GetString("MDEntryPx").ToDecimal();
+                                            if (price <  0)
+                                                continue;
+
+                                            decimal volume = groupVal.GetString("MDEntrySize")?.ToDecimal() ?? 0;
+
+                                            MarketDepth depth = _marketDepths[name];
+                                            depth.Time = DateTime.UtcNow;
+
+                                            mdEntryType= mdEntryType == "0" ? "Bid" : "Ask";
+
+                                            mdUpdateAction = mdUpdateAction == "0" ? "Add" : mdUpdateAction == "1" ? "Update" : "Delete";
+                                            
+                                            if(mdEntryType == "Bid")
+                                            {
+                                                int index = depth.Bids.FindIndex(x => x.Price == price);
+
+                                                if (index == -1 && mdUpdateAction != "Delete")
+                                                {
+                                                    MarketDepthLevel mdLevel = new MarketDepthLevel();
+                                                    mdLevel.Price = price;
+                                                    mdLevel.Bid = volume;
+                                                    depth.Bids.Add(mdLevel);
+                                                }
+                                                else
+                                                {
+                                                    if (mdUpdateAction == "Add")
+                                                        depth.Bids[index].Bid += volume;
+
+                                                    if (mdUpdateAction == "Delete")
+                                                    {
+                                                        depth.Bids[index].Bid -= volume;
+                                                        if (depth.Bids[index].Bid == 0)
+                                                            depth.Bids.RemoveAt(index);
+                                                    }
+
+                                                    // TODO: Update
+                                                }
+                                            }
+                                            else
+                                            {
+                                                int index = depth.Asks.FindIndex(x => x.Price == price);
+                                                if (index == -1 && mdUpdateAction != "Delete")
+                                                {
+                                                    MarketDepthLevel mdLevel = new MarketDepthLevel();
+                                                    mdLevel.Price = price;
+                                                    mdLevel.Ask = volume;
+                                                    depth.Asks.Add(mdLevel);
+                                                }
+                                                else
+                                                {
+                                                    if (mdUpdateAction == "Add")
+                                                        depth.Asks[index].Ask += volume;
+
+                                                    if (mdUpdateAction == "Delete")
+                                                    {
+                                                        depth.Asks[index].Ask -= volume;
+                                                        if (depth.Asks[index].Ask == 0)
+                                                            depth.Asks.RemoveAt(index);
+                                                    }
+
+                                                    // TODO: Update
+                                                }
+                                            }
+                                            
+                                            // sort bids/asks by price
+                                            depth.Bids.Sort((x, y) => y.Price.CompareTo(x.Price));
+                                            depth.Asks.Sort((x, y) => x.Price.CompareTo(y.Price));
+
+                                            MarketDepthEvent(depth);
+                                            _marketDepths[name] = depth;
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void MFIXTradeServerConnection()
+        {
+            byte[] bytes = new byte[4096];
+            int bytesRec = 0;
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (_MFIXTradeSocket == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    bytesRec = _MFIXTradeSocket.Receive(bytes);
+                                       
+                    string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
+
+                    // 0. Обрабатываем TestRequest
+                    if (fixMessage.MessageType == "TestRequest")
+                    {
+                        Header header = new Header
+                        {
+                            BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
+                            MsgType = "0", //Тип сообщения на установку сессии
+                            SenderCompID = _MFIXTradeServerLogin,
+                            TargetCompID = _MFIXTradeServerTargetCompId,
+                            MsgSeqNum = _MFIXTradeMsgSeqNum++
+                        };
+
+                        string TestReqID = fixMessage.Fields["TestReqID"];
+                        HeartbeatMessage hbMsg = new HeartbeatMessage()
+                        {
+                            TestReqID = TestReqID,
+                        };
+
+                        //Вычисляем длину сообщения
+                        header.BodyLength = header.GetHeaderSize() + hbMsg.GetMessageSize();
+                        //Создаем концовку сообщения
+                        Trailer hbTrailer = new Trailer(header.ToString() + hbMsg.ToString());
+
+                        //Формируем полное готовое сообщение
+                        string fullMessage = header.ToString() + hbMsg.ToString() + hbTrailer.ToString();
+
+                        //Отправляем сообщение
+                        _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                    }
+
+                    // 1. Обрабатываем ExecutionReport
+                    if (fixMessage.MessageType == "ExecutionReport")
+                    {                        
+                        string ExecType = fixMessage.Fields["ExecType"];
+                        string OrdStatus = fixMessage.Fields["OrdStatus"];
+                        
+                        string OrdType = fixMessage.Fields["OrdType"];
+                        string Price = fixMessage.Fields["Price"];
+                        string OrderQty = fixMessage.Fields["OrderQty"];
+                        string LastQty = fixMessage.Fields["LastQty"];
+                        string LastPx = fixMessage.Fields["LastPx"];
+                        string TransactTime = fixMessage.Fields["TransactTime"];
+                        string Text = fixMessage.Fields["Text"];
+
+
+                        Order order = new Order();
+
+                        order.SecurityNameCode = fixMessage.Fields["Symbol"];
+                        order.PortfolioNumber = fixMessage.Fields["Account"];
+                        order.NumberMarket = fixMessage.Fields["OrderID"];
+                        order.Comment = Text;
+                        try
+                        {
+                            order.NumberUser = Convert.ToInt32(fixMessage.Fields["ClOrdID"]);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+
+                        order.Side = fixMessage.Fields["Side"] == "1" ? Side.Buy : Side.Sell;
+
+                        if (OrdType == "2")
+                        {
+                            order.Price = Price.ToDecimal();
+                            order.TypeOrder = OrderPriceType.Limit;
+                        }
+                        else
+                        {
+                            order.TypeOrder = OrderPriceType.Market;
+                        }
+
+                        if (ExecType == "F") // сделка
+                        {
+                            order.Volume = LastQty.ToDecimal();
+                        }
+
+                        order.TimeCallBack = DateTime.Parse(TransactTime);
+                                                                      
+                        if (OrdStatus == "0" || OrdStatus == "9" || OrdStatus == "E")
+                        {                            
+                            order.State = OrderStateType.Activ;
+                        }
+                        else if (OrdStatus == "1")
+                        {
+                            order.State = OrderStateType.Patrial;
+                        }
+                        else if (OrdStatus == "2")
+                        {
+                            order.State = OrderStateType.Done;
+                        }
+                        else if (OrdStatus == "4")
+                        {
+                            decimal volFilled = fixMessage.Fields["CumQty"].ToDecimal();
+
+                            if (volFilled > 0)
+                            {
+                                order.State = OrderStateType.Done;
+                            }
+                            else
+                            {
+                                order.State = OrderStateType.Cancel;
+                            }                             
+                        }
+                        else if (OrdStatus == "8")
+                        {
+                            order.State = OrderStateType.Fail;
+                        }
+
+                        MyOrderEvent(order);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void MFIXTradeCaptureServerConnection()
+        {
+            byte[] bytes = new byte[4096];
+            int bytesRec = 0;
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (_MFIXTradeCaptureSocket == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+                                       
+                    bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
+
+                   
+                    string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
+
+
+                    // 0. Обрабатываем TestRequest
+                    if (fixMessage.MessageType == "TestRequest")
+                    {
+                        Header header = new Header
+                        {
+                            BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
+                            MsgType = "0", //Тип сообщения на установку сессии
+                            SenderCompID = _MFIXTradeCaptureServerLogin,
+                            TargetCompID = _MFIXTradeCaptureServerTargetCompId,
+                            MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++
+                        };
+
+                        string TestReqID = fixMessage.Fields["TestReqID"];
+                        HeartbeatMessage hbMsg = new HeartbeatMessage()
+                        {
+                            TestReqID = TestReqID,
+                        };
+
+                        //Вычисляем длину сообщения
+                        header.BodyLength = header.GetHeaderSize() + hbMsg.GetMessageSize();
+                        //Создаем концовку сообщения
+                        Trailer hbTrailer = new Trailer(header.ToString() + hbMsg.ToString());
+
+                        //Формируем полное готовое сообщение
+                        string fullMessage = header.ToString() + hbMsg.ToString() + hbTrailer.ToString();
+
+                        //Отправляем сообщение
+                        _MFIXTradeCaptureSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                    }
+
+                    // 1. Обрабатываем TradingSessionStatus
+                    if (fixMessage.MessageType == "TradingSessionStatus")
+                    {
+                        string TradingSessionID = fixMessage.Fields["TradingSessionID"];
+                        string Text = fixMessage.Fields["Text"];
+                        SendLogMessage($"MFIX TC Server => {TradingSessionID}: {Text}", LogMessageType.System);
+                    }
+
+                    // 2. Обрабатываем TradeCaptureReport
+                    if (fixMessage.MessageType == "TradeCaptureReport")
+                    {
+                        string ExecType = fixMessage.Fields["ExecType"];
+
+                        if (ExecType != "F")
+                            continue;
+
+                        string Symbol = fixMessage.Fields["Symbol"];                                               
+                        string price = fixMessage.Fields["LastPx"];
+                        string qty = fixMessage.Fields["LastQty"];
+                        string transactionTime = fixMessage.Fields["TransactTime"];
+                        string tradeId = fixMessage.Fields["ExecID"].Split('|')[0];
+                                                
+                        MyTrade trade = new MyTrade();
+
+                        trade.SecurityNameCode = Symbol;
+                        trade.Price = price.ToDecimal();
+                        trade.Volume = qty.ToDecimal();
+                        trade.NumberOrderParent = fixMessage.Fields["OrderID"];
+                        trade.NumberTrade = tradeId;
+                        trade.Time = DateTime.Parse(transactionTime);
+                        trade.Side = fixMessage.Fields["Side"] == "1" ? Side.Buy : Side.Sell;
+                        
+                        MyTradeEvent(trade);                       
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
 
         private void DataMessageReader()
         {
@@ -1411,31 +2370,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 }
             }
         }
-
-        private void UpDateTrade(string data, string secName)
-        {
-            //QuotesFixFastEquities baseMessage =
-            //JsonConvert.DeserializeAnonymousType(data, new QuotesFixFastEquities());
-
-            //if(string.IsNullOrEmpty(baseMessage.timestamp))
-            //{
-            //    return;
-            //}
-
-            //Trade trade = new Trade();
-            //trade.SecurityNameCode = baseMessage.symbol;
-            //trade.Price = baseMessage.price.ToDecimal();
-            //trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseMessage.timestamp);
-            //trade.Id = baseMessage.id;
-            //trade.Side = Side.Buy;
-            //trade.Volume = 1;
-
-            //if (NewTradesEvent != null)
-            //{
-            //    NewTradesEvent(trade);
-            //}
-        }
-
+        
         private void UpDateMarketDepth(string data, string secName)
         {
             //MarketDepthFullMessage baseMessage =
@@ -1603,12 +2538,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             Portfolio portf = null;
 
-            for (int i = 0; i < _myPortfolious.Count; i++)
+            for (int i = 0; i < _myPortfolios.Count; i++)
             {
-                string realPortfName = _myPortfolious[i].Number.Split('_')[0];
+                string realPortfName = _myPortfolios[i].Number.Split('_')[0];
                 if (realPortfName == portfolioName)
                 {
-                    portf = _myPortfolious[i];
+                    portf = _myPortfolios[i];
                     break;
                 }
             }
@@ -1626,7 +2561,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             if (PortfolioEvent != null)
             {
-                PortfolioEvent(_myPortfolious);
+                PortfolioEvent(_myPortfolios);
             }
         }
 
@@ -1793,12 +2728,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             //Portfolio portf = null;
 
-            //for(int i = 0;i < _myPortfolious.Count;i++)
+            //for(int i = 0;i < _myPortfolios.Count;i++)
             //{
-            //    string realPortfName = _myPortfolious[i].Number.Split('_')[0];
+            //    string realPortfName = _myPortfolios[i].Number.Split('_')[0];
             //    if (realPortfName == portfolioName)
             //    {
-            //        portf = _myPortfolious[i];
+            //        portf = _myPortfolios[i];
             //        break;
             //    }
             //}
@@ -1815,7 +2750,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             //if (PortfolioEvent != null)
             //{
-            //    PortfolioEvent(_myPortfolious);
+            //    PortfolioEvent(_myPortfolios);
             //}
         }
 
@@ -1841,93 +2776,44 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public void SendOrder(Order order)
         {
-            rateGateSendOrder.WaitToProceed();
+            //rateGateSendOrder.WaitToProceed();
 
             try
             {
-                if(order.TypeOrder == OrderPriceType.Market)
+                Header header = new Header
                 {
-                    lock (_sendOrdersArrayLocker)
-                    {
-                        _sendOrders.Add(order);
+                    BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
+                    MsgType = "D", // new single order
+                    SenderCompID = _MFIXTradeServerLogin,
+                    TargetCompID = _MFIXTradeServerTargetCompId,
+                    MsgSeqNum = _MFIXTradeMsgSeqNum++
+                };
 
-                        while (_sendOrders.Count > 100)
-                        {
-                            _sendOrders.RemoveAt(0);
-                        }
-                    }
-                }
-
-                string endPoint = "";
-
-                if(order.TypeOrder == OrderPriceType.Limit)
+                NewOrderSingleMessage msg = new NewOrderSingleMessage()
                 {
-                    endPoint = "/commandapi/warptrans/TRADE/v2/client/orders/actions/limit";
-                }
-                else if (order.TypeOrder == OrderPriceType.Market)
-                {
-                    endPoint = "/commandapi/warptrans/TRADE/v2/client/orders/actions/market";
-                }
+                    ClOrdID = order.NumberUser.ToString(),
+                    NoPartyID = "1",
+                    PartyID = _MFIXTradeClientCode,
+                    Account = _MFIXTradeAccount,
+                    NoTradingSessions = "1",
+                    TradingSessionID = "FOND", //"//"TQBR",
+                    Symbol = order.SecurityNameCode,
+                    Side = order.Side == Side.Buy ? "1" : "2", 
+                    TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),
+                    OrdType = order.TypeOrder == OrderPriceType.Market ? "1" : "2", // 1 - Market, 2 - Limit
+                    OrderQty = order.Volume.ToString(),                    
+                    Price = order.Price.ToString()
+                };
 
-                RestRequest requestRest = new RestRequest(endPoint, Method.POST);
-                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("X-FixFastEquities-REQID", order.NumberUser.ToString());
-                requestRest.AddHeader("accept", "application/json");
+                //Вычисляем длину сообщения
+                header.BodyLength = header.GetHeaderSize() + msg.GetMessageSize();
+                //Создаем концовку сообщения
+                Trailer trailer = new Trailer(header.ToString() + msg.ToString());
 
-                if(order.TypeOrder == OrderPriceType.Market)
-                {
-                    //MarketOrderFixFastEquitiesRequest body = GetMarketRequestObj(order);
-                    //requestRest.AddJsonBody(body);
-                }
-                else if(order.TypeOrder == OrderPriceType.Limit)
-                {
-                    //LimitOrderFixFastEquitiesRequest body = GetLimitRequestObj(order);
-                    //requestRest.AddJsonBody(body);
-                }
+                //Формируем полное готовое сообщение
+                string fullMessage = header.ToString() + msg.ToString() + trailer.ToString();
 
-                RestClient client = new RestClient(_restApiHost);
-
-                IRestResponse response = client.Execute(requestRest);
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    bool isInArray = false;
-                    for(int i = 0;i < _securitiesAndPortfolious.Count;i++)
-                    {
-                        if (_securitiesAndPortfolious[i].Security == order.SecurityNameCode)
-                        {
-                            isInArray = true;
-                            break;
-                        }
-                    }
-                    if(isInArray == false)
-                    {
-                        FixFastEquitiesSecuritiesAndPortfolious newValue = new FixFastEquitiesSecuritiesAndPortfolious();
-                        newValue.Security = order.SecurityNameCode;
-                        newValue.Portfolio = order.PortfolioNumber;
-                        _securitiesAndPortfolious.Add(newValue);
-                    }
-
-                    return;
-                }
-                else
-                {
-                    SendLogMessage("Order Fail. Status: "
-                        + response.StatusCode + "  " + order.SecurityNameCode , LogMessageType.Error);
-
-                    if(response.Content != null)
-                    {
-                        SendLogMessage("Fail reasons: "
-                      + response.Content, LogMessageType.Error);
-                    }
-
-                    order.State = OrderStateType.Fail;
-
-                    if(MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
-                }
+                _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
             }
             catch (Exception exception)
             {
@@ -2009,7 +2895,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 endPoint += order.NumberMarket;
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.PUT);
-                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                //requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
                 requestRest.AddHeader("X-FixFastEquities-REQID", order.NumberUser.ToString() + GetGuid()); ;
                 requestRest.AddHeader("accept", "application/json");
 
@@ -2027,7 +2913,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                 //requestRest.AddJsonBody(body);
                 
-                RestClient client = new RestClient(_restApiHost);
+                //RestClient client = new RestClient(_restApiHost);
 
                 FixFastEquitiesChangePriceOrder FixFastEquitiesChangePriceOrder = new FixFastEquitiesChangePriceOrder();
                 FixFastEquitiesChangePriceOrder.MarketId = order.NumberMarket.ToString();
@@ -2038,107 +2924,78 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     _changePriceOrders.Add(FixFastEquitiesChangePriceOrder);
                 }
 
-                IRestResponse response = client.Execute(requestRest);
+                //IRestResponse response = client.Execute(requestRest);
 
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    SendLogMessage("Order change price. New price: " + newPrice
-                        + "  " + order.SecurityNameCode, LogMessageType.System);
+                //if (response.StatusCode == HttpStatusCode.OK)
+                //{
+                //    SendLogMessage("Order change price. New price: " + newPrice
+                //        + "  " + order.SecurityNameCode, LogMessageType.System);
 
-                    order.Price = newPrice;
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                //    order.Price = newPrice;
+                //    if (MyOrderEvent != null)
+                //    {
+                //        MyOrderEvent(order);
+                //    }
 
-                    //return;
-                }
-                else
-                {
-                    SendLogMessage("Change price order Fail. Status: "
-                        + response.StatusCode + "  " + order.SecurityNameCode, LogMessageType.Error);
+                //    //return;
+                //}
+                //else
+                //{
+                //    SendLogMessage("Change price order Fail. Status: "
+                //        + response.StatusCode + "  " + order.SecurityNameCode, LogMessageType.Error);
 
-                    if (response.Content != null)
-                    {
-                        SendLogMessage("Fail reasons: "
-                      + response.Content, LogMessageType.Error);
-                    }
-                }
+                //    if (response.Content != null)
+                //    {
+                //        SendLogMessage("Fail reasons: "
+                //      + response.Content, LogMessageType.Error);
+                //    }
+                //}
 
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-        }
-
-        List<string> _cancelOrderNums = new List<string>();
+        }               
 
         public void CancelOrder(Order order)
         {
-            rateGateCancelOrder.WaitToProceed();
-
-            //curl -X DELETE "/commandapi/warptrans/TRADE/v2/client/orders/93713183?portfolio=D39004&exchange=MOEX&stop=false&format=Simple" -H "accept: application/json"
-
+            // rateGateCancelOrder.WaitToProceed();
+                       
             try
             {
-                int countTryRevokeOrder = 0;
-
-                for(int i = 0; i< _cancelOrderNums.Count;i++)
+                Header header = new Header
                 {
-                    if (_cancelOrderNums[i].Equals(order.NumberMarket))
-                    {
-                        countTryRevokeOrder++;
-                    }
-                }
+                    BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
+                    MsgType = "F", // order cancel request
+                    SenderCompID = _MFIXTradeServerLogin,
+                    TargetCompID = _MFIXTradeServerTargetCompId,
+                    MsgSeqNum = _MFIXTradeMsgSeqNum++
+                };
 
-                if(countTryRevokeOrder >= 2)
+                OrderCancelRequestMessage msg = new OrderCancelRequestMessage()
                 {
-                    SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
-                    return;
-                }
+                    OrigClOrdID = order.NumberUser.ToString(), 
+                    OrderID = order.NumberMarket.ToString(),
+                    ClOrdID = DateTime.UtcNow.Ticks.ToString(), // идентификатор заявки на снятие
+                    Side = order.Side == Side.Buy ? "1" : "2",
+                    TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),                    
+                };
 
-                _cancelOrderNums.Add(order.NumberMarket);
+                //Вычисляем длину сообщения
+                header.BodyLength = header.GetHeaderSize() + msg.GetMessageSize();
+                //Создаем концовку сообщения
+                Trailer trailer = new Trailer(header.ToString() + msg.ToString());
 
-                while(_cancelOrderNums.Count > 100)
-                {
-                    _cancelOrderNums.RemoveAt(0);
-                }
+                //Формируем полное готовое сообщение
+                string fullMessage = header.ToString() + msg.ToString() + trailer.ToString();
 
-                string portfolio = order.PortfolioNumber.Split('_')[0];
-
-                string endPoint 
-                    = $"/commandapi/warptrans/TRADE/v2/client/orders/{order.NumberMarket}?portfolio={portfolio}&exchange=MOEX&stop=false&jsonResponse=true&format=Simple";
-
-                RestRequest requestRest = new RestRequest(endPoint, Method.DELETE);
-                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("accept", "application/json");
-
-                RestClient client = new RestClient(_restApiHost);
-
-                IRestResponse response = client.Execute(requestRest);
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    return;
-                }
-                else
-                {
-                    SendLogMessage("Order cancel request error. Status: "
-                        + response.StatusCode + "  " + order.SecurityClassCode, LogMessageType.Error);
-
-                    if (response.Content != null)
-                    {
-                        SendLogMessage("Fail reasons: "
-                      + response.Content, LogMessageType.Error);
-                    }
-                }
+                _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
             }
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
-
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -2287,9 +3144,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
         {
             List<Order> orders = new List<Order>();
 
-            if (string.IsNullOrEmpty(_portfolioSpotId) == false)
+            if (string.IsNullOrEmpty(_MFIXTradeServerPort) == false)
             {
-                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioSpotId);
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_MFIXTradeServerPort);
 
                 if (newOrders != null &&
                     newOrders.Count > 0)
@@ -2298,9 +3155,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 }
             }
 
-            if (string.IsNullOrEmpty(_portfolioFutId) == false)
+            if (string.IsNullOrEmpty(_MFIXTradeCaptureServerAddress) == false)
             {
-                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioFutId);
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_MFIXTradeCaptureServerAddress);
 
                 if (newOrders != null &&
                     newOrders.Count > 0)
@@ -2309,9 +3166,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 }
             }
 
-            if (string.IsNullOrEmpty(_portfolioCurrencyId) == false)
+            if (string.IsNullOrEmpty(_MFIXTradeCaptureServerPort) == false)
             {
-                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioCurrencyId);
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_MFIXTradeCaptureServerPort);
 
                 if (newOrders != null &&
                     newOrders.Count > 0)
@@ -2320,9 +3177,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 }
             }
 
-            if (string.IsNullOrEmpty(_portfolioSpareId) == false)
+            if (string.IsNullOrEmpty(_MFIXTradeAccount) == false)
             {
-                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioSpareId);
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_MFIXTradeAccount);
 
                 if (newOrders != null &&
                     newOrders.Count > 0)
@@ -2342,60 +3199,60 @@ namespace OsEngine.Market.Servers.FixFastEquities
             {
                 string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/orders?format=Simple";
 
-                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("accept", "application/json");
+                //RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                //requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                //requestRest.AddHeader("accept", "application/json");
 
-                RestClient client = new RestClient(_restApiHost);
+                //RestClient client = new RestClient(_restApiHost);
 
-                IRestResponse response = client.Execute(requestRest);
+                //IRestResponse response = client.Execute(requestRest);
 
 
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string respString = response.Content;
+                //if (response.StatusCode == HttpStatusCode.OK)
+                //{
+                //    string respString = response.Content;
 
-                    if(respString == "[]")
-                    {
-                        return null;
-                    }
-                    else
-                    {
+                //    if(respString == "[]")
+                //    {
+                //        return null;
+                //    }
+                //    else
+                //    {
 
-                        //List<OrderFixFastEquities> orders = JsonConvert.DeserializeAnonymousType(respString, new List<OrderFixFastEquities>());
+                //        //List<OrderFixFastEquities> orders = JsonConvert.DeserializeAnonymousType(respString, new List<OrderFixFastEquities>());
 
-                        //List<Order> osEngineOrders = new List<Order>();
+                //        //List<Order> osEngineOrders = new List<Order>();
 
-                        //for(int i = 0;i < orders.Count;i++)
-                        //{
-                        //    Order newOrd = ConvertToOsEngineOrder(orders[i], portfolio);
+                //        //for(int i = 0;i < orders.Count;i++)
+                //        //{
+                //        //    Order newOrd = ConvertToOsEngineOrder(orders[i], portfolio);
 
-                        //    if(newOrd == null)
-                        //    {
-                        //        continue;
-                        //    }
+                //        //    if(newOrd == null)
+                //        //    {
+                //        //        continue;
+                //        //    }
 
-                        //    osEngineOrders.Add(newOrd);
-                        //}
+                //        //    osEngineOrders.Add(newOrd);
+                //        //}
 
-                        //return osEngineOrders;
+                //        //return osEngineOrders;
                         
-                    }
-                }
-                else if(response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+                //    }
+                //}
+                //else if(response.StatusCode == HttpStatusCode.NotFound)
+                //{
+                //    return null;
+                //}
+                //else
+                //{
+                //    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
 
-                    if (response.Content != null)
-                    {
-                        SendLogMessage("Fail reasons: "
-                      + response.Content, LogMessageType.Error);
-                    }
-                }
+                //    if (response.Content != null)
+                //    {
+                //        SendLogMessage("Fail reasons: "
+                //      + response.Content, LogMessageType.Error);
+                //    }
+                //}
             }
             catch (Exception exception)
             {
@@ -2413,72 +3270,72 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                 string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/" + security + "/trades?format=Simple";
 
-                RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("accept", "application/json");
+                //RestRequest requestRest = new RestRequest(endPoint, Method.GET);
+                //requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
+                //requestRest.AddHeader("accept", "application/json");
 
-                RestClient client = new RestClient(_restApiHost);
+                //RestClient client = new RestClient(_restApiHost);
 
-                IRestResponse response = client.Execute(requestRest);
+                //IRestResponse response = client.Execute(requestRest);
 
 
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string respString = response.Content;
+                //if (response.StatusCode == HttpStatusCode.OK)
+                //{
+                //    string respString = response.Content;
 
-                    if (respString == "[]")
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        //List<MyTradeFixFastEquitiesRest> allTradesJson 
-                        //    = JsonConvert.DeserializeAnonymousType(respString, new List<MyTradeFixFastEquitiesRest>());
+                //    if (respString == "[]")
+                //    {
+                //        return null;
+                //    }
+                //    else
+                //    {
+                //        //List<MyTradeFixFastEquitiesRest> allTradesJson 
+                //        //    = JsonConvert.DeserializeAnonymousType(respString, new List<MyTradeFixFastEquitiesRest>());
 
-                        //List<MyTrade> osEngineOrders = new List<MyTrade>();
+                //        //List<MyTrade> osEngineOrders = new List<MyTrade>();
 
-                        //for (int i = 0; i < allTradesJson.Count; i++)
-                        //{
-                        //    MyTradeFixFastEquitiesRest tradeRest = allTradesJson[i];
+                //        //for (int i = 0; i < allTradesJson.Count; i++)
+                //        //{
+                //        //    MyTradeFixFastEquitiesRest tradeRest = allTradesJson[i];
 
-                        //    MyTrade newTrade = new MyTrade();
-                        //    newTrade.SecurityNameCode = security;
-                        //    newTrade.NumberTrade = tradeRest.id;
-                        //    newTrade.NumberOrderParent = tradeRest.orderno;
-                        //    newTrade.Volume = tradeRest.qty.ToDecimal();
-                        //    newTrade.Price = tradeRest.price.ToDecimal();
-                        //    newTrade.Time =  ConvertToDateTimeFromTimeFixFastEquitiesData(tradeRest.date);
+                //        //    MyTrade newTrade = new MyTrade();
+                //        //    newTrade.SecurityNameCode = security;
+                //        //    newTrade.NumberTrade = tradeRest.id;
+                //        //    newTrade.NumberOrderParent = tradeRest.orderno;
+                //        //    newTrade.Volume = tradeRest.qty.ToDecimal();
+                //        //    newTrade.Price = tradeRest.price.ToDecimal();
+                //        //    newTrade.Time =  ConvertToDateTimeFromTimeFixFastEquitiesData(tradeRest.date);
 
-                        //    if (tradeRest.side == "buy")
-                        //    {
-                        //        newTrade.Side = Side.Buy;
-                        //    }
-                        //    else
-                        //    {
-                        //        newTrade.Side = Side.Sell;
-                        //    }
+                //        //    if (tradeRest.side == "buy")
+                //        //    {
+                //        //        newTrade.Side = Side.Buy;
+                //        //    }
+                //        //    else
+                //        //    {
+                //        //        newTrade.Side = Side.Sell;
+                //        //    }
 
-                        //    osEngineOrders.Add(newTrade);
-                        //}
+                //        //    osEngineOrders.Add(newTrade);
+                //        //}
 
-                        //return osEngineOrders;
+                //        //return osEngineOrders;
 
-                    }
-                }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+                //    }
+                //}
+                //else if (response.StatusCode == HttpStatusCode.NotFound)
+                //{
+                //    return null;
+                //}
+                //else
+                //{
+                //    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
 
-                    if (response.Content != null)
-                    {
-                        SendLogMessage("Fail reasons: "
-                      + response.Content, LogMessageType.Error);
-                    }
-                }
+                //    if (response.Content != null)
+                //    {
+                //        SendLogMessage("Fail reasons: "
+                //      + response.Content, LogMessageType.Error);
+                //    }
+                //}
             }
             catch (Exception exception)
             {
@@ -2603,5 +3460,17 @@ namespace OsEngine.Market.Servers.FixFastEquities
         Positions,
         Orders,
         MyTrades
+    }
+
+    public class SecurityToSave
+    {
+        public string Name { get; set; }
+        public string NameId { get; set; }
+        public string NameFull { get; set; }
+        public string NameClass { get; set; }
+        public decimal Lot { get; set; }
+        public decimal PriceStep { get; set; }
+        public int DecimalsVolume { get; set; }
+        public int Decimals { get; set; }
     }
 }

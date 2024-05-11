@@ -1,0 +1,169 @@
+﻿using System.Collections.Generic;
+
+namespace OsEngine.Market.Servers.FixFastEquities.FIX
+{
+    class FIXMessage
+    {
+        public static Dictionary<string, string> fixDict = new Dictionary<string, string>()
+        {
+            { "1", "Account" },
+            { "6", "AvgPx" },
+            { "7", "BeginSeqNo" },
+            { "8", "BeginString" },
+            { "9", "BodyLength"},
+            { "10", "CheckSum"},
+            { "11", "ClOrdID"},
+            { "12", "Commission" },
+            { "13", "CommType" },
+            { "14", "CumQty" },
+            { "16", "EndSeqNo" },
+            { "17", "ExecID" },
+            { "31", "LastPx" },
+            { "32", "LastQty" },
+            { "34", "MsgSeqNum"},
+            { "35", "MsgType"},
+            { "37", "OrderID" },
+            { "38", "OrderQty" },
+            { "39", "OrdStatus" },
+            { "40", "OrdType" },
+            { "41", "OrigClOrdID" },
+            { "44", "Price" },
+            { "49", "SenderCompID"},
+            { "52", "SendingTime" },
+            { "54", "Side" },
+            { "55", "Symbol" },
+            { "56", "TargetCompID"},
+            { "58", "Text" },
+            { "60", "TransactTime" },
+            { "63", "SettlType" },
+            { "64", "SettlDate" },
+            { "75", "TradeDate" },
+            { "97", "PossResend" },
+            { "98", "EncryptMethod"},
+            { "103", "OrdRejReason" },
+            { "108", "HeartBtInt"},
+            { "112", "TestReqID" },
+            { "114", "ResetSeqNumFlag"},
+            { "134", "MsgSeqNum"},
+            { "136", "NoMiscFees" },
+            { "137", "MiscFeeAmt" },
+            { "139", "MiscFeeType" },
+            { "141", "ResetSeqNumFlag" },
+            { "149", "SenderCompID"},
+            { "150", "ExecType" },
+            { "151", "LeavesQty" },
+            { "152", "SendingTime"},
+            { "155", "Password"},
+            { "156", "TargetCompID"},
+            { "159", "AccruedInterestAmt" },
+            { "236", "Yield" },
+            { "278", "MDEntryID" },
+            { "336", "TradingSessionID" },
+            { "340", "TradSesStatus" },
+            { "378", "ExecRestatementReason" },
+            { "381", "GrossTradeAmt" },
+            { "447", "PartyIDSource" },
+            { "448", "PartyID" },
+            { "452", "PartyRole" },
+            { "453", "NoPartyID" },
+            { "552", "NoSides" },
+            { "570", "PreviouslyReported" },
+            { "571", "TradeReportID" },
+            { "625", "TradingSessionSubID" },
+            { "828", "TrdType" },
+            { "851", "LastLiquidityInd" },
+            { "1056", "CalculatedCcyLastQty" },
+            { "5020", "OptionSettlDate" },
+            { "5155", "InstitutionID" },
+            { "5459", "OptionSettlType" },
+            { "5979", "RequestTime" },
+            { "6029", "CurrencyCode" },
+            { "6636", "StipulationValue" },
+            { "7693", "ClientAccID" },
+            { "9412", "OrigTime" },
+            { "9945", "OrigOrderID" },
+            { "18181", "PreMatchedCumQty" },
+        };
+
+        public string MessageType { get; set; }
+        public Dictionary<string, string> Fields { get; set; }
+
+        public FIXMessage()
+        {
+            Fields = new Dictionary<string, string>();
+        }
+
+        public static FIXMessage ParseFIXMessage(string message)
+        {            
+            // Split the message into header, body, and trailer
+            string[] parts = message.Split(new[] { '\u0001' }); // "\u0001" is the start of a new field in FIX
+
+            FIXMessage FIXMessage = new FIXMessage();
+            
+            // Parse the body fields
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                string part = parts[i];
+                string[] field = part.Split('=');
+                if (field.Length == 2)
+                {
+                    string name = field[0];
+                    string value = field[1];
+
+                    name = fixDict.ContainsKey(name) ? fixDict[name] : name;
+
+                    if (name == "MsgType")
+                    {
+                        if (value == "A")
+                        {
+                            value = "Logon";
+                        }
+
+                        if (value == "D")
+                        {
+                            value = "Logout";
+                        }
+
+                        if (value == "0")
+                        {
+                            value = "Heartbeat";
+                        }
+
+                        if (value == "1")
+                        {
+                            value = "TestRequest";
+                        }
+
+                        if (value == "h")
+                        {
+                            value = "TradingSessionStatus";
+                        }
+
+                        if (value == "8")
+                        {
+                            value = "ExecutionReport";
+                        }
+
+                        if (value == "2")
+                        {
+                            value = "ResendRequest";
+                        }
+
+                        if (value == "AE")
+                        {
+                            value = "TradeCaptureReport";
+                        }
+
+
+                        FIXMessage.MessageType = value;
+
+                    }
+
+                    FIXMessage.Fields[name] = value;
+                }
+            }
+
+            return FIXMessage;
+        }
+    }        
+}

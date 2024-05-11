@@ -125,7 +125,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public bool UseStandartCandlesStarter
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool IsUseLotToCalculateProfit
