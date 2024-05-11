@@ -2002,6 +2002,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                                                     if (mdUpdateAction == "Delete")
                                                     {
+                                                        if (index == -1)
+                                                            continue;
+
                                                         depth.Bids[index].Bid -= volume;
                                                         if (depth.Bids[index].Bid == 0)
                                                             depth.Bids.RemoveAt(index);
@@ -2027,6 +2030,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                                                     if (mdUpdateAction == "Delete")
                                                     {
+                                                        if (index == -1)
+                                                            continue;
+
                                                         depth.Asks[index].Ask -= volume;
                                                         if (depth.Asks[index].Ask == 0)
                                                             depth.Asks.RemoveAt(index);
@@ -2122,13 +2128,14 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         string OrdStatus = fixMessage.Fields["OrdStatus"];
                         
                         string OrdType = fixMessage.Fields["OrdType"];
-                        string Price = fixMessage.Fields["Price"];
+                        string Price = fixMessage.Fields.ContainsKey("Price") ? fixMessage.Fields["Price"] : "0";
                         string OrderQty = fixMessage.Fields["OrderQty"];
-                        string LastQty = fixMessage.Fields["LastQty"];
-                        string LastPx = fixMessage.Fields["LastPx"];
-                        string TransactTime = fixMessage.Fields["TransactTime"];
-                        string Text = fixMessage.Fields["Text"];
 
+                        string LastQty = fixMessage.Fields.ContainsKey("LastQty") ? fixMessage.Fields["LastQty"] : "0";
+                        string LastPx = fixMessage.Fields.ContainsKey("LastPx") ? fixMessage.Fields["LastPx"] : "0";
+
+                        string TransactTime = fixMessage.Fields["TransactTime"];
+                        string Text = fixMessage.Fields.ContainsKey("Text") ? fixMessage.Fields["Text"] : "";
 
                         Order order = new Order();
 
@@ -2136,6 +2143,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         order.PortfolioNumber = fixMessage.Fields["Account"];
                         order.NumberMarket = fixMessage.Fields["OrderID"];
                         order.Comment = Text;
+
                         try
                         {
                             order.NumberUser = Convert.ToInt32(fixMessage.Fields["ClOrdID"]);
@@ -2162,7 +2170,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             order.Volume = LastQty.ToDecimal();
                         }
 
-                        order.TimeCallBack = DateTime.Parse(TransactTime);
+                        order.TimeCallBack = DateTime.ParseExact(TransactTime, "yyyyMMdd-HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
                                                                       
                         if (OrdStatus == "0" || OrdStatus == "9" || OrdStatus == "E")
                         {                            
@@ -2195,6 +2203,18 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         }
 
                         MyOrderEvent(order);
+                    }
+
+                    // 2. Обрабатываем Reject
+                    if (fixMessage.MessageType == "Reject")
+                    {                        
+                        string RefTagID = fixMessage.Fields["RefTagID"];
+                        string RefMsgType = fixMessage.Fields["RefMsgType"];
+                        string SessionRejectReason = fixMessage.Fields["SessionRejectReason"];
+                        
+                        string Text = fixMessage.Fields["Text"];
+
+                        SendLogMessage($"MFIX sent reject: {Text}. RefTagID: {RefTagID}, RefMsgType: {RefMsgType}, SessionRejectReason: {SessionRejectReason}", LogMessageType.Error);
                     }
                 }
                 catch (Exception exception)
@@ -2293,7 +2313,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         trade.Volume = qty.ToDecimal();
                         trade.NumberOrderParent = fixMessage.Fields["OrderID"];
                         trade.NumberTrade = tradeId;
-                        trade.Time = DateTime.Parse(transactionTime);
+                        trade.Time = DateTime.ParseExact(transactionTime, "yyyyMMdd-HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture); // 	transactionTime	"20240511-13:09:35"	string
                         trade.Side = fixMessage.Fields["Side"] == "1" ? Side.Buy : Side.Sell;
                         
                         MyTradeEvent(trade);                       
@@ -2789,6 +2809,11 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     MsgSeqNum = _MFIXTradeMsgSeqNum++
                 };
 
+
+                string TradingSessionID = "TQBR"; // по-умолчанию акции
+                if (order.SecurityClassCode.Contains("Bond")) TradingSessionID = "TQCB";
+                if (order.SecurityClassCode.Contains("Etf")) TradingSessionID = "TQTF";
+
                 NewOrderSingleMessage msg = new NewOrderSingleMessage()
                 {
                     ClOrdID = order.NumberUser.ToString(),
@@ -2796,13 +2821,13 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     PartyID = _MFIXTradeClientCode,
                     Account = _MFIXTradeAccount,
                     NoTradingSessions = "1",
-                    TradingSessionID = "FOND", //"//"TQBR",
+                    TradingSessionID = TradingSessionID,
                     Symbol = order.SecurityNameCode,
                     Side = order.Side == Side.Buy ? "1" : "2", 
                     TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),
                     OrdType = order.TypeOrder == OrderPriceType.Market ? "1" : "2", // 1 - Market, 2 - Limit
                     OrderQty = order.Volume.ToString(),                    
-                    Price = order.Price.ToString()
+                    Price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString() : "0",
                 };
 
                 //Вычисляем длину сообщения

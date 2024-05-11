@@ -603,6 +603,7 @@
     <Compile Include="Market\Servers\FixFastEquities\FIX\Header.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\HeartbeatMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\LogonMessage.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\FIX\OrderCancelRequestMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\NewOrderSingleMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\Trailer.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\Field.cs" />

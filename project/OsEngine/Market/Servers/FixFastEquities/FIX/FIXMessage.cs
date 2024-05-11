@@ -60,6 +60,9 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "278", "MDEntryID" },
             { "336", "TradingSessionID" },
             { "340", "TradSesStatus" },
+            { "371", "RefTagID" },
+            { "372", "RefMsgType" },
+            { "373", "SessionRejectReason" },
             { "378", "ExecRestatementReason" },
             { "381", "GrossTradeAmt" },
             { "447", "PartyIDSource" },
@@ -152,6 +155,11 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                         if (value == "AE")
                         {
                             value = "TradeCaptureReport";
+                        }
+
+                        if (value == "3")
+                        {
+                            value = "Reject";
                         }
 
 
