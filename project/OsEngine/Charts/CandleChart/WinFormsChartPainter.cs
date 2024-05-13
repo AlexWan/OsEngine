@@ -6094,11 +6094,6 @@ namespace OsEngine.Charts.CandleChart
                 countZnak = 0;
             }
 
-            if(countZnak != 4)
-            {
-
-            }
-
            return countZnak;
         }
 
@@ -6718,10 +6713,8 @@ namespace OsEngine.Charts.CandleChart
                 int rounder = areaSize.Decimals + 2;
                 if (rounder > 15)
                 {
-                    rounder = 15;
-                    areaSize.Decimals = 5;
+                    rounder = areaSize.Decimals;
                 }
-
 
                 double interval = Math.Round((area.AxisY2.Maximum - area.AxisY2.Minimum) / areaSize.LineCount, rounder);
 
