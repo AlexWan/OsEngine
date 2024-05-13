@@ -5305,6 +5305,15 @@ namespace OsEngine.Charts.CandleChart
                         int valueDecimalsCount = value.ToString().DecimalsCount();
                         string valueToPaint = value.ToString(_culture);
 
+                        if (rounder > 0 &&
+                            valueDecimalsCount != 0)
+                        {
+                            while (valueToPaint.Length != 0
+                                   && valueToPaint[valueToPaint.Length - 1] == '0')
+                            {
+                                valueToPaint = valueToPaint.Substring(0,valueToPaint.Length - 1);
+                            }
+                        }
                         while (rounder > 0 && 
                             valueDecimalsCount < rounder)
                         {
@@ -5335,7 +5344,6 @@ namespace OsEngine.Charts.CandleChart
                                 }
 
                                 valueDecimalsCount = value.ToString().DecimalsCount();
-                                
                             }
                             else
                             {
@@ -6084,6 +6092,11 @@ namespace OsEngine.Charts.CandleChart
             catch (Exception)
             {
                 countZnak = 0;
+            }
+
+            if(countZnak != 4)
+            {
+
             }
 
            return countZnak;
