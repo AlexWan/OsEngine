@@ -1694,6 +1694,38 @@ namespace OsEngine.Market.Servers.Alor
             {
                 MyOrderEvent(order);
             }
+
+           
+            // Проверяем, является ли бумага спредом
+
+            if(order.State == OrderStateType.Done)
+            {
+                for (int i = 0; i < _spreadSecurities.Count; i++)
+                {
+                    if (_spreadSecurities[i].Name == order.SecurityNameCode)
+                    {
+                        GenerateFakeMyTradeToOrderBySpread(order);
+                        return;
+                    }
+                }
+            }
+        }
+
+        private void GenerateFakeMyTradeToOrderBySpread(Order order)
+        {
+            MyTrade trade = new MyTrade();
+            trade.SecurityNameCode = order.SecurityNameCode;
+            trade.Price = order.Price;
+            trade.Volume = order.Volume;
+            trade.NumberOrderParent = order.NumberMarket;
+            trade.NumberTrade = order.NumberMarket + "fakeSpreadTrade";
+            trade.Time = order.TimeCallBack;
+            trade.Side = order.Side;
+
+            if (MyTradeEvent != null)
+            {
+                MyTradeEvent(trade);
+            }
         }
 
         private Order ConvertToOsEngineOrder(OrderAlor baseMessage, string portfolioName)
@@ -1870,6 +1902,8 @@ namespace OsEngine.Market.Servers.Alor
 
         private string _sendOrdersArrayLocker = "alorSendOrdersArrayLocker";
 
+        private List<Security> _spreadSecurities = new List<Security>();
+
         public void SendOrder(Order order)
         {
             rateGateSendOrder.WaitToProceed();
@@ -1937,6 +1971,32 @@ namespace OsEngine.Market.Servers.Alor
                         newValue.Security = order.SecurityNameCode;
                         newValue.Portfolio = order.PortfolioNumber;
                         _securitiesAndPortfolious.Add(newValue);
+                    }
+
+                    if(order.SecurityClassCode == "Futures spread")
+                    { // календарный спред
+                      // сохраняем бумагу для дальнейшего использования
+                        bool isSaveInSpreadArray = false;
+                        for(int i = 0;i < _spreadSecurities.Count;i++)
+                        {
+                            if (_spreadSecurities[i].Name ==  order.SecurityNameCode)
+                            {
+                                isSaveInSpreadArray = true;
+                            }
+                        }
+
+                        if(isSaveInSpreadArray == false)
+                        {
+                            for(int i = 0;i < _securities.Count;i++)
+                            {
+                                if (_securities[i].Name == order.SecurityNameCode
+                                    && _securities[i].NameClass == order.SecurityClassCode)
+                                {
+                                    _spreadSecurities.Add(_securities[i]);
+                                    break;
+                                }
+                            }
+                        }
                     }
 
                     return;
