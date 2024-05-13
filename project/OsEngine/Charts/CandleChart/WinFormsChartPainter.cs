@@ -5298,9 +5298,53 @@ namespace OsEngine.Charts.CandleChart
                     }
                     else
                     {
+                        decimal value = Convert.ToDecimal(series.Points[realIndex].YValues[0]);
+
+                        value = (Math.Round(value, rounder));
+
+                        int valueDecimalsCount = value.ToString().DecimalsCount();
+                        string valueToPaint = value.ToString(_culture);
+
+                        while (rounder > 0 && 
+                            valueDecimalsCount < rounder)
+                        {
+                            decimal newValue = 0;
+
+                            string stringToParse = value.ToString(_culture);
+
+                            if(valueDecimalsCount == 0)
+                            {
+                                stringToParse += ",1";
+                            }
+                            else
+                            {
+                                stringToParse += "1";
+                            }
+
+                            if (Decimal.TryParse(stringToParse, out newValue))
+                            {
+                                value = newValue;
+
+                                if(valueDecimalsCount == 0)
+                                {
+                                    valueToPaint += ",0";
+                                }
+                                else
+                                {
+                                    valueToPaint += "0";
+                                }
+
+                                valueDecimalsCount = value.ToString().DecimalsCount();
+                                
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+
                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                            (Math.Round(series.Points[realIndex].YValues[0], rounder)).ToString(_culture),
-                            (decimal)series.Points[realIndex].YValues[0], series.Points[realIndex].Color, true);
+                            valueToPaint, value, series.Points[realIndex].Color, true);
                     }
                 }
             }
@@ -6068,36 +6112,21 @@ namespace OsEngine.Charts.CandleChart
 
             for (int serIterator = 0; serIterator < seriesOnArea.Count; serIterator++)
             {
-                if (seriesOnArea[serIterator].Points == null)
+                if (seriesOnArea[serIterator].Points == null ||
+                    seriesOnArea[serIterator].Points.Count == 1)
                 {
                     continue;
                 }
-                for (int i = seriesOnArea[serIterator].Points.Count-1; i > -1 && i > seriesOnArea[serIterator].Points.Count-20; i--)
+
+                for (int i = seriesOnArea[serIterator].Points.Count-1; 
+                    i > -1 && i > seriesOnArea[serIterator].Points.Count-10; i--)
                 {
-                    if (seriesOnArea[serIterator].Points[i].YValues[0].ToString(_culture).Split(',').Length == 1)
-                    {
-                        continue;
-                    }
+                    double value = seriesOnArea[serIterator].Points[i].YValues[0];
 
-                    int lengh = seriesOnArea[serIterator].Points[i].YValues[0].ToString(_culture).Split(',')[1].Length;
+                    decimal valueInDecimal = value.ToStringWithNoEndZero().ToDecimal();
+
+                    int lengh = valueInDecimal.ToString().DecimalsCount();
                     int lengh2 = seriesOnArea[serIterator].Points[i].YValues[0].ToString(_culture).Split(',')[0].Length;
-
-                    bool find = false;
-
-                    if (lengh > 1)
-                    {
-                        string value = seriesOnArea[serIterator].Points[i].YValues[0].ToString(_culture).Split(',')[1];
-                        
-                        for (int i2 = 2; i2 < value.Length; i2++)
-                        {
-                            if (value[i2] != '0' && value[i2 - 1] != '0' && value[i2 - 2] != '0')
-                            {
-                                lengh = i2+1;
-                                find = true;
-                                break;
-                            }
-                        }
-                    }
 
                     if (lengh2 > 2 && lengh > 3)
                     {
@@ -6108,12 +6137,6 @@ namespace OsEngine.Charts.CandleChart
                     if (lengh > maxDecimal)
                     {
                         maxDecimal = lengh;
-                    }
-                    if (find == true)
-                    {
-                        // found the depth.
-                        // нашли глубину
-                        break;
                     }
                 }
             }
@@ -6877,8 +6900,6 @@ namespace OsEngine.Charts.CandleChart
             }
             return min;
         }
-
-
 
         /// <summary>
         /// redraw lines on the X-axis
