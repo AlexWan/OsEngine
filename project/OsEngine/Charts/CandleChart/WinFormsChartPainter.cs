@@ -4933,7 +4933,14 @@ namespace OsEngine.Charts.CandleChart
 
             double max = Convert.ToDouble(positionOnY + Convert.ToDecimal(area.AxisY2.Interval) / 20);
 
-            label = label.ToDecimal().ToString(CultureInfo.InvariantCulture);
+            try
+            {
+                label = label.ToDecimal().ToString(CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return;
+            }
 
             if (_labels == null)
             {
