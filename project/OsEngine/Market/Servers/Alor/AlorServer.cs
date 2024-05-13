@@ -1598,6 +1598,8 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
+        private List<MyTrade> _spreadMyTrades = new List<MyTrade>();
+
         private void UpDateMyTrade(string data)
         {
             MyTradeAlor baseMessage =
@@ -1624,6 +1626,20 @@ namespace OsEngine.Market.Servers.Alor
             if (MyTradeEvent != null)
             {
                 MyTradeEvent(trade);
+            }
+
+            if (_spreadOrders.Count > 0)
+            {
+                _spreadMyTrades.Add(trade);
+
+                for (int i = 0; i < _spreadOrders.Count; i++)
+                {
+                    if(TryGenerateFakeMyTradeToOrderBySpread(_spreadOrders[i]))
+                    {
+                        _spreadOrders.RemoveAt(i);
+                        break;
+                    }
+                }
             }
         }
 
@@ -1695,37 +1711,104 @@ namespace OsEngine.Market.Servers.Alor
                 MyOrderEvent(order);
             }
 
-           
-            // Проверяем, является ли бумага спредом
-
             if(order.State == OrderStateType.Done)
             {
-                for (int i = 0; i < _spreadSecurities.Count; i++)
+                // Проверяем, является ли бумага спредом
+
+                for (int i = 0; i < _spreadOrders.Count; i++)
                 {
-                    if (_spreadSecurities[i].Name == order.SecurityNameCode)
+                    if (_spreadOrders[i].NumberUser == order.NumberUser 
+                        && _spreadOrders[i].NumberMarket == "")
                     {
-                        GenerateFakeMyTradeToOrderBySpread(order);
-                        return;
+                        _spreadOrders[i].NumberMarket = order.NumberMarket;
+                    }
+                }
+
+                for (int i = 0; i < _spreadOrders.Count; i++)
+                {
+                    if (_spreadOrders[i].SecurityNameCode == order.SecurityNameCode)
+                    {
+                        if(TryGenerateFakeMyTradeToOrderBySpread(order))
+                        {
+                            _spreadOrders.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+            }
+            else if(order.State == OrderStateType.Cancel
+                    || order.State == OrderStateType.Fail)
+            {
+                for (int i = 0; i < _spreadOrders.Count; i++)
+                {
+                    if (_spreadOrders[i].NumberUser == order.NumberUser)
+                    {
+                        _spreadOrders.RemoveAt(i);
+                        break;
                     }
                 }
             }
         }
 
-        private void GenerateFakeMyTradeToOrderBySpread(Order order)
+        private bool TryGenerateFakeMyTradeToOrderBySpread(Order order)
         {
-            MyTrade trade = new MyTrade();
-            trade.SecurityNameCode = order.SecurityNameCode;
-            trade.Price = order.Price;
-            trade.Volume = order.Volume;
-            trade.NumberOrderParent = order.NumberMarket;
-            trade.NumberTrade = order.NumberMarket + "fakeSpreadTrade";
-            trade.Time = order.TimeCallBack;
-            trade.Side = order.Side;
+            MyTrade tradeFirst = null;
 
-            if (MyTradeEvent != null)
+            MyTrade tradeSecond = null;
+
+            for(int i = 0;i < _spreadMyTrades.Count;i++)
             {
-                MyTradeEvent(trade);
+                if (_spreadMyTrades[i].NumberOrderParent == order.NumberMarket)
+                {
+                    if(tradeFirst == null)
+                    {
+                        tradeFirst = _spreadMyTrades[i];
+                    }
+                    else if(tradeSecond == null)
+                    {
+                        tradeSecond = _spreadMyTrades[i];
+                        break;
+                    }
+                }
             }
+
+            if(tradeFirst != null && 
+                tradeSecond != null)
+            {
+                if(order.SecurityNameCode.StartsWith(tradeFirst.SecurityNameCode) == false)
+                {
+                    MyTrade third = tradeFirst;
+                    tradeFirst = tradeSecond;
+                    tradeSecond = third;
+                }
+
+                MyTrade trade = new MyTrade();
+                trade.SecurityNameCode = order.SecurityNameCode;
+                trade.Price = tradeSecond.Price - tradeFirst.Price;
+                trade.Volume = order.Volume;
+                trade.NumberOrderParent = order.NumberMarket;
+                trade.NumberTrade = order.NumberMarket + "fakeSpreadTrade";
+                trade.Time = order.TimeCallBack;
+                trade.Side = order.Side;
+
+                if (MyTradeEvent != null)
+                {
+                    MyTradeEvent(trade);
+                }
+
+                for (int i = 0; i < _spreadMyTrades.Count; i++)
+                {
+                    if (_spreadMyTrades[i].NumberOrderParent == order.NumberMarket)
+                    {
+                        _spreadMyTrades.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private Order ConvertToOsEngineOrder(OrderAlor baseMessage, string portfolioName)
@@ -1902,7 +1985,7 @@ namespace OsEngine.Market.Servers.Alor
 
         private string _sendOrdersArrayLocker = "alorSendOrdersArrayLocker";
 
-        private List<Security> _spreadSecurities = new List<Security>();
+        private List<Order> _spreadOrders = new List<Order>();
 
         public void SendOrder(Order order)
         {
@@ -1910,7 +1993,13 @@ namespace OsEngine.Market.Servers.Alor
 
             try
             {
-                if(order.TypeOrder == OrderPriceType.Market)
+                if (order.SecurityClassCode == "Futures spread")
+                { // календарный спред
+                  // сохраняем бумагу для дальнейшего использования
+                    _spreadOrders.Add(order);
+                }
+
+                if (order.TypeOrder == OrderPriceType.Market)
                 {
                     lock (_sendOrdersArrayLocker)
                     {
@@ -1971,32 +2060,6 @@ namespace OsEngine.Market.Servers.Alor
                         newValue.Security = order.SecurityNameCode;
                         newValue.Portfolio = order.PortfolioNumber;
                         _securitiesAndPortfolious.Add(newValue);
-                    }
-
-                    if(order.SecurityClassCode == "Futures spread")
-                    { // календарный спред
-                      // сохраняем бумагу для дальнейшего использования
-                        bool isSaveInSpreadArray = false;
-                        for(int i = 0;i < _spreadSecurities.Count;i++)
-                        {
-                            if (_spreadSecurities[i].Name ==  order.SecurityNameCode)
-                            {
-                                isSaveInSpreadArray = true;
-                            }
-                        }
-
-                        if(isSaveInSpreadArray == false)
-                        {
-                            for(int i = 0;i < _securities.Count;i++)
-                            {
-                                if (_securities[i].Name == order.SecurityNameCode
-                                    && _securities[i].NameClass == order.SecurityClassCode)
-                                {
-                                    _spreadSecurities.Add(_securities[i]);
-                                    break;
-                                }
-                            }
-                        }
                     }
 
                     return;
