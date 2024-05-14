@@ -190,7 +190,7 @@ namespace OsEngine.Robots.Trend
             }
 
             if (StartProgram == StartProgram.IsOsTrader
-                && DateTime.Now.Hour < 10)
+                && candles[candles.Count-1].TimeStart.Hour < 10)
             {
                 return;
             }
