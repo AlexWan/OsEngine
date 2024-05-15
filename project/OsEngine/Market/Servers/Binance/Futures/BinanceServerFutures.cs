@@ -551,19 +551,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            List<Candle> candles = null;
-            
-            if(timeFrameBuilder.TimeFrame != TimeFrame.Min15)
-            {
-                candles = GetCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
-            }
-            else if (timeFrameBuilder.TimeFrame == TimeFrame.Min15)
-            {
-                DateTime endTime = DateTime.Now.AddDays(1);
-                DateTime startTime = endTime.AddMinutes(-(GetCandlesToLoadFromParameters() * 15));
-
-                candles = GetCandleDataToSecurity(security, timeFrameBuilder,startTime,endTime,startTime);
-            }
+            List<Candle> candles = GetCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
 
             for (int i  = 1; candles != null && i < candles.Count;i++)
             {
@@ -1176,31 +1164,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             return trades;
-        }
-
-        private int GetCandlesToLoadFromParameters()
-        {
-            int result = 300;
-
-            for (int i = 0; i < this.ServerParameters.Count; i++)
-            {
-                IServerParameter curParam = this.ServerParameters[i];
-
-                if (curParam.Name == "Candles to load"
-                    || curParam.Name == "Свечей подгружать")
-                {
-                    ServerParameterInt param = curParam as ServerParameterInt;
-                    result = param.Value;
-                    break;
-                }
-            }
-
-            if (result < 300)
-            {
-                result = 300;
-            }
-
-            return result;
         }
 
         #endregion
