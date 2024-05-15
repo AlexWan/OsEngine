@@ -27,6 +27,10 @@ using LiteDB;
 using System.Linq;
 using Grpc.Core;
 using OsEngine.Market.Servers.FixProtocolEntities;
+using System.Windows.Interop;
+using System.Collections;
+using OsEngine.Charts.CandleChart.Indicators;
+using System.Diagnostics;
 
 
 namespace OsEngine.Market.Servers.FixFastEquities
@@ -67,21 +71,38 @@ namespace OsEngine.Market.Servers.FixFastEquities
             worker0.Name = "InstrumentsFixFastEquities";
             worker0.Start();
 
-            Thread worker1 = new Thread(TradesReader);
-            worker1.Name = "TradesFixFastEquities";
+            Thread worker1 = new Thread(TradesIncrementalReader);
+            worker1.Name = "TradesIncremenalFixFastEquities";
             worker1.Start();
 
-            Thread worker2 = new Thread(OrdersReader);
-            worker2.Name = "OrdersFixFastEquities";
+            Thread worker2 = new Thread(TradesSnapshotsReader);
+            worker2.Name = "TradesSnapshotsFixFastEquities";
             worker2.Start();
 
-            Thread worker3 = new Thread(MFIXTradeServerConnection);
-            worker3.Name = "MFIXTradeServerConnectionFixFastEquities";
+            Thread worker3 = new Thread(TradeMessagesReader);
+            worker3.Name = "TradeMessagesReaderFixFastEquities";
             worker3.Start();
 
-            Thread worker4 = new Thread(MFIXTradeCaptureServerConnection);
-            worker4.Name = "MFIXTradeCaptureServerConnectionFixFastEquities";
+            Thread worker4 = new Thread(OrderMessagesReader);
+            worker4.Name = "OrderMessagesReaderFixFastEquities";
             worker4.Start();
+
+            Thread worker5 = new Thread(OrdersIncrementalReader);
+            worker5.Name = "OrdersIncremenalFixFastEquities";
+            worker5.Start();
+
+            Thread worker6 = new Thread(OrderSnapshotsReader);
+            worker6.Name = "OrdersSnapshotsFixFastEquities";
+            worker6.Start();
+
+
+            Thread worker7 = new Thread(MFIXTradeServerConnection);
+            worker7.Name = "MFIXTradeServerConnectionFixFastEquities";
+            worker7.Start();
+
+            Thread worker8 = new Thread(MFIXTradeCaptureServerConnection);
+            worker8.Name = "MFIXTradeCaptureServerConnectionFixFastEquities";
+            worker8.Start();
 
             //Thread worker = new Thread(ConnectionCheckThread);
             //worker.Name = "CheckAliveFixFastEquities";
@@ -271,6 +292,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         private Socket _ordersIncrementalSocketA;
         private Socket _ordersIncrementalSocketB;
+        private Socket _ordersSnapshotSocketA;
+        private Socket _ordersSnapshotSocketB;
 
         private Socket _MFIXTradeSocket;
         private int _MFIXTradeMsgSeqNum;
@@ -309,48 +332,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             //ActivatePortfolioSocket();
         }
-
-        private void GetCurrentPortfolio(string portfoliId, string namePrefix)
-        {
-            try
-            {
-                //string endPoint = $"/md/v2/clients/MOEX/{portfoliId}/summary?format=Simple";
-                //RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                ////requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                //requestRest.AddHeader("accept", "application/json");
-
-                //RestClient client = new RestClient(_restApiHost);
-
-                //IRestResponse response = client.Execute(requestRest);
-
-                //if (response.StatusCode == HttpStatusCode.OK)
-                //{
-                //    //string content = response.Content;
-                //    //FixFastEquitiesPortfolioRest portfolio = JsonConvert.DeserializeAnonymousType(content, new FixFastEquitiesPortfolioRest());
-
-                //    //ConvertToPortfolio(portfolio, portfoliId, namePrefix);
-                //}
-                //else
-                //{
-                //    SendLogMessage("Portfolio request error. Status: " 
-                //        + response.StatusCode + "  " + namePrefix, LogMessageType.Error);
-                //}
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage("Portfolio request error " + exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        //private void ConvertToPortfolio(FixFastEquitiesPortfolioRest portfolio, string name, string prefix)
-        //{
-        //    Portfolio newPortfolio = new Portfolio();
-        //    newPortfolio.Number = name + "_" + prefix;
-        //    newPortfolio.ValueCurrent = portfolio.buyingPower.ToDecimal();
-        //    _myPortfolios.Add(newPortfolio);
-        //}
-
-        public event Action<List<Portfolio>> PortfolioEvent;
+               
+                public event Action<List<Portfolio>> PortfolioEvent;
 
         #endregion
 
@@ -415,114 +398,10 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 startTime = actualTime;
             }
 
-            List<Candle> candles = new List<Candle>();
+            List<Candle> candles = new List<Candle>();                       
 
-            //TimeSpan additionTime = TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 2500);
-
-            //DateTime endTimeReal = startTime.Add(additionTime);
-
-            //while (startTime < endTime)
-            //{
-            //    //CandlesHistoryFixFastEquities history = GetHistoryCandle(security, timeFrameBuilder, startTime, endTimeReal);
-
-            //    List<Candle> newCandles = ConvertToOsEngineCandles(history);
-
-            //    if(newCandles != null &&
-            //        newCandles.Count > 0)
-            //    {
-            //        candles.AddRange(newCandles);
-            //    }
-
-            //    if(string.IsNullOrEmpty(history.prev) 
-            //        && string.IsNullOrEmpty(history.next))
-            //    {// на случай если указаны очень старые данные, и их там нет
-            //        startTime = startTime.Add(additionTime);
-            //        endTimeReal = startTime.Add(additionTime);
-            //        continue;
-            //    }
-
-            //    if (string.IsNullOrEmpty(history.next))
-            //    {
-            //        break;
-            //    }
-
-            //    DateTime realStart = ConvertToDateTimeFromUnixFromSeconds(history.next);
-
-            //    startTime = realStart;
-            //    endTimeReal = realStart.Add(additionTime);
-            //}
-
-            //while (candles != null &&
-            //    candles.Count != 0 && 
-            //    candles[candles.Count - 1].TimeStart > endTime)
-            //{
-            //    candles.RemoveAt(candles.Count - 1);
-            //}
-
-            return candles;
-        }
-
-        //private CandlesHistoryFixFastEquities GetHistoryCandle(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime)
-        //{
-        //    // curl -X GET "https://api.FixFastEquities.ru/md/v2/history?symbol=SBER&exchange=MOEX&tf=60&from=1549000661&to=1550060661&format=Simple" -H "accept: application/json"
-
-        //    string endPoint = "md/v2/history?symbol=" + security.Name;
-        //    endPoint += "&exchange=MOEX";
-
-        //    //Начало отрезка времени (UTC) в формате Unix Time Seconds
-
-        //    endPoint += "&tf=" + GetFixFastEquitiesTf(timeFrameBuilder);
-        //    endPoint += "&from=" + ConvertToUnixTimestamp(startTime);
-        //    endPoint += "&to=" + ConvertToUnixTimestamp(endTime);
-        //    endPoint += "&format=Simple";
-
-        //    try
-        //    {
-        //        RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-        //        requestRest.AddHeader("accept", "application/json");
-        //        requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-        //        RestClient client = new RestClient(_restApiHost);
-        //        IRestResponse response = client.Execute(requestRest);
-
-        //        if (response.StatusCode == HttpStatusCode.OK)
-        //        {
-        //            string content = response.Content;
-        //            CandlesHistoryFixFastEquities candles = JsonConvert.DeserializeAnonymousType(content, new CandlesHistoryFixFastEquities());
-        //            return candles;
-        //        }
-        //        else
-        //        {
-        //            SendLogMessage("Candles request error. Status: " + response.StatusCode, LogMessageType.Error);
-        //        }
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        SendLogMessage("Candles request error" + exception.ToString(), LogMessageType.Error);
-        //    }
-        //    return null;
-        //}
-
-        //private List<Candle> ConvertToOsEngineCandles(CandlesHistoryFixFastEquities candles)
-        //{
-        //    List<Candle> result = new List<Candle>();
-
-        //    for(int i = 0;i < candles.history.Count;i++)
-        //    {
-        //        FixFastEquitiesCandle curCandle = candles.history[i];
-
-        //        Candle newCandle = new Candle();
-        //        newCandle.Open = curCandle.open.ToDecimal();
-        //        newCandle.High = curCandle.high.ToDecimal();
-        //        newCandle.Low = curCandle.low.ToDecimal();
-        //        newCandle.Close = curCandle.close.ToDecimal();
-        //        newCandle.Volume = curCandle.volume.ToDecimal();
-        //        newCandle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(curCandle.time);
-
-        //        result.Add(newCandle);
-        //    }
-
-        //    return result;
-        //}
+            return null;
+        }              
 
         private string GetFixFastEquitiesTf(TimeFrameBuilder timeFrameBuilder)
         {
@@ -790,6 +669,19 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             if (feedId == "B")
                             {
                                 _ordersIncrementalSocketB = socket;
+                            }
+                        }
+
+                        if (feedType == "Orders Snapshot")
+                        {
+                            if (feedId == "A")
+                            {
+                                _ordersSnapshotSocketA = socket;
+                            }
+
+                            if (feedId == "B")
+                            {
+                                _ordersSnapshotSocketB = socket;
                             }
                         }
                     }
@@ -1483,7 +1375,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
         #region 8 WebSocket Security subscrible
                 
         List<Security> _subscribedSecurities = new List<Security>();
-        Dictionary<string, MarketDepth> _marketDepths = new Dictionary<string, MarketDepth>();
+        Dictionary<string, List<OrdersUpdate>> _marketDepths = new Dictionary<string, List<OrdersUpdate>>();
+        List<string> _TradingSessionIDs = new List<string>() { "TQBR", "TQCB", "TQTF" };
 
         public void Subscrible(Security security)
         {
@@ -1498,12 +1391,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
             _subscribedSecurities.Add(security);
             
             if (!_marketDepths.ContainsKey(security.Name))
-            {
-                MarketDepth marketDepth = new MarketDepth();
-                marketDepth.SecurityNameCode = security.Name;
-                marketDepth.Time = DateTime.UtcNow;
-
-                _marketDepths.Add(security.Name, marketDepth);
+            {               
+                _marketDepths.Add(security.Name, new List<OrdersUpdate>());
             }
         }
 
@@ -1522,11 +1411,16 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private DateTime _lastInstrumentDefinitionsTime = DateTime.MinValue;
         private bool _allSecuritiesLoaded = false;
 
+
+        // очереди сообщений, которые прилетают из FIX/FAST Multicast UPD соединений
+        private ConcurrentQueue<OpenFAST.Message> _tradeMessages = new ConcurrentQueue<OpenFAST.Message>();
+        private ConcurrentQueue<OpenFAST.Message> _orderMessages = new ConcurrentQueue<OpenFAST.Message>();
+
         private void InstrumentDefinitionsReader()
         {
             byte[] buffer = new byte[4096];
             
-            List<int> snapshotIds = new List<int>();
+            List<long> snapshotIds = new List<long>();
             List<Security> securities = new List<Security>();
 
             Thread.Sleep(1000);
@@ -1559,7 +1453,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             OpenFAST.Message msg = decoder.ReadMessage();
 
                             string msgType = msg.GetString("MessageType");
-                            int msgSeqNum = int.Parse(msg.GetString("MsgSeqNum"));
+                            long msgSeqNum = int.Parse(msg.GetString("MsgSeqNum"));
                             
                             if (msgType == "d") /// security definition
                             {
@@ -1715,18 +1609,20 @@ namespace OsEngine.Market.Servers.FixFastEquities
             }
         }
 
-        private void TradesReader()
+        private void TradesIncrementalReader()
         {
             byte[] buffer = new byte[4096];
-                        
 
+            // накапливаем все сообщения из снэпшотов 
+            Dictionary<long, OpenFAST.Message> tradesIncremental = new Dictionary<long, OpenFAST.Message>();
+                        
             Thread.Sleep(1000);
 
             while (true)
             {
                 try
                 {
-                    if (_tradesIncrementalSocketA == null || _tradesIncrementalSocketB == null || _tradesSnapshotSocketA == null || _tradesSnapshotSocketB == null)
+                    if (_tradesIncrementalSocketA == null || _tradesIncrementalSocketB == null)
                     {
                         Thread.Sleep(1);
                         continue;
@@ -1748,71 +1644,64 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         {
                             FastDecoder decoder = new FastDecoder(_context, stream);
                             OpenFAST.Message msg = decoder.ReadMessage();
+                            
+                            long msgSeqNum = msg.GetLong("MsgSeqNum");
 
-                            string msgType = msg.GetString("MessageType");
-
-                            if (msgType == "X") /// Market Data - Incremental Refresh (X)
+                            // проверяем нет ли сообщения с таким номером
+                            if (tradesIncremental.ContainsKey(msgSeqNum))
                             {
-                                //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+                                continue; // такое сообщение уже есть
+                            } else
+                            {
+                                tradesIncremental.Add(msgSeqNum, msg);
 
-                                if (msg.IsDefined("GroupMDEntries"))
+                                if (tradesIncremental.Count % 100 == 0)
                                 {
-                                    SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
-
-                                    for (int i = 0; i < secVal.Length; i++)
-                                    {
-                                        GroupValue groupVal = secVal[i] as GroupValue;
-                                                                                                                  
-
-                                        string name = groupVal.GetString("Symbol");
-
-                                        bool subscribed = false;
-                                        for (int k = 0; k < _subscribedSecurities.Count; k++)
-                                        {
-                                            if (_subscribedSecurities[k].Name == name)
-                                            {
-                                                subscribed = true;
-                                                break;
-                                            }
-                                        }
-
-                                        if (!subscribed)
-                                            continue;
-
-                                        if (groupVal.IsDefined("MDEntryType") && groupVal.GetString("MDEntryType") == "z")
-                                        {
-                                            Trade trade = new Trade();
-                                            trade.SecurityNameCode = name;
-                                            trade.Price = groupVal.GetString("MDEntryPx").ToDecimal();
-                                            
-                                            string time = groupVal.GetString("MDEntryTime");
-                                            if (time.Length == 8)
-                                            {
-                                                time = "0" + time;
-                                            }
-
-                                            time = DateTime.UtcNow.ToString("ddMMyyyy") + time;
-
-                                            DateTime tradeDateTime = DateTime.ParseExact(time, "ddMMyyyyHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
-
-                                            trade.Time = tradeDateTime;
-
-
-                                            trade.Id = groupVal.GetString("MDEntryID");
-                                            trade.Side = groupVal.GetString("OrderSide") == "B" ? Side.Buy : Side.Sell;
-                                            trade.Volume = groupVal.GetString("MDEntrySize").ToDecimal();
-
-                                            if (NewTradesEvent != null)
-                                            {
-                                                NewTradesEvent(trade);
-                                            }
-                                        }
-                                        
-                                    }
+                                    SendLogMessage($"TradesIncremental + msgSeqNum = {msgSeqNum}. Total: " + tradesIncremental.Count, LogMessageType.System);
                                 }
                             }
+
+                            _tradeMessages.Enqueue(msg);
                         }
+                    }                    
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void TradesSnapshotsReader()
+        {
+            byte[] buffer = new byte[4096];
+
+          
+            // накапливаем инкрементальные обновления по всем инструментам, чтобы не принимать лишние
+            Dictionary<long, OpenFAST.Message> tradesSnapshot = new Dictionary<long, OpenFAST.Message>();
+
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (_tradesSnapshotSocketA == null || _tradesSnapshotSocketB == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
                     }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    // читаем из потоков А и B
+                    // либо сразу обрабатываем либо перемещаем в очередь для разбора
+                    
                     for (int s = 0; s < 2; s++)
                     {
                         int length = s == 0 ? _tradesSnapshotSocketA.Receive(buffer) : _tradesSnapshotSocketB.Receive(buffer);
@@ -1822,65 +1711,24 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             FastDecoder decoder = new FastDecoder(_context, stream);
                             OpenFAST.Message msg = decoder.ReadMessage();
 
-                            string msgType = msg.GetString("MessageType");
+                            long msgSeqNum = msg.GetLong("MsgSeqNum");
 
-                            if (msgType == "W") /// Market Data - Snapshot/Full Refresh (W)
+                            // проверяем нет ли сообщения с таким номером
+                            if (tradesSnapshot.ContainsKey(msgSeqNum))
                             {
-                                //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
-                                string name = msg.GetString("Symbol");
-                                bool subscribed = false;
-                                for (int k = 0; k < _subscribedSecurities.Count; k++)
+                                continue; // такое сообщение уже есть
+                            }
+                            else
+                            {
+                                tradesSnapshot.Add(msgSeqNum, msg);
+
+                                if (tradesSnapshot.Count % 1000 == 0)
                                 {
-                                    if (_subscribedSecurities[k].Name == name)
-                                    {
-                                        subscribed = true;
-                                        break;
-                                    }
-                                }
-
-                                if (!subscribed)
-                                    continue;
-
-                                if (msg.IsDefined("GroupMDEntries"))
-                                {
-                                    SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
-
-                                    for (int i = 0; i < secVal.Length; i++)
-                                    {
-                                        GroupValue groupVal = secVal[i] as GroupValue;
-                                        
-                                        if (groupVal.IsDefined("MDEntryType") && groupVal.GetString("MDEntryType") == "z")
-                                        {
-                                            Trade trade = new Trade();
-                                            trade.SecurityNameCode = name;
-                                            trade.Price = groupVal.GetString("MDEntryPx").ToDecimal();
-
-                                            string time = groupVal.GetString("MDEntryTime");
-                                            if (time.Length == 8)
-                                            {
-                                                time = "0" + time;
-                                            }
-                                            
-                                            time = DateTime.UtcNow.ToString("ddMMyyyy") + time;
-
-                                            DateTime tradeDateTime = DateTime.ParseExact(time, "ddMMyyyyHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
-                                            
-
-                                            trade.Time = tradeDateTime;
-                                           
-
-                                            trade.Id = groupVal.GetString("MDEntryID");
-                                            trade.Side = groupVal.GetString("OrderSide") == "B" ? Side.Buy : Side.Sell;
-                                            trade.Volume = groupVal.GetString("MDEntrySize").ToDecimal();
-
-                                            if (NewTradesEvent != null)
-                                            {
-                                                NewTradesEvent(trade);
-                                            }
-                                        }
-                                    }
+                                    SendLogMessage($"TradesSnapshot + msgSeqNum = {msgSeqNum}. Total: " + tradesSnapshot.Count, LogMessageType.System);
                                 }
                             }
+
+                            _tradeMessages.Enqueue(msg);
                         }
                     }
                 }
@@ -1892,10 +1740,89 @@ namespace OsEngine.Market.Servers.FixFastEquities
             }
         }
 
-        private void OrdersReader()
+        public class UpdateComparer : IComparer<GroupValue>
+        {
+            public int Compare(GroupValue x, GroupValue y)
+            {
+                return x.GetLong("RptSeq").CompareTo(y.GetLong("RptSeq"));
+            }
+        }
+
+        public class TradeComparer : IComparer<Trade>
+        {
+            public int Compare(Trade x, Trade y)
+            {
+                return long.Parse(x.Id).CompareTo(long.Parse(y.Id));
+            }
+        }
+
+        class SecuritySnapshot
+        {
+            public bool IsComplete = false;
+            public int RptSeq = 0;
+            public bool RouteFirstReceived = false;
+            public bool LastFragmentReceived = false;
+            public List<Trade> Trades = new List<Trade>();
+
+            public void AddTrade(Trade trade)
+            {
+                // check if trade with such id already exists
+                if (Trades.Any(t => t.Id == trade.Id))
+                {
+                    return;
+                }
+
+                // Find the index where the new item should be inserted
+                int index = Trades.BinarySearch(trade, new TradeComparer());
+
+                // If the item is not found (index is negative)
+                if (index < 0)
+                {
+                    index = ~index; // Convert negative index to positive
+                }
+                
+                // Insert the new item
+                Trades.Insert(index, trade);                
+            }
+        };
+               
+
+        class OrdersSnapshot
+        {
+            public bool IsComplete = false;
+            public int RptSeq = 0;
+            public bool RouteFirstReceived = false;
+            public bool LastFragmentReceived = false;
+            public List<OrdersUpdate> Data = new List<OrdersUpdate>();
+
+            public void AddData(OrdersUpdate update)
+            {
+                // check if trade with such id already exists
+                if (Data.Any(t => t.Id == update.Id))
+                {
+                    return;
+                }
+
+                // Find the index where the new item should be inserted
+                int index = Data.BinarySearch(update, new OrderBookComparer());
+
+                // If the item is not found (index is negative)
+                if (index < 0)
+                {
+                    index = ~index; // Convert negative index to positive
+                }
+
+                // Insert the new item
+                Data.Insert(index, update);
+            }
+        };
+
+        private void OrdersIncrementalReader()
         {
             byte[] buffer = new byte[4096];
-            List<int> mdEntryIdsList = new List<int>();
+
+            // накапливаем все сообщения из снэпшотов 
+            Dictionary<long, OpenFAST.Message> ordersIncremental = new Dictionary<long, OpenFAST.Message>();
 
             Thread.Sleep(1000);
 
@@ -1926,133 +1853,24 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             FastDecoder decoder = new FastDecoder(_context, stream);
                             OpenFAST.Message msg = decoder.ReadMessage();
 
-                            string msgType = msg.GetString("MessageType");
+                            long msgSeqNum = msg.GetLong("MsgSeqNum");
 
-                            if (msgType == "X") /// Market Data - Incremental Refresh (X)
+                            // проверяем нет ли сообщения с таким номером
+                            if (ordersIncremental.ContainsKey(msgSeqNum))
                             {
-                                //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+                                continue; // такое сообщение уже есть
+                            }
+                            else
+                            {
+                                ordersIncremental.Add(msgSeqNum, msg);
 
-                                if (msg.IsDefined("GroupMDEntries"))
+                                if (ordersIncremental.Count % 100 == 0)
                                 {
-                                    SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
-
-                                    for (int i = 0; i < secVal.Length; i++)
-                                    {
-                                        GroupValue groupVal = secVal[i] as GroupValue;
-
-
-                                        string name = groupVal.GetString("Symbol");
-                                        
-                                        bool subscribed = false;
-                                        for (int k = 0; k < _subscribedSecurities.Count; k++)
-                                        {
-                                            if (_subscribedSecurities[k].Name == name)
-                                            {
-                                                subscribed = true;
-                                                break;
-                                            }
-                                        }
-
-                                        if (!subscribed)
-                                            continue;
-
-                                        if (!groupVal.IsDefined("MDEntryType"))
-                                            continue;
-
-                                        int mdEntryId = groupVal.GetInt("MDEntryID");
-
-                                        if (mdEntryIdsList.Contains(mdEntryId))
-                                            continue;
-
-                                        mdEntryIdsList.Add(mdEntryId);
-                                        
-                                        string mdEntryType = groupVal.GetString("MDEntryType");
-                                        string mdUpdateAction = groupVal.GetString("MDUpdateAction");
-
-                                        if (mdEntryType == "0" || mdEntryType == "1") // order book
-                                        {
-                                            decimal price = groupVal.GetString("MDEntryPx").ToDecimal();
-                                            if (price <  0)
-                                                continue;
-
-                                            decimal volume = groupVal.GetString("MDEntrySize")?.ToDecimal() ?? 0;
-
-                                            MarketDepth depth = _marketDepths[name];
-                                            depth.Time = DateTime.UtcNow;
-
-                                            mdEntryType= mdEntryType == "0" ? "Bid" : "Ask";
-
-                                            mdUpdateAction = mdUpdateAction == "0" ? "Add" : mdUpdateAction == "1" ? "Update" : "Delete";
-                                            
-                                            if(mdEntryType == "Bid")
-                                            {
-                                                int index = depth.Bids.FindIndex(x => x.Price == price);
-
-                                                if (index == -1 && mdUpdateAction != "Delete")
-                                                {
-                                                    MarketDepthLevel mdLevel = new MarketDepthLevel();
-                                                    mdLevel.Price = price;
-                                                    mdLevel.Bid = volume;
-                                                    depth.Bids.Add(mdLevel);
-                                                }
-                                                else
-                                                {
-                                                    if (mdUpdateAction == "Add")
-                                                        depth.Bids[index].Bid += volume;
-
-                                                    if (mdUpdateAction == "Delete")
-                                                    {
-                                                        if (index == -1)
-                                                            continue;
-
-                                                        depth.Bids[index].Bid -= volume;
-                                                        if (depth.Bids[index].Bid == 0)
-                                                            depth.Bids.RemoveAt(index);
-                                                    }
-
-                                                    // TODO: Update
-                                                }
-                                            }
-                                            else
-                                            {
-                                                int index = depth.Asks.FindIndex(x => x.Price == price);
-                                                if (index == -1 && mdUpdateAction != "Delete")
-                                                {
-                                                    MarketDepthLevel mdLevel = new MarketDepthLevel();
-                                                    mdLevel.Price = price;
-                                                    mdLevel.Ask = volume;
-                                                    depth.Asks.Add(mdLevel);
-                                                }
-                                                else
-                                                {
-                                                    if (mdUpdateAction == "Add")
-                                                        depth.Asks[index].Ask += volume;
-
-                                                    if (mdUpdateAction == "Delete")
-                                                    {
-                                                        if (index == -1)
-                                                            continue;
-
-                                                        depth.Asks[index].Ask -= volume;
-                                                        if (depth.Asks[index].Ask == 0)
-                                                            depth.Asks.RemoveAt(index);
-                                                    }
-
-                                                    // TODO: Update
-                                                }
-                                            }
-                                            
-                                            // sort bids/asks by price
-                                            depth.Bids.Sort((x, y) => y.Price.CompareTo(x.Price));
-                                            depth.Asks.Sort((x, y) => x.Price.CompareTo(y.Price));
-
-                                            MarketDepthEvent(depth);
-                                            _marketDepths[name] = depth;
-                                        }
-
-                                    }
+                                    SendLogMessage($"OrdersIncremental + msgSeqNum = {msgSeqNum}. Total: " + ordersIncremental.Count, LogMessageType.System);
                                 }
                             }
+
+                            _orderMessages.Enqueue(msg);
                         }
                     }
                 }
@@ -2062,6 +1880,821 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     Thread.Sleep(5000);
                 }
             }
+        }
+
+        private void OrderSnapshotsReader()
+        {
+            byte[] buffer = new byte[4096];
+
+
+            // накапливаем инкрементальные обновления по всем инструментам, чтобы не принимать лишние
+            Dictionary<long, OpenFAST.Message> orderSnapshots = new Dictionary<long, OpenFAST.Message>();
+
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (_ordersSnapshotSocketA == null || _ordersSnapshotSocketB == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    // читаем из потоков А и B
+                    // либо сразу обрабатываем либо перемещаем в очередь для разбора
+
+                    for (int s = 0; s < 2; s++)
+                    {
+                        int length = s == 0 ? _ordersSnapshotSocketA.Receive(buffer) : _ordersSnapshotSocketB.Receive(buffer);
+
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        {
+                            FastDecoder decoder = new FastDecoder(_context, stream);
+                            OpenFAST.Message msg = decoder.ReadMessage();
+
+                            long msgSeqNum = msg.GetLong("MsgSeqNum");
+
+                            // проверяем нет ли сообщения с таким номером
+                            if (orderSnapshots.ContainsKey(msgSeqNum))
+                            {
+                                continue; // такое сообщение уже есть
+                            }
+                            else
+                            {
+                                orderSnapshots.Add(msgSeqNum, msg);
+
+                                if (orderSnapshots.Count % 1000 == 0)
+                                {
+                                    SendLogMessage($"OrderSnapshots +1000 msgSeqNum={msgSeqNum}. Total: " + orderSnapshots.Count, LogMessageType.System);
+                                }
+                            }
+
+                            _orderMessages.Enqueue(msg);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void TradeMessagesReader()
+        {            
+            Thread.Sleep(1000);
+
+            // сначала накапливаем трейды из снэпшотов
+            // как только получили все трейды из снэпшотов - отправляем их в обработчик
+            Dictionary<string, SecuritySnapshot> tradeSnapshots = new Dictionary<string, SecuritySnapshot>();
+            
+            // после обработки всех трейдов из снэпшотов обрабатываем трейды из инкрементальных обновлений
+            Dictionary<string, List<GroupValue>> tradesFromIncremental = new Dictionary<string, List<GroupValue>>();
+
+            // последнее обработанное сообщение из инкрементальных обновлений
+            Dictionary<string, int> lastRptSeqProcessed = new Dictionary<string, int>();
+
+
+            //bool faketradesnotloaded = true;
+
+            while (true)
+            {            
+                try
+                {
+                    if (_tradeMessages.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    OpenFAST.Message msg;
+
+                    _tradeMessages.TryDequeue(out msg);
+
+                    if (msg == null)
+                    {
+                        continue;
+                    }
+
+                    string msgType = msg.GetString("MessageType");
+
+                    if (msgType == "X") /// Market Data - Incremental Refresh (X)
+                    {
+                        //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+
+                        if (msg.IsDefined("GroupMDEntries"))
+                        {
+                            SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
+
+                            for (int i = 0; i < secVal.Length; i++)
+                            {
+                                GroupValue groupVal = secVal[i] as GroupValue;
+
+                                string TradingSessionID = groupVal.GetString("TradingSessionID");
+
+                                if (!_TradingSessionIDs.Contains(TradingSessionID))
+                                    continue;
+                                string name = groupVal.GetString("Symbol");
+
+                                bool subscribed = false;
+                                for (int k = 0; k < _subscribedSecurities.Count; k++)
+                                {
+                                    if (_subscribedSecurities[k].Name == name)
+                                    {
+                                        subscribed = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!subscribed)
+                                    continue;
+
+                                if (groupVal.IsDefined("MDEntryType") && groupVal.GetString("MDEntryType") == "z")
+                                {                                   
+                                    if (!tradesFromIncremental.ContainsKey(name))
+                                    {
+                                        tradesFromIncremental.Add(name, new List<GroupValue>());
+                                    }
+
+                                    int RptSeq = groupVal.GetInt("RptSeq");
+                                    // check if trade with such id already exists
+                                    if (tradesFromIncremental[name].Any(t => t.GetLong("RptSeq") == RptSeq))
+                                    {
+                                        return;
+                                    }
+
+                                    // Find the index where the new item should be inserted
+                                    int index = tradesFromIncremental[name].BinarySearch(groupVal, new UpdateComparer());
+
+                                    // If the item is not found (index is negative)
+                                    if (index < 0)
+                                    {
+                                        index = ~index; // Convert negative index to positive
+                                    }
+
+                                    // Insert the new item
+                                    tradesFromIncremental[name].Insert(index, groupVal);                                                                        
+                                }
+
+                            }
+                        }
+                    }
+
+                    // Обрабатываем снэпшот
+                    if (msgType == "W") /// Market Data - Snapshot/Full Refresh (W)
+                    {
+                        //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+                        string name = msg.GetString("Symbol");
+                        string TradingSessionID = msg.GetString("TradingSessionID");
+
+                        if (!_TradingSessionIDs.Contains(TradingSessionID))
+                            continue;
+
+                        bool subscribed = false;
+                        for (int k = 0; k < _subscribedSecurities.Count; k++)
+                        {
+                            if (_subscribedSecurities[k].Name == name)
+                            {
+                                subscribed = true;
+                                break;
+                            }
+                        }
+
+                        if (!subscribed)
+                            continue;
+
+                        if (!tradeSnapshots.ContainsKey(name))
+                        {
+                            tradeSnapshots.Add(name, new SecuritySnapshot());
+                        }
+
+                        string RptSeq = msg.GetString("RptSeq");
+
+                        if (RptSeq == "0")
+                            continue;
+
+                        // сохраняем, чтобы знать, какие данные есть в снэпшоте
+                        tradeSnapshots[name].RptSeq = int.Parse(RptSeq);
+                                               
+
+                        if (msg.IsDefined("GroupMDEntries"))
+                        {
+                            SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
+                            SendLogMessage($"W-Trade {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total trade entries: {tradeSnapshots[name].Trades.Count}", LogMessageType.System);
+
+                            for (int i = 0; i < secVal.Length; i++)
+                            {
+                                GroupValue groupVal = secVal[i] as GroupValue;
+
+                                if (groupVal.IsDefined("MDEntryType") && groupVal.GetString("MDEntryType") == "z")
+                                {
+                                    Trade trade = new Trade();
+                                    trade.SecurityNameCode = name;
+                                    trade.Price = groupVal.GetString("MDEntryPx").ToDecimal();
+
+                                    string time = groupVal.GetString("MDEntryTime");
+                                    if (time.Length == 8)
+                                    {
+                                        time = "0" + time;
+                                    }
+
+                                    time = DateTime.UtcNow.ToString("ddMMyyyy") + time;
+
+                                    DateTime tradeDateTime = DateTime.ParseExact(time, "ddMMyyyyHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
+
+                                    trade.Time = tradeDateTime;
+
+                                    trade.Id = groupVal.GetString("MDEntryID");
+                                    trade.Side = groupVal.GetString("OrderSide") == "B" ? Side.Buy : Side.Sell;
+                                    trade.Volume = groupVal.GetString("MDEntrySize").ToDecimal();
+                                                                        
+                                    //NewTradesEvent(trade);
+
+                                    tradeSnapshots[name].AddTrade(trade);
+                                }
+                            }
+                        }
+
+                        bool snapshotAlreadyComplete = tradeSnapshots[name].IsComplete;
+
+                        string LastFragment = msg.GetString("LastFragment"); // 1 - сообщение последнее, снэпшот сформирован
+                        string RouteFirst = msg.GetString("RouteFirst"); // 1 - сообщение первое, формирующее снэпшот по инструменту
+
+
+                        if (!snapshotAlreadyComplete)
+                        {
+                            if (LastFragment == "1")
+                            {
+                                SendLogMessage($"{name} received trades snapshot with LastFragment=Y - {tradeSnapshots[name].Trades.Count} entries", LogMessageType.System);
+                                tradeSnapshots[name].LastFragmentReceived = true;
+
+                                if (tradeSnapshots[name].RouteFirstReceived)
+                                {
+                                    tradeSnapshots[name].IsComplete = true;
+                                    SendLogMessage($"{name} trades snapshot is complete - {tradeSnapshots[name].Trades.Count} entries", LogMessageType.System);
+                                }
+                            }
+
+                            if (RouteFirst == "1")
+                            {
+                                if (tradeSnapshots[name].RouteFirstReceived)
+                                {
+                                    tradeSnapshots[name].IsComplete = true;
+                                    SendLogMessage($"{name} trades snapshot is complete - {tradeSnapshots[name].Trades.Count} entries", LogMessageType.System);
+                                }
+                                else
+                                {
+                                    tradeSnapshots[name].RouteFirstReceived = true;
+                                    SendLogMessage($"{name} received trades snapshot with RouteFirst=Y - {tradeSnapshots[name].Trades.Count} entries", LogMessageType.System);
+                                }
+                            }
+
+                            // если снэпшот сформирован
+                            if (tradeSnapshots[name].IsComplete)
+                            {
+                                if (!lastRptSeqProcessed.ContainsKey(name))
+                                {
+                                    lastRptSeqProcessed.Add(name, 0);
+                                }
+
+                                // отправляем все трейды из снэпшота
+                                for (int i = 0; i < tradeSnapshots[name].Trades.Count; i++)
+                                {
+                                    NewTradesEvent(tradeSnapshots[name].Trades[i]);                                    
+                                }
+                                lastRptSeqProcessed[name] = tradeSnapshots[name].RptSeq;
+                            }
+                        }
+                    }                                     
+
+                    // обабатываем накопленные трейды
+                    for (int i = 0; i < tradesFromIncremental.Count; i++)
+                    {
+                        KeyValuePair<string, List<GroupValue>> item = tradesFromIncremental.ElementAt(i);
+                        string name = item.Key;
+                        List<GroupValue> tradeDefs = item.Value;
+
+                        if (!tradeSnapshots.ContainsKey(name))
+                        {
+                            continue;
+                        }
+
+                        if (!tradeSnapshots[name].IsComplete)
+                        {
+                            continue;
+                        }
+
+                        // отправляем все трейды из инкрементальных обновлений так как снэпшот к этому времени уже отправлен
+                        for (int j = 0; j < tradeDefs.Count; j++)
+                        {
+                            GroupValue tradeDef = tradeDefs[j];
+                        
+                            int RptSeq = tradeDef.GetInt("RptSeq");
+
+                            // пропускаем уже обработанные трейды
+                            if (RptSeq <= lastRptSeqProcessed[name])
+                                continue;
+                            
+                            //здесь контроль накопления трейдов
+                            if (RptSeq != lastRptSeqProcessed[name] + 1) // пропущенное обновление!
+                            {
+                                //SendLogMessage($"{name} received {RptSeq} but last processed {lastRptSeqProcessed[name]}.", LogMessageType.System);
+                                tradesFromIncremental[name].RemoveRange(0, j);
+
+                                SendLogMessage($"{name} received trade update with rptseq={RptSeq} but last processed {lastRptSeqProcessed[name]}. Total trades in queue: {tradesFromIncremental[name].Count}. Waiting for missing data...", LogMessageType.System);
+                                break;
+                            }
+
+                            Trade trade = new Trade();
+
+                            trade.SecurityNameCode = name;
+                            trade.Price = tradeDef.GetString("MDEntryPx").ToDecimal();
+
+                            string time = tradeDef.GetString("MDEntryTime");
+                            if (time.Length == 8)
+                            {
+                                time = "0" + time;
+                            }
+
+                            time = DateTime.UtcNow.ToString("ddMMyyyy") + time;
+
+                            DateTime tradeDateTime = DateTime.ParseExact(time, "ddMMyyyyHHmmssfff", System.Globalization.CultureInfo.InvariantCulture);
+
+                            trade.Time = tradeDateTime;
+
+
+                            trade.Id = tradeDef.GetString("MDEntryID");
+                            trade.Side = tradeDef.GetString("OrderSide") == "B" ? Side.Buy : Side.Sell;
+                            trade.Volume = tradeDef.GetString("MDEntrySize").ToDecimal();
+
+                            NewTradesEvent(trade);
+                            lastRptSeqProcessed[name] = RptSeq;
+                        }
+
+                        if (tradesFromIncremental[name].Count > 0)
+                        {
+                            if (lastRptSeqProcessed[name] == tradesFromIncremental[name][tradesFromIncremental[name].Count - 1].GetLong("RptSeq"))
+                            {
+                                // очищаем накопленные обновления если все их обработали
+                                tradesFromIncremental[name].Clear();
+                            }
+                        }
+
+                        if (tradesFromIncremental[name].Count > 10) // если необработанных сообщений накопилось много, то пора восстанавливать данные из снэпшота
+                        {
+                            SendLogMessage($"{name} Total trades in queue: {tradesFromIncremental[name].Count}. Restoring from snapshot...", LogMessageType.System);
+
+                            // отправляем все трейды из снэпшота
+                            for (int k = 0; k < tradeSnapshots[name].Trades.Count; k++)
+                            {
+                                NewTradesEvent(tradeSnapshots[name].Trades[k]);                                
+                            }
+                            lastRptSeqProcessed[name] = tradeSnapshots[name].RptSeq;
+
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void OrderMessagesReader()
+        {
+            Thread.Sleep(1000);
+
+            // сначала накапливаем стаканы из снэпшотов
+            // как только получили все трейды из снэпшотов - отправляем их в обработчик
+            Dictionary<string, OrdersSnapshot> orderSnapshots = new Dictionary<string, OrdersSnapshot>();
+
+            // после обработки всех ордеров (стаканов) из снэпшотов обрабатываем стаканы из инкрементальных обновлений
+            Dictionary<string, List<GroupValue>> ordersFromIncremental = new Dictionary<string, List<GroupValue>>();
+
+            // последнее обработанное сообщение из инкрементальных обновлений
+            Dictionary<string, int> lastRptSeqProcessed = new Dictionary<string, int>();
+
+           
+            //bool faketradesnotloaded = true;
+
+            while (true)
+            {
+                try
+                {
+                    if (_orderMessages.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    OpenFAST.Message msg;
+
+                    _orderMessages.TryDequeue(out msg);
+
+                    if (msg == null)
+                    {
+                        continue;
+                    }
+
+                    string msgType = msg.GetString("MessageType");
+
+                    if (msgType == "X") /// Market Data - Incremental Refresh (X)
+                    {
+                        //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+
+                        if (msg.IsDefined("GroupMDEntries"))
+                        {
+                            SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
+
+                            for (int i = 0; i < secVal.Length; i++)
+                            {
+                                GroupValue groupVal = secVal[i] as GroupValue;
+
+
+                                string name = groupVal.GetString("Symbol");
+                                string TradingSessionID = groupVal.GetString("TradingSessionID");
+
+                                if (!_TradingSessionIDs.Contains(TradingSessionID))
+                                    continue;
+
+                                bool subscribed = false;
+                                for (int k = 0; k < _subscribedSecurities.Count; k++)
+                                {
+                                    if (_subscribedSecurities[k].Name == name)
+                                    {
+                                        subscribed = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!subscribed)
+                                    continue;
+
+                                if (groupVal.IsDefined("MDEntryType"))
+                                {
+                                    if (!ordersFromIncremental.ContainsKey(name))
+                                    {
+                                        ordersFromIncremental.Add(name, new List<GroupValue>());
+                                    }
+
+                                    int RptSeq = groupVal.GetInt("RptSeq");
+                                    // check if trade with such id already exists
+                                    if (ordersFromIncremental[name].Any(t => t.GetLong("RptSeq") == RptSeq))
+                                    {
+                                        return;
+                                    }
+
+                                    // Find the index where the new item should be inserted
+                                    int index = ordersFromIncremental[name].BinarySearch(groupVal, new UpdateComparer());
+
+                                    // If the item is not found (index is negative)
+                                    if (index < 0)
+                                    {
+                                        index = ~index; // Convert negative index to positive
+                                    }
+
+                                    // Insert the new item
+                                    ordersFromIncremental[name].Insert(index, groupVal);
+                                }
+
+                            }
+                        }
+                    }
+
+                    // Обрабатываем снэпшот
+                    if (msgType == "W") /// Market Data - Snapshot/Full Refresh (W)
+                    {
+                        //_lastInstrumentDefinitionsTime = DateTime.UtcNow;                                                          
+                        string name = msg.GetString("Symbol");
+                        string TradingSessionID = msg.GetString("TradingSessionID");
+                        string LastMsgSeqNumProcessed = msg.GetString("LastMsgSeqNumProcessed");
+
+                        if (LastMsgSeqNumProcessed == "0")
+                            continue;
+
+                        if (!_TradingSessionIDs.Contains(TradingSessionID))
+                            continue;
+
+                        bool subscribed = false;
+                        for (int k = 0; k < _subscribedSecurities.Count; k++)
+                        {
+                            if (_subscribedSecurities[k].Name == name)
+                            {
+                                subscribed = true;
+                                break;
+                            }
+                        }
+
+                        if (!subscribed)
+                            continue;
+
+                        if (!orderSnapshots.ContainsKey(name))
+                        {
+                            orderSnapshots.Add(name, new OrdersSnapshot());
+                        }
+
+                        string RptSeq = msg.GetString("RptSeq");
+
+                        if (RptSeq == "0")
+                            continue;
+
+                        // сохраняем, чтобы знать, какие данные есть в снэпшоте
+                        orderSnapshots[name].RptSeq = int.Parse(RptSeq);
+
+
+                        if (msg.IsDefined("GroupMDEntries"))
+                        {
+                            SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
+                            SendLogMessage($"W-Orders {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total entries: {orderSnapshots[name].Data.Count}", LogMessageType.System);
+
+                            for (int i = 0; i < secVal.Length; i++)
+                            {
+                                GroupValue groupVal = secVal[i] as GroupValue;
+
+                                string mdEntryType = groupVal.GetString("MDEntryType");
+                                
+                                                                  
+                                OrdersUpdate update = new OrdersUpdate();
+                                update.Id = groupVal.GetString("MDEntryID");
+                                update.Type = mdEntryType;
+                                update.Price = groupVal.GetString("MDEntryPx");
+                                update.Size = groupVal.GetString("MDEntrySize");
+                                update.Action = "Add";
+                                update.Side = mdEntryType == "0" ? "Bids" : "Asks";
+                                update.Time = groupVal.GetString("MDEntryTime");
+
+                                orderSnapshots[name].AddData(update);
+                                
+                            }
+                        }
+
+                        bool snapshotAlreadyComplete = orderSnapshots[name].IsComplete;
+
+                        string LastFragment = msg.GetString("LastFragment"); // 1 - сообщение последнее, снэпшот сформирован
+                        string RouteFirst = msg.GetString("RouteFirst"); // 1 - сообщение первое, формирующее снэпшот по инструменту
+
+                        if (!snapshotAlreadyComplete)
+                        {
+                            if (LastFragment == "1")
+                            {
+                                SendLogMessage($"{name} received orders snapshot with LastFragment=Y - {orderSnapshots[name].Data.Count} entries", LogMessageType.System);
+                                orderSnapshots[name].LastFragmentReceived = true;
+
+                                if (orderSnapshots[name].RouteFirstReceived)
+                                {
+                                    orderSnapshots[name].IsComplete = true;
+                                    SendLogMessage($"{name} orders snapshot is complete - {orderSnapshots[name].Data.Count} entries", LogMessageType.System);
+                                }
+                            }
+
+                            if (RouteFirst == "1")
+                            {
+                                if (orderSnapshots[name].RouteFirstReceived)
+                                {
+                                    orderSnapshots[name].IsComplete = true;
+                                    SendLogMessage($"{name} orders snapshot is complete - {orderSnapshots[name].Data.Count} entries", LogMessageType.System);
+                                }
+                                else
+                                {
+                                    orderSnapshots[name].RouteFirstReceived = true;
+                                    SendLogMessage($"{name} received orders snapshot with RouteFirst=Y - {orderSnapshots[name].Data.Count} entries", LogMessageType.System);
+                                }
+                            }
+
+                            // если снэпшот сформирован
+                            if (orderSnapshots[name].IsComplete)
+                            {
+                                if (!lastRptSeqProcessed.ContainsKey(name))
+                                {
+                                    lastRptSeqProcessed.Add(name, 0);
+                                }
+
+                                // отправляем все обновления стакана из снэпшота
+                                for (int i = 0; i < orderSnapshots[name].Data.Count; i++)
+                                {
+                                    string mdEntryType = orderSnapshots[name].Data[i].Type;
+
+                                    if (mdEntryType == "0" || mdEntryType == "1")
+                                    {
+                                        _marketDepths[name].Add(orderSnapshots[name].Data[i]);
+                                    }                                    
+                                }
+                                lastRptSeqProcessed[name] = orderSnapshots[name].RptSeq;
+
+                                // проверяем приходили ли обновления по ордерам?
+                                if (!ordersFromIncremental.ContainsKey(name))
+                                {
+                                    ordersFromIncremental.Add(name, new List<GroupValue>());
+                                } 
+                                
+                                if (ordersFromIncremental[name].Count > 0)
+                                {
+                                    // Отправляем сформированный стакан 
+                                    BuildMDFromOrdersUpdates(name);
+                                }
+                            }
+                        }
+                    }
+
+                    // обабатываем накопленные обновления стакана
+                    for (int i = 0; i < ordersFromIncremental.Count; i++)
+                    {
+                        KeyValuePair<string, List<GroupValue>> item = ordersFromIncremental.ElementAt(i);
+                        string name = item.Key;
+                        List<GroupValue> updateDefs = item.Value;
+
+                        if (!orderSnapshots.ContainsKey(name))
+                        {
+                            continue;
+                        }
+
+                        if (!orderSnapshots[name].IsComplete)
+                        {
+                            continue;
+                        }
+
+                        // применяем все обновления стаканов из инкрементальных обновлений так как снэпшот к этому времени уже отправлен
+                        for (int j = 0; j < updateDefs.Count; j++)
+                        {
+                            GroupValue updateDef = updateDefs[j];
+
+                            int RptSeq = updateDef.GetInt("RptSeq");
+
+                            // пропускаем уже обработанные трейды
+                            if (RptSeq <= lastRptSeqProcessed[name])
+                                continue;
+
+                            //здесь контроль накопления трейдов
+                            if (RptSeq != lastRptSeqProcessed[name] + 1) // пропущенное обновление!
+                            {
+                                ordersFromIncremental[name].RemoveRange(0, j);
+
+                                SendLogMessage($"{name} received orders update with rptseq={RptSeq} but last processed rptseq={lastRptSeqProcessed[name]}. Total updates in queue: {ordersFromIncremental[name].Count}. Waiting for missing data...", LogMessageType.System);
+                                break;
+                            }
+
+                            // применить инкрементальные обновления
+                            string mdUpdateAction = updateDef.GetString("MDUpdateAction");
+                            string mdEntryType = updateDef.GetString("MDEntryType");
+                            string mdEntryTime = updateDef.GetString("MDEntryTime");
+                            string mdEntryPx = updateDef.GetString("MDEntryPx");
+                            string mdEntrySize = updateDef.GetString("MDEntrySize");
+                            string mdEntryId = updateDef.GetString("MDEntryID");
+
+                            if (mdUpdateAction == "0") // add
+                            {
+                                OrdersUpdate update = new OrdersUpdate();
+                                update.Type = mdEntryType;
+                                update.Id = mdEntryId;
+                                update.Action = "Add";
+                                update.Side = mdEntryType == "0" ? "Bids" : "Asks";
+                                update.Price = mdEntryPx;
+                                update.Size = mdEntrySize;
+                                update.Time = mdEntryTime;
+
+
+
+                                if (mdEntryType == "0" || mdEntryType == "1")
+                                {
+                                    _marketDepths[name].Add(update);
+                                }
+                            }
+
+                            if (mdUpdateAction == "1") // Update
+                            {
+                                int index = _marketDepths[name].FindIndex(x => x.Id == mdEntryId);
+                                if (index == -1)
+                                {
+                                    SendLogMessage($"{name} received orders UPDATE with mdentryid={mdEntryId} but entry not found.", LogMessageType.System);
+                                    continue;
+                                }
+
+                                _marketDepths[name][index].Price = mdEntryPx;
+                                _marketDepths[name][index].Size = mdEntrySize;
+                            }
+
+                            if (mdUpdateAction == "2") // Delete
+                            {
+                                int index = _marketDepths[name].FindIndex(x => x.Id == mdEntryId);
+                                if (index == -1)
+                                {
+                                    SendLogMessage($"{name} received orders update DELETE with mdentryid={mdEntryId} but entry not found.", LogMessageType.System);
+                                    continue;
+                                }
+
+                                _marketDepths[name].RemoveAt(index);
+                            }
+
+                            lastRptSeqProcessed[name] = RptSeq;
+                        }
+
+                        if (ordersFromIncremental[name].Count > 0)
+                        {
+                            // Отправляем сформированный стакан 
+                            BuildMDFromOrdersUpdates(name);
+
+                            if (lastRptSeqProcessed[name] == ordersFromIncremental[name][ordersFromIncremental[name].Count - 1].GetLong("RptSeq"))
+                            {
+                                // очищаем накопленные обновления если все их обработали
+                                ordersFromIncremental[name].Clear();
+                            }
+                        }
+
+                        if (ordersFromIncremental[name].Count > 10) // если необработанных сообщений накопилось много, то пора восстанавливать данные из снэпшота
+                        {
+                            SendLogMessage($"{name} Total order updates in queue: {ordersFromIncremental[name].Count}. Restoring from snapshot...", LogMessageType.System);
+
+                            // очищаем накопленное, чтобы заново восстановить из снэпшота
+                            _marketDepths[name].Clear();                            
+
+                            // отправляем все обновления из снэпшота                                                                                    
+                            for (int k = 0; k < orderSnapshots[name].Data.Count; k++)
+                            {
+                                string mdEntryType = orderSnapshots[name].Data[k].Type;
+
+                                if (mdEntryType == "0" || mdEntryType == "1")
+                                {
+                                    _marketDepths[name].Add(orderSnapshots[name].Data[k]);
+                                }
+                            }
+                            lastRptSeqProcessed[name] = orderSnapshots[name].RptSeq;
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }        
+
+        // конструируем MarketDepth по сохраненным обновлениям стакана OrdersUpdates
+        private void BuildMDFromOrdersUpdates(string name)
+        {
+            List<OrdersUpdate> updates = _marketDepths[name];
+
+            MarketDepth md = new MarketDepth();
+            md.SecurityNameCode = name;
+
+            for (int i = 0; i < updates.Count; i++)
+            {
+                OrdersUpdate update = updates[i];
+                decimal price = update.Price.ToDecimal();
+                decimal size = update.Size.ToDecimal();
+
+                md.Time = DateTime.UtcNow;
+                                
+                if (update.Side == "Bids")
+                {
+                    int index = md.Bids.FindIndex(x => x.Price == price);
+
+                    if (index == -1)
+                    {
+                        MarketDepthLevel mdLevel = new MarketDepthLevel();
+                        mdLevel.Price = price;
+                        mdLevel.Bid = size;
+                        md.Bids.Add(mdLevel);
+                    }
+                    else
+                    {
+                        md.Bids[index].Bid += size;
+                    }
+                }
+                else
+                {
+                    int index = md.Asks.FindIndex(x => x.Price == price);
+                    if (index == -1)
+                    {
+                        MarketDepthLevel mdLevel = new MarketDepthLevel();
+                        mdLevel.Price = price;
+                        mdLevel.Ask = size;
+                        md.Asks.Add(mdLevel);
+                    }
+                    else
+                    {
+                        md.Asks[index].Ask += size;                                                
+                    }
+                }
+
+                // sort bids/asks by price
+                md.Bids.Sort((x, y) => y.Price.CompareTo(x.Price));
+                md.Asks.Sort((x, y) => x.Price.CompareTo(y.Price));
+            }
+
+            // отправляем на сервер
+            MarketDepthEvent(md);
         }
 
         private void MFIXTradeServerConnection()
@@ -3448,12 +4081,25 @@ namespace OsEngine.Market.Servers.FixFastEquities
         #endregion
     }
 
-    public enum FixFastEquitiesAvailableExchanges
+
+    public class OrdersUpdate
     {
-        MOEX,
-        SPBX
+        public string Type;
+        public string Id;
+        public string Action = "Add"; // Add, Update, Delete
+        public string Side = "Bids"; // Bids, Asks
+        public string Price;
+        public string Size;
+        public string Time;
     }
 
+    public class OrderBookComparer : IComparer<OrdersUpdate>
+    {
+        public int Compare(OrdersUpdate x, OrdersUpdate y)
+        {
+            return long.Parse(x.Id).CompareTo(long.Parse(y.Id));
+        }
+    }
     public class FixFastEquitiesSocketSubscription
     {
         public string Guid;

@@ -199,7 +199,9 @@ namespace OsEngine.Entity
                                  serverType == ServerType.QuikDde ||
                                  serverType == ServerType.AstsBridge ||
                                  serverType == ServerType.NinjaTrader ||
-                                 serverType == ServerType.Lmax)
+                                 serverType == ServerType.Lmax ||
+                                 serverType == ServerType.FixFastEquities
+                                 )
                         {
                             series.CandlesAll = null;
                             // further, we try to load candles with ticks
