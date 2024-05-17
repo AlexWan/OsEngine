@@ -11,7 +11,6 @@ namespace OsEngine.Indicators.indicator
     internal class EaseOfMovement_Watcher : Aindicator
     {
         public IndicatorParameterInt _periodMA;
-        public IndicatorParameterInt _div;
 
         /// <summary>
         ///_isUseStandartDeviation - use standard deviation
@@ -33,7 +32,6 @@ namespace OsEngine.Indicators.indicator
             if (state == IndicatorState.Configure)
             {
                 _periodMA = CreateParameterInt("Period MA", 10);
-                _div = CreateParameterInt("volumeDiv", 10000);
 
                 _isUseStandartDeviation = CreateParameterBool("is Use Standart Deviation of EOM", true);
 
@@ -45,6 +43,15 @@ namespace OsEngine.Indicators.indicator
 
                 _seriesEomRaw = CreateSeries("Eom Raw", Color.Blue, IndicatorChartPaintType.Line, false);
             }
+            else if (state == IndicatorState.Dispose)
+            {
+                if (standardDeviationList != null)
+                {
+                    standardDeviationList.Clear();
+                    standardDeviationList = null;
+                }
+            }
+            
         }
 
         /// <summary>
@@ -54,6 +61,11 @@ namespace OsEngine.Indicators.indicator
         /// <param name="index">index to use in the collection of candles</param>
         public override void OnProcess(List<Candle> candles, int index)
         {
+            if (standardDeviationList == null || index == 1)
+            {
+                standardDeviationList = new List<decimal>();
+            }
+            
             if (_periodMA.ValueInt > index + 1)
             {
                 return;
@@ -85,7 +97,7 @@ namespace OsEngine.Indicators.indicator
         #region 
         decimal emvSMA;
 
-        List<decimal> standardDeviationList = new List<decimal>();
+        List<decimal> standardDeviationList;
         decimal emvStDev;
         #endregion
         /// <summary>
@@ -95,11 +107,6 @@ namespace OsEngine.Indicators.indicator
         /// <param name="index">index to use in the collection of candles</param>
         public decimal CalcEmv(List<Candle> candles, int index)
         {
-            if (index == 0)
-            {
-                return 0;
-            }
-
             decimal distMoved = DistanceMoved(candles, index);
             decimal boxRatio = GetBoxRatio(candles, index);
 
@@ -130,7 +137,7 @@ namespace OsEngine.Indicators.indicator
                 return 0;
             }
 
-            decimal result = Math.Round((vol / _div.ValueInt) / (high - low), 5);
+            decimal result = Math.Round((vol / 10000) / (high - low), 5);
 
             return result;
         }
@@ -172,25 +179,35 @@ namespace OsEngine.Indicators.indicator
         public void CalcStandardDeviation(List<decimal> standardDeviationList)
         {
             decimal sd = 0;
+            int lenght2;
+            if (standardDeviationList.Count <= _periodMA.ValueInt)
+            {
 
-            if (standardDeviationList.Count > 0)
+                lenght2 = standardDeviationList.Count;
+            }
+            else
+            {
+                lenght2 = _periodMA.ValueInt;
+            }
+
+            if (standardDeviationList.Count > 1)
             {
                 decimal average = 0;
-                for (int i = standardDeviationList.Count - _periodMA.ValueInt;i < standardDeviationList.Count; i++)
+                for (int i = standardDeviationList.Count - lenght2; i < standardDeviationList.Count; i++)
                 {
                     average += standardDeviationList[i];
                 }
 
-                average = average / _periodMA.ValueInt;
+                average = average / lenght2;
 
-                for (int i = standardDeviationList.Count - _periodMA.ValueInt; i < standardDeviationList.Count; i++)
+                for (int i = standardDeviationList.Count - lenght2; i < standardDeviationList.Count; i++)
                 {
                     decimal x = standardDeviationList[i] - average;
                     double g = Math.Pow((double)x, 2.0);
                     sd += (decimal)g;
                 }
 
-                emvStDev = (decimal)Math.Sqrt((double)sd / (_periodMA.ValueInt - 1)) * 2.5m;
+                emvStDev = (decimal)Math.Sqrt((double)sd / (lenght2 - 1)) * 2.5m;
             }
         }
         /// <summary>
