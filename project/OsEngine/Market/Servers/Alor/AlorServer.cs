@@ -326,7 +326,7 @@ namespace OsEngine.Market.Servers.Alor
                     Security newSecurity = new Security();
                     newSecurity.SecurityType = instrumentType;
                     newSecurity.Exchange = item.exchange;
-                    newSecurity.DecimalsVolume = 1;
+                    newSecurity.DecimalsVolume = 0;
                     newSecurity.Lot = item.lotsize.ToDecimal();
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.description;
