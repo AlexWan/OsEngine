@@ -5228,6 +5228,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
             }
+            else if(StartProgram == StartProgram.IsTester)
+            {
+                if(trades[trades.Count - 1].TimeFrameInTester != Entity.TimeFrame.Sec1 &&
+                    trades[trades.Count - 1].TimeFrameInTester != Connector.TimeFrame)
+                {
+                    return;
+                }
+            }
 
             Trade trade = trades[trades.Count - 1];
 

@@ -3761,7 +3761,8 @@ namespace OsEngine.Market.Servers.Tester
                    for (int i = 0; i < _allTrades.Length; i++)
                    {
                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                           _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
+                           _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode &&
+                           _allTrades[i][0].TimeFrameInTester == trade.TimeFrameInTester)
                        { // if there is already a storage for this instrument, save it/ если для этого инструметна уже есть хранилище, сохраняем и всё
                            isSave = true;
                            if (_allTrades[i][0].Time > trade.Time)
@@ -3809,7 +3810,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 foreach (var trades in _allTrades)
                 {
-                    if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode)
+                    if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode
+                        && tradesNew[0].TimeFrameInTester == trades[0].TimeFrameInTester)
                     {
                         NewTradeEvent(trades);
                         break;
@@ -4536,10 +4538,39 @@ namespace OsEngine.Market.Servers.Tester
             {
                 List<Trade> lastTradesSeries = new List<Trade>();
 
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
+                lastTradesSeries.Add(new Trade() { 
+                    Price = LastCandle.Open, 
+                    Volume = 1, 
+                    Side = Side.Sell, 
+                    Time = LastCandle.TimeStart, 
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame
+                });
+
+                lastTradesSeries.Add(new Trade() { 
+                    Price = LastCandle.High, Volume = 1, 
+                    Side = Side.Buy, 
+                    Time = LastCandle.TimeStart, 
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame
+                });
+
+                lastTradesSeries.Add(new Trade() { 
+                    Price = LastCandle.Low, 
+                    Volume = 1, Side = Side.Sell, 
+                    Time = LastCandle.TimeStart, 
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame
+                });
+
+                lastTradesSeries.Add(new Trade() { 
+                    Price = LastCandle.Close, 
+                    Volume = 1, 
+                    Side = Side.Sell, 
+                    Time = LastCandle.TimeStart, 
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame
+                });
 
                 if (NewTradesEvent != null)
                 {
@@ -4567,10 +4598,41 @@ namespace OsEngine.Market.Servers.Tester
             {
                 List<Trade> lastTradesSeries = new List<Trade>();
 
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Open, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.High, Volume = 1, Side = Side.Buy, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Low, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
-                lastTradesSeries.Add(new Trade() { Price = LastCandle.Close, Volume = 1, Side = Side.Sell, Time = LastCandle.TimeStart, SecurityNameCode = Security.Name });
+                lastTradesSeries.Add(new Trade() { 
+                    Price = LastCandle.Open, 
+                    Volume = 1, 
+                    Side = Side.Sell, 
+                    Time = LastCandle.TimeStart, 
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame
+                });
+
+                lastTradesSeries.Add(new Trade() { 
+                    Price = LastCandle.High, 
+                    Volume = 1, 
+                    Side = Side.Buy, 
+                    Time = LastCandle.TimeStart, 
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame
+                });
+
+                lastTradesSeries.Add(new Trade() { 
+                    Price = LastCandle.Low, 
+                    Volume = 1, 
+                    Side = Side.Sell, 
+                    Time = LastCandle.TimeStart, 
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame
+                });
+
+                lastTradesSeries.Add(new Trade() { 
+                    Price = LastCandle.Close, 
+                    Volume = 1, 
+                    Side = Side.Sell, 
+                    Time = LastCandle.TimeStart, 
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame
+                });
 
                 if (NewTradesEvent != null)
                 {

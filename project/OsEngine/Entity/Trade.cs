@@ -59,6 +59,11 @@ namespace OsEngine.Entity
         /// </summary>
         public Side Side;
 
+        /// <summary>
+        /// Tester only. Timeframe of the candlestick that generated the trade
+        /// </summary>
+        public TimeFrame TimeFrameInTester;
+
         // a new part. This part of the final is not to be downloaded. It can be obtained from OsData, only from standard connectors
 
         /// <summary>
