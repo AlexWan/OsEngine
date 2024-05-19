@@ -1470,10 +1470,24 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (canReload)
                     {
-                        _lastCandleIncome = DateTime.Now;
-                        ChartCandle?.ProcessCandles(candles);
-                        ChartCandle?.ProcessPositions(_myPosition);
-                        ChartCandle?.ProcessStopLimits(_myStopLimit);
+                        if(_startProgram == StartProgram.IsOsTrader)
+                        {
+                            ChartCandle?.ProcessCandles(candles);
+
+                            if(_lastCandleIncome.AddSeconds(1) < DateTime.Now)
+                            {
+                                _lastCandleIncome = DateTime.Now;
+                                ChartCandle?.ProcessPositions(_myPosition);
+                                ChartCandle?.ProcessStopLimits(_myStopLimit);
+                            }
+                        }
+                        else
+                        {
+                            _lastCandleIncome = DateTime.Now;
+                            ChartCandle?.ProcessCandles(candles);
+                            ChartCandle?.ProcessPositions(_myPosition);
+                            ChartCandle?.ProcessStopLimits(_myStopLimit);
+                        }
                     }
 
                     if (_indicators != null)

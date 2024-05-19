@@ -2129,29 +2129,73 @@ namespace OsEngine.Charts.CandleChart
                     _chart.Series.Remove(FindSeriesByNameSafe(buySellSeries.Name));
                     _chart.Series.Add(buySellSeries);
                 }
-                // 2 Drawing stops
-                // 2 прорисовываем стопы
 
-                for (int i = 0; _chart.Series != null && i < _chart.Series.Count; i++)
+                // 2 Стопы и Профиты. Обновляем или добавляем новую серию 
+
+                for (int i = 0; profitStopOrderSeries != null && i < profitStopOrderSeries.Length; i++)
                 {
-                    // deleting old
-                    // удаляем старые
-                    string name = _chart.Series[i].Name.Split('_')[0];
+                    bool isInArray = false;
+
+                    for(int j = 0; j < _chart.Series.Count;j++)
+                    {
+                        Series curSeries = _chart.Series[j];
+
+                        if (curSeries.Name == profitStopOrderSeries[i].Name)
+                        {
+                            if (curSeries.Points[0].YValues[0] !=
+                                profitStopOrderSeries[i].Points[0].YValues[0])
+                            {
+                                curSeries.Points[0] = profitStopOrderSeries[i].Points[0];
+                                curSeries.Points[1] = profitStopOrderSeries[i].Points[1];
+                            }
+
+                            if (curSeries.Points[1].XValue != profitStopOrderSeries[i].Points[1].XValue)
+                            {
+                                curSeries.Points[1].XValue = profitStopOrderSeries[i].Points[1].XValue;
+                            }
+
+                            isInArray = true;
+                            break;
+                        }
+                    }
+                    if(isInArray == false)
+                    {
+                        _chart.Series.Add(profitStopOrderSeries[i]);
+                        RePaintRightLebels();
+                    }
+                }
+
+                // 3 Стопы и Профиты. Удаляем отсутствующие линии
+
+                for (int j = 0; j < _chart.Series.Count; j++)
+                {
+                    Series curSeries = _chart.Series[j];
+
+                    string name = curSeries.Name.Split('_')[0];
 
                     if (name == "Stop" ||
                         name == "Profit" ||
                         name == "Open" ||
                         name == "Close")
                     {
-                        ClearLabelOnY2(_chart.Series[i].Name + "Label", "Prime", _chart.Series[i].Color);
-                        _chart.Series.Remove(_chart.Series[i]);
-                        i--;
-                    }
-                }
+                        bool isInArray = false;
 
-                for (int i = 0; profitStopOrderSeries != null && i < profitStopOrderSeries.Length; i++)
-                {
-                    _chart.Series.Add(profitStopOrderSeries[i]);
+                        for (int i = 0; profitStopOrderSeries != null && i < profitStopOrderSeries.Length; i++)
+                        {
+                            if (profitStopOrderSeries[i].Name == curSeries.Name)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+
+                        if (isInArray == false)
+                        {
+                            ClearLabelOnY2(curSeries.Name + "Label", "Prime", curSeries.Color);
+                            ReMoveSeriesSafe(curSeries);
+                            j--;
+                        }
+                    }
                 }
             }
             catch (Exception error)
@@ -2159,6 +2203,7 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
         // index search by time
         // поиск индекса по времени
 
@@ -5310,7 +5355,7 @@ namespace OsEngine.Charts.CandleChart
                         value = (Math.Round(value, rounder));
 
                         int valueDecimalsCount = value.ToString().DecimalsCount();
-                        string valueToPaint = value.ToString(_culture);
+                        string valueToPaint = value.ToString(CultureInfo.InvariantCulture);
 
                         if (rounder > 0 &&
                             valueDecimalsCount != 0)
@@ -5321,45 +5366,53 @@ namespace OsEngine.Charts.CandleChart
                                 valueToPaint = valueToPaint.Substring(0,valueToPaint.Length - 1);
                             }
                         }
-                        while (rounder > 0 && 
+
+                        decimal valueToPaintDecimal = value;
+
+                        while (rounder > 0 &&
                             valueDecimalsCount < rounder)
                         {
                             decimal newValue = 0;
 
-                            string stringToParse = value.ToString(_culture);
+                            string stringToParse = value.ToString(CultureInfo.InvariantCulture);
 
-                            if(valueDecimalsCount == 0)
+                            if (valueDecimalsCount == 0
+                                && stringToParse.Contains(".") == false)
                             {
-                                stringToParse += ",1";
+                                stringToParse += ".1";
                             }
                             else
                             {
                                 stringToParse += "1";
                             }
 
-                            if (Decimal.TryParse(stringToParse, out newValue))
+                            try
                             {
-                                value = newValue;
+                                newValue = stringToParse.ToDecimal();
+                            }
+                            catch
+                            {
 
-                                if(valueDecimalsCount == 0)
-                                {
-                                    valueToPaint += ",0";
-                                }
-                                else
-                                {
-                                    valueToPaint += "0";
-                                }
+                            }
 
-                                valueDecimalsCount = value.ToString().DecimalsCount();
+                            value = newValue;
+
+                            if (valueDecimalsCount == 0
+                                && stringToParse.Contains(".") == false)
+                            {
+                                valueToPaint += ",0";
                             }
                             else
                             {
-                                break;
+                                valueToPaint += "0";
                             }
+
+                            valueDecimalsCount = value.ToString().DecimalsCount();
+
                         }
 
                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                            valueToPaint, value, series.Points[realIndex].Color, true);
+                            valueToPaint, valueToPaintDecimal, series.Points[realIndex].Color, true);
                     }
                 }
             }

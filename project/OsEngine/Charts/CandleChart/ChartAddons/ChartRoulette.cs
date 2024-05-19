@@ -77,6 +77,7 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
         {
             try
             {
+                return;
                 DrawRouletteClip(e);
                 if (RouletteRectangle == null)
                 {
