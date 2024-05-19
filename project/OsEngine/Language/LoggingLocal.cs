@@ -150,5 +150,13 @@ namespace OsEngine.Language
         public string Label26 => OsLocalization.ConvertToLocString(
             "Eng:User_" +
             "Ru:Пользователь_");
+
+        public string Label27 => OsLocalization.ConvertToLocString(
+           "Eng:Message server_" +
+            "Ru:Сервер рассылок_");
+
+        public string Label28 => OsLocalization.ConvertToLocString(
+            "Eng:Show file_" +
+            "Ru:К файлу_");
     }
 }

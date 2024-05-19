@@ -13,10 +13,8 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Connectors;
-using OsEngine.Market.Servers.Bitfinex.BitfitnexEntity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace OsEngine.Market.Servers.Tester
 {
