@@ -124,11 +124,10 @@ function log(msg, level)
     if logfile then
         pcall(logfile.write, logfile, os.date("%Y-%m-%d %H:%M:%S").."."..msecs.." "..logLine.."\n")
         pcall(logfile.flush, logfile)
-        pcall(logfile.close, logfile)
     end
 end
 
--- Doesn't work if string contains empty values, eg. 'foo,,bar'. You get {'foo','bar'} instead of {'foo', '', 'bar'}
+
 function split(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -140,18 +139,6 @@ function split(inputstr, sep)
         i = i + 1
     end
     return t
-end
-
--- https://stackoverflow.com/questions/1426954/split-string-in-lua#comment73602874_7615129
-function split2(inputstr, sep)
-    sep = sep or '%s'
-    local t = {}
-    for field, s in string.gmatch(inputstr, "([^"..sep.."]*)("..sep.."?)") do
-        table.insert(t, field)
-        if s == "" then
-            return t
-        end
-    end
 end
 
 function from_json(str)
