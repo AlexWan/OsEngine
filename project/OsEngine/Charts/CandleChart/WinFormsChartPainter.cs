@@ -2142,7 +2142,13 @@ namespace OsEngine.Charts.CandleChart
 
                         if (curSeries.Name == profitStopOrderSeries[i].Name)
                         {
-                            if (curSeries.Points[0].YValues[0] !=
+                            if (curSeries.Points == null ||
+                                  curSeries.Points.Count == 0)
+                            {
+                                curSeries.Points.Add(profitStopOrderSeries[i].Points[0]);
+                                curSeries.Points.Add(profitStopOrderSeries[i].Points[1]);
+                            }
+                            else if (curSeries.Points[0].YValues[0] !=
                                 profitStopOrderSeries[i].Points[0].YValues[0])
                             {
                                 curSeries.Points[0] = profitStopOrderSeries[i].Points[0];
