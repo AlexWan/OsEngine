@@ -183,7 +183,7 @@ namespace OsEngine.Entity
                 Id = sIn[6];
             }
 
-            if (sIn.Length > 7)
+            if (sIn.Length > 8)
             {
                 Bid = sIn[7].ToDecimal();
                 Ask = sIn[8].ToDecimal();

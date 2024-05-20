@@ -33,6 +33,7 @@ namespace OsEngine.Market.Servers.QuikLua
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterBoolean(OsLocalization.Market.Label109, false);
+            CreateParameterString("Client code",null);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label107;
             ServerParameters[1].Comment = OsLocalization.Market.Label107;
@@ -40,12 +41,16 @@ namespace OsEngine.Market.Servers.QuikLua
             ServerParameters[3].Comment = OsLocalization.Market.Label96;
             ServerParameters[4].Comment = OsLocalization.Market.Label97;
             ServerParameters[5].Comment = OsLocalization.Market.Label110;
+            ServerParameters[6].Comment = OsLocalization.Market.Label121;
 
             ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[2]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[3]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[4]).ValueChange += QuikLuaServer_ParametrValueChange;
+
+            ((QuikLuaServerRealization)ServerRealization).ClientCodeFromSettings
+                = (ServerParameterString)ServerParameters[6];
         }
 
         /// <summary>
@@ -98,6 +103,8 @@ namespace OsEngine.Market.Servers.QuikLua
             Thread worker3 = new Thread(ThreadCheckOrdersState);
             worker3.Start();
         }
+
+        public ServerParameterString ClientCodeFromSettings;
 
         public ServerType ServerType => ServerType.QuikLua;
 
@@ -814,9 +821,16 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
 
-                if(_clientCode == null)
+                if (string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false)
                 {
-                    _clientCode = QuikLua.Class.GetClientCode().Result;
+                    _clientCode = ClientCodeFromSettings.Value;
+                }
+                else
+                {
+                    if (_clientCode == null)
+                    {
+                        _clientCode = QuikLua.Class.GetClientCode().Result;
+                    }
                 }
 
                 qOrder.ClientCode = _clientCode;

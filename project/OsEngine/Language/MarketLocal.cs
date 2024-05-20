@@ -516,6 +516,10 @@ namespace OsEngine.Language
             "Eng:Change of order price. Number _" +
             "Ru:Смена цены ордера. Номер _");
 
+        public string Label121 => OsLocalization.ConvertToLocString(
+            "Eng:You can set a client code if your broker (BСS / VTB / etc) requires it. Or when trading on a sub-account _" +
+            "Ru:Вы можете установить код клиента, если этого требует Ваш брокер (БКС / ВТБ / etc). Или когда торгуете на саб-счёте _");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
