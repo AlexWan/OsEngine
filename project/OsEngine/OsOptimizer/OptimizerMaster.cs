@@ -1214,6 +1214,37 @@ namespace OsEngine.OsOptimizer
                 return false;
             }
 
+            // проверяем наличие тайм-фрейма в обойме
+
+            for (int i = 0; i < TabsSimpleNamesAndTimeFrames.Count; i++)
+            {
+                TabSimpleEndTimeFrame curFrame = TabsSimpleNamesAndTimeFrames[i];
+
+                bool isInArray = false;
+
+                for(int j = 0; j < Storage.SecuritiesTester.Count;j++)
+                {
+                    if (Storage.SecuritiesTester[j].Security.Name == curFrame.NameSecurity
+                        && Storage.SecuritiesTester[j].TimeFrame == curFrame.TimeFrame)
+                    {
+                        isInArray = true;
+                    }
+                }
+
+                if(isInArray == false)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message41);
+                    ui.ShowDialog();
+                    SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
+
+                    if (NeadToMoveUiToEvent != null)
+                    {
+                        NeadToMoveUiToEvent(NeadToMoveUiTo.NameStrategy);
+                    }
+                    return false;
+                }
+            }
+
             bool onParamesReady = false;
 
             for (int i = 0; i < _paramOn.Count; i++)
