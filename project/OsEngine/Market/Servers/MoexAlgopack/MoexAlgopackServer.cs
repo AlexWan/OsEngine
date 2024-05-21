@@ -117,6 +117,8 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             private bool _isPaidSubscription;
 
+            private bool _isFakeDepth;
+
             private const string BaseUrl = "https://iss.moex.com/iss";
 
             public event Action<Order> MyOrderEvent;
@@ -377,7 +379,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                     }
                 }
 
-                if (_isPaidSubscription) return;
+                if (!_isFakeDepth) return;
 
                 MarketDepth marketDepth = new MarketDepth();
                 marketDepth.SecurityNameCode = newTrade.SecurityNameCode;
@@ -869,7 +871,13 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 {
                     HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + uriDepth).Result;
                     string content = responseMessage.Content.ReadAsStringAsync().Result;
-
+                    
+                    if (content.Contains("<!DOCTYPE html>"))
+                    {
+                        _isFakeDepth = true;
+                        return null;
+                    }
+                    
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
                         data = JsonConvert.DeserializeAnonymousType(content, new ResponseDepth());
@@ -906,14 +914,17 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                             marketDepth.Asks.Add(newAsk);
                         }
 
+                        _isFakeDepth = false;
                         return marketDepth;
                     }
 
+                    _isFakeDepth = true;
                     return null;
                 }
                 catch (Exception exc)
                 {
                     SendLogMessage($"GetQueryDepth Error: {exc.Message}", LogMessageType.Error);
+                    _isFakeDepth = true;
                 }
 
                 return null;
