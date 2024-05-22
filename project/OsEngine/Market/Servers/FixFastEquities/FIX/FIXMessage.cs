@@ -70,12 +70,18 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "452", "PartyRole" },
             { "453", "NoPartyID" },
             { "552", "NoSides" },
+            { "553", "Username" },
+            { "554", "Password" },
             { "570", "PreviouslyReported" },
             { "571", "TradeReportID" },
             { "625", "TradingSessionSubID" },
             { "828", "TrdType" },
             { "851", "LastLiquidityInd" },
             { "1056", "CalculatedCcyLastQty" },
+            { "1137", "DefaultApplVerID" },
+            { "1180", "ApplID" },
+            { "1182", "ApplBeginSeqNo" },
+            { "1183", "ApplEndSeqNo" },
             { "5020", "OptionSettlDate" },
             { "5155", "InstitutionID" },
             { "5459", "OptionSettlType" },
@@ -160,6 +166,11 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                         if (value == "3")
                         {
                             value = "Reject";
+                        }
+
+                        if (value == "V")
+                        {
+                            value = "MarketDataRequest";
                         }
 
 
