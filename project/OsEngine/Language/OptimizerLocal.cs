@@ -172,16 +172,16 @@ namespace OsEngine.Language
             "Ru:График_");
 
         public string Message41 => OsLocalization.ConvertToLocString(
-            "Eng:Cannot start optimization. Set timeFrame_" +
-            "Ru:Не возможно запустить оптимизацию. Выберите таймфрейм_");
+            "Eng:Cannot start optimization. Parameter 'regime' is Off._" +
+            "Ru:Не возможно запустить оптимизацию. Параметр 'regime' Off._");
 
         public string Message42 => OsLocalization.ConvertToLocString(
             "Eng:Params_" +
             "Ru:Парам_");
 
         public string Message43 => OsLocalization.ConvertToLocString(
-            "Eng:Cannot start optimization. No strategy selected._" +
-            "Ru:Не возможно запустить оптимизацию. Не выбрана стратегия._");
+            "Eng:Cannot start optimization. Set timeFrame_" +
+            "Ru:Не возможно запустить оптимизацию. Выберите таймфрейм_");
 
         public string Label1 => OsLocalization.ConvertToLocString(
             "Eng:Index securities_" +

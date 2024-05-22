@@ -1233,9 +1233,9 @@ namespace OsEngine.OsOptimizer
 
                 if(isInArray == false)
                 {
-                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message41);
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message43);
                     ui.ShowDialog();
-                    SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
+                    SendLogMessage(OsLocalization.Optimizer.Message43, LogMessageType.System);
 
                     if (NeadToMoveUiToEvent != null)
                     {
