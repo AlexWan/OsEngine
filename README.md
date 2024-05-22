@@ -84,6 +84,9 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 Until August 2023, the project was distributed under the Apache 2 licence. Since September 2023 it is distributed under a commercial licence. All rights belong to Wang Technologies Ltd. In order to use any part of the project in your commercial projects, you need to obtain an extended licence on the site of the right holder.
 
+By downloading Os Engine, you agree that if a critical error occurs, information about it will be sent to the developer. Instructions on how to disable this functionality: https://os-engine-eng.com/posts/crash-reception-server.html
+
+
 
 ![oslogo250](https://user-images.githubusercontent.com/26077466/264690708-54b9eca1-09ef-4e6c-b9cf-442e4c1b7dc3.png)
 
@@ -175,3 +178,5 @@ FAQ: https://o-s-a.net/os-engine-faq
 До августа 2023 года проект распространялся под лицензией Apache 2. С сентября 2023 года распространяется под коммерческой лицензией. Все права принадлежат ООО "Ван Технологии". Для того чтобы использовать любую часть проекта, добавленного в репозиторий начиная с сентября 2023 года в своих коммерческих проектах, Вам необходимо получить расширенную лицензию на сайте правообладателя.
 
 Разьяснения относительно лицензионного соглашения: https://o-s-a.net/os-engine-license-about 
+
+Загружая Os Engine, Вы соглашаетесь с тем что в случае возникновения критической ошибки, информация об этом будет выслана разработчику. Инструкция о том как отключить данный функционал: https://o-s-a.net/posts/crash-server.html
