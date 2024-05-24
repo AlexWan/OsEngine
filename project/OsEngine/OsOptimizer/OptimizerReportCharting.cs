@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
@@ -178,7 +179,7 @@ namespace OsEngine.OsOptimizer
                 {
                     if (FirstLessSecond(reports[i2], reports[i2 + 1], _sortBotsType))
                     {
-                        // сортировка пузыриком // фаталити https://youtu.be/LOh_J0Dah7c?t=30
+                        // сортировка пузыриком // фаталити
                         OptimizerReport glass = reports[i2];
                         reports[i2] = reports[i2 + 1];
                         reports[i2 + 1] = glass;

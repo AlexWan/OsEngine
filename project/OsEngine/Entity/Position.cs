@@ -449,6 +449,11 @@ namespace OsEngine.Entity
                 decimal volume = 0;
                 for (int i = 0; i < _closeOrders.Count; i++)
                 {
+                    if (_closeOrders[i] == null)
+                    {
+                        continue;
+                    }
+
                     decimal volumeEx = _closeOrders[i].VolumeExecute;
                     if (volumeEx != 0)
                     {

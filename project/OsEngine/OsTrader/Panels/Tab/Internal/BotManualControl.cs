@@ -524,6 +524,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         // close orders
                         Order closeOrder = position.CloseOrders[i2];
 
+                        if(closeOrder == null)
+                        {
+                            continue;
+                        }
+
                         if ((closeOrder.State != OrderStateType.Activ &&
                              closeOrder.State != OrderStateType.Patrial))
                         {

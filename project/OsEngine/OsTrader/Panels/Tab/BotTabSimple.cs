@@ -325,6 +325,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        private bool _isDelete;
+
         /// <summary>
         /// Remove tab and all child structures
         /// </summary>
@@ -332,6 +334,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                _isDelete = true;
+
                 if (_connector != null)
                 {
                     _connector.OrderChangeEvent -= _connector_OrderChangeEvent;
@@ -445,6 +449,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                         // ignore
                     }
                 }
+
+                
             }
             catch (Exception error)
             {
@@ -4799,6 +4805,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         void _connector_GlassChangeEvent(MarketDepth marketDepth)
         {
+            if (_isDelete)
+            {
+                return;
+            }
             MarketDepth = marketDepth;
 
             if (_marketDepthPainter != null)
@@ -5036,6 +5046,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_isDelete)
+                {
+                    return;
+                }
                 if (candles == null)
                 {
                     return;
@@ -5080,6 +5094,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_isDelete)
+                {
+                    return;
+                }
                 LastTimeCandleUpdate = Connector.MarketTime;
 
                 AlertControlPosition();
@@ -5194,6 +5212,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _connector_TickChangeEvent(List<Trade> trades)
         {
+            if (_isDelete)
+            {
+                return;
+            }
+
             if (trades == null ||
                 trades.Count == 0)
             {
@@ -5304,6 +5327,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
+            if(_journal == null)
+            {
+                return;
+            }
+
+            if (_isDelete)
+            {
+                return;
+            }
+
             List<Position> openPositions = _journal.OpenPositions;
 
             if (openPositions != null)
@@ -5367,6 +5400,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _connector_MyTradeEvent(MyTrade trade)
         {
+            if (_isDelete)
+            {
+                return;
+            }
             _journal.SetNewMyTrade(trade);
 
             if (MyTradeEvent != null)
@@ -5391,6 +5428,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         void StrategOneSecurity_TimeServerChangeEvent(DateTime time)
         {
+            if (_isDelete)
+            {
+                return;
+            }
             if (ManualPositionSupport != null)
             {
                 ManualPositionSupport.ServerTime = time;
@@ -5407,6 +5448,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _connector_OrderChangeEvent(Order order)
         {
+            if(_isDelete)
+            {
+                return;
+            }
             Order orderInJournal = _journal.IsMyOrder(order);
 
             if (orderInJournal == null)
@@ -5427,6 +5472,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _connector_BestBidAskChangeEvent(decimal bestBid, decimal bestAsk)
         {
+            if (_isDelete)
+            {
+                return;
+            }
             _journal?.SetNewBidAsk(bestBid, bestAsk);
             _marketDepthPainter?.ProcessBidAsk(bestBid, bestAsk);
             BestBidAskChangeEvent?.Invoke(bestBid, bestAsk);
