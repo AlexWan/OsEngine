@@ -2508,6 +2508,21 @@ namespace OsEngine.Journal
                         ComboBoxChartType.SelectedItem = profitType;
                     }
 
+                    double valueFromOnSlider = reader.ReadLine().ToDouble();
+                    double valueToOnSlider = reader.ReadLine().ToDouble();
+
+                    if(valueFromOnSlider > SliderFrom.Minimum &&
+                        valueFromOnSlider < SliderFrom.Maximum)
+                    {
+                        SliderFrom.Value = valueFromOnSlider;
+                    }
+
+                    if (valueToOnSlider > SliderTo.Minimum &&
+                        valueToOnSlider < SliderTo.Maximum)
+                    {
+                        SliderTo.Value = valueToOnSlider;
+                    }
+
                     reader.Close();
                 }
             }
@@ -2534,6 +2549,10 @@ namespace OsEngine.Journal
                 {
                     writer.WriteLine(_leftPanelIsHide);
                     writer.WriteLine(ComboBoxChartType.SelectedItem.ToString());
+                    
+                    writer.WriteLine(SliderFrom.Value.ToString());
+                    writer.WriteLine(SliderTo.Value.ToString());
+
                     writer.Close();
                 }
             }
@@ -2885,6 +2904,15 @@ namespace OsEngine.Journal
                 minTime = startTime;
                 maxTime = endTime;
             }
+            else if(IsSlide == true 
+                && (startTime == DateTime.MinValue
+                || endTime == DateTime.MinValue))
+            {
+                startTime = _allPositions[0].TimeOpen;
+                endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
+                minTime = startTime;
+                maxTime = endTime;
+            }
         }
 
         private void LoadGroups()
@@ -3024,8 +3052,10 @@ namespace OsEngine.Journal
                 bot.IsOn = false;
             }
 
+            IsSlide = false;
             SaveGroups();
             CreatePositionsLists();
+            CreateSlidersShowPositions();
             _neadToRapaintBotsGrid = true;
         }
 
@@ -3220,7 +3250,8 @@ namespace OsEngine.Journal
                 SliderFrom.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value;
             }
             TextBoxTo.TextChanged += TextBoxTo_TextChanged;
-            IsSlide = true;  			
+            IsSlide = true;
+            SaveSettings();
         }
 
         void SliderFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -3237,7 +3268,8 @@ namespace OsEngine.Journal
             }
 
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
-            IsSlide = true;  			
+            IsSlide = true;
+            SaveSettings();
         }
 
         void TextBoxTo_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
