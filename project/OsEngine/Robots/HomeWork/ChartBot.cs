@@ -9,6 +9,7 @@ using System;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Drawing;
 using System.Globalization;
+using System.Threading;
 
 
 namespace OsEngine.Robots.HomeWork
@@ -48,6 +49,36 @@ namespace OsEngine.Robots.HomeWork
 
             customTab.AddChildren(_host);
 
+            StartThread();
+        }
+
+        private void StartThread()
+        {           
+            Thread worker = new Thread(StartPaintChart) { IsBackground = true };
+            worker.Start();
+        }
+
+        private void StartPaintChart()
+        {            
+            long countCandles = 0;
+
+            while (true)
+            {
+                Thread.Sleep(1000);
+
+                if (_tab.Securiti != null)
+                {
+                    if (_tab.CandlesFinishedOnly != null)
+                    {
+                        if (countCandles != _tab.CandlesFinishedOnly.Count)
+                        {
+                            countCandles = _tab.CandlesFinishedOnly.Count;
+                            SetCandle();
+                        }                                       
+                    }
+                    
+                }                                
+            }
         }
 
         private void CreateChart()
@@ -59,36 +90,44 @@ namespace OsEngine.Robots.HomeWork
             }
 
             _host = new WindowsFormsHost();
-
             _chart = new Chart();
-            _host.Child = _chart;
+            _host.Child = _chart;            
             _host.Child.Show();
 
             _chart.Series.Clear();
             _chart.ChartAreas.Clear();
 
-            ChartArea candleArea = new ChartArea("ChartAreaCandle") // создаём область на графике
-            {
-                CursorX = { IsUserSelectionEnabled = true, IsUserEnabled = true },
-                // разрешаем пользователю изменять рамки представления
-                CursorY = { AxisType = AxisType.Secondary },
-                Position = { Height = 70, X = 0, Width = 100, Y = 0 }, //чертa
-            };
+            ChartArea candleArea = new ChartArea("ChartAreaCandleOnTable"); // создаём область на графике
+            candleArea.CursorX.IsUserSelectionEnabled = true;
+            candleArea.CursorX.IsUserEnabled = true;                // разрешаем пользователю изменять рамки представления
+            candleArea.CursorY.AxisType = AxisType.Secondary;
+            candleArea.Position.Height = 70;
+            candleArea.Position.X = 0;
+            candleArea.Position.Width = 100;
+            candleArea.Position.Y = 0; //чертa
+            candleArea.AxisY.Maximum = 5000; // Установка максимума в NaN для автоматического масштабирования
+            candleArea.AxisY.Minimum = 2000; // Установка минимума в NaN для автоматического масштабирования
+
+            // Пересчет масштаба осей
+            //candleArea.RecalculateAxesScale();
 
             _chart.ChartAreas.Add(candleArea); // добавляем область на чарт
 
-            Series candleSeries = new Series("SeriesCandle") // создаём для нашей области коллекцию значений
+            Series candleSeries = new Series("SeriesCandleOnTable") // создаём для нашей области коллекцию значений
             {
                 ChartType = SeriesChartType.Candlestick, // назначаем этой коллекции тип "Свечи"
                 YAxisType = AxisType.Secondary,// назначаем ей правую линейку по шкале Y (просто для красоты) Везде ж так
-                ChartArea = "ChartAreaCandle", // помещаем нашу коллекцию на ранее созданную область
+                ChartArea = "ChartAreaCandleOnTable", // помещаем нашу коллекцию на ранее созданную область
                 ShadowOffset = 2 // наводим тень
             };
+
+            //candleSeries.Points.AddXY(10, 10);
+            //candleSeries.Points.AddXY(100, 100);
 
             _chart.Series.Add(candleSeries); // добавляем коллекцию на чарт
 
             // объём
-            ChartArea volumeArea = new ChartArea("ChartAreaVolume") // создаём область для объёма
+            /*ChartArea volumeArea = new ChartArea("ChartAreaVolume") // создаём область для объёма
             {
                 CursorX = { IsUserEnabled = true }, //чертa
                 CursorY = { AxisType = AxisType.Secondary }, // ось У правая
@@ -107,7 +146,7 @@ namespace OsEngine.Robots.HomeWork
                 ShadowOffset = 2 // наводим тень на плетень
             };
 
-            _chart.Series.Add(volumeSeries);
+            _chart.Series.Add(volumeSeries);*/
 
             // общее
             foreach (ChartArea area in _chart.ChartAreas)
@@ -117,24 +156,25 @@ namespace OsEngine.Robots.HomeWork
                 area.CursorX.LineWidth = 2;
             }
 
-            SetCandle();
+            //SetCandle();
 
         }
-        
+
         private void SetCandle()
         {
-            if (_tab.Securiti == null)
+            if (MainWindow.GetDispatcher.CheckAccess() == false)
             {
+                MainWindow.GetDispatcher.Invoke(new Action(SetCandle));
                 return;
             }
 
-            _candleArray = _tab.CandlesAll.ToArray();
+            _candleArray = _tab.CandlesFinishedOnly.ToArray();
 
-            Series candleSeries = new Series("SeriesCandle")
+            Series candleSeries = new Series("SeriesCandleOnTable")
             {
                 ChartType = SeriesChartType.Candlestick,// назначаем этой коллекции тип "Свечи"
                 YAxisType = AxisType.Secondary,// назначаем ей правую линейку по шкале Y (просто для красоты)
-                ChartArea = "ChartAreaCandle",// помещаем нашу коллекцию на ранее созданную область
+                ChartArea = "ChartAreaCandleOnTable",// помещаем нашу коллекцию на ранее созданную область
                 ShadowOffset = 2,  // наводим тень
                 YValuesPerPoint = 4 // насильно устанавливаем число У точек для серии
             };
@@ -159,6 +199,9 @@ namespace OsEngine.Robots.HomeWork
                     candleSeries.Points[candleSeries.Points.Count - 1].Color = Color.Red;
                 }
             }
+            _chart.Series.Clear();
+            _chart.Series.Add(candleSeries);
+            _chart.Refresh();
         }
 
         public override string GetNameStrategyType()
