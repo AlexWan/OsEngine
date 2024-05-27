@@ -117,103 +117,111 @@ namespace OsEngine.Journal
 
         private void JournalUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            IsErase = true;
-
-            TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
-            ComboBoxChartType.SelectionChanged -= ComboBoxChartType_SelectionChanged;
-            TabControlPrime.Items.Clear();
-
-            Closing -= JournalUi_Closing;
-            _botsJournals.Clear();
-            _botsJournals = null;
-
-            if (_allPositions != null)
+            try
             {
-                _allPositions = null;
+                IsErase = true;
+
+                TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
+                ComboBoxChartType.SelectionChanged -= ComboBoxChartType_SelectionChanged;
+                VolumeShowNumbers.SelectionChanged -= VolumeShowNumbers_SelectionChanged;
+                TabControlPrime.Items.Clear();
+
+                Closing -= JournalUi_Closing;
+                _botsJournals.Clear();
+                _botsJournals = null;
+
+                if (_allPositions != null)
+                {
+                    _allPositions = null;
+                }
+
+                if (_longPositions != null)
+                {
+                    _longPositions = null;
+                }
+
+                if (_shortPositions != null)
+                {
+                    _shortPositions = null;
+                }
+
+                if (_chartEquity != null)
+                {
+                    _chartEquity.Series.Clear();
+                    _chartEquity.ChartAreas.Clear();
+                    _chartEquity = null;
+                    HostEquity.Child.Hide();
+                    HostEquity.Child = null;
+                    HostEquity = null;
+                }
+
+                if (_chartVolume != null)
+                {
+                    _chartVolume.Series.Clear();
+                    _chartVolume.ChartAreas.Clear();
+                    _chartVolume.Click -= _chartVolume_Click;
+                    _chartVolume = null;
+                    HostVolume.Child.Hide();
+                    HostVolume.Child = null;
+                    HostVolume = null;
+                }
+
+                if (_chartDd != null)
+                {
+                    _chartDd.Series.Clear();
+                    _chartDd.ChartAreas.Clear();
+                    _chartDd = null;
+                    HostDrawdown.Child.Hide();
+                    HostDrawdown.Child = null;
+                    HostDrawdown = null;
+                }
+
+                if (_gridStatistics != null)
+                {
+                    DataGridFactory.ClearLinks(_gridStatistics);
+                    _gridStatistics.Rows.Clear();
+                    _gridStatistics = null;
+                    HostStatistics.Child.Hide();
+                    HostStatistics.Child = null;
+                    HostStatistics = null;
+                }
+
+                if (_openPositionGrid != null)
+                {
+                    DataGridFactory.ClearLinks(_openPositionGrid);
+                    _openPositionGrid.Rows.Clear();
+                    _openPositionGrid.Click -= _openPositionGrid_Click;
+                    _openPositionGrid.DoubleClick -= _openPositionGrid_DoubleClick;
+                    _openPositionGrid = null;
+                    HostOpenPosition.Child.Hide();
+                    HostOpenPosition.Child = null;
+                    HostOpenPosition = null;
+                }
+
+                if (_closePositionGrid != null)
+                {
+                    DataGridFactory.ClearLinks(_closePositionGrid);
+                    _closePositionGrid.Rows.Clear();
+                    _closePositionGrid.Click -= _closePositionGrid_Click;
+                    _closePositionGrid.DoubleClick -= _closePositionGrid_DoubleClick;
+                    _closePositionGrid = null;
+                    HostClosePosition.Child.Hide();
+                    HostClosePosition.Child = null;
+                    HostClosePosition = null;
+                }
+
+                if (_gridLeftBotsPanel != null)
+                {
+                    HostBotsSelected.Child = null;
+                    _gridLeftBotsPanel.CellEndEdit -= _gridLeftBotsPanel_CellEndEdit;
+                    _gridLeftBotsPanel.CellBeginEdit -= _gridLeftBotsPanel_CellBeginEdit;
+                    DataGridFactory.ClearLinks(_gridLeftBotsPanel);
+                    _gridLeftBotsPanel = null;
+                }
             }
-
-            if (_longPositions != null)
+            catch(Exception ex)
             {
-                _longPositions = null;
-            }
-
-            if (_shortPositions != null)
-            {
-                _shortPositions = null;
-            }
-
-            if (_chartEquity != null)
-            {
-                _chartEquity.Series.Clear();
-                _chartEquity.ChartAreas.Clear();
-                _chartEquity = null;
-                HostEquity.Child.Hide();
-                HostEquity.Child = null;
-                HostEquity = null;
-            }
-
-            if (_chartVolume != null)
-            {
-                _chartVolume.Series.Clear();
-                _chartVolume.ChartAreas.Clear();
-                _chartVolume.Click -= _chartVolume_Click;
-                _chartVolume = null;
-                HostVolume.Child.Hide();
-                HostVolume.Child = null;
-                HostVolume = null;
-            }
-
-            if (_chartDd != null)
-            {
-                _chartDd.Series.Clear();
-                _chartDd.ChartAreas.Clear();
-                _chartDd = null;
-                HostDrawdown.Child.Hide();
-                HostDrawdown.Child = null;
-                HostDrawdown = null;
-            }
-
-            if (_gridStatistics != null)
-            {
-                DataGridFactory.ClearLinks(_gridStatistics);
-                _gridStatistics.Rows.Clear();
-                _gridStatistics = null;
-                HostStatistics.Child.Hide();
-                HostStatistics.Child = null;
-                HostStatistics = null;
-            }
-
-            if (_openPositionGrid != null)
-            {
-                DataGridFactory.ClearLinks(_openPositionGrid);
-                _openPositionGrid.Rows.Clear();
-                _openPositionGrid.Click -= _openPositionGrid_Click;
-                _openPositionGrid.DoubleClick -= _openPositionGrid_DoubleClick;
-                _openPositionGrid = null;
-                HostOpenPosition.Child.Hide();
-                HostOpenPosition.Child = null;
-                HostOpenPosition = null;
-            }
-
-            if (_closePositionGrid != null)
-            {
-                DataGridFactory.ClearLinks(_closePositionGrid);
-                _closePositionGrid.Rows.Clear();
-                _closePositionGrid.Click -= _closePositionGrid_Click;
-                _closePositionGrid.DoubleClick -= _closePositionGrid_DoubleClick;
-                _closePositionGrid = null;
-                HostClosePosition.Child.Hide();
-                HostClosePosition.Child = null;
-                HostClosePosition = null;
-            }
-
-            if (_gridLeftBotsPanel != null)
-            {
-                HostBotsSelected.Child = null;
-                _gridLeftBotsPanel.CellEndEdit -= _gridLeftBotsPanel_CellEndEdit;
-                _gridLeftBotsPanel.CellBeginEdit -= _gridLeftBotsPanel_CellBeginEdit;
-                DataGridFactory.ClearLinks(_gridLeftBotsPanel);
-                _gridLeftBotsPanel = null;
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -229,7 +237,14 @@ namespace OsEngine.Journal
 
         private void ButtonAutoReload_Click(object sender, RoutedEventArgs e)
         {
-            _autoReloadIsOn = ButtonAutoReload.IsChecked.Value;
+            try
+            {
+                _autoReloadIsOn = ButtonAutoReload.IsChecked.Value;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private async void ThreadWorkerPlace()
@@ -238,22 +253,23 @@ namespace OsEngine.Journal
             {
                 return;
             }
+
             while (true)
             {
-                await Task.Delay(30000);
-
-                if (IsErase == true)
-                {
-                    return;
-                }
-
-                if(_autoReloadIsOn == false)
-                {
-                    continue;
-                }
-
                 try
                 {
+                    await Task.Delay(30000);
+
+                    if (IsErase == true)
+                    {
+                        return;
+                    }
+
+                    if (_autoReloadIsOn == false)
+                    {
+                        continue;
+                    }
+
                     RePaint();
                 }
                 catch (Exception error)
@@ -269,26 +285,27 @@ namespace OsEngine.Journal
 
         public void RePaint()
         {
-            CreatePositionsLists();
-
-            if (!TabControlPrime.CheckAccess())
-            {
-                TabControlPrime.Dispatcher.Invoke(RePaint);
-                return;
-            }
-
-            if (IsErase == true)
-            {
-                return;
-            }
-
-            if (_allPositions == null)
-            {
-                return;
-            }
-
             try
             {
+                CreatePositionsLists();
+
+                if (!TabControlPrime.CheckAccess())
+                {
+                    TabControlPrime.Dispatcher.Invoke(RePaint);
+                    return;
+                }
+
+                if (IsErase == true)
+                {
+                    return;
+                }
+
+                if (_allPositions == null)
+                {
+                    return;
+                }
+
+
                 List<Position> allSortPoses = new List<Position>();
                 List<Position> longPositions = new List<Position>();
                 List<Position> shortPositions = new List<Position>();
@@ -369,7 +386,7 @@ namespace OsEngine.Journal
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
         }
 
@@ -377,25 +394,44 @@ namespace OsEngine.Journal
 
         private void ComboBoxChartType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            RePaint();
-            SaveSettings();
+            try
+            {
+                RePaint();
+                SaveSettings();
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void TabControlPrime_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(_volumeControlUpdated == true)
+            try
             {
-                _volumeControlUpdated = false;
-                return;
+                if (_volumeControlUpdated == true)
+                {
+                    _volumeControlUpdated = false;
+                    return;
+                }
+                RePaint();
             }
-            RePaint();
+            catch( Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void TabControlLeftSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // robot tab selection
-            // выбор вкладки робота
-            RePaint();
+            try
+            {
+                RePaint();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -502,56 +538,63 @@ namespace OsEngine.Journal
 
         private void PaintStatTable(List<Position> positionsAll, List<Position> positionsLong, List<Position> positionsShort, bool neadShowTickState)
         {
-            if (_gridStatistics == null)
+            try
             {
-                CreateTableToStatistic();
-            }
+                if (_gridStatistics == null)
+                {
+                    CreateTableToStatistic();
+                }
 
-            List<string> positionsAllState = PositionStaticticGenerator.GetStatisticNew(positionsAll);
-            List<string> positionsLongState = PositionStaticticGenerator.GetStatisticNew(positionsLong);
-            List<string> positionsShortState = PositionStaticticGenerator.GetStatisticNew(positionsShort);
+                List<string> positionsAllState = PositionStaticticGenerator.GetStatisticNew(positionsAll);
+                List<string> positionsLongState = PositionStaticticGenerator.GetStatisticNew(positionsLong);
+                List<string> positionsShortState = PositionStaticticGenerator.GetStatisticNew(positionsShort);
 
-            if (positionsAllState == null)
-            {
-                for (int i = 0; i < 31; i++)
+                if (positionsAllState == null)
                 {
-                    _gridStatistics.Rows[i].Cells[1].Value = "";
+                    for (int i = 0; i < 31; i++)
+                    {
+                        _gridStatistics.Rows[i].Cells[1].Value = "";
+                    }
+                }
+                if (positionsLongState == null)
+                {
+                    for (int i = 0; i < 31; i++)
+                    {
+                        _gridStatistics.Rows[i].Cells[2].Value = "";
+                    }
+                }
+                if (positionsShortState == null)
+                {
+                    for (int i = 0; i < 31; i++)
+                    {
+                        _gridStatistics.Rows[i].Cells[3].Value = "";
+                    }
+                }
+                if (positionsLongState != null)
+                {
+                    for (int i = 0; i < 31; i++)
+                    {
+                        _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
+                    }
+                }
+                if (positionsShortState != null)
+                {
+                    for (int i = 0; i < 31; i++)
+                    {
+                        _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
+                    }
+                }
+                if (positionsAllState != null)
+                {
+                    for (int i = 0; i < 31; i++)
+                    {
+                        _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
+                    }
                 }
             }
-            if (positionsLongState == null)
+            catch(Exception error)
             {
-                for (int i = 0; i < 31; i++)
-                {
-                    _gridStatistics.Rows[i].Cells[2].Value = "";
-                }
-            }
-            if (positionsShortState == null)
-            {
-                for (int i = 0; i < 31; i++)
-                {
-                    _gridStatistics.Rows[i].Cells[3].Value = "";
-                }
-            }
-            if (positionsLongState != null)
-            {
-                for (int i = 0; i < 31; i++)
-                {
-                    _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
-                }
-            }
-            if (positionsShortState != null)
-            {
-                for (int i = 0; i < 31; i++)
-                {
-                    _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
-                }
-            }
-            if (positionsAllState != null)
-            {
-                for (int i = 0; i < 31; i++)
-                {
-                    _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
-                }
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
         }
 
@@ -618,173 +661,181 @@ namespace OsEngine.Journal
 
         private void _chartEquity_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_chartEquity.Series == null
-                || _chartEquity.Series.Count == 0)
-            {
-                return;
-            }
-            if (_chartEquity.ChartAreas[0].AxisX.ScaleView.Size == double.NaN)
-            {
-                return;
-            }
-
-            int curCountOfPoints = _chartEquity.Series[0].Points.Count;
-
-            double sizeArea = _chartEquity.ChartAreas[0].InnerPlotPosition.Size.Width;
-            double allSizeAbs = _chartEquity.Size.Width * (sizeArea/100);
-           
-            double onePointLen = allSizeAbs / curCountOfPoints;
-
-            double curMousePosAbs = e.X;
-
-            double curPointNum = curMousePosAbs / onePointLen-1;
             try
             {
-                if(Double.IsInfinity(curPointNum))
+                if (_chartEquity.Series == null
+     || _chartEquity.Series.Count == 0)
+                {
+                    return;
+                }
+                if (_chartEquity.ChartAreas[0].AxisX.ScaleView.Size == double.NaN)
                 {
                     return;
                 }
 
-                curPointNum = Convert.ToDouble(Convert.ToInt32(curPointNum));
-            }
-            catch
-            {
-                return;
-            }
-            
-            //_chartEquity.ChartAreas[0].CursorX.Position = curPointNum;
-            if(_chartEquity.ChartAreas[0].CursorX.Position != curPointNum)
-            {
-                _chartEquity.ChartAreas[0].CursorX.SetCursorPosition(curPointNum);
-            }
+                int curCountOfPoints = _chartEquity.Series[0].Points.Count;
 
-            int numPointInt = Convert.ToInt32(curPointNum);
+                double sizeArea = _chartEquity.ChartAreas[0].InnerPlotPosition.Size.Width;
+                double allSizeAbs = _chartEquity.Size.Width * (sizeArea / 100);
 
-            if(numPointInt <= 0)
-            {
-                return;
-            }
+                double onePointLen = allSizeAbs / curCountOfPoints;
 
-            if(_chartEquity.Series[0].Points.Count > _lastSeriesEquityChartPointWithLabel)
-            {
-                 _chartEquity.Series[0].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-            }
-            if (_chartEquity.Series[0].Points.Count > numPointInt)
-            {
-                _chartEquity.Series[0].Points[numPointInt].Label
-                = _chartEquity.Series[0].Points[numPointInt].AxisLabel;
-            }
+                double curMousePosAbs = e.X;
 
-            if (_chartEquity.Series[1].Points.Count > _lastSeriesEquityChartPointWithLabel)
-            {
-                _chartEquity.Series[1].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-            }
-            if (_chartEquity.Series[1].Points.Count > numPointInt)
-            {
-                _chartEquity.Series[1].Points[numPointInt].Label
-                = _chartEquity.Series[1].Points[numPointInt].AxisLabel;
-            }
+                double curPointNum = curMousePosAbs / onePointLen - 1;
+                try
+                {
+                    if (Double.IsInfinity(curPointNum))
+                    {
+                        return;
+                    }
 
-            if (_chartEquity.Series[2].Points.Count > _lastSeriesEquityChartPointWithLabel)
-            {
-                _chartEquity.Series[2].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-            }
-            if (_chartEquity.Series[2].Points.Count > numPointInt)
-            {
-                _chartEquity.Series[2].Points[numPointInt].Label
-                = _chartEquity.Series[2].Points[numPointInt].AxisLabel;
-            }
+                    curPointNum = Convert.ToDouble(Convert.ToInt32(curPointNum));
+                }
+                catch
+                {
+                    return;
+                }
 
-            if (_chartEquity.Series[3].Points.Count > _lastSeriesEquityChartPointWithLabel)
-            {
-                _chartEquity.Series[3].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-            }
-            if (_chartEquity.Series[3].Points.Count > numPointInt)
-            {
-                _chartEquity.Series[3].Points[numPointInt].Label
-                = _chartEquity.Series[3].Points[numPointInt].AxisLabel;
-            }
+                //_chartEquity.ChartAreas[0].CursorX.Position = curPointNum;
+                if (_chartEquity.ChartAreas[0].CursorX.Position != curPointNum)
+                {
+                    _chartEquity.ChartAreas[0].CursorX.SetCursorPosition(curPointNum);
+                }
 
-            if (_chartEquity.Series[4].Points.Count > _lastSeriesEquityChartPointWithLabel)
-            {
-                _chartEquity.Series[4].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
-            }
-            if (_chartEquity.Series[4].Points.Count > numPointInt)
-            {
-                _chartEquity.Series[4].Points[numPointInt].Label
-                = _chartEquity.Series[4].Points[numPointInt].AxisLabel;
-            }
+                int numPointInt = Convert.ToInt32(curPointNum);
+
+                if (numPointInt <= 0)
+                {
+                    return;
+                }
+
+                if (_chartEquity.Series[0].Points.Count > _lastSeriesEquityChartPointWithLabel)
+                {
+                    _chartEquity.Series[0].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
+                }
+                if (_chartEquity.Series[0].Points.Count > numPointInt)
+                {
+                    _chartEquity.Series[0].Points[numPointInt].Label
+                    = _chartEquity.Series[0].Points[numPointInt].AxisLabel;
+                }
+
+                if (_chartEquity.Series[1].Points.Count > _lastSeriesEquityChartPointWithLabel)
+                {
+                    _chartEquity.Series[1].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
+                }
+                if (_chartEquity.Series[1].Points.Count > numPointInt)
+                {
+                    _chartEquity.Series[1].Points[numPointInt].Label
+                    = _chartEquity.Series[1].Points[numPointInt].AxisLabel;
+                }
+
+                if (_chartEquity.Series[2].Points.Count > _lastSeriesEquityChartPointWithLabel)
+                {
+                    _chartEquity.Series[2].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
+                }
+                if (_chartEquity.Series[2].Points.Count > numPointInt)
+                {
+                    _chartEquity.Series[2].Points[numPointInt].Label
+                    = _chartEquity.Series[2].Points[numPointInt].AxisLabel;
+                }
+
+                if (_chartEquity.Series[3].Points.Count > _lastSeriesEquityChartPointWithLabel)
+                {
+                    _chartEquity.Series[3].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
+                }
+                if (_chartEquity.Series[3].Points.Count > numPointInt)
+                {
+                    _chartEquity.Series[3].Points[numPointInt].Label
+                    = _chartEquity.Series[3].Points[numPointInt].AxisLabel;
+                }
+
+                if (_chartEquity.Series[4].Points.Count > _lastSeriesEquityChartPointWithLabel)
+                {
+                    _chartEquity.Series[4].Points[_lastSeriesEquityChartPointWithLabel].Label = "";
+                }
+                if (_chartEquity.Series[4].Points.Count > numPointInt)
+                {
+                    _chartEquity.Series[4].Points[numPointInt].Label
+                    = _chartEquity.Series[4].Points[numPointInt].AxisLabel;
+                }
 
 
-            _lastSeriesEquityChartPointWithLabel = numPointInt;
+                _lastSeriesEquityChartPointWithLabel = numPointInt;
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
         }
 
         private int _lastSeriesEquityChartPointWithLabel = 0;
 
         private void PaintProfitOnChart(List<Position> positionsAll)
         {
-            if (!GridTabPrime.Dispatcher.CheckAccess())
-            {
-                GridTabPrime.Dispatcher.Invoke(
-                    new Action<List<Position>>(PaintProfitOnChart), positionsAll);
-                return;
-            }
-
-            if (_chartEquity == null)
-            {
-                CreateChartProfit();
-            }
-
-            _chartEquity.Series.Clear();
-
-            if (positionsAll == null)
-            {
-                return;
-            }
-
-            Series profit = new Series("SeriesProfit");
-            profit.ChartType = SeriesChartType.Line;
-            profit.Color = Color.White;   //DeepSkyBlue;
-            profit.LabelForeColor = Color.White;
-            profit.YAxisType = AxisType.Secondary;
-            profit.ChartArea = "ChartAreaProfit";
-            profit.BorderWidth = 4;
-            profit.ShadowOffset = 2;
-
-            Series profitLong = new Series("SeriesProfitLong");
-            profitLong.ChartType = SeriesChartType.Line;
-            profitLong.Color = Color.DeepSkyBlue;   //DeepSkyBlue;
-            profitLong.LabelForeColor = Color.DeepSkyBlue;
-            profitLong.YAxisType = AxisType.Secondary;
-            profitLong.ChartArea = "ChartAreaProfit";
-            profitLong.BorderWidth = 2;
-            profitLong.ShadowOffset = 2;
-
-            Series profitShort = new Series("SeriesProfitShort");
-            profitShort.ChartType = SeriesChartType.Line;
-            profitShort.Color = Color.DarkOrange;  //DeepSkyBlue;
-            profitShort.LabelForeColor = Color.DarkOrange;
-            profitShort.YAxisType = AxisType.Secondary;
-            profitShort.ChartArea = "ChartAreaProfit";
-            profitShort.ShadowOffset = 2;
-            profitShort.BorderWidth = 2;
-
-            Series profitBar = new Series("SeriesProfitBar");
-            profitBar.ChartType = SeriesChartType.Column;
-            profitBar.YAxisType = AxisType.Secondary;
-            profitBar.LabelForeColor = Color.White;
-            profitBar.ChartArea = "ChartAreaProfitBar";
-            profitBar.ShadowOffset = 2;
-
-            Series nullLine = new Series("SeriesNullLine");
-            nullLine.ChartType = SeriesChartType.Line;
-            nullLine.YAxisType = AxisType.Secondary;
-            nullLine.LabelForeColor = Color.White;
-            nullLine.ChartArea = "ChartAreaProfit";
-            nullLine.ShadowOffset = 0;
-
             try
             {
+                if (!GridTabPrime.Dispatcher.CheckAccess())
+                {
+                    GridTabPrime.Dispatcher.Invoke(
+                        new Action<List<Position>>(PaintProfitOnChart), positionsAll);
+                    return;
+                }
+
+                if (_chartEquity == null)
+                {
+                    CreateChartProfit();
+                }
+
+                _chartEquity.Series.Clear();
+
+                if (positionsAll == null)
+                {
+                    return;
+                }
+
+                Series profit = new Series("SeriesProfit");
+                profit.ChartType = SeriesChartType.Line;
+                profit.Color = Color.White;   //DeepSkyBlue;
+                profit.LabelForeColor = Color.White;
+                profit.YAxisType = AxisType.Secondary;
+                profit.ChartArea = "ChartAreaProfit";
+                profit.BorderWidth = 4;
+                profit.ShadowOffset = 2;
+
+                Series profitLong = new Series("SeriesProfitLong");
+                profitLong.ChartType = SeriesChartType.Line;
+                profitLong.Color = Color.DeepSkyBlue;   //DeepSkyBlue;
+                profitLong.LabelForeColor = Color.DeepSkyBlue;
+                profitLong.YAxisType = AxisType.Secondary;
+                profitLong.ChartArea = "ChartAreaProfit";
+                profitLong.BorderWidth = 2;
+                profitLong.ShadowOffset = 2;
+
+                Series profitShort = new Series("SeriesProfitShort");
+                profitShort.ChartType = SeriesChartType.Line;
+                profitShort.Color = Color.DarkOrange;  //DeepSkyBlue;
+                profitShort.LabelForeColor = Color.DarkOrange;
+                profitShort.YAxisType = AxisType.Secondary;
+                profitShort.ChartArea = "ChartAreaProfit";
+                profitShort.ShadowOffset = 2;
+                profitShort.BorderWidth = 2;
+
+                Series profitBar = new Series("SeriesProfitBar");
+                profitBar.ChartType = SeriesChartType.Column;
+                profitBar.YAxisType = AxisType.Secondary;
+                profitBar.LabelForeColor = Color.White;
+                profitBar.ChartArea = "ChartAreaProfitBar";
+                profitBar.ShadowOffset = 2;
+
+                Series nullLine = new Series("SeriesNullLine");
+                nullLine.ChartType = SeriesChartType.Line;
+                nullLine.YAxisType = AxisType.Secondary;
+                nullLine.LabelForeColor = Color.White;
+                nullLine.ChartArea = "ChartAreaProfit";
+                nullLine.ShadowOffset = 0;
+
+
                 decimal profitSum = 0;
                 decimal profitSumLong = 0;
                 decimal profitSumShort = 0;
@@ -803,7 +854,7 @@ namespace OsEngine.Journal
                 {
                     decimal curMult = positionsAll[i].MultToJournal;
 
-                    if(chartType == "Absolute")
+                    if (chartType == "Absolute")
                     {
                         curProfit = positionsAll[i].ProfitPortfolioPunkt * (curMult / 100);
                     }
@@ -815,12 +866,12 @@ namespace OsEngine.Journal
 
                     curProfit = Math.Round(curProfit, 8);
 
-                    if(curProfit > maxYValBars)
+                    if (curProfit > maxYValBars)
                     {
                         maxYValBars = curProfit;
                     }
 
-                    if(curProfit < minYvalBars)
+                    if (curProfit < minYvalBars)
                     {
                         minYvalBars = curProfit;
                     }
@@ -908,7 +959,7 @@ namespace OsEngine.Journal
                     _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
                 }
 
-                if(minYvalBars != decimal.MaxValue &&
+                if (minYvalBars != decimal.MaxValue &&
                     maxYValBars != 0 &&
                     minYvalBars != maxYValBars)
                 {
@@ -930,53 +981,60 @@ namespace OsEngine.Journal
 
         private void PaintXLabelsOnEquityChart(List<Position> poses)
         {
-            int values = poses.Count;
-
-            int labelCount = 5;
-
-            if(values < 5)
+            try
             {
-                labelCount = values;
-            }
+                int values = poses.Count;
 
-            if(labelCount == 0)
-            {
-                return;
-            }
+                int labelCount = 5;
 
-            ChartArea area = _chartEquity.ChartAreas[0];
-
-            area.AxisX.Interval = values / labelCount;
-
-            while (area.AxisX.CustomLabels.Count < labelCount)
-            {
-                area.AxisX.CustomLabels.Add(new CustomLabel());
-            }
-            while (area.AxisX.CustomLabels.Count > labelCount)
-            {
-                area.AxisX.CustomLabels.RemoveAt(0);
-            }
-
-            double value = 0 + area.AxisX.Interval;
-
-            if (labelCount < 4)
-            {
-                value = 0;
-            }
-
-
-            for (int i = 0; i < labelCount; i++)
-            {
-                area.AxisX.CustomLabels[i].FromPosition = value - area.AxisX.Interval * 0.7;
-                area.AxisX.CustomLabels[i].ToPosition = value + area.AxisX.Interval * 0.7;
-                area.AxisX.CustomLabels[i].Text = poses[(int)value].TimeCreate.ToString();
-
-                value += area.AxisX.Interval;
-
-                if (value >= poses.Count)
+                if (values < 5)
                 {
-                    value = poses.Count - 1;
+                    labelCount = values;
                 }
+
+                if (labelCount == 0)
+                {
+                    return;
+                }
+
+                ChartArea area = _chartEquity.ChartAreas[0];
+
+                area.AxisX.Interval = values / labelCount;
+
+                while (area.AxisX.CustomLabels.Count < labelCount)
+                {
+                    area.AxisX.CustomLabels.Add(new CustomLabel());
+                }
+                while (area.AxisX.CustomLabels.Count > labelCount)
+                {
+                    area.AxisX.CustomLabels.RemoveAt(0);
+                }
+
+                double value = 0 + area.AxisX.Interval;
+
+                if (labelCount < 4)
+                {
+                    value = 0;
+                }
+
+
+                for (int i = 0; i < labelCount; i++)
+                {
+                    area.AxisX.CustomLabels[i].FromPosition = value - area.AxisX.Interval * 0.7;
+                    area.AxisX.CustomLabels[i].ToPosition = value + area.AxisX.Interval * 0.7;
+                    area.AxisX.CustomLabels[i].Text = poses[(int)value].TimeCreate.ToString();
+
+                    value += area.AxisX.Interval;
+
+                    if (value >= poses.Count)
+                    {
+                        value = poses.Count - 1;
+                    }
+                }
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1007,368 +1065,400 @@ namespace OsEngine.Journal
 
         private void UpdateVolumeShowNumbers(List<Position> positionsAll)
         {
-            if (!GridTabPrime.Dispatcher.CheckAccess())
+            try
             {
-                GridTabPrime.Dispatcher.Invoke(
-                    new Action<List<Position>>(UpdateVolumeShowNumbers),positionsAll);
-                return;
-            }
-
-            _volumeControlUpdated = true;
-
-            VolumeShowNumbers.SelectionChanged -= VolumeShowNumbers_SelectionChanged;
-            TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
-
-            string lastSelectedValue = null;
-
-            if(VolumeShowNumbers.SelectedItem != null)
-            {
-                lastSelectedValue = VolumeShowNumbers.SelectedItem.ToString();
-            }
-
-            VolumeShowNumbers.Items.Clear();
-
-            List<VolumeSecurity> volumes = new List<VolumeSecurity>();
-
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-                if (volumes.Find(vol => vol.Security == positionsAll[i].SecurityName) == null)
+                if (!GridTabPrime.Dispatcher.CheckAccess())
                 {
-                    volumes.Add(new VolumeSecurity() { Security = positionsAll[i].SecurityName });
+                    GridTabPrime.Dispatcher.Invoke(
+                        new Action<List<Position>>(UpdateVolumeShowNumbers), positionsAll);
+                    return;
                 }
-            }
 
-            if (volumes.Count == 0)
-            {
-                TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
-                return;
-            }
+                _volumeControlUpdated = true;
 
-            for(int i = 0;i < volumes.Count;i += 10)
-            {
-                string value = (i+1) + " >> " + (i + 10);
-                VolumeShowNumbers.Items.Add(value);
-            }
+                VolumeShowNumbers.SelectionChanged -= VolumeShowNumbers_SelectionChanged;
+                TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
 
-            if(lastSelectedValue != null)
-            {
-                for(int i = 0;i < VolumeShowNumbers.Items.Count;i++)
+                string lastSelectedValue = null;
+
+                if (VolumeShowNumbers.SelectedItem != null)
                 {
-                    if (VolumeShowNumbers.Items[i].ToString() == lastSelectedValue)
+                    lastSelectedValue = VolumeShowNumbers.SelectedItem.ToString();
+                }
+
+                VolumeShowNumbers.Items.Clear();
+
+                List<VolumeSecurity> volumes = new List<VolumeSecurity>();
+
+                for (int i = 0; i < positionsAll.Count; i++)
+                {
+                    if (volumes.Find(vol => vol.Security == positionsAll[i].SecurityName) == null)
                     {
-                        VolumeShowNumbers.SelectedIndex = i;
-                        break;
+                        volumes.Add(new VolumeSecurity() { Security = positionsAll[i].SecurityName });
                     }
                 }
-            }
 
-            if(VolumeShowNumbers.SelectedItem == null)
-            {
-                VolumeShowNumbers.SelectedItem = VolumeShowNumbers.Items[0];
-                _numberOfTensToBeDrawn = 0;
-            }
-
-            VolumeShowNumbers.SelectionChanged += VolumeShowNumbers_SelectionChanged;
-            TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
-        }
-
-        private void PaintVolumeOnChart(List<Position> positionsAll)
-        {
-            if (!GridTabPrime.Dispatcher.CheckAccess())
-            {
-                GridTabPrime.Dispatcher.Invoke(
-                    new Action<List<Position>>(PaintVolumeOnChart), positionsAll);
-                return;
-            }
-
-            if (_chartVolume == null)
-            {
-                CreateChartVolumeControls();
-            }
-
-            UpdateVolumeShowNumbers(positionsAll);
-
-            _chartVolume.Series.Clear();
-            _chartVolume.ChartAreas.Clear();
-
-            if(positionsAll == null 
-                || positionsAll.Count == 0)
-            {
-                return;
-            }
-
-            //  take the number of tools
-            // берём кол-во инструментов
-            List<VolumeSecurity> volumes = new List<VolumeSecurity>();
-
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-                if (volumes.Find(vol => vol.Security == positionsAll[i].SecurityName) == null)
+                if (volumes.Count == 0)
                 {
-                    volumes.Add(new VolumeSecurity() { Security = positionsAll[i].SecurityName });
-                }
-            }
-
-            if (volumes.Count == 0)
-            {
-                return;
-            }
-            // create a common time line with all the changes
-            // создаём общую линию времени со всеми изменениями
-
-            List<DateTime> allChange = new List<DateTime>();
-
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-
-                if (allChange.FindIndex(chnge => chnge == positionsAll[i].TimeCreate) == -1)
-                {
-                    allChange.Add(positionsAll[i].TimeCreate);
+                    TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
+                    return;
                 }
 
-                if (positionsAll[i].State == PositionStateType.Done)
+                for (int i = 0; i < volumes.Count; i += 10)
                 {
-                    if (allChange.FindIndex(chnge => chnge == positionsAll[i].TimeClose) == -1)
+                    string value = (i + 1) + " >> " + (i + 10);
+                    VolumeShowNumbers.Items.Add(value);
+                }
+
+                if (lastSelectedValue != null)
+                {
+                    for (int i = 0; i < VolumeShowNumbers.Items.Count; i++)
                     {
-                        allChange.Add(positionsAll[i].TimeClose);
-                    }
-                }
-            }
-
-            List<DateTime> allChangeSort = new List<DateTime>();
-
-            for (int i = 0; i < allChange.Count; i++)
-            {
-                if (allChangeSort.Count == 0 ||
-                    allChangeSort[allChangeSort.Count - 1] <= allChange[i])
-                {
-                    allChangeSort.Add(allChange[i]);
-                }
-                else if (allChangeSort[0] > allChange[i])
-                {
-                    allChangeSort.Insert(0, allChange[i]);
-                }
-                else
-                {
-                    for (int i2 = 0; i2 < allChangeSort.Count; i2++)
-                    {
-                        if (allChangeSort[i2] <= allChange[i] &&
-                            allChangeSort[i2 + 1] >= allChange[i])
+                        if (VolumeShowNumbers.Items[i].ToString() == lastSelectedValue)
                         {
-                            allChangeSort.Insert(i2 + 1, allChange[i]);
+                            VolumeShowNumbers.SelectedIndex = i;
                             break;
                         }
                     }
                 }
-            }
 
-            allChange = allChangeSort;
-
-            for (int i = 0; i < volumes.Count; i++)
-            {
-                volumes[i].Volume = new decimal[allChange.Count].ToList();
-            }
-
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-                VolumeSecurity volume = volumes.Find(vol => vol.Security == positionsAll[i].SecurityName);
-                int indexOpen = allChange.FindIndex(change => change == positionsAll[i].TimeCreate);
-                int indexClose = allChange.FindIndex(change => change == positionsAll[i].TimeClose);
-
-                for (int i2 = indexOpen; i2 < volume.Volume.Count; i2++)
+                if (VolumeShowNumbers.SelectedItem == null)
                 {
-                    if (positionsAll[i].Direction == Side.Buy)
+                    VolumeShowNumbers.SelectedItem = VolumeShowNumbers.Items[0];
+                    _numberOfTensToBeDrawn = 0;
+                }
+
+                VolumeShowNumbers.SelectionChanged += VolumeShowNumbers_SelectionChanged;
+                TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
+        }
+
+        private void PaintVolumeOnChart(List<Position> positionsAll)
+        {
+            try
+            {
+                if (IsErase == true)
+                {
+                    return;
+                }
+
+                if (!GridTabPrime.Dispatcher.CheckAccess())
+                {
+                    GridTabPrime.Dispatcher.Invoke(
+                        new Action<List<Position>>(PaintVolumeOnChart), positionsAll);
+                    return;
+                }
+
+                if (_chartVolume == null)
+                {
+                    CreateChartVolumeControls();
+                }
+
+                UpdateVolumeShowNumbers(positionsAll);
+
+                _chartVolume.Series.Clear();
+                _chartVolume.ChartAreas.Clear();
+
+                if (positionsAll == null
+                    || positionsAll.Count == 0)
+                {
+                    return;
+                }
+
+                //  take the number of tools
+                // берём кол-во инструментов
+                List<VolumeSecurity> volumes = new List<VolumeSecurity>();
+
+                for (int i = 0; i < positionsAll.Count; i++)
+                {
+                    if (volumes.Find(vol => vol.Security == positionsAll[i].SecurityName) == null)
                     {
-                        volume.Volume[i2] += positionsAll[i].MaxVolume;
+                        volumes.Add(new VolumeSecurity() { Security = positionsAll[i].SecurityName });
+                    }
+                }
+
+                if (volumes.Count == 0)
+                {
+                    return;
+                }
+                // create a common time line with all the changes
+                // создаём общую линию времени со всеми изменениями
+
+                List<DateTime> allChange = new List<DateTime>();
+
+                for (int i = 0; i < positionsAll.Count; i++)
+                {
+
+                    if (allChange.FindIndex(chnge => chnge == positionsAll[i].TimeCreate) == -1)
+                    {
+                        allChange.Add(positionsAll[i].TimeCreate);
+                    }
+
+                    if (positionsAll[i].State == PositionStateType.Done)
+                    {
+                        if (allChange.FindIndex(chnge => chnge == positionsAll[i].TimeClose) == -1)
+                        {
+                            allChange.Add(positionsAll[i].TimeClose);
+                        }
+                    }
+                }
+
+                List<DateTime> allChangeSort = new List<DateTime>();
+
+                for (int i = 0; i < allChange.Count; i++)
+                {
+                    if (allChangeSort.Count == 0 ||
+                        allChangeSort[allChangeSort.Count - 1] <= allChange[i])
+                    {
+                        allChangeSort.Add(allChange[i]);
+                    }
+                    else if (allChangeSort[0] > allChange[i])
+                    {
+                        allChangeSort.Insert(0, allChange[i]);
                     }
                     else
                     {
-                        volume.Volume[i2] -= positionsAll[i].MaxVolume;
+                        for (int i2 = 0; i2 < allChangeSort.Count; i2++)
+                        {
+                            if (allChangeSort[i2] <= allChange[i] &&
+                                allChangeSort[i2 + 1] >= allChange[i])
+                            {
+                                allChangeSort.Insert(i2 + 1, allChange[i]);
+                                break;
+                            }
+                        }
                     }
                 }
-                if (positionsAll[i].State == PositionStateType.Done)
+
+                allChange = allChangeSort;
+
+                for (int i = 0; i < volumes.Count; i++)
                 {
-                    for (int i2 = indexClose; i2 < volume.Volume.Count; i2++)
+                    volumes[i].Volume = new decimal[allChange.Count].ToList();
+                }
+
+                for (int i = 0; i < positionsAll.Count; i++)
+                {
+                    VolumeSecurity volume = volumes.Find(vol => vol.Security == positionsAll[i].SecurityName);
+                    int indexOpen = allChange.FindIndex(change => change == positionsAll[i].TimeCreate);
+                    int indexClose = allChange.FindIndex(change => change == positionsAll[i].TimeClose);
+
+                    for (int i2 = indexOpen; i2 < volume.Volume.Count; i2++)
                     {
                         if (positionsAll[i].Direction == Side.Buy)
                         {
-                            volume.Volume[i2] -= positionsAll[i].MaxVolume;
+                            volume.Volume[i2] += positionsAll[i].MaxVolume;
                         }
                         else
                         {
-                            volume.Volume[i2] += positionsAll[i].MaxVolume;
+                            volume.Volume[i2] -= positionsAll[i].MaxVolume;
                         }
+                    }
+                    if (positionsAll[i].State == PositionStateType.Done)
+                    {
+                        for (int i2 = indexClose; i2 < volume.Volume.Count; i2++)
+                        {
+                            if (positionsAll[i].Direction == Side.Buy)
+                            {
+                                volume.Volume[i2] -= positionsAll[i].MaxVolume;
+                            }
+                            else
+                            {
+                                volume.Volume[i2] += positionsAll[i].MaxVolume;
+                            }
 
+                        }
                     }
                 }
-            }
 
-            int volumesStartNum = 0;
+                int volumesStartNum = 0;
 
-            if(_numberOfTensToBeDrawn > 0)
-            {
-                volumesStartNum = _numberOfTensToBeDrawn * 10;
-            }
-
-            for (int i = volumesStartNum; i < volumes.Count && i < volumesStartNum + 10; i++)
-            {
-                if (i % 2 == 0)
+                if (_numberOfTensToBeDrawn > 0)
                 {
-                    PaintValuesVolume(volumes[i].Volume, volumes[i].Security, Color.DeepSkyBlue, allChange);
+                    volumesStartNum = _numberOfTensToBeDrawn * 10;
                 }
-                else
+
+                for (int i = volumesStartNum; i < volumes.Count && i < volumesStartNum + 10; i++)
                 {
-                    PaintValuesVolume(volumes[i].Volume, volumes[i].Security, Color.DarkOrange, allChange);
+                    if (i % 2 == 0)
+                    {
+                        PaintValuesVolume(volumes[i].Volume, volumes[i].Security, Color.DeepSkyBlue, allChange);
+                    }
+                    else
+                    {
+                        PaintValuesVolume(volumes[i].Volume, volumes[i].Security, Color.DarkOrange, allChange);
+                    }
+                }
+
+                //float step = (float)(100m / _chartVolume.ChartAreas.Count);
+
+                float step = 10;
+
+                float y = 0;
+
+                for (int i = 0; i < _chartVolume.ChartAreas.Count; i++)
+                {
+                    _chartVolume.ChartAreas[i].Position.Width = 100;
+                    _chartVolume.ChartAreas[i].Position.Height = step;
+                    _chartVolume.ChartAreas[i].Position.Y = y;
+                    _chartVolume.ChartAreas[i].AlignWithChartArea = _chartVolume.ChartAreas[0].Name;
+                    y += step;
                 }
             }
-
-            //float step = (float)(100m / _chartVolume.ChartAreas.Count);
-
-            float step = 10;
-
-            float y = 0;
-
-            for (int i = 0; i < _chartVolume.ChartAreas.Count; i++)
+            catch(Exception error)
             {
-                _chartVolume.ChartAreas[i].Position.Width = 100;
-                _chartVolume.ChartAreas[i].Position.Height = step;
-                _chartVolume.ChartAreas[i].Position.Y = y;
-                _chartVolume.ChartAreas[i].AlignWithChartArea = _chartVolume.ChartAreas[0].Name;
-                y += step;
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
         }
 
         private void PaintValuesVolume(List<decimal> volume, string name, Color color, List<DateTime> times)
         {
-            if (volume == null ||
-                volume.Count == 0)
+            try
             {
-                return;
-            }
-
-            ChartArea areaLineSecurity = new ChartArea("ChartArea" + name);
-
-            areaLineSecurity.CursorX.IsUserSelectionEnabled = true; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
-            areaLineSecurity.CursorX.IsUserEnabled = true; //trait/чертa
-
-            areaLineSecurity.BorderColor = Color.Black;
-            areaLineSecurity.BackColor = Color.FromArgb(17, 18, 23);
-            areaLineSecurity.CursorY.LineColor = Color.Gainsboro;
-            areaLineSecurity.CursorX.LineColor = Color.Black;
-            areaLineSecurity.AxisX.TitleForeColor = Color.Gainsboro;
-            areaLineSecurity.AxisY.TitleForeColor = Color.Gainsboro;
-            areaLineSecurity.AxisY2.IntervalAutoMode = IntervalAutoMode.FixedCount;
-            areaLineSecurity.AxisY2.Enabled = AxisEnabled.False;
-            foreach (var axe in areaLineSecurity.Axes)
-            {
-                axe.LabelStyle.ForeColor = Color.Gainsboro;
-            }
-
-            _chartVolume.ChartAreas.Add(areaLineSecurity);
-
-            Series volumeSeries = new Series("Series" + name);
-            volumeSeries.ChartType = SeriesChartType.Line;
-            volumeSeries.Color = color;
-            volumeSeries.YAxisType = AxisType.Secondary;
-            volumeSeries.ChartArea = areaLineSecurity.Name;
-            volumeSeries.BorderWidth = 3;
-            volumeSeries.ShadowOffset = 2;
-
-            decimal maxVolume = 0;
-            decimal minVolume = decimal.MaxValue;
-
-            for (int i = 0; i < volume.Count; i++)
-            {
-                if (volume[i] > maxVolume)
-                {
-                    maxVolume = volume[i];
-                }
-                if (volume[i] < minVolume)
-                {
-                    minVolume = volume[i];
-                }
-                volumeSeries.Points.Add(Convert.ToDouble(volume[i]));
-                volumeSeries.Points[volumeSeries.Points.Count - 1].AxisLabel =
-                times[i].ToString(_currentCulture);
-            }
-
-            _chartVolume.Series.Add(volumeSeries);
-
-            Series nameSeries = new Series("Name" + name);
-            nameSeries.ChartType = SeriesChartType.Point;
-            nameSeries.Color = Color.White;
-            nameSeries.YAxisType = AxisType.Secondary;
-            nameSeries.ChartArea = areaLineSecurity.Name;
-            nameSeries.BorderWidth = 3;
-            nameSeries.ShadowOffset = 2;
-            nameSeries.MarkerStyle = MarkerStyle.Square;
-            nameSeries.MarkerSize = 4;
-
-            nameSeries.Points.Add(Convert.ToDouble(maxVolume));
-            nameSeries.Points[0].Label = name;
-            nameSeries.Points[0].LabelForeColor = Color.White;
-
-
-            _chartVolume.Series.Add(nameSeries);
-
-            areaLineSecurity.AxisY2.Maximum = Convert.ToDouble(maxVolume + (maxVolume*0.05m));
-            areaLineSecurity.AxisY2.Minimum = Convert.ToDouble(minVolume - (maxVolume * 0.05m));
-
-            double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
-
-            areaLineSecurity.AxisY2.Interval = interval;
-
-        }
-
-        void _chartVolume_Click(object sender, EventArgs e)
-        {
-            if (_chartVolume.ChartAreas.Count == 0)
-            {
-                return;
-            }
-            if (double.IsNaN(_chartVolume.ChartAreas[0].CursorX.Position) ||
-                _chartVolume.ChartAreas[0].CursorX.Position == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _chartVolume.Series.Count; i++)
-            {
-                if (_chartVolume.Series[i].Points.Count == 1)
-                {
-                    continue;
-                }
-                for (int i2 = 0; i2 < _chartVolume.Series[i].Points.Count; i2++)
-                {
-                    _chartVolume.Series[i].Points[i2].Label = "";
-                }
-            }
-
-            for (int i = 0; i < _chartVolume.Series.Count; i++)
-            {
-                if (_chartVolume.Series[i].Points.Count == 1)
-                {
-                    continue;
-                }
-                string label = "";
-
-                int index = Convert.ToInt32(_chartVolume.ChartAreas[0].CursorX.Position) - 1;
-
-                if (index >= _chartVolume.Series[i].Points.Count)
+                if (volume == null ||
+      volume.Count == 0)
                 {
                     return;
                 }
 
-                if (!string.IsNullOrWhiteSpace(_chartVolume.Series[i].Points[index].AxisLabel))
+                ChartArea areaLineSecurity = new ChartArea("ChartArea" + name);
+
+                areaLineSecurity.CursorX.IsUserSelectionEnabled = true; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaLineSecurity.CursorX.IsUserEnabled = true; //trait/чертa
+
+                areaLineSecurity.BorderColor = Color.Black;
+                areaLineSecurity.BackColor = Color.FromArgb(17, 18, 23);
+                areaLineSecurity.CursorY.LineColor = Color.Gainsboro;
+                areaLineSecurity.CursorX.LineColor = Color.Black;
+                areaLineSecurity.AxisX.TitleForeColor = Color.Gainsboro;
+                areaLineSecurity.AxisY.TitleForeColor = Color.Gainsboro;
+                areaLineSecurity.AxisY2.IntervalAutoMode = IntervalAutoMode.FixedCount;
+                areaLineSecurity.AxisY2.Enabled = AxisEnabled.False;
+                foreach (var axe in areaLineSecurity.Axes)
                 {
-                    label += _chartVolume.Series[i].Points[index].AxisLabel + "\n";
+                    axe.LabelStyle.ForeColor = Color.Gainsboro;
                 }
 
-                label += _chartVolume.Series[i].Points[index].YValues[0];
+                _chartVolume.ChartAreas.Add(areaLineSecurity);
 
-                _chartVolume.Series[i].Points[index].Label = label;
-                _chartVolume.Series[i].Points[index].LabelForeColor = _chartVolume.Series[i].Points[index].Color;
-                _chartVolume.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
+                Series volumeSeries = new Series("Series" + name);
+                volumeSeries.ChartType = SeriesChartType.Line;
+                volumeSeries.Color = color;
+                volumeSeries.YAxisType = AxisType.Secondary;
+                volumeSeries.ChartArea = areaLineSecurity.Name;
+                volumeSeries.BorderWidth = 3;
+                volumeSeries.ShadowOffset = 2;
+
+                decimal maxVolume = 0;
+                decimal minVolume = decimal.MaxValue;
+
+                for (int i = 0; i < volume.Count; i++)
+                {
+                    if (volume[i] > maxVolume)
+                    {
+                        maxVolume = volume[i];
+                    }
+                    if (volume[i] < minVolume)
+                    {
+                        minVolume = volume[i];
+                    }
+                    volumeSeries.Points.Add(Convert.ToDouble(volume[i]));
+                    volumeSeries.Points[volumeSeries.Points.Count - 1].AxisLabel =
+                    times[i].ToString(_currentCulture);
+                }
+
+                _chartVolume.Series.Add(volumeSeries);
+
+                Series nameSeries = new Series("Name" + name);
+                nameSeries.ChartType = SeriesChartType.Point;
+                nameSeries.Color = Color.White;
+                nameSeries.YAxisType = AxisType.Secondary;
+                nameSeries.ChartArea = areaLineSecurity.Name;
+                nameSeries.BorderWidth = 3;
+                nameSeries.ShadowOffset = 2;
+                nameSeries.MarkerStyle = MarkerStyle.Square;
+                nameSeries.MarkerSize = 4;
+
+                nameSeries.Points.Add(Convert.ToDouble(maxVolume));
+                nameSeries.Points[0].Label = name;
+                nameSeries.Points[0].LabelForeColor = Color.White;
+
+
+                _chartVolume.Series.Add(nameSeries);
+
+                areaLineSecurity.AxisY2.Maximum = Convert.ToDouble(maxVolume + (maxVolume * 0.05m));
+                areaLineSecurity.AxisY2.Minimum = Convert.ToDouble(minVolume - (maxVolume * 0.05m));
+
+                double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
+
+                areaLineSecurity.AxisY2.Interval = interval;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
+        }
+
+        void _chartVolume_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_chartVolume.ChartAreas.Count == 0)
+                {
+                    return;
+                }
+                if (double.IsNaN(_chartVolume.ChartAreas[0].CursorX.Position) ||
+                    _chartVolume.ChartAreas[0].CursorX.Position == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _chartVolume.Series.Count; i++)
+                {
+                    if (_chartVolume.Series[i].Points.Count == 1)
+                    {
+                        continue;
+                    }
+                    for (int i2 = 0; i2 < _chartVolume.Series[i].Points.Count; i2++)
+                    {
+                        _chartVolume.Series[i].Points[i2].Label = "";
+                    }
+                }
+
+                for (int i = 0; i < _chartVolume.Series.Count; i++)
+                {
+                    if (_chartVolume.Series[i].Points.Count == 1)
+                    {
+                        continue;
+                    }
+                    string label = "";
+
+                    int index = Convert.ToInt32(_chartVolume.ChartAreas[0].CursorX.Position) - 1;
+
+                    if (index >= _chartVolume.Series[i].Points.Count)
+                    {
+                        return;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(_chartVolume.Series[i].Points[index].AxisLabel))
+                    {
+                        label += _chartVolume.Series[i].Points[index].AxisLabel + "\n";
+                    }
+
+                    label += _chartVolume.Series[i].Points[index].YValues[0];
+
+                    _chartVolume.Series[i].Points[index].Label = label;
+                    _chartVolume.Series[i].Points[index].LabelForeColor = _chartVolume.Series[i].Points[index].Color;
+                    _chartVolume.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
+                }
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
         }
 
@@ -1376,25 +1466,32 @@ namespace OsEngine.Journal
 
         private void VolumeShowNumbers_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (VolumeShowNumbers.SelectedValue == null
-                || VolumeShowNumbers.Items == null
-                || VolumeShowNumbers.Items.Count == 0)
+            try
             {
-                _numberOfTensToBeDrawn = 0;
-                return;
-            }
-
-            string selectedValue = VolumeShowNumbers.SelectedValue.ToString();
-
-            for (int i = 0; i < VolumeShowNumbers.Items.Count; i++)
-            {
-                if (VolumeShowNumbers.Items[i].ToString() == selectedValue)
+                if (VolumeShowNumbers.SelectedValue == null
+                    || VolumeShowNumbers.Items == null
+                    || VolumeShowNumbers.Items.Count == 0)
                 {
-                    _numberOfTensToBeDrawn = i;
-                    break;
+                    _numberOfTensToBeDrawn = 0;
+                    return;
                 }
+
+                string selectedValue = VolumeShowNumbers.SelectedValue.ToString();
+
+                for (int i = 0; i < VolumeShowNumbers.Items.Count; i++)
+                {
+                    if (VolumeShowNumbers.Items[i].ToString() == selectedValue)
+                    {
+                        _numberOfTensToBeDrawn = i;
+                        break;
+                    }
+                }
+                RePaint();
             }
-            RePaint();
+            catch(Exception error) 
+            { 
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1459,81 +1556,88 @@ namespace OsEngine.Journal
 
         private void _chartDd_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_chartDd.ChartAreas[0].AxisX.ScaleView.Size == double.NaN)
-            {
-                return;
-            }
-
-            if(_chartDd.Series == null 
-                || _chartDd.Series.Count == 0)
-            {
-                return;
-            }
-
-            int curCountOfPoints = _chartDd.Series[0].Points.Count;
-
-            double sizeArea = _chartDd.ChartAreas[0].InnerPlotPosition.Size.Width;
-            double allSizeAbs = _chartDd.Size.Width * (sizeArea / 100);
-
-            double onePointLen = allSizeAbs / curCountOfPoints;
-
-            double curMousePosAbs = e.X;
-
-            double curPointNum = curMousePosAbs / onePointLen - 1;
             try
             {
-                curPointNum = Convert.ToDouble(Convert.ToInt32(curPointNum));
-            }
-            catch
-            {
-                return;
-            }
+                if (_chartDd.ChartAreas[0].AxisX.ScaleView.Size == double.NaN)
+                {
+                    return;
+                }
 
-            if (_chartDd.ChartAreas[0].CursorX.Position != curPointNum)
-            {
-                _chartDd.ChartAreas[0].CursorX.SetCursorPosition(curPointNum);
-            }
+                if (_chartDd.Series == null
+                    || _chartDd.Series.Count == 0)
+                {
+                    return;
+                }
 
-            
+                int curCountOfPoints = _chartDd.Series[0].Points.Count;
 
-            int numPointInt = Convert.ToInt32(curPointNum);
+                double sizeArea = _chartDd.ChartAreas[0].InnerPlotPosition.Size.Width;
+                double allSizeAbs = _chartDd.Size.Width * (sizeArea / 100);
 
-            if (numPointInt <= 0)
-            {
-                return;
-            }
+                double onePointLen = allSizeAbs / curCountOfPoints;
 
-            if (_chartDd.Series[0].Points.Count > _lastSeriesDrawDownPointWithLabel)
-            {
-                _chartDd.Series[0].Points[_lastSeriesDrawDownPointWithLabel].Label = "";
-            }
-            if (_chartDd.Series[0].Points.Count > numPointInt)
-            {
-                _chartDd.Series[0].Points[numPointInt].Label
-                = _chartDd.Series[0].Points[numPointInt].LegendText;
-            }
+                double curMousePosAbs = e.X;
 
-            if (_chartDd.Series[1].Points.Count > _lastSeriesDrawDownPointWithLabel)
-            {
-                _chartDd.Series[1].Points[_lastSeriesDrawDownPointWithLabel].Label = "";
-            }
-            if (_chartDd.Series[1].Points.Count > numPointInt)
-            {
-                _chartDd.Series[1].Points[numPointInt].Label
-                = _chartDd.Series[1].Points[numPointInt].AxisLabel;
-            }
+                double curPointNum = curMousePosAbs / onePointLen - 1;
+                try
+                {
+                    curPointNum = Convert.ToDouble(Convert.ToInt32(curPointNum));
+                }
+                catch
+                {
+                    return;
+                }
 
-            if (_chartDd.Series[2].Points.Count > _lastSeriesDrawDownPointWithLabel)
-            {
-                _chartDd.Series[2].Points[_lastSeriesDrawDownPointWithLabel].Label = "";
-            }
-            if (_chartDd.Series[2].Points.Count > numPointInt)
-            {
-                _chartDd.Series[2].Points[numPointInt].Label
-                = _chartDd.Series[2].Points[numPointInt].LegendText;
-            }
+                if (_chartDd.ChartAreas[0].CursorX.Position != curPointNum)
+                {
+                    _chartDd.ChartAreas[0].CursorX.SetCursorPosition(curPointNum);
+                }
 
-            _lastSeriesDrawDownPointWithLabel = numPointInt;
+
+
+                int numPointInt = Convert.ToInt32(curPointNum);
+
+                if (numPointInt <= 0)
+                {
+                    return;
+                }
+
+                if (_chartDd.Series[0].Points.Count > _lastSeriesDrawDownPointWithLabel)
+                {
+                    _chartDd.Series[0].Points[_lastSeriesDrawDownPointWithLabel].Label = "";
+                }
+                if (_chartDd.Series[0].Points.Count > numPointInt)
+                {
+                    _chartDd.Series[0].Points[numPointInt].Label
+                    = _chartDd.Series[0].Points[numPointInt].LegendText;
+                }
+
+                if (_chartDd.Series[1].Points.Count > _lastSeriesDrawDownPointWithLabel)
+                {
+                    _chartDd.Series[1].Points[_lastSeriesDrawDownPointWithLabel].Label = "";
+                }
+                if (_chartDd.Series[1].Points.Count > numPointInt)
+                {
+                    _chartDd.Series[1].Points[numPointInt].Label
+                    = _chartDd.Series[1].Points[numPointInt].AxisLabel;
+                }
+
+                if (_chartDd.Series[2].Points.Count > _lastSeriesDrawDownPointWithLabel)
+                {
+                    _chartDd.Series[2].Points[_lastSeriesDrawDownPointWithLabel].Label = "";
+                }
+                if (_chartDd.Series[2].Points.Count > numPointInt)
+                {
+                    _chartDd.Series[2].Points[numPointInt].Label
+                    = _chartDd.Series[2].Points[numPointInt].LegendText;
+                }
+
+                _lastSeriesDrawDownPointWithLabel = numPointInt;
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
         }
 
         private int _lastSeriesDrawDownPointWithLabel;
@@ -1731,33 +1835,47 @@ namespace OsEngine.Journal
 
         private void CreateOpenPositionTable()
         {
-            _openPositionGrid = CreateNewTable();
-            HostOpenPosition.Child = _openPositionGrid;
-            _openPositionGrid.Click += _openPositionGrid_Click;
-            _openPositionGrid.DoubleClick += _openPositionGrid_DoubleClick;
+            try
+            {
+                _openPositionGrid = CreateNewTable();
+                HostOpenPosition.Child = _openPositionGrid;
+                _openPositionGrid.Click += _openPositionGrid_Click;
+                _openPositionGrid.DoubleClick += _openPositionGrid_DoubleClick;
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage (ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void PaintOpenPositionGrid(List<Position> positionsAll)
         {
-            if (_openPositionGrid == null)
+            try
             {
-                CreateOpenPositionTable();
-            }
-            _openPositionGrid.Rows.Clear();
-
-            if (positionsAll == null
-                || positionsAll.Count == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-                if (positionsAll[i].State != PositionStateType.Done &&
-                    positionsAll[i].State != PositionStateType.OpeningFail)
+                if (_openPositionGrid == null)
                 {
-                    _openPositionGrid.Rows.Insert(0, GetRow(positionsAll[i]));
+                    CreateOpenPositionTable();
                 }
+                _openPositionGrid.Rows.Clear();
+
+                if (positionsAll == null
+                    || positionsAll.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < positionsAll.Count; i++)
+                {
+                    if (positionsAll[i].State != PositionStateType.Done &&
+                        positionsAll[i].State != PositionStateType.OpeningFail)
+                    {
+                        _openPositionGrid.Rows.Insert(0, GetRow(positionsAll[i]));
+                    }
+                }
+            }
+            catch( Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error); 
             }
         }
 
@@ -1898,14 +2016,14 @@ namespace OsEngine.Journal
 
         private void _openPositionGrid_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
             try
             {
+                MouseEventArgs mouse = (MouseEventArgs)e;
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 List<MenuItem> items = new List<MenuItem>();
 
                 items.Add(new MenuItem { Text = OsLocalization.Journal.PositionMenuItem8 });
@@ -1944,9 +2062,12 @@ namespace OsEngine.Journal
         private void OpenDealMoreInfo_Click(object sender, EventArgs e)
         {
             int number;
+
             try
             {
-                if(_openPositionGrid.CurrentCell == null)
+              
+
+                if (_openPositionGrid.CurrentCell == null)
                 {
                     return;
                 }
@@ -1969,6 +2090,7 @@ namespace OsEngine.Journal
             }
 
             int number;
+
             try
             {
                 number = Convert.ToInt32(_openPositionGrid.Rows[_openPositionGrid.CurrentCell.RowIndex].Cells[0].Value);
@@ -2024,24 +2146,31 @@ namespace OsEngine.Journal
 
         private void OpenDealCreatePosition_Click(object sender, EventArgs e)
         {
-            if (_botsJournals == null ||
-                _botsJournals.Count == 0)
+            try
             {
-                return;
+                if (_botsJournals == null ||
+                    _botsJournals.Count == 0)
+                {
+                    return;
+                }
+
+                int number = ((MenuItem)sender).Index;
+
+                string botName = _botsJournals[number].BotName;
+
+                Position newPos = new Position();
+
+                newPos.Number = NumberGen.GetNumberDeal(_startProgram);
+                newPos.NameBot = botName;
+                _botsJournals[number]._Tabs[0].Journal.SetNewDeal(newPos);
+
+
+                RePaint();
             }
-
-            int number = ((MenuItem)sender).Index;
-
-            string botName = _botsJournals[number].BotName;
-
-            Position newPos = new Position();
-
-            newPos.Number = NumberGen.GetNumberDeal(_startProgram);
-            newPos.NameBot = botName;
-            _botsJournals[number]._Tabs[0].Journal.SetNewDeal(newPos);
-
-
-            RePaint();
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -2052,94 +2181,113 @@ namespace OsEngine.Journal
 
         private void CreateClosePositionTable()
         {
-
-            _closePositionGrid = CreateNewTable();
-            HostClosePosition.Child = _closePositionGrid;
-            _closePositionGrid.Click += _closePositionGrid_Click;
-            _closePositionGrid.DoubleClick += _closePositionGrid_DoubleClick;
+            try
+            {
+                _closePositionGrid = CreateNewTable();
+                HostClosePosition.Child = _closePositionGrid;
+                _closePositionGrid.Click += _closePositionGrid_Click;
+                _closePositionGrid.DoubleClick += _closePositionGrid_DoubleClick;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void PaintClosePositionGrid(List<Position> positionsAll)
         {
-            if (_closePositionGrid == null)
+            try
             {
-                CreateClosePositionTable();
-            }
-            _closePositionGrid.Rows.Clear();
-
-            if (positionsAll == null
-                || positionsAll.Count == 0)
-            {
-                return;
-            }
-
-            List<Position> closePositions = new List<Position>();
-
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-                if (positionsAll[i].State == PositionStateType.Done ||
-                    positionsAll[i].State == PositionStateType.OpeningFail)
+                if (_closePositionGrid == null)
                 {
-                    closePositions.Add(positionsAll[i]);
+                    CreateClosePositionTable();
                 }
-            }
+                _closePositionGrid.Rows.Clear();
 
-            if (closePositions.Count == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < closePositions.Count; i++)
-            {
-                for (int i2 = i; i2 < closePositions.Count; i2++)
+                if (positionsAll == null
+                    || positionsAll.Count == 0)
                 {
-                    if (closePositions[i].TimeClose > closePositions[i2].TimeClose)
+                    return;
+                }
+
+                List<Position> closePositions = new List<Position>();
+
+                for (int i = 0; i < positionsAll.Count; i++)
+                {
+                    if (positionsAll[i].State == PositionStateType.Done ||
+                        positionsAll[i].State == PositionStateType.OpeningFail)
                     {
-                        Position pos = closePositions[i2];
-                        closePositions[i2] = closePositions[i];
-                        closePositions[i] = pos;
+                        closePositions.Add(positionsAll[i]);
                     }
                 }
+
+                if (closePositions.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < closePositions.Count; i++)
+                {
+                    for (int i2 = i; i2 < closePositions.Count; i2++)
+                    {
+                        if (closePositions[i].TimeClose > closePositions[i2].TimeClose)
+                        {
+                            Position pos = closePositions[i2];
+                            closePositions[i2] = closePositions[i];
+                            closePositions[i] = pos;
+                        }
+                    }
+                }
+
+                for (int i = 0; i < closePositions.Count; i++)
+                {
+                    _closePositionGrid.Rows.Insert(0, GetRow(closePositions[i]));
+                }
             }
-
-
-
-            for (int i = 0; i < closePositions.Count; i++)
+            catch(Exception ex )
             {
-                _closePositionGrid.Rows.Insert(0, GetRow(closePositions[i]));
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
         private void _closePositionGrid_DoubleClick(object sender, EventArgs e)
         {
-            if (_closePositionGrid.Rows.Count == 0)
-            {
-                return;
-            }
-
-            int number;
             try
             {
-                number = Convert.ToInt32(_closePositionGrid.Rows[_closePositionGrid.CurrentCell.RowIndex].Cells[0].Value);
-            }
-            catch (Exception)
-            {
-                return;
-            }
+                if (_closePositionGrid.Rows.Count == 0)
+                {
+                    return;
+                }
 
-            ShowPositionDialog(number);
+                int number;
+
+                try
+                {
+                    number = Convert.ToInt32(_closePositionGrid.Rows[_closePositionGrid.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                ShowPositionDialog(number);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage (ex.ToString(),LogMessageType.Error); 
+            }
         }
 
         private void _closePositionGrid_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
             try
             {
+                MouseEventArgs mouse = (MouseEventArgs)e;
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 MenuItem[] items = new MenuItem[4];
 
                 items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem8 };
@@ -2238,8 +2386,6 @@ namespace OsEngine.Journal
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-
         }
 
         private void CloseDealMoreInfo_Click(object sender, EventArgs e)
@@ -2263,76 +2409,90 @@ namespace OsEngine.Journal
 
         private void CloseDealDelete_Click(object sender, EventArgs e)
         {
-            int number;
             try
             {
-                if(_closePositionGrid.CurrentCell == null)
+                int number;
+                try
+                {
+                    if (_closePositionGrid.CurrentCell == null)
+                    {
+                        return;
+                    }
+                    number = Convert.ToInt32(_closePositionGrid.Rows[_closePositionGrid.CurrentCell.RowIndex].Cells[0].Value);
+                }
+                catch (Exception)
                 {
                     return;
                 }
-                number = Convert.ToInt32(_closePositionGrid.Rows[_closePositionGrid.CurrentCell.RowIndex].Cells[0].Value);
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                DeletePosition(number);
+
+                RePaint();
             }
-            catch (Exception)
+            catch(Exception error)
             {
-                return;
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
-
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
-            ui.ShowDialog();
-
-            if (ui.UserAcceptActioin == false)
-            {
-                return;
-            }
-
-            DeletePosition(number);
-
-            RePaint();
         }
 
         private void CloseDealClearAll_Click(object sender, EventArgs e)
         {
-            List<int> numbers = new List<int>();
             try
             {
-                for (int i = 0; i < _closePositionGrid.Rows.Count; i++)
+                List<int> numbers = new List<int>();
+                try
                 {
-                    numbers.Add(Convert.ToInt32(_closePositionGrid.Rows[i].Cells[0].Value));
-                }
-                List<Position> poses = new List<Position>();
-
-                for (int i = 0; i < _botsJournals.Count; i++)
-                {
-                    for (int j = 0; j < _botsJournals[i]._Tabs.Count; j++)
+                    for (int i = 0; i < _closePositionGrid.Rows.Count; i++)
                     {
-                        poses.AddRange(_botsJournals[i]._Tabs[j].Journal.AllPosition.FindAll(p => p.State == PositionStateType.OpeningFail));
+                        numbers.Add(Convert.ToInt32(_closePositionGrid.Rows[i].Cells[0].Value));
                     }
-                }
+                    List<Position> poses = new List<Position>();
 
-                for (int i = 0; i < poses.Count; i++)
+                    for (int i = 0; i < _botsJournals.Count; i++)
+                    {
+                        for (int j = 0; j < _botsJournals[i]._Tabs.Count; j++)
+                        {
+                            poses.AddRange(_botsJournals[i]._Tabs[j].Journal.AllPosition.FindAll(p => p.State == PositionStateType.OpeningFail));
+                        }
+                    }
+
+                    for (int i = 0; i < poses.Count; i++)
+                    {
+                        numbers.Add(poses[i].Number);
+                    }
+
+                }
+                catch (Exception)
                 {
-                    numbers.Add(poses[i].Number);
+                    return;
                 }
 
-            }
-            catch (Exception)
-            {
-                return;
-            }
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message4);
+                ui.ShowDialog();
 
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message4);
-            ui.ShowDialog();
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
 
-            if (ui.UserAcceptActioin == false)
-            {
-                return;
+                for (int i = 0; i < numbers.Count; i++)
+                {
+                    DeletePosition(numbers[i]);
+                }
+                RePaint();
             }
-
-            for (int i = 0; i < numbers.Count; i++)
+            catch(Exception error )
             {
-                DeletePosition(numbers[i]);
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
-            RePaint();
         }
 
         #endregion
@@ -2343,99 +2503,113 @@ namespace OsEngine.Journal
 
         private void CreateBotsGrid()
         {
-            _gridLeftBotsPanel
-                = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
+            try
+            {
+                _gridLeftBotsPanel
+    = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
 
-            _gridLeftBotsPanel.AllowUserToResizeRows = true;
-            _gridLeftBotsPanel.ScrollBars = ScrollBars.Vertical;
+                _gridLeftBotsPanel.AllowUserToResizeRows = true;
+                _gridLeftBotsPanel.ScrollBars = ScrollBars.Vertical;
 
-            CustomDataGridViewCell cell0 = new CustomDataGridViewCell();
-            cell0.Style = _gridLeftBotsPanel.DefaultCellStyle;
+                CustomDataGridViewCell cell0 = new CustomDataGridViewCell();
+                cell0.Style = _gridLeftBotsPanel.DefaultCellStyle;
 
-            DataGridViewComboBoxColumn column0 = new DataGridViewComboBoxColumn();
-            //column0.CellTemplate = cell0;
-            column0.HeaderText = OsLocalization.Journal.Label9;
-            column0.ReadOnly = false;
-            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                DataGridViewComboBoxColumn column0 = new DataGridViewComboBoxColumn();
+                //column0.CellTemplate = cell0;
+                column0.HeaderText = OsLocalization.Journal.Label9;
+                column0.ReadOnly = false;
+                column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-            _gridLeftBotsPanel.Columns.Add(column0);
+                _gridLeftBotsPanel.Columns.Add(column0);
 
-            DataGridViewColumn column1 = new DataGridViewColumn();
-            column1.CellTemplate = cell0;
-            column1.HeaderText = @"#";
-            column1.ReadOnly = true;
-            column1.Width = 75;
-            _gridLeftBotsPanel.Columns.Add(column1);
+                DataGridViewColumn column1 = new DataGridViewColumn();
+                column1.CellTemplate = cell0;
+                column1.HeaderText = @"#";
+                column1.ReadOnly = true;
+                column1.Width = 75;
+                _gridLeftBotsPanel.Columns.Add(column1);
 
-            DataGridViewColumn column2 = new DataGridViewColumn();
-            column2.CellTemplate = cell0;
-            column2.HeaderText = OsLocalization.Journal.Label10;
-            column2.ReadOnly = true;
-            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridLeftBotsPanel.Columns.Add(column2);
+                DataGridViewColumn column2 = new DataGridViewColumn();
+                column2.CellTemplate = cell0;
+                column2.HeaderText = OsLocalization.Journal.Label10;
+                column2.ReadOnly = true;
+                column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                _gridLeftBotsPanel.Columns.Add(column2);
 
-            DataGridViewColumn column22 = new DataGridViewColumn();
-            column22.CellTemplate = cell0;
-            column22.HeaderText = OsLocalization.Journal.Label11;
-            column22.ReadOnly = true;
-            column22.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridLeftBotsPanel.Columns.Add(column22);
+                DataGridViewColumn column22 = new DataGridViewColumn();
+                column22.CellTemplate = cell0;
+                column22.HeaderText = OsLocalization.Journal.Label11;
+                column22.ReadOnly = true;
+                column22.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                _gridLeftBotsPanel.Columns.Add(column22);
 
-            DataGridViewCheckBoxColumn column4 = new DataGridViewCheckBoxColumn();
-            column4.HeaderText = OsLocalization.Journal.Label12;
-            column4.ReadOnly = false;
-            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridLeftBotsPanel.Columns.Add(column4);
+                DataGridViewCheckBoxColumn column4 = new DataGridViewCheckBoxColumn();
+                column4.HeaderText = OsLocalization.Journal.Label12;
+                column4.ReadOnly = false;
+                column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                _gridLeftBotsPanel.Columns.Add(column4);
 
-            DataGridViewColumn column5 = new DataGridViewColumn();
-            column5.CellTemplate = cell0;
-            column5.HeaderText = @"Mult %";
-            column5.ReadOnly = false;
-            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridLeftBotsPanel.Columns.Add(column5);
+                DataGridViewColumn column5 = new DataGridViewColumn();
+                column5.CellTemplate = cell0;
+                column5.HeaderText = @"Mult %";
+                column5.ReadOnly = false;
+                column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                _gridLeftBotsPanel.Columns.Add(column5);
 
-            HostBotsSelected.Child = _gridLeftBotsPanel;
-            HostBotsSelected.Child.Show();
+                HostBotsSelected.Child = _gridLeftBotsPanel;
+                HostBotsSelected.Child.Show();
 
-            _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
-            _gridLeftBotsPanel.CellBeginEdit += _gridLeftBotsPanel_CellBeginEdit;
+                _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
+                _gridLeftBotsPanel.CellBeginEdit += _gridLeftBotsPanel_CellBeginEdit;
+            }
+            catch(Exception error )
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
         }
 
         private void PaintBotsGrid()
         {
-            if (!TabControlPrime.CheckAccess())
+            try
             {
-                TabControlPrime.Dispatcher.Invoke(PaintBotsGrid);
-                return;
+                if (!TabControlPrime.CheckAccess())
+                {
+                    TabControlPrime.Dispatcher.Invoke(PaintBotsGrid);
+                    return;
+                }
+
+                _gridLeftBotsPanel.CellEndEdit -= _gridLeftBotsPanel_CellEndEdit;
+
+                List<PanelGroups> groups = GetGroups(_botsJournals);
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+                List<string> allGroups = GetAllGroups(groups);
+
+
+                for (int i = 0; i < groups.Count; i++)
+                {
+                    rows.AddRange(GetGroupRowList(groups[i], allGroups));
+                }
+
+                int showRowNum = _gridLeftBotsPanel.FirstDisplayedScrollingRowIndex;
+
+                _gridLeftBotsPanel.Rows.Clear();
+
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    _gridLeftBotsPanel.Rows.Add(rows[i]);
+                }
+
+                if (showRowNum > 0)
+                {
+                    _gridLeftBotsPanel.FirstDisplayedScrollingRowIndex = showRowNum;
+                }
+
+                _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
             }
-
-            _gridLeftBotsPanel.CellEndEdit -= _gridLeftBotsPanel_CellEndEdit;
-
-            List<PanelGroups> groups = GetGroups(_botsJournals);
-            List<DataGridViewRow> rows = new List<DataGridViewRow>();
-            List<string> allGroups = GetAllGroups(groups);
-
-
-            for (int i = 0; i < groups.Count; i++)
+            catch(Exception error)
             {
-                rows.AddRange(GetGroupRowList(groups[i], allGroups));
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
-
-            int showRowNum = _gridLeftBotsPanel.FirstDisplayedScrollingRowIndex;
-
-            _gridLeftBotsPanel.Rows.Clear();
-
-            for (int i = 0; i < rows.Count; i++)
-            {
-                _gridLeftBotsPanel.Rows.Add(rows[i]);
-            }
-
-            if (showRowNum > 0)
-            {
-                _gridLeftBotsPanel.FirstDisplayedScrollingRowIndex = showRowNum;
-            }
-
-            _gridLeftBotsPanel.CellEndEdit += _gridLeftBotsPanel_CellEndEdit;
         }
 
         private bool _needToRaPaintBotsGrid;
@@ -2444,20 +2618,28 @@ namespace OsEngine.Journal
         {
             while (true)
             {
-                if (IsErase == true)
+                try
                 {
-                    return;
-                }
+                    if (IsErase == true)
+                    {
+                        return;
+                    }
 
-                if (_needToRaPaintBotsGrid)
-                {
-                    _needToRaPaintBotsGrid = false;
-                    PaintBotsGrid();
-                    RePaint();
+                    if (_needToRaPaintBotsGrid)
+                    {
+                        _needToRaPaintBotsGrid = false;
+                        PaintBotsGrid();
+                        RePaint();
+                    }
+                    else
+                    {
+                        Thread.Sleep(200);
+                    }
                 }
-                else
+                catch(Exception error)
                 {
-                    Thread.Sleep(200);
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
@@ -2537,133 +2719,175 @@ namespace OsEngine.Journal
 
         private List<string> GetAllGroups(List<PanelGroups> groups)
         {
-            List<string> groupsInStrArray = new List<string>();
-
-            for (int i = 0; i < groups.Count; i++)
+            try
             {
-                groupsInStrArray.Add(groups[i].BotGroup);
+                List<string> groupsInStrArray = new List<string>();
+
+                for (int i = 0; i < groups.Count; i++)
+                {
+                    groupsInStrArray.Add(groups[i].BotGroup);
+                }
+                return groupsInStrArray;
             }
-            return groupsInStrArray;
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
+
+            return null;
         }
 
         private List<DataGridViewRow> GetGroupRowList(PanelGroups group, List<string> groupsAll)
         {
-            List<DataGridViewRow> rows = new List<DataGridViewRow>();
-
-            DataGridViewRow row = new DataGridViewRow();
-
-            DataGridViewComboBoxCell groupBox = new DataGridViewComboBoxCell();
-            groupBox.Items.Add(group.BotGroup);
-            groupBox.Value = group.BotGroup;
-            row.Cells.Add(groupBox); // группа
-            groupBox.ReadOnly = true;
-
-            row.Cells.Add(new DataGridViewTextBoxCell()); // номер
-            row.Cells.Add(new DataGridViewTextBoxCell()); // имя
-            row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
-
-            DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
-            cell.Value = group.Panels[0].IsOn;
-
-            row.Cells.Add(cell); // вкл / выкл
-
-            row.Cells.Add(new DataGridViewTextBoxCell()); // мультипликатор
-            rows.Add(row);
-
-            for (int i = 0; i < group.Panels.Count; i++)
+            try
             {
-                rows.AddRange(GetPanelRowList(group.Panels[i], groupsAll, i + 1));
-            }
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
-            return rows;
+                DataGridViewRow row = new DataGridViewRow();
+
+                DataGridViewComboBoxCell groupBox = new DataGridViewComboBoxCell();
+                groupBox.Items.Add(group.BotGroup);
+                groupBox.Value = group.BotGroup;
+                row.Cells.Add(groupBox); // группа
+                groupBox.ReadOnly = true;
+
+                row.Cells.Add(new DataGridViewTextBoxCell()); // номер
+                row.Cells.Add(new DataGridViewTextBoxCell()); // имя
+                row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
+
+                DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
+                cell.Value = group.Panels[0].IsOn;
+
+                row.Cells.Add(cell); // вкл / выкл
+
+                row.Cells.Add(new DataGridViewTextBoxCell()); // мультипликатор
+                rows.Add(row);
+
+                for (int i = 0; i < group.Panels.Count; i++)
+                {
+                    rows.AddRange(GetPanelRowList(group.Panels[i], groupsAll, i + 1));
+                }
+
+                return rows;
+            }
+            catch(Exception error )
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
+            return null;
         }
 
         private List<DataGridViewRow> GetPanelRowList(BotPanelJournal panel, List<string> groupNames, int panelNum)
         {
-            List<DataGridViewRow> rows = new List<DataGridViewRow>();
-
-            DataGridViewRow row = new DataGridViewRow();
-
-            DataGridViewComboBoxCell groupBox = new DataGridViewComboBoxCell();
-
-            for (int i = 0; i < groupNames.Count; i++)
+            try
             {
-                groupBox.Items.Add(groupNames[i]);
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+                DataGridViewRow row = new DataGridViewRow();
+
+                DataGridViewComboBoxCell groupBox = new DataGridViewComboBoxCell();
+
+                for (int i = 0; i < groupNames.Count; i++)
+                {
+                    groupBox.Items.Add(groupNames[i]);
+                }
+                groupBox.Items.Add("new");
+                groupBox.Value = panel.BotGroup;
+
+                row.Cells.Add(groupBox); // группа
+
+                row.Cells.Add(new DataGridViewTextBoxCell()); // номер
+                row.Cells[row.Cells.Count - 1].Value = panelNum;
+
+                row.Cells.Add(new DataGridViewTextBoxCell()); // имя
+                row.Cells[row.Cells.Count - 1].Value = panel.BotName;
+
+                row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
+                row.Cells[row.Cells.Count - 1].Value = panel.BotClass;
+
+                DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
+                cell.Value = panel.IsOn.ToString();
+
+                row.Cells.Add(cell); // вкл / выкл
+
+                row.Cells.Add(new DataGridViewTextBoxCell()); // мультипликатор
+                row.Cells[row.Cells.Count - 1].Value = panel.Mult.ToString();
+
+                rows.Add(row);
+
+                return rows;
             }
-            groupBox.Items.Add("new");
-            groupBox.Value = panel.BotGroup;
-
-            row.Cells.Add(groupBox); // группа
-
-            row.Cells.Add(new DataGridViewTextBoxCell()); // номер
-            row.Cells[row.Cells.Count - 1].Value = panelNum;
-
-            row.Cells.Add(new DataGridViewTextBoxCell()); // имя
-            row.Cells[row.Cells.Count - 1].Value = panel.BotName;
-
-            row.Cells.Add(new DataGridViewTextBoxCell()); // класс 
-            row.Cells[row.Cells.Count - 1].Value = panel.BotClass;
-
-            DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
-            cell.Value = panel.IsOn.ToString();
-
-            row.Cells.Add(cell); // вкл / выкл
-
-            row.Cells.Add(new DataGridViewTextBoxCell()); // мультипликатор
-            row.Cells[row.Cells.Count - 1].Value = panel.Mult.ToString();
-
-            rows.Add(row);
-
-            return rows;
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         private List<PanelGroups> GetGroups(List<BotPanelJournal> oldPanels)
         {
-            List<PanelGroups> groups = new List<PanelGroups>();
-
-            for (int i = 0; i < oldPanels.Count; i++)
+            try
             {
-                PanelGroups myGroup = groups.Find(g => g.BotGroup == oldPanels[i].BotGroup);
+                List<PanelGroups> groups = new List<PanelGroups>();
 
-                if (myGroup == null)
+                for (int i = 0; i < oldPanels.Count; i++)
                 {
-                    myGroup = new PanelGroups();
-                    myGroup.BotGroup = oldPanels[i].BotGroup;
-                    groups.Add(myGroup);
+                    PanelGroups myGroup = groups.Find(g => g.BotGroup == oldPanels[i].BotGroup);
+
+                    if (myGroup == null)
+                    {
+                        myGroup = new PanelGroups();
+                        myGroup.BotGroup = oldPanels[i].BotGroup;
+                        groups.Add(myGroup);
+                    }
+
+                    myGroup.Panels.Add(oldPanels[i]);
                 }
 
-                myGroup.Panels.Add(oldPanels[i]);
+                return groups;
             }
-
-            return groups;
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         private List<Journal> GetActiveJournals()
         {
-            List<Journal> journals = new List<Journal>();
-
-            for (int i = 0; i < _botsJournals.Count; i++)
+            try
             {
-                BotPanelJournal panel = _botsJournals[i];
+                List<Journal> journals = new List<Journal>();
 
-                for (int i2 = 0; i2 < panel._Tabs.Count; i2++)
+                for (int i = 0; i < _botsJournals.Count; i++)
                 {
-                    if (panel.IsOn)
+                    BotPanelJournal panel = _botsJournals[i];
+
+                    for (int i2 = 0; i2 < panel._Tabs.Count; i2++)
                     {
-                        journals.Add(panel._Tabs[i2].Journal);
-
-                        List<Position> poses = panel._Tabs[i2].Journal.AllPosition;
-
-                        for (int i3 = 0; poses != null && i3 < poses.Count; i3++)
+                        if (panel.IsOn)
                         {
-                            poses[i3].MultToJournal = panel.Mult;
-                        }
+                            journals.Add(panel._Tabs[i2].Journal);
 
+                            List<Position> poses = panel._Tabs[i2].Journal.AllPosition;
+
+                            for (int i3 = 0; poses != null && i3 < poses.Count; i3++)
+                            {
+                                poses[i3].MultToJournal = panel.Mult;
+                            }
+
+                        }
                     }
                 }
+
+                return journals;
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
 
-            return journals;
+            return null;
         }
 
         private void LoadGroups()
@@ -2748,24 +2972,37 @@ namespace OsEngine.Journal
 
         private void _gridLeftBotsPanel_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
         {
-            if (e.ColumnIndex == 4)
+            try
             {
-                _lastChangeRow = e.RowIndex;
-                Task.Run(ChangeOnOffAwait);
+                if (e.ColumnIndex == 4)
+                {
+                    _lastChangeRow = e.RowIndex;
+                    Task.Run(ChangeOnOffAwait);
+                }
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
         }
 
         private void _gridLeftBotsPanel_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 0)
+            try
             {
-                ChangeGroup(e);
+                if (e.ColumnIndex == 0)
+                {
+                    ChangeGroup(e);
+                }
+                else if (e.ColumnIndex == 5)
+                {
+                    ChangeMult(e);
+                }
             }
-            else if (e.ColumnIndex == 5)
+            catch(Exception error)
             {
-                ChangeMult(e);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         private int _lastChangeRow;
@@ -2778,36 +3015,43 @@ namespace OsEngine.Journal
 
         private void ChangeOnOff(int rowIndx)
         {
-            if (TextBoxFrom.Dispatcher.CheckAccess() == false)
+            try
             {
-                TextBoxFrom.Dispatcher.Invoke(new Action<int>(ChangeOnOff), rowIndx);
-                return;
+                if (TextBoxFrom.Dispatcher.CheckAccess() == false)
+                {
+                    TextBoxFrom.Dispatcher.Invoke(new Action<int>(ChangeOnOff), rowIndx);
+                    return;
+                }
+
+                string textInCell = _gridLeftBotsPanel.Rows[rowIndx].Cells[4].Value.ToString();
+
+                BotPanelJournal bot = GetBotByNum(rowIndx);
+
+                if (bot == null)
+                {
+                    ChangeOnOffByGroup(rowIndx);
+                    return;
+                }
+
+                if (Convert.ToBoolean(textInCell) == false)
+                {
+                    bot.IsOn = true;
+                }
+                else
+                {
+                    bot.IsOn = false;
+                }
+
+                IsSlide = false;
+                SaveGroups();
+                CreatePositionsLists();
+                CreateSlidersShowPositions();
+                _needToRaPaintBotsGrid = true;
             }
-
-            string textInCell = _gridLeftBotsPanel.Rows[rowIndx].Cells[4].Value.ToString();
-
-            BotPanelJournal bot = GetBotByNum(rowIndx);
-
-            if (bot == null)
+            catch(Exception error)
             {
-                ChangeOnOffByGroup(rowIndx);
-                return;
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
-
-            if (Convert.ToBoolean(textInCell) == false)
-            {
-                bot.IsOn = true;
-            }
-            else
-            {
-                bot.IsOn = false;
-            }
-
-            IsSlide = false;
-            SaveGroups();
-            CreatePositionsLists();
-            CreateSlidersShowPositions();
-            _needToRaPaintBotsGrid = true;
         }
 
         private void ChangeOnOffByGroup(int rowIndx)
@@ -2945,37 +3189,65 @@ namespace OsEngine.Journal
 
         private void ButtonHideLeftPanel_Click(object sender, RoutedEventArgs e)
         {
-            HideLeftPanel();
-            SaveSettings();
+            try
+            {
+                HideLeftPanel();
+                SaveSettings();
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
         }
 
         private void ButtonShowLeftPanel_Click(object sender, RoutedEventArgs e)
         {
-            ShowLeftPanel();
-            SaveSettings();
+            try
+            {
+                ShowLeftPanel();
+                SaveSettings();
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
         }
 
         private void HideLeftPanel()
         {
-            // GridTabPrime
-            GridActivBots.Visibility = Visibility.Hidden;
-            ButtonShowLeftPanel.Visibility = Visibility.Visible;
-            GridTabPrime.Margin = new Thickness(0, 0, -0.333, -0.333);
+            try
+            {
+                // GridTabPrime
+                GridActivBots.Visibility = Visibility.Hidden;
+                ButtonShowLeftPanel.Visibility = Visibility.Visible;
+                GridTabPrime.Margin = new Thickness(0, 0, -0.333, -0.333);
 
-            this.MinWidth = 950;
-            this.MinHeight = 300;
-            _leftPanelIsHide = true;
+                this.MinWidth = 950;
+                this.MinHeight = 300;
+                _leftPanelIsHide = true;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ShowLeftPanel()
         {
-            GridActivBots.Visibility = Visibility.Visible;
-            ButtonShowLeftPanel.Visibility = Visibility.Hidden;
-            GridTabPrime.Margin = new Thickness(510, 0, -0.333, -0.333);
+            try
+            {
+                GridActivBots.Visibility = Visibility.Visible;
+                ButtonShowLeftPanel.Visibility = Visibility.Hidden;
+                GridTabPrime.Margin = new Thickness(510, 0, -0.333, -0.333);
 
-            this.MinWidth = 1450;
-            this.MinHeight = 500;
-            _leftPanelIsHide = false;
+                this.MinWidth = 1450;
+                this.MinHeight = 500;
+                _leftPanelIsHide = false;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private string _journalName;
@@ -2988,143 +3260,164 @@ namespace OsEngine.Journal
 
         private void CreatePositionsLists()
         {
-            // 1 collecting all journals.
-            // 1 собираем все журналы
-            List<Journal> myJournals = GetActiveJournals();
-
-            if (myJournals == null
-                || myJournals.Count == 0)
+            try
             {
-                _allPositions?.Clear();
-                _longPositions?.Clear();
-                _shortPositions?.Clear();
-                _startTime = DateTime.MinValue;
-                _endTime = DateTime.MinValue;
+                // 1 collecting all journals.
+                // 1 собираем все журналы
+                List<Journal> myJournals = GetActiveJournals();
 
-                return;
-            }
-            // 2 sorting deals on ALL / Long / Short
-            // 2 сортируем сделки на ВСЕ / Лонг / Шорт
-
-            List<Position> positionsAll = new List<Position>();
-
-            for (int i = 0; i < myJournals.Count; i++)
-            {
-                if (myJournals[i].AllPosition != null) positionsAll.AddRange(myJournals[i].AllPosition);
-            }
-
-            List<Position> newPositionsAll = new List<Position>();
-
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-                Position pose = positionsAll[i];
-
-                if (pose.State == PositionStateType.OpeningFail)
+                if (myJournals == null
+                    || myJournals.Count == 0)
                 {
-                    continue;
+                    _allPositions?.Clear();
+                    _longPositions?.Clear();
+                    _shortPositions?.Clear();
+                    _startTime = DateTime.MinValue;
+                    _endTime = DateTime.MinValue;
+
+                    return;
+                }
+                // 2 sorting deals on ALL / Long / Short
+                // 2 сортируем сделки на ВСЕ / Лонг / Шорт
+
+                List<Position> positionsAll = new List<Position>();
+
+                for (int i = 0; i < myJournals.Count; i++)
+                {
+                    if (myJournals[i].AllPosition != null) positionsAll.AddRange(myJournals[i].AllPosition);
                 }
 
-                DateTime timeCreate = pose.TimeCreate;
+                List<Position> newPositionsAll = new List<Position>();
 
-                if (newPositionsAll.Count == 0 ||
-                    newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= timeCreate)
+                for (int i = 0; i < positionsAll.Count; i++)
                 {
-                    newPositionsAll.Add(pose);
-                }
-                else if (newPositionsAll[0].TimeCreate >= timeCreate)
-                {
-                    newPositionsAll.Insert(0, pose);
-                }
-                else
-                {
-                    for (int i2 = 0; i2 < newPositionsAll.Count - 1; i2++)
+                    Position pose = positionsAll[i];
+
+                    if (pose.State == PositionStateType.OpeningFail)
                     {
-                        if (newPositionsAll[i2].TimeCreate <= timeCreate &&
-                            newPositionsAll[i2 + 1].TimeCreate >= timeCreate)
+                        continue;
+                    }
+
+                    DateTime timeCreate = pose.TimeCreate;
+
+                    if (newPositionsAll.Count == 0 ||
+                        newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= timeCreate)
+                    {
+                        newPositionsAll.Add(pose);
+                    }
+                    else if (newPositionsAll[0].TimeCreate >= timeCreate)
+                    {
+                        newPositionsAll.Insert(0, pose);
+                    }
+                    else
+                    {
+                        for (int i2 = 0; i2 < newPositionsAll.Count - 1; i2++)
                         {
-                            newPositionsAll.Insert(i2 + 1, pose);
-                            break;
+                            if (newPositionsAll[i2].TimeCreate <= timeCreate &&
+                                newPositionsAll[i2 + 1].TimeCreate >= timeCreate)
+                            {
+                                newPositionsAll.Insert(i2 + 1, pose);
+                                break;
+                            }
                         }
                     }
                 }
+
+                positionsAll = newPositionsAll;
+
+                _allPositions = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
+                _longPositions = _allPositions.FindAll(p => p.Direction == Side.Buy);
+                _shortPositions = _allPositions.FindAll(p => p.Direction == Side.Sell);
+
+                if (_allPositions.Count == 0)
+                {
+                    return;
+                }
+
+                if (IsSlide == false)
+                {
+                    _startTime = _allPositions[0].TimeOpen;
+                    _endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
+                    _minTime = _startTime;
+                    _maxTime = _endTime;
+                }
+                else if (IsSlide == true
+                    && (_startTime == DateTime.MinValue
+                    || _endTime == DateTime.MinValue))
+                {
+                    _startTime = _allPositions[0].TimeOpen;
+                    _endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
+                    _minTime = _startTime;
+                    _maxTime = _endTime;
+                }
             }
-
-            positionsAll = newPositionsAll;
-
-            _allPositions = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
-            _longPositions = _allPositions.FindAll(p => p.Direction == Side.Buy);
-            _shortPositions = _allPositions.FindAll(p => p.Direction == Side.Sell);
-
-            if (_allPositions.Count == 0)
+            catch(Exception ex)
             {
-                return;
-            }
-
-            if (IsSlide == false)
-            {
-                _startTime = _allPositions[0].TimeOpen;
-                _endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
-                _minTime = _startTime;
-                _maxTime = _endTime;
-            }
-            else if (IsSlide == true
-                && (_startTime == DateTime.MinValue
-                || _endTime == DateTime.MinValue))
-            {
-                _startTime = _allPositions[0].TimeOpen;
-                _endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
-                _minTime = _startTime;
-                _maxTime = _endTime;
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
         private void DeletePosition(int number)
         {
-            for (int i = 0; i < _botsJournals.Count; i++)
+            try
             {
-                for (int i2 = 0; i2 < _botsJournals[i]._Tabs.Count; i2++)
+                for (int i = 0; i < _botsJournals.Count; i++)
                 {
-                    if (_botsJournals[i]._Tabs[i2].Journal.AllPosition == null)
+                    for (int i2 = 0; i2 < _botsJournals[i]._Tabs.Count; i2++)
                     {
-                        continue;
-                    }
-                    Position pos = _botsJournals[i]._Tabs[i2].Journal.AllPosition.Find(p => p.Number == number);
+                        if (_botsJournals[i]._Tabs[i2].Journal.AllPosition == null)
+                        {
+                            continue;
+                        }
+                        Position pos = _botsJournals[i]._Tabs[i2].Journal.AllPosition.Find(p => p.Number == number);
 
-                    if (pos != null)
-                    {
-                        _botsJournals[i]._Tabs[i2].Journal.DeletePosition(pos);
-                        return;
+                        if (pos != null)
+                        {
+                            _botsJournals[i]._Tabs[i2].Journal.DeletePosition(pos);
+                            return;
+                        }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
         private void ShowPositionDialog(int number)
         {
-            for (int i = 0; i < _botsJournals.Count; i++)
+            try
             {
-                for (int i2 = 0; i2 < _botsJournals[i]._Tabs.Count; i2++)
+                for (int i = 0; i < _botsJournals.Count; i++)
                 {
-                    if (_botsJournals[i]._Tabs[i2].Journal.AllPosition == null)
+                    for (int i2 = 0; i2 < _botsJournals[i]._Tabs.Count; i2++)
                     {
-                        continue;
-                    }
-                    Position pos = _botsJournals[i]._Tabs[i2].Journal.AllPosition.Find(p => p.Number == number);
-
-                    if (pos != null)
-                    {
-                        PositionUi ui = new PositionUi(pos, _startProgram);
-                        ui.ShowDialog();
-
-                        if (ui.PositionChanged)
+                        if (_botsJournals[i]._Tabs[i2].Journal.AllPosition == null)
                         {
-                            _botsJournals[i]._Tabs[i2].Journal.Save();
-                            _botsJournals[i]._Tabs[i2].Journal.NeadToUpdateStatePositions();
-                            RePaint();
+                            continue;
                         }
-                        return;
+                        Position pos = _botsJournals[i]._Tabs[i2].Journal.AllPosition.Find(p => p.Number == number);
+
+                        if (pos != null)
+                        {
+                            PositionUi ui = new PositionUi(pos, _startProgram);
+                            ui.ShowDialog();
+
+                            if (ui.PositionChanged)
+                            {
+                                _botsJournals[i]._Tabs[i2].Journal.Save();
+                                _botsJournals[i]._Tabs[i2].Journal.NeadToUpdateStatePositions();
+                                RePaint();
+                            }
+                            return;
+                        }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3152,121 +3445,155 @@ namespace OsEngine.Journal
 
         private void CreateSlidersShowPositions()
         {
-            SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
-            SliderTo.ValueChanged -= SliderTo_ValueChanged;
-
-            if (_startTime == DateTime.MinValue 
-                || _endTime == DateTime.MinValue)
+            try
             {
-                TextBoxFrom.Text = "";
-                TextBoxTo.Text = "";
-                return;
+                SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
+                SliderTo.ValueChanged -= SliderTo_ValueChanged;
+
+                if (_startTime == DateTime.MinValue
+                    || _endTime == DateTime.MinValue)
+                {
+                    TextBoxFrom.Text = "";
+                    TextBoxTo.Text = "";
+                    return;
+                }
+
+                TextBoxFrom.Text = _startTime.ToString(_currentCulture);
+                TextBoxTo.Text = _endTime.ToString(_currentCulture);
+
+                SliderFrom.Minimum = (_startTime - DateTime.MinValue).TotalMinutes;
+                SliderFrom.Maximum = (_endTime - DateTime.MinValue).TotalMinutes;
+                SliderFrom.Value = (_startTime - DateTime.MinValue).TotalMinutes;
+
+                SliderTo.Minimum = (_startTime - DateTime.MinValue).TotalMinutes;
+                SliderTo.Maximum = (_endTime - DateTime.MinValue).TotalMinutes;
+                SliderTo.Value = (_startTime - DateTime.MinValue).TotalMinutes;
+
+                if (_endTime != DateTime.MinValue &&
+                    SliderFrom.Minimum + SliderTo.Maximum - (_endTime - DateTime.MinValue).TotalMinutes > 0)
+                {
+                    SliderTo.Value =
+                    SliderFrom.Minimum + SliderTo.Maximum - (_endTime - DateTime.MinValue).TotalMinutes;
+                }
+
+                SliderFrom.ValueChanged += SliderFrom_ValueChanged;
+                SliderTo.ValueChanged += SliderTo_ValueChanged;
             }
-
-            TextBoxFrom.Text = _startTime.ToString(_currentCulture);
-            TextBoxTo.Text = _endTime.ToString(_currentCulture);
-
-            SliderFrom.Minimum = (_startTime - DateTime.MinValue).TotalMinutes;
-            SliderFrom.Maximum = (_endTime - DateTime.MinValue).TotalMinutes;
-            SliderFrom.Value = (_startTime - DateTime.MinValue).TotalMinutes;
-
-            SliderTo.Minimum = (_startTime - DateTime.MinValue).TotalMinutes;
-            SliderTo.Maximum = (_endTime - DateTime.MinValue).TotalMinutes;
-            SliderTo.Value = (_startTime - DateTime.MinValue).TotalMinutes;
-
-            if (_endTime != DateTime.MinValue &&
-                SliderFrom.Minimum + SliderTo.Maximum - (_endTime - DateTime.MinValue).TotalMinutes > 0)
+            catch(Exception error)
             {
-                SliderTo.Value =
-                SliderFrom.Minimum + SliderTo.Maximum - (_endTime - DateTime.MinValue).TotalMinutes;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            SliderFrom.ValueChanged += SliderFrom_ValueChanged;
-            SliderTo.ValueChanged += SliderTo_ValueChanged;
-
         }
 
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
-
-            DateTime to = DateTime.MinValue.AddMinutes(SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value);
-            _endTime = to;
-            TextBoxTo.Text = to.ToString(_currentCulture);
-
-            if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
+            try
             {
-                SliderFrom.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value;
+                TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
+
+                DateTime to = DateTime.MinValue.AddMinutes(SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value);
+                _endTime = to;
+                TextBoxTo.Text = to.ToString(_currentCulture);
+
+                if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
+                {
+                    SliderFrom.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value;
+                }
+                TextBoxTo.TextChanged += TextBoxTo_TextChanged;
+                IsSlide = true;
+                SaveSettings();
             }
-            TextBoxTo.TextChanged += TextBoxTo_TextChanged;
-            IsSlide = true;
-            SaveSettings();
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
         }
 
         private void SliderFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
-
-            DateTime from = DateTime.MinValue.AddMinutes(SliderFrom.Value);
-            _startTime = from;
-            TextBoxFrom.Text = from.ToString(_currentCulture);
-
-            if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
+            try
             {
-                SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderFrom.Value;
-            }
+                TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
 
-            TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
-            IsSlide = true;
-            SaveSettings();
+                DateTime from = DateTime.MinValue.AddMinutes(SliderFrom.Value);
+                _startTime = from;
+                TextBoxFrom.Text = from.ToString(_currentCulture);
+
+                if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
+                {
+                    SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderFrom.Value;
+                }
+
+                TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
+                IsSlide = true;
+                SaveSettings();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void TextBoxTo_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            DateTime to;
             try
             {
-                to = Convert.ToDateTime(TextBoxTo.Text, _currentCulture);
-
-                if (to < _minTime ||
-                    to > _maxTime)
+                DateTime to;
+                try
                 {
-                    throw new Exception();
-                }
-            }
-            catch (Exception)
-            {
-                TextBoxTo.Text = _endTime.ToString(_currentCulture);
-                return;
-            }
+                    to = Convert.ToDateTime(TextBoxTo.Text, _currentCulture);
 
-            _endTime = to;
-            // SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - to.Minute;
-            // SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value
-            SliderTo.Value = SliderFrom.Minimum + SliderTo.Maximum - (to - DateTime.MinValue).TotalMinutes;
+                    if (to < _minTime ||
+                        to > _maxTime)
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch (Exception)
+                {
+                    TextBoxTo.Text = _endTime.ToString(_currentCulture);
+                    return;
+                }
+
+                _endTime = to;
+                // SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - to.Minute;
+                // SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value
+                SliderTo.Value = SliderFrom.Minimum + SliderTo.Maximum - (to - DateTime.MinValue).TotalMinutes;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void TextBoxFrom_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            DateTime from;
             try
             {
-                from = Convert.ToDateTime(TextBoxFrom.Text, _currentCulture);
-
-                if (from < _minTime ||
-                    from > _maxTime)
+                DateTime from;
+                try
                 {
-                    throw new Exception();
-                }
-            }
-            catch (Exception)
-            {
-                TextBoxFrom.Text = _startTime.ToString(_currentCulture);
-                return;
-            }
+                    from = Convert.ToDateTime(TextBoxFrom.Text, _currentCulture);
 
-            _startTime = from;
-            SliderFrom.Value = (_startTime - DateTime.MinValue).TotalMinutes;
+                    if (from < _minTime ||
+                        from > _maxTime)
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch (Exception)
+                {
+                    TextBoxFrom.Text = _startTime.ToString(_currentCulture);
+                    return;
+                }
+
+                _startTime = from;
+                SliderFrom.Value = (_startTime - DateTime.MinValue).TotalMinutes;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ButtonReload_Click(object sender, RoutedEventArgs e)
