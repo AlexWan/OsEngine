@@ -103,14 +103,22 @@ namespace OsEngine.Journal
                 botNames += botsJournals[i].BotName;
             }
 
-            _journalName = botNames + startProgram.ToString();
+            if(botsJournals.Count > 1)
+            {
+                _journalName = "Journal2Ui_" + "CommonJournal" + startProgram.ToString();
+            }
+            else
+            {
+                _journalName = "Journal2Ui_" + botNames + startProgram.ToString();
+            }
+            
 
             LoadSettings();
 
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
 
-            GlobalGUILayout.Listen(this, "Journal2Ui_" + startProgram.ToString() + botNames);
+            GlobalGUILayout.Listen(this, _journalName);
         }
 
         private void JournalUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
