@@ -51,7 +51,10 @@ namespace OsEngine.Entity
         /// </summary>
         public Side Side;
 
-        private int _expiresBars;
+        /// <summary>
+        /// Way to open a deal. Limit or Market
+        /// </summary>
+        public OrderPriceType OrderPriceType;
 
         /// <summary>
         /// order lifetime in bars (candle count)
@@ -61,6 +64,7 @@ namespace OsEngine.Entity
             get { return _expiresBars; }
             set { _expiresBars = value; }
         }
+        private int _expiresBars;
 
         /// <summary>
         /// the bar (candle) number at which the order was created
@@ -105,7 +109,8 @@ namespace OsEngine.Entity
             saveStr += _orderCreateBarNumber + "&";
             saveStr += LastCandleTime.ToString(CultureInfo) + "&";
             saveStr += SignalType + "&";
-            saveStr += TimeCreate.ToString(CultureInfo);
+            saveStr += TimeCreate.ToString(CultureInfo) + "&";
+            saveStr += OrderPriceType;
 
             return saveStr;
         }
@@ -128,6 +133,11 @@ namespace OsEngine.Entity
             LastCandleTime = Convert.ToDateTime(savStr[11], CultureInfo);
             SignalType = savStr[12];
             TimeCreate = Convert.ToDateTime(savStr[13], CultureInfo);
+
+            if(savStr.Length > 14)
+            {
+                Enum.TryParse(savStr[14], out OrderPriceType);
+            }
         }
 
         private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");

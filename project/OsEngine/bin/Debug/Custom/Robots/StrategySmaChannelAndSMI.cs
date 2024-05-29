@@ -11,7 +11,7 @@ using System.Drawing;
 /*Discription
 Trading robot for osengine
 
-Robot at the Countertrend SmaChannel And SMI.
+Robot at the trend SmaChannel And SMI.
 
 Buy:
 The candle has closed below the lower SmaChannel line and the stochastic (violet) line is below a certain level.
@@ -25,8 +25,8 @@ We set the stop and profit as a percentage of the entry price.
 
 namespace OsEngine.Robots.MyRobots
 {
-    [Bot("CountertrendSmaChannelAndSMI")] //We create an attribute so that we don't write anything in the Boot factory
-    public class CountertrendSmaChannelAndSMI : BotPanel
+    [Bot("StrategySmaChannelAndSMI")] //We create an attribute so that we don't write anything in the Boot factory
+    public class StrategySmaChannelAndSMI : BotPanel
     {
         BotTabSimple _tab;
 
@@ -62,7 +62,7 @@ namespace OsEngine.Robots.MyRobots
         private StrategyParameterDecimal StopValue;
         private StrategyParameterDecimal ProfitValue;
 
-        public CountertrendSmaChannelAndSMI(string name, StartProgram startProgram) : base(name, startProgram)
+        public StrategySmaChannelAndSMI(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -102,7 +102,7 @@ namespace OsEngine.Robots.MyRobots
             _SMI.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += CountertrendSmaChannelAndSMI_ParametrsChangeByUser;
+            ParametrsChangeByUser += StrategySmaChannelAndSMI_ParametrsChangeByUser;
 
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -111,7 +111,7 @@ namespace OsEngine.Robots.MyRobots
             StopValue = CreateParameter("Stop", 0.5m, 1, 10, 1, "Exit settings");
             ProfitValue = CreateParameter("Profit", 0.5m, 1, 10, 1, "Exit settings");
 
-            Description = "Robot at the Countertrend SmaChannel And SMI. " +
+            Description = "Robot at the trend SmaChannel And SMI. " +
                 "Buy: " +
                 "The candle has closed below the lower SmaChannel line and the stochastic (violet) line is below a certain level. " +
                 "Sell: " +
@@ -122,7 +122,7 @@ namespace OsEngine.Robots.MyRobots
         }
 
         // Indicator Update event
-        private void CountertrendSmaChannelAndSMI_ParametrsChangeByUser()
+        private void StrategySmaChannelAndSMI_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_SmaChannel.Parameters[0]).ValueInt = SmaLength.ValueInt;
             ((IndicatorParameterDecimal)_SmaChannel.Parameters[1]).ValueDecimal = SmaDeviation.ValueDecimal;
@@ -139,7 +139,7 @@ namespace OsEngine.Robots.MyRobots
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
-            return "CountertrendSmaChannelAndSMI";
+            return "StrategySmaChannelAndSMI";
         }
 
         public override void ShowIndividualSettingsDialog()

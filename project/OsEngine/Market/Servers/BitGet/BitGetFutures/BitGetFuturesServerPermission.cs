@@ -11,26 +11,32 @@
         {
             get { return false; }
         }
+
         public bool DataFeedTf2SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf20SecondCanLoad
         {
-            get { return false; ; }
+            get { return false; }
         }
+
         public bool DataFeedTf30SecondCanLoad
         {
             get { return false; }
@@ -38,44 +44,54 @@
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
@@ -96,14 +112,14 @@
             get { return false; }
         }
 
-        public TimeFramePermission TradeTimeFramePermission
-        {
-            get { return _tradeTimeFramePermission; }
-        }
-
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 1; }
+        }
+
+        public TimeFramePermission TradeTimeFramePermission
+        {
+            get { return _tradeTimeFramePermission; }
         }
 
         private TimeFramePermission _tradeTimeFramePermission
@@ -133,7 +149,7 @@
 
         public bool UseStandartCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsUseLotToCalculateProfit
@@ -180,12 +196,12 @@
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }

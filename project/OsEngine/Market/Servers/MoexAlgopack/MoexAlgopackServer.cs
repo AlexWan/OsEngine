@@ -23,7 +23,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             CreateParameterString(OsLocalization.Market.ServerParamId, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
-            CreateParameterBoolean(OsLocalization.Market.ServerParamSubscription, false);
+            //CreateParameterBoolean(OsLocalization.Market.ServerParamSubscription, false);
         }
 
         public class MoexAlgopackServerRealization : IServerRealization
@@ -53,7 +53,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
             {
                 _username = ((ServerParameterString)ServerParameters[0]).Value;
                 _password = ((ServerParameterPassword)ServerParameters[1]).Value;
-                _isPaidSubscription = ((ServerParameterBool)ServerParameters[2]).Value;
+                _isPaidSubscription = true; //((ServerParameterBool)ServerParameters[2]).Value;
                 
                 MoexAlgopackAuth auth = new MoexAlgopackAuth(_username, _password);
                 
@@ -117,6 +117,8 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             private bool _isPaidSubscription;
 
+            private bool _isFakeDepth;
+
             private const string BaseUrl = "https://iss.moex.com/iss";
 
             public event Action<Order> MyOrderEvent;
@@ -136,7 +138,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 try
                 {
                     string json;
-                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + "/engines/stock/markets/shares/boards/TQBR/securities.json?iss.meta=off&iss.only=securities").Result;
+                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + "/engines/stock/markets/shares/boards/tqbr/securities.json?iss.meta=off&iss.only=securities").Result;
                     
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
@@ -377,7 +379,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                     }
                 }
 
-                if (_isPaidSubscription) return;
+                if (!_isFakeDepth) return;
 
                 MarketDepth marketDepth = new MarketDepth();
                 marketDepth.SecurityNameCode = newTrade.SecurityNameCode;
@@ -694,7 +696,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             #region 6 Security Subscribed
 
-            private readonly RateGate _rateGateSubscribed = new RateGate(5, TimeSpan.FromSeconds(1));
+            private readonly RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
             public void Subscrible(Security security)
             {
@@ -764,7 +766,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             #region 8 Queries
 
-            private readonly RateGate _rateGateGetData = new RateGate(95, TimeSpan.FromSeconds(10));
+            private readonly RateGate _rateGateGetData = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
             HttpClient _httpPublicClient = new HttpClient(handler);
 
@@ -795,40 +797,48 @@ namespace OsEngine.Market.Servers.MoexAlgopack
             {
                 _rateGateGetData.WaitToProceed();
 
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(str).Result;
-                string content = responseMessage.Content.ReadAsStringAsync().Result;
-
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                try
                 {
-                    ResponseCandles symbols = JsonConvert.DeserializeAnonymousType(content, new ResponseCandles());
+                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(str).Result;
+                    string content = responseMessage.Content.ReadAsStringAsync().Result;
 
-                    if (symbols != null && symbols.candles.data.Count > 0)
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
-                        List<Candle> candles = new List<Candle>();
+                        ResponseCandles symbols = JsonConvert.DeserializeAnonymousType(content, new ResponseCandles());
 
-                        for (int i = 0; i < symbols.candles.data.Count; i++)
+                        if (symbols != null && symbols.candles.data.Count > 0)
                         {
-                            List<string> item = symbols.candles.data[i];
+                            List<Candle> candles = new List<Candle>();
 
-                            Candle newCandle = new Candle();
+                            for (int i = 0; i < symbols.candles.data.Count; i++)
+                            {
+                                List<string> item = symbols.candles.data[i];
 
-                            newCandle.Open = item[0].ToDecimal();
-                            newCandle.Close = item[1].ToDecimal();
-                            newCandle.High = item[2].ToDecimal();
-                            newCandle.Low = item[3].ToDecimal();
-                            newCandle.Volume = item[5].ToDecimal();
-                            newCandle.State = CandleState.Finished;
-                            newCandle.TimeStart = DateTime.Parse(item[6], CultureInfo.InvariantCulture);
-                            candles.Add(newCandle);
+                                Candle newCandle = new Candle();
+
+                                newCandle.Open = item[0].ToDecimal();
+                                newCandle.Close = item[1].ToDecimal();
+                                newCandle.High = item[2].ToDecimal();
+                                newCandle.Low = item[3].ToDecimal();
+                                newCandle.Volume = item[5].ToDecimal();
+                                newCandle.State = CandleState.Finished;
+                                newCandle.TimeStart = DateTime.Parse(item[6], CultureInfo.InvariantCulture);
+                                candles.Add(newCandle);
+                            }
+
+                            return candles;
                         }
 
-                        return candles;
+                        return null;
                     }
 
+                    SendLogMessage($"CreateQueryCandles error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
                     return null;
                 }
-
-                SendLogMessage($"CreateQueryCandles error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                catch(Exception exc)
+                {
+                    SendLogMessage($"CreateQueryCandles error, {exc.Message}", LogMessageType.Error);
+                }
 
                 return null;
             }
@@ -856,49 +866,67 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 }
                 
                 uriDepth = $"/engines/{engine}/markets/{market}/boards/{board}/securities/{sec.NameId}/orderbook.json?iss.meta=off&iss.only=orderbook";
-                
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + uriDepth).Result;
-                string content = responseMessage.Content.ReadAsStringAsync().Result;
-                
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+
+                try
                 {
-                    data = JsonConvert.DeserializeAnonymousType(content, new ResponseDepth());
-
-                    if (data == null || data.orderbook.data.Count == 0) 
-                        return null;
+                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + uriDepth).Result;
+                    string content = responseMessage.Content.ReadAsStringAsync().Result;
                     
-                    for (int i = data.orderbook.data.Count / 2 - 1; i >= 0; i--)
+                    if (content.Contains("<!DOCTYPE html>"))
                     {
-                        List<string> item = data.orderbook.data[i];
+                        _isFakeDepth = true;
+                        return null;
+                    }
+                    
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
+                    {
+                        data = JsonConvert.DeserializeAnonymousType(content, new ResponseDepth());
 
-                        marketDepth.SecurityNameCode = item[1];
-                        marketDepth.Time = Convert.ToDateTime(item[6]);
+                        if (data == null || data.orderbook.data.Count == 0)
+                            return null;
 
-                        if (!item[2].Equals("B")) 
-                            continue;
-                        
-                        MarketDepthLevel newBid = new MarketDepthLevel();
-                        newBid.Price = item[3].ToDecimal();
-                        newBid.Bid = item[4].ToDecimal();
-                        marketDepth.Bids.Add(newBid);
+                        for (int i = data.orderbook.data.Count / 2 - 1; i >= 0; i--)
+                        {
+                            List<string> item = data.orderbook.data[i];
+
+                            marketDepth.SecurityNameCode = item[1];
+                            marketDepth.Time = Convert.ToDateTime(item[6]);
+
+                            if (!item[2].Equals("B"))
+                                continue;
+
+                            MarketDepthLevel newBid = new MarketDepthLevel();
+                            newBid.Price = item[3].ToDecimal();
+                            newBid.Bid = item[4].ToDecimal();
+                            marketDepth.Bids.Add(newBid);
+                        }
+
+                        for (int i = data.orderbook.data.Count / 2; i < data.orderbook.data.Count; i++)
+                        {
+                            List<string> item = data.orderbook.data[i];
+
+                            if (!item[2].Equals("S"))
+                                continue;
+
+                            MarketDepthLevel newAsk = new MarketDepthLevel();
+                            newAsk.Price = item[3].ToDecimal();
+                            newAsk.Ask = item[4].ToDecimal();
+                            marketDepth.Asks.Add(newAsk);
+                        }
+
+                        _isFakeDepth = false;
+                        return marketDepth;
                     }
 
-                    for (int i = data.orderbook.data.Count / 2; i < data.orderbook.data.Count; i++)
-                    {
-                        List<string> item = data.orderbook.data[i];
-
-                        if (!item[2].Equals("S")) 
-                            continue;
-                        
-                        MarketDepthLevel newAsk = new MarketDepthLevel();
-                        newAsk.Price = item[3].ToDecimal();
-                        newAsk.Ask = item[4].ToDecimal();
-                        marketDepth.Asks.Add(newAsk);
-                    }
-
-                    return marketDepth;
+                    _isFakeDepth = true;
+                    return null;
                 }
-                
+                catch (Exception exc)
+                {
+                    SendLogMessage($"GetQueryDepth Error: {exc.Message}", LogMessageType.Error);
+                    _isFakeDepth = true;
+                }
+
                 return null;
             }
             
@@ -927,76 +955,91 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 if(newTradeId.Equals("0"))
                 {
                     uriCandles = $"/engines/{engine}/markets/{market}/boards/{board}/securities/{sec.NameId}/trades.json?iss.only=trades&iss.meta=off&reversed=1&limit=1";
-                    HttpResponseMessage responseMessageStart = _httpPublicClient.GetAsync(BaseUrl + uriCandles).Result;
-                    string contentStart = responseMessageStart.Content.ReadAsStringAsync().Result;
-
-                    if (responseMessageStart.StatusCode == HttpStatusCode.OK)
+                    try
                     {
-                        data = JsonConvert.DeserializeAnonymousType(contentStart, new ResponseTrades());
+                        HttpResponseMessage responseMessageStart = _httpPublicClient.GetAsync(BaseUrl + uriCandles).Result;
+                        string contentStart = responseMessageStart.Content.ReadAsStringAsync().Result;
 
-                        if (data == null || data.trades.data.Count == 0)
+                        if (responseMessageStart.StatusCode == HttpStatusCode.OK)
+                        {
+                            data = JsonConvert.DeserializeAnonymousType(contentStart, new ResponseTrades());
+
+                            if (data == null || data.trades.data.Count == 0)
+                                return null;
+
+                            newTradeId = data.trades.data[0][0];
+                        }
+                        else
+                        {
+                            SendLogMessage($"CreateQueryTrades error, State Code: {responseMessageStart.StatusCode}",
+                                LogMessageType.Error);
                             return null;
-
-                        newTradeId = data.trades.data[0][0];
+                        }
                     }
-                    else
+                    catch
                     {
-                        SendLogMessage($"CreateQueryTrades error, State Code: {responseMessageStart.StatusCode}",
-                            LogMessageType.Error);
-                        return null;
+                        //ignore
                     }
                 }
                 
                 uriCandles = $"/engines/{engine}/markets/{market}/boards/{board}/securities/{sec.NameId}/trades.json?iss.only=trades&iss.meta=off&tradeno={newTradeId}&next_trade=1";
 
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + uriCandles).Result;
-                string content = responseMessage.Content.ReadAsStringAsync().Result;
-                
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                try
                 {
-                    data = JsonConvert.DeserializeAnonymousType(content, new ResponseTrades());
+                    HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + uriCandles).Result;
+                    string content = responseMessage.Content.ReadAsStringAsync().Result;
 
-                    if (data == null || data.trades.data.Count == 0) 
-                        return null;
-                    if (board.Equals("tqbr"))
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
-                        for (int i = 0; i < data.trades.data.Count; i++)
+                        data = JsonConvert.DeserializeAnonymousType(content, new ResponseTrades());
+
+                        if (data == null || data.trades.data.Count == 0)
+                            return null;
+                        if (board.Equals("tqbr"))
                         {
-                            List<string> item = data.trades.data[i];
+                            for (int i = 0; i < data.trades.data.Count; i++)
+                            {
+                                List<string> item = data.trades.data[i];
 
-                            Trade newTrade = new Trade();
+                                Trade newTrade = new Trade();
 
-                            newTrade.Id = item[0];
-                            newTrade.SecurityNameCode = item[3];
-                            newTrade.Price = item[4].ToDecimal();
-                            newTrade.Time =Convert.ToDateTime(item[1]);
-                            newTrade.Side = item[10].Equals("S") ? Side.Sell : Side.Buy;
-                            newTrade.Volume = item[5].ToDecimal();
-                            trades.Add(newTrade);
+                                newTrade.Id = item[0];
+                                newTrade.SecurityNameCode = item[3];
+                                newTrade.Price = item[4].ToDecimal();
+                                newTrade.Time = Convert.ToDateTime(item[1]);
+                                newTrade.Side = item[10].Equals("S") ? Side.Sell : Side.Buy;
+                                newTrade.Volume = item[5].ToDecimal();
+                                trades.Add(newTrade);
+                            }
                         }
-                    }
-                    else
-                    {
-                        for (int i = 0; i < data.trades.data.Count; i++)
+                        else
                         {
-                            List<string> item = data.trades.data[i];
+                            for (int i = 0; i < data.trades.data.Count; i++)
+                            {
+                                List<string> item = data.trades.data[i];
 
-                            Trade newTrade = new Trade();
+                                Trade newTrade = new Trade();
 
-                            newTrade.Id = item[0];
-                            newTrade.SecurityNameCode = item[2];
-                            newTrade.Price = item[5].ToDecimal();
-                            newTrade.Time =Convert.ToDateTime(item[4]);
-                            newTrade.Side = item[11].Equals("S") ? Side.Sell : Side.Buy;
-                            newTrade.Volume = item[6].ToDecimal();
-                            trades.Add(newTrade);
+                                newTrade.Id = item[0];
+                                newTrade.SecurityNameCode = item[2];
+                                newTrade.Price = item[5].ToDecimal();
+                                newTrade.Time = Convert.ToDateTime(item[4]);
+                                newTrade.Side = item[11].Equals("S") ? Side.Sell : Side.Buy;
+                                newTrade.Volume = item[6].ToDecimal();
+                                trades.Add(newTrade);
+                            }
                         }
-                    }
 
-                    return trades;
+                        return trades;
+                    }
+                    SendLogMessage($"CreateQueryTrades error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    return null;
                 }
-
-                SendLogMessage($"CreateQueryTrades error, State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                catch
+                {
+                    //ignore
+                }
 
                 return null;
             }

@@ -1306,6 +1306,12 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
+                if(_bestBid == bestBid 
+                    && _bestAsk == bestAsk)
+                {
+                    return;
+                }
+
                 _bestBid = bestBid;
                 _bestAsk = bestAsk;
 

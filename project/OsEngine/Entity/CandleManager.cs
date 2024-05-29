@@ -21,8 +21,6 @@ using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.InteractiveBrokers;
 using OsEngine.Market.Servers.BitMaxFutures;
-using OsEngine.Market.Servers.BitGet.BitGetSpot;
-using OsEngine.Market.Servers.BitGet.BitGetFutures;
 
 namespace OsEngine.Entity
 {
@@ -77,37 +75,65 @@ namespace OsEngine.Entity
 
             try
             {
+                if (_server != null)
+                {
+                    _server.NewTradeEvent -= server_NewTradeEvent;
+                    _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
+                    _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            _server = null;
+
+            try
+            {
                 for (int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count; i++)
                 {
+                    _activSeriesBasedOnTrades[i].СandleUpdeteEvent -= series_СandleUpdeteEvent;
+                    _activSeriesBasedOnTrades[i].СandleFinishedEvent -= series_СandleFinishedEvent;
                     _activSeriesBasedOnTrades[i].Clear();
                     _activSeriesBasedOnTrades[i].Stop();
                 }
-                _activSeriesBasedOnTrades = null;
+            }
+            catch
+            {
+                // ignore
+            }
 
+            _activSeriesBasedOnTrades = null;
+
+            try
+            {
                 for (int i = 0; _activSeriesBasedOnMd != null && i < _activSeriesBasedOnMd.Count; i++)
                 {
+                    _activSeriesBasedOnMd[i].СandleUpdeteEvent -= series_СandleUpdeteEvent;
+                    _activSeriesBasedOnMd[i].СandleFinishedEvent -= series_СandleFinishedEvent;
                     _activSeriesBasedOnMd[i].Clear();
                     _activSeriesBasedOnMd[i].Stop();
                 }
-                _activSeriesBasedOnMd = null;
+            }
+            catch
+            {
+                // ignore
+            }
 
+            _activSeriesBasedOnMd = null;
+
+            try
+            {
                 if (_candleSeriesNeadToStart != null
                     && _candleSeriesNeadToStart.Count != 0)
                 {
                     _candleSeriesNeadToStart.Clear();
                 }
             }
-            catch (Exception error)
+            catch
             {
-                MessageBox.Show(error.ToString());
-            }
-
-            if (_server != null)
-            {
-                _server.NewTradeEvent -= server_NewTradeEvent;
-                _server.TimeServerChangeEvent -= _server_TimeServerChangeEvent;
-                _server.NewMarketDepthEvent -= _server_NewMarketDepthEvent;
-                _server = null;
+                // ignore
             }
         }
 
@@ -428,49 +454,6 @@ namespace OsEngine.Entity
                             series.UpdateAllCandles();
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.BitGetSpot)
-                        {
-                            BitGetServerSpot bitGet = (BitGetServerSpot)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                List<Candle> candles = bitGet.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
-
-                        else if (serverType == ServerType.BitGetFutures)
-                        {
-                            BitGetServerFutures bitGet = (BitGetServerFutures)_server;
-                            if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                List<Candle> candles = bitGet.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrameSpan);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
                         else if (serverType == ServerType.Bitmax_AscendexFutures)
                         {
                             if (series.CandleCreateMethodType != CandleCreateMethodType.Simple ||
@@ -720,6 +703,11 @@ namespace OsEngine.Entity
         /// </summary>
         private void _server_TimeServerChangeEvent(DateTime dateTime)
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             try
             {
                 for (int i = 0; _activSeriesBasedOnTrades != null && i < _activSeriesBasedOnTrades.Count; i++)
@@ -746,6 +734,11 @@ namespace OsEngine.Entity
         {
             try
             {
+                if(_isDisposed)
+                {
+                    return;
+                }
+
                 if (_server.ServerType == ServerType.Tester &&
                     TypeTesterData == TesterDataType.Candle)
                 {
@@ -766,17 +759,25 @@ namespace OsEngine.Entity
 
                 string secCode = trades[0].SecurityNameCode;
 
-                for (int i = 0; i < _activSeriesBasedOnTrades.Count; i++)
+                try
                 {
-                    if(_activSeriesBasedOnTrades[i] == null ||
-                        _activSeriesBasedOnTrades[i].Security == null)
+                    for (int i = 0; _activSeriesBasedOnTrades != null &&
+                        i < _activSeriesBasedOnTrades.Count; i++)
                     {
-                        continue;
+                        if (_activSeriesBasedOnTrades[i] == null ||
+                            _activSeriesBasedOnTrades[i].Security == null)
+                        {
+                            continue;
+                        }
+                        if (_activSeriesBasedOnTrades[i].Security.Name == secCode)
+                        {
+                            _activSeriesBasedOnTrades[i].SetNewTicks(trades);
+                        }
                     }
-                    if (_activSeriesBasedOnTrades[i].Security.Name == secCode)
-                    {
-                        _activSeriesBasedOnTrades[i].SetNewTicks(trades);
-                    }
+                }
+                catch
+                {
+                    // ignore
                 }
             }
             catch (Exception error)
@@ -790,7 +791,12 @@ namespace OsEngine.Entity
         /// </summary>
         private void _server_NewMarketDepthEvent(MarketDepth marketDepth)
         {
-            if(_server == null)
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            if (_server == null)
             {
                 return;
             }
@@ -837,6 +843,11 @@ namespace OsEngine.Entity
         /// </summary>
         void series_СandleUpdeteEvent(CandleSeries series)
         {
+            if(_isDisposed)
+            {
+                return;
+            }
+
             if (CandleUpdateEvent != null)
             {
                 CandleUpdateEvent(series);
@@ -845,6 +856,11 @@ namespace OsEngine.Entity
 
         void series_СandleFinishedEvent(CandleSeries series)
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
             if (CandleUpdateEvent != null)
             {
                 CandleUpdateEvent(series);
@@ -968,7 +984,8 @@ namespace OsEngine.Entity
             {
                 LogMessageEvent(message, type);
             }
-            else if (type == LogMessageType.Error)
+            else if (type == LogMessageType.Error
+                && _isDisposed != true)
             {
                 MessageBox.Show(message);
             }

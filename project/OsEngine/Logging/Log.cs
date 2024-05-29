@@ -13,6 +13,7 @@ using System.Media;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
@@ -177,6 +178,71 @@ namespace OsEngine.Logging
 
             _grid.Rows.Add(null, null);
             _grid.DoubleClick += _grid_DoubleClick;
+            _grid.Click += _grid_Click;
+        }
+
+        private void _grid_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Windows.Forms.MouseEventArgs mouse = (System.Windows.Forms.MouseEventArgs)e;
+
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
+                int mouseXPos = mouse.X;
+                int mouseYPos = mouse.Y;
+
+                List<MenuItem> items = new List<MenuItem>();
+
+                items.Add(new MenuItem(OsLocalization.Logging.Label27));
+                items[0].Click += Log_MessageServer_Click;
+
+                items.Add(new MenuItem(OsLocalization.Logging.Label28));
+                items[1].Click += Log_ShowFile_Click;
+
+                ContextMenu menu = new ContextMenu(items.ToArray());
+
+                _grid.ContextMenu = menu;
+                _grid.ContextMenu.Show(_grid, new System.Drawing.Point(mouseXPos, mouseYPos));
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.ToString());
+            }
+
+        }
+
+        private void Log_ShowFile_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
+                string path = Application.ExecutablePath.Replace("OsEngine.exe", "")
+                               + @"Engine\Log\" + _uniqName + @"Log_" + date + ".txt";
+
+                if (File.Exists(path) == false)
+                {
+                    return;
+                }
+
+                string argument = "/select, \"" + path + "\"";
+                System.Diagnostics.Process.Start("explorer.exe", argument);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void Log_MessageServer_Click(object sender, EventArgs e)
+        {
+            if (_messageSender != null)
+            {
+                _messageSender.ShowDialog();
+            }
         }
 
         /// <summary>

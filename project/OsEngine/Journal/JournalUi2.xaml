@@ -35,7 +35,9 @@
                 </TabItem>
                 <TabItem Name="TabItem4" Header="Volume" Width="140" Margin="41,0,-140,0">
                     <Grid>
-                        <WindowsFormsHost x:Name="HostVolume" Foreground="Black" Margin="10"/>
+                        <WindowsFormsHost x:Name="HostVolume" Foreground="Black" Margin="0,0,0,38"/>
+                        <Label Name="LabelVolumeShowNumbers" Content="Show" HorizontalAlignment="Left" Margin="336,0,0,10" VerticalAlignment="Bottom" Width="72"/>
+                        <ComboBox Name="VolumeShowNumbers" HorizontalAlignment="Left" Margin="424,0,0,10" VerticalAlignment="Bottom" Width="146"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem5" Header="Open positions" Width="140" Margin="41,0,-140,0">

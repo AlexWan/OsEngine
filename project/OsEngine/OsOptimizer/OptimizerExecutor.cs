@@ -199,6 +199,13 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < reportFiltred.Reports.Count; i++)
             {
+                if(reportFiltred.Reports[i] == null)
+                {
+                    reportFiltred.Reports.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
                 string botName = reportFiltred.Reports[i].BotName.Replace(" InSample", "") + " OutOfSample";
                 botNames.Add(botName);
             }

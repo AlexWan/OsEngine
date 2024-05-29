@@ -44,6 +44,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
         public string MarkPrice { get; set; }
         public string PositionValue { get; set; }
         public string OnlyOnePosition { get; set; }
+        public string UpdateTime { get; set; }
     }
 
     public class CandlestickChartDataFutures
@@ -89,25 +90,39 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
 
     public class OrderDetails
     {
-        public string orderId { get; set; } // Order ID
-        public string symbol { get; set; } // trading pair, for example: BTC-USDT
-        public string positionSide { get; set; } // Position direction, required for single position as BOTH,
-                                                 // for both long and short positions only LONG or SHORT can be chosen, defaults to LONG if empty
-        public string side { get; set; } // buying and selling direction | BUY or SELL
-        public string type { get; set; } // LIMIT: Limit Order / MARKET: Market Order / STOP_MARKET: Stop Market Order 
-                                         // TAKE_PROFIT_MARKET: Take Profit Market Order / STOP: Stop Limit Order 
-                                         // TAKE_PROFIT: Take Profit Limit Order / TRIGGER_LIMIT: Stop Limit Order with Trigger 
-                                         // TRIGGER_MARKET: Stop Market Order with Trigger / TRAILING_STOP_MARKET: Trailing Stop Market Order
+        public string symbol { get; set; }
+        public string orderId { get; set; }
+        public string side { get; set; }
+        public string positionSide { get; set; }
+        public string type { get; set; }
+        public string origQty { get; set; }
         public string price { get; set; }
-        public string quantity { get; set; } // Original quantity, only support units by COIN ,Ordering with quantity U is not currently supported.
+        public string executedQty { get; set; }
+        public string avgPrice { get; set; }
+        public string cumQuote { get; set; }
         public string stopPrice { get; set; }
-        public string workingType { get; set; } // StopPrice trigger price types: MARK_PRICE, CONTRACT_PRICE, INDEX_PRICE, default MARK_PRICE
-        public string clientOrderId { get; set; } // Customized order ID for users
-        public string timeInForce { get; set; }
-        public string priceRate { get; set; }
-        public StopLoss stopLoss { get; set; }
+        public string profit { get; set; }
+        public string commission { get; set; }
+        public string status { get; set; }
+        public string time { get; set; }
+        public string updateTime { get; set; }
+        public string clientOrderId { get; set; }
+        public string leverage { get; set; }
         public TakeProfit takeProfit { get; set; }
+        public StopLoss stopLoss { get; set; }
+        public string advanceAttr { get; set; }
+        public string positionID { get; set; }
+        public string takeProfitEntrustPrice { get; set; }
+        public string stopLossEntrustPrice { get; set; }
+        public string orderType { get; set; }
+        public string workingType { get; set; }
+        public string onlyOnePosition { get; set; }
         public string reduceOnly { get; set; }
+        public string postOnly { get; set; }
+        public string stopGuaranteed { get; set; }
+        public string triggerOrderId { get; set; }
+        public string trailingStopRate { get; set; }
+        public string trailingStopDistance { get; set; }
     }
 
     public class StopLoss
@@ -117,6 +132,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
         public string stopPrice { get; set; }
         public string price { get; set; }
         public string workingType { get; set; }
+        public string stopGuaranteed { get; set; }
     }
 
     public class TakeProfit
@@ -126,11 +142,42 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
         public string stopPrice { get; set; }
         public string price { get; set; }
         public string workingType { get; set; }
+        public string stopGuaranteed { get; set; }
+    }
+
+    public class FillOrder
+    {
+        public string filledTm { get; set; }
+        public string volume { get; set; }
+        public string price { get; set; }
+        public string amount { get; set; }
+        public string commission { get; set; }
+        public string currency { get; set; }
+        public string orderId { get; set; }
+        public string liquidatedPrice { get; set; }
+        public string liquidatedMarginRatio { get; set; }
+        public string filledTime { get; set; }
+        public string clientOrderID { get; set; }
+        public string symbol { get; set; }
+        public bool onlyOnePosition { get; set; }
+        public string side { get; set; }
+        public string positionSide { get; set; }
+        public string type { get; set; }
     }
 
     public class OrderData
     {
         public OrderDetails order { get; set; }
+    }
+
+    public class OpenOrdersData
+    {
+        public List<OrderDetails> orders { get; set; }
+    }
+
+    public class FillOrdersData
+    {
+        public List<FillOrder> fill_orders { get; set; }
     }
 
     public class Balance

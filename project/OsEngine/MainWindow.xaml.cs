@@ -25,6 +25,11 @@ using OsEngine.PrimeSettings;
 using OsEngine.Layout;
 using System.Collections.Generic;
 using OsEngine.Entity;
+using System.Globalization;
+using OsEngine.Logging;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
 
 namespace OsEngine
 {
@@ -106,6 +111,8 @@ namespace OsEngine
             _window = this;
 
             ServerMaster.ActivateLogging();
+
+            Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
 
             Task task = new Task(ThreadAreaGreeting);
             task.Start();
@@ -377,6 +384,10 @@ namespace OsEngine
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             string message = OsLocalization.MainWindow.Message5 + e.ExceptionObject;
+
+            _messageToCrashServer = "Crash%" + message;
+            Thread worker = new Thread(SendMessageInCrashServer);
+            worker.Start();
 
             if (PrimeSettingsMaster.RebootTradeUiLigth == true &&
                 RobotUiLight.IsRobotUiLightStart)
@@ -689,6 +700,30 @@ namespace OsEngine
                     }
 
                 }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        string _messageToCrashServer;
+
+        private void SendMessageInCrashServer()
+        {
+            try
+            {
+                if(PrimeSettingsMaster.ReportCriticalErrors == false)
+                {
+                    return;
+                }
+
+                TcpClient newClient = new TcpClient();
+                newClient.Connect("195.133.196.183", 11000);
+                NetworkStream tcpStream = newClient.GetStream();
+                byte[] sendBytes = Encoding.UTF8.GetBytes(_messageToCrashServer);
+                tcpStream.Write(sendBytes, 0, sendBytes.Length);
+                newClient.Close();
             }
             catch
             {

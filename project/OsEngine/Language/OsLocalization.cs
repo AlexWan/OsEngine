@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Windows;
-using WebSocketSharp;
 
 namespace OsEngine.Language
 {
@@ -95,6 +94,11 @@ namespace OsEngine.Language
             get
             {
                 CultureInfo culture = new CultureInfo(CurLocalizationCode);
+
+                if(_longTimePattern == null)
+                {
+                    Load();
+                }
 
                 if(_longTimePattern != null)
                 {

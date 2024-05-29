@@ -463,6 +463,7 @@ namespace OsEngine.OsTrader.Panels
 
                 _journalUi = new JournalUi2(panelsJournal, _panel.StartProgram);
                 _journalUi.Closed += _journalUi_Closed;
+                _journalUi.LogMessageEvent += _journalUi_LogMessageEvent;
                 _journalUi.Show();
             }
             catch (Exception error)
@@ -471,9 +472,19 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
+        private void _journalUi_LogMessageEvent(string message, LogMessageType type)
+        {
+            if(_panel == null)
+            {
+                return;
+            }
+            _panel.SendNewLogMessage(message, type);
+        }
+
         private void _journalUi_Closed(object sender, EventArgs e)
         {
             _journalUi.Closed -= _journalUi_Closed;
+            _journalUi.LogMessageEvent -= _journalUi_LogMessageEvent;
             _journalUi.IsErase = true;
             _journalUi = null;
         }

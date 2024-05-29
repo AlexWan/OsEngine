@@ -102,6 +102,7 @@ namespace OsEngine.OsData
             }
 
             ComboBoxSource.SelectionChanged += ComboBoxSource_SelectionChanged;
+
             DatePickerTimeStart.SelectedDate = _set.BaseSettings.TimeStart;
             DatePickerTimeEnd.SelectedDate = _set.BaseSettings.TimeEnd;
 
@@ -135,9 +136,6 @@ namespace OsEngine.OsData
 
             this.Activate();
             this.Focus();
-
-            DatePickerTimeStart.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
-            DatePickerTimeEnd.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
         }
 
         private void TextBoxFolderName_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
@@ -347,7 +345,7 @@ namespace OsEngine.OsData
             if(Enabled == false)
             {
                 StopUsePanelOne.Width = 338;
-                StopUsePanelTwo.Width = 106;
+                StopUsePanelTwo.Width = 125;
             }
             else
             {

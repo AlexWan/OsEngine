@@ -2129,29 +2129,79 @@ namespace OsEngine.Charts.CandleChart
                     _chart.Series.Remove(FindSeriesByNameSafe(buySellSeries.Name));
                     _chart.Series.Add(buySellSeries);
                 }
-                // 2 Drawing stops
-                // 2 прорисовываем стопы
 
-                for (int i = 0; _chart.Series != null && i < _chart.Series.Count; i++)
+                // 2 Стопы и Профиты. Обновляем или добавляем новую серию 
+
+                for (int i = 0; profitStopOrderSeries != null && i < profitStopOrderSeries.Length; i++)
                 {
-                    // deleting old
-                    // удаляем старые
-                    string name = _chart.Series[i].Name.Split('_')[0];
+                    bool isInArray = false;
+
+                    for(int j = 0; j < _chart.Series.Count;j++)
+                    {
+                        Series curSeries = _chart.Series[j];
+
+                        if (curSeries.Name == profitStopOrderSeries[i].Name)
+                        {
+                            if (curSeries.Points == null ||
+                                  curSeries.Points.Count == 0)
+                            {
+                                curSeries.Points.Add(profitStopOrderSeries[i].Points[0]);
+                                curSeries.Points.Add(profitStopOrderSeries[i].Points[1]);
+                            }
+                            else if (curSeries.Points[0].YValues[0] !=
+                                profitStopOrderSeries[i].Points[0].YValues[0])
+                            {
+                                curSeries.Points[0] = profitStopOrderSeries[i].Points[0];
+                                curSeries.Points[1] = profitStopOrderSeries[i].Points[1];
+                            }
+
+                            if (curSeries.Points[1].XValue != profitStopOrderSeries[i].Points[1].XValue)
+                            {
+                                curSeries.Points[1].XValue = profitStopOrderSeries[i].Points[1].XValue;
+                            }
+
+                            isInArray = true;
+                            break;
+                        }
+                    }
+                    if(isInArray == false)
+                    {
+                        _chart.Series.Add(profitStopOrderSeries[i]);
+                        RePaintRightLebels();
+                    }
+                }
+
+                // 3 Стопы и Профиты. Удаляем отсутствующие линии
+
+                for (int j = 0; j < _chart.Series.Count; j++)
+                {
+                    Series curSeries = _chart.Series[j];
+
+                    string name = curSeries.Name.Split('_')[0];
 
                     if (name == "Stop" ||
                         name == "Profit" ||
                         name == "Open" ||
                         name == "Close")
                     {
-                        ClearLabelOnY2(_chart.Series[i].Name + "Label", "Prime", _chart.Series[i].Color);
-                        _chart.Series.Remove(_chart.Series[i]);
-                        i--;
-                    }
-                }
+                        bool isInArray = false;
 
-                for (int i = 0; profitStopOrderSeries != null && i < profitStopOrderSeries.Length; i++)
-                {
-                    _chart.Series.Add(profitStopOrderSeries[i]);
+                        for (int i = 0; profitStopOrderSeries != null && i < profitStopOrderSeries.Length; i++)
+                        {
+                            if (profitStopOrderSeries[i].Name == curSeries.Name)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+
+                        if (isInArray == false)
+                        {
+                            ClearLabelOnY2(curSeries.Name + "Label", "Prime", curSeries.Color);
+                            ReMoveSeriesSafe(curSeries);
+                            j--;
+                        }
+                    }
                 }
             }
             catch (Exception error)
@@ -2159,6 +2209,7 @@ namespace OsEngine.Charts.CandleChart
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
         // index search by time
         // поиск индекса по времени
 
@@ -4933,7 +4984,14 @@ namespace OsEngine.Charts.CandleChart
 
             double max = Convert.ToDouble(positionOnY + Convert.ToDecimal(area.AxisY2.Interval) / 20);
 
-            label = label.ToDecimal().ToString(CultureInfo.InvariantCulture);
+            try
+            {
+                label = label.ToDecimal().ToString(CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return;
+            }
 
             if (_labels == null)
             {
@@ -5298,9 +5356,69 @@ namespace OsEngine.Charts.CandleChart
                     }
                     else
                     {
+                        decimal value = Convert.ToDecimal(series.Points[realIndex].YValues[0]);
+
+                        value = (Math.Round(value, rounder));
+
+                        int valueDecimalsCount = value.ToString().DecimalsCount();
+                        string valueToPaint = value.ToString(CultureInfo.InvariantCulture);
+
+                        if (rounder > 0 &&
+                            valueDecimalsCount != 0)
+                        {
+                            while (valueToPaint.Length != 0
+                                   && valueToPaint[valueToPaint.Length - 1] == '0')
+                            {
+                                valueToPaint = valueToPaint.Substring(0,valueToPaint.Length - 1);
+                            }
+                        }
+
+                        decimal valueToPaintDecimal = value;
+
+                        while (rounder > 0 &&
+                            valueDecimalsCount < rounder)
+                        {
+                            decimal newValue = 0;
+
+                            string stringToParse = value.ToString(CultureInfo.InvariantCulture);
+
+                            if (valueDecimalsCount == 0
+                                && stringToParse.Contains(".") == false)
+                            {
+                                stringToParse += ".1";
+                            }
+                            else
+                            {
+                                stringToParse += "1";
+                            }
+
+                            try
+                            {
+                                newValue = stringToParse.ToDecimal();
+                            }
+                            catch
+                            {
+
+                            }
+
+                            value = newValue;
+
+                            if (valueDecimalsCount == 0
+                                && stringToParse.Contains(".") == false)
+                            {
+                                valueToPaint += ",0";
+                            }
+                            else
+                            {
+                                valueToPaint += "0";
+                            }
+
+                            valueDecimalsCount = value.ToString().DecimalsCount();
+
+                        }
+
                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
-                            (Math.Round(series.Points[realIndex].YValues[0], rounder)).ToString(_culture),
-                            (decimal)series.Points[realIndex].YValues[0], series.Points[realIndex].Color, true);
+                            valueToPaint, valueToPaintDecimal, series.Points[realIndex].Color, true);
                     }
                 }
             }
@@ -6068,36 +6186,21 @@ namespace OsEngine.Charts.CandleChart
 
             for (int serIterator = 0; serIterator < seriesOnArea.Count; serIterator++)
             {
-                if (seriesOnArea[serIterator].Points == null)
+                if (seriesOnArea[serIterator].Points == null ||
+                    seriesOnArea[serIterator].Points.Count == 1)
                 {
                     continue;
                 }
-                for (int i = seriesOnArea[serIterator].Points.Count-1; i > -1 && i > seriesOnArea[serIterator].Points.Count-20; i--)
+
+                for (int i = seriesOnArea[serIterator].Points.Count-1; 
+                    i > -1 && i > seriesOnArea[serIterator].Points.Count-10; i--)
                 {
-                    if (seriesOnArea[serIterator].Points[i].YValues[0].ToString(_culture).Split(',').Length == 1)
-                    {
-                        continue;
-                    }
+                    double value = seriesOnArea[serIterator].Points[i].YValues[0];
 
-                    int lengh = seriesOnArea[serIterator].Points[i].YValues[0].ToString(_culture).Split(',')[1].Length;
+                    decimal valueInDecimal = value.ToStringWithNoEndZero().ToDecimal();
+
+                    int lengh = valueInDecimal.ToString().DecimalsCount();
                     int lengh2 = seriesOnArea[serIterator].Points[i].YValues[0].ToString(_culture).Split(',')[0].Length;
-
-                    bool find = false;
-
-                    if (lengh > 1)
-                    {
-                        string value = seriesOnArea[serIterator].Points[i].YValues[0].ToString(_culture).Split(',')[1];
-                        
-                        for (int i2 = 2; i2 < value.Length; i2++)
-                        {
-                            if (value[i2] != '0' && value[i2 - 1] != '0' && value[i2 - 2] != '0')
-                            {
-                                lengh = i2+1;
-                                find = true;
-                                break;
-                            }
-                        }
-                    }
 
                     if (lengh2 > 2 && lengh > 3)
                     {
@@ -6108,12 +6211,6 @@ namespace OsEngine.Charts.CandleChart
                     if (lengh > maxDecimal)
                     {
                         maxDecimal = lengh;
-                    }
-                    if (find == true)
-                    {
-                        // found the depth.
-                        // нашли глубину
-                        break;
                     }
                 }
             }
@@ -6682,10 +6779,8 @@ namespace OsEngine.Charts.CandleChart
                 int rounder = areaSize.Decimals + 2;
                 if (rounder > 15)
                 {
-                    rounder = 15;
-                    areaSize.Decimals = 5;
+                    rounder = areaSize.Decimals;
                 }
-
 
                 double interval = Math.Round((area.AxisY2.Maximum - area.AxisY2.Minimum) / areaSize.LineCount, rounder);
 
@@ -6877,8 +6972,6 @@ namespace OsEngine.Charts.CandleChart
             }
             return min;
         }
-
-
 
         /// <summary>
         /// redraw lines on the X-axis

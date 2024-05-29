@@ -1,0 +1,18 @@
+{
+    "servers": [
+        {
+            "scriptName": "QuikSharp",
+            "responseHostname": "127.0.0.1",
+            "responsePort": 34130,
+            "callbackHostname": "127.0.0.1",
+            "callbackPort": 34131
+        },
+        {
+            "scriptName": "Quik_2",
+            "responseHostname": "127.0.0.1",
+            "responsePort": 34132,
+            "callbackHostname": "127.0.0.1",
+            "callbackPort": 34133
+        }
+    ]
+}

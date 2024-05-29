@@ -1912,6 +1912,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             };
 
+            tab.BestBidAskChangeEvent += (decimal bid, decimal ask) =>
+            {
+                if (BestBidAskChangeEvent != null && EventsIsOn)
+                {
+                    BestBidAskChangeEvent(bid, ask, tab);
+                }
+            };
+
             tab.PositionClosingSuccesEvent += (Position pos) =>
             {
                 if (PositionClosingSuccesEvent != null && EventsIsOn)
@@ -2006,6 +2014,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// New marketDepth
         /// </summary>
         public event Action<MarketDepth, BotTabSimple> MarketDepthUpdateEvent;
+
+        /// <summary>
+        /// Bid ask change
+        /// </summary>
+        public event Action<decimal, decimal, BotTabSimple> BestBidAskChangeEvent;
 
         /// <summary>
         /// Position successfully closed

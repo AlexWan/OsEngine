@@ -553,7 +553,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             List<Candle> candles = GetCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
 
-            for(int i  = 1; candles != null && i < candles.Count;i++)
+            for (int i  = 1; candles != null && i < candles.Count;i++)
             {
                 if (candles[i-1].TimeStart == candles[i].TimeStart)
                 {

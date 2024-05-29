@@ -519,7 +519,8 @@ namespace OsEngine.OsOptimizer
             {
                 TabControlPrime.SelectedItem = TabControlPrime.Items[0];
             }
-            if (move == NeadToMoveUiTo.Storage)
+            if (move == NeadToMoveUiTo.Storage 
+                || move == NeadToMoveUiTo.NameStrategy)
             {
                 TabControlPrime.SelectedItem = TabControlPrime.Items[0];
             }
@@ -571,7 +572,8 @@ namespace OsEngine.OsOptimizer
 
             _testIsEnd = false;
 
-            if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 && _master.Start())
+            if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 
+                && _master.Start())
             {
                 ButtonGo.Content = OsLocalization.Optimizer.Label32;
                 StopUserActivity();
@@ -1606,55 +1608,62 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            _gridParametrs.Rows.Clear();
-
-            _gridParametrs.CellValueChanged -= _gridParametrs_CellValueChanged;
-            _gridParametrs.CellClick -= _gridParametrs_CellClick;
-
-            if (_parameters == null ||
-                 _parameters.Count == 0)
+            try
             {
-                return;
-            }
+                _gridParametrs.CellValueChanged -= _gridParametrs_CellValueChanged;
+                _gridParametrs.CellClick -= _gridParametrs_CellClick;
 
-            for (int i = 0; i < _parameters.Count; i++)
+                _gridParametrs.Rows.Clear();
+
+                if (_parameters == null ||
+                     _parameters.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _parameters.Count; i++)
+                {
+                    if (_parameters[i].Type == StrategyParameterType.Bool)
+                    {
+                        _gridParametrs.Rows.Add(GetRowBool(_parameters[i]));
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.String)
+                    {
+                        _gridParametrs.Rows.Add(GetRowString(_parameters[i]));
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.Int)
+                    {
+                        _gridParametrs.Rows.Add(GetRowInt(_parameters[i], _parametrsActiv[i]));
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.Decimal)
+                    {
+                        _gridParametrs.Rows.Add(GetRowDecimal(_parameters[i], _parametrsActiv[i]));
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.CheckBox)
+                    {
+                        _gridParametrs.Rows.Add(GetRowCheckBox(_parameters[i]));
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)
+                    {
+                        _gridParametrs.Rows.Add(GetRowTimeOfDay(_parameters[i]));
+                    }
+                    else if (_parameters[i].Type == StrategyParameterType.DecimalCheckBox)
+                    {
+                        _gridParametrs.Rows.Add(GetRowDecimalCheckBox(_parameters[i], _parametrsActiv[i]));
+                    }
+                    else //if (_parameters[i].Type == StrategyParameterType.Label)
+                    {// не известный или не реализованный параметр
+                        continue;
+                    }
+                }
+
+                _gridParametrs.CellValueChanged += _gridParametrs_CellValueChanged;
+                _gridParametrs.CellClick += _gridParametrs_CellClick;
+            }
+            catch (Exception ex)
             {
-                if (_parameters[i].Type == StrategyParameterType.Bool)
-                {
-                    _gridParametrs.Rows.Add(GetRowBool(_parameters[i]));
-                }
-                else if (_parameters[i].Type == StrategyParameterType.String)
-                {
-                    _gridParametrs.Rows.Add(GetRowString(_parameters[i]));
-                }
-                else if (_parameters[i].Type == StrategyParameterType.Int)
-                {
-                    _gridParametrs.Rows.Add(GetRowInt(_parameters[i], _parametrsActiv[i]));
-                }
-                else if (_parameters[i].Type == StrategyParameterType.Decimal)
-                {
-                    _gridParametrs.Rows.Add(GetRowDecimal(_parameters[i], _parametrsActiv[i]));
-                }
-                else if (_parameters[i].Type == StrategyParameterType.CheckBox)
-                {
-                    _gridParametrs.Rows.Add(GetRowCheckBox(_parameters[i]));
-                }
-                else if (_parameters[i].Type == StrategyParameterType.TimeOfDay)
-                {
-                    _gridParametrs.Rows.Add(GetRowTimeOfDay(_parameters[i]));
-                }
-                else if (_parameters[i].Type == StrategyParameterType.DecimalCheckBox)
-                {
-                    _gridParametrs.Rows.Add(GetRowDecimalCheckBox(_parameters[i], _parametrsActiv[i]));
-                }				
-                else //if (_parameters[i].Type == StrategyParameterType.Label)
-                {// не известный или не реализованный параметр
-                    continue;
-                }
+                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
-
-            _gridParametrs.CellValueChanged += _gridParametrs_CellValueChanged;
-            _gridParametrs.CellClick += _gridParametrs_CellClick;
         }
 
         private void _gridParametrs_CellClick(object sender, DataGridViewCellEventArgs e)

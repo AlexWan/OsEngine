@@ -19,6 +19,8 @@
                     <RepeatButton Name="ButtonSecurity2" Content="-" Height="59" FontSize="14" FontFamily="Calibri" Margin="0,106,10,0" VerticalAlignment="Top" Delay="1000" Interval="10" Click="RepeatButtonDeleteSecurity_Click" HorizontalAlignment="Right" Width="52"/>
                     <TextBox Name="TextboxUserFormula"  Margin="10,0,10,36" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Height="37"/>
                     <Button Name="ButtonClearAllSecurities" Content="Clear all securities" HorizontalAlignment="Left" Margin="5,0,0,5" VerticalAlignment="Bottom" Width="160" Height="22" Click="ButtonClearAllSecurities_Click"/>
+                    <Label Name="LabelDepth" Content="Depth" HorizontalAlignment="Left" Margin="170,0,0,5" VerticalAlignment="Bottom" Width="106"/>
+                    <TextBox Name="TextBoxDepth" HorizontalAlignment="Left" Margin="276,0,0,5" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="132"/>
 
                 </Grid>
             </TabItem>

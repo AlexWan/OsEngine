@@ -78,7 +78,7 @@ namespace OsEngine.Language
             "Ru:Текст шапки_");
 
         public string LabelLightReboot => OsLocalization.ConvertToLocString(
-            "Eng:Reboot Ligth on error_" +
+            "Eng:Reboot Light on error_" +
             "Ru:Перезагрузка лайта при ошибке_");
 
         public string TimeFormat => OsLocalization.ConvertToLocString(
@@ -88,5 +88,10 @@ namespace OsEngine.Language
         public string DateFormat => OsLocalization.ConvertToLocString(
            "Eng:Date format" +
            "_Ru:Формат даты_");
+
+
+        public string ReportErrorsOnServer => OsLocalization.ConvertToLocString(
+           "Eng:Report critical errors" +
+           "_Ru:Высылать критические ошибки_");
     }
 }
