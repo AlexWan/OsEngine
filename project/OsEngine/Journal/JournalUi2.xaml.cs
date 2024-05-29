@@ -105,11 +105,11 @@ namespace OsEngine.Journal
 
             if(botsJournals.Count > 1)
             {
-                _journalName = "Journal2Ui_" + "CommonJournal" + startProgram.ToString();
+                JournalName = "Journal2Ui_" + "CommonJournal" + startProgram.ToString();
             }
             else
             {
-                _journalName = "Journal2Ui_" + botNames + startProgram.ToString();
+                JournalName = "Journal2Ui_" + botNames + startProgram.ToString();
             }
             
 
@@ -118,7 +118,7 @@ namespace OsEngine.Journal
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
 
-            GlobalGUILayout.Listen(this, _journalName);
+            GlobalGUILayout.Listen(this, JournalName);
         }
 
         private void JournalUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -234,6 +234,8 @@ namespace OsEngine.Journal
         private StartProgram _startProgram;
 
         private CultureInfo _currentCulture;
+
+        public string JournalName;
 
         #endregion
 
@@ -2671,14 +2673,14 @@ namespace OsEngine.Journal
 
         private void LoadSettings()
         {
-            if (!File.Exists(@"Engine\LayoutJournal" + _journalName + ".txt"))
+            if (!File.Exists(@"Engine\LayoutJournal" + JournalName + ".txt"))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\LayoutJournal" + _journalName + ".txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\LayoutJournal" + JournalName + ".txt"))
                 {
                     _leftPanelIsHide = Convert.ToBoolean(reader.ReadLine());
                     string profitType = reader.ReadLine();
@@ -2725,7 +2727,7 @@ namespace OsEngine.Journal
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\LayoutJournal" + _journalName + ".txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\LayoutJournal" + JournalName + ".txt", false))
                 {
                     writer.WriteLine(_leftPanelIsHide);
                     writer.WriteLine(ComboBoxChartType.SelectedItem.ToString());
@@ -3274,8 +3276,6 @@ namespace OsEngine.Journal
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-
-        private string _journalName;
 
         private bool _leftPanelIsHide;
 

@@ -6,6 +6,11 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Language;
 using System.Threading;
+using System.Collections.Generic;
+using OsEngine.Market;
+using System.Windows.Input;
+using OsEngine.Journal;
+using OsEngine.Logging;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -135,6 +140,7 @@ namespace OsEngine.OsTrader.Gui
             _grid.CellBeginEdit += _grid_CellBeginEdit;
             _grid.CellEndEdit += _grid_CellEndEdit;
             _grid.MouseLeave += _grid_MouseLeave;
+            _grid.CellMouseClick += _grid_CellMouseClick;
         }
 
         private void _grid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
@@ -198,12 +204,21 @@ namespace OsEngine.OsTrader.Gui
             }
         }
 
-		private int prevActiveRow;
+		private int _prevActiveRow;
 
         private void _grid_Click(object sender, EventArgs e)
         {
             try
             {
+                System.Windows.Forms.MouseEventArgs mouse = (System.Windows.Forms.MouseEventArgs)e;
+
+                if (mouse.Button == MouseButtons.Right)
+                {
+                    _mouseXPos = mouse.X;
+                    _mouseYPos = mouse.Y;
+                    return;
+                }
+
                 if (_grid.SelectedCells.Count == 0)
                 {
                     return;
@@ -273,15 +288,15 @@ namespace OsEngine.OsTrader.Gui
                     _master.CreateNewBot();
                 }
 
-                if(_grid.Rows.Count <= prevActiveRow)
+                if(_grid.Rows.Count <= _prevActiveRow)
                 {
-                    prevActiveRow = rowIndex;
+                    _prevActiveRow = rowIndex;
                     return;
                 }
 
-                _grid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                _grid.Rows[_prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
                 _grid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-                prevActiveRow = rowIndex;
+                _prevActiveRow = rowIndex;
             }
             catch(Exception error)
             {
@@ -289,9 +304,322 @@ namespace OsEngine.OsTrader.Gui
             }
         }
 
+        #region Pop-up menu
+
+        private int _mouseXPos;
+
+        private int _mouseYPos;
+
+        BotPanel _lastSelectedBot;
+
+        private void _grid_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (e.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
+                int rowIndex = e.RowIndex;
+                int columnIndex = e.ColumnIndex;
+
+                if(rowIndex >= _master.PanelsArray.Count
+                    || rowIndex < 0)
+                {
+                    return;
+                }
+
+                _lastSelectedBot = _master.PanelsArray[rowIndex];
+
+                List<MenuItem> items = new List<MenuItem>();
+
+                items.Add(new MenuItem(_lastSelectedBot.GetNameStrategyType() + "  " + _lastSelectedBot.NameStrategyUniq));
+                items[0].Enabled = false;
+
+                items.Add(new MenuItem("Chart"));
+                items[1].Click += BotTabsPainter_Chart_Click;
+
+                items.Add(new MenuItem("Parameters"));
+                items[2].Click += BotTabsPainter_Parameters_Click;
+
+                items.Add(new MenuItem("Journal"));
+                items[3].Click += BotTabsPainter_Journal_Click;
+
+                if(_lastSelectedBot.OnOffEventsInTabs == true)
+                {
+                    items.Add(new MenuItem("Off events"));
+                }
+                else //if (selectedBot.OnOffEventsInTabs == false)
+                {
+                    items.Add(new MenuItem("On events"));
+                }
+                items[4].Click += BotTabsPainter_OnOffEvents_Click;
+
+                if (_lastSelectedBot.OnOffEmulatorsInTabs == true)
+                {
+                    items.Add(new MenuItem("Off emulator"));
+                }
+                else //if (selectedBot.OnOffEventsInTabs == false)
+                {
+                    items.Add(new MenuItem("On emulator"));
+                }
+                if(_master._startProgram == StartProgram.IsTester)
+                {
+                    items[5].Enabled = false;
+                }
+                items[5].Click += BotTabsPainter_OnOffEmulator_Click;
+
+                items.Add(new MenuItem("Move Up"));
+                items[6].Click += BotTabsPainter_MoveUp_Click;
+
+                items.Add(new MenuItem("Move Down"));
+                items[7].Click += BotTabsPainter_MoveDown_Click;
+
+                items.Add(new MenuItem("Delete"));
+                items[8].Click += BotTabsPainter_Delete_Click;
+
+                ContextMenu menu = new ContextMenu(items.ToArray());
+
+                _grid.ContextMenu = menu;
+                _grid.ContextMenu.Show(_grid, new System.Drawing.Point(_mouseXPos, _mouseYPos));
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void BotTabsPainter_Chart_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _lastSelectedBot.ShowChartDialog();
+            }
+            catch(Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+            }
+        }
+
+        private void BotTabsPainter_Parameters_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _lastSelectedBot.ShowParametrDialog();
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void BotTabsPainter_Journal_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string journalName = 
+                    "Journal2Ui_" + _lastSelectedBot.NameStrategyUniq + _master._startProgram.ToString();
+
+                for(int i = 0;i < _journalUi.Count;i++)
+                {
+                    if (_journalUi[i].JournalName == journalName)
+                    {
+                        _journalUi[i].Activate();
+                        return;
+                    }
+                }
+
+                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
+
+                List<Journal.Journal> journals = _lastSelectedBot.GetJournals();
+
+
+                BotPanelJournal botPanel = new BotPanelJournal();
+                botPanel.BotName = _lastSelectedBot.NameStrategyUniq;
+                botPanel.BotClass = _lastSelectedBot.GetNameStrategyType();
+
+                botPanel._Tabs = new List<BotTabJournal>();
+
+                for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
+                {
+                    BotTabJournal botTabJournal = new BotTabJournal();
+                    botTabJournal.TabNum = i2;
+                    botTabJournal.Journal = journals[i2];
+                    botPanel._Tabs.Add(botTabJournal);
+                }
+
+                panelsJournal.Add(botPanel);
+
+                _journalUi.Add(new JournalUi2(panelsJournal, _lastSelectedBot.StartProgram));
+                _journalUi[_journalUi.Count-1].Closed += _journalUi_Closed;
+                _journalUi[_journalUi.Count - 1].LogMessageEvent += _journalUi_LogMessageEvent;
+                _journalUi[_journalUi.Count - 1].Show();
+            }
+            catch (Exception error)
+            {
+                _master.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<JournalUi2> _journalUi = new List<JournalUi2>();
+
+        private void _journalUi_LogMessageEvent(string message, LogMessageType type)
+        {
+            if (_master == null)
+            {
+                return;
+            }
+            _master.SendNewLogMessage(message, type);
+        }
+
+        private void _journalUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                JournalUi2 myJournal = (JournalUi2)sender;
+
+                for (int i = 0; i < _journalUi.Count; i++)
+                {
+                    if (_journalUi[i].JournalName == myJournal.JournalName)
+                    {
+                        _journalUi[i].Closed -= _journalUi_Closed;
+                        _journalUi[i].LogMessageEvent -= _journalUi_LogMessageEvent;
+                        _journalUi[i].IsErase = true;
+                        _journalUi.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                _master.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void BotTabsPainter_OnOffEvents_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if(_lastSelectedBot.OnOffEventsInTabs == true)
+                {
+                    _lastSelectedBot.OnOffEventsInTabs = false;
+                }
+                else
+                {
+                    _lastSelectedBot.OnOffEventsInTabs = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void BotTabsPainter_OnOffEmulator_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_lastSelectedBot.OnOffEmulatorsInTabs == true)
+                {
+                    _lastSelectedBot.OnOffEmulatorsInTabs = false;
+                }
+                else
+                {
+                    _lastSelectedBot.OnOffEmulatorsInTabs = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void BotTabsPainter_MoveUp_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int rowIndex = -1;
+
+                for (int i = 1; i < _master.PanelsArray.Count; i++)
+                {
+                    if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)
+                    {
+                        BotPanel panel = _master.PanelsArray[i];
+                        _master.PanelsArray[i] = _master.PanelsArray[i - 1];
+                        _master.PanelsArray[i - 1] = panel;
+                        _master.Save();
+                        RePaintTable();
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void BotTabsPainter_MoveDown_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int rowIndex = -1;
+
+                for (int i = 0; i < _master.PanelsArray.Count-1; i++)
+                {
+                    if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)
+                    {
+                        BotPanel panel = _master.PanelsArray[i];
+                        _master.PanelsArray[i] = _master.PanelsArray[i + 1];
+                        _master.PanelsArray[i + 1] = panel;
+                        _master.Save();
+                        RePaintTable();
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+
+        }
+
+        private void BotTabsPainter_Delete_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                int rowIndex = -1;
+
+                for(int i = 0;i < _master.PanelsArray.Count;i++)
+                {
+                    if (_master.PanelsArray[i].NameStrategyUniq == _lastSelectedBot.NameStrategyUniq)
+                    {
+                        rowIndex = i;
+                        break;
+                    }
+                }
+
+                if(rowIndex == -1)
+                {
+                    return;
+                }
+
+                _master.DeleteByNum(rowIndex);
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
         #region работа с чек-боксами включений и отключений
 
         int _lastChangeRow;
+
         int _lastChangeColumn;
 
         private void _grid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
