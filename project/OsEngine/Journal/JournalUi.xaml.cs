@@ -53,8 +53,8 @@ namespace OsEngine.Journal
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
 
             ComboBoxChartType.Items.Add("Absolute");
-            ComboBoxChartType.Items.Add("Persent");
-            ComboBoxChartType.SelectedItem = "Persent";
+            ComboBoxChartType.Items.Add("Percent");
+            ComboBoxChartType.SelectedItem = "Percent";
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
 
             Task task = new Task(ThreadWorkerPlace);
@@ -327,6 +327,12 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (_volumeControlUpdated == true)
+                {
+                    _volumeControlUpdated = false;
+                    return;
+                }
+
                 RePaint();
             }
             catch (Exception error)
@@ -936,7 +942,7 @@ namespace OsEngine.Journal
                     {
                         curProfit = positionsAll[i].ProfitPortfolioPunkt;
                     }
-                    else if (chartType == "Persent")
+                    else if (chartType == "Percent")
                     {
                         curProfit = positionsAll[i].ProfitOperationPersent;
                     }
@@ -1114,9 +1120,9 @@ namespace OsEngine.Journal
 
         #region Volume Chart
 
-        Chart _chartVolume;
+        private Chart _chartVolume;
 
-        private void CreateChartVolume()
+        private void CreateChartVolumeControls()
         {
             try
             {
@@ -1133,24 +1139,114 @@ namespace OsEngine.Journal
             }
         }
 
+        private bool _volumeControlUpdated;
+
+        private void UpdateVolumeShowNumbers(List<Position> positionsAll)
+        {
+            try
+            {
+                if (!GridTabPrime.Dispatcher.CheckAccess())
+                {
+                    GridTabPrime.Dispatcher.Invoke(
+                        new Action<List<Position>>(UpdateVolumeShowNumbers), positionsAll);
+                    return;
+                }
+
+                _volumeControlUpdated = true;
+
+                VolumeShowNumbers.SelectionChanged -= VolumeShowNumbers_SelectionChanged;
+                TabControlPrime.SelectionChanged -= TabControlPrime_SelectionChanged;
+
+                string lastSelectedValue = null;
+
+                if (VolumeShowNumbers.SelectedItem != null)
+                {
+                    lastSelectedValue = VolumeShowNumbers.SelectedItem.ToString();
+                }
+
+                VolumeShowNumbers.Items.Clear();
+
+                List<VolumeSecurity> volumes = new List<VolumeSecurity>();
+
+                for (int i = 0; i < positionsAll.Count; i++)
+                {
+                    if (volumes.Find(vol => vol.Security == positionsAll[i].SecurityName) == null)
+                    {
+                        volumes.Add(new VolumeSecurity() { Security = positionsAll[i].SecurityName });
+                    }
+                }
+
+                if (volumes.Count == 0)
+                {
+                    TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
+                    return;
+                }
+
+                for (int i = 0; i < volumes.Count; i += 10)
+                {
+                    string value = (i + 1) + " >> " + (i + 10);
+                    VolumeShowNumbers.Items.Add(value);
+                }
+
+                if (lastSelectedValue != null)
+                {
+                    for (int i = 0; i < VolumeShowNumbers.Items.Count; i++)
+                    {
+                        if (VolumeShowNumbers.Items[i].ToString() == lastSelectedValue)
+                        {
+                            VolumeShowNumbers.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (VolumeShowNumbers.SelectedItem == null)
+                {
+                    VolumeShowNumbers.SelectedItem = VolumeShowNumbers.Items[0];
+                    _numberOfTensToBeDrawn = 0;
+                }
+
+                VolumeShowNumbers.SelectionChanged += VolumeShowNumbers_SelectionChanged;
+                TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         private void PaintVolumeOnChart(List<Position> positionsAll)
         {
             try
             {
-                if (!TabBots.Dispatcher.CheckAccess())
+                if (IsErase == true)
                 {
-                    TabBots.Dispatcher.Invoke(
+                    return;
+                }
+
+                if (!GridTabPrime.Dispatcher.CheckAccess())
+                {
+                    GridTabPrime.Dispatcher.Invoke(
                         new Action<List<Position>>(PaintVolumeOnChart), positionsAll);
                     return;
                 }
 
                 if (_chartVolume == null)
                 {
-                    CreateChartVolume();
+                    CreateChartVolumeControls();
                 }
+
+                UpdateVolumeShowNumbers(positionsAll);
 
                 _chartVolume.Series.Clear();
                 _chartVolume.ChartAreas.Clear();
+
+                if (positionsAll == null
+                    || positionsAll.Count == 0)
+                {
+                    return;
+                }
+
                 //  take the number of tools
                 // берём кол-во инструментов
                 List<VolumeSecurity> volumes = new List<VolumeSecurity>();
@@ -1225,10 +1321,6 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
-                    if (positionsAll[i].SecurityName == "si.txt")
-                    {
-
-                    }
                     VolumeSecurity volume = volumes.Find(vol => vol.Security == positionsAll[i].SecurityName);
                     int indexOpen = allChange.FindIndex(change => change == positionsAll[i].TimeCreate);
                     int indexClose = allChange.FindIndex(change => change == positionsAll[i].TimeClose);
@@ -1261,7 +1353,14 @@ namespace OsEngine.Journal
                     }
                 }
 
-                for (int i = 0; i < volumes.Count; i++)
+                int volumesStartNum = 0;
+
+                if (_numberOfTensToBeDrawn > 0)
+                {
+                    volumesStartNum = _numberOfTensToBeDrawn * 10;
+                }
+
+                for (int i = volumesStartNum; i < volumes.Count && i < volumesStartNum + 10; i++)
                 {
                     if (i % 2 == 0)
                     {
@@ -1273,7 +1372,9 @@ namespace OsEngine.Journal
                     }
                 }
 
-                float step = 100 / _chartVolume.ChartAreas.Count;
+                //float step = (float)(100m / _chartVolume.ChartAreas.Count);
+
+                float step = (float)(100m / _chartVolume.ChartAreas.Count);
 
                 float y = 0;
 
@@ -1297,14 +1398,14 @@ namespace OsEngine.Journal
             try
             {
                 if (volume == null ||
-                volume.Count == 0)
+      volume.Count == 0)
                 {
                     return;
                 }
 
                 ChartArea areaLineSecurity = new ChartArea("ChartArea" + name);
 
-                areaLineSecurity.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaLineSecurity.CursorX.IsUserSelectionEnabled = true; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
                 areaLineSecurity.CursorX.IsUserEnabled = true; //trait/чертa
 
                 areaLineSecurity.BorderColor = Color.Black;
@@ -1314,7 +1415,7 @@ namespace OsEngine.Journal
                 areaLineSecurity.AxisX.TitleForeColor = Color.Gainsboro;
                 areaLineSecurity.AxisY.TitleForeColor = Color.Gainsboro;
                 areaLineSecurity.AxisY2.IntervalAutoMode = IntervalAutoMode.FixedCount;
-
+                areaLineSecurity.AxisY2.Enabled = AxisEnabled.False;
                 foreach (var axe in areaLineSecurity.Axes)
                 {
                     axe.LabelStyle.ForeColor = Color.Gainsboro;
@@ -1330,18 +1431,18 @@ namespace OsEngine.Journal
                 volumeSeries.BorderWidth = 3;
                 volumeSeries.ShadowOffset = 2;
 
-                int maxVolume = 0;
-                int minVolume = int.MaxValue;
+                decimal maxVolume = 0;
+                decimal minVolume = decimal.MaxValue;
 
                 for (int i = 0; i < volume.Count; i++)
                 {
                     if (volume[i] > maxVolume)
                     {
-                        maxVolume = Convert.ToInt32(volume[i]);
+                        maxVolume = volume[i];
                     }
                     if (volume[i] < minVolume)
                     {
-                        minVolume = Convert.ToInt32(volume[i]);
+                        minVolume = volume[i];
                     }
                     volumeSeries.Points.Add(Convert.ToDouble(volume[i]));
                     volumeSeries.Points[volumeSeries.Points.Count - 1].AxisLabel =
@@ -1352,7 +1453,7 @@ namespace OsEngine.Journal
 
                 Series nameSeries = new Series("Name" + name);
                 nameSeries.ChartType = SeriesChartType.Point;
-                nameSeries.Color = color;
+                nameSeries.Color = Color.White;
                 nameSeries.YAxisType = AxisType.Secondary;
                 nameSeries.ChartArea = areaLineSecurity.Name;
                 nameSeries.BorderWidth = 3;
@@ -1360,26 +1461,19 @@ namespace OsEngine.Journal
                 nameSeries.MarkerStyle = MarkerStyle.Square;
                 nameSeries.MarkerSize = 4;
 
-                nameSeries.Points.Add(maxVolume);
+                nameSeries.Points.Add(Convert.ToDouble(maxVolume));
                 nameSeries.Points[0].Label = name;
-                nameSeries.Points[0].LabelForeColor = color;
+                nameSeries.Points[0].LabelForeColor = Color.White;
 
 
                 _chartVolume.Series.Add(nameSeries);
 
-                areaLineSecurity.AxisY2.Maximum = maxVolume + 1;
-                areaLineSecurity.AxisY2.Minimum = minVolume - 1;
+                areaLineSecurity.AxisY2.Maximum = Convert.ToDouble(maxVolume + (maxVolume * 0.05m));
+                areaLineSecurity.AxisY2.Minimum = Convert.ToDouble(minVolume - (maxVolume * 0.05m));
 
-                int interval = Convert.ToInt32(Math.Abs(maxVolume - minVolume) / 8);
+                double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
 
-                if (interval > 1)
-                {
-                    areaLineSecurity.AxisY2.Interval = interval;
-                }
-                else
-                {
-                    areaLineSecurity.AxisY2.Interval = 1;
-                }
+                areaLineSecurity.AxisY2.Interval = interval;
             }
             catch (Exception error)
             {
@@ -1387,7 +1481,7 @@ namespace OsEngine.Journal
             }
         }
 
-        private void _chartVolume_Click(object sender, EventArgs e)
+        void _chartVolume_Click(object sender, EventArgs e)
         {
             try
             {
@@ -1446,6 +1540,38 @@ namespace OsEngine.Journal
             }
         }
 
+        int _numberOfTensToBeDrawn;
+
+        private void VolumeShowNumbers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (VolumeShowNumbers.SelectedValue == null
+                    || VolumeShowNumbers.Items == null
+                    || VolumeShowNumbers.Items.Count == 0)
+                {
+                    _numberOfTensToBeDrawn = 0;
+                    return;
+                }
+
+                string selectedValue = VolumeShowNumbers.SelectedValue.ToString();
+
+                for (int i = 0; i < VolumeShowNumbers.Items.Count; i++)
+                {
+                    if (VolumeShowNumbers.Items[i].ToString() == selectedValue)
+                    {
+                        _numberOfTensToBeDrawn = i;
+                        break;
+                    }
+                }
+                RePaint();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region Max DD Chart
@@ -1474,15 +1600,15 @@ namespace OsEngine.Journal
 
                 _chartDd.ChartAreas.Add(areaDdPunct);
 
-                ChartArea areaDdPersent = new ChartArea("ChartAreaDdPercent");
-                areaDdPersent.AlignWithChartArea = "ChartAreaDdPunct";
-                areaDdPersent.Position.Height = 50;
-                areaDdPersent.Position.Width = 100;
-                areaDdPersent.Position.Y = 50;
-                areaDdPersent.AxisX.Enabled = AxisEnabled.False;
-                areaDdPersent.CursorX.IsUserEnabled = true; //trait/чертa
+                ChartArea areaDdPercent = new ChartArea("ChartAreaDdPercent");
+                areaDdPercent.AlignWithChartArea = "ChartAreaDdPunct";
+                areaDdPercent.Position.Height = 50;
+                areaDdPercent.Position.Width = 100;
+                areaDdPercent.Position.Y = 50;
+                areaDdPercent.AxisX.Enabled = AxisEnabled.False;
+                areaDdPercent.CursorX.IsUserEnabled = true; //trait/чертa
 
-                _chartDd.ChartAreas.Add(areaDdPersent);
+                _chartDd.ChartAreas.Add(areaDdPercent);
 
                 for (int i = 0; i < _chartDd.ChartAreas.Count; i++)
                 {

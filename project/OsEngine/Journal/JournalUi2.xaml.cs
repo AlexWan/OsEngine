@@ -47,8 +47,8 @@ namespace OsEngine.Journal
             LoadGroups();
 
             ComboBoxChartType.Items.Add("Absolute");
-            ComboBoxChartType.Items.Add("Persent");
-            ComboBoxChartType.SelectedItem = "Persent";
+            ComboBoxChartType.Items.Add("Percent");
+            ComboBoxChartType.SelectedItem = "Percent";
 
             _currentCulture = OsLocalization.CurCulture;
 
@@ -864,7 +864,7 @@ namespace OsEngine.Journal
                     {
                         curProfit = positionsAll[i].ProfitPortfolioPunkt * (curMult / 100);
                     }
-                    else if (chartType == "Persent")
+                    else if (chartType == "Percent")
                     {
                         curProfit = positionsAll[i].ProfitOperationPersent * (curMult / 100);
                     }
@@ -1300,9 +1300,7 @@ namespace OsEngine.Journal
                     }
                 }
 
-                //float step = (float)(100m / _chartVolume.ChartAreas.Count);
-
-                float step = 10;
+                float step = (float)(100m / _chartVolume.ChartAreas.Count);
 
                 float y = 0;
 
@@ -1527,15 +1525,15 @@ namespace OsEngine.Journal
 
                 _chartDd.ChartAreas.Add(areaDdPunct);
 
-                ChartArea areaDdPersent = new ChartArea("ChartAreaDdPersent");
-                areaDdPersent.AlignWithChartArea = "ChartAreaDdPunct";
-                areaDdPersent.Position.Height = 50;
-                areaDdPersent.Position.Width = 100;
-                areaDdPersent.Position.Y = 50;
-                areaDdPersent.AxisX.Enabled = AxisEnabled.False;
-                areaDdPersent.CursorX.IsUserEnabled = true; //trait/чертa
+                ChartArea areaDdPercent = new ChartArea("ChartAreaDdPersent");
+                areaDdPercent.AlignWithChartArea = "ChartAreaDdPunct";
+                areaDdPercent.Position.Height = 50;
+                areaDdPercent.Position.Width = 100;
+                areaDdPercent.Position.Y = 50;
+                areaDdPercent.AxisX.Enabled = AxisEnabled.False;
+                areaDdPercent.CursorX.IsUserEnabled = true; //trait/чертa
 
-                _chartDd.ChartAreas.Add(areaDdPersent);
+                _chartDd.ChartAreas.Add(areaDdPercent);
 
                 for (int i = 0; i < _chartDd.ChartAreas.Count; i++)
                 {
@@ -1787,26 +1785,26 @@ namespace OsEngine.Journal
                     ddPepcent[i] = (thisDown / (thisPik / 100));
                 }
 
-                    Series drowDownPersent = new Series("SeriesDdPercent");
-                drowDownPersent.ChartType = SeriesChartType.Line;
-                drowDownPersent.Color = Color.DarkOrange;
-                drowDownPersent.LabelForeColor = Color.White;
-                drowDownPersent.YAxisType = AxisType.Secondary;
-                drowDownPersent.ChartArea = "ChartAreaDdPersent";
-                drowDownPersent.BorderWidth = 2;
-                drowDownPersent.ShadowOffset = 2;
+                    Series drowDownPercent = new Series("SeriesDdPercent");
+                drowDownPercent.ChartType = SeriesChartType.Line;
+                drowDownPercent.Color = Color.DarkOrange;
+                drowDownPercent.LabelForeColor = Color.White;
+                drowDownPercent.YAxisType = AxisType.Secondary;
+                drowDownPercent.ChartArea = "ChartAreaDdPersent";
+                drowDownPercent.BorderWidth = 2;
+                drowDownPercent.ShadowOffset = 2;
 
                 for (int i = 0; i < ddPepcent.Count; i++)
                 {
                     decimal val = Math.Round(ddPepcent[i], 6);
-                    drowDownPersent.Points.Add(Convert.ToDouble(val));
-                    drowDownPersent.Points[drowDownPersent.Points.Count - 1].AxisLabel =
+                    drowDownPercent.Points.Add(Convert.ToDouble(val));
+                    drowDownPercent.Points[drowDownPercent.Points.Count - 1].AxisLabel =
                    positionsAll[i].TimeCreate.ToString(_currentCulture);
 
-                    drowDownPersent.Points[drowDownPersent.Points.Count - 1].LegendText = val.ToString();
+                    drowDownPercent.Points[drowDownPercent.Points.Count - 1].LegendText = val.ToString();
                 }
 
-                _chartDd.Series.Add(drowDownPersent);
+                _chartDd.Series.Add(drowDownPercent);
 
                 decimal minOnY2 = decimal.MaxValue;
 
