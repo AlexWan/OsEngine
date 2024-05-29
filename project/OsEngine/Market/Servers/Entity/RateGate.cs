@@ -104,6 +104,12 @@ namespace OsEngine.Market.Servers.Entity
                 timeUntilNextCheck = TimeUnitMilliseconds;
 
             // Set the timer.
+
+            if(timeUntilNextCheck < 0)
+            {
+                timeUntilNextCheck = -1;
+            }
+
             _exitTimer.Change(timeUntilNextCheck, -1);
         }
 

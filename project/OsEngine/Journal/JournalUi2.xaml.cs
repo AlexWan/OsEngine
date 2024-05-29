@@ -26,8 +26,6 @@ using MenuItem = System.Windows.Forms.MenuItem;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using System.Threading;
 using OsEngine.Layout;
-using System.Drawing;
-using System.Windows.Data;
 
 namespace OsEngine.Journal
 {
