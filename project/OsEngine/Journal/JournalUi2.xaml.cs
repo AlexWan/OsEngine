@@ -679,7 +679,16 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                int curCountOfPoints = _chartEquity.Series[0].Points.Count;
+                int curCountOfPoints = 0;
+
+                if (_chartEquity.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                {
+                    curCountOfPoints = Convert.ToInt32(_chartEquity.ChartAreas[0].AxisX.ScaleView.Size);
+                }
+                else
+                {
+                    curCountOfPoints = _chartEquity.Series[0].Points.Count;
+                }
 
                 double sizeArea = _chartEquity.ChartAreas[0].InnerPlotPosition.Size.Width;
                 double allSizeAbs = _chartEquity.Size.Width * (sizeArea / 100);
@@ -701,6 +710,14 @@ namespace OsEngine.Journal
                 catch
                 {
                     return;
+                }
+
+                int firstPoint = 0;
+
+                if(_chartEquity.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                {
+                    firstPoint = Convert.ToInt32(_chartEquity.ChartAreas[0].AxisX.ScaleView.Position);
+                    curPointNum = firstPoint + curPointNum;
                 }
 
                 //_chartEquity.ChartAreas[0].CursorX.Position = curPointNum;
@@ -936,7 +953,11 @@ namespace OsEngine.Journal
                     profitShort.Points.AddXY(i, profitSumShort);
                     profitShort.Points[profitShort.Points.Count - 1].AxisLabel = profitSumShort.ToString();
 
-                    if (curProfit > 0)
+                    if(positionsAll[i].State != PositionStateType.Done)
+                    {
+                        profitBar.Points[profitBar.Points.Count - 1].Color = Color.BlueViolet;
+                    }
+                    else if (curProfit > 0)
                     {
                         profitBar.Points[profitBar.Points.Count - 1].Color = Color.Gainsboro;
                     }

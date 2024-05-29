@@ -1847,9 +1847,6 @@
     <None Include="Resources\Bird.wav" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Robots\1readme.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Images\MainWIndow\test.png" />
   </ItemGroup>
   <ItemGroup>
