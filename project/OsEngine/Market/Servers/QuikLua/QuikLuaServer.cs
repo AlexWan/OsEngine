@@ -433,7 +433,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     .Result.ParamValue.Replace('.', Separator).ToDecimal();
 
                 newSec.PriceStepCost = QuikLua.Trading
-                    .GetParamEx(classCode, secCode, "STEPPRICET")
+                    .GetParamEx(classCode, secCode, "STEPPRICE")
                     .Result.ParamValue.Replace('.', Separator).ToDecimal();
 
                 if (newSec.PriceStep == 0 &&
