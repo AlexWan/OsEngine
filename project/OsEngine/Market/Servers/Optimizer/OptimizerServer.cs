@@ -646,6 +646,16 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
 
                 ExecuteOnBoardOrder(order, realPrice, time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
                 return true;
             }
 
@@ -812,6 +822,16 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 decimal realPrice = order.Price;
                 ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
                 return true;
             }
 
@@ -955,6 +975,24 @@ namespace OsEngine.Market.Servers.Optimizer
                 // CanselOnBoardOrder(order);
                 return false;
             }
+
+            if (order.IsStopOrProfit)
+            {
+                decimal realPrice = order.Price;
+                ExecuteOnBoardOrder(order, realPrice, time, 0);
+
+                for (int i = 0; i < OrdersActiv.Count; i++)
+                {
+                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    {
+                        OrdersActiv.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                return true;
+            }
+
 
             if (order.TypeOrder == OrderPriceType.Market)
             {

@@ -1225,7 +1225,10 @@ namespace OsEngine.OsOptimizer
                 for(int j = 0; j < Storage.SecuritiesTester.Count;j++)
                 {
                     if (Storage.SecuritiesTester[j].Security.Name == curFrame.NameSecurity
-                        && Storage.SecuritiesTester[j].TimeFrame == curFrame.TimeFrame)
+                        && 
+                        (Storage.SecuritiesTester[j].TimeFrame == curFrame.TimeFrame 
+                        || Storage.SecuritiesTester[j].TimeFrame == TimeFrame.Sec1
+                        || Storage.SecuritiesTester[j].TimeFrame == TimeFrame.Tick))
                     {
                         isInArray = true;
                     }
