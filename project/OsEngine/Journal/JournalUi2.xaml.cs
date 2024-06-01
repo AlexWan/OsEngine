@@ -47,8 +47,8 @@ namespace OsEngine.Journal
             LoadGroups();
 
             ComboBoxChartType.Items.Add("Absolute");
-            ComboBoxChartType.Items.Add("Percent");
-            ComboBoxChartType.SelectedItem = "Percent";
+            ComboBoxChartType.Items.Add("Percent 1 contract");
+            ComboBoxChartType.SelectedItem = "Absolute";
 
             _currentCulture = OsLocalization.CurCulture;
 
@@ -883,11 +883,10 @@ namespace OsEngine.Journal
                     {
                         curProfit = positionsAll[i].ProfitPortfolioPunkt * (curMult / 100);
                     }
-                    else if (chartType == "Percent")
+                    else if (chartType == "Percent 1 contract")
                     {
                         curProfit = positionsAll[i].ProfitOperationPersent * (curMult / 100);
                     }
-
 
                     curProfit = Math.Round(curProfit, 8);
 
