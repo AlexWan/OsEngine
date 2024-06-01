@@ -113,6 +113,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonCreateTableSecondStep.Click += ButtonCreateTableSecondStep_Click;
             ButtonCreateTableFinal.Click += ButtonCreateTableFinal_Click;
             ButtonCreateSelectedSequence.Click += ButtonCreateSelectedSequence_Click;
+            TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;			
 
             Closed += BotTabPolygonAutoSelectSequenceUi_Closed;
         }
@@ -137,6 +138,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonCreateTableSecondStep.Click -= ButtonCreateTableSecondStep_Click;
             ButtonCreateTableFinal.Click -= ButtonCreateTableFinal_Click;
             ButtonCreateSelectedSequence.Click -= ButtonCreateSelectedSequence_Click;
+            TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;		
             Closed -= BotTabPolygonAutoSelectSequenceUi_Closed;
 
             List<IServer> serversAll = ServerMaster.GetServers();
@@ -699,6 +701,38 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _gridSecuritiesFirstStep.Rows[realInd].Selected = true;
             _gridSecuritiesFirstStep.FirstDisplayedScrollingRowIndex = realInd;
+        }
+
+        private void TextBoxSearchSecurity_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                int rowIndex = 0;
+                for (int i = 0; i < _gridSecuritiesFirstStep.Rows.Count; i++)
+                {
+                    if (_gridSecuritiesFirstStep.Rows[i].Selected == true)
+                    {
+                        rowIndex = i;
+                        break;
+                    }
+                    if (i == _gridSecuritiesFirstStep.Rows.Count - 1)
+                    {
+                        return;
+                    }
+                }
+
+                DataGridViewCheckBoxCell checkBox = (DataGridViewCheckBoxCell)_gridSecuritiesFirstStep.Rows[rowIndex].Cells[6];
+                if (Convert.ToBoolean(checkBox.Value) == false)
+                {
+                    checkBox.Value = true;
+                    TextBoxSearchSecurity.Text = "";
+                }
+                else
+                {
+                    checkBox.Value = false;
+                    TextBoxSearchSecurity.Text = "";
+                }
+            }
         }
 
         #endregion
