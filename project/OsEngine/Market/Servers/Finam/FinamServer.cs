@@ -387,6 +387,12 @@ namespace OsEngine.Market.Servers.Finam
                 return "";
             }
 
+            // Как обновить данные по бумагам
+            // 1. Идём на сайт Финам: https://www.finam.ru/profile/moex-akcii/sberbank/export/old/
+            // 2. Заходим в источники страницы, через инструменты разработчика
+            // 3. В кэше находим файл icharts.js
+            // 4. Копируем содержимое этого файла в текстовик FinamSecurities.txt, который рядом с exe файлом OsEngine
+
             string result = "";
 
             try
@@ -411,7 +417,7 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         public static string GetIchartsPath()
         {
-            var response = GetPage("https://www.finam.ru/profile/moex-akcii/gazprom/export/");
+            var response = GetPage("https://www.finam.ru/profile/moex-akcii/sberbank/export/old/");
 
             if(response == null)
             {
