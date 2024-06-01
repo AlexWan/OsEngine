@@ -407,34 +407,41 @@ namespace OsEngine.OsData
 
         private void TextBoxSearchSecurity_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            try
             {
-                int rowIndex = 0;
-                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                if (e.Key == Key.Enter)
                 {
-                    if (_gridSecurities.Rows[i].Selected == true)
+                    int rowIndex = 0;
+                    for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                     {
-                        rowIndex = i;
-                        break;
+                        if (_gridSecurities.Rows[i].Selected == true)
+                        {
+                            rowIndex = i;
+                            break;
+                        }
+                        if (i == _gridSecurities.Rows.Count - 1)
+                        {
+                            return;
+                        }
                     }
-                    if (i == _gridSecurities.Rows.Count - 1)
-                    {
-                        return;
-                    }
-                }
 
-                DataGridViewCheckBoxCell checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowIndex].Cells[2];
-                if (Convert.ToBoolean(checkBox.Value) == false)
-                {
-                    checkBox.Value = true;
-                    TextBoxSearchSecurity.Text = "";
-                }
-                else
-                {
-                    checkBox.Value = false;
-                    TextBoxSearchSecurity.Text = "";
+                    DataGridViewCheckBoxCell checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowIndex].Cells[2];
+                    if (Convert.ToBoolean(checkBox.Value) == false)
+                    {
+                        checkBox.Value = true;
+                        TextBoxSearchSecurity.Text = "";
+                    }
+                    else
+                    {
+                        checkBox.Value = false;
+                        TextBoxSearchSecurity.Text = "";
+                    }
                 }
             }
+            catch (Exception error)
+            {
+                System.Windows.MessageBox.Show(error.ToString());
+            }		
         }
 
         #endregion

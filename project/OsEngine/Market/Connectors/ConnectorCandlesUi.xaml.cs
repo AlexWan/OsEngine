@@ -1371,53 +1371,60 @@ namespace OsEngine.Market.Connectors
 
         private void TextBoxSearchSecurity_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            try
             {
-                int rowIndex = 0;
-                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                if (e.Key == Key.Enter)
                 {
-                    if (_gridSecurities.Rows[i].Selected == true)
+                    int rowIndex = 0;
+                    for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                     {
-                        rowIndex = i;
-                        break;
+                        if (_gridSecurities.Rows[i].Selected == true)
+                        {
+                            rowIndex = i;
+                            break;
+                        }
+                        if (i == _gridSecurities.Rows.Count - 1)
+                        {
+                            return;
+                        }
                     }
-                    if (i == _gridSecurities.Rows.Count - 1)
-                    {
-                        return;
-                    }
-                }
 
-                DataGridViewCheckBoxCell checkBox;
-                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
-                {
-                    checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[4];
+                    DataGridViewCheckBoxCell checkBox;
+                    for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                    {
+                        checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[4];
 
-                    if (checkBox.Value == null)
-                    {
-                        continue;
+                        if (checkBox.Value == null)
+                        {
+                            continue;
+                        }
+                        if (i == rowIndex)
+                        {
+                            continue;
+                        }
+                        if (Convert.ToBoolean(checkBox.Value) == true)
+                        {
+                            checkBox.Value = false;
+                            break;
+                        }
                     }
-                    if (i == rowIndex)
+
+                    checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowIndex].Cells[4];
+                    if (Convert.ToBoolean(checkBox.Value) == false)
                     {
-                        continue;
+                        checkBox.Value = true;
+                        TextBoxSearchSecurity.Text = "";
                     }
-                    if (Convert.ToBoolean(checkBox.Value) == true)
+                    else
                     {
                         checkBox.Value = false;
-                        break;
+                        TextBoxSearchSecurity.Text = "";
                     }
                 }
-
-                checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowIndex].Cells[4];
-                if (Convert.ToBoolean(checkBox.Value) == false)
-                {
-                    checkBox.Value = true;
-                    TextBoxSearchSecurity.Text = "";
-                }
-                else
-                {
-                    checkBox.Value = false;
-                    TextBoxSearchSecurity.Text = "";
-                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
