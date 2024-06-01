@@ -1571,5 +1571,10 @@ namespace OsEngine.Language
         public string Label417 => OsLocalization.ConvertToLocString(
         "Eng:Move Down_" +
         "Ru:Сдвинуть вниз_");
+		
+        public string Label418 => OsLocalization.ConvertToLocString(
+          "Eng:Contains_" +
+          "Ru:Содержит_");
+	
     }
 }
