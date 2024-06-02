@@ -2259,6 +2259,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 volume = volumeValue / lastPrice;
+
+                Security mySec = tab.Securiti;
+
+                if(mySec.Lot > 1)
+                {
+                    volume = volume / mySec.Lot;
+                }
             }
             else if (volumeType == PairTraderVolumeType.Contract)
             {
