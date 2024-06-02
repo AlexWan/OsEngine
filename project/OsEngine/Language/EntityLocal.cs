@@ -268,7 +268,7 @@ namespace OsEngine.Language
             "Ru:Цена шага цены_");
 
         public string SecuritiesColumn6 => OsLocalization.ConvertToLocString(
-            "Eng:Price lot_" +
+            "Eng:Collateral_" +
             "Ru:ГО_");
 
         public string SecuritiesColumn7 => OsLocalization.ConvertToLocString(
