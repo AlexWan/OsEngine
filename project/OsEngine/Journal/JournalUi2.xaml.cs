@@ -628,7 +628,7 @@ namespace OsEngine.Journal
                 areaLineProfit.Position.Height = 70;
                 areaLineProfit.Position.Width = 100;
                 areaLineProfit.Position.Y = 0;
-                areaLineProfit.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaLineProfit.CursorX.IsUserSelectionEnabled = true; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
                 areaLineProfit.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartEquity.ChartAreas.Add(areaLineProfit);
@@ -659,7 +659,23 @@ namespace OsEngine.Journal
                 }
 
                 _chartEquity.MouseMove += _chartEquity_MouseMove;
+                _chartEquity.MouseWheel += _chartEquity_MouseWheel;
 
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _chartEquity_MouseWheel(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (_chartEquity.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                {
+                    _chartEquity.ChartAreas[0].AxisX.ScaleView.ZoomReset();
+                }
             }
             catch (Exception error)
             {
@@ -910,7 +926,12 @@ namespace OsEngine.Journal
                     profit.Points[profit.Points.Count - 1].AxisLabel = profitSum.ToString();
 
                     profitBar.Points.AddXY(i, curProfit);
-                    profitBar.Points[profitBar.Points.Count - 1].AxisLabel = curProfit.ToString();
+
+                    profitBar.Points[profitBar.Points.Count - 1].LabelForeColor = Color.DarkOrange;
+                    profitBar.Points[profitBar.Points.Count - 1].AxisLabel 
+                        = positionsAll[i].SecurityName + "\n" +
+                          curProfit.ToString() + "\n" +
+                          positionsAll[i].NameBot;
 
                     if (positionsAll[i].Direction == Side.Buy)
                     {
