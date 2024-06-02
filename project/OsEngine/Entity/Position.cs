@@ -1155,7 +1155,7 @@ namespace OsEngine.Entity
                     serverType == ServerType.Optimizer ||
                     serverType == ServerType.Miner)
                 {
-                    return false;
+                    return true;
                 }
 
                 if(serverType == ServerType.QuikDde
