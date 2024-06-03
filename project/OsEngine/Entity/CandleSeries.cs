@@ -48,7 +48,7 @@ namespace OsEngine.Entity
         private StartProgram _startProgram;
 
         /// <summary>
-        /// data from which to collect candles: from ticks or from glasses
+        /// data from which to collect candles: from ticks or from market depth
         /// </summary>
         public CandleMarketDataType CandleMarketDataType
         {
@@ -56,7 +56,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candle assembly type: regular, renko, delta
+        /// candle assembly type: simple, renko, delta, volume, etc
         /// </summary>
         public CandleCreateMethodType CandleCreateMethodType
         {
@@ -117,7 +117,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// timeframe as an enumeration
+        /// timeframe
         /// </summary>
         public TimeFrame TimeFrame
         {
@@ -178,7 +178,7 @@ namespace OsEngine.Entity
         private bool _isStoped;
 
         /// <summary>
-        /// batch calculation series
+        /// stop calculation series
         /// </summary>
         public void Stop()
         {
@@ -293,9 +293,6 @@ namespace OsEngine.Entity
 
         #region Candles building
 
-        /// <summary>
-        /// add a new server time to the series
-        /// </summary>
         public void SetNewTime(DateTime time)
         {
             if (_isStoped || _isStarted == false)
@@ -334,9 +331,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// add new ticks to the series
-        /// </summary>
         public void SetNewTicks(List<Trade> trades)
         {
             if (_isStoped || _isStarted == false)
@@ -433,9 +427,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// add new market depth to the series
-        /// </summary>
         public void SetNewMarketDepth(MarketDepth marketDepth)
         {
             if (_isStarted == false)
@@ -567,9 +558,12 @@ namespace OsEngine.Entity
         }
 
         private int _lastTradeIndex;
+
         private DateTime _lastTradeTime;
-        List<string> _lastTradeIds = new List<string>();
-        DateTime _idsTime = DateTime.MinValue;
+
+        private List<string> _lastTradeIds = new List<string>();
+
+        private DateTime _idsTime = DateTime.MinValue;
 
         private void AddInListTradeIds(string id, DateTime _timeNow)
         {
@@ -598,14 +592,6 @@ namespace OsEngine.Entity
             return isInArray;
         }
 
-        /// <summary>
-        /// update candle series with new data
-        /// </summary>
-        /// <param name="time">new data time</param>
-        /// <param name="price">price new data</param>
-        /// <param name="volume">volume new data</param>
-        /// <param name="canPushUp">can the candles be shared with the architects above?</param>
-        /// <param name="side">last trade side</param>
         private void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
             if (TimeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
@@ -1673,8 +1659,6 @@ namespace OsEngine.Entity
 
         private Side _rencoLastSide;
 
-        private bool _rencoIsBuildShadows;
-
         private void UpDateRencoTimeFrame(DateTime time, decimal price, decimal volume, bool canPushUp)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
@@ -1918,19 +1902,13 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// the last candle in the series has changed
-        /// </summary>
         public event Action<CandleSeries> СandleUpdeteEvent;
 
-        /// <summary>
-        /// the last candle in the series has finished
-        /// </summary>
         public event Action<CandleSeries> СandleFinishedEvent;
 
         #endregion
 
-        #region Tester
+        #region Tester / Optimizer
 
         public TesterDataType TypeTesterData;
 
