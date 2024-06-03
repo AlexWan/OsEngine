@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows;
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 
@@ -58,37 +59,44 @@ namespace OsEngine.Robots.MarketMaker
         {
             try
             {
-                if (Convert.ToDecimal(TextBoxSlipage1.Text) < 0 ||
-                    Convert.ToDecimal(TextBoxSlipage2.Text) < 0 ||
-                    Convert.ToDecimal(TextBoxVolume1.Text) < 0 ||
-                    Convert.ToDecimal(TextBoxVolume2.Text) < 0 ||
-                    Convert.ToDecimal(TextBoxCandleCount.Text) < 0 ||
-                    Convert.ToDecimal(TextBoxDivergention.Text) < 0)
+                try
                 {
-                    throw new Exception();
+                    if (TextBoxSlipage1.Text.ToDecimal() < 0 ||
+                        TextBoxSlipage2.Text.ToDecimal() < 0 ||
+                        TextBoxVolume1.Text.ToDecimal() < 0 ||
+                        TextBoxVolume2.Text.ToDecimal() < 0 ||
+                        Convert.ToInt32(TextBoxCandleCount.Text) < 0 ||
+                        TextBoxDivergention.Text.ToDecimal() < 0)
+                    {
+                        throw new Exception();
+                    }
                 }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label13);
+                    return;
+                }
+
+                _strategy.Slipage1 = TextBoxSlipage1.Text.ToDecimal();
+                _strategy.Slipage2 = TextBoxSlipage2.Text.ToDecimal();
+                Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
+                _strategy.CountCandles = Convert.ToInt32(TextBoxCandleCount.Text);
+
+                _strategy.Volume2 = TextBoxVolume2.Text.ToDecimal();
+                _strategy.Volume1 = TextBoxVolume1.Text.ToDecimal();
+
+                _strategy.SpreadDeviation = TextBoxDivergention.Text.ToDecimal();
+
+                _strategy.Loss = TextBoxLoss1.Text.ToDecimal();
+                _strategy.Profit = TextBoxProfit1.Text.ToDecimal();
+
+                _strategy.Save();
+                Close();
             }
-            catch (Exception)
+            catch(Exception error)
             {
-                MessageBox.Show(OsLocalization.Trader.Label13);
-                return;
+                _strategy.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
-
-            _strategy.Slipage1 = Convert.ToDecimal(TextBoxSlipage1.Text);
-            _strategy.Slipage2 = Convert.ToDecimal(TextBoxSlipage2.Text);
-            Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
-            _strategy.CountCandles = Convert.ToInt32(TextBoxCandleCount.Text);
-
-            _strategy.Volume2 = Convert.ToDecimal(TextBoxVolume2.Text);
-            _strategy.Volume1 = Convert.ToDecimal(TextBoxVolume1.Text);
-
-            _strategy.SpreadDeviation = Convert.ToDecimal(TextBoxDivergention.Text);
-
-            _strategy.Loss = Convert.ToDecimal(TextBoxLoss1.Text);
-            _strategy.Profit = Convert.ToDecimal(TextBoxProfit1.Text);
-
-            _strategy.Save();
-            Close();
         }
 
         private void ButtonAbout_Click(object sender, RoutedEventArgs e)
