@@ -165,21 +165,34 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void PositionOpenUi2_Closed(object sender, EventArgs e)
         {
+            try
+            {
+                if (Tab != null)
+                {
+                    Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
+                    Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
+                    Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+                    Tab = null;
+                }
+
+                Closed -= PositionOpenUi2_Closed;
+
+                if (_marketDepthPainter != null)
+                {
+                    _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
+                    _marketDepthPainter.StopPaint();
+                    _marketDepthPainter.Delete();
+                    _marketDepthPainter = null;
+                }
+
+                Position = null;
+            }
+            catch
+            {
+                // ignore
+            }
+
             _isDeleted = true;
-
-            Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
-            Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
-            Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
-
-            Closed -= PositionOpenUi2_Closed;
-
-            _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
-            _marketDepthPainter.StopPaint();
-            _marketDepthPainter.Delete();
-            _marketDepthPainter = null;
-
-            Tab = null;
-            Position = null;
         }
 
         private bool _isDeleted;
