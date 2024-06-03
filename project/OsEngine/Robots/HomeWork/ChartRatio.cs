@@ -24,6 +24,8 @@ namespace OsEngine.Robots.HomeWork
         private StrategyParameterInt _timePaintChart;
         private StrategyParameterDecimal _levelSell;
         private StrategyParameterDecimal _levelBuy;
+        private StrategyParameterDecimal _volumeOne;
+        private StrategyParameterDecimal _volumeTwo;
 
         private WindowsFormsHost _host;
 
@@ -46,6 +48,8 @@ namespace OsEngine.Robots.HomeWork
             _sideDeal = CreateParameter("Side Deal", "All Side", new string[] { "All Side", "Buy", "Sell" });            
             _levelSell = CreateParameter("Level Sell", 17.81m, 0, 1000, 0.0001m);
             _levelBuy = CreateParameter("Level Buy", 17.8m, 0, 1000, 0.0001m);
+            _volumeOne = CreateParameter("Volume First Ticker", 10, 0.00001m, 1000000, 0.0001m);
+            _volumeTwo = CreateParameter("Volume Second Ticker", 10, 0.00001m, 1000000, 0.0001m);
 
             this.ParamGuiSettings.Title = "Chart Ratio";
             this.ParamGuiSettings.Height = 300;
@@ -96,7 +100,7 @@ namespace OsEngine.Robots.HomeWork
             _host.Child = _chart;
             _host.Child.Show();
 
-            //_chart.Dock = DockStyle.Fill;
+            _chart.BackColor = Color.FromArgb(17, 18, 23);            
             _chart.Series.Clear();
             _chart.ChartAreas.Clear();
 
@@ -109,38 +113,25 @@ namespace OsEngine.Robots.HomeWork
             ratioArea.Position.X = 0;
             ratioArea.Position.Width = 100;
             ratioArea.Position.Y = 10;
-            //ratioArea.BackColor = Color.Black;
-            /*ratioArea.AxisX.LabelStyle.ForeColor = Color.White;
-            ratioArea.AxisY.LabelStyle.ForeColor = Color.White;
-            ratioArea.AxisX.LineColor = Color.White;
-            ratioArea.AxisY.LineColor = Color.White;*/
-
-            _chart.ChartAreas.Add(ratioArea); // добавляем область на чарт
-
-            /*ChartArea textArea = new ChartArea("ChartAreaText"); // создаём область на графике
-
-            textArea.Position.Height = 10;
-            textArea.Position.X = 0;
-            textArea.Position.Width = 100;
-            textArea.Position.Y = 90;
            
-            _chart.ChartAreas.Add(textArea); // добавляем область на чарт*/
-
-            /*Annotation annotation = new Annotation();
-            annotation.Text = "Текст на графике";
-            annotation.Position = new DataPoint(5, 50); // Позиция текста
-            annotation.Font = new Font("Arial", 12); // Шрифт и размер текста
-            annotation.ForeColor = Color.Red; // Цвет текста
-
-            _chart.Annotations.Add(annotation);*/
-
-
-
+            _chart.ChartAreas.Add(ratioArea); // добавляем область на чарт
+                       
             // общее
             for (int i = 0; i < _chart.ChartAreas.Count; i++)
             {
                 _chart.ChartAreas[i].CursorX.LineColor = Color.Red;
                 _chart.ChartAreas[i].CursorX.LineWidth = 2;
+                _chart.ChartAreas[i].BorderColor = Color.Black;
+                _chart.ChartAreas[i].BackColor = Color.FromArgb(17, 18, 23);
+                _chart.ChartAreas[i].CursorY.LineColor = Color.Gainsboro;
+                _chart.ChartAreas[i].CursorX.LineColor = Color.Black;
+                _chart.ChartAreas[i].AxisX.TitleForeColor = Color.Gainsboro;
+                _chart.ChartAreas[i].AxisY.TitleForeColor = Color.Gainsboro;
+
+                foreach (var axe in _chart.ChartAreas[i].Axes)
+                {
+                    axe.LabelStyle.ForeColor = Color.Gainsboro;
+                }
             }
 
             // подписываемся на события изменения масштабов
@@ -180,7 +171,7 @@ namespace OsEngine.Robots.HomeWork
             dealSeries.ChartType = SeriesChartType.Point;
             dealSeries.YAxisType = AxisType.Secondary;// назначаем ей правую линейку по шкале Y (просто для красоты)
             dealSeries.ChartArea = "ChartAreaRatio";// помещаем нашу коллекцию на ранее созданную область            
-            dealSeries.BorderWidth = 6;
+            dealSeries.MarkerSize = 7;
 
             AddPointRatio(); // добавляем новую точку Ratio и точку сделки в массив и убираем из массива лишние данные
 
@@ -206,33 +197,7 @@ namespace OsEngine.Robots.HomeWork
                     }
                 }
             }
-            /*for (int i = 0; i < _chartRatio.Count; i++)
-            {
-                ratioSeries.Points.AddXY(_chartRatio[i][0], _chartRatio[i][1]);
-
-                if (_chartRatio[i][2] != 0)
-                { 
-                    if (_chartRatio[i][2] == Side.Buy)
-                    {
-                        ArrowAnnotation arrow = new ArrowAnnotation();
-                        arrow.AnchorDataPoint = ratioSeries.Points[ratioSeries.Points.Count - 1]; // Акцентируем стрелку на первый точке
-                        arrow.ArrowStyle = ArrowStyle.Simple; // Устанавливаем стиль стрелки
-                        arrow.ArrowSize = 10; // Размер стрелки
-                        arrow.ForeColor = Color.Green; // Цвет стрелки
-                        _chart.Annotations.Add(arrow); // Добавляем стрелку на график
-                    }
-                    else if (_chartRatio[i][2] == Side.Sell)
-                    {
-                        ArrowAnnotation arrow = new ArrowAnnotation();
-                        arrow.AnchorDataPoint = ratioSeries.Points[ratioSeries.Points.Count - 1]; // Акцентируем стрелку на первый точке
-                        arrow.ArrowStyle = ArrowStyle.Simple; // Устанавливаем стиль стрелки
-                        arrow.ArrowSize = 10; // Размер стрелки
-                        arrow.ForeColor = Color.Red; // Цвет стрелки
-                        _chart.Annotations.Add(arrow); // Добавляем стрелку на график
-                    }
-                }
-            }*/
-
+           
             double lastPoint = ratioSeries.Points[ratioSeries.Points.Count - 1].YValues[0];
 
             TradeLogic(lastPoint);
@@ -244,7 +209,9 @@ namespace OsEngine.Robots.HomeWork
             // выводим заголовок с данными Ratio
             _chart.Titles.Clear();
             Title mainTitle = new Title($"{_tabOne.Securiti.Name} / {_tabTwo.Securiti.Name} (Ratio = {ratioSeries.Points[ratioSeries.Points.Count - 1].YValues[0]})");
-            mainTitle.Font = new Font("Arial", 14);
+            mainTitle.Font = new Font("", 14);
+            mainTitle.BackColor = Color.FromArgb(17, 18, 23);
+            mainTitle.ForeColor = Color.Gainsboro;
             _chart.Titles.Add(mainTitle);
 
             ChartArea candleArea = _chart.ChartAreas.FindByName("ChartAreaRatio");
@@ -295,8 +262,8 @@ namespace OsEngine.Robots.HomeWork
                     return;
                 }
 
-                int startPozition = 0; // первая отображаемая свеча
-                int endPozition = candleSeries.Points.Count; // последняя отображаемая свеча
+                int startPozition = 0; 
+                int endPozition = candleSeries.Points.Count; 
 
                 if (_chart.ChartAreas[0].AxisX.ScrollBar.IsVisible)
                 {
@@ -390,23 +357,23 @@ namespace OsEngine.Robots.HomeWork
 
                     if (_sideDeal.ValueString == "Sell")
                     {
-                        _tabOne.CloseAtMarket(positionsTabOne[0], 10);
-                        _tabTwo.CloseAtMarket(positionsTabTwo[0], 10);
+                        _tabOne.CloseAtMarket(positionsTabOne[0], _volumeOne.ValueDecimal);
+                        _tabTwo.CloseAtMarket(positionsTabTwo[0], _volumeTwo.ValueDecimal);
                         _chartRatio[_chartRatio.Count - 1][2] = Side.Buy;
                     }
                     if (_sideDeal.ValueString == "All Side")
                     {
-                        _tabOne.CloseAtMarket(positionsTabOne[0], 10);
-                        _tabTwo.CloseAtMarket(positionsTabTwo[0], 10);
-                        _tabOne.BuyAtMarket(10);
-                        _tabTwo.SellAtMarket(10);
+                        _tabOne.CloseAtMarket(positionsTabOne[0], _volumeOne.ValueDecimal);
+                        _tabTwo.CloseAtMarket(positionsTabTwo[0], _volumeTwo.ValueDecimal);
+                        _tabOne.BuyAtMarket(_volumeOne.ValueDecimal);
+                        _tabTwo.SellAtMarket(_volumeTwo.ValueDecimal);
                         _chartRatio[_chartRatio.Count - 1][2] = Side.Buy;
                     }                        
                 }
-                if (_sideDeal.ValueString == "Buy")
+                else if (_sideDeal.ValueString == "Buy" || _sideDeal.ValueString == "All Side")
                 {
-                    _tabOne.BuyAtMarket(10);
-                    _tabTwo.SellAtMarket(10);
+                    _tabOne.BuyAtMarket(_volumeOne.ValueDecimal);
+                    _tabTwo.SellAtMarket(_volumeTwo.ValueDecimal);
                     _chartRatio[_chartRatio.Count - 1][2] = Side.Buy;
                 }                
             }
@@ -422,24 +389,24 @@ namespace OsEngine.Robots.HomeWork
 
                     if (_sideDeal.ValueString == "Buy")
                     {
-                        _tabOne.CloseAtMarket(positionsTabOne[0], 10);
-                        _tabTwo.CloseAtMarket(positionsTabTwo[0], 10);
+                        _tabOne.CloseAtMarket(positionsTabOne[0], _volumeOne.ValueDecimal);
+                        _tabTwo.CloseAtMarket(positionsTabTwo[0], _volumeTwo.ValueDecimal);
                         _chartRatio[_chartRatio.Count - 1][2] = Side.Sell;
                     }
 
                     if (_sideDeal.ValueString == "All Side")
                     {
-                        _tabOne.CloseAtMarket(positionsTabOne[0], 10);
-                        _tabTwo.CloseAtMarket(positionsTabTwo[0], 10);
-                        _tabOne.SellAtMarket(10);
-                        _tabTwo.BuyAtMarket(10);
+                        _tabOne.CloseAtMarket(positionsTabOne[0], _volumeOne.ValueDecimal);
+                        _tabTwo.CloseAtMarket(positionsTabTwo[0], _volumeTwo.ValueDecimal);
+                        _tabOne.SellAtMarket(_volumeOne.ValueDecimal);
+                        _tabTwo.BuyAtMarket(_volumeTwo.ValueDecimal);
                         _chartRatio[_chartRatio.Count - 1][2] = Side.Sell;
                     }
                 }
-                if (_sideDeal.ValueString == "Sell")
+                else if (_sideDeal.ValueString == "Sell" || _sideDeal.ValueString == "All Side")
                 {
-                    _tabOne.SellAtMarket(10);
-                    _tabTwo.BuyAtMarket(10);
+                    _tabOne.SellAtMarket(_volumeOne.ValueDecimal);
+                    _tabTwo.BuyAtMarket(_volumeTwo.ValueDecimal);
                     _chartRatio[_chartRatio.Count - 1][2] = Side.Sell;
                 }                
             }
