@@ -997,6 +997,16 @@ namespace OsEngine.Entity
                                                           CandlesAll[CandlesAll.Count - 1].Low +
                                                           CandlesAll[CandlesAll.Count - 1].Close) / 4, Security.Decimals);
 
+                if(CandlesAll[CandlesAll.Count - 1].Close > CandlesAll[CandlesAll.Count - 1].High)
+                {
+                    CandlesAll[CandlesAll.Count - 1].High = CandlesAll[CandlesAll.Count - 1].Close;
+                }
+                if (CandlesAll[CandlesAll.Count - 1].Close < CandlesAll[CandlesAll.Count - 1].Low)
+                {
+                    CandlesAll[CandlesAll.Count - 1].Low = CandlesAll[CandlesAll.Count - 1].Close;
+                }
+
+
                 if (CandlesAll[CandlesAll.Count - 1].State != CandleState.Finished)
                 {
                     // если последнюю свечку ещё не закрыли и не отправили
@@ -1041,13 +1051,16 @@ namespace OsEngine.Entity
                 timeNextCandle = new DateTime(timeNextCandle.Year, timeNextCandle.Month, timeNextCandle.Day,
                     timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
 
+                decimal startVal = Math.Round((CandlesAll[CandlesAll.Count - 1].Open +
+                            CandlesAll[CandlesAll.Count - 1].Close) / 2, Security.Decimals);
+
                 Candle newCandle = new Candle()
                 {
-                    Close = price,
-                    High = price,
-                    Low = price,
-                    Open = Math.Round((CandlesAll[CandlesAll.Count - 1].Open +
-                            CandlesAll[CandlesAll.Count - 1].Close) / 2, Security.Decimals),
+
+                    Open = startVal,
+                    Close = startVal,
+                    High = startVal,
+                    Low = startVal,
                     State = CandleState.Started,
                     TimeStart = timeNextCandle,
                     Volume = volume
@@ -1070,7 +1083,6 @@ namespace OsEngine.Entity
                 // если пришли данные внутри свечи
 
                 CandlesAll[CandlesAll.Count - 1].Volume += volume;
-                CandlesAll[CandlesAll.Count - 1].Close = price;
 
                 if (CandlesAll[CandlesAll.Count - 1].High < price)
                 {
@@ -1080,6 +1092,20 @@ namespace OsEngine.Entity
                 if (CandlesAll[CandlesAll.Count - 1].Low > price)
                 {
                     CandlesAll[CandlesAll.Count - 1].Low = price;
+                }
+
+                CandlesAll[CandlesAll.Count - 1].Close = Math.Round((CandlesAll[CandlesAll.Count - 1].Open +
+                                                          CandlesAll[CandlesAll.Count - 1].High +
+                                                          CandlesAll[CandlesAll.Count - 1].Low +
+                                                          CandlesAll[CandlesAll.Count - 1].Close) / 4, Security.Decimals);
+
+                if (CandlesAll[CandlesAll.Count - 1].Close > CandlesAll[CandlesAll.Count - 1].High)
+                {
+                    CandlesAll[CandlesAll.Count - 1].High = CandlesAll[CandlesAll.Count - 1].Close;
+                }
+                if (CandlesAll[CandlesAll.Count - 1].Close < CandlesAll[CandlesAll.Count - 1].Low)
+                {
+                    CandlesAll[CandlesAll.Count - 1].Low = CandlesAll[CandlesAll.Count - 1].Close;
                 }
 
                 if (canPushUp)
