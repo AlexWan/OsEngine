@@ -5,7 +5,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,37" Stroke="Black"/>
         <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
-        <Label  Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="80,10,0,0" VerticalAlignment="Top"/>
+        <Label  Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="33,10,0,0" VerticalAlignment="Top" Width="217"/>
         <Label Name="SecuritiesColumn4" Content="Price step" HorizontalAlignment="Left" Margin="28,40,0,0" VerticalAlignment="Top"/>
         <Label Name="SecuritiesColumn5"  Content="Price step price" HorizontalAlignment="Left" Margin="28,68,0,0" VerticalAlignment="Top"/>
         <Label Name="SecuritiesColumn6" Content="Lot price" HorizontalAlignment="Left" Margin="28,96,0,0" VerticalAlignment="Top"/>

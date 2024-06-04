@@ -51,6 +51,8 @@ namespace OsEngine.Entity
             SecuritiesVolumeDecimals.Content = OsLocalization.Entity.SecuritiesColumn7;
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
 
+            LabelName.Content = security.Name;
+
             this.Activate();
             this.Focus();
         }
