@@ -751,6 +751,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
 
+                if (formula.StartsWith("+")
+                    || formula.StartsWith("-")
+                    || formula.StartsWith("*")
+                     || formula.StartsWith("/"))
+                {
+                    return "";
+                }
+
                 if (formula == "+" ||
                     formula == "-" ||
                     formula == "*" ||
