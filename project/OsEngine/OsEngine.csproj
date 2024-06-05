@@ -607,6 +607,8 @@
     <Compile Include="Market\Servers\FixFastEquities\FIX\LogoutMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\LogonMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\MarketDataRequestMessage.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\FIX\OrderCancelReplaceRequestMessage.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\FIX\OrderMassCancelRequestMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\OrderCancelRequestMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\NewOrderSingleMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\Trailer.cs" />

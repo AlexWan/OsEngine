@@ -10,7 +10,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
         public string PartyRole = "3";
         public string Account;
         public string NoTradingSessions = "1";
-        public string TradingSessionID = "FOND"; //"TQBR";
+        public string TradingSessionID; //"TQBR";
         public string Symbol;
         public string Side;
         public string TransactTime; // UTCTimestamp

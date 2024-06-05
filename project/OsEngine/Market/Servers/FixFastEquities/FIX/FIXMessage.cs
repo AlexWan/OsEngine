@@ -60,6 +60,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "278", "MDEntryID" },
             { "336", "TradingSessionID" },
             { "340", "TradSesStatus" },
+            { "369", "LastMsgSeqNumProcessed" },
             { "371", "RefTagID" },
             { "372", "RefMsgType" },
             { "373", "SessionRejectReason" },
@@ -69,6 +70,9 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "448", "PartyID" },
             { "452", "PartyRole" },
             { "453", "NoPartyID" },
+            { "530", "MassCancelRequestType" },
+            { "531", "MassCancelResponse" },
+            { "532", "MassCancelRejectReason" },
             { "552", "NoSides" },
             { "553", "Username" },
             { "554", "Password" },
@@ -153,6 +157,11 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                             value = "ExecutionReport";
                         }
 
+                        if (value == "9")
+                        {
+                            value = "OrderCancelReject";
+                        }
+
                         if (value == "2")
                         {
                             value = "ResendRequest";
@@ -170,7 +179,22 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
 
                         if (value == "V")
                         {
-                            value = "MarketDataRequest";
+                            value = "MarketDataRequest";                        
+                        }
+
+                        if (value == "F")
+                        {
+                            value = "OrderCancelRequest";
+                        }
+
+                        if (value == "G")
+                        {
+                            value = "OrderCancelReplaceRequest";
+                        }
+
+                        if (value == "r")
+                        {
+                            value = "OrderMassCancelReport";
                         }
 
 
