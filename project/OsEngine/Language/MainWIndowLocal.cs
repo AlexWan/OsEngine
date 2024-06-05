@@ -77,23 +77,8 @@ namespace OsEngine.Language
             "Ru:Ваша версия .Net 4.5 or later. Робот не будет работать в Вашей системе. С.м. в инструкции главу: Требования к Windows и .Net_");
 
         public string Message5 => OsLocalization.ConvertToLocString(
-            "Eng:Something went wrong !!! An unhandled exception occurred. Now we need to do the following: \r "
-            + "1) Save the image of this window by pressing PrintScrin on the keyboard and paste the image into Paint \r"
-            + "2) Write the details of the incident. Under what circumstances the program crashed \r"
-            + "3) Send an image of this window and a description of the situation to the address: alexey@o-s-a.net \r"
-            + "4) If the situation recurs, it will probably be necessary to clear the Engine and Data folder next to the exу file \r"
-            + "5) You may have to delete the Os.Engine process from the task manager with your hands. \r"
-            + "6) Error: _" +
-
-            "Ru:ВСЁ ПРОПАЛО!!!Произошло не обработанное исключение.Сейчас нужно сделать следущее: \r"
-            + "1) Сохранить изображение этого окна, нажав PrintScrin на клавиатуре и вставить изображение в Paint  \r "
-            + "2) Написать подробности произошедшего инцидента. При каких обстоятельствах программа упала  \r "
-            + "3) Выслать изображение этого окна и описание ситуации на адрес: alexey@o-s-a.net \r "
-            + "4) Если ситуация повториться, вероятно будет нужно очистить папку Engine и Data что рядом с роботом  \r "
-            + "5) Возможно придётся удалить процесс Os.Engine из диспетчера задач руками.  \r "
-            + "6) Ошибка:  _"
-            );
-
+            "Eng:Something went wrong !!! An unhandled exception occurred. " +
+            "Ru:ВСЁ ПРОПАЛО!!! Произошло не обработанное исключение. " );
 
         public string Message6 => OsLocalization.ConvertToLocString(
             "Eng:It looks like you didn't run the program from its folder. Not by creating a shortcut, but by moving the program. You can't do that!_" +
