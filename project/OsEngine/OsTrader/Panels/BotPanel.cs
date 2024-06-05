@@ -445,6 +445,18 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
+                try
+                {
+                    if (_chartUi != null)
+                    {
+                        _chartUi.Close();
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 OsTraderMaster.CriticalErrorEvent -= OsTraderMaster_CriticalErrorEvent;
 
                 if (_riskManager != null)
