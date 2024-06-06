@@ -85,6 +85,10 @@ namespace OsEngine.OsTrader.Panels
 
             UpdateTabsInStopLimitViewer();
             panel.NewTabCreateEvent += UpdateTabsInStopLimitViewer;
+
+            rectToMove.MouseEnter += RectToMove_MouseEnter;
+            rectToMove.MouseLeave += RectToMove_MouseLeave;
+            rectToMove.MouseDown += RectToMove_MouseDown;
         }
 
         private void UpdateTabsInStopLimitViewer()
@@ -118,24 +122,43 @@ namespace OsEngine.OsTrader.Panels
 
         private void BotPanelChartUi_Closed(object sender, EventArgs e)
         {
-            Closed -= BotPanelChartUi_Closed;
-            _panel.StopPaint();
-            _panel.NewTabCreateEvent -= UpdateTabsInStopLimitViewer;
-            _panel = null;
-            LocationChanged -= RobotUi_LocationChanged;
-            TabControlBotsName.SizeChanged -= TabControlBotsName_SizeChanged;
-
-            if (_testerServer != null)
+            try
             {
-                _testerServer.TestingFastEvent -= Serv_TestingFastEvent;
-                _testerServer.TestingEndEvent -= _testerServer_TestingEndEvent;
-                _testerServer = null;
-            }
+                Closed -= BotPanelChartUi_Closed;
 
-            _stopLimitsViewer.UserSelectActionEvent -= _stopLimitsViewer_UserSelectActionEvent;
-            _stopLimitsViewer.LogMessageEvent -= SendNewLogMessage;
-            _stopLimitsViewer.ClearDelete();
-            _stopLimitsViewer = null;
+                rectToMove.MouseEnter -= RectToMove_MouseEnter;
+                rectToMove.MouseLeave -= RectToMove_MouseLeave;
+                rectToMove.MouseDown -= RectToMove_MouseDown;
+
+                LocationChanged -= RobotUi_LocationChanged;
+                TabControlBotsName.SizeChanged -= TabControlBotsName_SizeChanged;
+
+                if (_panel != null)
+                {
+                    _panel.StopPaint();
+                    _panel.NewTabCreateEvent -= UpdateTabsInStopLimitViewer;
+                    _panel = null;
+                }
+
+                if (_testerServer != null)
+                {
+                    _testerServer.TestingFastEvent -= Serv_TestingFastEvent;
+                    _testerServer.TestingEndEvent -= _testerServer_TestingEndEvent;
+                    _testerServer = null;
+                }
+
+                if (_stopLimitsViewer != null)
+                {
+                    _stopLimitsViewer.UserSelectActionEvent -= _stopLimitsViewer_UserSelectActionEvent;
+                    _stopLimitsViewer.LogMessageEvent -= SendNewLogMessage;
+                    _stopLimitsViewer.ClearDelete();
+                    _stopLimitsViewer = null;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         // стоп - лимиты
@@ -635,6 +658,8 @@ namespace OsEngine.OsTrader.Panels
 
             GridPrime.RowDefinitions[1].Height = new GridLength(190);
             GreedTraderEngine.Margin = new Thickness(0, 0, 0, 182);
+            GreedPozitonLogHost.Height = 167;
+
             TabControlPrime.Visibility = Visibility.Visible;
 
             //GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
@@ -690,6 +715,8 @@ namespace OsEngine.OsTrader.Panels
 
         private bool _informPanelIsHide;
 
+        private bool _lowPanelIsBig;
+
         private void CheckPanels()
         {
             if (!File.Exists(@"Engine\LayoutRobotUi" + _panelName + ".txt"))
@@ -703,6 +730,7 @@ namespace OsEngine.OsTrader.Panels
                 {
                     _settingsPanelIsHide = Convert.ToBoolean(reader.ReadLine());
                     _informPanelIsHide = Convert.ToBoolean(reader.ReadLine());
+                    _lowPanelIsBig = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -720,6 +748,12 @@ namespace OsEngine.OsTrader.Panels
             {
                 HideInformPanel();
             }
+
+            if(_informPanelIsHide == false &&
+                _lowPanelIsBig)
+            {
+                DoBigLowPanel();
+            }
         }
 
         private void SaveLeftPanelPosition()
@@ -730,7 +764,7 @@ namespace OsEngine.OsTrader.Panels
                 {
                     writer.WriteLine(_settingsPanelIsHide);
                     writer.WriteLine(_informPanelIsHide);
-
+                    writer.WriteLine(_lowPanelIsBig);
                     writer.Close();
                 }
             }
@@ -812,6 +846,79 @@ namespace OsEngine.OsTrader.Panels
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        // смещение областей
+
+        private void RectToMove_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (GreedPozitonLogHost.Cursor == System.Windows.Input.Cursors.ScrollN)
+                {
+                    DoBigLowPanel();
+                    _lowPanelIsBig = true;
+                    SaveLeftPanelPosition();
+                }
+                else if (GreedPozitonLogHost.Cursor == System.Windows.Input.Cursors.ScrollS)
+                {
+                    DoSmallLowPanel();
+                    _lowPanelIsBig = false;
+                    SaveLeftPanelPosition();
+                }
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RectToMove_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            try
+            {
+                GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.Arrow;
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RectToMove_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            try
+            {
+                if (GridPrime.RowDefinitions[1].Height.Value == 190)
+            {
+                GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.ScrollN;
+            }
+            if (GridPrime.RowDefinitions[1].Height.Value == 500)
+            {
+                GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.ScrollS;
+            }
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void DoBigLowPanel()
+        {
+            GridPrime.RowDefinitions[1].Height = new GridLength(500, GridUnitType.Pixel);
+            GreedTraderEngine.Margin = new Thickness(0, 0, 0, 492);
+            GreedPozitonLogHost.Height = 475;
+            this.MinHeight = 600;
+        }
+
+        private void DoSmallLowPanel()
+        {
+            GridPrime.RowDefinitions[1].Height = new GridLength(190, GridUnitType.Pixel);
+            GreedTraderEngine.Margin = new Thickness(0, 0, 0, 182);
+            GreedPozitonLogHost.Height = 167;
+            this.MinHeight = 300;
+
         }
     }
 }

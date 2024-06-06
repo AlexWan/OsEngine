@@ -4,7 +4,6 @@
 */
 
 using System.Windows;
-using System.ComponentModel;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;

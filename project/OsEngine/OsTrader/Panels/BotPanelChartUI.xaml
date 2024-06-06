@@ -48,9 +48,13 @@
         </Grid>
 
         <Grid x:Name="GreedPozitonLogHost" Margin="25,0,10,10" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
+
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
+            
+            <Rectangle Name="rectToMove" Margin="0,-11,0,0" Fill="#FCEE21" RadiusX="0" RadiusY="0" Height="10"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="290" />
+
             <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0" >
                 <TabItem Name="TabPozition" Header="Open positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
