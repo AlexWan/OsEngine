@@ -4,7 +4,6 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using OsEngine.Charts.CandleChart;
@@ -15,11 +14,6 @@ using OsEngine.Layout;
 
 namespace OsEngine.OsTrader.Gui
 {
-
-    /// <summary>
-    /// Gui robotStation
-    /// ГУИ робота
-    /// </summary>
     public partial class RobotUi
     {
         #region Constructor
@@ -173,17 +167,38 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonServer_Click(object sender, RoutedEventArgs e)
         {
-            ServerMaster.ShowDialog(false);
+            try
+            {
+                ServerMaster.ShowDialog(false);
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonNewBot_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.CreateNewBot();
+            try
+            {
+                _strategyKeeper.CreateNewBot();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonDeleteBot_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.DeleteActiv();
+            try
+            {
+                _strategyKeeper.DeleteActiv();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -192,32 +207,74 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonStrategManualSettings_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.BotManualSettingsDialog();
+            try
+            {
+                _strategyKeeper.BotManualSettingsDialog();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonJournalCommunity_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.ShowCommunityJournal(1, Top + ButtonJournalCommunity.ActualHeight, Left + ButtonJournalCommunity.ActualHeight);
+            try
+            {
+                _strategyKeeper.ShowCommunityJournal(1, Top + ButtonJournalCommunity.ActualHeight, Left + ButtonJournalCommunity.ActualHeight);
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.BotTabConnectorDialog();
+            try
+            {
+                _strategyKeeper.BotTabConnectorDialog();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonRiskManagerCommunity_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.ShowRiskManagerDialog();
+            try
+            {
+                _strategyKeeper.ShowRiskManagerDialog();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonRiskManager_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.BotShowRiskManager();
+            try
+            {
+                _strategyKeeper.BotShowRiskManager();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonStrategParametr_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.BotShowParametrsDialog();
+            try
+            {
+                _strategyKeeper.BotShowParametrsDialog();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -226,112 +283,154 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonStrategIndividualSettings_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.BotIndividualSettings();
+            try
+            {
+                _strategyKeeper.BotIndividualSettings();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
         {
-            decimal volume;
             try
             {
-                volume = TextBoxVolumeFast.Text.ToDecimal();
+                decimal volume;
+                try
+                {
+                    volume = TextBoxVolumeFast.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label49);
+                    return;
+                }
+                _strategyKeeper.BotBuyMarket(volume);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show(OsLocalization.Trader.Label49);
-                return;
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-            _strategyKeeper.BotBuyMarket(volume);
         }
 
         private void buttonSellFast_Click(object sender, RoutedEventArgs e)
         {
-            decimal volume;
             try
             {
-                volume = TextBoxVolumeFast.Text.ToDecimal();
+                decimal volume;
+                try
+                {
+                    volume = TextBoxVolumeFast.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label49);
+                    return;
+                }
+                _strategyKeeper.BotSellMarket(volume);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show(OsLocalization.Trader.Label49);
-                return;
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-            _strategyKeeper.BotSellMarket(volume);
         }
 
         private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
         {
-            decimal volume;
             try
             {
-                volume = Decimal.Parse(TextBoxVolumeFast.Text.Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label49);
-                return;
-            }
+                decimal volume;
+                try
+                {
+                    volume = Decimal.Parse(TextBoxVolumeFast.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label49);
+                    return;
+                }
 
-            decimal price;
+                decimal price;
 
-            try
-            {
-                price = TextBoxPrice.Text.ToDecimal();
-            }
-            catch (Exception)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label50);
-                return;
-            }
+                try
+                {
+                    price = TextBoxPrice.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label50);
+                    return;
+                }
 
-            if (price == 0)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label50);
-                return;
-            }
+                if (price == 0)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label50);
+                    return;
+                }
 
-            _strategyKeeper.BotBuyLimit(volume, price);
+                _strategyKeeper.BotBuyLimit(volume, price);
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonSellLimit_Click(object sender, RoutedEventArgs e)
         {
-            decimal volume;
             try
             {
-                volume = TextBoxVolumeFast.Text.ToDecimal();
-            }
-            catch (Exception)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label49);
-                return;
-            }
+                decimal volume;
+                try
+                {
+                    volume = TextBoxVolumeFast.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label49);
+                    return;
+                }
 
-            decimal price;
+                decimal price;
 
-            try
-            {
-                price = TextBoxPrice.Text.ToDecimal();
-            }
-            catch (Exception)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label50);
-                return;
-            }
+                try
+                {
+                    price = TextBoxPrice.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label50);
+                    return;
+                }
 
-            if (price == 0)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label50);
-                return;
-            }
+                if (price == 0)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label50);
+                    return;
+                }
 
-            _strategyKeeper.BotSellLimit(volume, price);
+                _strategyKeeper.BotSellLimit(volume, price);
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonCloseLimit_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.CancelLimits();
+            try
+            {
+                _strategyKeeper.CancelLimits();
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
