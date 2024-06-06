@@ -548,8 +548,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                 CalculationDepth = 1000;
                 // ignore
             }
+
+            if (CalculationDepth == 0)
+            {
+                CalculationDepth = 1000;
+            }
+
             _isLoaded = false;
         }
+
         bool _isLoaded = false;
 
         /// <summary>
@@ -598,6 +605,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ConvertedFormula = ConvertFormula(_userFormula);
 
                 SecuritiesInIndex.Clear();
+
+                _iteration = 0;
 
                 string nameArray = Calculate(ConvertedFormula);
 
@@ -731,6 +740,92 @@ namespace OsEngine.OsTrader.Panels.Tab
         public int CalculationDepth = 1500;
 
         /// <summary>
+        /// new data came from the connector
+        /// </summary>
+        private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
+        {
+            if (candles == null || candles.Count == 0)
+            {
+                return;
+            }
+
+            LastTimeCandleUpdate = Tabs[0].MarketTime;
+
+            DateTime timeCandle = candles[candles.Count - 1].TimeStart;
+
+            for (int i = 0; i < Tabs.Count; i++)
+            {
+                List<Candle> myCandles = Tabs[i].Candles(true);
+
+                if (myCandles == null || myCandles.Count < 10)
+                {
+                    return;
+                }
+
+                if (timeCandle != myCandles[myCandles.Count - 1].TimeStart)
+                {
+                    return;
+                }
+            }
+
+            AutoFormulaBuilder.TryRebuidFormula(timeCandle, false);
+
+            // loop to collect all the candles in one array
+
+            if (string.IsNullOrWhiteSpace(ConvertedFormula))
+            {
+                return;
+            }
+            _iteration = 0;
+            string nameArray = Calculate(ConvertedFormula);
+
+            if (_valuesToFormula != null && !string.IsNullOrWhiteSpace(nameArray))
+            {
+                ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
+
+                if (val != null)
+                {
+                    Candles = val.ValueCandles;
+
+                    if (Candles.Count > 1 &&
+                        Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
+                    {
+                        try
+                        {
+                            Candles.RemoveAt(Candles.Count - 1);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+                    if (_startProgram == StartProgram.IsOsTrader && Tabs.Count > 0)
+                    {
+                        var candlesToKeep = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._neadToSaveCandlesCountParam.Value;
+                        var needToRemove = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._needToRemoveCandlesFromMemory.Value;
+
+                        if (needToRemove
+                            && Candles[Candles.Count - 1].TimeStart.Minute % 15 == 0
+                            && Candles[Candles.Count - 1].TimeStart.Second == 0
+                            && Candles.Count > candlesToKeep)
+                        {
+                            Candles.RemoveRange(0, Candles.Count - 1 - candlesToKeep);
+                        }
+                    }
+
+                    _chartMaster.SetCandles(Candles);
+
+                    if (SpreadChangeEvent != null && EventsIsOn == true)
+                    {
+                        SpreadChangeEvent(Candles);
+                    }
+                }
+            }
+        }
+
+        private int _iteration = 0;
+
+        /// <summary>
         /// recalculate values to index. Recursive function that parses the formula and calculates the index.
         /// </summary>
         /// <param name="formula">formula</param>
@@ -739,7 +834,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                _iteration++;
 
+                if(_iteration > 1000)
+                {
+                    return "";
+                }
 
                 if (string.IsNullOrWhiteSpace(formula))
                 {
@@ -751,13 +851,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return "";
                 }
 
-                if (formula.StartsWith("+")
-                    || formula.StartsWith("-")
-                    || formula.StartsWith("*")
-                     || formula.StartsWith("/"))
-                {
-                    return "";
-                }
+
 
                 if (formula == "+" ||
                     formula == "-" ||
@@ -800,7 +894,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             partTwo += s[j];
                         }
-
+                       
                         return Calculate(partOne + Calculate(inside) + partTwo);
                     }
                     else if (startindex != -1)
@@ -1681,102 +1775,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             return oldCandle;
-        }
-
-        /// <summary>
-        /// new data came from the connector
-        /// </summary>
-        private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
-        {
-            if (candles == null || candles.Count == 0)
-            {
-                return;
-            }
-
-            LastTimeCandleUpdate = Tabs[0].MarketTime;
-
-            DateTime timeCandle = candles[candles.Count - 1].TimeStart;
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                List<Candle> myCandles = Tabs[i].Candles(true);
-
-                if (myCandles == null || myCandles.Count < 10)
-                {
-                    return;
-                }
-
-                if (timeCandle != myCandles[myCandles.Count - 1].TimeStart)
-                {
-                    return;
-                }
-            }
-
-            DateTime time = Tabs[0].Candles(true)[Tabs[0].Candles(true).Count - 1].TimeStart;
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                List<Candle> myCandles = Tabs[i].Candles(true);
-
-                if (myCandles[myCandles.Count - 1].TimeStart != time)
-                {
-                    return;
-                }
-            }
-
-            AutoFormulaBuilder.TryRebuidFormula(time, false);
-
-            // loop to collect all the candles in one array
-
-            if (string.IsNullOrWhiteSpace(ConvertedFormula))
-            {
-                return;
-            }
-
-            string nameArray = Calculate(ConvertedFormula);
-
-            if (_valuesToFormula != null && !string.IsNullOrWhiteSpace(nameArray))
-            {
-                ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
-
-                if (val != null)
-                {
-                    Candles = val.ValueCandles;
-
-                    if (Candles.Count > 1 &&
-                        Candles[Candles.Count - 1].TimeStart == Candles[Candles.Count - 2].TimeStart)
-                    {
-                        try
-                        {
-                            Candles.RemoveAt(Candles.Count - 1);
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-                    }
-                    if (_startProgram == StartProgram.IsOsTrader && Tabs.Count > 0)
-                    {
-                        var candlesToKeep = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._neadToSaveCandlesCountParam.Value;
-                        var needToRemove = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._needToRemoveCandlesFromMemory.Value;
-
-                        if (needToRemove
-                            && Candles[Candles.Count - 1].TimeStart.Minute % 15 == 0
-                            && Candles[Candles.Count - 1].TimeStart.Second == 0
-                            && Candles.Count > candlesToKeep)
-                        {
-                            Candles.RemoveRange(0, Candles.Count - 1 - candlesToKeep);
-                        }
-                    }
-
-                    _chartMaster.SetCandles(Candles);
-
-                    if (SpreadChangeEvent != null && EventsIsOn == true)
-                    {
-                        SpreadChangeEvent(Candles);
-                    }
-                }
-            }
         }
 
         /// <summary>
