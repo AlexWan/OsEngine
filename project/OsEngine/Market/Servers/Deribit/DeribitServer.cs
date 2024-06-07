@@ -1216,7 +1216,14 @@ namespace OsEngine.Market.Servers.Deribit
                                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[j].creation_timestamp));
                                 newOrder.ServerType = ServerType.Deribit;
                                 newOrder.SecurityNameCode = item[j].instrument_name;
-                                newOrder.NumberUser = Convert.ToInt32(item[j].label);                               
+                                try
+                                {
+                                    newOrder.NumberUser = Convert.ToInt32(item[j].label);
+                                }
+                                catch
+                                {
+                                    // ignore
+                                }                    
                                 newOrder.NumberMarket = item[j].order_id.ToString();
                                 newOrder.Side = item[j].direction.Equals("buy") ? Side.Buy : Side.Sell;
                                 newOrder.State = GetOrderState(item[j].order_state);
