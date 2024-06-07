@@ -1061,6 +1061,7 @@
     <Compile Include="Robots\Engines\EnginePair.cs" />
     <Compile Include="Robots\Engines\PolygonalEngine.cs" />
     <Compile Include="Robots\HomeWork\ChartBot.cs" />
+    <Compile Include="Robots\HomeWork\ChartFractals.cs" />
     <Compile Include="Robots\HomeWork\ChartRatio.cs" />
     <Compile Include="Robots\HomeWork\HomeWork3_ParamBot.cs" />
     <Compile Include="Robots\HomeWork\HomeWork1.cs" />
