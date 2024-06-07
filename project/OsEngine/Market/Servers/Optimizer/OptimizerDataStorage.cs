@@ -894,7 +894,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     CultureInfo culture = new CultureInfo("ru-RU");
 
-                    for (int i2 = 0; i2 < 20; i2++)
+                    for (int i2 = 0; i2 < 100; i2++)
                     {
                         Trade tradeN = new Trade();
                         tradeN.SetTradeFromString(reader.ReadLine());

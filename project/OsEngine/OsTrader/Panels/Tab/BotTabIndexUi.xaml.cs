@@ -650,15 +650,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     List<Candle> candles = _spread.Tabs[i].Candles(false);
 
-                    decimal price = 0;
+                    string priceInStr = "";
 
                     if (candles != null
                         && candles.Count > 0)
                     {
-                        price = candles[candles.Count - 1].Close;
+                        priceInStr = 
+                            candles[candles.Count - 1].Close.ToString() + " " + candles[candles.Count - 1].TimeStart.TimeOfDay;
                     }
-
-                    string priceInStr = price.ToString();
 
                     if (priceCell.Value == null
                         || priceCell.Value.ToString() != priceInStr)

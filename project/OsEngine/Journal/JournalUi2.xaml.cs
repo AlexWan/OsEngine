@@ -47,8 +47,8 @@ namespace OsEngine.Journal
             LoadGroups();
 
             ComboBoxChartType.Items.Add("Absolute");
-            ComboBoxChartType.Items.Add("Percent");
-            ComboBoxChartType.SelectedItem = "Percent";
+            ComboBoxChartType.Items.Add("Percent 1 contract");
+            ComboBoxChartType.SelectedItem = "Absolute";
 
             _currentCulture = OsLocalization.CurCulture;
 
@@ -105,11 +105,11 @@ namespace OsEngine.Journal
 
             if(botsJournals.Count > 1)
             {
-                _journalName = "Journal2Ui_" + "CommonJournal" + startProgram.ToString();
+                JournalName = "Journal2Ui_" + "CommonJournal" + startProgram.ToString();
             }
             else
             {
-                _journalName = "Journal2Ui_" + botNames + startProgram.ToString();
+                JournalName = "Journal2Ui_" + botNames + startProgram.ToString();
             }
             
 
@@ -118,7 +118,7 @@ namespace OsEngine.Journal
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
 
-            GlobalGUILayout.Listen(this, _journalName);
+            GlobalGUILayout.Listen(this, JournalName);
         }
 
         private void JournalUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -234,6 +234,8 @@ namespace OsEngine.Journal
         private StartProgram _startProgram;
 
         private CultureInfo _currentCulture;
+
+        public string JournalName;
 
         #endregion
 
@@ -626,7 +628,7 @@ namespace OsEngine.Journal
                 areaLineProfit.Position.Height = 70;
                 areaLineProfit.Position.Width = 100;
                 areaLineProfit.Position.Y = 0;
-                areaLineProfit.CursorX.IsUserSelectionEnabled = false; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
+                areaLineProfit.CursorX.IsUserSelectionEnabled = true; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
                 areaLineProfit.CursorX.IsUserEnabled = true; //trait/чертa
 
                 _chartEquity.ChartAreas.Add(areaLineProfit);
@@ -657,7 +659,23 @@ namespace OsEngine.Journal
                 }
 
                 _chartEquity.MouseMove += _chartEquity_MouseMove;
+                _chartEquity.MouseWheel += _chartEquity_MouseWheel;
 
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _chartEquity_MouseWheel(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (_chartEquity.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                {
+                    _chartEquity.ChartAreas[0].AxisX.ScaleView.ZoomReset();
+                }
             }
             catch (Exception error)
             {
@@ -881,11 +899,10 @@ namespace OsEngine.Journal
                     {
                         curProfit = positionsAll[i].ProfitPortfolioPunkt * (curMult / 100);
                     }
-                    else if (chartType == "Percent")
+                    else if (chartType == "Percent 1 contract")
                     {
                         curProfit = positionsAll[i].ProfitOperationPersent * (curMult / 100);
                     }
-
 
                     curProfit = Math.Round(curProfit, 8);
 
@@ -909,7 +926,12 @@ namespace OsEngine.Journal
                     profit.Points[profit.Points.Count - 1].AxisLabel = profitSum.ToString();
 
                     profitBar.Points.AddXY(i, curProfit);
-                    profitBar.Points[profitBar.Points.Count - 1].AxisLabel = curProfit.ToString();
+
+                    profitBar.Points[profitBar.Points.Count - 1].LabelForeColor = Color.DarkOrange;
+                    profitBar.Points[profitBar.Points.Count - 1].AxisLabel 
+                        = positionsAll[i].SecurityName + "\n" +
+                          curProfit.ToString() + "\n" +
+                          positionsAll[i].NameBot;
 
                     if (positionsAll[i].Direction == Side.Buy)
                     {
@@ -2671,14 +2693,14 @@ namespace OsEngine.Journal
 
         private void LoadSettings()
         {
-            if (!File.Exists(@"Engine\LayoutJournal" + _journalName + ".txt"))
+            if (!File.Exists(@"Engine\LayoutJournal" + JournalName + ".txt"))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\LayoutJournal" + _journalName + ".txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\LayoutJournal" + JournalName + ".txt"))
                 {
                     _leftPanelIsHide = Convert.ToBoolean(reader.ReadLine());
                     string profitType = reader.ReadLine();
@@ -2725,7 +2747,7 @@ namespace OsEngine.Journal
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\LayoutJournal" + _journalName + ".txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\LayoutJournal" + JournalName + ".txt", false))
                 {
                     writer.WriteLine(_leftPanelIsHide);
                     writer.WriteLine(ComboBoxChartType.SelectedItem.ToString());
@@ -3274,8 +3296,6 @@ namespace OsEngine.Journal
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-
-        private string _journalName;
 
         private bool _leftPanelIsHide;
 

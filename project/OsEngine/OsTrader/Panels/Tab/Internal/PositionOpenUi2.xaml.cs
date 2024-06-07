@@ -133,19 +133,32 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void PositionOpenUi2_Closed(object sender, EventArgs e)
         {
-            CheckBoxIsEmulator.Click -= CheckBoxIsEmulator_Click;
-            Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
-            Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
-            Tab.EmulatorIsOnChangeStateEvent -= Tab_EmulatorIsOnChangeStateEvent;
-            Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
-            Closed -= PositionOpenUi2_Closed;
+            try
+            {
+                CheckBoxIsEmulator.Click -= CheckBoxIsEmulator_Click;
+                Closed -= PositionOpenUi2_Closed;
 
-            _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
-            _marketDepthPainter.StopPaint();
-            _marketDepthPainter.Delete();
-            _marketDepthPainter = null;
+                if(Tab != null)
+                {
+                    Tab.MarketDepthUpdateEvent -= Tab_MarketDepthUpdateEvent;
+                    Tab.BestBidAskChangeEvent -= Tab_BestBidAskChangeEvent;
+                    Tab.EmulatorIsOnChangeStateEvent -= Tab_EmulatorIsOnChangeStateEvent;
+                    Tab.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+                    Tab = null;
+                }
 
-            Tab = null;
+                if(_marketDepthPainter != null)
+                {
+                    _marketDepthPainter.UserClickOnMDAndSelectPriceEvent -= _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
+                    _marketDepthPainter.StopPaint();
+                    _marketDepthPainter.Delete();
+                    _marketDepthPainter = null;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void ActivateMarketDepth()

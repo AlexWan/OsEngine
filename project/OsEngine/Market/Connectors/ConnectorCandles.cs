@@ -1363,14 +1363,14 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                _bestBid = glass.Bids[0].Price;
-                _bestAsk = glass.Asks[0].Price;
+                decimal bestBid = glass.Bids[0].Price;
+                decimal bestAsk = glass.Asks[0].Price;
 
                 if (EmulatorIsOn)
                 {
                     if(_emulator != null)
                     {
-                        _emulator.ProcessBidAsc(_bestAsk, _bestBid);
+                        _emulator.ProcessBidAsc(bestAsk, bestBid);
                     }
                 }
             }

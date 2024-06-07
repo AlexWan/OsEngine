@@ -9,7 +9,7 @@
 
 This is a full range of programs required to automate trading on the stock exchange.
 
-![algotasks](https://user-images.githubusercontent.com/26077466/243118924-bfb99f06-1107-495e-a266-12ba0c8d5a55.jpg)
+![algotasks](https://github.com/AlexWan/OsEngine/assets/26077466/0590b1e3-ecf2-4027-a3ac-4967916f0289)
 
 It includes:
 

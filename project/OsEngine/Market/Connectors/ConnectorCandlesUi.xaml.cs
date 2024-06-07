@@ -41,6 +41,7 @@ namespace OsEngine.Market.Connectors
                 TextBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
                 TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
                 TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
+                TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;				
 
                 CreateGridSecurities();
 
@@ -253,6 +254,7 @@ namespace OsEngine.Market.Connectors
             TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
             ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+            TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown; 
 
             DeleteGridSecurities();
         }
@@ -1365,6 +1367,65 @@ namespace OsEngine.Market.Connectors
 
             _gridSecurities.Rows[realInd].Selected = true;
             _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+        }
+
+        private void TextBoxSearchSecurity_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            try
+            {
+                if (e.Key == Key.Enter)
+                {
+                    int rowIndex = 0;
+                    for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                    {
+                        if (_gridSecurities.Rows[i].Selected == true)
+                        {
+                            rowIndex = i;
+                            break;
+                        }
+                        if (i == _gridSecurities.Rows.Count - 1)
+                        {
+                            return;
+                        }
+                    }
+
+                    DataGridViewCheckBoxCell checkBox;
+                    for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                    {
+                        checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[4];
+
+                        if (checkBox.Value == null)
+                        {
+                            continue;
+                        }
+                        if (i == rowIndex)
+                        {
+                            continue;
+                        }
+                        if (Convert.ToBoolean(checkBox.Value) == true)
+                        {
+                            checkBox.Value = false;
+                            break;
+                        }
+                    }
+
+                    checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowIndex].Cells[4];
+                    if (Convert.ToBoolean(checkBox.Value) == false)
+                    {
+                        checkBox.Value = true;
+                        TextBoxSearchSecurity.Text = "";
+                    }
+                    else
+                    {
+                        checkBox.Value = false;
+                        TextBoxSearchSecurity.Text = "";
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion

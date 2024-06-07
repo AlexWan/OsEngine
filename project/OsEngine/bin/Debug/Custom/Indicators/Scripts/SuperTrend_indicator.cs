@@ -6,7 +6,7 @@ using OsEngine.Indicators;
 
 namespace OsEngine.Indicators.indicator
 {
-   // [IndicatorAttribute("SuperTrend_indicator")]
+    //[IndicatorAttribute("SuperTrend_indicator")]
     internal class SuperTrend_indicator : Aindicator
     {
         private IndicatorParameterInt _period;
@@ -21,10 +21,9 @@ namespace OsEngine.Indicators.indicator
         int direction;
         public override void OnStateChange(IndicatorState state)
         {
-            _period = CreateParameterInt("Lenght", 15);
+            _period = CreateParameterInt("Lenght Atr", 15);
             _deviation = CreateParameterDecimal("Deviation factor", 1.0m);
             _candlePoint = CreateParameterStringCollection("Candle Point", "Median", new List<string>() { "Median", "Typical" });
-            _candlePoint.ValueString = "Median";
             _wicks = CreateParameterBool("Use candle shadow", true);
 
             _seriesLower = CreateSeries("Lower channel", Color.Aqua, IndicatorChartPaintType.Line, false);
@@ -38,11 +37,7 @@ namespace OsEngine.Indicators.indicator
 
             _atr = IndicatorsFactory.CreateIndicatorByName("ATR", Name + "ATR", false);
             ((IndicatorParameterInt)_atr.Parameters[0]).Bind(_period);
-            ProcessIndicator("ATR", _atr);
-            _atr.Save();
-            _atr.Reload();
-            Save();
-            Reload();
+            ProcessIndicator("ATR", _atr);        
         }
         public override void OnProcess(List<Candle> candles, int index)
         {
@@ -53,7 +48,7 @@ namespace OsEngine.Indicators.indicator
             decimal atr_deviation = _deviation.ValueDecimal * _atr.DataSeries[0].Values[index];
 
             decimal highPrice = _wicks.ValueBool ? candles[index].High : candles[index].Close;
-            decimal highPricePrew = _wicks.ValueBool ? candles[index - 1].High : candles[index].Close;
+            decimal highPricePrew = _wicks.ValueBool ? candles[index - 1].High : candles[index - 1].Close;
             decimal lowPrice = _wicks.ValueBool ? candles[index].Low : candles[index].Close;
             decimal lowPricePrew = _wicks.ValueBool ? candles[index - 1].Low : candles[index - 1].Close;
 

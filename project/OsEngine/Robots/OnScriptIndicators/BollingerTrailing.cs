@@ -124,7 +124,10 @@ public class BollingerTrailing : BotPanel
             return;
         }
 
-        if (_bollinger.DataSeries[0].Values == null || _bollinger.DataSeries[1].Values == null)
+        if (_bollinger.DataSeries[0].Values == null 
+            || _bollinger.DataSeries[1].Values == null
+            || _bollinger.DataSeries[0].Values.Count < 10
+            || _bollinger.DataSeries[1].Values.Count < 10)
         {
             return;
         }

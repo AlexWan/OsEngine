@@ -1179,14 +1179,8 @@
     <Compile Include="OsTrader\Panels\Tab\BotTabIndex.cs" />
     <Compile Include="OsTrader\Panels\Tab\IIBotTab.cs" />
     <Compile Include="OsTrader\Panels\Tab\Internal\AcebergMaker.cs" />
-    <Compile Include="OsTrader\Panels\Tab\Internal\PositionCloseUi.xaml.cs">
-      <DependentUpon>PositionCloseUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionCreator.cs" />
     <Compile Include="OsTrader\RiskManager\RiskManager.cs" />
-    <Compile Include="OsTrader\Panels\Tab\Internal\PositionStopUi.xaml.cs">
-      <DependentUpon>PositionStopUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="OsTrader\Gui\RobotUi.xaml.cs">
       <DependentUpon>RobotUi.xaml</DependentUpon>
     </Compile>
@@ -1754,14 +1748,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\MarketMaker\PairTraderSpreadSmaUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\Tab\Internal\PositionCloseUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\Tab\Internal\PositionStopUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

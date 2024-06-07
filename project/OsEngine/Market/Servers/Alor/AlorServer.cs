@@ -329,7 +329,7 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.DecimalsVolume = 0;
                     newSecurity.Lot = item.lotsize.ToDecimal();
                     newSecurity.Name = item.symbol;
-                    newSecurity.NameFull = item.description;
+                    newSecurity.NameFull = item.symbol + "_" + item.board;
 
                     if (newSecurity.SecurityType == SecurityType.Option)
                     {
@@ -770,9 +770,6 @@ namespace OsEngine.Market.Servers.Alor
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            return null;
-
-            // blocked
 
             List<Trade> trades = new List<Trade>();
 
@@ -806,12 +803,14 @@ namespace OsEngine.Market.Servers.Alor
 
         private TradesHistoryAlor GetHistoryTrades(Security security, DateTime startTime, DateTime endTime)
         {
-            // curl -X GET "https://api.alor.ru/md/v2/Securities/MOEX/LKOH/alltrades/history?from=1593430060&to=1593430560&limit=100&offset=10&format=Simple" -H "accept: application/json"
+            // /md/v2/Securities/MOEX/SBER/alltrades/history?instrumentGroup=TQBR&from=1593430060&to=1593430560&limit=100&offset=10&format=Simple
 
             string endPoint = "/md/v2/Securities/MOEX/" + security.Name;
             endPoint += "/alltrades/history?";
 
-            endPoint += "from=" + ConvertToUnixTimestamp(startTime);
+            endPoint += "instrumentGroup=" + security.NameFull.Split('_')[security.NameFull.Split('_').Length - 1];
+
+            endPoint += "&from=" + ConvertToUnixTimestamp(startTime);
             endPoint += "&to=" + ConvertToUnixTimestamp(endTime);
             endPoint += "&limit=50000";
             endPoint += "&format=Simple";

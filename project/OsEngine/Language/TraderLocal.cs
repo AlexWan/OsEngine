@@ -693,8 +693,8 @@ namespace OsEngine.Language
               "Ru: Вкл_");
 
         public string Label172 => OsLocalization.ConvertToLocString(
-              "Eng: Chart_" +
-              "Ru: Чарт_");
+              "Eng:Chart_" +
+              "Ru:Чарт_");
 
         public string Label173 => OsLocalization.ConvertToLocString(
               "Eng: Select all_" +
@@ -1547,5 +1547,34 @@ namespace OsEngine.Language
         public string Label411 => OsLocalization.ConvertToLocString(
         "Eng: Depth_" +
         "Ru: Глубина_");
+
+        public string Label412 => OsLocalization.ConvertToLocString(
+        "Eng:Off events_" +
+        "Ru:Выкл. события_");
+
+        public string Label413 => OsLocalization.ConvertToLocString(
+        "Eng:On events_" +
+        "Ru:Вкл. события_");
+
+        public string Label414 => OsLocalization.ConvertToLocString(
+        "Eng:Off emulator_" +
+        "Ru:Выкл. эмулятор_");
+
+        public string Label415 => OsLocalization.ConvertToLocString(
+        "Eng:On emulator_" +
+        "Ru:Вкл. эмулятор_");
+
+        public string Label416 => OsLocalization.ConvertToLocString(
+        "Eng:Move Up_" +
+        "Ru:Сдвинуть вверх_");
+
+        public string Label417 => OsLocalization.ConvertToLocString(
+        "Eng:Move Down_" +
+        "Ru:Сдвинуть вниз_");
+		
+        public string Label418 => OsLocalization.ConvertToLocString(
+          "Eng:Contains_" +
+          "Ru:Содержит_");
+	
     }
 }
