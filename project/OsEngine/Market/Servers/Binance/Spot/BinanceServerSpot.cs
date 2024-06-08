@@ -207,7 +207,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     decimal minQty = sec.filters[1].minQty.ToDecimal();
 
-                    security.Lot = minQty;
+                    security.Lot = 1;
                     string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
 
                     if (qtyInStr.Split('.').Length > 1)
