@@ -339,7 +339,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             int tfTotalMinutes = (int)interval.TotalMinutes;
 
-            int timeRange = tfTotalMinutes * 1000;
+            int timeRange = tfTotalMinutes * 900;
 
             DateTime maxStartTime = DateTime.Now.AddMinutes(-timeRange);
 
