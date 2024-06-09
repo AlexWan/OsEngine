@@ -3445,7 +3445,8 @@ namespace OsEngine.Market.Servers.Tester
                     if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == securityName &&
                                                                    tester.DataType == SecurityTesterDataType.Tick) == null)
                     {
-                        if (SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
+                        if (SecuritiesTester != null &&
+                            SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                                             tester.DataType == SecurityTesterDataType.Tick) != null)
                         {
                             _candleSeriesTesterActivate.Add(
@@ -3465,7 +3466,8 @@ namespace OsEngine.Market.Servers.Tester
                     if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == securityName &&
                                                                    tester.DataType == SecurityTesterDataType.MarketDepth) == null)
                     {
-                        if (SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
+                        if (SecuritiesTester != null 
+                            && SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                                             tester.DataType == SecurityTesterDataType.MarketDepth) != null)
                         {
                             _candleSeriesTesterActivate.Add(
@@ -3485,9 +3487,10 @@ namespace OsEngine.Market.Servers.Tester
                                                                    tester.DataType == SecurityTesterDataType.Candle &&
                                                                    tester.TimeFrameSpan == time) == null)
                     {
-                        if (SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
+                        if (SecuritiesTester == null ||
+                            (SecuritiesTester.Find(tester => tester.Security.Name == securityName &&
                                                             tester.DataType == SecurityTesterDataType.Candle &&
-                                                            tester.TimeFrameSpan == time) == null)
+                                                            tester.TimeFrameSpan == time) == null))
                         {
                             return null;
                         }
