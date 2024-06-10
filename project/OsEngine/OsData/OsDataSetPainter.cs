@@ -17,7 +17,7 @@ namespace OsEngine.OsData
 {
     public class OsDataSetPainter
     {
-        #region static painter part
+        #region Static painter part
 
         private static List<OsDataSetPainter> _painters = new List<OsDataSetPainter>();
 
@@ -55,12 +55,25 @@ namespace OsEngine.OsData
             {
                 Thread.Sleep(2000);
 
-                lock (_locker)
+                try
                 {
-                    for (int i = 0; i < _painters.Count; i++)
+                    lock (_locker)
                     {
-                        _painters[i].TryUpdateInterface();
+                        for (int i = 0; i < _painters.Count; i++)
+                        {
+                            _painters[i].TryUpdateInterface();
+                        }
                     }
+                }
+                catch(Exception ex)
+                {
+                    if(_painters != null &&
+                        _painters.Count > 0)
+                    {
+                        _painters[0].SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                    }
+
+                    Thread.Sleep(5000);
                 }
             }
         }
@@ -141,50 +154,57 @@ namespace OsEngine.OsData
 
         public void StopPaint()
         {
-            if (_host == null ||
-                _dataGrid == null)
+            try
             {
-                return;
-            }
+                if (_host == null ||
+                    _dataGrid == null)
+                {
+                    return;
+                }
 
-            if (_dataGrid.InvokeRequired)
+                if (_dataGrid.InvokeRequired)
+                {
+                    _dataGrid.Invoke(new Action(StopPaint));
+                    return;
+                }
+
+                if (_labelSetName != null)
+                {
+                    _labelSetName.Content = "";
+                }
+
+                if (_labelTimeStart != null)
+                {
+                    _labelTimeStart.Content = "";
+                }
+
+                if (_labelTimeEnd != null)
+                {
+                    _labelTimeEnd.Content = "";
+                }
+
+                if (_host != null)
+                {
+                    _host.Child = null;
+                }
+
+                _host = null;
+                _labelSetName = null;
+                _labelTimeStart = null;
+                _labelTimeEnd = null;
+
+                if (_bar != null)
+                {
+                    _bar.Maximum = 100;
+                    _bar.Value = 0;
+                }
+
+                _bar = null;
+            }
+            catch(Exception ex)
             {
-                _dataGrid.Invoke(new Action(StopPaint));
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            if (_labelSetName != null)
-            {
-                _labelSetName.Content = "";
-            }
-
-            if (_labelTimeStart != null)
-            {
-                _labelTimeStart.Content = "";
-            }
-
-            if (_labelTimeEnd != null)
-            {
-                _labelTimeEnd.Content = "";
-            }
-
-            if (_host != null)
-            {
-                _host.Child = null;
-            }
-
-            _host = null;
-            _labelSetName = null;
-            _labelTimeStart = null;
-            _labelTimeEnd = null;
-
-            if (_bar != null)
-            {
-                _bar.Maximum = 100;
-                _bar.Value = 0;
-            }
-
-            _bar = null;
         }
 
         System.Windows.Controls.Label _labelSetName;
@@ -302,41 +322,187 @@ namespace OsEngine.OsData
 
         private void _dataGrid_Click(object sender, EventArgs e)
         {
-            if (_dataGrid.SelectedCells.Count == 0)
+            try
             {
-                return;
-            }
-
-            int coluIndex = _dataGrid.SelectedCells[0].ColumnIndex;
-            int rowIndex = _dataGrid.SelectedCells[0].RowIndex;
-
-            if (prevActiveRow < _dataGrid.Rows.Count)
-            {
-                _dataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
-            }
-
-            _dataGrid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-
-            prevActiveRow = rowIndex;
-
-            if (coluIndex == 10)
-            { // chart or раскрыть/скрыть бумаги внутри
-
-                bool isClickOnShowChartBtn = false;
-                bool isClickOnShowHideSecs = false;
-
-                if (_dataGrid.Rows[rowIndex].Cells[0].Value == null
-                    || _dataGrid.Rows[rowIndex].Cells[0].Value.ToString() == "")
+                if (_dataGrid.SelectedCells.Count == 0)
                 {
-                    isClickOnShowChartBtn = true;
-                }
-                else
-                {
-                    isClickOnShowHideSecs = true;
+                    return;
                 }
 
-                if (isClickOnShowHideSecs)
-                { // скрыть/раскрыть бумаги
+                int coluIndex = _dataGrid.SelectedCells[0].ColumnIndex;
+                int rowIndex = _dataGrid.SelectedCells[0].RowIndex;
+
+                if (prevActiveRow < _dataGrid.Rows.Count)
+                {
+                    _dataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                }
+
+                _dataGrid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+
+                prevActiveRow = rowIndex;
+
+                if (coluIndex == 10)
+                { // chart or раскрыть/скрыть бумаги внутри
+
+                    bool isClickOnShowChartBtn = false;
+                    bool isClickOnShowHideSecs = false;
+
+                    if (_dataGrid.Rows[rowIndex].Cells[0].Value == null
+                        || _dataGrid.Rows[rowIndex].Cells[0].Value.ToString() == "")
+                    {
+                        isClickOnShowChartBtn = true;
+                    }
+                    else
+                    {
+                        isClickOnShowHideSecs = true;
+                    }
+
+                    if (isClickOnShowHideSecs)
+                    { // скрыть/раскрыть бумаги
+                        int realNum = 0;
+
+                        try
+                        {
+                            realNum = Convert.ToInt32(_dataGrid.Rows[rowIndex].Cells[0].Value.ToString());
+                        }
+                        catch
+                        {
+                            return;
+                        }
+
+                        _set.ChangeCollapsedStateBySecurity(realNum - 1);
+                        RePaintInterface();
+                    }
+                    else if (isClickOnShowChartBtn)
+                    {// показать чарт
+                        int numSecurity = -1;
+
+                        for (int i = rowIndex; i > -1; i--)
+                        {
+                            try
+                            {
+                                numSecurity = Convert.ToInt32(_dataGrid.Rows[i].Cells[0].Value.ToString());
+                                break;
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+                        }
+
+                        if (numSecurity == -1)
+                        {
+                            return;
+                        }
+
+                        string TfInSecurity = _dataGrid.Rows[rowIndex].Cells[6].Value.ToString();
+
+                        SecurityToLoad sec = _set.SecuritiesLoad[numSecurity - 1];
+
+                        SecurityTfLoader loader = null;
+
+                        for (int i = 0; i < sec.SecLoaders.Count; i++)
+                        {
+                            if (sec.SecLoaders[i].TimeFrame.ToString() == TfInSecurity)
+                            {
+                                loader = sec.SecLoaders[i];
+                                break;
+                            }
+                        }
+
+                        if (loader == null)
+                        {
+                            return;
+                        }
+
+                        List<Candle> candles = null;
+
+                        if (loader.TimeFrame == TimeFrame.Sec1
+                        || loader.TimeFrame == TimeFrame.Sec2
+                        || loader.TimeFrame == TimeFrame.Sec5
+                        || loader.TimeFrame == TimeFrame.Sec10
+                        || loader.TimeFrame == TimeFrame.Sec15
+                        || loader.TimeFrame == TimeFrame.Sec20
+                        || loader.TimeFrame == TimeFrame.Sec30)
+                        {
+                            candles = loader.GetExtCandlesFromTrades();
+                        }
+                        else
+                        {
+                            candles = loader.GetCandlesAllHistory();
+                        }
+
+                        if (candles == null ||
+                            candles.Count == 0)
+                        {
+                            return;
+                        }
+
+                        CandleChartUi ui = new CandleChartUi(loader.SecName + " " + loader.TimeFrame, StartProgram.IsOsData);
+                        ui.Show();
+                        ui.ProcessCandles(candles);
+                    }
+                }
+                else if (coluIndex == 11)
+                { // delete or detail
+
+                    if (_dataGrid.Rows[rowIndex].Cells[0].Value == null
+                       || _dataGrid.Rows[rowIndex].Cells[0].Value.ToString() == "")
+                    {
+                        // detail
+                        int numSecurity = -1;
+
+                        for (int i = rowIndex; i > -1; i--)
+                        {
+                            try
+                            {
+                                numSecurity = Convert.ToInt32(_dataGrid.Rows[i].Cells[0].Value.ToString());
+                                break;
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+                        }
+
+                        if (numSecurity == -1)
+                        {
+                            return;
+                        }
+
+                        string TfInSecurity = _dataGrid.Rows[rowIndex].Cells[6].Value.ToString();
+
+                        SecurityToLoad sec = _set.SecuritiesLoad[numSecurity - 1];
+
+                        SecurityTfLoader loader = null;
+
+                        for (int i = 0; i < sec.SecLoaders.Count; i++)
+                        {
+                            if (sec.SecLoaders[i].TimeFrame.ToString() == TfInSecurity)
+                            {
+                                loader = sec.SecLoaders[i];
+                                break;
+                            }
+                        }
+
+                        if (loader == null)
+                        {
+                            return;
+                        }
+
+                        if (loader.TimeFrame == TimeFrame.MarketDepth)
+                        {
+                            return;
+                        }
+
+                        OsDataSetDetailUi detailUi = new OsDataSetDetailUi(loader);
+                        detailUi.ShowDialog();
+                        loader.CheckTimeInSets();
+                        RePaintInterface();
+
+                        return;
+                    }
+
                     int realNum = 0;
 
                     try
@@ -348,174 +514,34 @@ namespace OsEngine.OsData
                         return;
                     }
 
-                    _set.ChangeCollapsedStateBySecurity(realNum - 1);
+                    string secName = "";
+
+                    try
+                    {
+                        secName = _dataGrid.Rows[rowIndex].Cells[1].Value.ToString();
+                    }
+                    catch
+                    {
+                        return;
+                    }
+
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label42 + "  " + secName);
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptActioin == false)
+                    {
+                        return;
+                    }
+
+                    _set.DeleteSecurity(realNum - 1);
+
                     RePaintInterface();
                 }
-                else if (isClickOnShowChartBtn)
-                {// показать чарт
-                    int numSecurity = -1;
-
-                    for (int i = rowIndex; i > -1; i--)
-                    {
-                        try
-                        {
-                            numSecurity = Convert.ToInt32(_dataGrid.Rows[i].Cells[0].Value.ToString());
-                            break;
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-                    }
-
-                    if (numSecurity == -1)
-                    {
-                        return;
-                    }
-
-                    string TfInSecurity = _dataGrid.Rows[rowIndex].Cells[6].Value.ToString();
-
-                    SecurityToLoad sec = _set.SecuritiesLoad[numSecurity - 1];
-
-                    SecurityTfLoader loader = null;
-
-                    for (int i = 0; i < sec.SecLoaders.Count; i++)
-                    {
-                        if (sec.SecLoaders[i].TimeFrame.ToString() == TfInSecurity)
-                        {
-                            loader = sec.SecLoaders[i];
-                            break;
-                        }
-                    }
-
-                    if (loader == null)
-                    {
-                        return;
-                    }
-
-                    List<Candle> candles = null;
-
-                    if (loader.TimeFrame == TimeFrame.Sec1
-                    || loader.TimeFrame == TimeFrame.Sec2
-                    || loader.TimeFrame == TimeFrame.Sec5
-                    || loader.TimeFrame == TimeFrame.Sec10
-                    || loader.TimeFrame == TimeFrame.Sec15
-                    || loader.TimeFrame == TimeFrame.Sec20
-                    || loader.TimeFrame == TimeFrame.Sec30)
-                    {
-                        candles = loader.GetExtCandlesFromTrades();
-                    }
-                    else
-                    {
-                        candles = loader.GetCandlesAllHistory();
-                    }
-
-                    if (candles == null ||
-                        candles.Count == 0)
-                    {
-                        return;
-                    }
-
-                    CandleChartUi ui = new CandleChartUi(loader.SecName + " " + loader.TimeFrame, StartProgram.IsOsData);
-                    ui.Show();
-                    ui.ProcessCandles(candles);
-                }
             }
-            else if (coluIndex == 11)
-            { // delete or detail
-
-                if (_dataGrid.Rows[rowIndex].Cells[0].Value == null
-                   || _dataGrid.Rows[rowIndex].Cells[0].Value.ToString() == "")
-                {
-                    // detail
-                    int numSecurity = -1;
-
-                    for (int i = rowIndex; i > -1; i--)
-                    {
-                        try
-                        {
-                            numSecurity = Convert.ToInt32(_dataGrid.Rows[i].Cells[0].Value.ToString());
-                            break;
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-                    }
-
-                    if (numSecurity == -1)
-                    {
-                        return;
-                    }
-
-                    string TfInSecurity = _dataGrid.Rows[rowIndex].Cells[6].Value.ToString();
-
-                    SecurityToLoad sec = _set.SecuritiesLoad[numSecurity - 1];
-
-                    SecurityTfLoader loader = null;
-
-                    for (int i = 0; i < sec.SecLoaders.Count; i++)
-                    {
-                        if (sec.SecLoaders[i].TimeFrame.ToString() == TfInSecurity)
-                        {
-                            loader = sec.SecLoaders[i];
-                            break;
-                        }
-                    }
-
-                    if (loader == null)
-                    {
-                        return;
-                    }
-
-                    if (loader.TimeFrame == TimeFrame.MarketDepth)
-                    {
-                        return;
-                    }
-
-                    OsDataSetDetailUi detailUi = new OsDataSetDetailUi(loader);
-                    detailUi.ShowDialog();
-                    loader.CheckTimeInSets();
-                    RePaintInterface();
-
-                    return;
-                }
-
-                int realNum = 0;
-
-                try
-                {
-                    realNum = Convert.ToInt32(_dataGrid.Rows[rowIndex].Cells[0].Value.ToString());
-                }
-                catch
-                {
-                    return;
-                }
-
-                string secName = "";
-
-                try
-                {
-                    secName = _dataGrid.Rows[rowIndex].Cells[1].Value.ToString();
-                }
-                catch
-                {
-                    return;
-                }
-
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label42 + "  " + secName);
-                ui.ShowDialog();
-
-                if (ui.UserAcceptActioin == false)
-                {
-                    return;
-                }
-
-                _set.DeleteSecurity(realNum - 1);
-
-                RePaintInterface();
+            catch (Exception ex)
+            {
+                SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
-
         }
 
         private void _dataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -537,96 +563,115 @@ namespace OsEngine.OsData
 
         private void RePaintLabels()
         {
-            if (_dataGrid.InvokeRequired)
+            try
             {
-                _dataGrid.Invoke(new Action(RePaintLabels));
-                return;
+                if (_dataGrid.InvokeRequired)
+                {
+                    _dataGrid.Invoke(new Action(RePaintLabels));
+                    return;
+                }
+
+                _labelSetName.Content = _set.SetName;
+
+                _labelTimeStart.Content = _set.BaseSettings.TimeStart.ToString(OsLocalization.ShortDateFormatString);
+                _labelTimeEnd.Content = _set.BaseSettings.TimeEnd.ToString(OsLocalization.ShortDateFormatString);
             }
-
-            _labelSetName.Content = _set.SetName;
-
-            _labelTimeStart.Content = _set.BaseSettings.TimeStart.ToString(OsLocalization.ShortDateFormatString);
-            _labelTimeEnd.Content = _set.BaseSettings.TimeEnd.ToString(OsLocalization.ShortDateFormatString);
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void RePaintGrid()
         {
-            if (_host == null ||
+            try
+            {
+                if (_host == null ||
                 _dataGrid == null)
-            {
-                return;
-            }
-
-            if (_dataGrid.InvokeRequired)
-            {
-                _dataGrid.Invoke(new Action(RePaintGrid));
-                return;
-            }
-
-            int lastShowRow = _dataGrid.FirstDisplayedScrollingRowIndex;
-
-
-            _dataGrid.Rows.Clear();
-
-            List<SecurityToLoad> secs = _set.SecuritiesLoad;
-
-            for (int i = 0; secs != null && i < secs.Count; i++)
-            {
-                List<DataGridViewRow> secRows = GetRowsFromSecurity(secs[i], i + 1);
-
-                for (int i2 = 0; i2 < secRows.Count; i2++)
                 {
-                    _dataGrid.Rows.Add(secRows[i2]);
+                    return;
+                }
+
+                if (_dataGrid.InvokeRequired)
+                {
+                    _dataGrid.Invoke(new Action(RePaintGrid));
+                    return;
+                }
+
+                int lastShowRow = _dataGrid.FirstDisplayedScrollingRowIndex;
+
+                _dataGrid.Rows.Clear();
+
+                List<SecurityToLoad> secs = _set.SecuritiesLoad;
+
+                for (int i = 0; secs != null && i < secs.Count; i++)
+                {
+                    List<DataGridViewRow> secRows = GetRowsFromSecurity(secs[i], i + 1);
+
+                    for (int i2 = 0; i2 < secRows.Count; i2++)
+                    {
+                        _dataGrid.Rows.Add(secRows[i2]);
+                    }
+                }
+
+                if (lastShowRow != -1 &&
+                    lastShowRow < _dataGrid.Rows.Count)
+                {
+                    _dataGrid.FirstDisplayedScrollingRowIndex = lastShowRow;
                 }
             }
-
-            if (lastShowRow != -1 &&
-                lastShowRow < _dataGrid.Rows.Count)
+            catch (Exception ex)
             {
-                _dataGrid.FirstDisplayedScrollingRowIndex = lastShowRow;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void UpDateGrid()
         {
-            if (_host == null ||
-                _dataGrid == null)
+            try
             {
-                return;
-            }
-
-            if (_dataGrid.InvokeRequired)
-            {
-                _dataGrid.Invoke(new Action(UpDateGrid));
-                return;
-            }
-
-            List<SecurityToLoad> secs = _set.SecuritiesLoad;
-
-            List<DataGridViewRow> allRows = new List<DataGridViewRow>();
-
-            for (int i = 0; secs != null && i < secs.Count; i++)
-            {
-                List<DataGridViewRow> secRows = GetRowsFromSecurity(secs[i], i + 1);
-
-                for (int i2 = 0; i2 < secRows.Count; i2++)
+                if (_host == null ||
+                    _dataGrid == null)
                 {
-                    allRows.Add(secRows[i2]);
+                    return;
+                }
+
+                if (_dataGrid.InvokeRequired)
+                {
+                    _dataGrid.Invoke(new Action(UpDateGrid));
+                    return;
+                }
+
+                List<SecurityToLoad> secs = _set.SecuritiesLoad;
+
+                List<DataGridViewRow> allRows = new List<DataGridViewRow>();
+
+                for (int i = 0; secs != null && i < secs.Count; i++)
+                {
+                    List<DataGridViewRow> secRows = GetRowsFromSecurity(secs[i], i + 1);
+
+                    for (int i2 = 0; i2 < secRows.Count; i2++)
+                    {
+                        allRows.Add(secRows[i2]);
+                    }
+                }
+
+                if (_dataGrid.Rows.Count != allRows.Count)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _dataGrid.Rows.Count; i++)
+                {
+                    DataGridViewRow rowInGrid = _dataGrid.Rows[i];
+                    DataGridViewRow rowInNewArray = allRows[i];
+                    CompairCellsInRow(rowInGrid, rowInNewArray);
                 }
             }
-
-            if (_dataGrid.Rows.Count != allRows.Count)
+            catch (Exception ex)
             {
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            for (int i = 0; i < _dataGrid.Rows.Count; i++)
-            {
-                DataGridViewRow rowInGrid = _dataGrid.Rows[i];
-                DataGridViewRow rowInNewArray = allRows[i];
-                CompairCellsInRow(rowInGrid, rowInNewArray);
-            }
-
         }
 
         private void CompairCellsInRow(DataGridViewRow rowInGrid, DataGridViewRow rowInNewArray)
@@ -677,30 +722,36 @@ colum12.HeaderText = "Delete";   11
 
         private void RePaintProgressBar()
         {
-            if (_host == null ||
-                _dataGrid == null)
+            try
             {
-                return;
-            }
+                if (_host == null ||
+                    _dataGrid == null)
+                {
+                    return;
+                }
 
-            if (_dataGrid.InvokeRequired)
+                if (_bar.Dispatcher.CheckAccess() == false)
+                {
+                    _bar.Dispatcher.Invoke(new Action(RePaintProgressBar));
+                    return;
+                }
+
+                if (_bar.Maximum != 100)
+                {
+                    _bar.Maximum = 100;
+                }
+
+                double value = Convert.ToDouble(_set.PercentLoad());
+
+                if (_bar.Value != value)
+                {
+                    _bar.Value = value;
+                }
+            }
+            catch(Exception ex)
             {
-                _dataGrid.Invoke(new Action(RePaintProgressBar));
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            if (_bar.Maximum != 100)
-            {
-                _bar.Maximum = 100;
-            }
-
-            double value = Convert.ToDouble(_set.PercentLoad());
-
-            if (_bar.Value != value)
-            {
-                _bar.Value = value;
-            }
-
         }
 
         public void TryUpdateInterface()
