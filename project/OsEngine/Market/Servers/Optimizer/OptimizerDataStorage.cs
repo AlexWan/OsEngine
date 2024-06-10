@@ -1750,9 +1750,11 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             lock (_lockerLoadCandles)
             {
+
                 SecurityTester sec =
                 SecuritiesTester.Find(
                     s =>
+                        s != null && 
                         s.Security.Name == security.Name && s.TimeFrame == timeFrame &&
                         s.DataType == SecurityTesterDataType.Candle);
 
