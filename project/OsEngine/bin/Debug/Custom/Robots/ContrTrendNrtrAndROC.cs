@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Google.Protobuf.Collections;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;

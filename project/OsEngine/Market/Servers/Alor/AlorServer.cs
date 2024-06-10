@@ -615,6 +615,15 @@ namespace OsEngine.Market.Servers.Alor
 
             DateTime startTime = endTime.AddDays(-daysCount);
 
+            if (endTime.DayOfWeek == DayOfWeek.Monday)
+            {
+                startTime = startTime.AddDays(-2);
+            }
+            if (endTime.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                startTime = startTime.AddDays(-1);
+            }
+
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
         
             while(candles.Count > candleCount)
