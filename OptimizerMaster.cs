@@ -1294,11 +1294,6 @@ namespace OsEngine.OsOptimizer
                         onRgimeOff = true;
                     }
                 }
-
-                //if (((StrategyParameterString)_parameters[i]).ValueString == "Off")
-                //{
-                //    onRgimeOff = true;
-                //}
             }
 
             if (onRgimeOff == true)
