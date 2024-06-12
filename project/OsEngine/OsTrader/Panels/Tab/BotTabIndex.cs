@@ -241,7 +241,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Tabs.RemoveAt(i);
                     isDeleteTab = true;
                 }
-            }
+             }
 
             if (isDeleteTab == true)
             {
@@ -282,10 +282,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return creator;
                 }
+
                 ConnectorCandles connector = Tabs[0];
                 creator.ServerType = connector.ServerType;
                 creator.TimeFrame = connector.TimeFrame;
                 creator.EmulatorIsOn = connector.EmulatorIsOn;
+                creator.SecuritiesClass = connector.SecurityClass;
+                creator.PortfolioName = connector.PortfolioName;
+                creator.SaveTradesInCandles = connector.SaveTradesInCandles;
 
                 creator.CandleCreateMethodType = connector.CandleCreateMethodType;
                 creator.CandleMarketDataType = connector.CandleMarketDataType;

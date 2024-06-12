@@ -242,7 +242,20 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                SourcesCreator = GetCurSettings();
+                MassSourcesCreator curSettings = GetCurSettings();
+
+                SourcesCreator.CandleCreateMethodType = curSettings.CandleCreateMethodType;
+                SourcesCreator.ComissionType = curSettings.ComissionType;
+                SourcesCreator.ComissionValue = curSettings.ComissionValue;
+                SourcesCreator.EmulatorIsOn = curSettings.EmulatorIsOn;
+                SourcesCreator.PortfolioName = curSettings.PortfolioName;
+                SourcesCreator.SaveTradesInCandles = curSettings.SaveTradesInCandles;
+                SourcesCreator.SecuritiesClass = curSettings.SecuritiesClass;
+                SourcesCreator.SecuritiesNames = curSettings.SecuritiesNames;
+                SourcesCreator.ServerType = curSettings.ServerType;
+                SourcesCreator.TimeFrame = curSettings.TimeFrame;
+                SourcesCreator.CandleMarketDataType = curSettings.CandleMarketDataType;
+                SourcesCreator.CandleSeriesRealization.SetSaveString(curSettings.CandleSeriesRealization.GetSaveString());
                 IsAccepted = true;
                 Close();
             }
