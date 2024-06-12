@@ -220,9 +220,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             MassSourcesCreator creator = GetCurrentCreator();
 
             MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
+            ui.LogMessageEvent += SendNewLogMessage;
             ui.ShowDialog();
 
-            if (ui.IsAssepted == false)
+            ui.LogMessageEvent -= SendNewLogMessage;
+            if (ui.IsAccepted == false)
             {
                 return;
             }
@@ -284,19 +286,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 creator.ServerType = connector.ServerType;
                 creator.TimeFrame = connector.TimeFrame;
                 creator.EmulatorIsOn = connector.EmulatorIsOn;
+
                 creator.CandleCreateMethodType = connector.CandleCreateMethodType;
                 creator.CandleMarketDataType = connector.CandleMarketDataType;
-                creator.SetForeign = connector.SetForeign;
-                creator.CountTradeInCandle = connector.CountTradeInCandle;
-                creator.VolumeToCloseCandleInVolumeType = connector.VolumeToCloseCandleInVolumeType;
-                creator.RencoPunktsToCloseCandleInRencoType = connector.RencoPunktsToCloseCandleInRencoType;
-                creator.RencoIsBuildShadows = connector.RencoIsBuildShadows;
-                creator.DeltaPeriods = connector.DeltaPeriods;
-                creator.RangeCandlesPunkts = connector.RangeCandlesPunkts;
-                creator.ReversCandlesPunktsMinMove = connector.ReversCandlesPunktsMinMove;
-                creator.ReversCandlesPunktsBackMove = connector.ReversCandlesPunktsBackMove;
                 creator.ComissionType = connector.ComissionType;
                 creator.ComissionValue = connector.ComissionValue;
+                creator.CandleSeriesRealization.SetSaveString(connector.TimeFrameBuilder.CandleSeriesRealization.GetSaveString());
             }
 
             for (int i = 0; i < Tabs.Count; i++)
@@ -417,15 +412,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.NeadToLoadServerData = false;
             connector.CandleCreateMethodType = creator.CandleCreateMethodType;
             connector.CandleMarketDataType = creator.CandleMarketDataType;
-            connector.SetForeign = creator.SetForeign;
-            connector.CountTradeInCandle = creator.CountTradeInCandle;
-            connector.VolumeToCloseCandleInVolumeType = creator.VolumeToCloseCandleInVolumeType;
-            connector.RencoPunktsToCloseCandleInRencoType = creator.RencoPunktsToCloseCandleInRencoType;
-            connector.RencoIsBuildShadows = creator.RencoIsBuildShadows;
-            connector.DeltaPeriods = creator.DeltaPeriods;
-            connector.RangeCandlesPunkts = creator.RangeCandlesPunkts;
-            connector.ReversCandlesPunktsMinMove = creator.ReversCandlesPunktsMinMove;
-            connector.ReversCandlesPunktsBackMove = creator.ReversCandlesPunktsBackMove;
+            connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(creator.CandleSeriesRealization.GetSaveString());
+            connector.TimeFrameBuilder.Save();
+
             connector.ComissionType = creator.ComissionType;
             connector.ComissionValue = creator.ComissionValue;
 
@@ -836,7 +825,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _iteration++;
 
-                if(_iteration > 1000)
+                if (_iteration > 1000)
                 {
                     return "";
                 }
@@ -894,7 +883,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             partTwo += s[j];
                         }
-                       
+
                         return Calculate(partOne + Calculate(inside) + partTwo);
                     }
                     else if (startindex != -1)

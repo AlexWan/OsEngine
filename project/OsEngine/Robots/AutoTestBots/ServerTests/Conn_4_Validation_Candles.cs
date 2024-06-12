@@ -68,7 +68,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     Thread.Sleep(10000);
                     List<CandleSeries> series = Subscrible();
 
-                    if(series == null ||
+                    if (series == null ||
                         series.Count == 0)
                     {
                         return;
@@ -100,11 +100,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             string[] secsInString = SecutiesToSubscrible.Split(SecuritiesSeparator[0]);
 
-            List <Security> secsToTest = new List<Security>();
+            List<Security> secsToTest = new List<Security>();
 
-            for(int i = 0;i < secs.Count;i++)
+            for (int i = 0; i < secs.Count; i++)
             {
-                for(int i2 = 0;i2< secsInString.Length;i2++)
+                for (int i2 = 0; i2 < secsInString.Length; i2++)
                 {
                     if (secs[i].Name == secsInString[i2] &&
                         secs[i].NameClass == SecuritiesClass)
@@ -115,7 +115,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            if(secsToTest.Count == 0)
+            if (secsToTest.Count == 0)
             {
                 this.SetNewError(
                  "Error 4. No securities found by your settings!");
@@ -168,7 +168,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             return seriesReady;
         }
-        
+
         private List<CandleSeries> GetSeriesFromSecurity(Security sec)
         {
             IServerPermission permission = ServerMaster.GetServerPermission(Server.ServerType);
@@ -178,7 +178,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (permission.TradeTimeFramePermission.TimeFrameMin1IsOn)
             {
                 CandleSeries series = Subscrible(sec, TimeFrame.Min1);
-                if(series != null)
+                if (series != null)
                 {
                     seriesReady.Add(series);
                 }
@@ -251,11 +251,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             return seriesReady;
         }
 
-        private CandleSeries Subscrible(Security sec,TimeFrame frame)
+        private CandleSeries Subscrible(Security sec, TimeFrame frame)
         {
             DateTime endWaitTime = DateTime.Now.AddMinutes(5);
 
-            TimeFrameBuilder time = new TimeFrameBuilder();
+            TimeFrameBuilder time = new TimeFrameBuilder(StartProgram.IsOsTrader);
             time.TimeFrame = frame;
             CandleSeries series;
 
@@ -263,7 +263,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 series = Server.StartThisSecurity(sec.Name, time, sec.NameClass);
 
-                if(series != null)
+                if (series != null)
                 {
                     break;
                 }
@@ -287,14 +287,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             DateTime timeEnd = DateTime.Now.AddMinutes(5);
 
-            while(true)
+            while (true)
             {
-                if(series.Count == 0)
+                if (series.Count == 0)
                 {
                     return;
                 }
 
-                if(timeEnd < DateTime.Now)
+                if (timeEnd < DateTime.Now)
                 {
                     return;
                 }
@@ -320,12 +320,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             List<Candle> candles = series.CandlesAll;
 
-            if(candles == null|| candles.Count == 0)
+            if (candles == null || candles.Count == 0)
             {
                 return false;
             }
 
-            if(CandlesIsOk(candles, series.TimeFrame,series.Security.Name))
+            if (CandlesIsOk(candles, series.TimeFrame, series.Security.Name))
             {
                 return true;
             }

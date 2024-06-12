@@ -520,6 +520,22 @@ namespace OsEngine.Language
             "Eng:You can set a client code if your broker (BСS / VTB / etc) requires it. Or when trading on a sub-account _" +
             "Ru:Вы можете установить код клиента, если этого требует Ваш брокер (БКС / ВТБ / etc). Или когда торгуете на саб-счёте _");
 
+        public string Label122 => OsLocalization.ConvertToLocString(
+            "Eng:Value type_" +
+            "Ru:Тип переменной_");
+
+
+
+
+
+
+
+
+
+
+
+
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");

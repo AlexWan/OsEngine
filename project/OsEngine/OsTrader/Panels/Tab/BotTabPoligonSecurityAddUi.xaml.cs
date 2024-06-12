@@ -22,21 +22,9 @@ using QuikSharp.DataStructures;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
-    /// <summary>
-    /// Interaction logic for BotTabPoligonSecurityAddUi.xaml
-    /// </summary>
     public partial class BotTabPoligonSecurityAddUi : Window
     {
-
-        /// <summary>
-        /// server connector
-        /// коннектор к серверу
-        /// </summary>
-        private ConnectorCandles _connectorBot;
-
-        private string _baseSecurity;
-
-        public Side OperationSide;
+        #region Constructor
 
         public BotTabPoligonSecurityAddUi(ConnectorCandles connectorBot, string baseSecurity, Side side)
         {
@@ -91,12 +79,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (connectorBot.ServerType != ServerType.None)
                 {
                     ComboBoxTypeServer.SelectedItem = connectorBot.ServerType;
-                    _selectedType = connectorBot.ServerType;
+                    _selectedServerType = connectorBot.ServerType;
                 }
                 else
                 {
                     ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
-                    _selectedType = servers[0].ServerType;
+                    _selectedServerType = servers[0].ServerType;
                 }
 
                 if (connectorBot.StartProgram == StartProgram.IsTester)
@@ -108,7 +96,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
 
                     connectorBot.ServerType = ServerType.Tester;
-                    _selectedType = ServerType.Tester;
+                    _selectedServerType = ServerType.Tester;
 
                     ComboBoxPortfolio.IsEnabled = false;
                     ComboBoxTypeServer.IsEnabled = false;
@@ -128,22 +116,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
 
-                _countTradesInCandle = _connectorBot.CountTradeInCandle;
-                _volumeToClose = _connectorBot.VolumeToCloseCandleInVolumeType;
-                _rencoPuncts = _connectorBot.RencoPunktsToCloseCandleInRencoType;
-                _deltaPeriods = _connectorBot.DeltaPeriods;
-                _rangeCandlesPunkts = _connectorBot.RangeCandlesPunkts;
-                _reversCandlesPunktsBackMove = _connectorBot.ReversCandlesPunktsBackMove;
-                _reversCandlesPunktsMinMove = _connectorBot.ReversCandlesPunktsMinMove;
-
                 ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
                 ComboBoxComissionType.SelectedItem = _connectorBot.ComissionType.ToString();
 
                 TextBoxComissionValue.Text = _connectorBot.ComissionValue.ToString();
-
-                _saveTradesInCandles = _connectorBot.SaveTradesInCandles;
 
                 Title = OsLocalization.Market.TitleConnectorCandle;
                 Label1.Content = OsLocalization.Market.Label1;
@@ -164,7 +142,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception error)
             {
-                MessageBox.Show(error.ToString());
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
             Closing += ConnectorCandlesUi_Closing;
@@ -173,89 +151,117 @@ namespace OsEngine.OsTrader.Panels.Tab
             this.Focus();
         }
 
-        private void ComboBoxOperationType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            LoadSecurityOnBox();
-            UpdateSearchResults();
-            UpdateSearchPanel();
-        }
+        private ConnectorCandles _connectorBot;
+
+        private string _baseSecurity;
+
+        public Side OperationSide;
 
         private void ConnectorCandlesUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            _connectorBot = null;
-
-            List<IServer> serversAll = ServerMaster.GetServers();
-
-            for (int i = 0; serversAll != null && i < serversAll.Count; i++)
+            try
             {
-                if (serversAll[i] == null)
+
+                List<IServer> serversAll = ServerMaster.GetServers();
+
+                for (int i = 0; serversAll != null && i < serversAll.Count; i++)
                 {
-                    continue;
+                    if (serversAll[i] == null)
+                    {
+                        continue;
+                    }
+                    serversAll[i].SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
+                    serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
                 }
-                serversAll[i].SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
-                serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+
+            }
+            catch
+            {
+                // ignore
             }
 
-            ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
-            ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
-            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
-            TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
-            TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
-            TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
-            ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
-            ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
-            TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+            try
+            {
+                ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
+                ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
+                TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+                Closing -= ConnectorCandlesUi_Closing;
 
-            DeleteGridSecurities();
+                DeleteGridSecurities();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            _connectorBot = null;
         }
 
-        private int _countTradesInCandle;
+        #endregion
 
-        private decimal _rencoPuncts;
+        #region Other income events
 
-        private decimal _volumeToClose;
+        private void ButtonAccept_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string security = GetSelectedSecurity();
 
-        private decimal _deltaPeriods;
+                if (string.IsNullOrEmpty(security))
+                {
+                    return;
+                }
 
-        private decimal _rangeCandlesPunkts;
+                Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
 
-        private decimal _reversCandlesPunktsMinMove;
+                _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
 
-        private decimal _reversCandlesPunktsBackMove;
+                if (CheckBoxIsEmulator.IsChecked != null)
+                {
+                    _connectorBot.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
+                }
 
-        private bool _saveTradesInCandles = false;
+                _connectorBot.CandleCreateMethodType = "Simple";
+                _connectorBot.TimeFrame = TimeFrame.Hour1;
+                _connectorBot.SecurityName = security;
 
-        /// <summary>
-        /// selected server for now
-        /// выбранный в данным момент сервер
-        /// </summary>
-        private ServerType _selectedType;
+                Enum.TryParse(ComboBoxOperationType.Text, out OperationSide);
 
-        /// <summary>
-        /// user changed server type to connect
-        /// пользователь изменил тип сервера для подключения
-        /// </summary>
+                Close();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             try
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
 
                 if (server != null)
                 {
-                    server.SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
+                    server.SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                     server.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
                 }
 
-                Enum.TryParse(ComboBoxTypeServer.SelectedItem.ToString(), true, out _selectedType);
+                Enum.TryParse(ComboBoxTypeServer.SelectedItem.ToString(), true, out _selectedServerType);
 
-                IServer server2 = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server2 = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
 
                 if (server2 != null)
                 {
-                    server2.SecuritiesChangeEvent += server_SecuritiesCharngeEvent;
+                    server2.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
                     server2.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
                 }
                 LoadPortfolioOnBox();
@@ -270,53 +276,70 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// happens after switching the class of displayed instruments
-        /// происходит после переключения класса отображаемых инструментов
-        /// </summary>
-        void ComboBoxClass_SelectionChanged(object sender,
-            System.Windows.Controls.SelectionChangedEventArgs e)
+        private ServerType _selectedServerType;
+
+        private void ComboBoxOperationType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                LoadSecurityOnBox();
+                UpdateSearchResults();
+                UpdateSearchPanel();
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Portfolio and class controls
+
+        void server_SecuritiesChangeEvent(List<Security> securities)
+        {
+            try
+            {
+                if (_connectorBot == null)
+                {
+                    return;
+                }
+                LoadClassOnBox();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
+        {
+            try
+            {
+                if (_connectorBot == null)
+                {
+                    return;
+                }
+                LoadPortfolioOnBox();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             LoadSecurityOnBox();
         }
 
-        /// <summary>
-        /// new securities arrived at the server
-        /// на сервер пришли новые бумаги
-        /// </summary>
-        void server_SecuritiesCharngeEvent(List<Security> securities)
-        {
-            if (_connectorBot == null)
-            {
-                return;
-            }
-            LoadClassOnBox();
-        }
-
-        /// <summary>
-        /// new accounts arrived at the server
-        /// на сервер пришли новые счета
-        /// </summary>
-        void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
-        {
-            if (_connectorBot == null)
-            {
-                return;
-            }
-            LoadPortfolioOnBox();
-        }
-
-        /// <summary>
-        /// unload accounts to the form
-        /// выгружает счета на форму
-        /// </summary>
         private void LoadPortfolioOnBox()
         {
             try
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
 
                 if (server == null)
                 {
@@ -399,10 +422,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// place classes in the window
-        /// поместить классы в окно
-        /// </summary>
         private void LoadClassOnBox()
         {
             try
@@ -414,7 +433,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
 
                 if (server == null)
                 {
@@ -458,7 +477,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        #region работа с бумагами в таблице
+        #endregion
+
+        #region Securities grid
 
         private void LoadSecurityOnBox()
         {
@@ -468,7 +489,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
 
                 if (server == null)
                 {
@@ -604,55 +625,61 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            _gridSecurities.ClearSelection();
-
-            int columnInd = e.ColumnIndex;
-            int rowInd = e.RowIndex;
-
-            for (int i = 0; i < _gridSecurities.RowCount; i++)
+            try
             {
-                if (i == rowInd)
+                _gridSecurities.ClearSelection();
+
+                int columnInd = e.ColumnIndex;
+                int rowInd = e.RowIndex;
+
+                for (int i = 0; i < _gridSecurities.RowCount; i++)
                 {
-                    for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                    if (i == rowInd)
                     {
-                        _gridSecurities.Rows[rowInd].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#ffffff");
+                        for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                        {
+                            _gridSecurities.Rows[rowInd].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#ffffff");
+                        }
+                    }
+                    else
+                    {
+                        for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                        {
+                            _gridSecurities.Rows[i].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#FFA1A1A1");
+                        }
                     }
                 }
-                else
+
+                if (columnInd != 4)
                 {
-                    for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                    return;
+                }
+
+                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                {
+
+                    DataGridViewCheckBoxCell checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[4];
+
+                    if (checkBox.Value == null)
                     {
-                        _gridSecurities.Rows[i].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#FFA1A1A1");
+                        continue;
+                    }
+
+                    if (Convert.ToBoolean(checkBox.Value.ToString()) == true)
+                    {
+                        checkBox.Value = false;
+
+                        break;
                     }
                 }
-            }
 
-            if (columnInd != 4)
+                DataGridViewCheckBoxCell checkBoxActive = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowInd].Cells[4];
+                checkBoxActive.Value = true;
+            }
+            catch (Exception ex)
             {
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
-            {
-
-                DataGridViewCheckBoxCell checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[4];
-
-                if (checkBox.Value == null)
-                {
-                    continue;
-                }
-
-                if (Convert.ToBoolean(checkBox.Value.ToString()) == true)
-                {
-                    checkBox.Value = false;
-
-                    break;
-                }
-            }
-
-            DataGridViewCheckBoxCell checkBoxActive = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowInd].Cells[4];
-            checkBoxActive.Value = true;
-
         }
 
         private void UpdateGridSec(List<Security> securities)
@@ -748,30 +775,51 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region поиск по таблице бумаг
+        #region Search in securities grid
 
         private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (TextBoxSearchSecurity.Text == ""
-                && TextBoxSearchSecurity.IsKeyboardFocused == false)
+            try
             {
-                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                if (TextBoxSearchSecurity.Text == ""
+                    && TextBoxSearchSecurity.IsKeyboardFocused == false)
+                {
+                    TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void TextBoxSearchSecurity_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (TextBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+            try
             {
-                TextBoxSearchSecurity.Text = "";
+                if (TextBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+                {
+                    TextBoxSearchSecurity.Text = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void TextBoxSearchSecurity_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            if (TextBoxSearchSecurity.Text == "")
+            try
             {
-                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                if (TextBoxSearchSecurity.Text == "")
+                {
+                    TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -785,123 +833,151 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void UpdateSearchResults()
         {
-            _searchResults.Clear();
-
-            string key = TextBoxSearchSecurity.Text;
-
-            if (key == "")
+            try
             {
-                UpdateSearchPanel();
-                return;
+                _searchResults.Clear();
+
+                string key = TextBoxSearchSecurity.Text;
+
+                if (key == "")
+                {
+                    UpdateSearchPanel();
+                    return;
+                }
+
+                key = key.ToLower();
+
+                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                {
+                    string security = "";
+                    string secSecond = "";
+
+                    if (_gridSecurities.Rows[i].Cells[2].Value != null)
+                    {
+                        security = _gridSecurities.Rows[i].Cells[2].Value.ToString();
+                    }
+
+                    if (_gridSecurities.Rows[i].Cells[3].Value != null)
+                    {
+                        secSecond = _gridSecurities.Rows[i].Cells[3].Value.ToString();
+                    }
+
+                    security = security.ToLower();
+                    secSecond = secSecond.ToLower();
+
+                    if (security.Contains(key) ||
+                        secSecond.Contains(key))
+                    {
+                        _searchResults.Add(i);
+                    }
+                }
             }
-
-            key = key.ToLower();
-
-            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            catch (Exception ex)
             {
-                string security = "";
-                string secSecond = "";
-
-                if (_gridSecurities.Rows[i].Cells[2].Value != null)
-                {
-                    security = _gridSecurities.Rows[i].Cells[2].Value.ToString();
-                }
-
-                if (_gridSecurities.Rows[i].Cells[3].Value != null)
-                {
-                    secSecond = _gridSecurities.Rows[i].Cells[3].Value.ToString();
-                }
-
-                security = security.ToLower();
-                secSecond = secSecond.ToLower();
-
-                if (security.Contains(key) ||
-                    secSecond.Contains(key))
-                {
-                    _searchResults.Add(i);
-                }
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void UpdateSearchPanel()
         {
-            if (_searchResults.Count == 0)
+            try
             {
-                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
-                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
-                LabelCurrentResultShow.Visibility = Visibility.Hidden;
-                LabelCommasResultShow.Visibility = Visibility.Hidden;
-                LabelCountResultsShow.Visibility = Visibility.Hidden;
-                return;
+                if (_searchResults.Count == 0)
+                {
+                    ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                    ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                    LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                    LabelCommasResultShow.Visibility = Visibility.Hidden;
+                    LabelCountResultsShow.Visibility = Visibility.Hidden;
+                    return;
+                }
+
+                int firstRow = _searchResults[0];
+
+                _gridSecurities.Rows[firstRow].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = firstRow;
+
+                if (_searchResults.Count < 2)
+                {
+                    ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                    ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                    LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                    LabelCommasResultShow.Visibility = Visibility.Hidden;
+                    LabelCountResultsShow.Visibility = Visibility.Hidden;
+                    return;
+                }
+
+                LabelCurrentResultShow.Content = 1.ToString();
+                LabelCountResultsShow.Content = (_searchResults.Count).ToString();
+
+                ButtonRightInSearchResults.Visibility = Visibility.Visible;
+                ButtonLeftInSearchResults.Visibility = Visibility.Visible;
+                LabelCurrentResultShow.Visibility = Visibility.Visible;
+                LabelCommasResultShow.Visibility = Visibility.Visible;
+                LabelCountResultsShow.Visibility = Visibility.Visible;
             }
-
-            int firstRow = _searchResults[0];
-
-            _gridSecurities.Rows[firstRow].Selected = true;
-            _gridSecurities.FirstDisplayedScrollingRowIndex = firstRow;
-
-            if (_searchResults.Count < 2)
+            catch (Exception ex)
             {
-                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
-                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
-                LabelCurrentResultShow.Visibility = Visibility.Hidden;
-                LabelCommasResultShow.Visibility = Visibility.Hidden;
-                LabelCountResultsShow.Visibility = Visibility.Hidden;
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            LabelCurrentResultShow.Content = 1.ToString();
-            LabelCountResultsShow.Content = (_searchResults.Count).ToString();
-
-            ButtonRightInSearchResults.Visibility = Visibility.Visible;
-            ButtonLeftInSearchResults.Visibility = Visibility.Visible;
-            LabelCurrentResultShow.Visibility = Visibility.Visible;
-            LabelCommasResultShow.Visibility = Visibility.Visible;
-            LabelCountResultsShow.Visibility = Visibility.Visible;
         }
 
         private void ButtonLeftInSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
-
-            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
-
-            if (indexRow <= 0)
+            try
             {
-                indexRow = maxRowIndex;
-                LabelCurrentResultShow.Content = maxRowIndex.ToString();
+                int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
+
+                int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+                if (indexRow <= 0)
+                {
+                    indexRow = maxRowIndex;
+                    LabelCurrentResultShow.Content = maxRowIndex.ToString();
+                }
+                else
+                {
+                    LabelCurrentResultShow.Content = (indexRow).ToString();
+                }
+
+                int realInd = _searchResults[indexRow - 1];
+
+                _gridSecurities.Rows[realInd].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
             }
-            else
+            catch (Exception ex)
             {
-                LabelCurrentResultShow.Content = (indexRow).ToString();
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            int realInd = _searchResults[indexRow - 1];
-
-            _gridSecurities.Rows[realInd].Selected = true;
-            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
         }
 
         private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
-
-            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
-
-            if (indexRow >= maxRowIndex)
+            try
             {
-                indexRow = 0;
-                LabelCurrentResultShow.Content = 1.ToString();
+                int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
+
+                int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+                if (indexRow >= maxRowIndex)
+                {
+                    indexRow = 0;
+                    LabelCurrentResultShow.Content = 1.ToString();
+                }
+                else
+                {
+                    LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+                }
+
+                int realInd = _searchResults[indexRow];
+
+                _gridSecurities.Rows[realInd].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
             }
-            else
+            catch (Exception ex)
             {
-                LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            int realInd = _searchResults[indexRow];
-
-            _gridSecurities.Rows[realInd].Selected = true;
-            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
         }
 
         private void TextBoxSearchSecurity_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -965,73 +1041,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        /// <summary>
-        /// accept button
-        /// кнопка принять
-        /// </summary>
-        private void ButtonAccept_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                string security = GetSelectedSecurity();
-
-                if (string.IsNullOrEmpty(security))
-                {
-                    return;
-                }
-
-                Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
-
-                _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
-
-                if (CheckBoxIsEmulator.IsChecked != null)
-                {
-                    _connectorBot.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
-                }
-
-                _connectorBot.TimeFrame = TimeFrame.Hour1;
-                _connectorBot.SecurityName = security;
-
-                _connectorBot.SecurityClass = ComboBoxClass.Text;
-                _connectorBot.CandleMarketDataType = CandleMarketDataType.Tick;
-                _connectorBot.CandleCreateMethodType = CandleCreateMethodType.Simple;
-
-                ComissionType typeComission;
-                Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-                _connectorBot.ComissionType = typeComission;
-
-                try
-                {
-                    _connectorBot.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
-                }
-                catch
-                {
-                    // ignore
-                }
-
-                _connectorBot.SetForeign = false;
-                _connectorBot.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
-                _connectorBot.CountTradeInCandle = _countTradesInCandle;
-                _connectorBot.VolumeToCloseCandleInVolumeType = _volumeToClose;
-                _connectorBot.DeltaPeriods = _deltaPeriods;
-                _connectorBot.RangeCandlesPunkts = _rangeCandlesPunkts;
-                _connectorBot.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
-                _connectorBot.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
-                _connectorBot.SaveTradesInCandles = _saveTradesInCandles;
-                _connectorBot.RencoIsBuildShadows = false;
-                _connectorBot.Save();
-
-                Enum.TryParse(ComboBoxOperationType.Text, out OperationSide);
-
-                Close();
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        #region сообщения в лог 
+        #region Logging
 
         private void SendNewLogMessage(string message, LogMessageType type)
         {

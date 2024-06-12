@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using OsEngine.Candles;
+using OsEngine.Candles.Series;
 using OsEngine.Entity;
 
 
@@ -21,19 +23,11 @@ namespace OsEngine.Market.Connectors
             result += ServerType + "\n";
             result += EmulatorIsOn + "\n";
             result += CandleMarketDataType + "\n";
-            result += CandleCreateMethodType + "\n";
-            result += SetForeign + "\n";
-            result += CountTradeInCandle + "\n";
-            result += VolumeToCloseCandleInVolumeType + "\n";
-            result += RencoPunktsToCloseCandleInRencoType + "\n";
-            result += RencoIsBuildShadows + "\n";
-            result += DeltaPeriods + "\n";
-            result += RangeCandlesPunkts + "\n";
-            result += ReversCandlesPunktsMinMove + "\n";
-            result += ReversCandlesPunktsBackMove + "\n";
             result += ComissionType + "\n";
             result += ComissionValue + "\n";
             result += SaveTradesInCandles + "\n";
+            result += CandleCreateMethodType + "\n";
+            result += CandleSeriesRealization.GetSaveString() + "\n";
 
             for (int i = 0; i < SecuritiesNames.Count; i++)
             {
@@ -53,21 +47,15 @@ namespace OsEngine.Market.Connectors
             Enum.TryParse(values[3], out ServerType);
             EmulatorIsOn = Convert.ToBoolean(values[4]);
             Enum.TryParse(values[5], out CandleMarketDataType);
-            Enum.TryParse(values[6], out CandleCreateMethodType);
-            SetForeign = Convert.ToBoolean(values[7]);
-            CountTradeInCandle = Convert.ToInt32(values[8]);
-            VolumeToCloseCandleInVolumeType = values[9].ToDecimal();
-            RencoPunktsToCloseCandleInRencoType = values[10].ToDecimal();
-            RencoIsBuildShadows = Convert.ToBoolean(values[11]);
-            DeltaPeriods = values[12].ToDecimal();
-            RangeCandlesPunkts = values[13].ToDecimal();
-            ReversCandlesPunktsMinMove = values[14].ToDecimal();
-            ReversCandlesPunktsBackMove = values[15].ToDecimal();
-            Enum.TryParse(values[16], out ComissionType);
-            ComissionValue = values[17].ToDecimal();
-            SaveTradesInCandles = Convert.ToBoolean(values[18]);
+            Enum.TryParse(values[6], out ComissionType);
+            ComissionValue = values[7].ToDecimal();
+            SaveTradesInCandles = Convert.ToBoolean(values[8]);
+            CandleCreateMethodType = values[9];
+            CandleSeriesRealization.SetSaveString(values[10]);
 
-            for (int i = 19; i < values.Length; i++)
+
+
+            for (int i = 11; i < values.Length; i++)
             {
                 string value = values[i];
                 if (string.IsNullOrEmpty(value))
@@ -90,119 +78,65 @@ namespace OsEngine.Market.Connectors
         public MassSourcesCreator(StartProgram startProgram)
         {
             _startProgram = startProgram;
+
+            CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization("Simple");
+            CandleSeriesRealization.Init(startProgram);
+            _candleCreateMethodType = "Simple";
         }
 
-        /// <summary>
-        /// program that created the robot / 
-        /// программа создавшая робота
-        /// </summary>
+        public ACandlesSeriesRealization CandleSeriesRealization;
+
         public StartProgram StartProgram
         {
             get { return _startProgram; }
         }
         private StartProgram _startProgram;
 
-        /// <summary>
-        /// имя портфеля для торговли
-        /// </summary>
         public string PortfolioName;
 
-        /// <summary>
-        /// класс бумаг в скринере
-        /// </summary>
         public string SecuritiesClass;
 
-        /// <summary>
-        /// имена бумаг добавленых в подключение
-        /// </summary>
         public List<ActivatedSecurity> SecuritiesNames = new List<ActivatedSecurity>();
 
-        /// <summary>
-        /// таймфрейм
-        /// </summary>
         public TimeFrame TimeFrame = TimeFrame.Min1;
 
-        /// <summary>
-        /// тип сервера
-        /// </summary>
         public ServerType ServerType;
 
-        /// <summary>
-        /// включен ли эмулятор
-        /// </summary>
         public bool EmulatorIsOn;
 
-        /// <summary>
-        /// тип данных для рассчёта свечек в серии свечей
-        /// </summary>
         public CandleMarketDataType CandleMarketDataType;
 
-        /// <summary>
-        /// метод для создания свечек
-        /// </summary>
-        public CandleCreateMethodType CandleCreateMethodType;
+        public string CandleCreateMethodType
+        {
+            get
+            {
+                return _candleCreateMethodType;
+            }
+            set
+            {
+                string newType = value;
 
-        /// <summary>
-        /// нужно ли запрашивать не торговые интервалы
-        /// </summary>
-        public bool SetForeign;
+                if (newType == _candleCreateMethodType)
+                {
+                    return;
+                }
 
-        /// <summary>
-        /// кол-во трейдов в свече
-        /// </summary>
-        public int CountTradeInCandle = 100;
+                if (CandleSeriesRealization != null)
+                {
+                    CandleSeriesRealization = null;
+                }
+                _candleCreateMethodType = newType;
+                CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization(newType);
+                CandleSeriesRealization.Init(_startProgram);
+            }
+        }
+        private string _candleCreateMethodType;
 
-        /// <summary>
-        /// объём для закрытия свечи
-        /// </summary>
-        public decimal VolumeToCloseCandleInVolumeType = 1000;
-
-        /// <summary>
-        /// движение для закрытия свечи в свечах типа Renco
-        /// </summary>
-        public decimal RencoPunktsToCloseCandleInRencoType = 100;
-
-        /// <summary>
-        /// сторим ли тени в свечках типа Renco
-        /// </summary>
-        public bool RencoIsBuildShadows;
-
-        /// <summary>
-        /// период дельты
-        /// </summary>
-        public decimal DeltaPeriods = 1000;
-
-        /// <summary>
-        /// пункты для свечек Range
-        /// </summary>
-        public decimal RangeCandlesPunkts;
-
-        /// <summary>
-        /// Минимальный откат для свечек Range
-        /// </summary>
-        public decimal ReversCandlesPunktsMinMove;
-
-        /// <summary>
-        /// Откат для создания свечи вниз для свечек Range
-        /// </summary>
-        public decimal ReversCandlesPunktsBackMove;
-
-        /// <summary>
-        /// тип комиссии для позиций
-        /// </summary>
         public ComissionType ComissionType;
 
-        /// <summary>
-        /// размер комиссии
-        /// </summary>
         public decimal ComissionValue;
 
-        /// <summary>
-        /// нужно ли сохранять трейды внутри свечи которой они принадлежат
-        /// </summary>
         public bool SaveTradesInCandles;
-
-
 
     }
 

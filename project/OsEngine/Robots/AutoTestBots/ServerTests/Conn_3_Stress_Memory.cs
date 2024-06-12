@@ -94,7 +94,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     _lastStatus = ServerConnectStatus.Disconnect;
                     myServer.StartServer();
                     Thread.Sleep(10000);
-                    if(SubscribleFirst30Securities())
+                    if (SubscribleFirst30Securities())
                     {
                         proc = System.Diagnostics.Process.GetCurrentProcess();
                         memoryList.Add(proc.PrivateMemorySize64);
@@ -114,9 +114,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            for(int i = 0;i < memoryList.Count;i++)
+            for (int i = 0; i < memoryList.Count; i++)
             {
-                if (memoryList[i] / (startMemory/100) > 120)
+                if (memoryList[i] / (startMemory / 100) > 120)
                 {
                     this.SetNewError("Error 2. Iteration: " + i + " Memory up more 20 %. Actual: " + memoryList[i]);
                 }
@@ -157,7 +157,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 try
                 {
-                    CandleSeries series = Server.StartThisSecurity(secs[i].Name, new Entity.TimeFrameBuilder(), secs[i].NameClass);
+                    CandleSeries series = Server.StartThisSecurity(secs[i].Name, new Entity.TimeFrameBuilder(StartProgram.IsOsTrader), secs[i].NameClass);
 
                     if (series == null)
                     {

@@ -187,6 +187,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (Securiti != null
+                    && Portfolio != null)
+                {
+                    _chartMaster?.SetNewSecurity(Securiti.Name, _connector.TimeFrameBuilder, Portfolio.Number, Connector.ServerType);
+                }
+
                 _chartMaster?.StartPaint(gridChart, hostChart, rectangleChart);
                 _marketDepthPainter?.StartPaint(hostGlass, textBoxLimitPrice, textBoxVolume);
                 _journal?.StartPaint(hostOpenDeals, hostCloseDeals);

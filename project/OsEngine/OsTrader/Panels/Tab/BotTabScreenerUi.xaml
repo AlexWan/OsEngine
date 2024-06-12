@@ -20,31 +20,13 @@
         <ComboBox x:Name="ComboBoxTypeServer" Margin="206,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
         <Label x:Name="Label3" Content="Portfolio for operations" HorizontalAlignment="Left"  Margin="41,84,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxPortfolio" Margin="206,84,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="LabelTimeFrame" Content="TimeFrame" HorizontalAlignment="Left" Margin="41,334,0,0" VerticalAlignment="Top" Width="78"/>
-        <ComboBox x:Name ="ComboBoxTimeFrame" Margin="206,334,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <CheckBox x:Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="120,112,0,0" VerticalAlignment="Top"/>
         <Label x:Name="Label8" Content="From what we collect candles" HorizontalAlignment="Left" Margin="41,259,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name ="ComboBoxCandleMarketDataType" Margin="206,259,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184" />
-        <CheckBox x:Name="CheckBoxSetForeign" Content="Build non-trading candles" HorizontalAlignment="Left" Margin="120,387,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxCountTradesInCandle" HorizontalAlignment="Left" Height="23" Margin="206,362,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="184"/>
-        <Label x:Name="LabelCountTradesInCandle" Content="Trades count in candle" HorizontalAlignment="Left" Margin="41,362,0,0" VerticalAlignment="Top"/>
         <Label x:Name="Label9" Content="Candle type" HorizontalAlignment="Left" Margin="41,307,0,0" VerticalAlignment="Top" />
         <ComboBox x:Name ="ComboBoxCandleCreateMethodType" Margin="206,307,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <Label x:Name="Label2" Content="Order execution" HorizontalAlignment="Left" Margin="10,59,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Label x:Name="Label5" Content="Candles settings" HorizontalAlignment="Left" Margin="10,197,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label x:Name="LabelVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="41,440,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxVolumeToClose" Margin="206,440,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <Label x:Name="LabelRencoPunkts" Content="Move to close" HorizontalAlignment="Left" Margin="41,470,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxRencoPunkts" Margin="206,470,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <Label x:Name="LabelDeltaPeriods" Content="Change delta to close" HorizontalAlignment="Left" Margin="41,410,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxDeltaPeriods" Margin="246,410,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="144"  />
-        <CheckBox x:Name="CheckBoxRencoIsBuildShadows" Content="Build shadows" HorizontalAlignment="Left" Margin="120,500,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelRangeCandlesPunkts" Content="Size" HorizontalAlignment="Left" Margin="41,521,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxRangeCandlesPunkts" Margin="206,521,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <Label x:Name="LabelReversCandlesPunktsMinMove" Content="Min movement" HorizontalAlignment="Left" Margin="41,551,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxReversCandlesPunktsMinMove" Margin="206,551,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <Label x:Name="LabelReversCandlesPunktsBackMove" Content="Rollback" HorizontalAlignment="Left" Margin="41,581,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxReversCandlesPunktsBackMove" Margin="206,581,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <Label x:Name="LabelComissionType" Content="Comission type" HorizontalAlignment="Left"  Margin="41,135,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ComboBoxComissionType" Margin="206,135,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
         <Label x:Name="LabelComissionValue" Content="Comission value" HorizontalAlignment="Left" Margin="41,163,0,0" VerticalAlignment="Top" />
@@ -65,6 +47,7 @@
         <ComboBox x:Name="ComboBoxClass" Margin="547,33,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="138"/>
         <Button x:Name="ButtonLoadSet" Content="Load set" HorizontalAlignment="Right" Margin="0,0,163,5" VerticalAlignment="Bottom" Width="148" Click="ButtonLoadSet_Click"/>
         <Button x:Name="ButtonSaveSet" Content="Save set" HorizontalAlignment="Right" Margin="0,0,316,5" VerticalAlignment="Bottom" Width="148" Click="ButtonSaveSet_Click"/>
+        <WindowsFormsHost x:Name ="HostCandleSeriesParameters" Margin="50,341,0,10" HorizontalAlignment="Left" Width="312"/>
 
     </Grid>
 </Window>

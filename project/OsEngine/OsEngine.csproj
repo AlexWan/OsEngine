@@ -192,6 +192,20 @@
     <Compile Include="Alerts\AlertToPriceCreateUi.xaml.cs">
       <DependentUpon>AlertToPriceCreateUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Candles\Candle.cs" />
+    <Compile Include="Candles\CandleConverter.cs" />
+    <Compile Include="Candles\CandleManager.cs" />
+    <Compile Include="Candles\CandleSeries.cs" />
+    <Compile Include="Candles\Factory\CandleFactory.cs" />
+    <Compile Include="Candles\Factory\CandleSeriesParameter.cs" />
+    <Compile Include="Candles\Series\ACandlesSeriesRealization.cs" />
+    <Compile Include="Candles\Series\Delta.cs" />
+    <Compile Include="Candles\Series\HeikenAshi.cs" />
+    <Compile Include="Candles\Series\Range.cs" />
+    <Compile Include="Candles\Series\Revers.cs" />
+    <Compile Include="Candles\Series\Simple.cs" />
+    <Compile Include="Candles\Series\Tick.cs" />
+    <Compile Include="Candles\TimeFrameBuilder.cs" />
     <Compile Include="Charts\CandleChart\CandleChartUi.xaml.cs">
       <DependentUpon>CandleChartUi.xaml</DependentUpon>
     </Compile>
@@ -404,7 +418,6 @@
     <Compile Include="Entity\AwaitUi.xaml.cs">
       <DependentUpon>AwaitUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\CointegrationBuilder.cs" />
     <Compile Include="Entity\ColorCustomDialog.xaml.cs">
       <DependentUpon>ColorCustomDialog.xaml</DependentUpon>
@@ -432,7 +445,6 @@
     <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
-    <Compile Include="Entity\TimeFrameBuilder.cs" />
     <Compile Include="Entity\Utils\CompressionUtils.cs" />
     <Compile Include="Indicators\AC.cs" />
     <Compile Include="Indicators\Aindicator.cs" />
@@ -809,9 +821,6 @@
     <Compile Include="Market\ServerMasterUi.xaml.cs">
       <DependentUpon>ServerMasterUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\CandleManager.cs" />
-    <Compile Include="Entity\Candle.cs" />
-    <Compile Include="Entity\CandleSeries.cs" />
     <Compile Include="Entity\Position.cs" />
     <Compile Include="Entity\PositionOpenerToStop.cs" />
     <Compile Include="Entity\MarketDepth.cs" />

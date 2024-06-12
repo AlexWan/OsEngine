@@ -1347,7 +1347,7 @@ namespace OsEngine.OsData
         {
             if (_isDeleted) { return; }
 
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
             timeFrameBuilder.TimeFrame = TimeFrame;
 
             if (pie.Status == DataPieStatus.Load)
@@ -1562,7 +1562,7 @@ namespace OsEngine.OsData
         {
             if (_isDeleted) { return; }
 
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
             timeFrameBuilder.TimeFrame = TimeFrame;
 
             string id = SecId;
@@ -1829,7 +1829,7 @@ namespace OsEngine.OsData
                 return null;
             }
 
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
             timeFrameBuilder.TimeFrame = TimeFrame;
 
             CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" }, StartProgram.IsOsConverter);

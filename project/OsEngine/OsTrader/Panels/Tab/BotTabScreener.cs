@@ -17,7 +17,9 @@ using OsEngine.Robots.Engines;
 using OsEngine.Language;
 using OsEngine.Alerts;
 using OsEngine.Market.Connectors;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using OsEngine.Candles.Series;
+using OsEngine.Candles;
+using OsEngine.Market.Servers;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -259,7 +261,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Tab number
         /// </summary>
         public int TabNum { get; set; }
-		
+
         /// <summary>
         /// custom name robot
         /// пользовательское имя робота
@@ -437,19 +439,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(_emulatorIsOn);
                     writer.WriteLine(CandleMarketDataType);
                     writer.WriteLine(CandleCreateMethodType);
-                    writer.WriteLine(SetForeign);
-                    writer.WriteLine(CountTradeInCandle);
-                    writer.WriteLine(VolumeToCloseCandleInVolumeType);
-                    writer.WriteLine(RencoPunktsToCloseCandleInRencoType);
-                    writer.WriteLine(RencoIsBuildShadows);
-                    writer.WriteLine(DeltaPeriods);
-                    writer.WriteLine(RangeCandlesPunkts);
-                    writer.WriteLine(ReversCandlesPunktsMinMove);
-                    writer.WriteLine(ReversCandlesPunktsBackMove);
                     writer.WriteLine(ComissionType);
                     writer.WriteLine(ComissionValue);
                     writer.WriteLine(SaveTradesInCandles);
                     writer.WriteLine(_eventsIsOn);
+
+                    writer.WriteLine(CandleSeriesRealization.GetType().Name);
+                    writer.WriteLine(CandleSeriesRealization.GetSaveString());
 
                     for (int i = 0; i < SecuritiesNames.Count; i++)
                     {
@@ -472,6 +468,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             if (!File.Exists(@"Engine\" + TabName + @"ScreenerSet.txt"))
             {
+                _candleCreateMethodType = "Simple";
+                CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization("Simple");
+                CandleSeriesRealization.Init(_startProgram);
                 return;
             }
             try
@@ -486,21 +485,26 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     _emulatorIsOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out CandleMarketDataType);
-                    Enum.TryParse(reader.ReadLine(), out CandleCreateMethodType);
+                    CandleCreateMethodType = reader.ReadLine();
 
-                    SetForeign = Convert.ToBoolean(reader.ReadLine());
-                    CountTradeInCandle = Convert.ToInt32(reader.ReadLine());
-                    VolumeToCloseCandleInVolumeType = reader.ReadLine().ToDecimal();
-                    RencoPunktsToCloseCandleInRencoType = reader.ReadLine().ToDecimal();
-                    RencoIsBuildShadows = Convert.ToBoolean(reader.ReadLine());
-                    DeltaPeriods = reader.ReadLine().ToDecimal();
-                    RangeCandlesPunkts = reader.ReadLine().ToDecimal();
-                    ReversCandlesPunktsMinMove = reader.ReadLine().ToDecimal();
-                    ReversCandlesPunktsBackMove = reader.ReadLine().ToDecimal();
-                    Enum.TryParse(reader.ReadLine(), out ComissionType);
-                    ComissionValue = reader.ReadLine().ToDecimal();
-                    SaveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
-                    _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
+                    try
+                    {
+                        Enum.TryParse(reader.ReadLine(), out ComissionType);
+                        ComissionValue = reader.ReadLine().ToDecimal();
+                        SaveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
+                        _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
+
+                        string seriesName = reader.ReadLine();
+                        CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization(seriesName);
+                        CandleSeriesRealization.Init(_startProgram);
+                        CandleSeriesRealization.SetSaveString(reader.ReadLine());
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
+
 
                     while (reader.EndOfStream == false)
                     {
@@ -508,7 +512,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (string.IsNullOrEmpty(str))
                         {
-                            break;
+                            continue;
                         }
                         ActivatedSecurity sec = new ActivatedSecurity();
                         sec.SetFromStr(str);
@@ -520,6 +524,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception)
             {
+                _candleCreateMethodType = "Simple";
+                CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization("Simple");
+                CandleSeriesRealization.Init(_startProgram);
+
                 // ignore
             }
         }
@@ -545,7 +553,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
             }
 
-            if(TabDeletedEvent != null)
+            if (TabDeletedEvent != null)
             {
                 TabDeletedEvent();
             }
@@ -614,7 +622,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             set
             {
-                if(_emulatorIsOn == value)
+                if (_emulatorIsOn == value)
                 {
                     return;
                 }
@@ -645,52 +653,32 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Method for creating candles
         /// </summary>
-        public CandleCreateMethodType CandleCreateMethodType;
+        public string CandleCreateMethodType
+        {
+            get { return _candleCreateMethodType; }
+            set
+            {
+                string newType = value;
 
-        /// <summary>
-        /// Whether it is necessary to request non-trading intervals
-        /// </summary>
-        public bool SetForeign;
+                if (newType == _candleCreateMethodType)
+                {
+                    return;
+                }
 
-        /// <summary>
-        /// Number of trades in a candle
-        /// </summary>
-        public int CountTradeInCandle = 100;
+                if (CandleSeriesRealization != null)
+                {
+                    CandleSeriesRealization.Delete();
+                    CandleSeriesRealization = null;
+                }
+                _candleCreateMethodType = newType;
+                CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization(newType);
+                CandleSeriesRealization.Init(_startProgram);
 
-        /// <summary>
-        /// Volume to close the candle
-        /// </summary>
-        public decimal VolumeToCloseCandleInVolumeType = 1000;
+                SaveSettings();
 
-        /// <summary>
-        /// Movement to close the candle in Renco type candles
-        /// </summary>
-        public decimal RencoPunktsToCloseCandleInRencoType = 100;
-
-        /// <summary>
-        /// Do we build shadows in candles like Renco
-        /// </summary>
-        public bool RencoIsBuildShadows;
-
-        /// <summary>
-        /// Delta period
-        /// </summary>
-        public decimal DeltaPeriods = 1000;
-
-        /// <summary>
-        /// Candle Items Range
-        /// </summary>
-        public decimal RangeCandlesPunkts;
-
-        /// <summary>
-        /// Minimum Pullback for Range Candles
-        /// </summary>
-        public decimal ReversCandlesPunktsMinMove;
-
-        /// <summary>
-        /// Rollback to create candle down for Range candles
-        /// </summary>
-        public decimal ReversCandlesPunktsBackMove;
+            }
+        }
+        private string _candleCreateMethodType;
 
         /// <summary>
         /// Commission type for positions
@@ -706,6 +694,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Whether it is necessary to save trades inside the candle they belong to
         /// </summary>
         public bool SaveTradesInCandles;
+
+        public ACandlesSeriesRealization CandleSeriesRealization;
 
         public bool IsLoadTabs = false;
 
@@ -807,21 +797,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.EmulatorIsOn = _emulatorIsOn;
             tab.Connector.CandleMarketDataType = CandleMarketDataType;
             tab.Connector.CandleCreateMethodType = CandleCreateMethodType;
-            tab.Connector.SetForeign = SetForeign;
-            tab.Connector.CountTradeInCandle = CountTradeInCandle;
-            tab.Connector.VolumeToCloseCandleInVolumeType = VolumeToCloseCandleInVolumeType;
-            tab.Connector.RencoPunktsToCloseCandleInRencoType = RencoPunktsToCloseCandleInRencoType;
-            tab.Connector.RencoIsBuildShadows = RencoIsBuildShadows;
-            tab.Connector.DeltaPeriods = DeltaPeriods;
-            tab.Connector.RangeCandlesPunkts = RangeCandlesPunkts;
-            tab.Connector.ReversCandlesPunktsMinMove = ReversCandlesPunktsMinMove;
-            tab.Connector.ReversCandlesPunktsBackMove = ReversCandlesPunktsBackMove;
+            tab.Connector.TimeFrame = this.TimeFrame;
+            tab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
             tab.Connector.SaveTradesInCandles = SaveTradesInCandles;
             tab.Connector.ComissionType = ComissionType;
             tab.Connector.ComissionValue = ComissionValue;
             tab.ComissionType = ComissionType;
             tab.ComissionValue = ComissionValue;
-            tab.IsCreatedByScreener = true;			
+            tab.IsCreatedByScreener = true;
         }
 
         /// <summary>
@@ -858,19 +841,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.EmulatorIsOn = _emulatorIsOn;
             newTab.Connector.CandleMarketDataType = CandleMarketDataType;
             newTab.Connector.CandleCreateMethodType = CandleCreateMethodType;
-            newTab.Connector.SetForeign = SetForeign;
-            newTab.Connector.CountTradeInCandle = CountTradeInCandle;
-            newTab.Connector.VolumeToCloseCandleInVolumeType = VolumeToCloseCandleInVolumeType;
-            newTab.Connector.RencoPunktsToCloseCandleInRencoType = RencoPunktsToCloseCandleInRencoType;
-            newTab.Connector.RencoIsBuildShadows = RencoIsBuildShadows;
-            newTab.Connector.DeltaPeriods = DeltaPeriods;
-            newTab.Connector.RangeCandlesPunkts = RangeCandlesPunkts;
-            newTab.Connector.ReversCandlesPunktsMinMove = ReversCandlesPunktsMinMove;
-            newTab.Connector.ReversCandlesPunktsBackMove = ReversCandlesPunktsBackMove;
+            newTab.Connector.TimeFrame = frame;
+            newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
+
             newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
             newTab.ComissionType = ComissionType;
             newTab.ComissionValue = ComissionValue;
-            newTab.IsCreatedByScreener = true;			
+            newTab.IsCreatedByScreener = true;
 
             curTabs.Add(newTab);
 
@@ -1000,11 +977,23 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void ShowDialog()
         {
             if (ServerMaster.GetServers() == null ||
-    ServerMaster.GetServers().Count == 0)
+                ServerMaster.GetServers().Count == 0)
             {
                 AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
                 uiMessage.Show();
                 return;
+            }
+
+            if (StartProgram == StartProgram.IsTester)
+            {
+                IServer server = ServerMaster.GetServers()[0];
+
+                if (server.Portfolios == null
+                    ||
+                    server.Portfolios.Count == 0)
+                {
+                    return;
+                }
             }
 
             BotTabScreenerUi ui = new BotTabScreenerUi(this);
@@ -1326,7 +1315,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void ShowManualControlDialog()
         {
-            if(Tabs.Count == 0)
+            if (Tabs.Count == 0)
             {
                 SendNewLogMessage(OsLocalization.Trader.Label231, LogMessageType.Error);
                 return;

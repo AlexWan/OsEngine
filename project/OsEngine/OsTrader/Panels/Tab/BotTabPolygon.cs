@@ -761,7 +761,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.ServerType = server;
             tab.Connector.EmulatorIsOn = _emulatorIsOn;
             tab.Connector.CandleMarketDataType = CandleMarketDataType.Tick;
-            tab.Connector.CandleCreateMethodType = CandleCreateMethodType.Simple;
+            tab.Connector.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
             tab.Connector.SaveTradesInCandles = false;
             tab.Connector.Save();
         }
@@ -1478,6 +1478,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     BotTabPolygonUi ui = new BotTabPolygonUi(pair);
+                    ui.LogMessageEvent += SendNewLogMessage;
                     ui.Show();
                     _uiList.Add(ui);
 
@@ -1511,6 +1512,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (_uiList[i].NameElement == name)
                     {
                         _uiList[i].Closed -= Ui_Closed;
+                        _uiList[i].LogMessageEvent -= SendNewLogMessage;
                         _uiList.RemoveAt(i);
                         return;
                     }
