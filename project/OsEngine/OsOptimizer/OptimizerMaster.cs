@@ -1278,9 +1278,17 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < _parameters.Count; i++)
             {
-                if (_parameters[i].Name == "Regime")
+                if (_parameters[i].Name == "Regime" && _parameters[i].Type == StrategyParameterType.String)
                 {
                     if (((StrategyParameterString)_parameters[i]).ValueString == "Off")
+                    {
+                        onRgimeOff = true;
+                    }
+                }
+
+                else if (_parameters[i].Name == "Regime" && _parameters[i].Type == StrategyParameterType.CheckBox)
+                {
+                    if (((StrategyParameterCheckBox)_parameters[i]).CheckState == CheckState.Unchecked)
                     {
                         onRgimeOff = true;
                     }
