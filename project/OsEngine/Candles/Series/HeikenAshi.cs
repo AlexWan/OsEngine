@@ -157,16 +157,13 @@ namespace OsEngine.Candles.Series
             }
             else if (state == CandleSeriesState.ParametersChange)
             {
-                if (TimeFrame.ToString() != TimeFrameParameter.ValueString)
-                {
-                    TimeFrame newTf;
+                TimeFrame newTf;
 
-                    Enum.TryParse(TimeFrameParameter.ValueString, out newTf);
-                    {
-                        TimeFrame = newTf;
-                    }
-                    CandlesAll.Clear();
+                Enum.TryParse(TimeFrameParameter.ValueString, out newTf);
+                {
+                    TimeFrame = newTf;
                 }
+                CandlesAll.Clear();
             }
         }
 
