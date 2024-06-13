@@ -1288,7 +1288,7 @@ namespace OsEngine.OsOptimizer
 
                 else if (_parameters[i].Name == "Regime" && _parameters[i].Type == StrategyParameterType.CheckBox)
                 {
-                    if (((StrategyParameterCheckBox)_parameters[i]).CheckState == CheckState.Unchecked)
+                    if (((StrategyParameterCheckBox)_parameters[i]).CheckState == System.Windows.Forms.CheckState.Unchecked)
                     {
                         onRgimeOff = true;
                     }
