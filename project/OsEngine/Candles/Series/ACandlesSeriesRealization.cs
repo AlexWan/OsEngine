@@ -201,6 +201,11 @@ namespace OsEngine.Candles.Series
                     }
                 }
             }
+
+            if(ParametersChangeByUser != null)
+            {
+                ParametersChangeByUser();
+            }
         }
 
         #endregion

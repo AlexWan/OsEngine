@@ -76,7 +76,7 @@ namespace OsEngine.Entity
 
                     TimeFrame frame;
                     Enum.TryParse(reader.ReadLine(), out frame);
-                    TimeFrame = frame;
+                    
                     _saveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out _candleCreateType);
 
@@ -84,6 +84,9 @@ namespace OsEngine.Entity
                     CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization(seriesName);
                     CandleSeriesRealization.Init(_startProgram);
                     CandleSeriesRealization.SetSaveString(reader.ReadLine());
+                    CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
+                    TimeFrame = frame;
+
                     CandleSeriesRealization.ParametersChangeByUser += CandleSeriesRealization_ParametersChangeByUser;
                     CandleSeriesRealization.СandleUpdateEvent += CandleSeriesRealization_СandleUpdateEvent;
                     CandleSeriesRealization.СandleFinishedEvent += CandleSeriesRealization_СandleFinishedEvent;
