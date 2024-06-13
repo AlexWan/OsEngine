@@ -163,7 +163,10 @@ namespace OsEngine.Candles.Series
                 {
                     TimeFrame = newTf;
                 }
-                CandlesAll.Clear();
+                if(CandlesAll != null)
+                {
+                    CandlesAll.Clear();
+                }
             }
         }
 

@@ -24,7 +24,10 @@ namespace OsEngine.Candles.Series
             }
             else if (state == CandleSeriesState.ParametersChange)
             {
-                CandlesAll.Clear();
+                if (CandlesAll != null)
+                {
+                    CandlesAll.Clear();
+                }
             }
         }
 
