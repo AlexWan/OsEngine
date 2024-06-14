@@ -148,6 +148,11 @@ namespace OsEngine.Entity
             }
             set
             {
+                if(TimeFrameBuilder.CandleSeriesRealization == null)
+                {
+                    return;
+                }
+                
                 TimeFrameBuilder.CandleSeriesRealization.CandlesAll = value;
             }
         }

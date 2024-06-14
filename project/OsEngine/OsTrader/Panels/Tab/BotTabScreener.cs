@@ -114,11 +114,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                         _screeners.Count != 0 &&
                         i < _screeners.Count; i++)
                     {
-                        for (int i2 = 0; _screeners[i].Tabs != null &&
-                            _screeners[i].Tabs.Count != 0 &&
-                            i2 < _screeners[i].Tabs.Count; i2++)
+                        BotTabScreener curScreener = _screeners[i];
+
+                        if(curScreener._host != null)
                         {
-                            PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
+                            for (int i2 = 0; curScreener.Tabs != null &&
+                                 curScreener.Tabs.Count != 0 &&
+                                 i2 < curScreener.Tabs.Count; i2++)
+                            {
+                                PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
+                            }
                         }
 
                         _screeners[i].TryLoadTabs();
