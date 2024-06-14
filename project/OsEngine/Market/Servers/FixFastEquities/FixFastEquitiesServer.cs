@@ -3718,9 +3718,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         #region 10 Trade
 
         private RateGate _rateGateForOrders = new RateGate(30, TimeSpan.FromSeconds(1));
-        
-        private List<FixFastEquitiesSecuritiesAndPortfolious> _securitiesAndPortfolious = new List<FixFastEquitiesSecuritiesAndPortfolious>();
-
+               
         private List<Order> _sendOrders = new List<Order>();
 
         private string _sendOrdersArrayLocker = "FixFastEquitiesSendOrdersArrayLocker";
@@ -4083,39 +4081,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         {
             return long.Parse(x.Id).CompareTo(long.Parse(y.Id));
         }
-    }
-    public class FixFastEquitiesSocketSubscription
-    {
-        public string Guid;
-
-        public FixFastEquitiesSubType SubType;
-
-        public string ServiceInfo;
-    }
-
-    public class FixFastEquitiesChangePriceOrder
-    {
-        public string MarketId;
-
-        public DateTime TimeChangePriceOrder;
-    }
-
-    public class FixFastEquitiesSecuritiesAndPortfolious
-    {
-       public string Security;
-
-       public string Portfolio;
-    }
-
-    public enum FixFastEquitiesSubType
-    {
-        Trades,
-        MarketDepth,
-        Porfolio,
-        Positions,
-        Orders,
-        MyTrades
-    }
+    }    
 
     public class SecurityToSave
     {
