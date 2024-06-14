@@ -1472,19 +1472,19 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                         if (_newMessagePublic.TryDequeue(out mes))
                         {
-                            if (mes.Contains("error"))
+                            if (mes.Contains("\"lastUpdateId\""))
                             {
-                                SendLogMessage(mes, LogMessageType.Error);
+                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponse());
+                                UpdateMarketDepth(quotes);
                             }
                             else if (mes.Contains("\"e\"" + ":" + "\"trade\""))
                             {
                                 var quotes = JsonConvert.DeserializeAnonymousType(mes, new TradeResponse());
                                 UpdateTrades(quotes);
                             }
-                            else if (mes.Contains("\"lastUpdateId\""))
+                            else if (mes.Contains("error"))
                             {
-                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponse());
-                                UpdateMarketDepth(quotes);
+                                SendLogMessage(mes, LogMessageType.Error);
                             }
                         }
                     }
