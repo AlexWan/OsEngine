@@ -734,6 +734,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i]) == false)
                 {
+                    string chartName = Tabs[i].TabName + "_Engine";
+
+                    for(int i2 = 0; _chartEngines != null && i2 < _chartEngines.Count;i2++)
+                    {
+                        if (chartName == _chartEngines[i2].NameStrategyUniq)
+                        {
+                            _chartEngines[i2].CloseGui();
+                            break;
+                        }
+                    }
+
                     Tabs[i].Clear();
                     Tabs[i].Delete();
                     Tabs.RemoveAt(i);
@@ -1016,7 +1027,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowChart(int tabyNum)
         {
-            string botName = this.TabName + "Engine" + tabyNum;
+            string botName = Tabs[tabyNum].TabName + "_Engine";
 
             if (_chartEngines.Find(b => b.NameStrategyUniq == botName) != null)
             {

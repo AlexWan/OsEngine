@@ -216,6 +216,29 @@ namespace OsEngine.OsTrader.Panels
 
         public BotPanelChartUi _chartUi;
 
+        public void CloseGui()
+        {
+            try
+            {
+                if (_chartUi == null)
+                {
+                    return;
+                }
+
+                if (_chartUi.Dispatcher.CheckAccess() == false)
+                {
+                    _chartUi.Dispatcher.Invoke(CloseGui);
+                    return;
+                }
+
+                _chartUi.Close();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
         void _chartUi_Closed(object sender, EventArgs e)
         {
             _chartUi.Closed -= _chartUi_Closed;
