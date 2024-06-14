@@ -4,7 +4,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
     class OrderCancelRequestMessage
     {
         public string OrigClOrdID;
-        public string OrderID;
+        public string OrderID = "";
         public string ClOrdID;
         public string Side;
         public string TransactTime;
@@ -12,7 +12,8 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
 
         public override string ToString()
         {
-            return $"41={OrigClOrdID}\u000137={OrderID}\u000111={ClOrdID}\u000154={Side}\u000160={TransactTime}\u0001";
+            string OrderIdString = OrderID == "" ? "" : $"37={OrderID}\u0001";
+            return $"41={OrigClOrdID}\u0001{OrderIdString}11={ClOrdID}\u000154={Side}\u000160={TransactTime}\u0001";
         }
 
         public int GetMessageSize()

@@ -57,6 +57,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             // FAST
             CreateParameterPath("FIX/FAST Multicast Config Directory");
+
+            CreateParameterInt("Order actions limit for login (per second)", 30);
         }
     }
 
@@ -147,6 +149,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 _MFIXTradeClientCode = ((ServerParameterString)ServerParameters[11]).Value;
 
                 _ConfigDir = ((ServerParameterPath)ServerParameters[12]).Value;
+
+                int orderActionsLimit = ((ServerParameterInt)ServerParameters[13]).Value;
+                _rateGateForOrders = new RateGate(orderActionsLimit, TimeSpan.FromSeconds(1));
 
                 if (string.IsNullOrEmpty(_MFIXTradeServerAddress) || string.IsNullOrEmpty(_MFIXTradeServerPort) || string.IsNullOrEmpty(_MFIXTradeServerTargetCompId))
                 {
@@ -295,10 +300,10 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         private Socket _historicalReplaySocket;
         private IPEndPoint _historicalReplayEndPoint;
-        private long _missingOLRBeginSeqNo = 0;
+        private long _missingOLRBeginSeqNo = -1;
         private long _missingOLREndSeqNo = 0;
         private bool _missingOLRData = false;
-        private long _missingTLRBeginSeqNo = 0;
+        private long _missingTLRBeginSeqNo = -1;
         private long _missingTLREndSeqNo = 0;
         private bool _missingTLRData = false;
         private bool _restoreMissingDataViaTCPOnStart = true; // включить восстановление данных по TCP при запуске в случае если следующего снэпшота ждать еще 8-15 минут
@@ -409,15 +414,18 @@ namespace OsEngine.Market.Servers.FixFastEquities
             return null;           
         }
 
-        
+
 
         #endregion
 
-        #region 6 WebSocket creation
+        #region 6 Socket creation
 
-        private readonly string _wsHost = "wss://api.FixFastEquities.ru/ws";
-
-        private string _socketLocker = "webSocketLockerFixFastEquities";
+        private string _socketLockerHistoricalReplay = "socketLockerFixFastEquitiesHistoricalReplay";
+        private string _socketLockerInstruments = "socketLockerFixFastEquitiesInstruments";
+        private string _socketLockerTradesSnapshots = "socketLockerFixFastEquitiesTradeSnapshots";
+        private string _socketLockerTradesIncremental = "socketLockerFixFastEquitiesTradesIncremental";
+        private string _socketLockerOrdersSnapshots = "socketLockerFixFastEquitiesOrdersSnapshots";
+        private string _socketLockerOrdersIncremental = "socketLockerFixFastEquitiesOrdersIncremental";
 
         private string GetGuid()
         {
@@ -435,10 +443,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private void CreateSocketConnections()
         {
             try
-            {
-                //_subscriptionsData.Clear();
-                //_subscriptionsPortfolio.Clear();
-
+            {                
                 // прочитать конфиг FIX/FAST соединения и создать сокеты
 
                 // Load the XML document
@@ -460,6 +465,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     XmlNode typeNode = connectionNode.SelectSingleNode("type");
                     string feedType = typeNode.Attributes["feed-type"].Value;
+
+                    if (feedType == "Statistics Incremental" || feedType == "Statistics Snapshot" || feedType == "Instrument Status")
+                    {
+                        // (пока) не используем потоки статистики и статуса инструментов
+                        continue;
+                    }
 
                     if (feedType == "Historical Replay")
                     {                        
@@ -499,7 +510,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         IPAddress localAddress = IPAddress.Any; // Listen on all available interfaces
                         IPEndPoint localEndPoint = new IPEndPoint(localAddress, int.Parse(port));
 
-
                         socket.Bind(localEndPoint);
 
                         byte[] membershipAddresses = new byte[12]; // 3 IPs * 4 bytes (IPv4)
@@ -507,7 +517,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         Buffer.BlockCopy(sourceAddress.GetAddressBytes(), 0, membershipAddresses, 4, 4);
                         Buffer.BlockCopy(localAddress.GetAddressBytes(), 0, membershipAddresses, 8, 4);
                         socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddSourceMembership, membershipAddresses);
-
 
                         if (feedType == "Instrument Replay")
                         {
@@ -729,6 +738,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         private void CloseMFIXTradeConnection()
         {
+            if (_MFIXTradeSocket == null)
+            {
+                return; // сокет еще не создан
+            }
+
+
             // Создаем и отправляем два запроса на отключение (Logout)
             
             //Создаем заголовк
@@ -768,7 +783,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
             
             //Отправляем сообщение
             int bytesSent = _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(tradeServerLogoutMessage));
-            bytesSent = _MFIXTradeCaptureSocket.Send(Encoding.UTF8.GetBytes(tradeCaptureServerLogoutMessage));            
+            bytesSent = _MFIXTradeCaptureSocket.Send(Encoding.UTF8.GetBytes(tradeCaptureServerLogoutMessage));
+            
+            while (_MFIXTradeSocket != null || _MFIXTradeCaptureSocket != null)
+            {
+                Thread.Sleep(1); // ждем когда сокет закроется
+            }
         }
 
         private void LoadSecuritiesFromFile()
@@ -936,8 +956,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
         {
             try
             {
-                lock (_socketLocker)
-                {  
+
+                lock (_socketLockerHistoricalReplay)
+                {
                     // закрываем сокет восстановления по TCP
                     if (_historicalReplaySocket != null)
                     {
@@ -950,10 +971,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             // ignore
                         }
 
-                        _historicalReplaySocket = null;                        
+                        _historicalReplaySocket = null;
                     }
+                }
 
-
+                lock (_socketLockerInstruments)
+                {
                     // закрываем сокеты получения данных по инструментам
                     if (_instrumentSocketA != null)
                     {
@@ -978,9 +1001,13 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         _instrumentSocketA = null;
                         _instrumentSocketB = null;
                     }
+                }
 
-                    // закрываем сокеты получения данных по сделкам
-                    if (_tradesIncrementalSocketA != null)
+
+                // закрываем сокеты получения данных по сделкам
+                if (_tradesIncrementalSocketA != null)
+                {
+                    lock (_socketLockerTradesIncremental)
                     {
                         try
                         {
@@ -1000,6 +1027,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             // ignore
                         }
 
+                        _tradesIncrementalSocketA = null;
+                        _tradesIncrementalSocketB = null;
+                    }
+
+                    lock (_socketLockerTradesSnapshots)
+                    {
                         try
                         {
                             _tradesSnapshotSocketA.Close();
@@ -1018,40 +1051,19 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             // ignore
                         }
 
-                        _tradesIncrementalSocketA = null;
-                        _tradesIncrementalSocketB = null;
                         _tradesSnapshotSocketA = null;
                         _tradesSnapshotSocketB = null;
                     }
+                }
 
-                    // закрываем сокеты получения данных по инструментам
-                    if (_instrumentSocketA != null)
+
+
+                // закрываем сокеты получения данных по ордерам
+                if (_ordersIncrementalSocketA != null)
+                {
+                    lock (_socketLockerOrdersIncremental)
                     {
-                        try
-                        {
-                            _instrumentSocketA.Close();
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
 
-                        try
-                        {
-                            _instrumentSocketB.Close();
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-
-                        _instrumentSocketA = null;
-                        _instrumentSocketB = null;
-                    }
-
-                    // закрываем сокеты получения данных по ордерам
-                    if (_ordersIncrementalSocketA != null)
-                    {
                         try
                         {
                             _ordersIncrementalSocketA.Close();
@@ -1069,6 +1081,13 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         {
                             // ignore
                         }
+
+                        _ordersIncrementalSocketA = null;
+                        _ordersIncrementalSocketB = null;
+                    }
+
+                    lock (_socketLockerOrdersSnapshots)
+                    {
 
                         try
                         {
@@ -1088,14 +1107,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             // ignore
                         }
 
-                        _ordersIncrementalSocketA = null;
-                        _ordersIncrementalSocketB = null;
                         _ordersSnapshotSocketA = null;
                         _ordersSnapshotSocketB = null;
                     }
+                }                
 
-                    CloseMFIXTradeConnection();
-                }
+                CloseMFIXTradeConnection();                
             }
             catch (Exception exeption)
             {
@@ -1103,71 +1120,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
             }
             finally
             {
-                //_webSocketData = null;
             }
-        }
-
-        private bool _socketDataIsActive;
-
-        private bool _socketPortfolioIsActive;
-
-        private string _activationLocker = "activationLocker";
-
-        private void CheckActivationSockets()
-        {
-            if (_socketDataIsActive == false)
-            {
-                return;
-            }
-
-            if (_socketPortfolioIsActive == false)
-            {
-                return;
-            }
-
-            try
-            {
-                lock(_activationLocker)
-                {
-                    if (ServerStatus != ServerConnectStatus.Connect)
-                    {
-                        SendLogMessage("All sockets activated. Connect State", LogMessageType.System);
-                        ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-
-        }        
-
-        private void ActivatePortfolioSocket()
-        {
-            if (string.IsNullOrEmpty(_MFIXTradeServerPort) == false)
-            {
-                ActivateCurrentPortfolioListening(_MFIXTradeServerPort);
-            }
-            if (string.IsNullOrEmpty(_MFIXTradeCaptureServerAddress) == false)
-            {
-                ActivateCurrentPortfolioListening(_MFIXTradeCaptureServerAddress);
-            }
-            if (string.IsNullOrEmpty(_MFIXTradeCaptureServerPort) == false)
-            {
-                ActivateCurrentPortfolioListening(_MFIXTradeCaptureServerPort);
-            }
-            if (string.IsNullOrEmpty(_MFIXTradeAccount) == false)
-            {
-                ActivateCurrentPortfolioListening(_MFIXTradeAccount);
-            }
-        }
-
-        private void ActivateCurrentPortfolioListening(string portfolioName)
-        {          
-        }
-
+        }                
+        
         #endregion
                
 
@@ -1252,8 +1207,25 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     // читаем из потоков А и B
                     // либо сразу обрабатываем либо перемещаем в очередь для разбора
                     for (int s = 0; s < 2; s++)
-                    { 
-                        int length = s == 0 ? _instrumentSocketA.Receive(buffer) : _instrumentSocketB.Receive(buffer);
+                    {                       
+                        int length = 0;
+
+                        try
+                        {
+                            lock (_socketLockerInstruments)
+                            {
+                                if (_instrumentSocketA == null || _instrumentSocketB == null)
+                                {
+                                    continue;
+                                }
+
+                                length = s == 0 ? _instrumentSocketA.Receive(buffer) : _instrumentSocketB.Receive(buffer);
+                            }
+                        } 
+                        catch (SocketException)
+                        {
+                            break;
+                        }
 
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                         {
@@ -1484,7 +1456,28 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     // либо сразу обрабатываем либо перемещаем в очередь для разбора
                     for (int s = 0; s < 2; s++)
                     {
-                        int length = s == 0 ? _tradesIncrementalSocketA.Receive(buffer) : _tradesIncrementalSocketB.Receive(buffer);
+                        int length = 0;
+
+                        try
+                        {
+                            lock (_socketLockerTradesIncremental)
+                            {
+                                if (_tradesIncrementalSocketA == null || _tradesIncrementalSocketB == null)
+                                {
+                                    continue;
+                                }
+
+                                length = s == 0 ? _tradesIncrementalSocketA.Receive(buffer) : _tradesIncrementalSocketB.Receive(buffer);
+                            }
+                        }
+                        catch (SocketException exception)
+                        {
+                            // обычно возникает если мы прерываем блокирующую операцию
+                            break;                            
+                        }
+
+                        if (length == 0)
+                            continue;
 
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                         {
@@ -1597,7 +1590,28 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     for (int s = 0; s < 2; s++)
                     {
-                        int length = s == 0 ? _tradesSnapshotSocketA.Receive(buffer) : _tradesSnapshotSocketB.Receive(buffer);
+                        int length = 0;                        
+
+                        try
+                        {
+                            lock (_socketLockerTradesSnapshots)
+                            {
+                                if (_tradesSnapshotSocketA == null || _tradesSnapshotSocketB == null)
+                                {
+                                    continue;
+                                }
+
+                                length = s == 0 ? _tradesSnapshotSocketA.Receive(buffer) : _tradesSnapshotSocketB.Receive(buffer);
+                            }
+                        }
+                        catch (SocketException exception)
+                        {
+                            // обычно возникает если мы прерываем блокирующую операцию
+                            break;
+                        }
+
+                        if (length == 0)
+                            continue;
 
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                         {
@@ -1687,8 +1701,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 // Insert the new item
                 Trades.Insert(index, trade);                
             }
-        };
-               
+        };               
 
         class OrdersSnapshot
         {
@@ -1762,7 +1775,27 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     // читаем из потоков А и B
                     // либо сразу обрабатываем либо перемещаем в очередь для разбора
 
-                    int length = _ordersIncrementalSocketA.Receive(buffer);
+                    int length = 0;
+                    try
+                    {
+                        lock (_socketLockerOrdersIncremental)
+                        {
+                            if (_ordersIncrementalSocketA == null)
+                            {
+                                continue;
+                            }
+
+                            length = _ordersIncrementalSocketA.Receive(buffer);
+                        }
+                    }
+                    catch (SocketException exception)
+                    {
+                        // обычно возникает если мы прерываем блокирующую операцию
+                        break;
+                    }
+
+                    if (length == 0)
+                        continue;
 
                     using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                     {
@@ -1794,8 +1827,11 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     }
 
                     // проверяем пропуски данных
-                    List<long> keys = _ordersIncremental.Keys.ToList();
-                    
+                    List<long> keys = null;
+                    lock (_ordersIncrementalLocker)
+                    {
+                        keys =_ordersIncremental.Keys.ToList();
+                    }
 
                     if (keys.Count < 2)
                         continue;
@@ -1862,7 +1898,27 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     // читаем из потоков А и B
                     // либо сразу обрабатываем либо перемещаем в очередь для разбора
 
-                    int length = _ordersIncrementalSocketB.Receive(buffer);
+                    int length = 0;
+                    try 
+                    {
+                        lock (_socketLockerOrdersIncremental)
+                        {
+                            if (_ordersIncrementalSocketB == null)
+                            {                            
+                                continue;
+                            }
+
+                            length = _ordersIncrementalSocketB.Receive(buffer);
+                        }
+                    }
+                    catch (SocketException exception)
+                    {
+                        // обычно возникает если мы прерываем блокирующую операцию
+                        break;
+                    }
+
+                    if (length == 0)
+                        continue;
 
                     using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                     {
@@ -1945,7 +2001,28 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     for (int s = 0; s < 2; s++)
                     {
-                        int length = s == 0 ? _ordersSnapshotSocketA.Receive(buffer) : _ordersSnapshotSocketB.Receive(buffer);
+                        int length = 0;                                                
+
+                        try
+                        {
+                            lock (_socketLockerOrdersSnapshots)
+                            {
+                                if (_ordersSnapshotSocketA == null || _ordersSnapshotSocketB == null)
+                                {
+                                    continue;
+                                }
+
+                                length = s == 0 ? _ordersSnapshotSocketA.Receive(buffer) : _ordersSnapshotSocketB.Receive(buffer);
+                            }
+                        }
+                        catch (SocketException exception)
+                        {
+                            // обычно возникает если мы прерываем блокирующую операцию
+                            break;
+                        }
+
+                        if (length == 0)
+                            continue;
 
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                         {
@@ -1992,6 +2069,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private void HistoricalReplayThread()
         {
             byte[] buffer = new byte[4096];
+            byte[] sizeBuffer = new byte[4];
 
             string currentFeed = "OLR";
 
@@ -2014,235 +2092,276 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     }
 
                     // проверяем нужно ли восстанавливать какие-либо данные
-                    if (_missingOLRBeginSeqNo != 0 && _missingOLRData && !_ordersIncremental.ContainsKey(_missingOLRBeginSeqNo))
+                    if (_missingOLRBeginSeqNo > 0 && _missingOLRData && !_ordersIncremental.ContainsKey(_missingOLRBeginSeqNo))
                     {
                         currentFeed = "OLR"; // восстанавливаем данные из потока ордеров
 
                         SendLogMessage($"Trying to recover missing OLR SeqNo: {_missingOLRBeginSeqNo}-{_missingOLREndSeqNo}", LogMessageType.System);
-                    } else
-                    if (_missingTLRBeginSeqNo != 0 && _missingTLRData && !_tradesIncremental.ContainsKey(_missingTLRBeginSeqNo))
+                    }
+                    else
+                    if (_missingTLRBeginSeqNo > 0 && _missingTLRData && !_tradesIncremental.ContainsKey(_missingTLRBeginSeqNo))
                     {
                         currentFeed = "TLR"; // восстанавливаем данные из потока сделок
                         SendLogMessage($"Trying to recover missing TLR SeqNo: {_missingTLRBeginSeqNo}-{_missingTLREndSeqNo}", LogMessageType.System);
-                    } else
+                    }
+                    else
                     {
                         // отдыхаем полсекунды, ничего не надо восстанавливать
                         Thread.Sleep(500);
                         continue;
                     }
 
-                    // init historical replay socket
-                    _historicalReplaySocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-                    // начинаем общение с 1
-                    int msgSeqNum = 1;
-
-                    // 1. Соединяемся с потоком восстановления по TCP
-                    _historicalReplaySocket.Connect(_historicalReplayEndPoint);
-
-                    // 2. Отправляем запрос на подключение к потоку восстановления
-                    FASTHeader header = new FASTHeader
+                    lock (_socketLockerHistoricalReplay)
                     {
-                        BeginString = "FIXT.1.1",
-                        MsgType = "A", //Тип сообщения на установку сессии
-                        SenderCompID = "OsEngine",
-                        TargetCompID = "MOEX", // TODO: id фирмы брокера (?)
-                        MsgSeqNum = msgSeqNum++
-                    };
-                                        
-                    FASTLogonMessage logonMessageBody = new FASTLogonMessage
-                    {
-                        Username = "user0",
-                        Password = "pass0",
-                    };
+                        // init historical replay socket
+                        _historicalReplaySocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                    //Вычисляем длину сообщения
-                    header.BodyLength = header.GetHeaderSize() + logonMessageBody.GetMessageSize();
-                    
-                    //Создаем концовку сообщения
-                    Trailer logonTrailer = new Trailer(header.ToString() + logonMessageBody.ToString());
-                    
-                    //Формируем полное готовое сообщение
-                    string logonMessage = header.ToString() + logonMessageBody.ToString() + logonTrailer.ToString();
+                        // начинаем общение с 1
+                        int msgSeqNum = 1;
 
-                    //Отправляем сообщение
-                    int bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(logonMessage));
+                        // 1. Соединяемся с потоком восстановления по TCP
+                        _historicalReplaySocket.Connect(_historicalReplayEndPoint);
 
-                    // получаем ответ - должен быть Logon
-                    int length = _historicalReplaySocket.Receive(buffer, 4, SocketFlags.None);
-                    ArraySegment<byte> segment = new ArraySegment<byte>(buffer, 0, 4);
-                    // Convert the segment to an integer
-                    length = BitConverter.ToInt32(segment.Array, segment.Offset);
+                        // 2. Отправляем запрос на подключение к потоку восстановления
+                        FASTHeader header = new FASTHeader
+                        {
+                            BeginString = "FIXT.1.1",
+                            MsgType = "A", //Тип сообщения на установку сессии
+                            SenderCompID = "OsEngine",
+                            TargetCompID = "MOEX", // TODO: id фирмы брокера (?)
+                            MsgSeqNum = msgSeqNum++
+                        };
 
-                    length = _historicalReplaySocket.Receive(buffer, length, SocketFlags.None);
+                        FASTLogonMessage logonMessageBody = new FASTLogonMessage
+                        {
+                            Username = "user0",
+                            Password = "pass0",
+                        };
 
-                    using (MemoryStream stream = new MemoryStream(buffer, 0, length))
-                    {
+                        //Вычисляем длину сообщения
+                        header.BodyLength = header.GetHeaderSize() + logonMessageBody.GetMessageSize();
+
+                        //Создаем концовку сообщения
+                        Trailer logonTrailer = new Trailer(header.ToString() + logonMessageBody.ToString());
+
+                        //Формируем полное готовое сообщение
+                        string logonMessage = header.ToString() + logonMessageBody.ToString() + logonTrailer.ToString();
+
+                        //Отправляем сообщение
+                        int bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(logonMessage));
+
+                        // получаем ответ - должен быть Logon
+                        sizeBuffer = new byte[4];
+                        int length = _historicalReplaySocket.Receive(sizeBuffer, 4, SocketFlags.None);
+                        while (length < 4)
+                        {
+                            length += _historicalReplaySocket.Receive(sizeBuffer, length, 4 - length, SocketFlags.None);
+                        }
+
+                        int msgSize = BitConverter.ToInt32(sizeBuffer, 0);
+                        
+                        int totalBytesReceived = 0;
+                        byte[] messageBuffer = new byte[msgSize];
+                        while (totalBytesReceived < msgSize)
+                        {
+                            int bytesRead = _historicalReplaySocket.Receive(buffer, msgSize - totalBytesReceived, SocketFlags.None);
+                            Array.Copy(buffer, 0, messageBuffer, totalBytesReceived, bytesRead);
+                            totalBytesReceived += bytesRead;
+                        }
 
                         OpenFAST.Context context = new OpenFAST.Context();
                         foreach (MessageTemplate tmplt in _templates)
                         {
                             context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
                         }
-
-                        FastDecoder decoder = new FastDecoder(context, stream);
-                        OpenFAST.Message msg = decoder.ReadMessage();
-
-                        string messageType = msg.GetString("MessageType");
-
-                        if (messageType == "5")
-                        {
-                            string Text = msg.GetString("Text");
-                            SendLogMessage($"Bad authorization: {Text}", LogMessageType.Error);
-                            return;
-                        }
                         
-
-                        if (messageType != "A")
+                        using (MemoryStream stream = new MemoryStream(messageBuffer, 0, msgSize))
                         {
-                            SendLogMessage($"Bad message type: {messageType}", LogMessageType.Error);
-                            continue;
-                        }
-                    }
-
-                    // 3. Отправляем MarketDataRequest (V)
-                    header = new FASTHeader
-                    {
-                        BeginString = "FIXT.1.1",
-                        MsgType = "V", 
-                        SenderCompID = "OsEngine",
-                        TargetCompID = "MOEX", // 
-                        MsgSeqNum = msgSeqNum++
-                    };
-
-                    MarketDataRequestMessage marketDataRequest = new MarketDataRequestMessage
-                    {
-                        ApplID = currentFeed,
-                        ApplBegSeqNum = currentFeed == "OLR" ? _missingOLRBeginSeqNo.ToString() : _missingTLRBeginSeqNo.ToString(),
-                        ApplEndSeqNum = currentFeed == "OLR" ? _missingOLREndSeqNo.ToString() : _missingTLREndSeqNo.ToString(),
-                    };
-
-                    //Вычисляем длину сообщения
-                    header.BodyLength = header.GetHeaderSize() + marketDataRequest.GetMessageSize();
-
-                    //Создаем концовку сообщения
-                    Trailer mdRequestTrailer = new Trailer(header.ToString() + marketDataRequest.ToString());
-
-                    //Формируем полное готовое сообщение
-                    string marketDataRequestMessage = header.ToString() + marketDataRequest.ToString() + mdRequestTrailer.ToString();
-
-                    //Отправляем сообщение
-                    bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(marketDataRequestMessage));
-                                      
-
-                    while (true) // начинаем цикл приема сообщений
-                    {                       
-
-                        length = _historicalReplaySocket.Receive(buffer, 4, SocketFlags.None);
-                        segment = new ArraySegment<byte>(buffer, 0, 4);
-                        // Convert the segment to an integer
-                        length = BitConverter.ToInt32(segment.Array, segment.Offset);
-                        length = _historicalReplaySocket.Receive(buffer, length, SocketFlags.None);
-
-                        using (MemoryStream stream = new MemoryStream(buffer, 0, length))
-                        {
-
-                            OpenFAST.Context context = new OpenFAST.Context();
-                            foreach (MessageTemplate tmplt in _templates)
-                            {
-                                context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
-                            }
-
                             FastDecoder decoder = new FastDecoder(context, stream);
-                            OpenFAST.Message msg = null;
-                            try
-                            {
-                                msg = decoder.ReadMessage();
-                            }
-                            catch (Exception ex)
-                            {
-                                // Иногда просто что-то глючит, но он все равно читает сообщение
-                            }
-
-                            if (msg == null)
-                            {
-                                SendLogMessage("Failed to read message from historical replay server", LogMessageType.Error);
-                                
-                                // закрываем сокет, а то нас сервак забанит
-                                _historicalReplaySocket.Close();
-                                break;
-                            }
+                            OpenFAST.Message msg = decoder.ReadMessage();
 
                             string messageType = msg.GetString("MessageType");
 
-                            SendLogMessage($"TCP recovery received MessageType: {messageType} for {currentFeed}", LogMessageType.System);
-
-                            if (messageType == "X")
+                            if (messageType == "5")
                             {
-                                long MsgSeqNum = msg.GetLong("MsgSeqNum");
+                                string Text = msg.GetString("Text");
+                                SendLogMessage($"Bad authorization: {Text}", LogMessageType.Error);
+                                return;
+                            }
 
-                                if (currentFeed == "OLR")
-                                {
-                                    _orderMessages.Enqueue(msg);
-                                    _ordersIncremental[MsgSeqNum] = msg;
-                                }
-                                else
-                                {
-                                    _tradeMessages.Enqueue(msg);
-                                    _tradesIncremental[MsgSeqNum] = msg;
-                                }
-                            } 
-                            else if (messageType == "5") // Logout
+                            if (messageType != "A")
                             {
-                                SendLogMessage($"Historical Replay server Logout. {msg.GetString("Text")}", LogMessageType.System);
-
-                                //отвечаем серверу Logout
-                                header = new FASTHeader
-                                {
-                                    BeginString = "FIXT.1.1",
-                                    MsgType = "5", // logout
-                                    SenderCompID = "OsEngine",
-                                    TargetCompID = "MOEX", // 
-                                    MsgSeqNum = msgSeqNum++
-                                };
-
-                                LogoutMessage logoutMessageBody = new LogoutMessage
-                                {
-                                    Text = "Logging out"
-                                };
-
-                                //Вычисляем длину сообщения
-                                header.BodyLength = header.GetHeaderSize() + logoutMessageBody.GetMessageSize();
-
-                                //Создаем концовку сообщения
-                                Trailer logoutTrailer = new Trailer(header.ToString() + logoutMessageBody.ToString());
-
-                                //Формируем полное готовое сообщение
-                                string logoutMessage = header.ToString() + logoutMessageBody.ToString() + logoutTrailer.ToString();
-
-                                //Отправляем сообщение
-                                bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(logoutMessage));
-
-                                if (currentFeed == "OLR")
-                                {
-                                    _missingOLRBeginSeqNo = 0;
-                                    _missingOLREndSeqNo = 0;
-                                    _missingOLRData = false;
-                                }
-                                else
-                                {
-                                    _missingTLRBeginSeqNo = 0;
-                                    _missingTLREndSeqNo = 0;
-                                    _missingTLRData = false;
-                                }
-                                
-                                // закрываем сокет
-                                _historicalReplaySocket.Close();
-
-                                break;
-                            } else if (messageType == "0") // heartbeat
-                            {
+                                SendLogMessage($"Bad message type: {messageType}", LogMessageType.Error);
                                 continue;
+                            }
+                        }
+
+                        // 3. Отправляем MarketDataRequest (V)
+                        header = new FASTHeader
+                        {
+                            BeginString = "FIXT.1.1",
+                            MsgType = "V",
+                            SenderCompID = "OsEngine",
+                            TargetCompID = "MOEX", // 
+                            MsgSeqNum = msgSeqNum++
+                        };
+
+                        long ApplBegSeqNum = currentFeed == "OLR" ? _missingOLRBeginSeqNo : _missingTLRBeginSeqNo;
+                        long ApplEndSeqNum = currentFeed == "OLR" ? _missingOLREndSeqNo : _missingTLREndSeqNo;
+
+                        if (ApplEndSeqNum - ApplBegSeqNum >= 2000) // tcp replay limit
+                        {
+                            ApplEndSeqNum = ApplBegSeqNum + 2000 - 1;
+                        }
+
+                        MarketDataRequestMessage marketDataRequest = new MarketDataRequestMessage
+                        {
+                            ApplID = currentFeed,
+                            ApplBegSeqNum = ApplBegSeqNum.ToString(),
+                            ApplEndSeqNum = ApplEndSeqNum.ToString(),
+                        };
+
+                        //Вычисляем длину сообщения
+                        header.BodyLength = header.GetHeaderSize() + marketDataRequest.GetMessageSize();
+
+                        //Создаем концовку сообщения
+                        Trailer mdRequestTrailer = new Trailer(header.ToString() + marketDataRequest.ToString());
+
+                        //Формируем полное готовое сообщение
+                        string marketDataRequestMessage = header.ToString() + marketDataRequest.ToString() + mdRequestTrailer.ToString();
+
+                        //Отправляем сообщение
+                        bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(marketDataRequestMessage));                                             
+
+                        while (true) // начинаем цикл приема сообщений
+                        {
+                            sizeBuffer = new byte[4];
+                            length = _historicalReplaySocket.Receive(sizeBuffer, 4, SocketFlags.None);
+                            while (length < 4)
+                            {
+                                length += _historicalReplaySocket.Receive(sizeBuffer, length, 4 - length, SocketFlags.None);
+                            }
+
+                            msgSize = BitConverter.ToInt32(sizeBuffer, 0);
+
+                            totalBytesReceived = 0;
+                            messageBuffer = new byte[msgSize];
+                            while (totalBytesReceived < msgSize)
+                            {
+                                int bytesRead = 0;
+                                try
+                                {
+                                    bytesRead = _historicalReplaySocket.Receive(buffer, msgSize - totalBytesReceived, SocketFlags.None);
+                                }
+                                catch (Exception ex)
+                                { 
+                                }
+
+                                Array.Copy(buffer, 0, messageBuffer, totalBytesReceived, bytesRead);
+                                totalBytesReceived += bytesRead;
+                            }
+
+                            using (MemoryStream stream = new MemoryStream(messageBuffer, 0, msgSize))
+                            {
+                                OpenFAST.Message msg = null;
+
+                                try
+                                {
+                                    FastDecoder decoder = new FastDecoder(context, stream);
+                                    msg = decoder.ReadMessage();
+                                }
+                                catch (NullReferenceException ex)
+                                {
+                                    // в редких случаях исключение возникает в самой библиотеке OpenFast
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Иногда просто что-то глючит, но он все равно читает сообщение
+                                }
+
+                                if (msg == null)
+                                {
+                                    SendLogMessage("Failed to read message from historical replay server", LogMessageType.Error);
+
+                                    // закрываем сокет, а то нас сервак забанит
+                                    _historicalReplaySocket.Close();
+                                    break;
+                                }
+
+                                string messageType = msg.GetString("MessageType");
+                                                                
+                                if (messageType == "X")
+                                {
+                                    long MsgSeqNum = msg.GetLong("MsgSeqNum");
+
+                                    if (currentFeed == "OLR")
+                                    {
+                                        _orderMessages.Enqueue(msg);
+                                        _ordersIncremental[MsgSeqNum] = msg;
+                                    }
+                                    else
+                                    {
+                                        _tradeMessages.Enqueue(msg);
+                                        _tradesIncremental[MsgSeqNum] = msg;
+                                    }
+
+                                    SendLogMessage($"TCP recovery received MessageType: {messageType} for {currentFeed} with MsgSeqNum={MsgSeqNum}", LogMessageType.System);
+                                }
+                                else if (messageType == "5") // Logout
+                                {
+                                    SendLogMessage($"TCP recovery received MessageType: {messageType} for {currentFeed}", LogMessageType.System);
+                                    SendLogMessage($"Historical Replay server Logout. {msg.GetString("Text")}", LogMessageType.System);
+
+                                    //отвечаем серверу Logout
+                                    header = new FASTHeader
+                                    {
+                                        BeginString = "FIXT.1.1",
+                                        MsgType = "5", // logout
+                                        SenderCompID = "OsEngine",
+                                        TargetCompID = "MOEX", // 
+                                        MsgSeqNum = msgSeqNum++
+                                    };
+
+                                    LogoutMessage logoutMessageBody = new LogoutMessage
+                                    {
+                                        Text = "Logging out"
+                                    };
+
+                                    //Вычисляем длину сообщения
+                                    header.BodyLength = header.GetHeaderSize() + logoutMessageBody.GetMessageSize();
+
+                                    //Создаем концовку сообщения
+                                    Trailer logoutTrailer = new Trailer(header.ToString() + logoutMessageBody.ToString());
+
+                                    //Формируем полное готовое сообщение
+                                    string logoutMessage = header.ToString() + logoutMessageBody.ToString() + logoutTrailer.ToString();
+
+                                    //Отправляем сообщение
+                                    bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(logoutMessage));
+
+                                    if (currentFeed == "OLR")
+                                    {
+                                        _missingOLRBeginSeqNo = 0;
+                                        _missingOLREndSeqNo = 0;
+                                        _missingOLRData = false;
+                                    }
+                                    else
+                                    {
+                                        _missingTLRBeginSeqNo = 0;
+                                        _missingTLREndSeqNo = 0;
+                                        _missingTLRData = false;
+                                    }
+
+                                    // закрываем сокет
+                                    _historicalReplaySocket.Close();
+                                    _historicalReplaySocket = null;
+
+                                    break;
+                                }
+                                else if (messageType == "0") // heartbeat
+                                {
+                                    continue;
+                                }
                             }
                         }
                     }
@@ -2589,7 +2708,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                 {
                                     _missingTLRData = true; // надо восстанавливать по TCP
                                     
-                                    if (_missingTLRBeginSeqNo == 0) // если при этом потоки данных не зафиксировали пропуска данных
+                                    if (_missingTLRBeginSeqNo == -1) // если при этом потоки данных не зафиксировали пропуска данных
                                     {
                                         // такое бывает когда мы подключились посреди торговой сессии и пропуск возник из-за того, что 
                                         // последние данные в снэпшоте оказались слишком старыми и 
@@ -2616,7 +2735,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                 }
 
                                 if (tradesFromIncremental[name].Count % 100 == 0)
-                                    SendLogMessage($"{name} X-trade update with rptseq={RptSeq} but last rptseq={lastRptSeqProcessed[name]}. Total trades in queue: {tradesFromIncremental[name].Count}. Snapshot rptseq={tradeSnapshots[name].RptSeq}...", LogMessageType.System);
+                                    SendLogMessage($"{name} X-trade update with rptseq={RptSeq} but last rptseq={lastRptSeqProcessed[name]}. Total trades in queue: {tradesFromIncremental[name].Count}. Snapshot rptseq={tradeSnapshots[name].RptSeq}|lastmsg={tradeSnapshots[name].LastMsgSeqNumProcessed}", LogMessageType.System);
+                                
                                 break;
                             }
 
@@ -2660,7 +2780,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             }
                         }
 
-                        if (tradesFromIncremental[name].Count > 10 && tradeSnapshots[name].RptSeq >= tradesFromIncremental[name][0].GetInt("RptSeq") && tradeSnapshots[name].IsComplete) // если необработанных сообщений накопилось много, то пора восстанавливать данные из снэпшота
+                        if (tradesFromIncremental[name].Count > 5 && tradeSnapshots[name].RptSeq >= tradesFromIncremental[name][0].GetInt("RptSeq") && tradeSnapshots[name].IsComplete) // если необработанных сообщений накопилось много, то пора восстанавливать данные из снэпшота
                         {
                             SendLogMessage($"{name} Total trades in queue: {tradesFromIncremental[name].Count}. Restoring from snapshot...", LogMessageType.System);
 
@@ -3032,11 +3152,11 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             {
                                 ordersFromIncremental[name].RemoveRange(0, j);                                                              
 
-                                if (ordersFromIncremental[name].Count > 10 && !_missingOLRData)
+                                if (ordersFromIncremental[name].Count > 5 && !_missingOLRData)
                                 {
                                     _missingOLRData = true; // надо восстанавливать по TCP                                 
                 
-                                    if (_missingOLRBeginSeqNo == 0) // если при этом потоки данных не зафиксировали пропуска данных
+                                    if (_missingOLRBeginSeqNo == -1) // если при этом потоки данных не зафиксировали пропуска данных
                                     {
                                         // такое бывает когда мы подключились посреди торговой сессии и пропуск возник из-за того, что 
                                         // последние данные в снэпшоте оказались слишком старыми и 
@@ -3055,15 +3175,21 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                         _missingOLRBeginSeqNo = minSeq + 1;
 
                                         // подобная ситуация возникает только при первом подключении, так что проверять надо MsgSeqNum самых первых принятых обновлений
-                                        List<long> keys = _ordersIncremental.Keys.ToList();                                                                                
+                                        List<long> keys = null;
+
+                                        lock (_ordersIncrementalLocker)
+                                        {
+                                            keys = _ordersIncremental.Keys.ToList();
+                                        }
                                         keys.Sort();
                                         if (keys[0] > _missingOLRBeginSeqNo)
                                             _missingOLREndSeqNo = keys[0] - 1;
                                     }
                                 }
 
-                                //if (ordersFromIncremental[name].Count % 100 == 0)
-                                SendLogMessage($"{name} X-order update with rptseq={RptSeq} but last rptseq={lastRptSeqProcessed[name]}. Total updates in queue: {ordersFromIncremental[name].Count}. Snapshot rptseq={orderSnapshots[name].RptSeq}...", LogMessageType.System);
+                                if (ordersFromIncremental[name].Count % 10 == 0)
+                                    SendLogMessage($"{name} X-order update with rptseq={RptSeq} but last rptseq={lastRptSeqProcessed[name]}. Total updates in queue: {ordersFromIncremental[name].Count}. Snapshot rptseq={orderSnapshots[name].RptSeq}|lastmsg={orderSnapshots[name].LastMsgSeqNumProcessed}", LogMessageType.System);
+                                
                                 break;
                             }
 
@@ -3293,10 +3419,10 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     // 1. Обрабатываем ExecutionReport
                     if (fixMessage.MessageType == "ExecutionReport")
-                    {                        
+                    {
                         string ExecType = fixMessage.Fields["ExecType"];
                         string OrdStatus = fixMessage.Fields["OrdStatus"];
-                        
+
                         string OrdType = fixMessage.Fields["OrdType"];
                         string Price = fixMessage.Fields.ContainsKey("Price") ? fixMessage.Fields["Price"] : "0";
                         string OrderQty = fixMessage.Fields["OrderQty"] ?? "0";
@@ -3310,13 +3436,18 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         Order order = new Order();
 
                         order.SecurityNameCode = fixMessage.Fields["Symbol"];
+                        order.SecurityClassCode = fixMessage.Fields["TradingSessionID"];
                         order.PortfolioNumber = fixMessage.Fields["Account"];
                         order.NumberMarket = fixMessage.Fields["OrderID"];
-                        order.Comment = Text;                                               
-                                                
+                        order.Comment = Text;
+
                         if (ExecType == "F") // сделка
                         {
                             order.Volume = LastQty.ToDecimal();
+                        }
+                        else
+                        {
+                            order.Volume = OrderQty.ToDecimal(); // сделки не было значит вот это
                         }
 
                         try
@@ -3328,7 +3459,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             // ignore
                         }
 
-                        if (ExecType == "5") // Изменено
+                        if (order.NumberUser == 0)
                         {
                             try
                             {
@@ -3338,8 +3469,24 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             {
                                 // ignore
                             }
+                        }
 
-                            order.Volume = OrderQty.ToDecimal(); // сделки не было значит вот это
+                        if (order.NumberUser == 0) // ищем номер пользователя по биржевому номеру
+                        {
+                            int NumberUser = 0;
+                            foreach(KeyValuePair<int, string> keyValuePair in _changedOrderIds)
+                            {
+                                if (keyValuePair.Value == order.NumberMarket)
+                                    NumberUser = keyValuePair.Key;
+                            }
+
+                            order.NumberUser = NumberUser;
+                        }
+
+                        if (_changedOrderIds.ContainsKey(order.NumberUser))
+                        {
+                            // для измененного ордера установлен новый идентификатор на бирже
+                            _changedOrderIds[order.NumberUser] = order.NumberMarket;
                         }
 
                         order.Side = fixMessage.Fields["Side"] == "1" ? Side.Buy : Side.Sell;
@@ -3352,8 +3499,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         else
                         {
                             order.TypeOrder = OrderPriceType.Market;
-                        }
-                                                
+                        }                                                
 
                         order.TimeCallBack = DateTime.ParseExact(TransactTime, "yyyyMMdd-HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
                                                                       
@@ -3385,6 +3531,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         else if (OrdStatus == "8")
                         {
                             order.State = OrderStateType.Fail;
+
+                            SendLogMessage($"MFIX sent order status 'fail' with comment: {order.Comment}", LogMessageType.Error);
                         }
 
                         MyOrderEvent(order);
@@ -3432,6 +3580,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     {
                         _MFIXTradeSocket.Close();
                         _MFIXTradeSocket = null;
+
+                        SendLogMessage("MFIX Trade server disconnected", LogMessageType.System);
                     }
                 }
                 catch (Exception exception)
@@ -3541,6 +3691,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     {
                         _MFIXTradeCaptureSocket.Close();
                         _MFIXTradeCaptureSocket = null;
+
+                        SendLogMessage("MFIX Trade capture server disconnected", LogMessageType.System);
                     }
                 }
                 catch (Exception exception)
@@ -3565,12 +3717,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         #region 10 Trade
 
-        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
-
-        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
-
-        private RateGate rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
-
+        private RateGate _rateGateForOrders = new RateGate(30, TimeSpan.FromSeconds(1));
+        
         private List<FixFastEquitiesSecuritiesAndPortfolious> _securitiesAndPortfolious = new List<FixFastEquitiesSecuritiesAndPortfolious>();
 
         private List<Order> _sendOrders = new List<Order>();
@@ -3579,7 +3727,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public void SendOrder(Order order)
         {
-            //rateGateSendOrder.WaitToProceed();
+            _rateGateForOrders.WaitToProceed();
 
             try
             {
@@ -3605,7 +3753,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),
                     OrdType = order.TypeOrder == OrderPriceType.Market ? "1" : "2", // 1 - Market, 2 - Limit
                     OrderQty = order.Volume.ToString(),                    
-                    Price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString() : "0",
+                    Price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString().Replace(',', '.') : "0",
                 };
 
                 //Вычисляем длину сообщения
@@ -3622,9 +3770,10 @@ namespace OsEngine.Market.Servers.FixFastEquities
             {
                 SendLogMessage("Order send error " + exception.ToString(), LogMessageType.Error);
             }
-        }        
+        }
 
-        List<FixFastEquitiesChangePriceOrder> _changePriceOrders = new List<FixFastEquitiesChangePriceOrder>();
+        // в этот словарь помещаем соответствия номеров рыночных ордеров пользовательским номерам ордеров        
+        Dictionary<int, string> _changedOrderIds = new Dictionary<int, string>();
 
         private string _changePriceOrdersArrayLocker = "cangePriceArrayLocker";
 
@@ -3634,7 +3783,11 @@ namespace OsEngine.Market.Servers.FixFastEquities
         /// <param name="order">An order that will have a new price</param>
         /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
+        {          
+            _changedOrderIds[order.NumberUser] = ""; // делаем соответствие номера
+
+            _rateGateForOrders.WaitToProceed();
+
             try
             {            
                 if (order.TypeOrder == OrderPriceType.Market)
@@ -3677,7 +3830,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),
                     OrdType = order.TypeOrder == OrderPriceType.Market ? "1" : "2", // 1 - Market, 2 - Limit
                     OrderQty = order.Volume.ToString(),
-                    Price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString() : "0",
+                    Price = order.TypeOrder == OrderPriceType.Limit ? newPrice.ToString().Replace(',', '.') : "0",
                 };
 
                 //Вычисляем длину сообщения
@@ -3698,8 +3851,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public void CancelOrder(Order order)
         {
-            // rateGateCancelOrder.WaitToProceed();
-                       
+            _rateGateForOrders.WaitToProceed();
+
             try
             {
                 Header header = new Header
@@ -3714,7 +3867,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 OrderCancelRequestMessage msg = new OrderCancelRequestMessage()
                 {
                     OrigClOrdID = order.NumberUser.ToString(), 
-                    OrderID = order.NumberMarket.ToString(),
+                    OrderID = _changedOrderIds.ContainsKey(order.NumberUser) ? _changedOrderIds[order.NumberUser] : order.NumberMarket.ToString(), // по-умолчанию снимаем ордер по пользовательскому номеру
                     ClOrdID = DateTime.UtcNow.Ticks.ToString(), // идентификатор заявки на снятие
                     Side = order.Side == Side.Buy ? "1" : "2",
                     TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),                    
@@ -3738,6 +3891,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public void CancelAllOrders()
         {
+            _rateGateForOrders.WaitToProceed();
+
             try
             {
                 Header header = new Header
@@ -3775,6 +3930,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public void CancelAllOrdersToSecurity(Security security)
         {
+            _rateGateForOrders.WaitToProceed();
+
             try
             {
                 Header header = new Header

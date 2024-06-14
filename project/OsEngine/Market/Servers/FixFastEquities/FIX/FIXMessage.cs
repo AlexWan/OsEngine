@@ -132,7 +132,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                             value = "Logon";
                         }
 
-                        if (value == "D")
+                        if (value == "5")
                         {
                             value = "Logout";
                         }

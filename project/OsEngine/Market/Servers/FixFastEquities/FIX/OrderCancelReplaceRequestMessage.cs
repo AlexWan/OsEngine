@@ -19,7 +19,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
         public string Price;
         public string OrderQty;
                 
-        public string CancelOrigOnReject = "Y"; // снять исходную заявку если ее изменение невозможно
+        public string CancelOrigOnReject = "N"; // снять исходную заявку если ее изменение невозможно
 
         public string NoTradingSessions = "1";
         public string TradingSessionID; //"TQBR";
