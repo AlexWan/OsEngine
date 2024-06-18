@@ -143,7 +143,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     _useOther = (ServerParameterBool)ServerParameters[4];
 
                     QuikLua = new QuikSharp.Quik(QuikSharp.Quik.DefaultPort, new InMemoryStorage());
-                    QuikLua.DefaultSendTimeout = new TimeSpan(0, 0, 5);
+                    //QuikLua.DefaultSendTimeout = new TimeSpan(0, 0, 5);
                     QuikLua.Events.OnConnected += EventsOnOnConnected;
                     QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
                     QuikLua.Events.OnConnectedToQuik += EventsOnOnConnectedToQuik;

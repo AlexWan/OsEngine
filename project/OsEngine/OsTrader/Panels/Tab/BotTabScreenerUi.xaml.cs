@@ -1392,8 +1392,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 CandlesParameterString paramStr = (CandlesParameterString)param;
 
-                if (paramStr.SysName == "TimeFrame"
-                    && _selectedSeries.GetType().Name == "Simple")
+                if (paramStr.SysName == "TimeFrame")
                 {
                     LoadTimeFrameBox(cell);
                 }
@@ -1429,8 +1428,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void LoadTimeFrameBox(DataGridViewComboBoxCell box)
         {
-            if (ComboBoxCandleCreateMethodType.SelectedItem == null
-                || ComboBoxCandleCreateMethodType.SelectedItem.ToString() != "Simple")
+            if (ComboBoxCandleCreateMethodType.SelectedItem == null)
             {
                 return;
             }

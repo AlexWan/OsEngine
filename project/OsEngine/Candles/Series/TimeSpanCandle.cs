@@ -35,7 +35,7 @@ namespace OsEngine.Candles.Series
 
                 ForcedStartFromZero
                     = CreateParameterStringCollection("ForcedStartFromZero",
-                   "Forced start from zero", "Every hour", workRegimes);
+                   OsLocalization.Market.Label124, "Every hour", workRegimes);
 
                 Hours = CreateParameterInt("Hours", "Hours", 0);
                 Minutes = CreateParameterInt("Minutes", "Minutes", 59);

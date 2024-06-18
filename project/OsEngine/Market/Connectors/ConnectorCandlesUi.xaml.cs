@@ -1300,8 +1300,7 @@ namespace OsEngine.Market.Connectors
 
                 CandlesParameterString paramStr = (CandlesParameterString)param;
 
-                if (paramStr.SysName == "TimeFrame"
-                    && _selectedSeries.GetType().Name == "Simple")
+                if (paramStr.SysName == "TimeFrame")
                 {
                     LoadTimeFrameBox(cell);
                 }
@@ -1337,12 +1336,6 @@ namespace OsEngine.Market.Connectors
 
         private void LoadTimeFrameBox(DataGridViewComboBoxCell box)
         {
-            if (ComboBoxCandleCreateMethodType.SelectedItem == null
-                || ComboBoxCandleCreateMethodType.SelectedItem.ToString() != "Simple")
-            {
-                return;
-            }
-
             if (_connectorBot.StartProgram == StartProgram.IsTester)
             {
                 // Timeframe

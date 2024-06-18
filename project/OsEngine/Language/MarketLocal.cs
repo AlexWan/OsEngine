@@ -524,17 +524,13 @@ namespace OsEngine.Language
             "Eng:Value type_" +
             "Ru:Тип переменной_");
 
+        public string Label123 => OsLocalization.ConvertToLocString(
+            "Eng:Seconds shift_" +
+            "Ru:Сдвиг секунд_");
 
-
-
-
-
-
-
-
-
-
-
+        public string Label124 => OsLocalization.ConvertToLocString(
+            "Eng:Forced start from zero_" +
+            "Ru:Перезапуск сборки с нуля_");
 
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +

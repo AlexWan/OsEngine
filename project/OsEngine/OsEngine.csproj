@@ -205,6 +205,7 @@
     <Compile Include="Candles\Series\Revers.cs" />
     <Compile Include="Candles\Series\Simple.cs" />
     <Compile Include="Candles\Series\Tick.cs" />
+    <Compile Include="Candles\Series\TimeShiftCandle.cs" />
     <Compile Include="Candles\Series\TimeSpanCandle.cs" />
     <Compile Include="Candles\TimeFrameBuilder.cs" />
     <Compile Include="Charts\CandleChart\CandleChartUi.xaml.cs">
