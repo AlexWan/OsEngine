@@ -52,6 +52,7 @@ namespace OsEngine.Candles.Series
                 SecondsShift = CreateParameterInt("SecondsShift", OsLocalization.Market.Label123, -3);
 
                 TimeFrame = TimeFrame.Min30;
+                CreateCandlesTimes();
             }
             else if (state == CandleSeriesState.ParametersChange)
             {
@@ -61,8 +62,6 @@ namespace OsEngine.Candles.Series
                 {
                     TimeFrame = newTf;
                 }
-
-                CreateCandlesTimes();
 
                 if (CandlesAll != null)
                 {
@@ -80,6 +79,7 @@ namespace OsEngine.Candles.Series
                 {
                     if (value != _timeFrame)
                     {
+
                         _timeFrame = value;
                         if (value == TimeFrame.Sec1)
                         {
@@ -161,6 +161,8 @@ namespace OsEngine.Candles.Series
                         {
                             _timeFrameSpan = new TimeSpan(0, 24, 0, 0);
                         }
+
+                        CreateCandlesTimes();
                     }
                 }
                 catch

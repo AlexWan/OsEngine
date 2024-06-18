@@ -20,6 +20,7 @@ using OsEngine.Market.Connectors;
 using OsEngine.Candles.Series;
 using OsEngine.Candles;
 using OsEngine.Market.Servers;
+using OsEngine.Candles.Factory;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -859,7 +860,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.CandleCreateMethodType = CandleCreateMethodType;
             newTab.Connector.TimeFrame = frame;
             newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
-
+            newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
             newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
             newTab.ComissionType = ComissionType;
             newTab.ComissionValue = ComissionValue;
@@ -890,6 +891,39 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (tab.Connector.TimeFrame != frame)
             {
                 return false;
+            }
+
+            if(tab.TimeFrameBuilder.CandleSeriesRealization.GetType().Name 
+                != CandleSeriesRealization.GetType().Name)
+            {
+                return false;
+            }
+
+            for(int i = 0;i < tab.TimeFrameBuilder.CandleSeriesRealization.Parameters.Count;i++)
+            {
+                ICandleSeriesParameter paramInTab = tab.TimeFrameBuilder.CandleSeriesRealization.Parameters[i];
+                ICandleSeriesParameter paramInScreener = CandleSeriesRealization.Parameters[i];
+
+                if (paramInTab.Type == CandlesParameterType.StringCollection
+                    && ((CandlesParameterString)paramInTab).ValueString != ((CandlesParameterString)paramInScreener).ValueString)
+                {
+                    return false;
+                }
+                else if (paramInTab.Type == CandlesParameterType.Int
+                    && ((CandlesParameterInt)paramInTab).ValueInt != ((CandlesParameterInt)paramInScreener).ValueInt)
+                {
+                    return false;
+                }
+                else if (paramInTab.Type == CandlesParameterType.Bool
+                    && ((CandlesParameterBool)paramInTab).ValueBool != ((CandlesParameterBool)paramInScreener).ValueBool)
+                {
+                    return false;
+                }
+                else if (paramInTab.Type == CandlesParameterType.Decimal
+                    && ((CandlesParameterDecimal)paramInTab).ValueDecimal != ((CandlesParameterDecimal)paramInScreener).ValueDecimal)
+                {
+                    return false;
+                }
             }
 
             return true;

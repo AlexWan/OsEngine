@@ -282,7 +282,22 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         for (int j = 0; j < _series[i].Parameters.Count; j++)
                         {
-                            candlesCur.Parameters[j].LoadParamFromString(_series[i].Parameters[j].GetStringToSave().Split('#')[1]);
+                            if (_series[i].Parameters[j].Type == CandlesParameterType.StringCollection)
+                            {
+                                ((CandlesParameterString)candlesCur.Parameters[j]).ValueString = ((CandlesParameterString)_series[i].Parameters[j]).ValueString;
+                            }
+                            else if (_series[i].Parameters[j].Type == CandlesParameterType.Int)
+                            {
+                                ((CandlesParameterInt)candlesCur.Parameters[j]).ValueInt = ((CandlesParameterInt)_series[i].Parameters[j]).ValueInt;
+                            }
+                            else if (_series[i].Parameters[j].Type == CandlesParameterType.Bool)
+                            {
+                                ((CandlesParameterBool)candlesCur.Parameters[j]).ValueBool = ((CandlesParameterBool)_series[i].Parameters[j]).ValueBool;
+                            }
+                            else if (_series[i].Parameters[j].Type == CandlesParameterType.Decimal)
+                            {
+                                ((CandlesParameterDecimal)candlesCur.Parameters[j]).ValueDecimal = ((CandlesParameterDecimal)_series[i].Parameters[j]).ValueDecimal;
+                            }
 
                             if (candlesCur.Parameters[j].SysName == "TimeFrame"
                                 && candlesCur.Parameters[j].Type == CandlesParameterType.StringCollection)
@@ -293,7 +308,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                                 if (Enum.TryParse(tfStr, out tf))
                                 {
-                                    _screener.TimeFrame = tf;
+                                   _screener.TimeFrame = tf;
                                 }
                             }
                         }
