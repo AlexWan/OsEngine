@@ -97,7 +97,8 @@
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OpenFAST, Version=1.1.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenFASTByScholtz.1.1.3\lib\net48\OpenFAST.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\OpenFAST.dll</HintPath>
     </Reference>
     <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -599,11 +600,13 @@
     </Compile>
     <Compile Include="Market\Servers\FixFastEquities\FixFastEquitiesServer.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FixFastEquitiesServerPermission.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\FIX\AFIXMessageBody.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\FIXMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\FASTHeader.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\Header.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\HeartbeatMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\FASTLogonMessage.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\FIX\AFIXHeader.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\LogoutMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\LogonMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\MarketDataRequestMessage.cs" />

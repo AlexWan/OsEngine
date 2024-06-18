@@ -1,7 +1,7 @@
 ﻿
 namespace OsEngine.Market.Servers.FixFastEquities.FIX
 {    
-    class MarketDataRequestMessage
+    class MarketDataRequestMessage: AFIXMessageBody
     {
         public string ApplID = "OLR"; //"TLR";
         public string ApplBegSeqNum;
@@ -10,11 +10,6 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
         public override string ToString()
         {
             return $"1180={ApplID}\u00011182={ApplBegSeqNum}\u00011183={ApplEndSeqNum}\u0001";
-        }
-
-        public int GetMessageSize()
-        {
-            return ToString().Length;
         }
     }
 }

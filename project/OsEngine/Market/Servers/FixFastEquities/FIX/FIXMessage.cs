@@ -81,6 +81,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "625", "TradingSessionSubID" },
             { "828", "TrdType" },
             { "851", "LastLiquidityInd" },
+            { "925", "NewPassword" },
             { "1056", "CalculatedCcyLastQty" },
             { "1137", "DefaultApplVerID" },
             { "1180", "ApplID" },

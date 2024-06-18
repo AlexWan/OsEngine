@@ -1,14 +1,14 @@
 ﻿
 namespace OsEngine.Market.Servers.FixFastEquities.FIX
 {    
-    class OrderMassCancelRequestMessage
+    class OrderMassCancelRequestMessage: AFIXMessageBody
     {
+
         public string ClOrdID;
         public string MassCancelRequestType = "7"; // 1 - cancel for security, 7 - cancel for all matching orders
         public string TradingSessionID;
         public string Symbol;
         public string TransactTime;
-        
         public string Account;
 
         // группа Parties
@@ -23,11 +23,6 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             string Instrument = MassCancelRequestType == "1" ? $"55={Symbol}\u0001" : "";
 
             return $"11={ClOrdID}\u0001530={MassCancelRequestType}\u0001{TradingSessionIDString}{Instrument}160={TransactTime}\u00011={Account}\u0001453={NoPartyID}\u0001448={PartyID}\u0001447={PartyIDSource}\u0001452={PartyRole}\u0001";
-        }
-
-        public int GetMessageSize()
-        {
-            return ToString().Length;
         }
     }
 }

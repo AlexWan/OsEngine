@@ -15,39 +15,23 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
 		<string name="Password" id="554" presence="optional"></string>
 		<string name="DefaultApplVerID" id="1137"></string>
      */
-    class FASTHeader
+    class FASTHeader : AFIXHeader
     {
-        public string BeginString = "FIXT.1.1";
-        public int BodyLength;
-        public string MsgType;
         public string AppVerID = "9"; // FIX50SP2
-        public string SenderCompID = "OsEngine";
-        public string TargetCompID = "MOEX"; // вообще сюда надо отправлять идентификатор фирмы
-        public int MsgSeqNum;
-        public DateTime SendingTime;
         public string MessageEncoding = "UTF-8";
 
         public FASTHeader()
         {
-            SendingTime = DateTime.UtcNow;
+            BeginString = "FIXT.1.1";
+            SenderCompID = "OsEngine";
+            TargetCompID = "MOEX"; // вообще сюда надо отправлять идентификатор фирмы
         }
 
-        public override string ToString()
-        {
-            return $"8={BeginString}\u00019={BodyLength}\u0001" + GetHalfMessage();
-        }
-
-        public string GetHalfMessage()
+        public override string GetHalfMessage()
         {
             string sendingTime = SendingTime.ToString("yyMMddHHmmssffffff"); // yyMMDDHHmmSSuuuuuu
-            //string sendingTime = SendingTime.ToString("yyyyMMdd-HH:mm:ss"); // yyMMDDHHmmSSuuuuuu
+            
             return $"35={MsgType}\u00011128={AppVerID}\u000149={SenderCompID}\u000156={TargetCompID}\u000134={MsgSeqNum}\u000152={sendingTime}\u0001";
-        }
-
-        public int GetHeaderSize()
-        {
-            string tmpString = GetHalfMessage();
-            return tmpString.Length;
         }
     }
 }

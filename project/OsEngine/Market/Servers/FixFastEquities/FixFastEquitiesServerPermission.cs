@@ -151,7 +151,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 {
                     "RUB",
                     "USD",
-                    "EUR"
+                    "EUR",
+                    "CNY"
                 };
 
                 return values;
@@ -184,13 +185,13 @@ namespace OsEngine.Market.Servers.FixFastEquities
         TimeFrameSec30IsOn = true,
         TimeFrameMin1IsOn = true,
         TimeFrameMin2IsOn = true,
-        TimeFrameMin3IsOn = false,
+        TimeFrameMin3IsOn = true,
         TimeFrameMin5IsOn = true,
         TimeFrameMin10IsOn = true,
         TimeFrameMin15IsOn = true,
         TimeFrameMin20IsOn = true,
         TimeFrameMin30IsOn = true,
-        TimeFrameMin45IsOn = false,
+        TimeFrameMin45IsOn = true,
         TimeFrameHour1IsOn = true,
         TimeFrameHour2IsOn = true,
         TimeFrameHour4IsOn = true,

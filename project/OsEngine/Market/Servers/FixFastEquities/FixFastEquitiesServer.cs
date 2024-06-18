@@ -7,13 +7,11 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.FixFastEquities.FIX;
-using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-
 using OpenFAST;
 using OpenFAST.Codec;
 using OpenFAST.Template;
@@ -24,13 +22,6 @@ using System.Xml;
 using System.Net;
 using LiteDB;
 using System.Linq;
-using Grpc.Core;
-using OsEngine.Market.Servers.FixProtocolEntities;
-using System.Windows.Interop;
-using System.Collections;
-using OsEngine.Charts.CandleChart.Indicators;
-using System.Diagnostics;
-
 
 namespace OsEngine.Market.Servers.FixFastEquities
 {
@@ -99,7 +90,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
             worker6.Name = "OrdersSnapshotsFixFastEquities";
             worker6.Start();
 
-
             Thread worker7 = new Thread(MFIXTradeServerConnection);
             worker7.Name = "MFIXTradeServerConnectionFixFastEquities";
             worker7.Start();
@@ -110,15 +100,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             Thread worker9 = new Thread(HistoricalReplayThread);
             worker9.Name = "HistoricalReplayFixFastEquities";
-            worker9.Start();
-
-            //Thread worker2 = new Thread(DataMessageReader);
-            //worker2.Name = "DataMessageReaderFixFastEquities";
-            //worker2.Start();
-
-            //Thread worker3 = new Thread(PortfolioMessageReader);
-            //worker3.Name = "PortfolioMessageReaderFixFastEquities";
-            //worker3.Start();
+            worker9.Start();            
         }
 
         public void Connect()
@@ -127,8 +109,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
             {                
                 _securities.Clear();
                 _myPortfolios.Clear();
-                _subscribedSecurities.Clear();
-                
+                _subscribedSecurities.Clear();                
 
                 SendLogMessage("Start FIX/FAST Equities Connection", LogMessageType.System);
 
@@ -182,12 +163,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     SendLogMessage("Connection terminated. You must specify FIX/FAST Multicast Config Directory and it must contain config.xml and template.xml", LogMessageType.Error);
                     return;
                 }
-
-                               
-                LoadFASTTemplates();
-                              
-                CreateSocketConnections();
-                
+                                               
+                LoadFASTTemplates();                              
+                CreateSocketConnections();                
             }
             catch (Exception ex)
             {
@@ -230,8 +208,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
             }
         }
 
-        DateTime _lastGetLiveTimeToketTime = DateTime.MinValue;
-        
+        DateTime _lastGetLiveTimeToketTime = DateTime.MinValue;       
 
         public void Dispose()
         {
@@ -257,7 +234,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
         public List<IServerParameter> ServerParameters { get; set; }
 
         public event Action ConnectEvent;
-
         public event Action DisconnectEvent;
 
         #endregion
@@ -280,11 +256,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private string _ConfigDir;
                 
         private MessageTemplate[] _templates;
-
-        private string _logLock = "locker for stream writer";
-        private StreamWriter _logFile = new StreamWriter("FIXFAST_Multicast_UDP-log.txt");
-        private StreamWriter _logFileXOrders = new StreamWriter("FIXFAST_Multicast_UDP-log-XOrders.txt");
-
+        
         private Socket _instrumentSocketA;
         private Socket _instrumentSocketB;
 
@@ -309,9 +281,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private bool _restoreMissingDataViaTCPOnStart = true; // включить восстановление данных по TCP при запуске в случае если следующего снэпшота ждать еще 8-15 минут
 
         private Socket _MFIXTradeSocket;
-        private int _MFIXTradeMsgSeqNum;
+        private long _MFIXTradeMsgSeqNum;
+        private long _MFIXTradeMsgSeqNumIncoming;
+
         private Socket _MFIXTradeCaptureSocket;
-        private int _MFIXTradeCaptureMsgSeqNum;
+        private long _MFIXTradeCaptureMsgSeqNum;
+        private long _MFIXTradeCaptureMsgSeqNumIncoming;
 
         #endregion
 
@@ -342,8 +317,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
             {
                 PortfolioEvent(_myPortfolios);                
             }
-
-            //ActivatePortfolioSocket();
         }
                
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -426,20 +399,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private string _socketLockerTradesIncremental = "socketLockerFixFastEquitiesTradesIncremental";
         private string _socketLockerOrdersSnapshots = "socketLockerFixFastEquitiesOrdersSnapshots";
         private string _socketLockerOrdersIncremental = "socketLockerFixFastEquitiesOrdersIncremental";
-
-        private string GetGuid()
-        {
-            lock (_guidLocker)
-            {
-                iterator++;
-                return iterator.ToString();
-            }
-        }
-
-        int iterator = 0;
-
-        string _guidLocker = "guidLocker";
-
+        
         private void CreateSocketConnections()
         {
             try
@@ -608,6 +568,19 @@ namespace OsEngine.Market.Servers.FixFastEquities
             }
         }
 
+        private int SendFIXMessage(Socket socket, AFIXHeader header, AFIXMessageBody messageBody)
+        {
+            header.BodyLength = header.GetHeaderSize() + messageBody.GetMessageSize();
+            
+            //Создаем концовку сообщения
+            Trailer trailer = new Trailer(header.ToString() + messageBody.ToString());
+            
+            //Формируем полное готовое сообщение
+            string fullFIXMessage = header.ToString() + messageBody.ToString() + trailer.ToString();
+
+            return socket.Send(Encoding.UTF8.GetBytes(fullFIXMessage));
+        }
+
         private void EstablishMFIXTradeConnection()
         {
             // 1. Создаем и отправляем два запроса на подключение (Logon)
@@ -617,7 +590,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
             //Создаем заголовк
             Header tradeServerLogonHeader = new Header
             {
-                BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
                 MsgType = "A", //Тип сообщения на установку сессии
                 SenderCompID = _MFIXTradeServerLogin,
                 TargetCompID = _MFIXTradeServerTargetCompId,
@@ -625,8 +597,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
             };
 
             Header tradeCaptureServerLogonHeader = new Header
-            {
-                BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
+            {                
                 MsgType = "A", //Тип сообщения на установку сессии
                 SenderCompID = _MFIXTradeCaptureServerLogin,
                 TargetCompID = _MFIXTradeCaptureServerTargetCompId,
@@ -649,19 +620,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 ResetSeqNumFlag = true,
                 Password = _MFIXTradeCaptureServerPassword,
             };
-
-            //Вычисляем длину сообщения
-            tradeServerLogonHeader.BodyLength = tradeServerLogonHeader.GetHeaderSize() + logonTServerMessageBody.GetMessageSize();
-            tradeCaptureServerLogonHeader.BodyLength = tradeCaptureServerLogonHeader.GetHeaderSize() + logonTCServerMessageBody.GetMessageSize();
-
-            //Создаем концовку сообщения
-            Trailer tradeServerTrailer = new Trailer(tradeServerLogonHeader.ToString() + logonTServerMessageBody.ToString());
-            Trailer tradeCaptureServerTrailer = new Trailer(tradeCaptureServerLogonHeader.ToString() + logonTCServerMessageBody.ToString());
-
-            //Формируем полное готовое сообщение
-            string tradeServerLogonMessage = tradeServerLogonHeader.ToString() + logonTServerMessageBody.ToString() + tradeServerTrailer.ToString();
-            string tradeCaptureServerLogonMessage = tradeCaptureServerLogonHeader.ToString() + logonTCServerMessageBody.ToString() + tradeCaptureServerTrailer.ToString();
-
+          
             // 2. Создаем два сокета и подключаемся к ним
             // MFIX Trade Server
             IPAddress ipAddr = IPAddress.Parse(_MFIXTradeServerAddress);
@@ -669,7 +628,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             //Создаем сокет для подключения
             _MFIXTradeSocket = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //_MFIXTradeSocket.Blocking = false;
             //Подключаемся
             _MFIXTradeSocket.Connect(ipEndPoint);
 
@@ -679,13 +637,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             //Создаем сокет для подключения
             _MFIXTradeCaptureSocket = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //_MFIXTradeCaptureSocket.Blocking = false;
             //Подключаемся
             _MFIXTradeCaptureSocket.Connect(ipEndPoint);
                                    
             //Отправляем сообщение
-            int bytesSent = _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(tradeServerLogonMessage));
-            bytesSent = _MFIXTradeCaptureSocket.Send(Encoding.UTF8.GetBytes(tradeCaptureServerLogonMessage));
+            int bytesSent = SendFIXMessage(_MFIXTradeSocket, tradeServerLogonHeader, logonTServerMessageBody);                
+            bytesSent = SendFIXMessage(_MFIXTradeCaptureSocket, tradeCaptureServerLogonHeader, logonTCServerMessageBody);
 
             bool tradeServerConnected = false;
             bool tradeCaptureServerConnected = false;
@@ -743,47 +700,28 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 return; // сокет еще не создан
             }
 
-
             // Создаем и отправляем два запроса на отключение (Logout)
-            
-            //Создаем заголовк
-            Header tradeServerLogoutHeader = new Header
-            {
-                BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                MsgType = "5", //Тип сообщения Logout
-                SenderCompID = _MFIXTradeServerLogin,
-                TargetCompID = _MFIXTradeServerTargetCompId,
-                MsgSeqNum = _MFIXTradeMsgSeqNum++
-            };
 
-            Header tradeCaptureServerLogoutHeader = new Header
-            {
-                BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                MsgType = "5", //Тип сообщения Logout
-                SenderCompID = _MFIXTradeCaptureServerLogin,
-                TargetCompID = _MFIXTradeCaptureServerTargetCompId,
-                MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++
-            };
+            //Создаем заголовк
+            Header tradeServerLogoutHeader = new Header();
+            tradeServerLogoutHeader.MsgType = "5"; //Тип сообщения Logout
+            tradeServerLogoutHeader.SenderCompID = _MFIXTradeServerLogin;
+            tradeServerLogoutHeader.TargetCompID = _MFIXTradeServerTargetCompId;
+            tradeServerLogoutHeader.MsgSeqNum = _MFIXTradeMsgSeqNum++;
+
+            Header tradeCaptureServerLogoutHeader = new Header();
+            tradeCaptureServerLogoutHeader.MsgType = "5"; //Тип сообщения Logout
+            tradeCaptureServerLogoutHeader.SenderCompID = _MFIXTradeCaptureServerLogin;
+            tradeCaptureServerLogoutHeader.TargetCompID = _MFIXTradeCaptureServerTargetCompId;
+            tradeCaptureServerLogoutHeader.MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++;
 
             //Создаем сообщение Logout
             LogoutMessage logoutTServerMessageBody = new LogoutMessage();            
             LogoutMessage logoutTCServerMessageBody = new LogoutMessage();
-            
-            //Вычисляем длину сообщения
-            tradeServerLogoutHeader.BodyLength = tradeServerLogoutHeader.GetHeaderSize() + logoutTServerMessageBody.GetMessageSize();
-            tradeCaptureServerLogoutHeader.BodyLength = tradeCaptureServerLogoutHeader.GetHeaderSize() + logoutTCServerMessageBody.GetMessageSize();
-
-            //Создаем концовку сообщения
-            Trailer tradeServerTrailer = new Trailer(tradeServerLogoutHeader.ToString() + logoutTServerMessageBody.ToString());
-            Trailer tradeCaptureServerTrailer = new Trailer(tradeCaptureServerLogoutHeader.ToString() + logoutTCServerMessageBody.ToString());
-
-            //Формируем полное готовое сообщение
-            string tradeServerLogoutMessage = tradeServerLogoutHeader.ToString() + logoutTServerMessageBody.ToString() + tradeServerTrailer.ToString();
-            string tradeCaptureServerLogoutMessage = tradeCaptureServerLogoutHeader.ToString() + logoutTCServerMessageBody.ToString() + tradeCaptureServerTrailer.ToString();
-            
+                       
             //Отправляем сообщение
-            int bytesSent = _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(tradeServerLogoutMessage));
-            bytesSent = _MFIXTradeCaptureSocket.Send(Encoding.UTF8.GetBytes(tradeCaptureServerLogoutMessage));
+            int bytesSent = SendFIXMessage(_MFIXTradeSocket, tradeServerLogoutHeader, logoutTServerMessageBody);
+            bytesSent = SendFIXMessage(_MFIXTradeCaptureSocket, tradeCaptureServerLogoutHeader, logoutTCServerMessageBody);
             
             while (_MFIXTradeSocket != null || _MFIXTradeCaptureSocket != null)
             {
@@ -813,7 +751,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                 using (LiteDatabase db = new LiteDatabase(dir))
                 {
-                    var collection = db.GetCollection<SecurityToSave>("securities");
+                    ILiteCollection<SecurityToSave> collection = db.GetCollection<SecurityToSave>("securities");
 
                     List<SecurityToSave> col = collection.FindAll().ToList();
 
@@ -829,25 +767,11 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         newSecurity.Lot = curSec.Lot;
                         newSecurity.PriceStep = curSec.PriceStep;
                         newSecurity.PriceStepCost = curSec.PriceStep;
-                        //newSecurity.Decimals = curSec.Decimals;
                         newSecurity.Decimals = GetDecimals(newSecurity.PriceStep);
                         newSecurity.DecimalsVolume = curSec.DecimalsVolume;
                         newSecurity.State = SecurityStateType.Activ;
                         newSecurity.Exchange = "MOEX";
                         newSecurity.SecurityType = SecurityType.Stock;
-
-
-                        //if (curSec.NameClass.Contains("Stock"))
-                        //    newSecurity.SecurityType = SecurityType.Stock;
-
-                        //if (curSec.NameClass.Contains("Bond"))
-                        //    newSecurity.SecurityType = SecurityType.Bond;
-
-                        //if (curSec.NameClass.Contains("Index"))
-                        //    newSecurity.SecurityType = SecurityType.Index;
-
-                        //if (curSec.NameClass.Contains("Fund"))
-                        //    newSecurity.SecurityType = SecurityType.Fund;
 
                         switch (curSec.NameClass)
                         {
@@ -892,7 +816,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                 using (LiteDatabase db = new LiteDatabase(dir))
                 {
-                    var collection = db.GetCollection<SecurityToSave>("securities");
+                    ILiteCollection<SecurityToSave> collection = db.GetCollection<SecurityToSave>("securities");
                     collection.DeleteAll();
 
                     for (int i = 0; i < _securities.Count; i++)
@@ -956,7 +880,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
         {
             try
             {
-
                 lock (_socketLockerHistoricalReplay)
                 {
                     // закрываем сокет восстановления по TCP
@@ -1002,7 +925,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         _instrumentSocketB = null;
                     }
                 }
-
 
                 // закрываем сокеты получения данных по сделкам
                 if (_tradesIncrementalSocketA != null)
@@ -1056,14 +978,11 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     }
                 }
 
-
-
                 // закрываем сокеты получения данных по ордерам
                 if (_ordersIncrementalSocketA != null)
                 {
                     lock (_socketLockerOrdersIncremental)
                     {
-
                         try
                         {
                             _ordersIncrementalSocketA.Close();
@@ -1537,15 +1456,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     Thread.Sleep(5000);
                 }
             }
-        }
-
-        private void WriteLog(string message, string source)
-        {
-            lock (_logLock)
-            {
-                _logFile.WriteLine($"{DateTime.Now} {source}: {message}");
-            }
-        }
+        }                
 
         private void TradesSnapshotsReader()
         {
@@ -2123,32 +2034,18 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         _historicalReplaySocket.Connect(_historicalReplayEndPoint);
 
                         // 2. Отправляем запрос на подключение к потоку восстановления
-                        FASTHeader header = new FASTHeader
-                        {
-                            BeginString = "FIXT.1.1",
-                            MsgType = "A", //Тип сообщения на установку сессии
-                            SenderCompID = "OsEngine",
-                            TargetCompID = "MOEX", // TODO: id фирмы брокера (?)
-                            MsgSeqNum = msgSeqNum++
-                        };
+                        FASTHeader header = new FASTHeader();
+                        header.MsgType = "A"; //Тип сообщения на установку сессии
+                        header.SenderCompID = "OsEngine";
+                        header.TargetCompID = "MOEX"; // TODO: id фирмы брокера (?)
+                        header.MsgSeqNum = msgSeqNum++;
 
-                        FASTLogonMessage logonMessageBody = new FASTLogonMessage
-                        {
-                            Username = "user0",
-                            Password = "pass0",
-                        };
-
-                        //Вычисляем длину сообщения
-                        header.BodyLength = header.GetHeaderSize() + logonMessageBody.GetMessageSize();
-
-                        //Создаем концовку сообщения
-                        Trailer logonTrailer = new Trailer(header.ToString() + logonMessageBody.ToString());
-
-                        //Формируем полное готовое сообщение
-                        string logonMessage = header.ToString() + logonMessageBody.ToString() + logonTrailer.ToString();
-
+                        FASTLogonMessage logonMessageBody = new FASTLogonMessage();
+                        logonMessageBody.Username = "user0";
+                        logonMessageBody.Password = "pass0";                        
+                                                
                         //Отправляем сообщение
-                        int bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(logonMessage));
+                        int bytesSent = SendFIXMessage(_historicalReplaySocket, header, logonMessageBody);                            
 
                         // получаем ответ - должен быть Logon
                         sizeBuffer = new byte[4];
@@ -2197,15 +2094,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         }
 
                         // 3. Отправляем MarketDataRequest (V)
-                        header = new FASTHeader
-                        {
-                            BeginString = "FIXT.1.1",
-                            MsgType = "V",
-                            SenderCompID = "OsEngine",
-                            TargetCompID = "MOEX", // 
-                            MsgSeqNum = msgSeqNum++
-                        };
-
+                        header = new FASTHeader();
+                        header.MsgType = "V";
+                        header.SenderCompID = "OsEngine";
+                        header.TargetCompID = "MOEX";
+                        header.MsgSeqNum = msgSeqNum++;
+                        
                         long ApplBegSeqNum = currentFeed == "OLR" ? _missingOLRBeginSeqNo : _missingTLRBeginSeqNo;
                         long ApplEndSeqNum = currentFeed == "OLR" ? _missingOLREndSeqNo : _missingTLREndSeqNo;
 
@@ -2214,24 +2108,13 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             ApplEndSeqNum = ApplBegSeqNum + 2000 - 1;
                         }
 
-                        MarketDataRequestMessage marketDataRequest = new MarketDataRequestMessage
-                        {
-                            ApplID = currentFeed,
-                            ApplBegSeqNum = ApplBegSeqNum.ToString(),
-                            ApplEndSeqNum = ApplEndSeqNum.ToString(),
-                        };
-
-                        //Вычисляем длину сообщения
-                        header.BodyLength = header.GetHeaderSize() + marketDataRequest.GetMessageSize();
-
-                        //Создаем концовку сообщения
-                        Trailer mdRequestTrailer = new Trailer(header.ToString() + marketDataRequest.ToString());
-
-                        //Формируем полное готовое сообщение
-                        string marketDataRequestMessage = header.ToString() + marketDataRequest.ToString() + mdRequestTrailer.ToString();
-
+                        MarketDataRequestMessage marketDataRequest = new MarketDataRequestMessage();
+                        marketDataRequest.ApplID = currentFeed;
+                        marketDataRequest.ApplBegSeqNum = ApplBegSeqNum.ToString();
+                        marketDataRequest.ApplEndSeqNum = ApplEndSeqNum.ToString();
+                        
                         //Отправляем сообщение
-                        bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(marketDataRequestMessage));                                             
+                        bytesSent = SendFIXMessage(_historicalReplaySocket, header, marketDataRequest);
 
                         while (true) // начинаем цикл приема сообщений
                         {
@@ -2313,31 +2196,17 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                     SendLogMessage($"Historical Replay server Logout. {msg.GetString("Text")}", LogMessageType.System);
 
                                     //отвечаем серверу Logout
-                                    header = new FASTHeader
-                                    {
-                                        BeginString = "FIXT.1.1",
-                                        MsgType = "5", // logout
-                                        SenderCompID = "OsEngine",
-                                        TargetCompID = "MOEX", // 
-                                        MsgSeqNum = msgSeqNum++
-                                    };
+                                    header = new FASTHeader();
+                                    header.MsgType = "5"; // logout
+                                    header.SenderCompID = "OsEngine";
+                                    header.TargetCompID = "MOEX";
+                                    header.MsgSeqNum = msgSeqNum++;
 
-                                    LogoutMessage logoutMessageBody = new LogoutMessage
-                                    {
-                                        Text = "Logging out"
-                                    };
-
-                                    //Вычисляем длину сообщения
-                                    header.BodyLength = header.GetHeaderSize() + logoutMessageBody.GetMessageSize();
-
-                                    //Создаем концовку сообщения
-                                    Trailer logoutTrailer = new Trailer(header.ToString() + logoutMessageBody.ToString());
-
-                                    //Формируем полное готовое сообщение
-                                    string logoutMessage = header.ToString() + logoutMessageBody.ToString() + logoutTrailer.ToString();
+                                    LogoutMessage logoutMessageBody = new LogoutMessage();
+                                    logoutMessageBody.Text = "Logging out";                                                                      
 
                                     //Отправляем сообщение
-                                    bytesSent = _historicalReplaySocket.Send(Encoding.UTF8.GetBytes(logoutMessage));
+                                    bytesSent = SendFIXMessage(_historicalReplaySocket, header, logoutMessageBody);
 
                                     if (currentFeed == "OLR")
                                     {
@@ -2372,24 +2241,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     Thread.Sleep(5000);
                 }
             }
-        }
-
-
-        private string TradeToString(GroupValue groupVal)
-        {            
-            string TradingSessionID = groupVal.GetString("TradingSessionID") ?? "N/A";                       
-            string TradingSessionSubID = groupVal.GetString("TradingSessionSubID") ?? "N";
-            string MDEntryType = groupVal.GetString("MDEntryType");
-            int RptSeq = groupVal.IsDefined("RptSeq") ? groupVal.GetInt("RptSeq") : -1;
-            string symbol = groupVal.GetString("Symbol") ?? "N/A";
-            string side = groupVal.GetString("OrderSide") ?? "_";
-            string price = groupVal.GetString("MDEntryPx") ?? "_";
-            string size = groupVal.GetString("MDEntrySize") ?? "_";
-            string time = groupVal.GetString("MDEntryTime") ?? "00:00:00";
-
-
-            return $"[RptSeq={RptSeq}] {symbol}, {side}, {price} x {size} @ t={time} TradingSessionID{TradingSessionID} TradingSessionSubID={TradingSessionSubID} MDEntryType={MDEntryType}";
-        }
+        } 
 
         private void TradeMessagesReader()
         {            
@@ -3390,31 +3242,17 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     // 0. Обрабатываем TestRequest
                     if (fixMessage.MessageType == "TestRequest")
                     {
-                        Header header = new Header
-                        {
-                            BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                            MsgType = "0", //Тип сообщения на установку сессии
-                            SenderCompID = _MFIXTradeServerLogin,
-                            TargetCompID = _MFIXTradeServerTargetCompId,
-                            MsgSeqNum = _MFIXTradeMsgSeqNum++
-                        };
-
+                        Header header = new Header();
+                        header.MsgType = "0"; //Тип сообщения на установку сессии
+                        header.SenderCompID = _MFIXTradeServerLogin;
+                        header.TargetCompID = _MFIXTradeServerTargetCompId;
+                        header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
+                        
                         string TestReqID = fixMessage.Fields["TestReqID"];
-                        HeartbeatMessage hbMsg = new HeartbeatMessage()
-                        {
-                            TestReqID = TestReqID,
-                        };
-
-                        //Вычисляем длину сообщения
-                        header.BodyLength = header.GetHeaderSize() + hbMsg.GetMessageSize();
-                        //Создаем концовку сообщения
-                        Trailer hbTrailer = new Trailer(header.ToString() + hbMsg.ToString());
-
-                        //Формируем полное готовое сообщение
-                        string fullMessage = header.ToString() + hbMsg.ToString() + hbTrailer.ToString();
-
-                        //Отправляем сообщение
-                        _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                        HeartbeatMessage hbMsg = new HeartbeatMessage();
+                        hbMsg.TestReqID = TestReqID;
+                                                
+                        SendFIXMessage(_MFIXTradeSocket, header, hbMsg);
                     }
 
                     // 1. Обрабатываем ExecutionReport
@@ -3615,40 +3453,24 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     }
                                        
                     bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
-
-                   
+                                       
                     string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                     FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
-
 
                     // 0. Обрабатываем TestRequest
                     if (fixMessage.MessageType == "TestRequest")
                     {
-                        Header header = new Header
-                        {
-                            BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                            MsgType = "0", //Тип сообщения на установку сессии
-                            SenderCompID = _MFIXTradeCaptureServerLogin,
-                            TargetCompID = _MFIXTradeCaptureServerTargetCompId,
-                            MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++
-                        };
-
+                        Header header = new Header();
+                        header.MsgType = "0"; //Тип сообщения на установку сессии
+                        header.SenderCompID = _MFIXTradeCaptureServerLogin;
+                        header.TargetCompID = _MFIXTradeCaptureServerTargetCompId;
+                        header.MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++;
+                        
                         string TestReqID = fixMessage.Fields["TestReqID"];
-                        HeartbeatMessage hbMsg = new HeartbeatMessage()
-                        {
-                            TestReqID = TestReqID,
-                        };
-
-                        //Вычисляем длину сообщения
-                        header.BodyLength = header.GetHeaderSize() + hbMsg.GetMessageSize();
-                        //Создаем концовку сообщения
-                        Trailer hbTrailer = new Trailer(header.ToString() + hbMsg.ToString());
-
-                        //Формируем полное готовое сообщение
-                        string fullMessage = header.ToString() + hbMsg.ToString() + hbTrailer.ToString();
-
-                        //Отправляем сообщение
-                        _MFIXTradeCaptureSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                        HeartbeatMessage hbMsg = new HeartbeatMessage();
+                        hbMsg.TestReqID = TestReqID;
+                        
+                        SendFIXMessage(_MFIXTradeCaptureSocket, header, hbMsg);
                     }
 
                     // 1. Обрабатываем TradingSessionStatus
@@ -3729,40 +3551,27 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             try
             {
-                Header header = new Header
-                {
-                    BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                    MsgType = "D", // new single order
-                    SenderCompID = _MFIXTradeServerLogin,
-                    TargetCompID = _MFIXTradeServerTargetCompId,
-                    MsgSeqNum = _MFIXTradeMsgSeqNum++
-                };
+                Header header = new Header();
+                header.MsgType = "D"; // new single order
+                header.SenderCompID = _MFIXTradeServerLogin;
+                header.TargetCompID = _MFIXTradeServerTargetCompId;
+                header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
-                NewOrderSingleMessage msg = new NewOrderSingleMessage()
-                {
-                    ClOrdID = order.NumberUser.ToString(),
-                    NoPartyID = "1",
-                    PartyID = _MFIXTradeClientCode,
-                    Account = _MFIXTradeAccount,
-                    NoTradingSessions = "1",
-                    TradingSessionID = order.SecurityClassCode,
-                    Symbol = order.SecurityNameCode,
-                    Side = order.Side == Side.Buy ? "1" : "2", 
-                    TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),
-                    OrdType = order.TypeOrder == OrderPriceType.Market ? "1" : "2", // 1 - Market, 2 - Limit
-                    OrderQty = order.Volume.ToString(),                    
-                    Price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString().Replace(',', '.') : "0",
-                };
-
-                //Вычисляем длину сообщения
-                header.BodyLength = header.GetHeaderSize() + msg.GetMessageSize();
-                //Создаем концовку сообщения
-                Trailer trailer = new Trailer(header.ToString() + msg.ToString());
-
-                //Формируем полное готовое сообщение
-                string fullMessage = header.ToString() + msg.ToString() + trailer.ToString();
-
-                _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                NewOrderSingleMessage msg = new NewOrderSingleMessage();
+                msg.ClOrdID = order.NumberUser.ToString();
+                msg.NoPartyID = "1";
+                msg.PartyID = _MFIXTradeClientCode;
+                msg.Account = _MFIXTradeAccount;
+                msg.NoTradingSessions = "1";
+                msg.TradingSessionID = order.SecurityClassCode;
+                msg.Symbol = order.SecurityNameCode;
+                msg.Side = order.Side == Side.Buy ? "1" : "2";
+                msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
+                msg.OrdType = order.TypeOrder == OrderPriceType.Market ? "1" : "2"; // 1 - Market, 2 - Limit
+                msg.OrderQty = order.Volume.ToString();
+                msg.Price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString().Replace(',', '.') : "0";
+                
+                SendFIXMessage(_MFIXTradeSocket, header, msg);                
             }
             catch (Exception exception)
             {
@@ -3806,46 +3615,33 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     return;
                 }
 
-                Header header = new Header
-                {
-                    BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                    MsgType = "G", // Order cancel replace request
-                    SenderCompID = _MFIXTradeServerLogin,
-                    TargetCompID = _MFIXTradeServerTargetCompId,
-                    MsgSeqNum = _MFIXTradeMsgSeqNum++
-                };
+                Header header = new Header();
+                header.MsgType = "G"; // Order cancel replace request
+                header.SenderCompID = _MFIXTradeServerLogin;
+                header.TargetCompID = _MFIXTradeServerTargetCompId;
+                header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
-                OrderCancelReplaceRequestMessage msg = new OrderCancelReplaceRequestMessage()
-                {
-                    ClOrdID = DateTime.UtcNow.Ticks.ToString(), // идентификатор заявки на снятие/изменение
-                    OrigClOrdID = order.NumberUser.ToString(),
-                    OrderID = order.NumberMarket,
-                    PartyID = _MFIXTradeClientCode,
-                    Account = _MFIXTradeAccount,                    
-                    TradingSessionID = order.SecurityClassCode,
-                    Symbol = order.SecurityNameCode,
-                    Side = order.Side == Side.Buy ? "1" : "2",
-                    TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),
-                    OrdType = order.TypeOrder == OrderPriceType.Market ? "1" : "2", // 1 - Market, 2 - Limit
-                    OrderQty = order.Volume.ToString(),
-                    Price = order.TypeOrder == OrderPriceType.Limit ? newPrice.ToString().Replace(',', '.') : "0",
-                };
-
-                //Вычисляем длину сообщения
-                header.BodyLength = header.GetHeaderSize() + msg.GetMessageSize();
-                //Создаем концовку сообщения
-                Trailer trailer = new Trailer(header.ToString() + msg.ToString());
-
-                //Формируем полное готовое сообщение
-                string fullMessage = header.ToString() + msg.ToString() + trailer.ToString();
-
-                _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                OrderCancelReplaceRequestMessage msg = new OrderCancelReplaceRequestMessage();
+                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие/изменение
+                msg.OrigClOrdID = order.NumberUser.ToString();
+                msg.OrderID = order.NumberMarket;
+                msg.PartyID = _MFIXTradeClientCode;
+                msg.Account = _MFIXTradeAccount;
+                msg.TradingSessionID = order.SecurityClassCode;
+                msg.Symbol = order.SecurityNameCode;
+                msg.Side = order.Side == Side.Buy ? "1" : "2";
+                msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
+                msg.OrdType = order.TypeOrder == OrderPriceType.Market ? "1" : "2"; // 1 - Market, 2 - Limit
+                msg.OrderQty = order.Volume.ToString();
+                msg.Price = order.TypeOrder == OrderPriceType.Limit ? newPrice.ToString().Replace(',', '.') : "0";
+                               
+                SendFIXMessage(_MFIXTradeSocket, header, msg);                
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
-        }               
+        }
 
         public void CancelOrder(Order order)
         {
@@ -3853,33 +3649,20 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             try
             {
-                Header header = new Header
-                {
-                    BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                    MsgType = "F", // order cancel request
-                    SenderCompID = _MFIXTradeServerLogin,
-                    TargetCompID = _MFIXTradeServerTargetCompId,
-                    MsgSeqNum = _MFIXTradeMsgSeqNum++
-                };
+                Header header = new Header();
+                header.MsgType = "F"; // order cancel request
+                header.SenderCompID = _MFIXTradeServerLogin;
+                header.TargetCompID = _MFIXTradeServerTargetCompId;
+                header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
-                OrderCancelRequestMessage msg = new OrderCancelRequestMessage()
-                {
-                    OrigClOrdID = order.NumberUser.ToString(), 
-                    OrderID = _changedOrderIds.ContainsKey(order.NumberUser) ? _changedOrderIds[order.NumberUser] : order.NumberMarket.ToString(), // по-умолчанию снимаем ордер по пользовательскому номеру
-                    ClOrdID = DateTime.UtcNow.Ticks.ToString(), // идентификатор заявки на снятие
-                    Side = order.Side == Side.Buy ? "1" : "2",
-                    TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),                    
-                };
+                OrderCancelRequestMessage msg = new OrderCancelRequestMessage();
+                msg.OrigClOrdID = order.NumberUser.ToString();
+                msg.OrderID = _changedOrderIds.ContainsKey(order.NumberUser) ? _changedOrderIds[order.NumberUser] : order.NumberMarket.ToString(); // по-умолчанию снимаем ордер по пользовательскому номеру
+                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.Side = order.Side == Side.Buy ? "1" : "2";
+                msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
 
-                //Вычисляем длину сообщения
-                header.BodyLength = header.GetHeaderSize() + msg.GetMessageSize();
-                //Создаем концовку сообщения
-                Trailer trailer = new Trailer(header.ToString() + msg.ToString());
-
-                //Формируем полное готовое сообщение
-                string fullMessage = header.ToString() + msg.ToString() + trailer.ToString();
-
-                _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                SendFIXMessage(_MFIXTradeSocket, header, msg);                
             }
             catch (Exception exception)
             {
@@ -3893,32 +3676,19 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             try
             {
-                Header header = new Header
-                {
-                    BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                    MsgType = "q", // order mass cancel request
-                    SenderCompID = _MFIXTradeServerLogin,
-                    TargetCompID = _MFIXTradeServerTargetCompId,
-                    MsgSeqNum = _MFIXTradeMsgSeqNum++
-                };
+                Header header = new Header();
+                header.MsgType = "q"; // order mass cancel request
+                header.SenderCompID = _MFIXTradeServerLogin;
+                header.TargetCompID = _MFIXTradeServerTargetCompId;
+                header.MsgSeqNum = _MFIXTradeMsgSeqNum++;                
 
-                OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage()
-                {
-                    ClOrdID = DateTime.UtcNow.Ticks.ToString(), // идентификатор заявки на снятие
-                    TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),                    
-                    Account = _MFIXTradeAccount,
-                    PartyID = _MFIXTradeClientCode,
-                };
+                OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
+                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
+                msg.Account = _MFIXTradeAccount;
+                msg.PartyID = _MFIXTradeClientCode;
 
-                //Вычисляем длину сообщения
-                header.BodyLength = header.GetHeaderSize() + msg.GetMessageSize();
-                //Создаем концовку сообщения
-                Trailer trailer = new Trailer(header.ToString() + msg.ToString());
-
-                //Формируем полное готовое сообщение
-                string fullMessage = header.ToString() + msg.ToString() + trailer.ToString();
-
-                _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                SendFIXMessage(_MFIXTradeSocket, header, msg);
             }
             catch (Exception exception)
             {
@@ -3932,35 +3702,22 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
             try
             {
-                Header header = new Header
-                {
-                    BeginString = "FIX.4.4", //Версия FIX "FIX .4 .4»,
-                    MsgType = "q", // order mass cancel request
-                    SenderCompID = _MFIXTradeServerLogin,
-                    TargetCompID = _MFIXTradeServerTargetCompId,
-                    MsgSeqNum = _MFIXTradeMsgSeqNum++
-                };
+                Header header = new Header();
+                header.MsgType = "q"; // order mass cancel request
+                header.SenderCompID = _MFIXTradeServerLogin;
+                header.TargetCompID = _MFIXTradeServerTargetCompId;
+                header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
-                OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage()
-                {
-                    ClOrdID = DateTime.UtcNow.Ticks.ToString(), // идентификатор заявки на снятие
-                    MassCancelRequestType = "7",
-                    TradingSessionID = security.NameClass,
-                    Symbol = security.NameId,
-                    TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff"),
-                    Account = _MFIXTradeAccount,
-                    PartyID = _MFIXTradeClientCode,
-                };
+                OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
+                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.MassCancelRequestType = "7";
+                msg.TradingSessionID = security.NameClass;
+                msg.Symbol = security.NameId;
+                msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
+                msg.Account = _MFIXTradeAccount;
+                msg.PartyID = _MFIXTradeClientCode;
 
-                //Вычисляем длину сообщения
-                header.BodyLength = header.GetHeaderSize() + msg.GetMessageSize();
-                //Создаем концовку сообщения
-                Trailer trailer = new Trailer(header.ToString() + msg.ToString());
-
-                //Формируем полное готовое сообщение
-                string fullMessage = header.ToString() + msg.ToString() + trailer.ToString();
-
-                _MFIXTradeSocket.Send(Encoding.UTF8.GetBytes(fullMessage));
+                SendFIXMessage(_MFIXTradeSocket, header, msg);
             }
             catch (Exception exception)
             {
@@ -3984,75 +3741,44 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         private int GetDecimals(decimal x)
         {
-            var precision = 0;
+            int precision = 0;
             while (x * (decimal)Math.Pow(10, precision) != Math.Round(x * (decimal)Math.Pow(10, precision)))
                 precision++;
             return precision;
         }
-
-        public long ConvertToUnixTimestamp(DateTime date)
+        private string TradeToString(GroupValue groupVal)
         {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = date.ToUniversalTime() - origin;
-            return Convert.ToInt64(diff.TotalSeconds);
-        }
+            string TradingSessionID = groupVal.GetString("TradingSessionID") ?? "N/A";
+            string TradingSessionSubID = groupVal.GetString("TradingSessionSubID") ?? "N";
+            string MDEntryType = groupVal.GetString("MDEntryType");
+            int RptSeq = groupVal.IsDefined("RptSeq") ? groupVal.GetInt("RptSeq") : -1;
+            string symbol = groupVal.GetString("Symbol") ?? "N/A";
+            string side = groupVal.GetString("OrderSide") ?? "_";
+            string price = groupVal.GetString("MDEntryPx") ?? "_";
+            string size = groupVal.GetString("MDEntrySize") ?? "_";
+            string time = groupVal.GetString("MDEntryTime") ?? "00:00:00";
 
-        private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            DateTime result = origin.AddSeconds(seconds.ToDouble()).ToLocalTime();
-
-            return result;
-        }
-
-        private DateTime ConvertToDateTimeFromUnixFromMilliseconds(string seconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            DateTime result = origin.AddMilliseconds(seconds.ToDouble());
-
-            return result.ToLocalTime();
-        }
-
-        private DateTime ConvertToDateTimeFromTimeFixFastEquitiesData(string FixFastEquitiesTime)
-        {
-            //"time": "2018-08-07T08:40:03.445Z",
-
-            string date = FixFastEquitiesTime.Split('T')[0];
-
-            int year = Convert.ToInt32(date.Substring(0,4));
-            int month = Convert.ToInt32(date.Substring(5, 2));
-            int day = Convert.ToInt32(date.Substring(8, 2));
-
-            string time = FixFastEquitiesTime.Split('T')[1];
-
-            int hour = Convert.ToInt32(time.Substring(0, 2));
-
-            if (FixFastEquitiesTime.EndsWith("+00:00"))
-            {
-                hour += 3;
-            }
-
-            if (FixFastEquitiesTime.EndsWith("+01:00"))
-            {
-                hour += 2;
-            }
-
-            if (FixFastEquitiesTime.EndsWith("+02:00"))
-            {
-                hour += 1;
-            }
-            int minute = Convert.ToInt32(time.Substring(3, 2));
-            int second = Convert.ToInt32(time.Substring(6, 2));
-            int ms = Convert.ToInt32(time.Substring(10, 3));
-
-            DateTime dateTime = new DateTime(year, month, day, hour, minute, second, ms);
-
-            return dateTime;
+            return $"[RptSeq={RptSeq}] {symbol}, {side}, {price} x {size} @ t={time} TradingSessionID{TradingSessionID} TradingSessionSubID={TradingSessionSubID} MDEntryType={MDEntryType}";
         }
 
         #endregion
 
         #region 12 Log
+
+        private string _logLock = "locker for stream writer";
+        private StreamWriter _logFile = new StreamWriter("Engine\\Log\\FIXFAST_Multicast_UDP-log.txt");
+        private StreamWriter _logFileXOrders = new StreamWriter("Engine\\Log\\FIXFAST_Multicast_UDP-log-XOrders.txt");
+
+        private StreamWriter _logFileMFIX = new StreamWriter($"Engine\\Log\\MFIX_{DateTime.Now.ToString("yyyy-MM-dd")}.txt");
+        private StreamWriter _logFileMFIXTradeCapture = new StreamWriter($"Engine\\Log\\MFIX_TradeCapture_{DateTime.Now.ToString("yyyy-MM-dd")}.txt");
+
+        private void WriteLog(string message, string source)
+        {
+            lock (_logLock)
+            {
+                _logFile.WriteLine($"{DateTime.Now} {source}: {message}");
+            }
+        }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
@@ -4060,7 +3786,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
+                
         #endregion
     }
 
