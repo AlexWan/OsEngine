@@ -102,13 +102,37 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
         public string MessageType { get; set; }
         public Dictionary<string, string> Fields { get; set; }
 
+        public string rawMessage = "";
+
         public FIXMessage()
         {
             Fields = new Dictionary<string, string>();
         }
 
+        public override string ToString()
+        {
+            string output = "";
+            // Split the message into header, body, and trailer
+            string[] parts = rawMessage.Split(new[] { '\u0001' }); // "\u0001" is the start of a new field in FIX
+            // Parse the body fields
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                string part = parts[i];
+                string[] field = part.Split('=');
+                if (field.Length == 2)
+                {
+                    string name = field[0];
+                    string value = field[1];
+                    name = fixDict.ContainsKey(name) ? fixDict[name] : name;
+                    output += name + "=" + value + "| ";
+                }
+            }
+                    
+            return output;
+        }
+
         public static FIXMessage ParseFIXMessage(string message)
-        {            
+        {                   
             // Split the message into header, body, and trailer
             string[] parts = message.Split(new[] { '\u0001' }); // "\u0001" is the start of a new field in FIX
 
@@ -206,6 +230,8 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                     FIXMessage.Fields[name] = value;
                 }
             }
+
+            FIXMessage.rawMessage = message;
 
             return FIXMessage;
         }

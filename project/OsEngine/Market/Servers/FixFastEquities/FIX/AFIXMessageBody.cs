@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace OsEngine.Market.Servers.FixFastEquities.FIX
 {
     internal abstract class AFIXMessageBody
-    {
-        public abstract string ToString();
+    {       
         public int GetMessageSize()
         {
             return ToString().Length;

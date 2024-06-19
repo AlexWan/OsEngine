@@ -170,6 +170,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
+                SendLogMessage("Connection cannot be open to FIX/FAST servers. Error request", LogMessageType.Error);
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
         }
 
@@ -182,41 +188,14 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 _templates = loader.Load(stream);
             }           
         }
-
-        private void ConnectionCheckThread()
-        {
-            while (true)
-            {
-                Thread.Sleep(10000);
-
-                if (ServerStatus != ServerConnectStatus.Connect)
-                {
-                    continue;
-                }
-
-                if (_lastGetLiveTimeToketTime.AddMinutes(20) < DateTime.Now)
-                {
-                    //if (GetCurSessionToken() == false)
-                    {
-                        if (ServerStatus == ServerConnectStatus.Connect)
-                        {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
-                    }
-                }
-            }
-        }
-
-        DateTime _lastGetLiveTimeToketTime = DateTime.MinValue;       
-
+        
         public void Dispose()
         {
             _securities.Clear();
             _myPortfolios.Clear();      
             DeleteWebSocketConnection();
 
-            SendLogMessage("Connection Closed by FixFastEquities. WebSocket Data Closed Event", LogMessageType.System);
+            SendLogMessage("Connection Closed by FixFastEquities. Socket Data Closed Event", LogMessageType.System);
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
@@ -278,15 +257,14 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private long _missingTLRBeginSeqNo = -1;
         private long _missingTLREndSeqNo = 0;
         private bool _missingTLRData = false;
-        private bool _restoreMissingDataViaTCPOnStart = true; // включить восстановление данных по TCP при запуске в случае если следующего снэпшота ждать еще 8-15 минут
-
+       
         private Socket _MFIXTradeSocket;
-        private long _MFIXTradeMsgSeqNum;
-        private long _MFIXTradeMsgSeqNumIncoming;
+        private long _MFIXTradeMsgSeqNum = 1;
+        private long _MFIXTradeMsgSeqNumIncoming = 1;
 
         private Socket _MFIXTradeCaptureSocket;
-        private long _MFIXTradeCaptureMsgSeqNum;
-        private long _MFIXTradeCaptureMsgSeqNumIncoming;
+        private long _MFIXTradeCaptureMsgSeqNum = 1;
+        private long _MFIXTradeCaptureMsgSeqNumIncoming = 1;
 
         #endregion
 
@@ -308,7 +286,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public void GetPortfolios()
         {            
-            Portfolio newPortfolio = new Portfolio();
+            Portfolio newPortfolio = new Portfolio(); // we've got only one portfolio by default
             newPortfolio.Number = _MFIXTradeAccount;
             newPortfolio.ValueCurrent = 1;
             _myPortfolios.Add(newPortfolio);
@@ -326,54 +304,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
         #region 5 Data
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            DateTime endTime = DateTime.Now.ToUniversalTime();
-
-            while(endTime.Hour != 23)
-            {
-                endTime = endTime.AddHours(1);
-            }
-
-            int candlesInDay = 0;
-
-            if(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes >= 1)
-            {
-                candlesInDay = 900 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
-            }
-            else
-            {
-                candlesInDay = 54000/ Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
-            }
-
-            if(candlesInDay == 0)
-            {
-                candlesInDay = 1;
-            }
-
-            int daysCount = candleCount / candlesInDay;
-
-            if(daysCount == 0)
-            {
-                daysCount = 1;
-            }
-
-            daysCount++;
-
-            if(daysCount > 5)
-            { // добавляем выходные
-                daysCount = daysCount + (daysCount / 5) * 2;
-            }
-
-            DateTime startTime = endTime.AddDays(-daysCount);
-
-            List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
-        
-            while(candles.Count > candleCount)
-            {
-                candles.RemoveAt(0);
-            }
-
-            return candles;
+        {            
+            return null;
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
@@ -386,8 +318,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
         {
             return null;           
         }
-
-
 
         #endregion
 
@@ -568,7 +498,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
             }
         }
 
-        private int SendFIXMessage(Socket socket, AFIXHeader header, AFIXMessageBody messageBody)
+        private string SendFIXMessage(Socket socket, AFIXHeader header, AFIXMessageBody messageBody)
         {
             header.BodyLength = header.GetHeaderSize() + messageBody.GetMessageSize();
             
@@ -578,7 +508,21 @@ namespace OsEngine.Market.Servers.FixFastEquities
             //Формируем полное готовое сообщение
             string fullFIXMessage = header.ToString() + messageBody.ToString() + trailer.ToString();
 
-            return socket.Send(Encoding.UTF8.GetBytes(fullFIXMessage));
+            try
+            {
+                socket.Send(Encoding.UTF8.GetBytes(fullFIXMessage));
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error sending FIX Message " + ex.ToString(), LogMessageType.Error);
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+
+            return fullFIXMessage;
         }
 
         private void EstablishMFIXTradeConnection()
@@ -641,8 +585,10 @@ namespace OsEngine.Market.Servers.FixFastEquities
             _MFIXTradeCaptureSocket.Connect(ipEndPoint);
                                    
             //Отправляем сообщение
-            int bytesSent = SendFIXMessage(_MFIXTradeSocket, tradeServerLogonHeader, logonTServerMessageBody);                
-            bytesSent = SendFIXMessage(_MFIXTradeCaptureSocket, tradeCaptureServerLogonHeader, logonTCServerMessageBody);
+            string tServerLogonMessage = SendFIXMessage(_MFIXTradeSocket, tradeServerLogonHeader, logonTServerMessageBody);
+            string tCaptureServerLogonMessage = SendFIXMessage(_MFIXTradeCaptureSocket, tradeCaptureServerLogonHeader, logonTCServerMessageBody);
+            WriteLogOutgoingFIXMessage(tServerLogonMessage, FIXServer.MFIXTrade);
+            WriteLogOutgoingFIXMessage(tCaptureServerLogonMessage, FIXServer.MFIXTradeCapture);
 
             bool tradeServerConnected = false;
             bool tradeCaptureServerConnected = false;
@@ -656,11 +602,25 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 bytesRec = 0;
                 if (tradeCaptureServerConnected == false)
                 {
-                    bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
+                    try
+                    {
+                        bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage("Error receiving FIX Message " + ex.ToString(), LogMessageType.Error);
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
 
                     if (bytesRec > 0)
                     {
                         string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                        WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTradeCapture);
+
                         FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
 
                         if (fixMessage.MessageType == "Logon")
@@ -674,11 +634,24 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 bytesRec = 0;
                 if (tradeServerConnected == false)
                 {
-                    bytesRec = _MFIXTradeSocket.Receive(bytes);
+                    try
+                    {
+                        bytesRec = _MFIXTradeSocket.Receive(bytes);
+                    } catch (Exception ex)
+                    {
+                        SendLogMessage("Error receiving FIX Message " + ex.ToString(), LogMessageType.Error);
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
 
                     if (bytesRec > 0)
                     {
                         string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                        WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTrade);
+
                         FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
 
                         if (fixMessage.MessageType == "Logon")
@@ -720,9 +693,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
             LogoutMessage logoutTCServerMessageBody = new LogoutMessage();
                        
             //Отправляем сообщение
-            int bytesSent = SendFIXMessage(_MFIXTradeSocket, tradeServerLogoutHeader, logoutTServerMessageBody);
-            bytesSent = SendFIXMessage(_MFIXTradeCaptureSocket, tradeCaptureServerLogoutHeader, logoutTCServerMessageBody);
-            
+            string logonMessageTServer = SendFIXMessage(_MFIXTradeSocket, tradeServerLogoutHeader, logoutTServerMessageBody);
+            WriteLogOutgoingFIXMessage(logonMessageTServer, FIXServer.MFIXTrade);
+
+            string logonMessageTCServer = SendFIXMessage(_MFIXTradeCaptureSocket, tradeCaptureServerLogoutHeader, logoutTCServerMessageBody);
+            WriteLogOutgoingFIXMessage(logonMessageTCServer, FIXServer.MFIXTradeCapture);
+
             while (_MFIXTradeSocket != null || _MFIXTradeCaptureSocket != null)
             {
                 Thread.Sleep(1); // ждем когда сокет закроется
@@ -1042,8 +1018,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
             }
         }                
         
-        #endregion
-               
+        #endregion             
 
         #region 8 Security subscription
                 
@@ -1077,7 +1052,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         #endregion
 
-        #region 9 WebSocket parsing the messages
+        #region 9 Sockets receiving and parsing the messages
                 
         private DateTime _lastInstrumentDefinitionsTime = DateTime.MinValue;
         private bool _allSecuritiesLoaded = false;
@@ -1126,7 +1101,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     // читаем из потоков А и B
                     // либо сразу обрабатываем либо перемещаем в очередь для разбора
                     for (int s = 0; s < 2; s++)
-                    {                       
+                    {
                         int length = 0;
 
                         try
@@ -1140,10 +1115,19 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                                 length = s == 0 ? _instrumentSocketA.Receive(buffer) : _instrumentSocketB.Receive(buffer);
                             }
-                        } 
+                        }
                         catch (SocketException)
                         {
                             break;
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage("Error receiving FAST Message " + ex.ToString(), LogMessageType.Error);
+                            if (ServerStatus != ServerConnectStatus.Disconnect)
+                            {
+                                ServerStatus = ServerConnectStatus.Disconnect;
+                                DisconnectEvent();
+                            }
                         }
 
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
@@ -1153,7 +1137,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                             string msgType = msg.GetString("MessageType");
                             long msgSeqNum = int.Parse(msg.GetString("MsgSeqNum"));
-                            
+
                             if (msgType == "d") /// security definition
                             {
                                 _lastInstrumentDefinitionsTime = DateTime.UtcNow;
@@ -1169,7 +1153,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                                     continue;
                                 }
-                                
+
                                 snapshotIds.Add(msgSeqNum);
                                 if (snapshotIds.Count % 1000 == 0)
                                 {
@@ -1177,7 +1161,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                 }
 
                                 string symbol = msg.GetString("Symbol");
-                                
+
                                 string securityID = msg.IsDefined("SecurityID") ? msg.GetString("SecurityID") : msg.GetString("CFICode");
                                 string currency = msg.GetString("SettlCurrency");
                                 string marketCode = msg.GetString("MarketCode");
@@ -1199,7 +1183,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                 {
                                     continue;
                                 }
-                                
+
                                 // Обрабатываем новые бумаги                            
                                 string eveningSession = msg.IsDefined("EveningSession") ? msg.GetString("EveningSession") : "неизвестно";
                                 string secDecimals = "0";// msg.IsDefined("GroupInstrAttrib") ? msg.GetGroup("GroupInstrAttrib").ToString() : "неизвестно";
@@ -1222,14 +1206,14 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                         {
                                             lot = groupVal.GetString("RoundLot");
                                         }
-                                        
+
                                         if (groupVal.IsDefined("TradingSessionRulesGrp"))
                                         {
                                             SequenceValue secVal2 = groupVal.GetValue("TradingSessionRulesGrp") as SequenceValue;
 
                                             for (int j = 0; j < secVal2.Length; j++)
                                             {
-                                                GroupValue trdSessionGrp = secVal2[j] as GroupValue;                                                                                             
+                                                GroupValue trdSessionGrp = secVal2[j] as GroupValue;
 
                                                 TradingSessionID = trdSessionGrp.GetString("TradingSessionID");
 
@@ -1238,8 +1222,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                                     isInKnownTradingSession = true;
                                                     break;
                                                 }
-                                            }                                                                                    
-                                        }                                      
+                                            }
+                                        }
                                     }
                                 }
 
@@ -1316,13 +1300,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                 newSecurity.PriceStepCost = newSecurity.PriceStep;
                                 newSecurity.DecimalsVolume = 1;
                                 newSecurity.Decimals = int.Parse(secDecimals);
-                                newSecurity.Decimals = GetDecimals(newSecurity.PriceStep);
-                                //if (msg.IsDefined("MinPriceIncrement"))
-                                //newSecurity.PriceLimitHigh = item.priceMax.ToDecimal();
-                                //      if (string.IsNullOrEmpty(item.priceMin) == false)
-                                //            {
-                                //                newSecurity.PriceLimitLow = item.priceMin.ToDecimal();
-                                //            }
+                                newSecurity.Decimals = GetDecimals(newSecurity.PriceStep);                                
 
                                 securities.Add(newSecurity);
                             }
@@ -1344,7 +1322,6 @@ namespace OsEngine.Market.Servers.FixFastEquities
             OpenFAST.Context context = null;                               
 
             Thread.Sleep(1000);
-
 
             while (true)
             {
@@ -1393,6 +1370,15 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;                            
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage("Error receiving FAST Message " + ex.ToString(), LogMessageType.Error);
+                            if (ServerStatus != ServerConnectStatus.Disconnect)
+                            {
+                                ServerStatus = ServerConnectStatus.Disconnect;
+                                DisconnectEvent();
+                            }
                         }
 
                         if (length == 0)
@@ -1520,6 +1506,15 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
                         }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage("Error receiving FAST Message " + ex.ToString(), LogMessageType.Error);
+                            if (ServerStatus != ServerConnectStatus.Disconnect)
+                            {
+                                ServerStatus = ServerConnectStatus.Disconnect;
+                                DisconnectEvent();
+                            }
+                        }
 
                         if (length == 0)
                             continue;
@@ -1565,85 +1560,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     Thread.Sleep(5000);
                 }
             }
-        }
-
-        public class UpdateComparer : IComparer<GroupValue>
-        {
-            public int Compare(GroupValue x, GroupValue y)
-            {
-                return x.GetLong("RptSeq").CompareTo(y.GetLong("RptSeq"));
-            }
-        }
-
-        public class TradeComparer : IComparer<Trade>
-        {
-            public int Compare(Trade x, Trade y)
-            {
-                return long.Parse(x.Id).CompareTo(long.Parse(y.Id));
-            }
-        }
-
-        class SecuritySnapshot
-        {
-            public bool IsComplete = false;
-            public int RptSeq = 0;
-            public long LastMsgSeqNumProcessed = 0;
-            public bool RouteFirstReceived = false;
-            public bool LastFragmentReceived = false;
-            public List<Trade> Trades = new List<Trade>();
-
-            public void AddTrade(Trade trade)
-            {
-                // check if trade with such id already exists
-                if (Trades.Any(t => t.Id == trade.Id))
-                {
-                    return;
-                }
-
-                // Find the index where the new item should be inserted
-                int index = Trades.BinarySearch(trade, new TradeComparer());
-
-                // If the item is not found (index is negative)
-                if (index < 0)
-                {
-                    index = ~index; // Convert negative index to positive
-                }
-                
-                // Insert the new item
-                Trades.Insert(index, trade);                
-            }
-        };               
-
-        class OrdersSnapshot
-        {
-            public bool IsComplete = false;
-            public int RptSeq = 0;  // Номер обновления инструмента. Соответствует RptSeq(83) в последнем сообщении Market Data - Incremental Refresh(X), которое было опубликовано кмоменту формирования снепшота по инструменту.
-            public long LastMsgSeqNumProcessed = 0; // Номер последнего обработанного сообщения.
-            public bool RouteFirstReceived = false;
-            public bool LastFragmentReceived = false;
-            public List<OrdersUpdate> Data = new List<OrdersUpdate>();
-
-            public void AddData(OrdersUpdate update)
-            {
-                // check if trade with such id already exists
-                if (Data.Any(t => t.Id == update.Id))
-                {
-                    return;
-                }
-
-                // Find the index where the new item should be inserted
-                int index = Data.BinarySearch(update, new OrderBookComparer());
-
-                // If the item is not found (index is negative)
-                if (index < 0)
-                {
-                    index = ~index; // Convert negative index to positive
-                }
-
-                // Insert the new item
-                Data.Insert(index, update);
-            }
-        };
+        }       
 
         private string _ordersIncrementalLocker = "OrdersIncrementalLocker";
         private Dictionary<long, OpenFAST.Message> _ordersIncremental = new Dictionary<long, OpenFAST.Message>();
@@ -1704,6 +1621,15 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         // обычно возникает если мы прерываем блокирующую операцию
                         break;
                     }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage("Error receiving FAST Message " + ex.ToString(), LogMessageType.Error);
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
 
                     if (length == 0)
                         continue;
@@ -1713,8 +1639,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         FastDecoder decoder = new FastDecoder(context, stream);
                         OpenFAST.Message msg = decoder.ReadMessage();
 
-                        long msgSeqNum = msg.GetLong("MsgSeqNum");
-                        bool needToEnqueue = false;
+                        long msgSeqNum = msg.GetLong("MsgSeqNum");                        
 
                         lock (_ordersIncrementalLocker)
                         {
@@ -1827,6 +1752,15 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         // обычно возникает если мы прерываем блокирующую операцию
                         break;
                     }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage("Error receiving FAST Message " + ex.ToString(), LogMessageType.Error);
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
 
                     if (length == 0)
                         continue;
@@ -1836,8 +1770,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         FastDecoder decoder = new FastDecoder(context, stream);
                         OpenFAST.Message msg = decoder.ReadMessage();
 
-                        long msgSeqNum = msg.GetLong("MsgSeqNum");
-                        bool needToEnqueue = false;
+                        long msgSeqNum = msg.GetLong("MsgSeqNum");                        
 
                         lock (_ordersIncrementalLocker)
                         {
@@ -1930,6 +1863,15 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         {
                             // обычно возникает если мы прерываем блокирующую операцию
                             break;
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage("Error receiving FAST Message " + ex.ToString(), LogMessageType.Error);
+                            if (ServerStatus != ServerConnectStatus.Disconnect)
+                            {
+                                ServerStatus = ServerConnectStatus.Disconnect;
+                                DisconnectEvent();
+                            }
                         }
 
                         if (length == 0)
@@ -2045,14 +1987,40 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         logonMessageBody.Password = "pass0";                        
                                                 
                         //Отправляем сообщение
-                        int bytesSent = SendFIXMessage(_historicalReplaySocket, header, logonMessageBody);                            
+                        SendFIXMessage(_historicalReplaySocket, header, logonMessageBody);                            
 
                         // получаем ответ - должен быть Logon
                         sizeBuffer = new byte[4];
-                        int length = _historicalReplaySocket.Receive(sizeBuffer, 4, SocketFlags.None);
+                        int length = 0;
+                        try
+                        {
+                            length = _historicalReplaySocket.Receive(sizeBuffer, 4, SocketFlags.None);
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage("Error receiving Data " + ex.ToString(), LogMessageType.Error);
+                            if (ServerStatus != ServerConnectStatus.Disconnect)
+                            {
+                                ServerStatus = ServerConnectStatus.Disconnect;
+                                DisconnectEvent();
+                            }
+                        }
+
                         while (length < 4)
                         {
-                            length += _historicalReplaySocket.Receive(sizeBuffer, length, 4 - length, SocketFlags.None);
+                            try
+                            {
+                                length += _historicalReplaySocket.Receive(sizeBuffer, length, 4 - length, SocketFlags.None);
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage("Error receiving Data Message " + ex.ToString(), LogMessageType.Error);
+                                if (ServerStatus != ServerConnectStatus.Disconnect)
+                                {
+                                    ServerStatus = ServerConnectStatus.Disconnect;
+                                    DisconnectEvent();
+                                }
+                            }
                         }
 
                         int msgSize = BitConverter.ToInt32(sizeBuffer, 0);
@@ -2061,7 +2029,21 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         byte[] messageBuffer = new byte[msgSize];
                         while (totalBytesReceived < msgSize)
                         {
-                            int bytesRead = _historicalReplaySocket.Receive(buffer, msgSize - totalBytesReceived, SocketFlags.None);
+                            int bytesRead = 0;
+                            try
+                            {
+                                bytesRead = _historicalReplaySocket.Receive(buffer, msgSize - totalBytesReceived, SocketFlags.None);
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage("Error receiving Data Message " + ex.ToString(), LogMessageType.Error);
+                                if (ServerStatus != ServerConnectStatus.Disconnect)
+                                {
+                                    ServerStatus = ServerConnectStatus.Disconnect;
+                                    DisconnectEvent();
+                                }
+                            }
+
                             Array.Copy(buffer, 0, messageBuffer, totalBytesReceived, bytesRead);
                             totalBytesReceived += bytesRead;
                         }
@@ -2114,15 +2096,40 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         marketDataRequest.ApplEndSeqNum = ApplEndSeqNum.ToString();
                         
                         //Отправляем сообщение
-                        bytesSent = SendFIXMessage(_historicalReplaySocket, header, marketDataRequest);
+                        SendFIXMessage(_historicalReplaySocket, header, marketDataRequest);
 
                         while (true) // начинаем цикл приема сообщений
                         {
                             sizeBuffer = new byte[4];
-                            length = _historicalReplaySocket.Receive(sizeBuffer, 4, SocketFlags.None);
+                            try
+                            {
+                                length = _historicalReplaySocket.Receive(sizeBuffer, 4, SocketFlags.None);
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage("Error receiving Data Message " + ex.ToString(), LogMessageType.Error);
+                                if (ServerStatus != ServerConnectStatus.Disconnect)
+                                {
+                                    ServerStatus = ServerConnectStatus.Disconnect;
+                                    DisconnectEvent();
+                                }
+                            }
+
                             while (length < 4)
                             {
-                                length += _historicalReplaySocket.Receive(sizeBuffer, length, 4 - length, SocketFlags.None);
+                                try
+                                {
+                                    length += _historicalReplaySocket.Receive(sizeBuffer, length, 4 - length, SocketFlags.None);
+                                }
+                                catch (Exception ex)
+                                {
+                                    SendLogMessage("Error receiving Data Message " + ex.ToString(), LogMessageType.Error);
+                                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                                    {
+                                        ServerStatus = ServerConnectStatus.Disconnect;
+                                        DisconnectEvent();
+                                    }
+                                }
                             }
 
                             msgSize = BitConverter.ToInt32(sizeBuffer, 0);
@@ -2137,7 +2144,13 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                     bytesRead = _historicalReplaySocket.Receive(buffer, msgSize - totalBytesReceived, SocketFlags.None);
                                 }
                                 catch (Exception ex)
-                                { 
+                                {
+                                    SendLogMessage("Error receiving Data Message " + ex.ToString(), LogMessageType.Error);
+                                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                                    {
+                                        ServerStatus = ServerConnectStatus.Disconnect;
+                                        DisconnectEvent();
+                                    }
                                 }
 
                                 Array.Copy(buffer, 0, messageBuffer, totalBytesReceived, bytesRead);
@@ -2206,7 +2219,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                     logoutMessageBody.Text = "Logging out";                                                                      
 
                                     //Отправляем сообщение
-                                    bytesSent = SendFIXMessage(_historicalReplaySocket, header, logoutMessageBody);
+                                    SendFIXMessage(_historicalReplaySocket, header, logoutMessageBody);
 
                                     if (currentFeed == "OLR")
                                     {
@@ -2434,12 +2447,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                     Trade trade = new Trade();
                                     trade.SecurityNameCode = name;
                                     trade.Price = groupVal.GetString("MDEntryPx").ToDecimal();
-                                                                    
-                                    if (name == "SBER" && trade.Price < 200)
-                                    {
-                                        int xxxxxx = 0;
-                                    }
-
+                                                                                                        
                                     string time = groupVal.GetString("MDEntryTime");
                                     if (time.Length == 8)
                                     {
@@ -3234,9 +3242,23 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         continue;
                     }
 
-                    bytesRec = _MFIXTradeSocket.Receive(bytes);
-                                       
+                    try
+                    {
+                        bytesRec = _MFIXTradeSocket.Receive(bytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage("Error receiving FIX Message " + ex.ToString(), LogMessageType.Error);
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
+
                     string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTrade);
+
                     FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
 
                     // 0. Обрабатываем TestRequest
@@ -3252,7 +3274,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         HeartbeatMessage hbMsg = new HeartbeatMessage();
                         hbMsg.TestReqID = TestReqID;
                                                 
-                        SendFIXMessage(_MFIXTradeSocket, header, hbMsg);
+                        string heartbeatMessage = SendFIXMessage(_MFIXTradeSocket, header, hbMsg);
+                        WriteLogOutgoingFIXMessage(heartbeatMessage, FIXServer.MFIXTrade);
                     }
 
                     // 1. Обрабатываем ExecutionReport
@@ -3451,10 +3474,24 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         Thread.Sleep(1);
                         continue;
                     }
-                                       
-                    bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
-                                       
+
+                    try
+                    {
+                        bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage("Error receiving FIX Message " + ex.ToString(), LogMessageType.Error);
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
+
                     string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTradeCapture);
+
                     FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
 
                     // 0. Обрабатываем TestRequest
@@ -3470,7 +3507,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         HeartbeatMessage hbMsg = new HeartbeatMessage();
                         hbMsg.TestReqID = TestReqID;
                         
-                        SendFIXMessage(_MFIXTradeCaptureSocket, header, hbMsg);
+                        string heartbeatMessage = SendFIXMessage(_MFIXTradeCaptureSocket, header, hbMsg);
+                        WriteLogOutgoingFIXMessage(heartbeatMessage, FIXServer.MFIXTradeCapture);
                     }
 
                     // 1. Обрабатываем TradingSessionStatus
@@ -3523,10 +3561,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     Thread.Sleep(5000);
                 }
             }
-        }
+        }        
         
-        private DateTime _lastMdTime = DateTime.MinValue;
-
         public event Action<Trade> NewTradesEvent;
 
         public event Action<MarketDepth> MarketDepthEvent;
@@ -3571,7 +3607,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 msg.OrderQty = order.Volume.ToString();
                 msg.Price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString().Replace(',', '.') : "0";
                 
-                SendFIXMessage(_MFIXTradeSocket, header, msg);                
+                string newSingleOrderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
+                WriteLogOutgoingFIXMessage(newSingleOrderMessage, FIXServer.MFIXTrade);
             }
             catch (Exception exception)
             {
@@ -3635,7 +3672,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 msg.OrderQty = order.Volume.ToString();
                 msg.Price = order.TypeOrder == OrderPriceType.Limit ? newPrice.ToString().Replace(',', '.') : "0";
                                
-                SendFIXMessage(_MFIXTradeSocket, header, msg);                
+                string orderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
+                WriteLogOutgoingFIXMessage(orderMessage, FIXServer.MFIXTrade);
             }
             catch (Exception error)
             {
@@ -3662,7 +3700,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 msg.Side = order.Side == Side.Buy ? "1" : "2";
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
 
-                SendFIXMessage(_MFIXTradeSocket, header, msg);                
+                string orderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
+                WriteLogOutgoingFIXMessage(orderMessage, FIXServer.MFIXTrade);
             }
             catch (Exception exception)
             {
@@ -3688,7 +3727,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 msg.Account = _MFIXTradeAccount;
                 msg.PartyID = _MFIXTradeClientCode;
 
-                SendFIXMessage(_MFIXTradeSocket, header, msg);
+                string orderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
+                WriteLogOutgoingFIXMessage(orderMessage, FIXServer.MFIXTrade);
             }
             catch (Exception exception)
             {
@@ -3717,7 +3757,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 msg.Account = _MFIXTradeAccount;
                 msg.PartyID = _MFIXTradeClientCode;
 
-                SendFIXMessage(_MFIXTradeSocket, header, msg);
+                string orderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
+                WriteLogOutgoingFIXMessage(orderMessage, FIXServer.MFIXTrade);
             }
             catch (Exception exception)
             {
@@ -3772,6 +3813,28 @@ namespace OsEngine.Market.Servers.FixFastEquities
         private StreamWriter _logFileMFIX = new StreamWriter($"Engine\\Log\\MFIX_{DateTime.Now.ToString("yyyy-MM-dd")}.txt");
         private StreamWriter _logFileMFIXTradeCapture = new StreamWriter($"Engine\\Log\\MFIX_TradeCapture_{DateTime.Now.ToString("yyyy-MM-dd")}.txt");
 
+        private enum FIXServer
+        {
+            MFIXTrade,
+            MFIXTradeCapture,
+        }
+
+        private void WriteLogOutgoingFIXMessage(string message, FIXServer server = FIXServer.MFIXTrade)
+        {
+            StreamWriter writer = server == FIXServer.MFIXTrade ? _logFileMFIX : _logFileMFIXTradeCapture;
+
+            writer.WriteLine($"{DateTime.UtcNow} >>> [{server}]: {message}");
+            writer.Flush();
+        }
+
+        private void WriteLogIncomingFIXMessage(string message, FIXServer server)
+        {
+            StreamWriter writer = server == FIXServer.MFIXTrade ? _logFileMFIX : _logFileMFIXTradeCapture;
+
+            writer.WriteLine($"{DateTime.UtcNow} <<< [{server}]: {message}");
+            writer.Flush();
+        }
+
         private void WriteLog(string message, string source)
         {
             lock (_logLock)
@@ -3807,7 +3870,85 @@ namespace OsEngine.Market.Servers.FixFastEquities
         {
             return long.Parse(x.Id).CompareTo(long.Parse(y.Id));
         }
-    }    
+    }
+
+    public class UpdateComparer : IComparer<GroupValue>
+    {
+        public int Compare(GroupValue x, GroupValue y)
+        {
+            return x.GetLong("RptSeq").CompareTo(y.GetLong("RptSeq"));
+        }
+    }
+
+    public class TradeComparer : IComparer<Trade>
+    {
+        public int Compare(Trade x, Trade y)
+        {
+            return long.Parse(x.Id).CompareTo(long.Parse(y.Id));
+        }
+    }
+
+    class SecuritySnapshot
+    {
+        public bool IsComplete = false;
+        public int RptSeq = 0;
+        public long LastMsgSeqNumProcessed = 0;
+        public bool RouteFirstReceived = false;
+        public bool LastFragmentReceived = false;
+        public List<Trade> Trades = new List<Trade>();
+
+        public void AddTrade(Trade trade)
+        {
+            // check if trade with such id already exists
+            if (Trades.Any(t => t.Id == trade.Id))
+            {
+                return;
+            }
+
+            // Find the index where the new item should be inserted
+            int index = Trades.BinarySearch(trade, new TradeComparer());
+
+            // If the item is not found (index is negative)
+            if (index < 0)
+            {
+                index = ~index; // Convert negative index to positive
+            }
+
+            // Insert the new item
+            Trades.Insert(index, trade);
+        }
+    };
+
+    class OrdersSnapshot
+    {
+        public bool IsComplete = false;
+        public int RptSeq = 0;  // Номер обновления инструмента. Соответствует RptSeq(83) в последнем сообщении Market Data - Incremental Refresh(X), которое было опубликовано кмоменту формирования снепшота по инструменту.
+        public long LastMsgSeqNumProcessed = 0; // Номер последнего обработанного сообщения.
+        public bool RouteFirstReceived = false;
+        public bool LastFragmentReceived = false;
+        public List<OrdersUpdate> Data = new List<OrdersUpdate>();
+
+        public void AddData(OrdersUpdate update)
+        {
+            // check if trade with such id already exists
+            if (Data.Any(t => t.Id == update.Id))
+            {
+                return;
+            }
+
+            // Find the index where the new item should be inserted
+            int index = Data.BinarySearch(update, new OrderBookComparer());
+
+            // If the item is not found (index is negative)
+            if (index < 0)
+            {
+                index = ~index; // Convert negative index to positive
+            }
+
+            // Insert the new item
+            Data.Insert(index, update);
+        }
+    };
 
     public class SecurityToSave
     {
