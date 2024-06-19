@@ -310,7 +310,6 @@ namespace OsEngine.Market.Connectors
                                 ((CandlesParameterDecimal)candlesCur.Parameters[j]).ValueDecimal = ((CandlesParameterDecimal)_series[i].Parameters[j]).ValueDecimal;
                             }
 
-
                             if (candlesCur.Parameters[j].SysName == "TimeFrame"
                                 && candlesCur.Parameters[j].Type == CandlesParameterType.StringCollection)
                             {
@@ -327,9 +326,11 @@ namespace OsEngine.Market.Connectors
                         break;
                     }
                 }
-
+               
                 _connectorBot.TimeFrameBuilder.Save();
                 _connectorBot.Save();
+
+                _connectorBot.ReconnectHard();
 
                 Close();
             }

@@ -856,32 +856,39 @@ namespace OsEngine.Market
 
             while (true)
             {
-                await Task.Delay(5000);
-
-                if (!MainWindow.ProccesIsWorked)
+                try
                 {
-                    return;
-                }
+                    await Task.Delay(5000);
 
-                if (NeadToConnectAuto == false)
-                {
-                    continue;
-                }
+                    if (!MainWindow.ProccesIsWorked)
+                    {
+                        return;
+                    }
 
-                if (_tryActivateServerTypes == null)
-                {
-                    _tryActivateServerTypes = new List<ServerType>();
-                }
-
-                for (int i = 0; _needServerTypes != null && i < _needServerTypes.Count; i++)
-                {
-                    if (_needServerTypes[i] == ServerType.Tester ||
-                        _needServerTypes[i] == ServerType.Optimizer ||
-                        _needServerTypes[i] == ServerType.Miner)
+                    if (NeadToConnectAuto == false)
                     {
                         continue;
                     }
-                    TryStartThisSevrverInAutoType(_needServerTypes[i]);
+
+                    if (_tryActivateServerTypes == null)
+                    {
+                        _tryActivateServerTypes = new List<ServerType>();
+                    }
+
+                    for (int i = 0; _needServerTypes != null && i < _needServerTypes.Count; i++)
+                    {
+                        if (_needServerTypes[i] == ServerType.Tester ||
+                            _needServerTypes[i] == ServerType.Optimizer ||
+                            _needServerTypes[i] == ServerType.Miner)
+                        {
+                            continue;
+                        }
+                        TryStartThisServerInAutoType(_needServerTypes[i]);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    SendNewLogMessage(ex.ToString(),LogMessageType.Error);
                 }
             }
         }
@@ -889,40 +896,47 @@ namespace OsEngine.Market
         /// <summary>
         /// try running this server
         /// </summary>
-        private static void TryStartThisSevrverInAutoType(ServerType type)
+        private static void TryStartThisServerInAutoType(ServerType type)
         {
-            for (int i = 0; i < _tryActivateServerTypes.Count; i++)
+            try
             {
-                if (_tryActivateServerTypes[i] == type)
+                for (int i = 0; i < _tryActivateServerTypes.Count; i++)
+                {
+                    if (_tryActivateServerTypes[i] == type)
+                    {
+                        return;
+                    }
+                }
+
+                _tryActivateServerTypes.Add(type);
+
+                if (GetServers() == null || GetServers().Find(server1 => server1.ServerType == type) == null)
+                { // if we don't have our server, create a new one / если у нас нашего сервера нет - создаём его
+                    CreateServer(type, true);
+                }
+
+                List<IServer> servers = GetServers();
+
+                if (servers == null)
+                { // something went wrong / что-то пошло не так
+                    return;
+                }
+
+                IServer server = servers.Find(server1 => server1.ServerType == type);
+
+                if (server == null)
                 {
                     return;
                 }
+
+                if (server.ServerStatus != ServerConnectStatus.Connect)
+                {
+                    server.StartServer();
+                }
             }
-
-            _tryActivateServerTypes.Add(type);
-
-            if (GetServers() == null || GetServers().Find(server1 => server1.ServerType == type) == null)
-            { // if we don't have our server, create a new one / если у нас нашего сервера нет - создаём его
-                CreateServer(type, true);
-            }
-
-            List<IServer> servers = GetServers();
-
-            if (servers == null)
-            { // something went wrong / что-то пошло не так
-                return;
-            }
-
-            IServer server = servers.Find(server1 => server1.ServerType == type);
-
-            if (server == null)
+            catch (Exception ex)
             {
-                return;
-            }
-
-            if (server.ServerStatus != ServerConnectStatus.Connect)
-            {
-                server.StartServer();
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 

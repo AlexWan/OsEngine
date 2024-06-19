@@ -80,28 +80,6 @@ namespace OsEngine.Candles.Series
 
                 DateTime timeNextCandle = time;
 
-                if (TimeFrameSpan.TotalMinutes >= 1)
-                {
-                    timeNextCandle = time.AddSeconds(-time.Second);
-
-                    while (timeNextCandle.Minute % TimeFrameSpan.TotalMinutes != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddMinutes(-1);
-                    }
-
-                    while (timeNextCandle.Second != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddSeconds(-1);
-                    }
-                }
-                else
-                {
-                    while (timeNextCandle.Second % TimeFrameSpan.TotalSeconds != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddSeconds(-1);
-                    }
-                }
-
                 while (timeNextCandle.Millisecond != 0)
                 {
                     timeNextCandle = timeNextCandle.AddMilliseconds(-1);
@@ -168,23 +146,6 @@ namespace OsEngine.Candles.Series
                 }
 
                 DateTime timeNextCandle = time;
-
-                if (TimeFrameSpan.TotalMinutes >= 1)
-                {
-                    timeNextCandle = time.AddSeconds(-time.Second);
-
-                    while (timeNextCandle.Second != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddSeconds(-1);
-                    }
-                }
-                else
-                {
-                    while (timeNextCandle.Second % TimeFrameSpan.TotalSeconds != 0)
-                    {
-                        timeNextCandle = timeNextCandle.AddSeconds(-1);
-                    }
-                }
 
                 while (timeNextCandle.Millisecond != 0)
                 {
