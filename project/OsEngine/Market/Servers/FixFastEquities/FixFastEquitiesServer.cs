@@ -22,6 +22,7 @@ using System.Xml;
 using System.Net;
 using LiteDB;
 using System.Linq;
+using OsEngine.Market.Servers.FixProtocolEntities;
 
 namespace OsEngine.Market.Servers.FixFastEquities
 {
@@ -58,49 +59,54 @@ namespace OsEngine.Market.Servers.FixFastEquities
         #region 1 Constructor, Status, Connection
 
         public FixFastEquitiesServerRealization()
-        {
-            Thread worker0 = new Thread(InstrumentDefinitionsReader);
-            worker0.Name = "InstrumentsFixFastEquities";
+        {            
+            Thread worker0 = new Thread(ConnectionCheckThread);
+            worker0.Name = "ConnectionCheckerFixFastEquities";
             worker0.Start();
 
-            Thread worker1 = new Thread(TradesIncrementalReader);
-            worker1.Name = "TradesIncremenalFixFastEquities";
+            Thread worker1 = new Thread(InstrumentDefinitionsReader);
+            worker1.Name = "InstrumentsFixFastEquities";
             worker1.Start();
 
-            Thread worker2 = new Thread(TradesSnapshotsReader);
-            worker2.Name = "TradesSnapshotsFixFastEquities";
+            Thread worker2 = new Thread(TradesIncrementalReader);
+            worker2.Name = "TradesIncremenalFixFastEquities";
             worker2.Start();
 
-            Thread worker3 = new Thread(TradeMessagesReader);
-            worker3.Name = "TradeMessagesReaderFixFastEquities";
+            Thread worker3 = new Thread(TradesSnapshotsReader);
+            worker3.Name = "TradesSnapshotsFixFastEquities";
             worker3.Start();
 
-            Thread worker4 = new Thread(OrderMessagesReader);
-            worker4.Name = "OrderMessagesReaderFixFastEquities";
+            Thread worker4 = new Thread(TradeMessagesReader);
+            worker4.Name = "TradeMessagesReaderFixFastEquities";
             worker4.Start();
 
-            Thread worker5_1 = new Thread(OrdersIncrementalReaderA);
-            worker5_1.Name = "OrdersIncremenalAFixFastEquities";
-            worker5_1.Start();
-            Thread worker5_2 = new Thread(OrdersIncrementalReaderB);
-            worker5_2.Name = "OrdersIncremenalBFixFastEquities";
-            worker5_2.Start();
+            Thread worker5 = new Thread(OrderMessagesReader);
+            worker5.Name = "OrderMessagesReaderFixFastEquities";
+            worker5.Start();
 
-            Thread worker6 = new Thread(OrderSnapshotsReader);
-            worker6.Name = "OrdersSnapshotsFixFastEquities";
+            Thread worker6 = new Thread(OrdersIncrementalReaderA);
+            worker6.Name = "OrdersIncremenalAFixFastEquities";
             worker6.Start();
 
-            Thread worker7 = new Thread(MFIXTradeServerConnection);
-            worker7.Name = "MFIXTradeServerConnectionFixFastEquities";
+            Thread worker7 = new Thread(OrdersIncrementalReaderB);
+            worker7.Name = "OrdersIncremenalBFixFastEquities";
             worker7.Start();
 
-            Thread worker8 = new Thread(MFIXTradeCaptureServerConnection);
-            worker8.Name = "MFIXTradeCaptureServerConnectionFixFastEquities";
+            Thread worker8 = new Thread(OrderSnapshotsReader);
+            worker8.Name = "OrdersSnapshotsFixFastEquities";
             worker8.Start();
 
-            Thread worker9 = new Thread(HistoricalReplayThread);
-            worker9.Name = "HistoricalReplayFixFastEquities";
-            worker9.Start();            
+            Thread worker9 = new Thread(MFIXTradeServerConnection);
+            worker9.Name = "MFIXTradeServerConnectionFixFastEquities";
+            worker9.Start();
+
+            Thread worker10 = new Thread(MFIXTradeCaptureServerConnection);
+            worker10.Name = "MFIXTradeCaptureServerConnectionFixFastEquities";
+            worker10.Start();
+
+            Thread worker11 = new Thread(HistoricalReplayThread);
+            worker11.Name = "HistoricalReplayFixFastEquities";
+            worker11.Start();            
         }
 
         public void Connect()
@@ -170,11 +176,96 @@ namespace OsEngine.Market.Servers.FixFastEquities
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
-                SendLogMessage("Connection cannot be open to FIX/FAST servers. Error request", LogMessageType.Error);
+                SendLogMessage("Connection cannot be open to MOEX FIX/FAST servers. Error request", LogMessageType.Error);
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
+                }
+            }
+        }
+
+        private void ConnectionCheckThread()
+        {
+            DateTime lastMFIXTradeTestRequestTime = DateTime.MinValue;
+            DateTime lastMFIXTradeCaptureTestRequestTime = DateTime.MinValue;
+
+            while (true)
+            {
+                Thread.Sleep(10000);
+
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    continue;
+                }
+
+                // MFIX servers
+                if (_lastMFIXTradeTime.AddMinutes(1) < DateTime.Now)
+                {
+                    if (lastMFIXTradeTestRequestTime > _lastMFIXTradeTime) // already send test request
+                    {
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            SendLogMessage("MFIX Trade server connection lost. No response for too long", LogMessageType.Error);
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    } else
+                    {  // 1. send Test Request (1)
+                        Header header = new Header();
+                        header.MsgType = "1"; // Test Request
+                        header.SenderCompID = _MFIXTradeServerLogin;
+                        header.TargetCompID = _MFIXTradeServerTargetCompId;
+                        header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
+                                                
+                        TestRequestMessage msg = new TestRequestMessage();
+                        msg.TestReqID = "OsEngine";
+
+                        string message = SendFIXMessage(_MFIXTradeSocket, header, msg);
+                        WriteLogOutgoingFIXMessage(message, FIXServer.MFIXTrade);
+
+                        lastMFIXTradeTestRequestTime = DateTime.Now;
+                    }
+                }
+
+                if (_lastMFIXTradeCaptureTime.AddMinutes(1) < DateTime.Now)
+                {
+                    if (lastMFIXTradeCaptureTestRequestTime > _lastMFIXTradeCaptureTime) // already send test request
+                    {
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            SendLogMessage("MFIX Trade Capture server connection lost. No response for too long", LogMessageType.Error);
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
+                    else
+                    {  // 1. send Test Request (1)
+                        Header header = new Header();
+                        header.MsgType = "1"; // Test Request
+                        header.SenderCompID = _MFIXTradeCaptureServerLogin;
+                        header.TargetCompID = _MFIXTradeCaptureServerTargetCompId;
+                        header.MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++;
+
+                        TestRequestMessage msg = new TestRequestMessage();
+                        msg.TestReqID = "OsEngine";
+
+                        string message = SendFIXMessage(_MFIXTradeCaptureSocket, header, msg);
+                        WriteLogOutgoingFIXMessage(message, FIXServer.MFIXTradeCapture);
+
+                        lastMFIXTradeCaptureTestRequestTime = DateTime.Now;
+                    }
+                }
+
+                // FIX/FAST Multicast server
+                if (_lastFASTMulticastTime.AddMinutes(2) < DateTime.Now)
+                {
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage("MOEX FIX/FAST Multicast server connection lost. No data over UDP for too long.", LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
                 }
             }
         }
@@ -1055,6 +1146,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
         #region 9 Sockets receiving and parsing the messages
                 
         private DateTime _lastInstrumentDefinitionsTime = DateTime.MinValue;
+        private DateTime _lastMFIXTradeTime = DateTime.MinValue;
+        private DateTime _lastMFIXTradeCaptureTime = DateTime.MinValue;
+        private DateTime _lastFASTMulticastTime = DateTime.MinValue;
         private bool _allSecuritiesLoaded = false;
         private long _totNumReports = 0;
 
@@ -1129,6 +1223,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                                 DisconnectEvent();
                             }
                         }
+
+                        _lastFASTMulticastTime = DateTime.Now;
 
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                         {
@@ -1384,6 +1480,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         if (length == 0)
                             continue;
 
+                        _lastFASTMulticastTime = DateTime.Now;
+
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                         {
                             FastDecoder decoder = new FastDecoder(context, stream);
@@ -1519,6 +1617,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         if (length == 0)
                             continue;
 
+                        _lastFASTMulticastTime = DateTime.Now;
+
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                         {
                             FastDecoder decoder = new FastDecoder(context, stream);
@@ -1633,6 +1733,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     if (length == 0)
                         continue;
+                    
+                    _lastFASTMulticastTime = DateTime.Now;
 
                     using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                     {
@@ -1765,6 +1867,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     if (length == 0)
                         continue;
 
+                    _lastFASTMulticastTime = DateTime.Now;
+
                     using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                     {
                         FastDecoder decoder = new FastDecoder(context, stream);
@@ -1876,6 +1980,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                         if (length == 0)
                             continue;
+
+                        _lastFASTMulticastTime = DateTime.Now;
 
                         using (MemoryStream stream = new MemoryStream(buffer, 4, length))
                         {
@@ -3256,6 +3362,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         }
                     }
 
+                    _lastMFIXTradeTime = DateTime.Now;
+
                     string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                     WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTrade);
 
@@ -3488,6 +3596,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             DisconnectEvent();
                         }
                     }
+
+                    _lastMFIXTradeCaptureTime = DateTime.Now;
 
                     string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                     WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTradeCapture);

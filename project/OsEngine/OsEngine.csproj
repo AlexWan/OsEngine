@@ -604,6 +604,8 @@
     <Compile Include="Market\Servers\FixFastEquities\FIX\FIXMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\FASTHeader.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\Header.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\FIX\TestRequestMessage.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\FIX\ResendRequestMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\HeartbeatMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\FASTLogonMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\AFIXHeader.cs" />
