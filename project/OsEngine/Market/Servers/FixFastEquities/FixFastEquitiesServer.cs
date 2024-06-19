@@ -23,6 +23,8 @@ using System.Net;
 using LiteDB;
 using System.Linq;
 using OsEngine.Market.Servers.FixProtocolEntities;
+using System.Runtime.Remoting.Contexts;
+using System.Collections;
 
 namespace OsEngine.Market.Servers.FixFastEquities
 {
@@ -140,24 +142,25 @@ namespace OsEngine.Market.Servers.FixFastEquities
                 _MFIXTradeClientCode = ((ServerParameterString)ServerParameters[11]).Value;
 
                 _ConfigDir = ((ServerParameterPath)ServerParameters[12]).Value;
+                              
+                int orderActionsLimit = ((ServerParameterInt)ServerParameters[13]).Value;
 
-                _MFIXTradeServerNewPassword = ((ServerParameterPassword)ServerParameters[13]).Value;
-                _MFIXTradeCaptureServerNewPassword = ((ServerParameterPassword)ServerParameters[14]).Value;
+                _rateGateForOrders = new RateGate(orderActionsLimit, TimeSpan.FromSeconds(1));
+
+                _MFIXTradeServerNewPassword = ((ServerParameterPassword)ServerParameters[14]).Value;
+                _MFIXTradeCaptureServerNewPassword = ((ServerParameterPassword)ServerParameters[15]).Value;
 
                 if (_MFIXTradeServerNewPassword == _MFIXTradeServerPassword) // if already changed password
                 {
-                    ((ServerParameterPassword)ServerParameters[13]).Value = "";
+                    ((ServerParameterPassword)ServerParameters[14]).Value = "";
                     _MFIXTradeServerNewPassword = "";
                 }
 
                 if (_MFIXTradeCaptureServerNewPassword == _MFIXTradeCaptureServerPassword) // if already changed password
                 {
-                    ((ServerParameterPassword)ServerParameters[14]).Value = "";
+                    ((ServerParameterPassword)ServerParameters[15]).Value = "";
                     _MFIXTradeCaptureServerNewPassword = "";
                 }
-
-                int orderActionsLimit = ((ServerParameterInt)ServerParameters[13]).Value;
-                _rateGateForOrders = new RateGate(orderActionsLimit, TimeSpan.FromSeconds(1));
 
                 if (string.IsNullOrEmpty(_MFIXTradeServerAddress) || string.IsNullOrEmpty(_MFIXTradeServerPort) || string.IsNullOrEmpty(_MFIXTradeServerTargetCompId))
                 {
@@ -462,8 +465,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
 
                 XmlNodeList connectionNodes = channelNode.SelectSingleNode("connections").SelectNodes("connection");
-                foreach (XmlNode connectionNode in connectionNodes)
+                for (int i = 0; i < connectionNodes.Count; i++)
                 {
+                    XmlNode connectionNode = connectionNodes[i];
                     string connectionId = connectionNode.Attributes["id"].Value;
 
                     XmlNode typeNode = connectionNode.SelectSingleNode("type");
@@ -491,8 +495,10 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     XmlNodeList feedNodes = connectionNode.SelectNodes("feed");
 
-                    foreach (XmlNode feedNode in feedNodes)
+                    for (int j = 0; j < feedNodes.Count; j++)
                     {
+                        XmlNode feedNode = feedNodes[j];
+
                         // Extract 'id', 'src-ip', 'ip', and 'port' from each 'feed' element
                         string feedId = feedNode.Attributes["id"].Value; // A / B
                         string sourceAddressString = feedNode.SelectSingleNode("src-ip").InnerText;
@@ -1216,7 +1222,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         
         #endregion             
 
-        #region 8 Security subscription
+        #region 7 Security subscription
                 
         List<Security> _subscribedSecurities = new List<Security>();
         Dictionary<string, List<OrdersUpdate>> _marketDepths = new Dictionary<string, List<OrdersUpdate>>();
@@ -1248,7 +1254,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         #endregion
 
-        #region 9 Sockets receiving and parsing the messages
+        #region 8 Sockets receiving and parsing the messages
                 
         private DateTime _lastInstrumentDefinitionsTime = DateTime.MinValue;
         private DateTime _lastMFIXTradeTime = DateTime.MinValue;
@@ -1260,7 +1266,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
         // очереди сообщений, которые прилетают из FIX/FAST Multicast UPD соединений
         private ConcurrentQueue<OpenFAST.Message> _tradeMessages = new ConcurrentQueue<OpenFAST.Message>();
         private ConcurrentQueue<OpenFAST.Message> _orderMessages = new ConcurrentQueue<OpenFAST.Message>();
-
+                
         private void InstrumentDefinitionsReader()
         {
             byte[] buffer = new byte[4096];
@@ -1290,11 +1296,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     if (context == null)
                     {
-                        context = new OpenFAST.Context();
-                        foreach (MessageTemplate tmplt in _templates)
-                        {
-                            context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
-                        }
+                        context = CreateNewContext();
                     }
 
                     // читаем из потоков А и B
@@ -1542,11 +1544,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     if (context == null)
                     {
-                        context = new OpenFAST.Context();
-                        foreach (MessageTemplate tmplt in _templates)
-                        {
-                            context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
-                        }
+                        context = CreateNewContext();
                     }
 
                     // читаем из потоков А и B
@@ -1678,11 +1676,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     if (context == null)
                     {
-                        context = new OpenFAST.Context();
-                        foreach (MessageTemplate tmplt in _templates)
-                        {
-                            context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
-                        }
+                        context = CreateNewContext();
                     }
 
                     // читаем из потоков А и B
@@ -1798,11 +1792,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     if (context == null)
                     {
-                        context = new OpenFAST.Context();
-                        foreach (MessageTemplate tmplt in _templates)
-                        {
-                            context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
-                        }
+                        context = CreateNewContext();
                     }
 
                     // читаем из потоков А и B
@@ -1931,11 +1921,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     if (context == null)
                     {
-                        context = new OpenFAST.Context();
-                        foreach (MessageTemplate tmplt in _templates)
-                        {
-                            context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
-                        }
+                        context = CreateNewContext();
                     }
 
                     // читаем из потоков А и B
@@ -2042,11 +2028,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                     if (context == null)
                     {
-                        context = new OpenFAST.Context();
-                        foreach (MessageTemplate tmplt in _templates)
-                        {
-                            context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
-                        }
+                        context = CreateNewContext();
                     }
 
                     // читаем из потоков А и B
@@ -2259,12 +2241,8 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             totalBytesReceived += bytesRead;
                         }
 
-                        OpenFAST.Context context = new OpenFAST.Context();
-                        foreach (MessageTemplate tmplt in _templates)
-                        {
-                            context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
-                        }
-                        
+                        OpenFAST.Context context = CreateNewContext();
+
                         using (MemoryStream stream = new MemoryStream(messageBuffer, 0, msgSize))
                         {
                             FastDecoder decoder = new FastDecoder(context, stream);
@@ -2787,8 +2765,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                                         // при этом надо среди всех снэпшотов найти наименьшее значение обработанных сообщений
                                         long minSeq = 0;
-                                        foreach (SecuritySnapshot snapshot in tradeSnapshots.Values)
+                                        for (int snapshotIndex = 0; i < tradeSnapshots.Values.Count; snapshotIndex++)
                                         {
+                                            SecuritySnapshot snapshot = tradeSnapshots.Values.ElementAt(snapshotIndex);
                                             if (minSeq == 0 || snapshot.LastMsgSeqNumProcessed < minSeq)
                                             {
                                                 minSeq = snapshot.LastMsgSeqNumProcessed;
@@ -3235,8 +3214,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
                                         // при этом надо среди всех снэпшотов найти наименьшее значение обработанных сообщений
                                         long minSeq = 0;
-                                        foreach (OrdersSnapshot snapshot in orderSnapshots.Values)
+                                        for (int snapshotIndex = 0; snapshotIndex < orderSnapshots.Values.Count; snapshotIndex++)
                                         {
+                                            OrdersSnapshot snapshot = orderSnapshots.Values.ElementAt(snapshotIndex);
                                             if (minSeq == 0 || snapshot.LastMsgSeqNumProcessed < minSeq)
                                             {
                                                 minSeq = snapshot.LastMsgSeqNumProcessed;
@@ -3553,10 +3533,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
                         if (order.NumberUser == 0) // ищем номер пользователя по биржевому номеру
                         {
                             int NumberUser = 0;
-                            foreach(KeyValuePair<int, string> keyValuePair in _changedOrderIds)
+
+                            List<int> keysList = new List<int>(_changedOrderIds.Keys);
+                            for (int key = 0; key < keysList.Count; key++)
                             {
-                                if (keyValuePair.Value == order.NumberMarket)
-                                    NumberUser = keyValuePair.Key;
+                                if (_changedOrderIds[key] == order.NumberMarket)
+                                    NumberUser = key;
                             }
 
                             order.NumberUser = NumberUser;
@@ -3812,7 +3794,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         #endregion
 
-        #region 10 Trade
+        #region 9 Trade
 
         private RateGate _rateGateForOrders = new RateGate(30, TimeSpan.FromSeconds(1));
                
@@ -4017,7 +3999,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         #endregion
 
-        #region 11 Helpers
+        #region 10 Helpers
 
         private int GetDecimals(decimal x)
         {
@@ -4041,9 +4023,21 @@ namespace OsEngine.Market.Servers.FixFastEquities
             return $"[RptSeq={RptSeq}] {symbol}, {side}, {price} x {size} @ t={time} TradingSessionID{TradingSessionID} TradingSessionSubID={TradingSessionSubID} MDEntryType={MDEntryType}";
         }
 
+        private OpenFAST.Context CreateNewContext()
+        {
+            OpenFAST.Context context = new OpenFAST.Context();
+            for (int t = 0; t < _templates.Count(); t++)
+            {
+                MessageTemplate tmplt = _templates[t];
+                context.RegisterTemplate(int.Parse(tmplt.Id), tmplt);
+            }
+
+            return context;
+        }
+
         #endregion
 
-        #region 12 Log
+        #region 11 Log
 
         private string _logLock = "locker for stream writer";
         private StreamWriter _logFile = new StreamWriter("Engine\\Log\\FIXFAST_Multicast_UDP-log.txt");
