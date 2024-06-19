@@ -22,6 +22,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "32", "LastQty" },
             { "34", "MsgSeqNum"},
             { "35", "MsgType"},
+            { "36", "NewSeqNo" },
             { "37", "OrderID" },
             { "38", "OrderQty" },
             { "39", "OrdStatus" },
@@ -44,6 +45,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "108", "HeartBtInt"},
             { "112", "TestReqID" },
             { "114", "ResetSeqNumFlag"},
+            { "123", "GapFillFlag" },
             { "134", "MsgSeqNum"},
             { "136", "NoMiscFees" },
             { "137", "MiscFeeAmt" },
@@ -87,6 +89,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "1180", "ApplID" },
             { "1182", "ApplBeginSeqNo" },
             { "1183", "ApplEndSeqNo" },
+            { "1409", "SessionStatus" },
             { "5020", "OptionSettlDate" },
             { "5155", "InstitutionID" },
             { "5459", "OptionSettlType" },
@@ -100,6 +103,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
         };
 
         public string MessageType { get; set; }
+        public long MsgSeqNum { get; set; }
         public Dictionary<string, string> Fields { get; set; }
 
         public string rawMessage = "";
@@ -149,6 +153,10 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                     string value = field[1];
 
                     name = fixDict.ContainsKey(name) ? fixDict[name] : name;
+                    if (name == "MsgSeqNum")
+                    {
+                        FIXMessage.MsgSeqNum = long.Parse(value);
+                    }
 
                     if (name == "MsgType")
                     {
@@ -156,12 +164,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                         {
                             value = "Logon";
                         }
-
-                        if (value == "5")
-                        {
-                            value = "Logout";
-                        }
-
+                                                
                         if (value == "0")
                         {
                             value = "Heartbeat";
@@ -170,6 +173,26 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                         if (value == "1")
                         {
                             value = "TestRequest";
+                        }
+                        
+                        if (value == "2")
+                        {
+                            value = "ResendRequest";
+                        }
+                        
+                        if (value == "3")
+                        {
+                            value = "Reject";
+                        }
+
+                        if (value == "4")
+                        {
+                            value = "SequenceReset";
+                        }
+                        
+                        if (value == "5")
+                        {
+                            value = "Logout";
                         }
 
                         if (value == "h")
@@ -186,21 +209,11 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                         {
                             value = "OrderCancelReject";
                         }
-
-                        if (value == "2")
-                        {
-                            value = "ResendRequest";
-                        }
-
+                                                
                         if (value == "AE")
                         {
                             value = "TradeCaptureReport";
-                        }
-
-                        if (value == "3")
-                        {
-                            value = "Reject";
-                        }
+                        }                                                
 
                         if (value == "V")
                         {
@@ -222,9 +235,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                             value = "OrderMassCancelReport";
                         }
 
-
                         FIXMessage.MessageType = value;
-
                     }
 
                     FIXMessage.Fields[name] = value;
