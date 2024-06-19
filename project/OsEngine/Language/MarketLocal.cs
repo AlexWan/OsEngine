@@ -532,6 +532,19 @@ namespace OsEngine.Language
             "Eng:Forced start from zero_" +
             "Ru:Перезапуск сборки с нуля_");
 
+        public string Label125 => OsLocalization.ConvertToLocString(
+            "Eng:Candles count in day_" +
+            "Ru:Кол-во дней за день_");
+
+        public string Label126 => OsLocalization.ConvertToLocString(
+            "Eng:Adaptive days look back_" +
+            "Ru:Адаптируем за кол-во дней_");
+
+
+
+
+
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
