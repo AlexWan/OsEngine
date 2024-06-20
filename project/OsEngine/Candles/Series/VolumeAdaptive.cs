@@ -30,7 +30,18 @@ namespace OsEngine.Candles.Series
             }
             else if (state == CandleSeriesState.ParametersChange)
             {
-
+                if (DaysLookBack.ValueInt <= 0)
+                {
+                    DaysLookBack.ValueInt = 1;
+                }
+                if (CandlesCountInDay.ValueInt <= 0)
+                {
+                    CandlesCountInDay.ValueInt = 1;
+                }
+                if(VolumeToCloseCandle.ValueDecimal <= 0)
+                {
+                    VolumeToCloseCandle.ValueDecimal = 1;
+                }
             }
         }
 

@@ -200,6 +200,7 @@
     <Compile Include="Candles\Factory\CandleSeriesParameter.cs" />
     <Compile Include="Candles\Series\ACandlesSeriesRealization.cs" />
     <Compile Include="Candles\Series\Delta.cs" />
+    <Compile Include="Candles\Series\DeltaAdaptive.cs" />
     <Compile Include="Candles\Series\HeikenAshi.cs" />
     <Compile Include="Candles\Series\Range.cs" />
     <Compile Include="Candles\Series\Revers.cs" />

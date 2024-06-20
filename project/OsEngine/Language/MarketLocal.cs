@@ -534,16 +534,11 @@ namespace OsEngine.Language
 
         public string Label125 => OsLocalization.ConvertToLocString(
             "Eng:Candles count in day_" +
-            "Ru:Кол-во дней за день_");
+            "Ru:Кол-во свечей за день_");
 
         public string Label126 => OsLocalization.ConvertToLocString(
             "Eng:Adaptive days look back_" +
             "Ru:Адаптируем за кол-во дней_");
-
-
-
-
-
 
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
