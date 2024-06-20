@@ -143,6 +143,8 @@ namespace OsEngine.Candles.Series
                     UpdateChangeCandle();
                 }
 
+                _currentDelta = 0;
+
                 return;
             }
 
@@ -182,6 +184,8 @@ namespace OsEngine.Candles.Series
                     TimeStart = timeNextCandle,
                     Volume = volume
                 };
+
+                _currentDelta = 0;
 
                 CandlesAll.Add(candle);
 
