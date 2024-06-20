@@ -204,6 +204,7 @@
     <Compile Include="Candles\Series\HeikenAshi.cs" />
     <Compile Include="Candles\Series\Range.cs" />
     <Compile Include="Candles\Series\Revers.cs" />
+    <Compile Include="Candles\Series\ReversVolatilityAdaptive.cs" />
     <Compile Include="Candles\Series\Simple.cs" />
     <Compile Include="Candles\Series\Tick.cs" />
     <Compile Include="Candles\Series\TickAdaptive.cs" />

@@ -540,6 +540,14 @@ namespace OsEngine.Language
             "Eng:Adaptive days look back_" +
             "Ru:Адаптируем за кол-во дней_");
 
+        public string Label127 => OsLocalization.ConvertToLocString(
+           "Eng:Min move volatility mult_" +
+           "Ru:Мин. движение. Множитель волатильности_");
+
+        public string Label128 => OsLocalization.ConvertToLocString(
+           "Eng:Back move volatility mult_" +
+           "Ru:Откат. Множитель волатильности_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
