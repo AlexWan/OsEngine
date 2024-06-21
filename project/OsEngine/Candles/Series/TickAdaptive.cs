@@ -53,11 +53,22 @@ namespace OsEngine.Candles.Series
                 return;
             }
 
+            int daysLookBack = DaysLookBack.ValueInt;
+
+            if((CandlesAll[CandlesAll.Count - 1].Trades == null ||
+                CandlesAll[CandlesAll.Count - 1].Trades.Count == 0)
+                && daysLookBack > 2)
+            {
+                daysLookBack = 2;
+            }
+
             decimal candlesCount = 0;
 
             DateTime date = CandlesAll[CandlesAll.Count - 1].TimeStart.Date;
 
             int days = 0;
+
+            int tradesCount = 0;
 
             for (int i = CandlesAll.Count - 1; i >= 0; i--)
             {
@@ -69,12 +80,23 @@ namespace OsEngine.Candles.Series
                     days++;
                 }
 
-                if (days >= DaysLookBack.ValueInt)
+                if (days >= daysLookBack)
                 {
                     break;
                 }
 
+                if(curCandle.Trades != null)
+                {
+                    tradesCount += curCandle.Trades.Count;
+                }
+
                 candlesCount++;
+
+                if(i == 0)
+                {
+                    days++;
+                    break;
+                }
             }
 
             if (candlesCount == 0)
@@ -82,18 +104,18 @@ namespace OsEngine.Candles.Series
                 return;
             }
 
-            if (days == 0)
+            if(tradesCount == 0)
             {
-                days = 1;
+                decimal countCandlesInDay = candlesCount / days;
+                decimal commonTradesCount = TradeCount.ValueInt * countCandlesInDay;
+                decimal newTradesCount = commonTradesCount / CandlesCountInDay.ValueInt;
+                TradeCount.ValueInt = Convert.ToInt32(newTradesCount);
             }
-
-            decimal countCandlesInDay = candlesCount / days;
-
-            decimal commonTradesCount = TradeCount.ValueInt * countCandlesInDay;
-
-            decimal newTradesCount = commonTradesCount / CandlesCountInDay.ValueInt;
-
-            TradeCount.ValueInt = Convert.ToInt32(newTradesCount);
+            else
+            {
+                decimal newTradesCount = tradesCount / days / CandlesCountInDay.ValueInt;
+                TradeCount.ValueInt = Convert.ToInt32(newTradesCount);
+            }
         }
 
         private int _lastCandleTickCount;

@@ -75,16 +75,17 @@ namespace OsEngine.Candles.Series
                 }
 
                 volumeOnLastDay += curCandle.Volume;
+
+                if (i == 0)
+                {
+                    days++;
+                    break;
+                }
             }
             
             if(volumeOnLastDay == 0)
             {
                 return;
-            }
-
-            if(days == 0)
-            {
-                days = 1;
             }
 
             decimal volumeInOneCandle = volumeOnLastDay / (CandlesCountInDay.ValueInt * days);

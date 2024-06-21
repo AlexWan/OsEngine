@@ -75,16 +75,17 @@ namespace OsEngine.Candles.Series
                 }
 
                 candlesCount++;
+
+                if (i == 0)
+                {
+                    days++;
+                    break;
+                }
             }
 
             if (candlesCount == 0)
             {
                 return;
-            }
-
-            if (days == 0)
-            {
-                days = 1;
             }
 
             decimal countCandlesInDay = candlesCount / days;
