@@ -76,7 +76,14 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
-            _reports = reports;
+
+            _reports = new List<OptimazerFazeReport>();
+
+            for (int i = 0; i < reports.Count; i++)
+            {
+                _reports.Add(reports[i]);
+            }
+
             RepaintResults();
         }
 

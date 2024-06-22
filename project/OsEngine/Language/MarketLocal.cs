@@ -548,6 +548,10 @@ namespace OsEngine.Language
            "Eng:Back move volatility mult_" +
            "Ru:Откат. Множитель волатильности_");
 
+        public string Label129 => OsLocalization.ConvertToLocString(
+           "Eng:Vertical segments of volatility_" +
+           "Ru:Вертикальных отрезков волатильности_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");

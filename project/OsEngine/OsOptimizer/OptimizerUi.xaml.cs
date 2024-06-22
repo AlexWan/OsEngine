@@ -337,10 +337,10 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            OptimizerReportUi ui = new OptimizerReportUi(_master);
-            ui.Show();
-            ui.Paint(_reports);
-            ui.Activate();
+            OptimizerReportUi _uiReport = new OptimizerReportUi(_master);
+            _uiReport.Show();
+            _uiReport.Paint(_reports);
+            _uiReport.Activate();
         }
 
         // work on drawing progress bars / работа по рисованию прогресс Баров

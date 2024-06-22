@@ -24,7 +24,7 @@ namespace OsEngine.Candles.Series
 
         public CandlesParameterDecimal PointsBackMoveVolatilityMult;
 
-        public CandlesParameterInt CandlesCountInDay;
+        public CandlesParameterInt VolatilityDivider; 
 
         public CandlesParameterInt DaysLookBack;
 
@@ -33,18 +33,17 @@ namespace OsEngine.Candles.Series
             if (state == CandleSeriesState.Configure)
             {
                 ValueType
-                  = CreateParameterStringCollection("valueType", OsLocalization.Market.Label122,
+                  = CreateParameterStringCollection("vT", OsLocalization.Market.Label122,
                   "Percent", new List<string> { "Absolute", "Percent" });
 
-                ReversCandlesPointsMinMove = CreateParameterDecimal("MinMove", OsLocalization.Market.Label18, 0.2m);
-                ReversCandlesPointsBackMove = CreateParameterDecimal("BackMove", OsLocalization.Market.Label19, 0.1m);
+                ReversCandlesPointsMinMove = CreateParameterDecimal("MM", OsLocalization.Market.Label18, 0.2m);
+                ReversCandlesPointsBackMove = CreateParameterDecimal("BM", OsLocalization.Market.Label19, 0.1m);
 
-                CandlesCountInDay = CreateParameterInt("CandlesCountInDay", OsLocalization.Market.Label125, 100);
-                DaysLookBack = CreateParameterInt("DaysLookBack", OsLocalization.Market.Label126, 1);
-
-                PointsMinMoveVolatilityMult = CreateParameterDecimal("MinMoveVolatilityMult", OsLocalization.Market.Label127, 1.2m);
-
-                PointsBackMoveVolatilityMult = CreateParameterDecimal("BackMoveVolatilityMult", OsLocalization.Market.Label128, 0.35m);
+                DaysLookBack = CreateParameterInt("DLB", OsLocalization.Market.Label126, 1);
+                VolatilityDivider = CreateParameterInt("CInD", OsLocalization.Market.Label129, 100);
+                
+                PointsMinMoveVolatilityMult = CreateParameterDecimal("MMVM", OsLocalization.Market.Label127, 1.2m);
+                PointsBackMoveVolatilityMult = CreateParameterDecimal("BMVM", OsLocalization.Market.Label128, 0.35m);
             }
             else if (state == CandleSeriesState.ParametersChange)
             {
@@ -52,16 +51,16 @@ namespace OsEngine.Candles.Series
                 {
                     DaysLookBack.ValueInt = 1;
                 }
-                if (CandlesCountInDay.ValueInt <= 0)
+                if (VolatilityDivider.ValueInt <= 0)
                 {
-                    CandlesCountInDay.ValueInt = 1;
+                    VolatilityDivider.ValueInt = 1;
                 }
             }
         }
 
         private void RebuildCandlesCount()
         {
-            if (CandlesCountInDay.ValueInt <= 0
+            if (VolatilityDivider.ValueInt <= 0
                 || DaysLookBack.ValueInt <= 0)
             {
                 return;
@@ -152,8 +151,8 @@ namespace OsEngine.Candles.Series
 
             // 3 считаем средний размер свечи с учётом этой волатильности
 
-            decimal volaAbsOneCandle = volaAbsSma / CandlesCountInDay.ValueInt;
-            decimal volaPercentOneCandle = volaPercentSma / CandlesCountInDay.ValueInt;
+            decimal volaAbsOneCandle = volaAbsSma / VolatilityDivider.ValueInt;
+            decimal volaPercentOneCandle = volaPercentSma / VolatilityDivider.ValueInt;
 
             decimal oneCandleMinMoveAbs = volaAbsOneCandle * PointsMinMoveVolatilityMult.ValueDecimal;
             decimal oneCandleMinMovePercent = volaPercentOneCandle * PointsMinMoveVolatilityMult.ValueDecimal;
