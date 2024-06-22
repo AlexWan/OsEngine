@@ -203,6 +203,7 @@
     <Compile Include="Candles\Series\DeltaAdaptive.cs" />
     <Compile Include="Candles\Series\HeikenAshi.cs" />
     <Compile Include="Candles\Series\Range.cs" />
+    <Compile Include="Candles\Series\RangeVolatilityAdaptive.cs" />
     <Compile Include="Candles\Series\Revers.cs" />
     <Compile Include="Candles\Series\ReversVolatilityAdaptive.cs" />
     <Compile Include="Candles\Series\Simple.cs" />

@@ -11,20 +11,18 @@ using System.Collections.Generic;
 
 namespace OsEngine.Candles.Series
 {
-    [Candle("ReversVolatilityAdaptive")]
-    public class ReversVolatilityAdaptive : ACandlesSeriesRealization
+    [Candle("RangeVolatilityAdaptive")]
+    public class RangeVolatilityAdaptive : ACandlesSeriesRealization
     {
         public CandlesParameterString ValueType;
 
-        public CandlesParameterDecimal ReversCandlesPointsMinMove;
-
-        public CandlesParameterDecimal ReversCandlesPointsBackMove;
+        public CandlesParameterDecimal RangeCandlesPoints;
 
         public CandlesParameterDecimal PointsMinMoveVolatilityMult;
 
         public CandlesParameterDecimal PointsBackMoveVolatilityMult;
 
-        public CandlesParameterInt VolatilityDivider; 
+        public CandlesParameterInt VolatilityDivider;
 
         public CandlesParameterInt DaysLookBack;
 
@@ -36,30 +34,16 @@ namespace OsEngine.Candles.Series
                   = CreateParameterStringCollection("vT", OsLocalization.Market.Label122,
                   "Percent", new List<string> { "Absolute", "Percent" });
 
-                ReversCandlesPointsMinMove = CreateParameterDecimal("MM", OsLocalization.Market.Label18, 0.2m);
-
-                ReversCandlesPointsBackMove = CreateParameterDecimal("BM", OsLocalization.Market.Label19, 0.1m);
+                RangeCandlesPoints = CreateParameterDecimal("MinMove", OsLocalization.Market.Label18, 0.2m);
 
                 DaysLookBack = CreateParameterInt("DLB", OsLocalization.Market.Label126, 1);
 
                 VolatilityDivider = CreateParameterInt("CInD", OsLocalization.Market.Label129, 100);
-                
-                PointsMinMoveVolatilityMult = CreateParameterDecimal("MMVM", OsLocalization.Market.Label127, 1.2m);
 
-                PointsBackMoveVolatilityMult = CreateParameterDecimal("BMVM", OsLocalization.Market.Label128, 0.35m);
+                PointsMinMoveVolatilityMult = CreateParameterDecimal("MMVM", OsLocalization.Market.Label127, 1.2m);
             }
             else if (state == CandleSeriesState.ParametersChange)
             {
-                if(ReversCandlesPointsMinMove.ValueDecimal <= 0)
-                {
-                    ReversCandlesPointsMinMove.ValueDecimal = 0.2m;
-                }
-
-                if(ReversCandlesPointsBackMove.ValueDecimal <= 0)
-                {
-                    ReversCandlesPointsBackMove.ValueDecimal = 0.1m;
-                }
-
                 if (DaysLookBack.ValueInt <= 0)
                 {
                     DaysLookBack.ValueInt = 1;
@@ -75,9 +59,9 @@ namespace OsEngine.Candles.Series
                     PointsMinMoveVolatilityMult.ValueDecimal = 1.2m;
                 }
 
-                if(PointsBackMoveVolatilityMult.ValueDecimal <= 0)
+                if(RangeCandlesPoints.ValueDecimal <= 0)
                 {
-                    PointsBackMoveVolatilityMult.ValueDecimal = 0.35m;
+                    RangeCandlesPoints.ValueDecimal = 0.2m;
                 }
             }
         }
@@ -181,26 +165,21 @@ namespace OsEngine.Candles.Series
             decimal oneCandleMinMoveAbs = volaAbsOneCandle * PointsMinMoveVolatilityMult.ValueDecimal;
             decimal oneCandleMinMovePercent = volaPercentOneCandle * PointsMinMoveVolatilityMult.ValueDecimal;
 
-            decimal oneCandleBackMoveAbs = volaAbsOneCandle * PointsBackMoveVolatilityMult.ValueDecimal;
-            decimal oneCandleBackMovePercent = volaPercentOneCandle * PointsBackMoveVolatilityMult.ValueDecimal;
-
             //"Absolute", "Percent" 
             if (ValueType.ValueString == "Absolute")
             {
-                ReversCandlesPointsMinMove.ValueDecimal = Math.Round(oneCandleMinMoveAbs,9);
-                ReversCandlesPointsBackMove.ValueDecimal = Math.Round(oneCandleBackMoveAbs, 9);
+                RangeCandlesPoints.ValueDecimal = Math.Round(oneCandleMinMoveAbs, 9);
             }
             else if (ValueType.ValueString == "Percent")
             {
-                ReversCandlesPointsMinMove.ValueDecimal = Math.Round(oneCandleMinMovePercent, 9);
-                ReversCandlesPointsBackMove.ValueDecimal = Math.Round(oneCandleBackMovePercent, 9);
+                RangeCandlesPoints.ValueDecimal = Math.Round(oneCandleMinMovePercent, 9);
             }
         }
 
         public override void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
             if (CandlesAll != null && CandlesAll.Count > 0 && CandlesAll[CandlesAll.Count - 1] != null &&
-            CandlesAll[CandlesAll.Count - 1].TimeStart > time)
+                        CandlesAll[CandlesAll.Count - 1].TimeStart > time)
             {// если пришли старые данные
                 return;
             }
@@ -212,12 +191,6 @@ namespace OsEngine.Candles.Series
                 CandlesAll = new List<Candle>();
 
                 DateTime timeNextCandle = time;
-
-                while (timeNextCandle.Second % 1 != 0)
-                {
-                    timeNextCandle = timeNextCandle.AddSeconds(-1);
-                }
-
 
                 while (timeNextCandle.Millisecond != 0)
                 {
@@ -249,8 +222,8 @@ namespace OsEngine.Candles.Series
             }
 
             if (CandlesAll != null
-           && CandlesAll.Count > 0
-           && CandlesAll[CandlesAll.Count - 1].TimeStart.Date < time.Date)
+                && CandlesAll.Count > 0
+                && CandlesAll[CandlesAll.Count - 1].TimeStart.Date < time.Date)
             {
                 // пришли данные из нового дня
 
@@ -295,59 +268,30 @@ namespace OsEngine.Candles.Series
                 return;
             }
 
-            bool candleReady = false;
-
-            Candle lastCandle = CandlesAll[CandlesAll.Count - 1];
+            bool isNewCandle = false;
 
             if (ValueType.ValueString == "Absolute")
             {
-                if (lastCandle.High - lastCandle.Open >= ReversCandlesPointsMinMove.ValueDecimal
-                    &&
-                    lastCandle.High - lastCandle.Close >= ReversCandlesPointsBackMove.ValueDecimal)
-                { // есть откат от хая
-                    candleReady = true;
-                }
-
-                if (lastCandle.Open - lastCandle.Low >= ReversCandlesPointsMinMove.ValueDecimal
-                    &&
-                    lastCandle.Close - lastCandle.Low >= ReversCandlesPointsBackMove.ValueDecimal)
-                { // есть откат от лоя
-                    candleReady = true;
+                if (CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count - 1].Low >= RangeCandlesPoints.ValueDecimal)
+                {
+                    isNewCandle = true;
                 }
             }
             else if (ValueType.ValueString == "Percent")
             {
-                if (lastCandle.High - lastCandle.Open > 0
-                    && lastCandle.High - lastCandle.Close > 0)
+                decimal distance = CandlesAll[CandlesAll.Count - 1].High - CandlesAll[CandlesAll.Count - 1].Low;
+
+                decimal movePercent = distance / (CandlesAll[CandlesAll.Count - 1].Low / 100);
+
+                if (distance != 0
+                    && movePercent != 0
+                    && movePercent > RangeCandlesPoints.ValueDecimal)
                 {
-                    decimal moveUpPercent = (lastCandle.High - lastCandle.Open) / (lastCandle.Open / 100);
-                    decimal backMoveFromHighPercent = (lastCandle.High - lastCandle.Close) / (lastCandle.Close / 100);
-
-                    if (moveUpPercent >= ReversCandlesPointsMinMove.ValueDecimal
-                    &&
-                    backMoveFromHighPercent >= ReversCandlesPointsBackMove.ValueDecimal)
-                    {// есть откат от хая
-                        candleReady = true;
-                    }
-                }
-
-                if (lastCandle.Open - lastCandle.Low > 0
-                    && lastCandle.Close - lastCandle.Low > 0)
-                {
-                    decimal moveDownPercent = (lastCandle.Open - lastCandle.Low) / (lastCandle.Low / 100);
-
-                    decimal backMoveFromLowPercent = (lastCandle.Close - lastCandle.Low) / (lastCandle.Low / 100);
-
-                    if (moveDownPercent >= ReversCandlesPointsMinMove.ValueDecimal &&
-                        backMoveFromLowPercent >= ReversCandlesPointsBackMove.ValueDecimal)
-                    { // есть откат от лоя
-                        candleReady = true;
-                    }
+                    isNewCandle = true;
                 }
             }
 
-            if (CandlesAll != null &&
-                candleReady)
+            if (isNewCandle)
             {
                 // если пришли данные из новой свечки
 
@@ -392,9 +336,7 @@ namespace OsEngine.Candles.Series
 
                 return;
             }
-
-            if (CandlesAll != null &&
-                candleReady == false)
+            else
             {
                 // если пришли данные внутри свечи
 
