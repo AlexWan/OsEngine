@@ -44,7 +44,11 @@ namespace OsEngine.Journal
             OsEngine.Layout.StickyBorders.Listen(this);
             _startProgram = startProgram;
             _botsJournals = botsJournals;
-            LoadGroups();
+
+            if(botsJournals.Count > 1)
+            {
+                LoadGroups();
+            }
 
             ComboBoxChartType.Items.Add("Absolute");
             ComboBoxChartType.Items.Add("Percent 1 contract");
@@ -2990,6 +2994,10 @@ namespace OsEngine.Journal
 
         private void SaveGroups()
         {
+            if (_botsJournals.Count == 1)
+            {
+                return;
+            }
             try
             {
                 string path = @"Engine\" + _startProgram + @"JournalSettings.txt";
