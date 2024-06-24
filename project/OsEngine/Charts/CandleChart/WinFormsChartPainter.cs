@@ -1806,7 +1806,7 @@ namespace OsEngine.Charts.CandleChart
                         {
                             continue;
                         }
-                        int xIndexPoint = GetTimeIndex(timePoint);
+                        int xIndexPoint = GetTimeIndex(timePoint, trades[indTrades].Price);
                         if (xIndexPoint == 0)
                         {
                             continue;
@@ -2225,7 +2225,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         /// <param name="time">time/время</param>
         /// <returns>index. If time is not found, returns/индекс. Если время не найдено, возвращает 0</returns>
-        private int GetTimeIndex(DateTime time)
+        private int GetTimeIndex(DateTime time, decimal price)
         {
             if (_timePoints == null)
             {
@@ -2245,7 +2245,7 @@ namespace OsEngine.Charts.CandleChart
             }
             else
             {
-                result = MagicSearch(time, _myCandles, 0, _myCandles.Count);
+                result = MagicSearch(time, _myCandles, 0, _myCandles.Count, price);
             }
            
             point = new TimeAxisXPoint();
@@ -2307,7 +2307,7 @@ namespace OsEngine.Charts.CandleChart
         /// Recursive, fast method of finding a point on the X-axis
         /// рекурсивный, быстрый метод поиска точки на оси Х
         /// </summary>
-        private int MagicSearch(DateTime time, List<Candle> candles, int start, int end)
+        private int MagicSearch(DateTime time, List<Candle> candles, int start, int end, decimal price)
         {
             if(end - start < 5 ||
                 start > end)
@@ -2320,11 +2320,59 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (candles[i].TimeStart >= time)
                     {
+                        if (price == -1)
+                        {
+                            return i;
+                        }
+
+                        while (candles[i].TimeStart > time)
+                        {
+                            if (i == 0)
+                            {
+                                return i;
+                            }
+
+                            if (candles[i].TimeStart < time)
+                            {
+                                return i;
+                            }
+
+                            if (price <= candles[i].High
+                                && price >= candles[i].Low)
+                            {
+                                return i;
+                            }
+                            i--;
+                        }
+
+                        if (price <= candles[i].High
+                            && price >= candles[i].Low)
+                        {
+                            return i;
+                        }
+                        else if (price <= candles[i - 1].High
+                                && price >= candles[i - 1].Low)
+                        {
+                            return i-1;
+                        }
+                        else if (i > 3 &&
+                            price <= candles[i - 2].High
+                         && price >= candles[i - 2].Low)
+                        {
+                            return i-2;
+                        }
+                        else if (i + 1 != end &&
+                           price <= candles[i + 1].High
+                           && price >= candles[i + 1].Low)
+                        {
+                            return i + 1;
+                        }
+
                         return i;
                     }
                     if (candles[i].Trades != null &&
                         candles[i].Trades.Count != 0 &&
-                        candles[i].Trades[candles[i].Trades.Count - 1].Time > time)
+                        candles[i].Trades[candles[i].Trades.Count - 1].Time >= time)
                     {
                         return i;
                     }
@@ -2336,16 +2384,18 @@ namespace OsEngine.Charts.CandleChart
                         return i;
                     }
                 }
-                return end;
+
+
+                return end-1;
             }
 
             if (candles[start + (end - start)/2].TimeStart > time)
             {
-                return MagicSearch(time, candles, start, start + (end - start) / 2);
+                return MagicSearch(time, candles, start, start + (end - start) / 2,price);
             }
             else if (candles[start + (end - start) / 2].TimeStart < time)
             {
-                return MagicSearch(time, candles, start + (end - start) / 2, end);
+                return MagicSearch(time, candles, start + (end - start) / 2, end, price);
             }
             else
             {
@@ -4648,7 +4698,7 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
-                int candleIndex = GetTimeIndex(time);
+                int candleIndex = GetTimeIndex(time, -1);
 
                 if (candleIndex == 0)
                 {

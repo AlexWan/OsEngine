@@ -20,8 +20,6 @@ namespace OsEngine.Candles.Series
 
         public CandlesParameterDecimal PointsMinMoveVolatilityMult;
 
-        public CandlesParameterDecimal PointsBackMoveVolatilityMult;
-
         public CandlesParameterInt VolatilityDivider;
 
         public CandlesParameterInt DaysLookBack;

@@ -1229,6 +1229,7 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
                 security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
                 security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
+                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
 
                 string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
 
@@ -1561,6 +1562,7 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
                 security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
                 security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
+                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
 
                 string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
 
@@ -1804,6 +1806,7 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
                 security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
                 security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
+                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
 
                 string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
 
@@ -2045,6 +2048,11 @@ namespace OsEngine.Market.Servers.Tester
             {
                 TestingNewSecurityEvent();
             }
+        }
+
+        private void TesterServer_NeedToCheckOrders()
+        {
+            CheckOrders();
         }
 
         // получить истинный TimeFrameSpan
@@ -2509,7 +2517,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (order.TypeOrder == OrderPriceType.Market)
             {
-                if (order.TimeCreate >= lastTrade.Time)
+                if (order.TimeCreate > lastTrade.Time)
                 {
                     return false;
                 }
@@ -4062,7 +4070,7 @@ namespace OsEngine.Market.Servers.Tester
                     }
                 }
                 else if (security.DataType == SecurityTesterDataType.Tick)
-                { // testing with using candles / прогон на свечках
+                { 
                     if (CheckOrdersInTickTest(orderOnBoard, security.LastTrade, true))
                     {
                         OrdersActiv.Remove(orderOnBoard);
@@ -4473,7 +4481,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            if(now.Month == 4 &&
+            if (now.Month == 4 &&
                 now.Day > 4)
             {
 
@@ -4520,7 +4528,7 @@ namespace OsEngine.Market.Servers.Tester
                 _lastString = _reader.ReadLine();
                 Trade tradeN = new Trade() { SecurityNameCode = Security.Name };
                 tradeN.SetTradeFromString(_lastString);
-                
+
                 if (tradeN.Time.AddMilliseconds(-tradeN.Time.Millisecond) <= now)
                 {
                     lastTradesSeries.Add(tradeN);
@@ -4534,10 +4542,13 @@ namespace OsEngine.Market.Servers.Tester
 
             LastTradeSeries = lastTradesSeries;
 
-            if (NewTradesEvent != null)
+            for (int i = 0; i < lastTradesSeries.Count; i++)
             {
-                NewTradesEvent(lastTradesSeries);
+                List<Trade> trades = new List<Trade>() { lastTradesSeries[i] };
+                NewTradesEvent(trades);
+                NeedToCheckOrders();
             }
+
         }
 
 // parsing candle files
@@ -4696,6 +4707,8 @@ namespace OsEngine.Market.Servers.Tester
         /// новые тики появились
         /// </summary>
         public event Action<List<Trade>> NewTradesEvent;
+
+        public event Action NeedToCheckOrders;
 
         /// <summary>
 		/// new candles appeared
