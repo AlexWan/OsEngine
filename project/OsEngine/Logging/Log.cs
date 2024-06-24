@@ -662,6 +662,13 @@ namespace OsEngine.Logging
                     return;
                 }
 
+                if(_grid != null 
+                    && _grid.Rows != null
+                    && _grid.Rows.Count > 5000)
+                {
+                    return;
+                }
+
                 if (_grid != null
                     && _grid.InvokeRequired)
                 {
