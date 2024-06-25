@@ -51,69 +51,82 @@ namespace OsEngine.Market
 
         public void Dispose()
         {
-            ServerMaster.ServerCreateEvent -= ServerMasterOnServerCreateEvent;
-
-            for (int i = 0; _servers != null && i < _servers.Count; i++)
+            try
             {
-                IServer serv = _servers[i];
+                ServerMaster.ServerCreateEvent -= ServerMasterOnServerCreateEvent;
 
-                serv.ConnectStatusChangeEvent -= ServerStatusChangeEvent;
-
-                if (serv == null)
+                for (int i = 0; _servers != null && i < _servers.Count; i++)
                 {
-                    _servers.RemoveAt(i);
-                    i--;
-                    continue;
+                    IServer serv = _servers[i];
+
+                    serv.ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+
+                    if (serv == null)
+                    {
+                        _servers.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
                 }
+
+                ServerMaster.Log.StopPaint();
+
+                _servers = null;
+
+                ClearControls();
             }
-
-            ServerMaster.Log.StopPaint();
-
-            _servers = null;
-
-            ClearControls();
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ClearControls()
         {
-            if(_gridSources == null)
+            try
             {
-                return;
-            }
+                if (_gridSources == null)
+                {
+                    return;
+                }
 
-            if (_gridSources.InvokeRequired)
-            {
-                _gridSources.Invoke(new Action(ClearControls));
-                return;
-            }
+                if (_gridSources.InvokeRequired)
+                {
+                    _gridSources.Invoke(new Action(ClearControls));
+                    return;
+                }
 
-            if(_boxCreateServerАutomatically != null)
-            {
-                _boxCreateServerАutomatically.Click -= CheckBoxServerAutoOpen_Click;
-                _boxCreateServerАutomatically = null;
-            }
+                if (_boxCreateServerАutomatically != null)
+                {
+                    _boxCreateServerАutomatically.Click -= CheckBoxServerAutoOpen_Click;
+                    _boxCreateServerАutomatically = null;
+                }
 
-            if(_hostServers != null)
-            {
-                _hostServers.Child = null;
-                _hostServers = null;
-            }
+                if (_hostServers != null)
+                {
+                    _hostServers.Child = null;
+                    _hostServers = null;
+                }
 
-            if(_hostLog != null)
-            {
-                _hostLog.Child = null;
-                _hostLog = null;
-            }
-            
-            if(_gridSources != null)
-            {
-                _gridSources.DoubleClick -= _gridSources_DoubleClick;
-                _gridSources.Rows.Clear();
-                _gridSources.Columns.Clear();
-                DataGridFactory.ClearLinks(_gridSources);
-                _gridSources = null;
-            }
+                if (_hostLog != null)
+                {
+                    _hostLog.Child = null;
+                    _hostLog = null;
+                }
 
+                if (_gridSources != null)
+                {
+                    _gridSources.DoubleClick -= _gridSources_DoubleClick;
+                    _gridSources.Rows.Clear();
+                    _gridSources.Columns.Clear();
+                    DataGridFactory.ClearLinks(_gridSources);
+                    _gridSources = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         List<IServer> _servers;
@@ -152,117 +165,123 @@ namespace OsEngine.Market
         /// </summary>
         private void RePaintSourceGrid()
         {
-            if (_gridSources == null)
+            try
             {
-                return;
-            }
-            if (_gridSources.InvokeRequired)
-            {
-                _gridSources.Invoke(new Action(RePaintSourceGrid));
-                return;
-            }
-
-            _gridSources.Rows.Clear();
-
-            List<IServer> servers = ServerMaster.GetServers();
-
-            if (servers != null)
-            {
-                servers = servers.FindAll(s => s != null && s.ServerType != ServerType.Optimizer);
-            }
-
-            List<ServerType> serverTypes = ServerMaster.ServersTypes;
-
-            for (int i = 0; servers != null && i < servers.Count; i++)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = servers[i].ServerType;
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = servers[i].ServerStatus;
-
-                bool isAttached = false;
-
-                for (int j = 0; j < _attachedServers.Count; j++)
+                if (_gridSources == null)
                 {
-                    if (servers[i].ServerType == _attachedServers[j])
+                    return;
+                }
+                if (_gridSources.InvokeRequired)
+                {
+                    _gridSources.Invoke(new Action(RePaintSourceGrid));
+                    return;
+                }
+
+                _gridSources.Rows.Clear();
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers != null)
+                {
+                    servers = servers.FindAll(s => s != null && s.ServerType != ServerType.Optimizer);
+                }
+
+                List<ServerType> serverTypes = ServerMaster.ServersTypes;
+
+                for (int i = 0; servers != null && i < servers.Count; i++)
+                {
+                    DataGridViewRow row1 = new DataGridViewRow();
+                    row1.Cells.Add(new DataGridViewTextBoxCell());
+                    row1.Cells[0].Value = servers[i].ServerType;
+                    row1.Cells.Add(new DataGridViewTextBoxCell());
+                    row1.Cells[1].Value = servers[i].ServerStatus;
+
+                    bool isAttached = false;
+
+                    for (int j = 0; j < _attachedServers.Count; j++)
                     {
-                        isAttached = true;
-                        break;
+                        if (servers[i].ServerType == _attachedServers[j])
+                        {
+                            isAttached = true;
+                            break;
+                        }
                     }
-                }
 
-                if (isAttached == true)
-                {
-                    DataGridViewImageCell imageCell = new DataGridViewImageCell();
-                    Bitmap bmp = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\pinBar.png");
-                    imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                    imageCell.Value = bmp;
-                    row1.Cells.Add(imageCell);
-                }
-
-                _gridSources.Rows.Add(row1);
-
-                serverTypes.Remove(serverTypes.Find(s => s == servers[i].ServerType));
-
-                if (servers[i].ServerStatus == ServerConnectStatus.Connect)
-                {
-                    DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.MediumSeaGreen;
-                    style.SelectionBackColor = Color.Green;
-                    style.ForeColor = Color.Black;
-                    style.SelectionForeColor = Color.Black;
-
-                    row1.Cells[1].Style = style;
-                    row1.Cells[0].Style = style;
-                }
-                else
-                {
-                    DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.Coral;
-                    style.SelectionBackColor = Color.Chocolate;
-                    style.ForeColor = Color.Black;
-                    style.SelectionForeColor = Color.Black;
-                    row1.Cells[1].Style = style;
-                    row1.Cells[0].Style = style;
-                }
-            }
-
-            for (int i = 0; i < serverTypes.Count; i++)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = serverTypes[i].ToString();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[1].Value = "Disabled";
-
-                bool isAttached = false;
-
-                for(int j = 0;j < _attachedServers.Count; j++)
-                {
-                    if (serverTypes[i] == _attachedServers[j])
+                    if (isAttached == true)
                     {
-                        isAttached = true;
-                        break;
+                        DataGridViewImageCell imageCell = new DataGridViewImageCell();
+                        Bitmap bmp = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\pinBar.png");
+                        imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                        imageCell.Value = bmp;
+                        row1.Cells.Add(imageCell);
                     }
-                }
-                
-                if(isAttached == false)
-                {
+
                     _gridSources.Rows.Add(row1);
-                }
-                else if(isAttached == true)
-                {
-                    DataGridViewImageCell imageCell = new DataGridViewImageCell();
-                    Bitmap bmp = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\pinBar.png");
-                    imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                    imageCell.Value = bmp;
-                    row1.Cells.Add(imageCell);
 
-                    _gridSources.Rows.Insert(0, row1);
+                    serverTypes.Remove(serverTypes.Find(s => s == servers[i].ServerType));
+
+                    if (servers[i].ServerStatus == ServerConnectStatus.Connect)
+                    {
+                        DataGridViewCellStyle style = new DataGridViewCellStyle();
+                        style.BackColor = Color.MediumSeaGreen;
+                        style.SelectionBackColor = Color.Green;
+                        style.ForeColor = Color.Black;
+                        style.SelectionForeColor = Color.Black;
+
+                        row1.Cells[1].Style = style;
+                        row1.Cells[0].Style = style;
+                    }
+                    else
+                    {
+                        DataGridViewCellStyle style = new DataGridViewCellStyle();
+                        style.BackColor = Color.Coral;
+                        style.SelectionBackColor = Color.Chocolate;
+                        style.ForeColor = Color.Black;
+                        style.SelectionForeColor = Color.Black;
+                        row1.Cells[1].Style = style;
+                        row1.Cells[0].Style = style;
+                    }
+                }
+
+                for (int i = 0; i < serverTypes.Count; i++)
+                {
+                    DataGridViewRow row1 = new DataGridViewRow();
+                    row1.Cells.Add(new DataGridViewTextBoxCell());
+                    row1.Cells[0].Value = serverTypes[i].ToString();
+                    row1.Cells.Add(new DataGridViewTextBoxCell());
+                    row1.Cells[1].Value = "Disabled";
+
+                    bool isAttached = false;
+
+                    for (int j = 0; j < _attachedServers.Count; j++)
+                    {
+                        if (serverTypes[i] == _attachedServers[j])
+                        {
+                            isAttached = true;
+                            break;
+                        }
+                    }
+
+                    if (isAttached == false)
+                    {
+                        _gridSources.Rows.Add(row1);
+                    }
+                    else if (isAttached == true)
+                    {
+                        DataGridViewImageCell imageCell = new DataGridViewImageCell();
+                        Bitmap bmp = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\pinBar.png");
+                        imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                        imageCell.Value = bmp;
+                        row1.Cells.Add(imageCell);
+
+                        _gridSources.Rows.Insert(0, row1);
+                    }
                 }
             }
-           
+            catch(Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(),Logging.LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -271,48 +290,55 @@ namespace OsEngine.Market
         /// </summary>
         void _gridSources_DoubleClick(object sender, EventArgs e)
         {
-            if (_gridSources.CurrentCell.RowIndex <= -1)
+            try
             {
-                return;
-            }
-
-            ServerType type;
-            Enum.TryParse(_gridSources.SelectedRows[0].Cells[0].Value.ToString(), out type);
-
-            List<IServer> servers = ServerMaster.GetServers();
-
-            if (servers == null ||
-                servers.Find(serv => serv.ServerType == type) == null)
-            {
-                // need to create a server for the first time 
-                // нужно впервые создать сервер
-                ServerMaster.CreateServer(type, true);
-
-                servers = ServerMaster.GetServers();
-
-                if (servers == null)
-                { // something went wrong / что-то пошло не так
+                if (_gridSources.CurrentCell.RowIndex <= -1)
+                {
                     return;
                 }
-                else
-                { // subscribe to the change status event / подписываемся на событие изменения статуса
-                    IServer myServ = servers.Find(serv => serv.ServerType == type);
 
-                    if (myServ != null)
-                    {
-                        myServ.ConnectStatusChangeEvent += ServerStatusChangeEvent;
+                ServerType type;
+                Enum.TryParse(_gridSources.SelectedRows[0].Cells[0].Value.ToString(), out type);
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers == null ||
+                    servers.Find(serv => serv.ServerType == type) == null)
+                {
+                    // need to create a server for the first time 
+                    // нужно впервые создать сервер
+                    ServerMaster.CreateServer(type, true);
+
+                    servers = ServerMaster.GetServers();
+
+                    if (servers == null)
+                    { // something went wrong / что-то пошло не так
+                        return;
+                    }
+                    else
+                    { // subscribe to the change status event / подписываемся на событие изменения статуса
+                        IServer myServ = servers.Find(serv => serv.ServerType == type);
+
+                        if (myServ != null)
+                        {
+                            myServ.ConnectStatusChangeEvent += ServerStatusChangeEvent;
+                        }
                     }
                 }
+
+                IServer myServer = servers.Find(serv => serv.ServerType == type);
+
+                if (myServer == null)
+                {
+                    return;
+                }
+
+                myServer.ShowDialog();
             }
-
-            IServer myServer = servers.Find(serv => serv.ServerType == type);
-
-            if (myServer == null)
+            catch (Exception ex)
             {
-                return;
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
-            myServer.ShowDialog();
         }
 
         /// <summary>
@@ -327,32 +353,46 @@ namespace OsEngine.Market
 
         private void ServerMasterOnServerCreateEvent(IServer newServer)
         {
-            if(newServer.ServerType == ServerType.Optimizer)
+            try
             {
-                return;
-            }
-
-            List<IServer> servers = ServerMaster.GetServers();
-
-            for (int i = 0; i < servers.Count; i++)
-            {
-                if (servers[i].ServerType == ServerType.Optimizer)
+                if (newServer.ServerType == ServerType.Optimizer)
                 {
-                    continue;
+                    return;
                 }
-                servers[i].ConnectStatusChangeEvent -= ServerStatusChangeEvent;
-                servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType == ServerType.Optimizer)
+                    {
+                        continue;
+                    }
+                    servers[i].ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+                    servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
+                }
+                RePaintSourceGrid();
             }
-            RePaintSourceGrid();
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         void CheckBoxServerAutoOpen_Click(object sender, RoutedEventArgs e)
         {
-            if (_boxCreateServerАutomatically.IsChecked.HasValue)
+            try
             {
-                ServerMaster.NeadToConnectAuto = _boxCreateServerАutomatically.IsChecked.Value;
+                if (_boxCreateServerАutomatically.IsChecked.HasValue)
+                {
+                    ServerMaster.NeadToConnectAuto = _boxCreateServerАutomatically.IsChecked.Value;
+                }
+                ServerMaster.Save();
             }
-            ServerMaster.Save();
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         // Attaching servers on top
@@ -496,7 +536,7 @@ namespace OsEngine.Market
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(ex.ToString());
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -543,7 +583,7 @@ namespace OsEngine.Market
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(ex.ToString());
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -592,7 +632,7 @@ namespace OsEngine.Market
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(ex.ToString());  
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
            
         }
@@ -623,31 +663,44 @@ namespace OsEngine.Market
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(ex.ToString());
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
         private void _gridSources_AttachServer_Click(object sender, EventArgs e)
         {
-            _attachedServers.Add(_lastClickServer);
-            SaveAttachedServers();
-            RePaintSourceGrid();
+            try
+            {
+                _attachedServers.Add(_lastClickServer);
+                SaveAttachedServers();
+                RePaintSourceGrid();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void _gridSources_DetachServer_Click(object sender, EventArgs e)
         {
-            for(int i = 0;i < _attachedServers.Count;i++)
+            try
             {
-                if (_attachedServers[i] == _lastClickServer)
+                for (int i = 0; i < _attachedServers.Count; i++)
                 {
-                    _attachedServers.RemoveAt(i);
-                    break;
+                    if (_attachedServers[i] == _lastClickServer)
+                    {
+                        _attachedServers.RemoveAt(i);
+                        break;
+                    }
                 }
+
+                SaveAttachedServers();
+                RePaintSourceGrid();
             }
-
-            SaveAttachedServers();
-            RePaintSourceGrid();
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
-
     }
 }

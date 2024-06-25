@@ -293,17 +293,24 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public void ReloadSecurities(bool thisThread)
         {
-            // чистим все данные, отключаемся
-            SecuritiesTester = null;
+            try
+            {
+                // чистим все данные, отключаемся
+                SecuritiesTester = null;
 
-            if (thisThread == false)
-            {
-                _needToReloadSecurities = true;
-                Save();
+                if (thisThread == false)
+                {
+                    _needToReloadSecurities = true;
+                    Save();
+                }
+                else
+                {
+                    LoadSecurities();
+                }
             }
-            else
+            catch(Exception ex)
             {
-                LoadSecurities();
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -424,60 +431,67 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void LoadSecurities()
         {
-            if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activSet))
+            try
             {
-                if (!Directory.Exists(_activSet))
+                if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activSet))
                 {
-                    return;
-                }
-                string[] directories = Directory.GetDirectories(_activSet);
+                    if (!Directory.Exists(_activSet))
+                    {
+                        return;
+                    }
+                    string[] directories = Directory.GetDirectories(_activSet);
 
-                if (directories.Length == 0)
+                    if (directories.Length == 0)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
+                        return;
+                    }
+
+                    for (int i = 0; i < directories.Length; i++)
+                    {
+                        LoadSeciruty(directories[i]);
+                    }
+
+                }
+                else if (_sourceDataType == TesterSourceDataType.Folder && !string.IsNullOrWhiteSpace(_pathToFolder))
+                { // simple files from folder / простые файлы из папки
+
+                    string[] files = Directory.GetFiles(_pathToFolder);
+
+                    if (files.Length == 0)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message28, LogMessageType.Error);
+                    }
+                    if (TypeTesterData == TesterDataType.Candle)
+                    {
+                        LoadCandleFromFolder(_pathToFolder);
+                    }
+                    if (TypeTesterData == TesterDataType.TickAllCandleState ||
+                        TypeTesterData == TesterDataType.TickOnlyReadyCandle)
+                    {
+                        LoadTickFromFolder(_pathToFolder);
+                    }
+                    if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
+                        TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
+                    {
+                        LoadMarketDepthFromFolder(_pathToFolder);
+                    }
+
+                }
+
+                if (SecuritiesChangeEvent != null)
                 {
-                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
-                    return;
+                    SecuritiesChangeEvent(Securities);
                 }
 
-                for (int i = 0; i < directories.Length; i++)
+                if (TimeChangeEvent != null)
                 {
-                    LoadSeciruty(directories[i]);
+                    TimeChangeEvent(TimeStart, TimeEnd);
                 }
-
             }
-            else if (_sourceDataType == TesterSourceDataType.Folder && !string.IsNullOrWhiteSpace(_pathToFolder))
-            { // simple files from folder / простые файлы из папки
-
-                string[] files = Directory.GetFiles(_pathToFolder);
-
-                if (files.Length == 0)
-                {
-                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.Error);
-                }
-                if (TypeTesterData == TesterDataType.Candle)
-                {
-                    LoadCandleFromFolder(_pathToFolder);
-                }
-                if (TypeTesterData == TesterDataType.TickAllCandleState ||
-                    TypeTesterData == TesterDataType.TickOnlyReadyCandle)
-                {
-                    LoadTickFromFolder(_pathToFolder);
-                }
-                if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
-                    TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
-                {
-                    LoadMarketDepthFromFolder(_pathToFolder);
-                }
-
-            }
-
-            if (SecuritiesChangeEvent != null)
+            catch(Exception ex)
             {
-                SecuritiesChangeEvent(Securities);
-            }
-
-            if (TimeChangeEvent != null)
-            {
-                TimeChangeEvent(TimeStart, TimeEnd);
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -488,39 +502,46 @@ namespace OsEngine.Market.Servers.Optimizer
         /// <param name="path">instrument folder path/путь к папке с инструментом</param>
         private void LoadSeciruty(string path)
         {
-            string[] directories = Directory.GetDirectories(path);
-
-            if (directories.Length == 0)
+            try
             {
-                return;
+                string[] directories = Directory.GetDirectories(path);
+
+                if (directories.Length == 0)
+                {
+                    return;
+                }
+
+                TimeMax = DateTime.MinValue;
+                TimeEnd = DateTime.MaxValue;
+                TimeMin = DateTime.MaxValue;
+                TimeStart = DateTime.MinValue;
+                TimeNow = DateTime.MinValue;
+
+                for (int i = 0; i < directories.Length; i++)
+                {
+                    string name = directories[i].Split('\\')[3];
+
+                    if (name == "MarketDepth" &&
+                        (_typeTesterData == TesterDataType.MarketDepthAllCandleState ||
+                        _typeTesterData == TesterDataType.MarketDepthOnlyReadyCandle))
+                    {
+                        LoadMarketDepthFromFolder(directories[i]);
+                    }
+                    else if (name == "Tick" &&
+                        (_typeTesterData == TesterDataType.TickAllCandleState ||
+                        _typeTesterData == TesterDataType.TickOnlyReadyCandle))
+                    {
+                        LoadTickFromFolder(directories[i]);
+                    }
+                    else if (_typeTesterData == TesterDataType.Candle)
+                    {
+                        LoadCandleFromFolder(directories[i]);
+                    }
+                }
             }
-
-            TimeMax = DateTime.MinValue;
-            TimeEnd = DateTime.MaxValue;
-            TimeMin = DateTime.MaxValue;
-            TimeStart = DateTime.MinValue;
-            TimeNow = DateTime.MinValue;
-
-            for (int i = 0; i < directories.Length; i++)
+            catch(Exception ex)
             {
-                string name = directories[i].Split('\\')[3];
-
-                if (name == "MarketDepth" && 
-                    (_typeTesterData == TesterDataType.MarketDepthAllCandleState ||
-                    _typeTesterData == TesterDataType.MarketDepthOnlyReadyCandle))
-                {
-                    LoadMarketDepthFromFolder(directories[i]);
-                }
-                else if (name == "Tick" &&
-                    (_typeTesterData == TesterDataType.TickAllCandleState ||
-                    _typeTesterData == TesterDataType.TickOnlyReadyCandle))
-                {
-                    LoadTickFromFolder(directories[i]);
-                }
-                else if(_typeTesterData == TesterDataType.Candle)
-                {
-                    LoadCandleFromFolder(directories[i]);
-                }
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

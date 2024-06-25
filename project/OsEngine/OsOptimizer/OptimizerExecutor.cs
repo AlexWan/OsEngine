@@ -664,6 +664,12 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void EndOfFazeFiltration(OptimazerFazeReport bots, OptimazerFazeReport botsToOutOfSample)
         {
+            if(bots.Reports == null ||
+                bots.Reports.Count == 0)
+            {
+                return;
+            }
+
             int startCount = bots.Reports.Count;
 
             for (int i = 0; i < bots.Reports.Count; i++)
