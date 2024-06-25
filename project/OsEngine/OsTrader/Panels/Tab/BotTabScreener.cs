@@ -712,96 +712,103 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void TryReLoadTabs()
         {
-            if (NeadToReloadTabs == false)
+            try
             {
-                return;
-            }
-
-            if (_tabIsLoad == false)
-            {
-                return;
-            }
-
-            if (TabsReadyToLoad() == false)
-            {
-                return;
-            }
-
-            // 1 remove unwanted tabs
-
-            bool deleteSomeTabs = false;
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i]) == false)
+                if (NeadToReloadTabs == false)
                 {
-                    string chartName = Tabs[i].TabName + "_Engine";
+                    return;
+                }
 
-                    for(int i2 = 0; _chartEngines != null && i2 < _chartEngines.Count;i2++)
+                if (_tabIsLoad == false)
+                {
+                    return;
+                }
+
+                if (TabsReadyToLoad() == false)
+                {
+                    return;
+                }
+
+                // 1 remove unwanted tabs
+
+                bool deleteSomeTabs = false;
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i]) == false)
                     {
-                        if (chartName == _chartEngines[i2].NameStrategyUniq)
+                        string chartName = Tabs[i].TabName + "_Engine";
+
+                        for (int i2 = 0; _chartEngines != null && i2 < _chartEngines.Count; i2++)
                         {
-                            _chartEngines[i2].CloseGui();
-                            break;
+                            if (chartName == _chartEngines[i2].NameStrategyUniq)
+                            {
+                                _chartEngines[i2].CloseGui();
+                                break;
+                            }
+                        }
+
+                        Tabs[i].Clear();
+                        Tabs[i].Delete();
+                        Tabs.RemoveAt(i);
+                        i--;
+                        deleteSomeTabs = true;
+                    }
+                }
+
+                if (deleteSomeTabs)
+                {
+                    RePaintSecuritiesGrid();
+                }
+
+                // 2 update data in tabs
+
+                //for (int i = 0; i < Tabs.Count; i++)
+                //{
+                //    UpdateTabSettings(Tabs[i]);
+                //}
+
+                // 3 create missing tabs
+                IsLoadTabs = true;
+                for (int i = 0; i < SecuritiesNames.Count; i++)
+                {
+                    int tabCount = Tabs.Count;
+
+                    TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
+
+                    if (tabCount != Tabs.Count)
+                    {
+                        UpdateTabSettings(Tabs[Tabs.Count - 1]);
+                        PaintNewRow();
+
+                        if (NewTabCreateEvent != null)
+                        {
+                            NewTabCreateEvent(Tabs[Tabs.Count - 1]);
                         }
                     }
-
-                    Tabs[i].Clear();
-                    Tabs[i].Delete();
-                    Tabs.RemoveAt(i);
-                    i--;
-                    deleteSomeTabs = true;
                 }
-            }
+                IsLoadTabs = false;
+                ReloadIndicatorsOnTabs();
 
-            if (deleteSomeTabs)
-            {
-                RePaintSecuritiesGrid();
-            }
-
-            // 2 update data in tabs
-
-            //for (int i = 0; i < Tabs.Count; i++)
-            //{
-            //    UpdateTabSettings(Tabs[i]);
-            //}
-
-            // 3 create missing tabs
-            IsLoadTabs = true;
-            for (int i = 0; i < SecuritiesNames.Count; i++)
-            {
-                int tabCount = Tabs.Count;
-
-                TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
-
-                if (tabCount != Tabs.Count)
+                if (Tabs.Count != 0)
                 {
-                    UpdateTabSettings(Tabs[Tabs.Count - 1]);
-                    PaintNewRow();
-
-                    if (NewTabCreateEvent != null)
-                    {
-                        NewTabCreateEvent(Tabs[Tabs.Count - 1]);
-                    }
+                    Tabs[0].IndicatorUpdateEvent -= BotTabScreener_IndicatorUpdateEvent;
+                    Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
                 }
-            }
-            IsLoadTabs = false;
-            ReloadIndicatorsOnTabs();
 
-            if (Tabs.Count != 0)
+                for (int i = 0; Tabs != null && i < Tabs.Count; i++)
+                {
+                    UpdateTabSettings(Tabs[i]);
+                }
+
+                SaveTabs();
+
+                NeadToReloadTabs = false;
+            }
+            catch (Exception ex)
             {
-                Tabs[0].IndicatorUpdateEvent -= BotTabScreener_IndicatorUpdateEvent;
-                Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            for (int i = 0; Tabs != null && i < Tabs.Count; i++)
-            {
-                UpdateTabSettings(Tabs[i]);
-            }
-
-            SaveTabs();
-
-            NeadToReloadTabs = false;
         }
 
         /// <summary>
@@ -1026,29 +1033,35 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowDialog()
         {
-            if (ServerMaster.GetServers() == null ||
-                ServerMaster.GetServers().Count == 0)
+            try
             {
-                AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
-                uiMessage.Show();
-                return;
-            }
-
-            if (StartProgram == StartProgram.IsTester)
-            {
-                IServer server = ServerMaster.GetServers()[0];
-
-                if (server.Portfolios == null
-                    ||
-                    server.Portfolios.Count == 0)
+                if (ServerMaster.GetServers() == null ||
+                    ServerMaster.GetServers().Count == 0)
                 {
+                    AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
+                    uiMessage.Show();
                     return;
                 }
+
+                if (StartProgram == StartProgram.IsTester)
+                {
+                    IServer server = ServerMaster.GetServers()[0];
+
+                    if (server.Portfolios == null
+                        ||
+                        server.Portfolios.Count == 0)
+                    {
+                        return;
+                    }
+                }
+
+                BotTabScreenerUi ui = new BotTabScreenerUi(this);
+                ui.ShowDialog();
             }
-
-            BotTabScreenerUi ui = new BotTabScreenerUi(this);
-            ui.ShowDialog();
-
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1061,39 +1074,44 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowChart(int tabyNum)
         {
-            string botName = Tabs[tabyNum].TabName + "_Engine";
-
-            if (_chartEngines.Find(b => b.NameStrategyUniq == botName) != null)
+            try
             {
-                return;
-            }
+                string botName = Tabs[tabyNum].TabName + "_Engine";
 
-            CandleEngine bot = new CandleEngine(botName, _startProgram);
-
-            BotTabSimple myTab = Tabs[tabyNum];
-
-            //bot.TabCreate(BotTabType.Simple);
-            bot.GetTabs().Clear();
-            bot.GetTabs().Add(myTab);
-            bot.TabsSimple[0] = myTab;
-            bot.ActivTab = myTab;
-
-            bot.ChartClosedEvent += (string nameBot) =>
-            {
-                for (int i = 0; i < _chartEngines.Count; i++)
+                if (_chartEngines.Find(b => b.NameStrategyUniq == botName) != null)
                 {
-                    if (_chartEngines[i].NameStrategyUniq == nameBot)
-                    {
-                        _chartEngines.RemoveAt(i);
-                        break;
-                    }
+                    return;
                 }
-            };
 
-            _chartEngines.Add(bot);
-            bot.ShowChartDialog();
+                CandleEngine bot = new CandleEngine(botName, _startProgram);
 
+                BotTabSimple myTab = Tabs[tabyNum];
 
+                //bot.TabCreate(BotTabType.Simple);
+                bot.GetTabs().Clear();
+                bot.GetTabs().Add(myTab);
+                bot.TabsSimple[0] = myTab;
+                bot.ActivTab = myTab;
+
+                bot.ChartClosedEvent += (string nameBot) =>
+                {
+                    for (int i = 0; i < _chartEngines.Count; i++)
+                    {
+                        if (_chartEngines[i].NameStrategyUniq == nameBot)
+                        {
+                            _chartEngines.RemoveAt(i);
+                            break;
+                        }
+                    }
+                };
+
+                _chartEngines.Add(bot);
+                bot.ShowChartDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1101,8 +1119,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary> 
         public void StartPaint(WindowsFormsHost host)
         {
-            _host = host;
-            RePaintSecuritiesGrid();
+            try
+            {
+                _host = host;
+                RePaintSecuritiesGrid();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1110,19 +1135,26 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void StopPaint()
         {
-            if (_host == null)
+            try
             {
-                return;
-            }
+                if (_host == null)
+                {
+                    return;
+                }
 
-            if (_host.Dispatcher.CheckAccess() == false)
+                if (_host.Dispatcher.CheckAccess() == false)
+                {
+                    _host.Dispatcher.Invoke(new Action(StopPaint));
+                    return;
+                }
+
+                _host.Child = null;
+                _host = null;
+            }
+            catch (Exception ex)
             {
-                _host.Dispatcher.Invoke(new Action(StopPaint));
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            _host.Child = null;
-            _host = null;
         }
 
         /// <summary>
@@ -1220,32 +1252,39 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void NewGrid_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            if (mouse.Button == MouseButtons.Right)
+            try
             {
-                // refer to the creation of the settings window
-                CreateGridDialog(mouse);
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                if (mouse.Button == MouseButtons.Right)
+                {
+                    // refer to the creation of the settings window
+                    CreateGridDialog(mouse);
+                }
+                if (mouse.Button == MouseButtons.Left)
+                {
+                    // send to watch the chart
+                    if (SecuritiesDataGrid.SelectedCells == null ||
+                        SecuritiesDataGrid.SelectedCells.Count == 0)
+                    {
+                        return;
+                    }
+                    int tabRow = SecuritiesDataGrid.SelectedCells[0].RowIndex;
+                    int tabColumn = SecuritiesDataGrid.SelectedCells[0].ColumnIndex;
+
+                    if (tabColumn == 7)
+                    {
+                        ShowChart(tabRow);
+                    }
+
+                    SecuritiesDataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+                    prevActiveRow = tabRow;
+                }
             }
-            if (mouse.Button == MouseButtons.Left)
+            catch (Exception ex)
             {
-                // send to watch the chart
-                if (SecuritiesDataGrid.SelectedCells == null ||
-                    SecuritiesDataGrid.SelectedCells.Count == 0)
-                {
-                    return;
-                }
-                int tabRow = SecuritiesDataGrid.SelectedCells[0].RowIndex;
-                int tabColumn = SecuritiesDataGrid.SelectedCells[0].ColumnIndex;
-
-                if (tabColumn == 7)
-                {
-                    ShowChart(tabRow);
-                }
-
-                SecuritiesDataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
-                SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-                prevActiveRow = tabRow;
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -1254,35 +1293,42 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void RePaintSecuritiesGrid()
         {
-            if (_host == null)
+            try
             {
-                return;
+                if (_host == null)
+                {
+                    return;
+                }
+
+                if (_host.Dispatcher.CheckAccess() == false)
+                {
+                    _host.Dispatcher.Invoke(new Action(RePaintSecuritiesGrid));
+                    return;
+                }
+
+                int showRow = SecuritiesDataGrid.FirstDisplayedScrollingRowIndex;
+
+                SecuritiesDataGrid.Rows.Clear();
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[i], i));
+                }
+
+                if (_host != null)
+                {
+                    _host.Child = SecuritiesDataGrid;
+                }
+
+                if (showRow > 0 &&
+                    showRow < SecuritiesDataGrid.Rows.Count)
+                {
+                    SecuritiesDataGrid.FirstDisplayedScrollingRowIndex = showRow;
+                }
             }
-
-            if (_host.Dispatcher.CheckAccess() == false)
+            catch (Exception ex)
             {
-                _host.Dispatcher.Invoke(new Action(RePaintSecuritiesGrid));
-                return;
-            }
-
-            int showRow = SecuritiesDataGrid.FirstDisplayedScrollingRowIndex;
-
-            SecuritiesDataGrid.Rows.Clear();
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[i], i));
-            }
-
-            if (_host != null)
-            {
-                _host.Child = SecuritiesDataGrid;
-            }
-
-            if (showRow > 0 &&
-                showRow < SecuritiesDataGrid.Rows.Count)
-            {
-                SecuritiesDataGrid.FirstDisplayedScrollingRowIndex = showRow;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1291,18 +1337,25 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void PaintNewRow()
         {
-            if (_host == null)
+            try
             {
-                return;
-            }
+                if (_host == null)
+                {
+                    return;
+                }
 
-            if (_host.Dispatcher.CheckAccess() == false)
+                if (_host.Dispatcher.CheckAccess() == false)
+                {
+                    _host.Dispatcher.Invoke(new Action(PaintNewRow));
+                    return;
+                }
+
+                SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count - 1], Tabs.Count - 1));
+            }
+            catch (Exception ex)
             {
-                _host.Dispatcher.Invoke(new Action(PaintNewRow));
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count - 1], Tabs.Count - 1));
         }
 
         /// <summary>
@@ -1343,20 +1396,27 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void CreateGridDialog(MouseEventArgs mouse)
         {
-            if (Tabs.Count == 0)
+            try
             {
-                return;
+                if (Tabs.Count == 0)
+                {
+                    return;
+                }
+
+                BotTabSimple tab = Tabs[0];
+
+                System.Windows.Forms.ContextMenu menu = tab.GetContextDialog();
+
+                SecuritiesDataGrid.ContextMenu = menu;
+
+                SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+
+                //SuncFirstTab();
             }
-
-            BotTabSimple tab = Tabs[0];
-
-            System.Windows.Forms.ContextMenu menu = tab.GetContextDialog();
-
-            SecuritiesDataGrid.ContextMenu = menu;
-
-            SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));
-
-            //SuncFirstTab();
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1365,14 +1425,21 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void ShowManualControlDialog()
         {
-            if (Tabs.Count == 0)
+            try
             {
-                SendNewLogMessage(OsLocalization.Trader.Label231, LogMessageType.Error);
-                return;
-            }
+                if (Tabs.Count == 0)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label231, LogMessageType.Error);
+                    return;
+                }
 
-            Tabs[0].ShowManualControlDialog();
-            SuncFirstTab();
+                Tabs[0].ShowManualControlDialog();
+                SuncFirstTab();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1389,28 +1456,35 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <returns></returns>
         public void CreateCandleIndicator(int num, string type, List<string> param, string nameArea = "Prime")
         {
-            //return _chartMaster.CreateIndicator(indicator, nameArea);
+            try
+            {       
 
-            if (_indicators.Find(ind => ind.Num == num) != null)
-            {
-                NeadToReloadTabs = true;
-                return;
+                if (_indicators.Find(ind => ind.Num == num) != null)
+                {
+                    NeadToReloadTabs = true;
+                    return;
+                }
+
+                IndicatorOnTabs indicator = new IndicatorOnTabs();
+                indicator.Num = num;
+                indicator.Type = type;
+                indicator.NameArea = nameArea;
+
+                if (param != null)
+                {
+                    indicator.Params = param;
+                }
+
+                _indicators.Add(indicator);
+
+                SaveIndicators();
+                ReloadIndicatorsOnTabs();
+
             }
-
-            IndicatorOnTabs indicator = new IndicatorOnTabs();
-            indicator.Num = num;
-            indicator.Type = type;
-            indicator.NameArea = nameArea;
-
-            if (param != null)
+            catch (Exception ex)
             {
-                indicator.Params = param;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            _indicators.Add(indicator);
-
-            SaveIndicators();
-            ReloadIndicatorsOnTabs();
         }
 
         /// <summary>
