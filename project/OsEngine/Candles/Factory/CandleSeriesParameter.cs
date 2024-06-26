@@ -15,15 +15,15 @@ namespace OsEngine.Candles.Factory
         {
             if (this.Type == CandlesParameterType.Bool)
             {
-                ((CandlesParameterBool)this).ValueBool = ((CandlesParameterBool)this).ValueBoolDefolt;
+                ((CandlesParameterBool)this).ValueBool = ((CandlesParameterBool)this).ValueBoolDefault;
             }
             if (this.Type == CandlesParameterType.Decimal)
             {
-                ((CandlesParameterDecimal)this).ValueDecimal = ((CandlesParameterDecimal)this).ValueDecimalDefolt;
+                ((CandlesParameterDecimal)this).ValueDecimal = ((CandlesParameterDecimal)this).ValueDecimalDefault;
             }
             if (this.Type == CandlesParameterType.Int)
             {
-                ((CandlesParameterInt)this).ValueInt = ((CandlesParameterInt)this).ValueIntDefolt;
+                ((CandlesParameterInt)this).ValueInt = ((CandlesParameterInt)this).ValueIntDefault;
             }
             if (this.Type == CandlesParameterType.StringCollection)
             {
@@ -51,7 +51,7 @@ namespace OsEngine.Candles.Factory
         {
             _name = sysName;
             _valueInt = value;
-            _valueIntDefolt = value;
+            _valueIntDefault = value;
             _label = label;
         }
 
@@ -98,14 +98,14 @@ namespace OsEngine.Candles.Factory
         }
         internal int _valueInt;
 
-        public int ValueIntDefolt
+        public int ValueIntDefault
         {
             get
             {
-                return _valueIntDefolt;
+                return _valueIntDefault;
             }
         }
-        private int _valueIntDefolt;
+        private int _valueIntDefault;
 
         public override string GetStringToSave()
         {
@@ -129,7 +129,7 @@ namespace OsEngine.Candles.Factory
         {
             _name = sysName;
             _valueDecimal = value;
-            _valueDecimalDefolt = value;
+            _valueDecimalDefault = value;
             _type = CandlesParameterType.Decimal;
             _label = label;
         }
@@ -178,14 +178,14 @@ namespace OsEngine.Candles.Factory
         }
         internal decimal _valueDecimal;
 
-        public decimal ValueDecimalDefolt
+        public decimal ValueDecimalDefault
         {
             get
             {
-                return _valueDecimalDefolt;
+                return _valueDecimalDefault;
             }
         }
-        private decimal _valueDecimalDefolt;
+        private decimal _valueDecimalDefault;
 
         public override string GetStringToSave()
         {
@@ -207,7 +207,7 @@ namespace OsEngine.Candles.Factory
         public CandlesParameterBool(string sysName, string label, bool value)
         {
             _name = sysName;
-            _valueBoolDefolt = value;
+            _valueBoolDefault = value;
             _valueBool = value;
             _type = CandlesParameterType.Bool;
             _label = label;
@@ -257,14 +257,14 @@ namespace OsEngine.Candles.Factory
         }
         internal bool _valueBool;
 
-        public bool ValueBoolDefolt
+        public bool ValueBoolDefault
         {
             get
             {
-                return _valueBoolDefolt;
+                return _valueBoolDefault;
             }
         }
-        private bool _valueBoolDefolt;
+        private bool _valueBoolDefault;
 
         public override string GetStringToSave()
         {
@@ -343,6 +343,7 @@ namespace OsEngine.Candles.Factory
             get { return _valueStringDefault; }
         }
         private string _valueStringDefault;
+
         public List<string> ValuesString
         {
             get
@@ -354,7 +355,6 @@ namespace OsEngine.Candles.Factory
                 return _setStringValues;
             }
         }
-
         private List<string> _setStringValues;
 
         public override string GetStringToSave()

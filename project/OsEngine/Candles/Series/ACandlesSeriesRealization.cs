@@ -31,6 +31,7 @@ namespace OsEngine.Candles.Series
 
         public void Delete()
         {
+            OnStateChange(CandleSeriesState.Dispose);
             CandlesAll = null;
         }
 
