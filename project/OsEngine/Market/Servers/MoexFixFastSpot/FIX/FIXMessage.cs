@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
-namespace OsEngine.Market.Servers.FixFastEquities.FIX
+namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
     class FIXMessage
     {
@@ -33,7 +34,7 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "52", "SendingTime" },
             { "54", "Side" },
             { "55", "Symbol" },
-            { "56", "TargetCompID"},
+            { "56", "TargetCompID" },
             { "58", "Text" },
             { "60", "TransactTime" },
             { "63", "SettlType" },
@@ -96,6 +97,8 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             { "5979", "RequestTime" },
             { "6029", "CurrencyCode" },
             { "6636", "StipulationValue" },
+            { "6867", "CancelOnDisconnect" },
+            { "6936", "LanguageID" },
             { "7693", "ClientAccID" },
             { "9412", "OrigTime" },
             { "9945", "OrigOrderID" },
@@ -128,11 +131,11 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
                     string name = field[0];
                     string value = field[1];
                     name = fixDict.ContainsKey(name) ? fixDict[name] : name;
-                    output += name + "=" + value + "| ";
+                    output += name + "=" + value + ", ";
                 }
             }
                     
-            return output;
+            return $"{MessageType} (output)";
         }
 
         public static FIXMessage ParseFIXMessage(string message)
@@ -141,105 +144,105 @@ namespace OsEngine.Market.Servers.FixFastEquities.FIX
             string[] parts = message.Split(new[] { '\u0001' }); // "\u0001" is the start of a new field in FIX
 
             FIXMessage FIXMessage = new FIXMessage();
-            
+
             // Parse the body fields
             for (int i = 0; i < parts.Length - 1; i++)
             {
                 string part = parts[i];
-                string[] field = part.Split('=');
-                if (field.Length == 2)
+
+                int equalsPosition = part.IndexOf('=');
+
+                // Extracting the key and value based on the known maximum key length
+                string name = part.Substring(0, equalsPosition);
+                string value = part.Substring(equalsPosition + 1);
+
+                name = fixDict.ContainsKey(name) ? fixDict[name] : name;
+                if (name == "MsgSeqNum")
                 {
-                    string name = field[0];
-                    string value = field[1];
-
-                    name = fixDict.ContainsKey(name) ? fixDict[name] : name;
-                    if (name == "MsgSeqNum")
-                    {
-                        FIXMessage.MsgSeqNum = long.Parse(value);
-                    }
-
-                    if (name == "MsgType")
-                    {
-                        if (value == "A")
-                        {
-                            value = "Logon";
-                        }
-                                                
-                        if (value == "0")
-                        {
-                            value = "Heartbeat";
-                        }
-
-                        if (value == "1")
-                        {
-                            value = "TestRequest";
-                        }
-                        
-                        if (value == "2")
-                        {
-                            value = "ResendRequest";
-                        }
-                        
-                        if (value == "3")
-                        {
-                            value = "Reject";
-                        }
-
-                        if (value == "4")
-                        {
-                            value = "SequenceReset";
-                        }
-                        
-                        if (value == "5")
-                        {
-                            value = "Logout";
-                        }
-
-                        if (value == "h")
-                        {
-                            value = "TradingSessionStatus";
-                        }
-
-                        if (value == "8")
-                        {
-                            value = "ExecutionReport";
-                        }
-
-                        if (value == "9")
-                        {
-                            value = "OrderCancelReject";
-                        }
-                                                
-                        if (value == "AE")
-                        {
-                            value = "TradeCaptureReport";
-                        }                                                
-
-                        if (value == "V")
-                        {
-                            value = "MarketDataRequest";                        
-                        }
-
-                        if (value == "F")
-                        {
-                            value = "OrderCancelRequest";
-                        }
-
-                        if (value == "G")
-                        {
-                            value = "OrderCancelReplaceRequest";
-                        }
-
-                        if (value == "r")
-                        {
-                            value = "OrderMassCancelReport";
-                        }
-
-                        FIXMessage.MessageType = value;
-                    }
-
-                    FIXMessage.Fields[name] = value;
+                    FIXMessage.MsgSeqNum = long.Parse(value);
                 }
+
+                if (name == "MsgType")
+                {
+                    if (value == "A")
+                    {
+                        value = "Logon";
+                    }
+
+                    if (value == "0")
+                    {
+                        value = "Heartbeat";
+                    }
+
+                    if (value == "1")
+                    {
+                        value = "TestRequest";
+                    }
+
+                    if (value == "2")
+                    {
+                        value = "ResendRequest";
+                    }
+
+                    if (value == "3")
+                    {
+                        value = "Reject";
+                    }
+
+                    if (value == "4")
+                    {
+                        value = "SequenceReset";
+                    }
+
+                    if (value == "5")
+                    {
+                        value = "Logout";
+                    }
+
+                    if (value == "h")
+                    {
+                        value = "TradingSessionStatus";
+                    }
+
+                    if (value == "8")
+                    {
+                        value = "ExecutionReport";
+                    }
+
+                    if (value == "9")
+                    {
+                        value = "OrderCancelReject";
+                    }
+
+                    if (value == "AE")
+                    {
+                        value = "TradeCaptureReport";
+                    }
+
+                    if (value == "V")
+                    {
+                        value = "MarketDataRequest";
+                    }
+
+                    if (value == "F")
+                    {
+                        value = "OrderCancelRequest";
+                    }
+
+                    if (value == "G")
+                    {
+                        value = "OrderCancelReplaceRequest";
+                    }
+
+                    if (value == "r")
+                    {
+                        value = "OrderMassCancelReport";
+                    }
+
+                    FIXMessage.MessageType = value;
+                }
+
+                FIXMessage.Fields[name] = value;
             }
 
             FIXMessage.rawMessage = message;

@@ -598,8 +598,8 @@
     <Compile Include="Market\Servers\Finam\FinamServerUi.xaml.cs">
       <DependentUpon>FinamServerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Servers\FixFastEquities\FixFastEquitiesServer.cs" />
-    <Compile Include="Market\Servers\FixFastEquities\FixFastEquitiesServerPermission.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\MoexFixFastSpotServer.cs" />
+    <Compile Include="Market\Servers\FixFastEquities\MoexFixFastSpotServerPermission.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\AFIXMessageBody.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\FIXMessage.cs" />
     <Compile Include="Market\Servers\FixFastEquities\FIX\FASTHeader.cs" />

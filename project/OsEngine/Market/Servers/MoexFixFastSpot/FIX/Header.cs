@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace OsEngine.Market.Servers.FixFastEquities.FIX
+namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
     class Header : AFIXHeader
     {        

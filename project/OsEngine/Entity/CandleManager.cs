@@ -200,7 +200,7 @@ namespace OsEngine.Entity
                                  serverType == ServerType.AstsBridge ||
                                  serverType == ServerType.NinjaTrader ||
                                  serverType == ServerType.Lmax ||
-                                 serverType == ServerType.FixFastEquities
+                                 serverType == ServerType.MoexFixFastSpot
                                  )
                         {
                             series.CandlesAll = null;

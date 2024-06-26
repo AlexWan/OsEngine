@@ -6,7 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.FixFastEquities.FIX;
+using OsEngine.Market.Servers.MoexFixFastSpot.FIX;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -26,13 +26,13 @@ using OsEngine.Market.Servers.FixProtocolEntities;
 using System.Runtime.Remoting.Contexts;
 using System.Collections;
 
-namespace OsEngine.Market.Servers.FixFastEquities
+namespace OsEngine.Market.Servers.MoexFixFastSpot
 {
-    public class FixFastEquitiesServer : AServer
+    public class MoexFixFastSpotServer : AServer
     {
-        public FixFastEquitiesServer()
+        public MoexFixFastSpotServer()
         {
-            FixFastEquitiesServerRealization realization = new FixFastEquitiesServerRealization();
+            MoexFixFastSpotServerRealization realization = new MoexFixFastSpotServerRealization();
             ServerRealization = realization;
 
             // MFIX
@@ -60,58 +60,58 @@ namespace OsEngine.Market.Servers.FixFastEquities
         }
     }
 
-    public class FixFastEquitiesServerRealization : IServerRealization
+    public class MoexFixFastSpotServerRealization : IServerRealization
     {
         #region 1 Constructor, Status, Connection
 
-        public FixFastEquitiesServerRealization()
+        public MoexFixFastSpotServerRealization()
         {            
             Thread worker0 = new Thread(ConnectionCheckThread);
-            worker0.Name = "ConnectionCheckerFixFastEquities";
+            worker0.Name = "ConnectionCheckerMoexFixFastSpot";
             worker0.Start();
 
             Thread worker1 = new Thread(InstrumentDefinitionsReader);
-            worker1.Name = "InstrumentsFixFastEquities";
+            worker1.Name = "InstrumentsMoexFixFastSpot";
             worker1.Start();
 
             Thread worker2 = new Thread(TradesIncrementalReader);
-            worker2.Name = "TradesIncremenalFixFastEquities";
+            worker2.Name = "TradesIncremenalMoexFixFastSpot";
             worker2.Start();
 
             Thread worker3 = new Thread(TradesSnapshotsReader);
-            worker3.Name = "TradesSnapshotsFixFastEquities";
+            worker3.Name = "TradesSnapshotsMoexFixFastSpot";
             worker3.Start();
 
             Thread worker4 = new Thread(TradeMessagesReader);
-            worker4.Name = "TradeMessagesReaderFixFastEquities";
+            worker4.Name = "TradeMessagesReaderMoexFixFastSpot";
             worker4.Start();
 
             Thread worker5 = new Thread(OrderMessagesReader);
-            worker5.Name = "OrderMessagesReaderFixFastEquities";
+            worker5.Name = "OrderMessagesReaderMoexFixFastSpot";
             worker5.Start();
 
             Thread worker6 = new Thread(OrdersIncrementalReaderA);
-            worker6.Name = "OrdersIncremenalAFixFastEquities";
+            worker6.Name = "OrdersIncremenalAMoexFixFastSpot";
             worker6.Start();
 
             Thread worker7 = new Thread(OrdersIncrementalReaderB);
-            worker7.Name = "OrdersIncremenalBFixFastEquities";
+            worker7.Name = "OrdersIncremenalBMoexFixFastSpot";
             worker7.Start();
 
             Thread worker8 = new Thread(OrderSnapshotsReader);
-            worker8.Name = "OrdersSnapshotsFixFastEquities";
+            worker8.Name = "OrdersSnapshotsMoexFixFastSpot";
             worker8.Start();
 
             Thread worker9 = new Thread(MFIXTradeServerConnection);
-            worker9.Name = "MFIXTradeServerConnectionFixFastEquities";
+            worker9.Name = "MFIXTradeServerConnectionMoexFixFastSpot";
             worker9.Start();
 
             Thread worker10 = new Thread(MFIXTradeCaptureServerConnection);
-            worker10.Name = "MFIXTradeCaptureServerConnectionFixFastEquities";
+            worker10.Name = "MFIXTradeCaptureServerConnectionMoexFixFastSpot";
             worker10.Start();
 
             Thread worker11 = new Thread(HistoricalReplayThread);
-            worker11.Name = "HistoricalReplayFixFastEquities";
+            worker11.Name = "HistoricalReplayMoexFixFastSpot";
             worker11.Start();            
         }
 
@@ -308,7 +308,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
             _myPortfolios.Clear();      
             DeleteWebSocketConnection();
 
-            SendLogMessage("Connection Closed by FixFastEquities. Socket Data Closed Event", LogMessageType.System);
+            SendLogMessage("Connection Closed by MoexFixFastSpot. Socket Data Closed Event", LogMessageType.System);
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
@@ -319,7 +319,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         public DateTime ServerTime { get; set; }
 
-        public ServerType ServerType => ServerType.FixFastEquities;
+        public ServerType ServerType => ServerType.MoexFixFastSpot;
 
         public ServerConnectStatus ServerStatus { get; set; } = ServerConnectStatus.Disconnect;
 
@@ -439,12 +439,12 @@ namespace OsEngine.Market.Servers.FixFastEquities
 
         #region 6 Socket creation
 
-        private string _socketLockerHistoricalReplay = "socketLockerFixFastEquitiesHistoricalReplay";
-        private string _socketLockerInstruments = "socketLockerFixFastEquitiesInstruments";
-        private string _socketLockerTradesSnapshots = "socketLockerFixFastEquitiesTradeSnapshots";
-        private string _socketLockerTradesIncremental = "socketLockerFixFastEquitiesTradesIncremental";
-        private string _socketLockerOrdersSnapshots = "socketLockerFixFastEquitiesOrdersSnapshots";
-        private string _socketLockerOrdersIncremental = "socketLockerFixFastEquitiesOrdersIncremental";
+        private string _socketLockerHistoricalReplay = "socketLockerMoexFixFastSpotHistoricalReplay";
+        private string _socketLockerInstruments = "socketLockerMoexFixFastSpotInstruments";
+        private string _socketLockerTradesSnapshots = "socketLockerMoexFixFastSpotTradeSnapshots";
+        private string _socketLockerTradesIncremental = "socketLockerMoexFixFastSpotTradesIncremental";
+        private string _socketLockerOrdersSnapshots = "socketLockerMoexFixFastSpotOrdersSnapshots";
+        private string _socketLockerOrdersIncremental = "socketLockerMoexFixFastSpotOrdersIncremental";
         
         private void CreateSocketConnections()
         {
@@ -784,12 +784,19 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             if (fixMessage.Fields.ContainsKey("SessionStatus"))
                             {
                                 int SessionStatus = int.Parse(fixMessage.Fields["SessionStatus"]);
+
+                                string Text = "";
+                                if (fixMessage.Fields.ContainsKey("Text"))
+                                {
+                                    Text = fixMessage.Fields["Text"];
+                                }
+
                                 if (SessionStatus == 0) // set new password
                                 {
-                                    SendLogMessage($"New password was set successfully for MFIX Trade Capture server for login {_MFIXTradeCaptureServerLogin}", LogMessageType.System);
+                                    SendLogMessage($"New password was set successfully for MFIX Trade Capture server for login {_MFIXTradeCaptureServerLogin}. {Text}", LogMessageType.System);
                                 } else if (SessionStatus == 3) // new password not set
                                 {
-                                    SendLogMessage($"Failed to set new password for MFIX Trade Capture server for login {_MFIXTradeCaptureServerLogin}", LogMessageType.Error);
+                                    SendLogMessage($"Failed to set new password for MFIX Trade Capture server for login {_MFIXTradeCaptureServerLogin}. {Text}", LogMessageType.Error);
                                 }                                
                             }
                         }
@@ -849,13 +856,20 @@ namespace OsEngine.Market.Servers.FixFastEquities
                             if (fixMessage.Fields.ContainsKey("SessionStatus"))
                             {
                                 int SessionStatus = int.Parse(fixMessage.Fields["SessionStatus"]);
+
+                                string Text = "";
+                                if (fixMessage.Fields.ContainsKey("Text"))
+                                {
+                                    Text = fixMessage.Fields["Text"];
+                                }
+                                
                                 if (SessionStatus == 0) // set new password
                                 {
-                                    SendLogMessage($"New password was set successfully for MFIX Trade server for login {_MFIXTradeServerLogin}", LogMessageType.System);
+                                    SendLogMessage($"New password was set successfully for MFIX Trade server for login {_MFIXTradeServerLogin}. {Text}", LogMessageType.System);
                                 }
                                 else if (SessionStatus == 3) // new password not set
                                 {
-                                    SendLogMessage($"Failed to set new password for MFIX Trade server for login {_MFIXTradeServerLogin}", LogMessageType.Error);
+                                    SendLogMessage($"Failed to set new password for MFIX Trade server for login {_MFIXTradeServerLogin}. {Text}", LogMessageType.Error);
                                 }
                             }
                         }
@@ -919,7 +933,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     Directory.CreateDirectory(dir);
                 }
 
-                dir += "FixFastEquitiesSecurities.db";
+                dir += "MoexFixFastSpotSecurities.db";
 
                 if (File.Exists(dir) == false)
                 {
@@ -990,7 +1004,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     Directory.CreateDirectory(dir);
                 }
 
-                dir += "FixFastEquitiesSecurities.db";
+                dir += "MoexFixFastSpotSecurities.db";
 
                 using (LiteDatabase db = new LiteDatabase(dir))
                 {
@@ -3664,8 +3678,9 @@ namespace OsEngine.Market.Servers.FixFastEquities
         {
             byte[] bytes = new byte[4096];
             int bytesRec = 0;
-            Thread.Sleep(1000);
 
+            Thread.Sleep(1000);
+           
             while (true)
             {
                 try
@@ -3730,7 +3745,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                     {
                         string TradingSessionID = fixMessage.Fields["TradingSessionID"];
                         string Text = fixMessage.Fields["Text"];
-                        SendLogMessage($"MFIX TC Server => {TradingSessionID}: {Text}", LogMessageType.System);
+                        SendLogMessage($"MFIX TC Server => {TradingSessionID}: {Text}", LogMessageType.System);                        
                     }
 
                     // 2. Обрабатываем TradeCaptureReport
@@ -3800,7 +3815,7 @@ namespace OsEngine.Market.Servers.FixFastEquities
                
         private List<Order> _sendOrders = new List<Order>();
 
-        private string _sendOrdersArrayLocker = "FixFastEquitiesSendOrdersArrayLocker";
+        private string _sendOrdersArrayLocker = "MoexFixFastSpotSendOrdersArrayLocker";
 
         public void SendOrder(Order order)
         {

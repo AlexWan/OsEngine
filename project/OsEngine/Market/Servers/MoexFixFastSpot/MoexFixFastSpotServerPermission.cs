@@ -3,13 +3,13 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-namespace OsEngine.Market.Servers.FixFastEquities
+namespace OsEngine.Market.Servers.MoexFixFastSpot
 {
-    public class FixFastEquitiesServerPermission : IServerPermission
+    public class MoexFixFastSpotServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.FixFastEquities; }
+            get { return ServerType.MoexFixFastSpot; }
         }
 
         #region DataFeedPermissions

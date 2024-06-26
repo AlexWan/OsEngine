@@ -1,6 +1,6 @@
 ﻿
 
-namespace OsEngine.Market.Servers.FixFastEquities.FIX
+namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
     class ResendRequestMessage: AFIXMessageBody
     {

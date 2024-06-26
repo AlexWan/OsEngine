@@ -51,7 +51,7 @@ using OsEngine.Market.Servers.BinGxSpot;
 using OsEngine.Market.Servers.BingX.BingXSpot;
 using OsEngine.Market.Servers.BingX.BingXFutures;
 using OsEngine.Market.Servers.Deribit;
-using OsEngine.Market.Servers.FixFastEquities;
+using OsEngine.Market.Servers.MoexFixFastSpot;
 using OsEngine.Market.Servers.XT.XTSpot;
 using OsEngine.Market.Servers.Pionex;
 using OsEngine.Market.Servers.Woo;
@@ -159,7 +159,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                serverTypes.Add(ServerType.FixFastEquities);
+                serverTypes.Add(ServerType.MoexFixFastSpot);
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
@@ -381,9 +381,9 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
-                if (type == ServerType.FixFastEquities)
+                if (type == ServerType.MoexFixFastSpot)
                 {
-                    newServer = new FixFastEquitiesServer();
+                    newServer = new MoexFixFastSpotServer();
                 }
                 if (type == ServerType.BingXSpot)
                 {
@@ -999,9 +999,9 @@ namespace OsEngine.Market
                 {
                     serverPermission = new KuCoinFuturesServerPermission();
                 }
-                else if (type == ServerType.FixFastEquities)
+                else if (type == ServerType.MoexFixFastSpot)
                 {
-                    serverPermission = new FixFastEquitiesServerPermission();
+                    serverPermission = new MoexFixFastSpotServerPermission();
                 }
                 else if (type == ServerType.MoexAlgopack)
                 {
@@ -1536,6 +1536,6 @@ namespace OsEngine.Market
         /// </summary>
         HTXSwap,
 
-        FixFastEquities,
+        MoexFixFastSpot,
     }
 }

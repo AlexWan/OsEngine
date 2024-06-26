@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace OsEngine.Market.Servers.FixFastEquities.FIX
+namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
     /*
      * <string name="MessageType" id="35"><constant value="A" /></string>
