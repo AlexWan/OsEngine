@@ -16,7 +16,7 @@ using System.CodeDom.Compiler;
 
 namespace OsEngine.Candles
 {
-    public class CandleFactory
+    public static class CandleFactory
     {
         public static List<string> GetCandlesNames()
         {
@@ -347,7 +347,7 @@ namespace OsEngine.Candles
 
         private static List<NamesFilesFromFolder> _filesInDir = new List<NamesFilesFromFolder>();
 
-        public static List<string> GetFullNamesFromFolder(string directory)
+        private static List<string> GetFullNamesFromFolder(string directory)
         {
             for (int i = 0; i < _filesInDir.Count; i++)
             {

@@ -27,8 +27,6 @@ namespace OsEngine.Candles.Series
             }
         }
 
-        public string Name { get; set; }
-
         public StartProgram StartProgram;
 
         public void Delete()
@@ -109,7 +107,8 @@ namespace OsEngine.Candles.Series
             return (CandlesParameterInt)newParameter;
         }
 
-        public CandlesParameterString CreateParameterStringCollection(string name, string label, string value, List<string> collection)
+        public CandlesParameterString CreateParameterStringCollection(string name, string label, 
+                                                                      string value, List<string> collection)
         {
             ICandleSeriesParameter newParameter = Parameters.Find(p => p.SysName == name);
 

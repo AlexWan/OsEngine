@@ -418,5 +418,13 @@ namespace OsEngine.Language
         public string Label59 => OsLocalization.ConvertToLocString(
            "Eng:Security_" +
            "Ru:Бумага_");
+
+        public string Label60 => OsLocalization.ConvertToLocString(
+           "Eng:The number of test robots is over a hundred thousand. It can take hours and days. Are you sure?_" +
+           "Ru:Количество роботов для тестов больше ста тысяч. Это может затянуться на часы и дни. Вы уверены?_");
+
+        public string Label61 => OsLocalization.ConvertToLocString(
+           "Eng:When Walk-Forwards optimization, you need to turn off filters. But you have them turned on. This can cause errors. Are you sure? Do you want to continue?_" +
+           "Ru:При Walk-Forwards оптимизации нужно отключать фильтры. Но у Вас они включены. Это может вызывать ошибки. Вы уверены? Хотите продолжить?_");
     }
 }

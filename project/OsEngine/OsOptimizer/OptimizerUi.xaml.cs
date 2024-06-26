@@ -572,6 +572,38 @@ namespace OsEngine.OsOptimizer
 
             _testIsEnd = false;
 
+            int botsCount = _master.GetMaxBotsCount();
+
+            if (botsCount > 100000)
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label60);
+
+                ui.ShowDialog();
+
+                if (!ui.UserAcceptActioin)
+                {
+                    return;
+                }
+            }
+
+            if(_master.Fazes != null &&
+                _master.Fazes.Count > 1 &&
+                (_master.FilterDealsCountIsOn 
+                || _master.FilterMaxDrowDownIsOn 
+                || _master.FilterMiddleProfitIsOn
+                || _master.FilterProfitFactorIsOn
+                || _master.FilterProfitIsOn))
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label61);
+
+                ui.ShowDialog();
+
+                if (!ui.UserAcceptActioin)
+                {
+                    return;
+                }
+            }
+
             if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 
                 && _master.Start())
             {
