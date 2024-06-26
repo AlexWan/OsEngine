@@ -74,7 +74,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 | [![LMAX](https://user-images.githubusercontent.com/26077466/239535509-2336139b-b648-4a66-b2a6-cb6d2b3e91b6.png)](https://www.lmax.com)                                                   | LMAX                | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
 
 
-*Included with OsEngine is more than 30 built-in robots*
+*Included with OsEngine is more than 200 built-in robots*
 
 1) Сlassic trend robots like moving average crossing, bill Williams strategy or Jesse Livermore trend strategy.
 
@@ -163,7 +163,7 @@ By downloading Os Engine, you agree that if a critical error occurs, information
 | [![LMAX](https://user-images.githubusercontent.com/26077466/239535509-2336139b-b648-4a66-b2a6-cb6d2b3e91b6.png)](https://www.lmax.com)                                                   | LMAX                | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
 
 
-*В комплекте с OsEngine идёт более 30ти встроенных роботов*
+*В комплекте с OsEngine идёт более 200 встроенных роботов*
 
 1) классические трендовые роботы, вроде пересечения машек, стратегии Билла Вильямса или трендовой стратегии Джесси Ливермора.
 
