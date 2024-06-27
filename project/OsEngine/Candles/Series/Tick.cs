@@ -29,6 +29,10 @@ namespace OsEngine.Candles.Series
                     CandlesAll.Clear();
                 }
             }
+            else if (state == CandleSeriesState.Dispose)
+            {
+               // do nothin
+            }
         }
 
         private int _lastCandleTickCount;
@@ -53,7 +57,6 @@ namespace OsEngine.Candles.Series
                 {
                     timeNextCandle = timeNextCandle.AddSeconds(-1);
                 }
-
 
                 while (timeNextCandle.Millisecond != 0)
                 {
