@@ -6,6 +6,8 @@
 using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -25,7 +27,11 @@ namespace OsEngine.Robots.Patterns
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
 
-            VolumeFix = CreateParameter("Volume qty", 1, 1.0m, 50, 4);
+            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
+
+            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
+
+            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
 
@@ -68,7 +74,13 @@ namespace OsEngine.Robots.Patterns
 
         public StrategyParameterDecimal Slippage;
 
-        public StrategyParameterDecimal VolumeFix;
+        public StrategyParameterString VolumeType;
+
+        public StrategyParameterDecimal Volume;
+
+        public StrategyParameterString TradeAssetInPortfolio;
+
+
 
         // logic
 
@@ -132,7 +144,7 @@ namespace OsEngine.Robots.Patterns
                     && candles[candles.Count - 2].Open < candles[candles.Count - 2].Close 
                     && candles[candles.Count - 1].Open < candles[candles.Count - 1].Close)
                 {
-                    _tab.BuyAtLimit(VolumeFix.ValueDecimal, _lastPrice + _lastPrice * (Slippage.ValueDecimal / 100));
+                    _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _lastPrice * (Slippage.ValueDecimal / 100));
                 }
             }
 
@@ -143,9 +155,10 @@ namespace OsEngine.Robots.Patterns
                     && candles[candles.Count - 2].Open > candles[candles.Count - 2].Close 
                     && candles[candles.Count - 1].Open > candles[candles.Count - 1].Close)
                 {
-                    _tab.SellAtLimit(VolumeFix.ValueDecimal, _lastPrice - _lastPrice * (Slippage.ValueDecimal / 100));
+                    _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _lastPrice * (Slippage.ValueDecimal / 100));
                 }
             }
+
             return;
 
         }
@@ -186,6 +199,97 @@ namespace OsEngine.Robots.Patterns
                     _tab.CloseAtProfit(openPositions[i], priceTake, priceTake + priceStop * (Slippage.ValueDecimal / 100));
                 }
             }
+        }
+
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
+
+            if (VolumeType.ValueString == "Contracts")
+            {
+                volume = Volume.ValueDecimal;
+            }
+            else if (VolumeType.ValueString == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = Volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Securiti.Lot != 0 &&
+                        tab.Securiti.Lot > 1)
+                    {
+                        volume = Volume.ValueDecimal / (contractPrice * tab.Securiti.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if(VolumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Securiti.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
         }
     }
 }

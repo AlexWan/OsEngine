@@ -1132,6 +1132,7 @@ namespace OsEngine.Journal
 
                 _chartVolume.BackColor = Color.FromArgb(17, 18, 23);
                 _chartVolume.Click += _chartVolume_Click;
+                _chartVolume.MouseWheel += _chartVolume_MouseWheel;
             }
             catch (Exception error)
             {
@@ -1481,7 +1482,7 @@ namespace OsEngine.Journal
             }
         }
 
-        void _chartVolume_Click(object sender, EventArgs e)
+        private void _chartVolume_Click(object sender, EventArgs e)
         {
             try
             {
@@ -1532,6 +1533,21 @@ namespace OsEngine.Journal
                     _chartVolume.Series[i].Points[index].Label = label;
                     _chartVolume.Series[i].Points[index].LabelForeColor = _chartVolume.Series[i].Points[index].Color;
                     _chartVolume.Series[i].Points[index].LabelBackColor = Color.FromArgb(17, 18, 23);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _chartVolume_MouseWheel(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (_chartVolume.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                {
+                    _chartVolume.ChartAreas[0].AxisX.ScaleView.ZoomReset();
                 }
             }
             catch (Exception error)
