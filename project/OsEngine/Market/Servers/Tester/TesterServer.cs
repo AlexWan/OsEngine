@@ -349,105 +349,113 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public void TestingStart()
         {
-            if (_lastStartSecurityTime.AddSeconds(5) > DateTime.Now)
+            try
             {
-                SendLogMessage(OsLocalization.Market.Message97, LogMessageType.Error);
-                return;
-            }
 
-            TesterRegime = TesterRegime.Pause;
-            Thread.Sleep(200);
-            _serverTime = DateTime.MinValue;
-
-            ServerMaster.ClearOrders();
-
-            SendLogMessage(OsLocalization.Market.Message35, LogMessageType.System);
-
-
-            if(_isFirstStart == false)
-            {
-                if (_candleSeriesTesterActivate != null)
+                if (_lastStartSecurityTime.AddSeconds(5) > DateTime.Now)
                 {
-                    for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                    SendLogMessage(OsLocalization.Market.Message97, LogMessageType.Error);
+                    return;
+                }
+
+                TesterRegime = TesterRegime.Pause;
+                Thread.Sleep(200);
+                _serverTime = DateTime.MinValue;
+
+                ServerMaster.ClearOrders();
+
+                SendLogMessage(OsLocalization.Market.Message35, LogMessageType.System);
+
+
+                if (_isFirstStart == false)
+                {
+                    if (_candleSeriesTesterActivate != null)
                     {
-                        _candleSeriesTesterActivate[i].Clear();
+                        for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                        {
+                            _candleSeriesTesterActivate[i].Clear();
+                        }
                     }
+
+                    _candleSeriesTesterActivate = new List<SecurityTester>();
+
+                    int countSeriesInLastTest = _candleManager.ActiveSeriesCount;
+
+                    _candleManager.Clear();
+
+                    if (NeadToReconnectEvent != null)
+                    {
+                        NeadToReconnectEvent();
+                    }
+
+                    int timeToWaitConnect = 100 + countSeriesInLastTest * 40;
+
+                    if (timeToWaitConnect > 10000)
+                    {
+                        timeToWaitConnect = 10000;
+                    }
+
+                    if (timeToWaitConnect < 1000)
+                    {
+                        timeToWaitConnect = 1000;
+                    }
+
+                    Thread.Sleep(timeToWaitConnect);
                 }
 
-                _candleSeriesTesterActivate = new List<SecurityTester>();
+                _allTrades = null;
 
-                int countSeriesInLastTest = _candleManager.ActiveSeriesCount;
-
-                _candleManager.Clear();
-
-                if (NeadToReconnectEvent != null)
+                if (TimeStart == DateTime.MinValue)
                 {
-                    NeadToReconnectEvent();
+                    SendLogMessage(OsLocalization.Market.Message47, LogMessageType.System);
+                    return;
                 }
 
-                int timeToWaitConnect = 100 + countSeriesInLastTest * 40;
+                TimeNow = TimeStart;
 
-                if (timeToWaitConnect > 10000)
+                while (TimeNow.Minute != 0)
                 {
-                    timeToWaitConnect = 10000;
+                    TimeNow = TimeNow.AddMinutes(-1);
                 }
 
-                if(timeToWaitConnect < 1000)
+                while (TimeNow.Second != 0)
                 {
-                    timeToWaitConnect = 1000;
+                    TimeNow = TimeNow.AddSeconds(-1);
                 }
 
-                Thread.Sleep(timeToWaitConnect);
+                while (TimeNow.Millisecond != 0)
+                {
+                    TimeNow = TimeNow.AddMilliseconds(-1);
+                }
+
+                if (_portfolios != null && _portfolios.Count != 0)
+                {
+                    _portfolios[0].ValueCurrent = StartPortfolio;
+                    _portfolios[0].ValueBegin = StartPortfolio;
+                    _portfolios[0].ValueBlocked = 0;
+                    _portfolios[0].ClearPositionOnBoard();
+                }
+
+                ProfitArray = new List<decimal>();
+
+                _dataIsActive = false;
+
+                OrdersActiv.Clear();
+
+                Thread.Sleep(2000);
+
+                TesterRegime = TesterRegime.Play;
+
+                if (TestingStartEvent != null)
+                {
+                    TestingStartEvent();
+                }
+                _isFirstStart = false;
             }
-
-            _allTrades = null;
-
-            if (TimeStart == DateTime.MinValue)
+            catch (Exception ex)
             {
-                SendLogMessage(OsLocalization.Market.Message47, LogMessageType.System);
-                return;
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
-
-            TimeNow = TimeStart;
-
-            while (TimeNow.Minute != 0)
-            {
-                TimeNow = TimeNow.AddMinutes(-1);
-            }
-
-            while (TimeNow.Second != 0)
-            {
-                TimeNow = TimeNow.AddSeconds(-1);
-            }
-
-            while (TimeNow.Millisecond != 0)
-            {
-                TimeNow = TimeNow.AddMilliseconds(-1);
-            }
-
-            if (_portfolios != null && _portfolios.Count != 0)
-            {
-                _portfolios[0].ValueCurrent = StartPortfolio;
-                _portfolios[0].ValueBegin = StartPortfolio;
-                _portfolios[0].ValueBlocked = 0;
-                _portfolios[0].ClearPositionOnBoard();
-            }
-
-            ProfitArray = new List<decimal>();
-
-            _dataIsActive = false;
-
-            OrdersActiv.Clear();
-
-            Thread.Sleep(2000);
-
-            TesterRegime = TesterRegime.Play;
-
-            if (TestingStartEvent != null)
-            {
-                TestingStartEvent();
-            }
-            _isFirstStart = false;
         }
 
         private bool _isFirstStart = true;

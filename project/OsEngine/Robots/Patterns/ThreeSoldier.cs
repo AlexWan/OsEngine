@@ -54,7 +54,7 @@ namespace OsEngine.Robots.Patterns
 
         private BotTabSimple _tab;
 
-        //settings настройки публичные
+        // settings
 
         public StrategyParameterString Regime;
 
@@ -70,7 +70,7 @@ namespace OsEngine.Robots.Patterns
 
         public StrategyParameterDecimal VolumeFix;
 
-        // logic / логика
+        // logic
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
@@ -170,7 +170,7 @@ namespace OsEngine.Robots.Patterns
                 if (openPositions[i].Direction == Side.Buy)
                 {
                     decimal heightPattern = 
-                        Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 3].Open - _tab.CandlesAll[_tab.CandlesAll.Count - 1].Close);
+                        Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 4].Open - _tab.CandlesAll[_tab.CandlesAll.Count - 2].Close);
 
                     decimal priceStop = _lastPrice - (heightPattern * ProcHeightStop.ValueDecimal) / 100;
                     decimal priceTake = _lastPrice + (heightPattern * ProcHeightTake.ValueDecimal) / 100;
@@ -179,7 +179,7 @@ namespace OsEngine.Robots.Patterns
                 }
                 else
                 {
-                    decimal heightPattern = Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 1].Close - _tab.CandlesAll[_tab.CandlesAll.Count - 3].Open);
+                    decimal heightPattern = Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 2].Close - _tab.CandlesAll[_tab.CandlesAll.Count - 4].Open);
                     decimal priceStop = _lastPrice + (heightPattern * ProcHeightStop.ValueDecimal) / 100;
                     decimal priceTake = _lastPrice - (heightPattern * ProcHeightTake.ValueDecimal) / 100;
                     _tab.CloseAtStop(openPositions[i], priceStop, priceStop + priceStop * (Slippage.ValueDecimal / 100));

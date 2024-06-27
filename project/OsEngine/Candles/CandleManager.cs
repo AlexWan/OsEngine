@@ -905,26 +905,47 @@ namespace OsEngine.Entity
         /// </summary>
         public void Clear()
         {
-            if (_activSeriesBasedOnTrades != null)
+            try
             {
-                for (int i = 0; i < _activSeriesBasedOnTrades.Count; i++)
+                if (_activSeriesBasedOnTrades != null)
                 {
-                    _activSeriesBasedOnTrades[i].Clear();
+                    for (int i = 0; i < _activSeriesBasedOnTrades.Count; i++)
+                    {
+                        _activSeriesBasedOnTrades[i].Clear();
+                    }
                 }
             }
-
-            if (_activSeriesBasedOnMd != null)
+            catch
             {
-                for (int i = 0; i < _activSeriesBasedOnMd.Count; i++)
-                {
-                    _activSeriesBasedOnMd[i].Clear();
-                }
+                // ignore
             }
 
-            if (_candleSeriesNeadToStart != null
+            try
+            {
+                if (_activSeriesBasedOnMd != null)
+                {
+                    for (int i = 0; i < _activSeriesBasedOnMd.Count; i++)
+                    {
+                        _activSeriesBasedOnMd[i].Clear();
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                if (_candleSeriesNeadToStart != null
                && _candleSeriesNeadToStart.Count != 0)
+                {
+                    _candleSeriesNeadToStart.Clear();
+                }
+            }
+            catch
             {
-                _candleSeriesNeadToStart.Clear();
+                // ignore
             }
         }
 

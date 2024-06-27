@@ -53,7 +53,7 @@ namespace OsEngine.OsData
         {
             while (true)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(5000);
 
                 try
                 {
@@ -636,12 +636,6 @@ namespace OsEngine.OsData
                     return;
                 }
 
-                if (_dataGrid.InvokeRequired)
-                {
-                    _dataGrid.Invoke(new Action(UpDateGrid));
-                    return;
-                }
-
                 List<SecurityToLoad> secs = _set.SecuritiesLoad;
 
                 List<DataGridViewRow> allRows = new List<DataGridViewRow>();
@@ -696,27 +690,45 @@ colum12.HeaderText = "Delete";   11
             if (rowInGrid.Cells[4].Value != null &&
                 rowInGrid.Cells[4].Value.ToString() != rowInNewArray.Cells[4].Value.ToString())
             {
-                rowInGrid.Cells[4].Value = rowInNewArray.Cells[4].Value;
+                UpDateCell(rowInGrid.Cells[4], rowInNewArray.Cells[4].Value.ToString());
             }
             if (rowInGrid.Cells[5].Value != null &&
                 rowInGrid.Cells[5].Value.ToString() != rowInNewArray.Cells[5].Value.ToString())
             {
-                rowInGrid.Cells[5].Value = rowInNewArray.Cells[5].Value;
+                UpDateCell(rowInGrid.Cells[5], rowInNewArray.Cells[5].Value.ToString());
             }
             if (rowInGrid.Cells[7].Value != null &&
                 rowInGrid.Cells[7].Value.ToString() != rowInNewArray.Cells[7].Value.ToString())
             {
-                rowInGrid.Cells[7].Value = rowInNewArray.Cells[7].Value;
+                UpDateCell(rowInGrid.Cells[7], rowInNewArray.Cells[7].Value.ToString());
             }
             if (rowInGrid.Cells[8].Value != null &&
                 rowInGrid.Cells[8].Value.ToString() != rowInNewArray.Cells[8].Value.ToString())
             {
-                rowInGrid.Cells[8].Value = rowInNewArray.Cells[8].Value;
+                UpDateCell(rowInGrid.Cells[8], rowInNewArray.Cells[8].Value.ToString());
             }
             if (rowInGrid.Cells[9].Value != null &&
                 rowInGrid.Cells[9].Value.ToString() != rowInNewArray.Cells[9].Value.ToString())
             {
-                rowInGrid.Cells[9].Value = rowInNewArray.Cells[9].Value;
+                UpDateCell(rowInGrid.Cells[9], rowInNewArray.Cells[9].Value.ToString());
+            }
+        }
+
+        private void UpDateCell(DataGridViewCell cell, string newValue)
+        {
+            try
+            {
+                if (_dataGrid.InvokeRequired)
+                {
+                    _dataGrid.Invoke(new Action<DataGridViewCell, string>(UpDateCell), cell, newValue);
+                    return;
+                }
+
+                cell.Value = newValue;
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -755,7 +767,13 @@ colum12.HeaderText = "Delete";   11
         }
 
         public void TryUpdateInterface()
-        {
+         {
+            if (_host == null ||
+                _dataGrid == null)
+            {
+                return;
+            }
+
             RePaintProgressBar();
             UpDateGrid();
         }
