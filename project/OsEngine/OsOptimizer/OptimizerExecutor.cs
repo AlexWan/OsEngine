@@ -805,78 +805,92 @@ namespace OsEngine.OsOptimizer
         {
             BotPanel bot = _asyncBotFactory.GetBot(_master.StrategyName, botName);
 
-            for (int i = 0; i < parametrs.Count; i++)
+            if(bot.Parameters.Count != parametrs.Count)
             {
-                IIStrategyParameter par = null;
+                return null;
+            }
 
-                if (paramOptimized != null)
+            try
+            {
+                for (int i = 0; i < parametrs.Count; i++)
                 {
-                  par = paramOptimized.Find(p => p.Name == parametrs[i].Name);
-                }
-                bool isInOptimizeParams = true;
+                    IIStrategyParameter par = null;
 
-                if (par == null)
-                {
-                    isInOptimizeParams = false;
-                    par = parametrs[i];
-                }
-
-                if(par == null)
-                {
-                    continue;
-                }
-
-                if (par.Type == StrategyParameterType.Bool)
-                {
-                    ((StrategyParameterBool)bot.Parameters[i]).ValueBool = ((StrategyParameterBool)par).ValueBool;
-                }
-                else if (par.Type == StrategyParameterType.String)
-                {
-                    ((StrategyParameterString)bot.Parameters[i]).ValueString = ((StrategyParameterString)par).ValueString;
-                }
-                else if (par.Type == StrategyParameterType.TimeOfDay)
-                {
-                    ((StrategyParameterTimeOfDay)bot.Parameters[i]).Value = ((StrategyParameterTimeOfDay)par).Value;
-                }
-                else if (par.Type == StrategyParameterType.CheckBox)
-                {
-                    ((StrategyParameterCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterCheckBox)par).CheckState;
-                }
-
-                if(isInOptimizeParams == true 
-                    || paramOptimized == null)
-                {
-                    if (par.Type == StrategyParameterType.Int)
+                    if (paramOptimized != null)
                     {
-                        ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueInt;
+                        par = paramOptimized.Find(p => p.Name == parametrs[i].Name);
                     }
-                    else if (par.Type == StrategyParameterType.Decimal)
+                    bool isInOptimizeParams = true;
+
+                    if (par == null)
                     {
-                        ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimal;
+                        isInOptimizeParams = false;
+                        par = parametrs[i];
                     }
-                    else if (par.Type == StrategyParameterType.DecimalCheckBox)
+
+                    if (par == null)
                     {
-                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimal;
-                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
-                    }					
-                }
-                else //if (isInOptimizeParams == false)
-                {
-                    if (par.Type == StrategyParameterType.Int)
-                    {
-                        ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueIntDefolt;
+                        continue;
                     }
-                    else if (par.Type == StrategyParameterType.Decimal)
+
+                    if (par.Type == StrategyParameterType.Bool)
                     {
-                        ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimalDefolt;
+                        ((StrategyParameterBool)bot.Parameters[i]).ValueBool = ((StrategyParameterBool)par).ValueBool;
                     }
-                    else if (par.Type == StrategyParameterType.DecimalCheckBox)
+                    else if (par.Type == StrategyParameterType.String)
                     {
-                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimalDefolt;
-                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
-                    }					
+                        ((StrategyParameterString)bot.Parameters[i]).ValueString = ((StrategyParameterString)par).ValueString;
+                    }
+                    else if (par.Type == StrategyParameterType.TimeOfDay)
+                    {
+                        ((StrategyParameterTimeOfDay)bot.Parameters[i]).Value = ((StrategyParameterTimeOfDay)par).Value;
+                    }
+                    else if (par.Type == StrategyParameterType.CheckBox)
+                    {
+                        ((StrategyParameterCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterCheckBox)par).CheckState;
+                    }
+
+                    if (isInOptimizeParams == true
+                        || paramOptimized == null)
+                    {
+                        if (par.Type == StrategyParameterType.Int)
+                        {
+                            ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueInt;
+                        }
+                        else if (par.Type == StrategyParameterType.Decimal)
+                        {
+                            ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimal;
+                        }
+                        else if (par.Type == StrategyParameterType.DecimalCheckBox)
+                        {
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimal;
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
+                        }
+                    }
+                    else //if (isInOptimizeParams == false)
+                    {
+                        if (par.Type == StrategyParameterType.Int)
+                        {
+                            ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueIntDefolt;
+                        }
+                        else if (par.Type == StrategyParameterType.Decimal)
+                        {
+                            ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimalDefolt;
+                        }
+                        else if (par.Type == StrategyParameterType.DecimalCheckBox)
+                        {
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimalDefolt;
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
+                        }
+                    }
                 }
             }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                return null;
+            }
+           
 
             // custom tabs
             // настраиваем вкладки
@@ -1007,6 +1021,13 @@ namespace OsEngine.OsOptimizer
 
             BotPanel bot = CreateNewBot(botName,
                 parametrs, parametrs, server, startProgram);
+
+            if(bot == null)
+            {
+                SendLogMessage("Test over whith error. A different robot is selected in the optimizer", LogMessageType.Error);
+                awaitObj.Dispose();
+                return null;
+            }
 
             DateTime timeStartWaiting = DateTime.Now;
 
