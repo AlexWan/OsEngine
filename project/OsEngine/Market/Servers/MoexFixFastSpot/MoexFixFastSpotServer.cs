@@ -1353,7 +1353,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             OpenFAST.Message msg = decoder.ReadMessage();
 
                             string msgType = msg.GetString("MessageType");
-                            long msgSeqNum = int.Parse(msg.GetString("MsgSeqNum"));
+                            long msgSeqNum = long.Parse(msg.GetString("MsgSeqNum"));
 
                             if (msgType == "d") /// security definition
                             {
@@ -1870,7 +1870,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             }
                         }
                                                 
-                        _orderMessages.Enqueue(msg);                        
+                        _orderMessages.Enqueue(msg);             
                     }
 
                     // проверяем пропуски данных
