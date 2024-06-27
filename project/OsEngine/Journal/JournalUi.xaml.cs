@@ -927,7 +927,7 @@ namespace OsEngine.Journal
                 decimal profitSum = 0;
                 decimal profitSumLong = 0;
                 decimal profitSumShort = 0;
-                decimal maxYVal = 0;
+                decimal maxYVal = decimal.MinValue;
                 decimal minYval = decimal.MaxValue;
                 decimal curProfit = 0;
                 decimal maxYValBars = 0;
@@ -1030,7 +1030,7 @@ namespace OsEngine.Journal
 
 
                 if (minYval != decimal.MaxValue &&
-                    maxYVal != 0)
+                    maxYVal != decimal.MinValue)
                 {
                     decimal chartHeigh = maxYVal - minYval;
 
