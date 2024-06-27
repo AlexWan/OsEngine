@@ -52,7 +52,6 @@ namespace OsEngine.Robots
             result.Add("EnvelopTrend");
             result.Add("Williams Band");
             result.Add("TwoLegArbitrage");
-            result.Add("ThreeSoldier");
             result.Add("TimeOfDayBot");
             result.Add("PriceChannelTrade");
             result.Add("SmaStochastic");
@@ -263,10 +262,6 @@ namespace OsEngine.Robots
             if (nameClass == "TwoLegArbitrage")
             {
                 bot = new TwoLegArbitrage(name, startProgram);
-            }
-            if (nameClass == "ThreeSoldier")
-            {
-                bot = new ThreeSoldier(name, startProgram);
             }
             if (nameClass == "RsiContrtrend")
             {

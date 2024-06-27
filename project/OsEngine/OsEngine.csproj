@@ -1151,9 +1151,6 @@
     <Compile Include="Robots\Trend\SmaStochasticUi.xaml.cs">
       <DependentUpon>SmaStochasticUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Robots\Patterns\ThreeSoldierUi.xaml.cs">
-      <DependentUpon>ThreeSoldierUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\CounterTrend\WilliamsRangeTradeUi.xaml.cs">
       <DependentUpon>WilliamsRangeTradeUi.xaml</DependentUpon>
     </Compile>
@@ -1719,10 +1716,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\Trend\SmaStochasticUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Robots\Patterns\ThreeSoldierUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

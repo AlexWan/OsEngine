@@ -10,7 +10,6 @@ using System.Collections.Generic;
 
 namespace OsEngine.Candles.Series
 {
-    [Candle("Renko")]
     public class Renko : ACandlesSeriesRealization
     {
         public CandlesParameterString ValueType;
