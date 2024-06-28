@@ -3,11 +3,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Bollinger Bands trading bargaining robot with pull-up Trailing-Stop through Bollinger Bands
 /// –обот торгующий прорыв Bollinger Bands с подт€гивающимс€ Trailing-Stop по линии Bollinger Bands
 /// </summary>
+[Bot("BollingerTrailing")]
 public class BollingerTrailing : BotPanel
 {
 

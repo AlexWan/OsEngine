@@ -8,14 +8,14 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
-using OsEngine.Charts.CandleChart.Indicators;
 using System;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using OsEngine.OsTrader.Panels.Attributes;
 
 namespace OsEngine.Robots.Screeners
 {
+    [Bot("SmaScreener")]
     public class SmaScreener : BotPanel
     {
         public SmaScreener(string name, StartProgram startProgram) : base(name, startProgram)

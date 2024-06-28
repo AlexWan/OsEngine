@@ -3,11 +3,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Trend strategy based on the Macd indicator and trail stop
 /// Трендовая стратегия на основе индикатора Macd и трейлстопа
 /// </summary>
+[Bot("MacdTrail")]
 public class MacdTrail : BotPanel
 {
     public MacdTrail(string name, StartProgram startProgram)

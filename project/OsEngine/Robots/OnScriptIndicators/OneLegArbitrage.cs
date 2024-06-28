@@ -3,11 +3,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Trading robot on the index. The intersection of MA on the index from the bottom up long, with the reverse intersection of shorts
 /// Торговый робот на индексе. Пересечение MA на индексе снизу вверх лонг, при обратном пересечении шорт 
 /// </summary>
+[Bot("OneLegArbitrage")]
 public class OneLegArbitrage : BotPanel
 {
     public OneLegArbitrage(string name, StartProgram startProgram)

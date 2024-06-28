@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 /* Description
 Overbought / Oversold RSI Contrand Strategy with Trend Filtering via MovingAverage
@@ -31,6 +32,7 @@ namespace OsEngine.Robots.CounterTrend
     /// Overbought / Oversold RSI Contrand Strategy with Trend Filtering via MovingAverage
     /// конттрендовая стратегия по перекупленности/перепроданности RSI с фильтром по тренду через MovingAverage
     /// </summary>
+    [Bot("RsiContrtrend")]
     public class RsiContrtrend : BotPanel
     {
         public RsiContrtrend(string name, StartProgram startProgram)

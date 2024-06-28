@@ -3,13 +3,16 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Trend strategy based on two indicators BullsPower and BearsPower
 /// “рендова€ стратеги€ на основе двух индикаторов BullsPower и BearsPower
 /// </summary>
+[Bot("BbPowerTrade")]
 public class BbPowerTrade : BotPanel
 {
+
     public BbPowerTrade(string name, StartProgram startProgram)
         : base(name, startProgram)
     {

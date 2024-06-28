@@ -7,11 +7,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// RSI's concurrent overbought and oversold strategy
 /// конттрендовая стратегия RSI на перекупленность и перепроданность
 /// </summary>
+[Bot("RsiTrade")]
 public class RsiTrade : BotPanel
 {
     public RsiTrade(string name, StartProgram startProgram)

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.High_Frequency
@@ -18,6 +19,7 @@ namespace OsEngine.Robots.High_Frequency
     /// robot analyzing the density of the market depth / 
     /// робот анализирующий плотность стакана
     /// </summary>
+    [Bot("HighFrequencyTrader")]
     public class HighFrequencyTrader : BotPanel
     {
 

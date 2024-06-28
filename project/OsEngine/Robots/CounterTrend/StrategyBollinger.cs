@@ -24,7 +24,7 @@ Exit:
 namespace OsEngine.Robots.CounterTrend
 {
 
-    [Bot("Bollinger")]
+    [Bot("StrategyBollinger")]
     public class StrategyBollinger : BotPanel
     {
         public StrategyBollinger(string name, StartProgram startProgram)
@@ -64,7 +64,7 @@ namespace OsEngine.Robots.CounterTrend
         /// </summary>
         public override string GetNameStrategyType()
         {
-            return "Bollinger";
+            return "StrategyBollinger";
         }
 
         /// <summary>

@@ -3,9 +3,11 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 namespace OsEngine.Robots.OnScriptIndicators
 {
+    [Bot("TimeOfDayBot")]
     public class TimeOfDayBot : BotPanel
     {
         public TimeOfDayBot(string name, StartProgram startProgram)

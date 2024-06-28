@@ -10,6 +10,7 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 /* Description 
 Pair trading based on index analysis.
@@ -22,6 +23,7 @@ Exit: by reverse system.
 */
 namespace OsEngine.Robots.MarketMaker
 {
+    [Bot("TwoLegArbitrage")]
     public class TwoLegArbitrage : BotPanel
     {
         public TwoLegArbitrage(string name, StartProgram startProgram)

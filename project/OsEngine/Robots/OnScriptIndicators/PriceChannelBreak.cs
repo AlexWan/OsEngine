@@ -3,7 +3,7 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
-
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 ///When the candle is closed outside the PriceChannel channel,
@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels;
 /// При закрытии свечи вне канала PriceChannel входим в позицию , стоп-лосс за экстремум прошлойсвечи от свечи входа,
 /// тейкпрофит на величину канала от закрытия свечи на которой произошел вход
 /// </summary>
+[Bot("PriceChannelBreak")]
 public class PriceChannelBreak : BotPanel
 {
     public PriceChannelBreak(string name, StartProgram startProgram)
