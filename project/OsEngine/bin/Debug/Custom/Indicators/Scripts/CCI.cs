@@ -47,6 +47,11 @@ namespace CustomIndicators.Scripts
                 md += Math.Abs(ma - candles[i].GetPoint(_candlePoint.ValueString));
             }
 
+            if(md == 0)
+            {
+                return;
+            }
+
             var cciP = (candles[index].GetPoint(_candlePoint.ValueString) - ma) / (md * 0.015m / _lenght.ValueInt);
 
             _series.Values[index] = Math.Round(cciP, 5);

@@ -284,16 +284,30 @@ namespace OsEngine.OsOptimizer
             TextBoxStrategyName.IsEnabled = true;
         }
 
+        private DateTime _lastTestEndEventTime = DateTime.MinValue;
+
+        private string _testEndEventLocker = "testEndEventLocker";
+
         /// <summary>
         /// inbound event: optimization process completed
         /// входящее событие: завершился процесс оптимизации
         /// </summary>
         void _master_TestReadyEvent(List<OptimazerFazeReport> reports)
         {
-            _reports = reports;
-            RepaintResults();
-            ShowResultDialog();
-            _testIsEnd = true;
+            lock(_testEndEventLocker)
+            {
+                if(_lastTestEndEventTime.AddSeconds(3) > DateTime.Now)
+                {
+                    return;
+                }
+
+                _lastTestEndEventTime = DateTime.Now;
+                _reports = reports;
+                RepaintResults();
+                ShowResultDialog();
+                _testIsEnd = true;
+
+            }
         }
 
         private bool _testIsEnd;

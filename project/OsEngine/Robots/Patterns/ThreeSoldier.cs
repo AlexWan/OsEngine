@@ -80,8 +80,6 @@ namespace OsEngine.Robots.Patterns
 
         public StrategyParameterString TradeAssetInPortfolio;
 
-
-
         // logic
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
