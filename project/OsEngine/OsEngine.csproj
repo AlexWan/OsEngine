@@ -1136,9 +1136,6 @@
     <Compile Include="Robots\Trend\ParabolicSarTradeUi.xaml.cs">
       <DependentUpon>ParabolicSarTradeUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Robots\Patterns\PinBarTradeUi.xaml.cs">
-      <DependentUpon>PinBarTradeUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\Patterns\PivotPointsRobotUi.xaml.cs">
       <DependentUpon>PivotPointsRobotUi.xaml</DependentUpon>
     </Compile>
@@ -1696,10 +1693,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\Trend\ParabolicSarTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Robots\Patterns\PinBarTradeUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

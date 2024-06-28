@@ -61,7 +61,6 @@ namespace OsEngine.Robots
             result.Add("ParabolicSarTrade");
             result.Add("PivotPointsRobot");
             result.Add("RsiContrtrend");
-            result.Add("PinBarTrade");
             result.Add("BbPowerTrade");
             result.Add("BollingerRevers");
             result.Add("BollingerTrailing");
@@ -255,10 +254,6 @@ namespace OsEngine.Robots
             {
                 bot = new SmaStochastic(name, startProgram);
             }
-            if (nameClass == "PinBarTrade")
-            {
-                bot = new PinBarTrade(name, startProgram);
-            }
             if (nameClass == "TwoLegArbitrage")
             {
                 bot = new TwoLegArbitrage(name, startProgram);
@@ -426,6 +421,7 @@ namespace OsEngine.Robots
 
                 if (myPath == "")
                 {
+                    MessageBox.Show("Error! Bot with name " + nameClass + " not found");
                     return null;
                 }
                 try
