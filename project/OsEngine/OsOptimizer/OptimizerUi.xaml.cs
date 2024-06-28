@@ -139,8 +139,8 @@ namespace OsEngine.OsOptimizer
             _master.NeadToMoveUiToEvent += _master_NeadToMoveUiToEvent;
             TextBoxStrategyName.Text = _master.StrategyName;
 
-            Task task = new Task(PainterProgressArea);
-            task.Start();
+            Thread worker = new Thread(PainterProgressArea);
+            worker.Start();
 
             Label7.Content = OsLocalization.Optimizer.Label7;
             Label8.Content = OsLocalization.Optimizer.Label8;
@@ -409,11 +409,11 @@ namespace OsEngine.OsOptimizer
         /// place of work update stream progress on progress bars
         /// место работы потока обновляющего прогресс на прогрессБарах
         /// </summary>
-        private async void PainterProgressArea()
+        private void PainterProgressArea()
         {
             while (true)
             {
-                await Task.Delay(500);
+                Thread.Sleep(1500);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {
@@ -429,58 +429,78 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void PaintAllProgressBars()
         {
-            if (_progressBars == null ||
-                _progressBars.Count == 0)
+            try
             {
-                return;
-            }
-
-            if (!_progressBars[0].Dispatcher.CheckAccess())
-            {
-                _progressBars[0].Dispatcher.Invoke(PaintAllProgressBars);
-                return;
-            }
-
-            if(_testIsEnd)
-            {
-                ProgressBarPrime.Maximum = 100;
-                ProgressBarPrime.Value = 100;
-
-                for (int i2 = 0; i2 > -1 && i2 < _progressBars.Count; i2++)
-                {
-                    _progressBars[i2].Maximum = 100;
-                    _progressBars[i2].Value = 100;
-                }
-
-                return;
-            }
-
-            ProgressBarStatus primeStatus = _master.PrimeProgressBarStatus;
-
-            if (primeStatus.MaxValue != 0 &&
-                primeStatus.CurrentValue != 0)
-            {
-                ProgressBarPrime.Maximum = primeStatus.MaxValue;
-                ProgressBarPrime.Value = primeStatus.CurrentValue;
-            }
-
-            List<ProgressBarStatus> statuses = _master.ProgressBarStatuses;
-
-            if (statuses == null ||
-                statuses.Count == 0)
-            {
-                return;
-            }
-
-
-            for (int i = statuses.Count - 1, i2 = 0; i > -1 && i2 < _progressBars.Count; i2++, i--)
-            {
-                if (statuses[i] == null)
+                if (_progressBars == null ||
+                    _progressBars.Count == 0)
                 {
                     return;
                 }
-                _progressBars[i2].Maximum = statuses[i].MaxValue;
-                _progressBars[i2].Value = statuses[i].CurrentValue;
+
+                if (!_progressBars[0].Dispatcher.CheckAccess())
+                {
+                    _progressBars[0].Dispatcher.Invoke(PaintAllProgressBars);
+                    return;
+                }
+
+                if (_testIsEnd)
+                {
+                    ProgressBarPrime.Maximum = 100;
+                    ProgressBarPrime.Value = 100;
+
+                    for (int i2 = 0; i2 > -1 && i2 < _progressBars.Count; i2++)
+                    {
+                        _progressBars[i2].Maximum = 100;
+                        _progressBars[i2].Value = 100;
+                    }
+
+                    return;
+                }
+
+                ProgressBarStatus primeStatus = _master.PrimeProgressBarStatus;
+
+                if (primeStatus.MaxValue != 0 &&
+                    primeStatus.CurrentValue != 0)
+                {
+                    ProgressBarPrime.Maximum = primeStatus.MaxValue;
+                    ProgressBarPrime.Value = primeStatus.CurrentValue;
+                }
+
+                List<ProgressBarStatus> statuses = _master.ProgressBarStatuses;
+
+                if (statuses == null ||
+                    statuses.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = statuses.Count - 1, i2 = 0; i > -1 && i2 < _progressBars.Count; i2++, i--)
+                {
+                    ProgressBarStatus status = statuses[i];
+
+                    if (status == null)
+                    {
+                        return;
+                    }
+
+                    if (status.IsFinalized)
+                    {
+                        continue;
+                    }
+
+                    _progressBars[i2].Maximum = status.MaxValue;
+                    _progressBars[i2].Value = status.CurrentValue;
+
+                    if (status.MaxValue != 0 &&
+                        status.MaxValue == status.CurrentValue)
+                    {
+                        status.IsFinalized = true;
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 

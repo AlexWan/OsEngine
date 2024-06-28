@@ -2025,6 +2025,20 @@ DateTime timeEnd)
         /// </summary>
         public DateTime TimeEnd;
 
+        public DateTime TimeEndAddDay
+        {
+            get
+            {
+                if (_timeEndAddDay == DateTime.MinValue)
+                {
+                    _timeEndAddDay = TimeEnd.AddDays(1);
+                }
+                return _timeEndAddDay;
+            }
+        }
+
+        private DateTime _timeEndAddDay;
+
         public void ClearDelete()
         {
             Security = null;

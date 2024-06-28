@@ -184,8 +184,15 @@ namespace OsEngine.OsOptimizer
         /// <param name="maxVal">maximum progress bar/максимальное значение прогрессБара</param>
         void _optimizerExecutor_PrimeProgressChangeEvent(int curVal, int maxVal)
         {
-            PrimeProgressBarStatus.CurrentValue = curVal;
-            PrimeProgressBarStatus.MaxValue = maxVal;
+            if(PrimeProgressBarStatus.CurrentValue != curVal)
+            {
+                PrimeProgressBarStatus.CurrentValue = curVal;
+            }
+
+            if(PrimeProgressBarStatus.MaxValue != maxVal)
+            {
+                PrimeProgressBarStatus.MaxValue = maxVal;
+            }
         }
 
         /// <summary>
@@ -196,7 +203,11 @@ namespace OsEngine.OsOptimizer
         /// <param name="botsOutOfSample">OutOfSample</param>
         void _optimizerExecutor_TestReadyEvent(List<OptimazerFazeReport> reports)
         {
-            PrimeProgressBarStatus.CurrentValue = PrimeProgressBarStatus.MaxValue;
+            if(PrimeProgressBarStatus.CurrentValue != PrimeProgressBarStatus.MaxValue)
+            {
+                PrimeProgressBarStatus.CurrentValue = PrimeProgressBarStatus.MaxValue;
+            }
+
             if (TestReadyEvent != null)
             {
                 TestReadyEvent(reports);
@@ -1446,6 +1457,11 @@ namespace OsEngine.OsOptimizer
         /// номер сервера / робота
         /// </summary>
         public int Num;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsFinalized;
     }
 
     /// <summary>
