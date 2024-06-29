@@ -1088,33 +1088,39 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (stateType == OrderStateType.Patrial)
                 {
+                    MyOrderEvent(newOrder);
+
+                    decimal exeVol = GetExecuteVolumeByThisOrder(newOrder);
+
                     MyTrade myTrade = new MyTrade();
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.fillTime));
                     myTrade.NumberOrderParent = item.ordId.ToString();
                     myTrade.NumberTrade = item.tradeId;
-                    myTrade.Volume = item.fillSz.ToDecimal();
+                    myTrade.Volume = item.accFillSz.ToDecimal() - exeVol;
                     myTrade.Price = item.fillPx.ToDecimal();
                     myTrade.SecurityNameCode = item.instId.ToUpper();
                     myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
                     TrySendMyTradeInEvent(myTrade);
 
-                    newOrder.Price = item.fillPx.ToDecimal();
-
                     if (DateTime.Now.AddSeconds(-45) < TimeToUprdatePortfolio)
                     {
                         TimeToUprdatePortfolio = DateTime.Now.AddSeconds(-45);
                     }
+
+                    return;
                 }
                 else if (stateType == OrderStateType.Done)
                 {
+                    MyOrderEvent(newOrder);
+
                     decimal exeVol = GetExecuteVolumeByThisOrder(newOrder);
 
                     MyTrade myTrade = new MyTrade();
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.fillTime));
                     myTrade.NumberOrderParent = item.ordId.ToString();
                     myTrade.NumberTrade = item.tradeId + "_DoneTrade";
-                    myTrade.Volume = newOrder.Volume - exeVol;
+                    myTrade.Volume = item.accFillSz.ToDecimal() - exeVol;
 
                     if (myTrade.Volume > 0)
                     {
@@ -1124,12 +1130,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         TrySendMyTradeInEvent(myTrade);
                     }
 
-                    newOrder.Price = item.fillPx.ToDecimal();
-
                     if (DateTime.Now.AddSeconds(-45) < TimeToUprdatePortfolio)
                     {
                         TimeToUprdatePortfolio = DateTime.Now.AddSeconds(-45);
                     }
+
+                    return;
                 }
 
                 MyOrderEvent(newOrder);
@@ -1140,6 +1146,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void TrySendMyTradeInEvent(MyTrade myTrade)
         {
+            if(myTrade.Volume == 0)
+            {
+                return;
+            }
+
             bool isInArray = false;
 
             for (int i = myTrades.Count - 1; i >= 0; i--)
@@ -1167,7 +1178,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             MyTradeEvent(myTrade);
 
-            while (myTrades.Count > 1000)
+            while (myTrades.Count > 10000)
             {
                 myTrades.RemoveAt(0);
             }
