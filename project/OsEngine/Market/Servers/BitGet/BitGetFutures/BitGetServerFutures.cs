@@ -1052,7 +1052,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 OrderStateType stateType = GetOrderState(item.status);
 
                 if (item.ordType.Equals("market") &&
-                    stateType != OrderStateType.Done)
+                    stateType != OrderStateType.Done &&
+                    stateType != OrderStateType.Patrial)
                 {
                     continue;
                 }
@@ -1144,6 +1145,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private List<MyTrade> myTrades = new List<MyTrade>();
 
+        private string _sendMyTradesLocker = "sendMyTradesLocker";
+
         private void TrySendMyTradeInEvent(MyTrade myTrade)
         {
             if(myTrade.Volume <= 0)
@@ -1151,36 +1154,46 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 return;
             }
 
-            bool isInArray = false;
-
-            for (int i = myTrades.Count - 1; i >= 0; i--)
+            lock(_sendMyTradesLocker)
             {
-                if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
-                    && myTrades[i].NumberTrade.EndsWith("_DoneTrade"))
-                {// на случай если АПИ может сначала выдать DONE по ордеру, а зетем Patrial
+                bool isInArray = false;
+
+                for (int i = myTrades.Count - 1; i >= 0; i--)
+                {
+                    if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
+                        && myTrades[i].NumberTrade.EndsWith("_DoneTrade"))
+                    {// на случай если АПИ может сначала выдать DONE по ордеру, а зетем Patrial
+                        return;
+                    }
+
+                    if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
+                        && myTrades[i].NumberTrade == myTrade.NumberTrade)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+
+                    if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
+                       && myTrades[i].NumberTrade.StartsWith(myTrade.NumberTrade))
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if (isInArray)
+                {
                     return;
                 }
 
-                if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
-                    && myTrades[i].NumberTrade == myTrade.NumberTrade)
+                myTrades.Add(myTrade);
+
+                MyTradeEvent(myTrade);
+
+                while (myTrades.Count > 10000)
                 {
-                    isInArray = true;
-                    break;
+                    myTrades.RemoveAt(0);
                 }
-            }
-
-            if (isInArray)
-            {
-                return;
-            }
-
-            myTrades.Add(myTrade);
-
-            MyTradeEvent(myTrade);
-
-            while (myTrades.Count > 10000)
-            {
-                myTrades.RemoveAt(0);
             }
         }
 
@@ -1494,11 +1507,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         myTrade.NumberOrderParent = item.orderId.ToString();
                         myTrade.NumberTrade = item.tradeId;
 
-                        if(i +1 == stateResponse.data.Count)
+                        if(order.State == OrderStateType.Done 
+                            && i + 1 == stateResponse.data.Count)
                         {
-                            myTrade.NumberTrade += "";
+                            myTrade.NumberTrade += "_DoneTrade";
                         }
-
 
                         myTrade.Volume = item.sizeQty.ToDecimal();
                         myTrade.Price = item.price.ToDecimal();
@@ -1519,7 +1532,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             myTrade.Side = Side.Sell;
                         }
 
-                        MyTradeEvent(myTrade);
+                        TrySendMyTradeInEvent(myTrade);
                     }
                 }
                 else
