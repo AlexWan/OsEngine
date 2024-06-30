@@ -1146,7 +1146,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void TrySendMyTradeInEvent(MyTrade myTrade)
         {
-            if(myTrade.Volume == 0)
+            if(myTrade.Volume <= 0)
             {
                 return;
             }

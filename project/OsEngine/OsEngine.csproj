@@ -1098,6 +1098,7 @@
     <Compile Include="Robots\PairArbitrage\PairCorrelationNegative.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationTrader.cs" />
     <Compile Include="Robots\Patterns\ThreeSoldierVolatilityAdaptive.cs" />
+    <Compile Include="Robots\Screeners\PinBarScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
