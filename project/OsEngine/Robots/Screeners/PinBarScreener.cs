@@ -37,8 +37,9 @@ namespace OsEngine.Robots.Screeners
 
             Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
 
+            MaxHeightCandlesPercent = CreateParameter("Max height candles percent", 1.1m, 0, 20, 1m);
             MinHeightCandlesPercent = CreateParameter("Min height candles percent", 0.5m, 0, 20, 1m);
-
+            
             TrailStop = CreateParameter("Trail stop %", 0.5m, 0, 20, 1m);
 
             SmaPeriod = CreateParameter("Sma Period", 100, 10, 50, 500);
@@ -68,6 +69,7 @@ namespace OsEngine.Robots.Screeners
         public StrategyParameterString TradeAssetInPortfolio;
 
         public StrategyParameterDecimal MinHeightCandlesPercent;
+        public StrategyParameterDecimal MaxHeightCandlesPercent;
 
         public StrategyParameterInt SmaPeriod;
         public StrategyParameterDecimal TrailStop;
@@ -122,7 +124,8 @@ namespace OsEngine.Robots.Screeners
 
             decimal lenCandlePercent = (lastHigh - lastLow) / (lastLow / 100);
 
-            if(lenCandlePercent > MinHeightCandlesPercent.ValueDecimal)
+            if(lenCandlePercent > MaxHeightCandlesPercent.ValueDecimal ||
+                lenCandlePercent < MinHeightCandlesPercent.ValueDecimal)
             {
                 return;
             }
