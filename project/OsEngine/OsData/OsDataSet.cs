@@ -2181,7 +2181,7 @@ namespace OsEngine.OsData
 
             if (_pathMyTempPieInTfFolder.Contains("Tick") == false)
             {
-                LoadCandleDataPieInTempFile();
+                Candles = LoadCandleDataPieInTempFile();
             }
 
             TradePieStatusInfo TradesInfo = null;
