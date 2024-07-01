@@ -2177,17 +2177,17 @@ namespace OsEngine.OsData
         public void UpDateStatus()
         {
             // 1 Актуальное время старта
-            List<Candle> Candles = null;
+            CandlePieStatusInfo CandlesInfo = null;
 
             if (_pathMyTempPieInTfFolder.Contains("Tick") == false)
             {
-                Candles = LoadCandleDataPieInTempFile();
+                CandlesInfo = LoadCandlesPieStatus();
             }
 
             TradePieStatusInfo TradesInfo = null;
 
-            if ((Candles == null ||
-                Candles.Count == 0)
+            if ((CandlesInfo == null 
+                || CandlesInfo.FirstCandle == null)
                 && _pathMyTempPieInTfFolder.Contains("Tick") == true)
             {
                 TradesInfo = LoadTradesPieStatus();
@@ -2195,9 +2195,9 @@ namespace OsEngine.OsData
 
             DateTime start = DateTime.MinValue;
 
-            if (Candles != null && Candles.Count != 0)
+            if (CandlesInfo != null && CandlesInfo.FirstCandle != null)
             {
-                start = Candles[0].TimeStart;
+                start = CandlesInfo.FirstCandle.TimeStart;
             }
 
             if (TradesInfo != null && TradesInfo.FirstTrade != null)
@@ -2211,9 +2211,9 @@ namespace OsEngine.OsData
 
             DateTime end = DateTime.MinValue;
 
-            if (Candles != null && Candles.Count > 0)
+            if (CandlesInfo != null && CandlesInfo.LastCandle != null)
             {
-                end = Candles[Candles.Count - 1].TimeStart;
+                end = CandlesInfo.LastCandle.TimeStart;
             }
 
             if (TradesInfo != null && TradesInfo.LastTrade != null)
@@ -2223,16 +2223,15 @@ namespace OsEngine.OsData
 
             EndFact = end;
 
-            if (Candles == null &&
+            if (CandlesInfo == null &&
                 TradesInfo != null)
             {
                 ObjectCount = 0;
             }
 
-            if (Candles != null
-                && Candles.Count != 0)
+            if (CandlesInfo != null)
             {
-                ObjectCount = Candles.Count;
+                ObjectCount = CandlesInfo.CandlesCount;
             }
 
             if (TradesInfo != null)
@@ -2276,6 +2275,58 @@ namespace OsEngine.OsData
         {
             SaveCandleDataPieInTempFile(candles);
             UpDateStatus();
+        }
+
+        public CandlePieStatusInfo LoadCandlesPieStatus()
+        {
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+
+            if (File.Exists(pathToTempFile) == false)
+            {
+                return null;
+            }
+
+            CandlePieStatusInfo result = new CandlePieStatusInfo();
+
+            int candlesCount = 0;
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(pathToTempFile))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        candlesCount++;
+                        string str = reader.ReadLine();
+
+                        if(result.FirstCandle == null)
+                        {
+                            Candle newCandle = new Candle();
+                            newCandle.SetCandleFromString(str);
+                            result.FirstCandle = newCandle;
+                        }
+                        if(reader.EndOfStream == true)
+                        {
+                            Candle newCandle = new Candle();
+                            newCandle.SetCandleFromString(str);
+                            result.LastCandle = newCandle;
+                        }
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            result.CandlesCount = candlesCount;
+
+            if (result.CandlesCount != 0)
+            {
+                Status = DataPieStatus.Load;
+            }
+
+            return result;
         }
 
         public List<Candle> LoadCandleDataPieInTempFile()
@@ -2505,6 +2556,15 @@ namespace OsEngine.OsData
         public Trade LastTrade;
 
         public int TradesCount;
-
     }
+
+    public class CandlePieStatusInfo
+    {
+        public Candle FirstCandle;
+
+        public Candle LastCandle;
+
+        public int CandlesCount;
+    }
+
 }
