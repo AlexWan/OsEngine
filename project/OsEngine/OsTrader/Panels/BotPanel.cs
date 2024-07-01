@@ -1171,9 +1171,16 @@ position => position.State != PositionStateType.OpeningFail
                 SaveParametrs();
             }
 
-            if (ParametrsChangeByUser != null)
+            try
             {
-                ParametrsChangeByUser();
+                if (ParametrsChangeByUser != null)
+                {
+                    ParametrsChangeByUser();
+                }
+            }
+            catch(Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
