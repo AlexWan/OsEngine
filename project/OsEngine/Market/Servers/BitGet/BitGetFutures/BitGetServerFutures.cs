@@ -1091,18 +1091,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     MyOrderEvent(newOrder);
 
-                    decimal exeVol = GetExecuteVolumeByThisOrder(newOrder);
-
                     MyTrade myTrade = new MyTrade();
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.fillTime));
                     myTrade.NumberOrderParent = item.ordId.ToString();
                     myTrade.NumberTrade = item.tradeId;
-                    myTrade.Volume = item.accFillSz.ToDecimal() - exeVol;
+                    myTrade.Volume = item.fillSz.ToDecimal();
                     myTrade.Price = item.fillPx.ToDecimal();
                     myTrade.SecurityNameCode = item.instId.ToUpper();
                     myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
-                    TrySendMyTradeInEvent(myTrade);
+                    MyTradeEvent(myTrade);
 
                     if (DateTime.Now.AddSeconds(-45) < TimeToUprdatePortfolio)
                     {
@@ -1115,20 +1113,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     MyOrderEvent(newOrder);
 
-                    decimal exeVol = GetExecuteVolumeByThisOrder(newOrder);
-
                     MyTrade myTrade = new MyTrade();
                     myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.fillTime));
                     myTrade.NumberOrderParent = item.ordId.ToString();
-                    myTrade.NumberTrade = item.tradeId + "_DoneTrade";
-                    myTrade.Volume = item.accFillSz.ToDecimal() - exeVol;
+                    myTrade.NumberTrade = item.tradeId;
+                    myTrade.Volume = item.fillSz.ToDecimal();
 
                     if (myTrade.Volume > 0)
                     {
                         myTrade.Price = item.fillPx.ToDecimal();
                         myTrade.SecurityNameCode = item.instId.ToUpper();
                         myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
-                        TrySendMyTradeInEvent(myTrade);
+                        MyTradeEvent(myTrade);
                     }
 
                     if (DateTime.Now.AddSeconds(-45) < TimeToUprdatePortfolio)
@@ -1144,85 +1140,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         }
 
         private List<MyTrade> myTrades = new List<MyTrade>();
-
-        private string _sendMyTradesLocker = "sendMyTradesLocker";
-
-        private void TrySendMyTradeInEvent(MyTrade myTrade)
-        {
-            if(myTrade.Volume <= 0)
-            {
-                return;
-            }
-
-            lock(_sendMyTradesLocker)
-            {
-                bool isInArray = false;
-
-                for (int i = myTrades.Count - 1; i >= 0; i--)
-                {
-                    if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
-                        && myTrades[i].NumberTrade.EndsWith("_DoneTrade"))
-                    {// на случай если АПИ может сначала выдать DONE по ордеру, а зетем Patrial
-                        return;
-                    }
-
-                    if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
-                        && myTrades[i].NumberTrade == myTrade.NumberTrade)
-                    {
-                        isInArray = true;
-                        break;
-                    }
-
-                    if (myTrades[i].NumberOrderParent == myTrade.NumberOrderParent
-                       && myTrades[i].NumberTrade.StartsWith(myTrade.NumberTrade))
-                    {
-                        isInArray = true;
-                        break;
-                    }
-                }
-
-                if (isInArray)
-                {
-                    return;
-                }
-
-                myTrades.Add(myTrade);
-
-                MyTradeEvent(myTrade);
-
-                while (myTrades.Count > 10000)
-                {
-                    myTrades.RemoveAt(0);
-                }
-            }
-        }
-
-        private decimal GetExecuteVolumeByThisOrder(Order order)
-        {
-            List<MyTrade> trades = new List<MyTrade>();
-
-            for (int i = 0; i < myTrades.Count; i++)
-            {
-                if (myTrades[i].NumberOrderParent == order.NumberMarket)
-                {
-                    trades.Add(myTrades[i]);
-                }
-            }
-
-            if (trades.Count == 0)
-            {
-                return 0;
-            }
-
-            decimal volumeExecute = 0;
-
-            for (int i = 0; i < trades.Count; i++)
-            {
-                volumeExecute += trades[i].Volume;
-            }
-
-            return volumeExecute;
-        }
 
         private void UpdateTrade(string message)
         {
@@ -1507,12 +1424,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         myTrade.NumberOrderParent = item.orderId.ToString();
                         myTrade.NumberTrade = item.tradeId;
 
-                        if(order.State == OrderStateType.Done 
-                            && i + 1 == stateResponse.data.Count)
-                        {
-                            myTrade.NumberTrade += "_DoneTrade";
-                        }
-
                         myTrade.Volume = item.sizeQty.ToDecimal();
                         myTrade.Price = item.price.ToDecimal();
                         myTrade.SecurityNameCode = item.symbol.ToUpper();
@@ -1531,8 +1442,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         {
                             myTrade.Side = Side.Sell;
                         }
-
-                        TrySendMyTradeInEvent(myTrade);
+                       
+                        MyTradeEvent(myTrade);
                     }
                 }
                 else
