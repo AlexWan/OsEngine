@@ -16,6 +16,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Text;
 using System.Globalization;
+using Newtonsoft.Json.Linq;
 
 namespace OsEngine.OsData
 {
@@ -2176,9 +2177,21 @@ namespace OsEngine.OsData
         public void UpDateStatus()
         {
             // 1 Актуальное время старта
-            List<Candle> Candles = LoadCandleDataPieInTempFile();
+            List<Candle> Candles = null;
 
-            List<Trade> Trades = LoadTradeDataPieFromTempFile();
+            if (_pathMyTempPieInTfFolder.Contains("Tick") == false)
+            {
+                LoadCandleDataPieInTempFile();
+            }
+
+            TradePieStatusInfo TradesInfo = null;
+
+            if ((Candles == null ||
+                Candles.Count == 0)
+                && _pathMyTempPieInTfFolder.Contains("Tick") == true)
+            {
+                TradesInfo = LoadTradesPieStatus();
+            }
 
             DateTime start = DateTime.MinValue;
 
@@ -2187,9 +2200,9 @@ namespace OsEngine.OsData
                 start = Candles[0].TimeStart;
             }
 
-            if (Trades != null && Trades.Count != 0)
+            if (TradesInfo != null && TradesInfo.FirstTrade != null)
             {
-                start = Trades[0].Time;
+                start = TradesInfo.FirstTrade.Time;
             }
 
             StartFact = start;
@@ -2203,15 +2216,15 @@ namespace OsEngine.OsData
                 end = Candles[Candles.Count - 1].TimeStart;
             }
 
-            if (Trades != null && Trades.Count > 0)
+            if (TradesInfo != null && TradesInfo.LastTrade != null)
             {
-                end = Trades[Trades.Count - 1].Time;
+                end = TradesInfo.LastTrade.Time;
             }
 
             EndFact = end;
 
             if (Candles == null &&
-                Trades == null)
+                TradesInfo != null)
             {
                 ObjectCount = 0;
             }
@@ -2222,10 +2235,9 @@ namespace OsEngine.OsData
                 ObjectCount = Candles.Count;
             }
 
-            if (Trades != null
-                && Trades.Count != 0)
+            if (TradesInfo != null)
             {
-                ObjectCount = Trades.Count;
+                ObjectCount = TradesInfo.TradesCount;
             }
         }
 
@@ -2338,6 +2350,59 @@ namespace OsEngine.OsData
 
         // трейды
 
+        public TradePieStatusInfo LoadTradesPieStatus()
+        {
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+
+            if (File.Exists(pathToTempFile) == false)
+            {
+                return null;
+            }
+
+            TradePieStatusInfo info = new TradePieStatusInfo();
+
+            int tradesCount = 0;
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(pathToTempFile))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        tradesCount++;
+                        string str = reader.ReadLine();
+
+                        if (info.FirstTrade == null)
+                        {
+                            Trade firstTrade = new Trade();
+                            firstTrade.SetTradeFromString(str);
+                            info.FirstTrade = firstTrade;
+                        }
+
+                        if (reader.EndOfStream == true)
+                        {
+                            Trade lastTrade = new Trade();
+                            lastTrade.SetTradeFromString(str);
+                            info.LastTrade = lastTrade;
+                        }
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                //SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            info.TradesCount = tradesCount;
+
+            if (info.FirstTrade != null)
+            {
+                Status = DataPieStatus.Load;
+            }
+
+            return info;
+        }
+
         public List<Trade> LoadTradeDataPieFromTempFile()
         {
 
@@ -2431,5 +2496,15 @@ namespace OsEngine.OsData
         None,
         Load,
         InProcess
+    }
+
+    public class TradePieStatusInfo
+    {
+        public Trade FirstTrade;
+
+        public Trade LastTrade;
+
+        public int TradesCount;
+
     }
 }
