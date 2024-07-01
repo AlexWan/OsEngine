@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Entity;
 using System;
 using System.Collections.Generic;
 
@@ -295,7 +296,7 @@ namespace OsEngine.Indicators
         /// <param name="save"></param>
         public override void LoadParamFromString(string[] save)
         {
-            _valueDecimal = Convert.ToDecimal(save[1]);
+            _valueDecimal = save[1].ToDecimal();
         }
 
         /// <summary>

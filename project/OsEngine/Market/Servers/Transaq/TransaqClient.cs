@@ -81,9 +81,9 @@ namespace OsEngine.Market.Servers.Transaq
                 // sending the command / отправка команды
                 ConnectorSendCommand(cmd);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                SendLogMessage(e.ToString(),LogMessageType.Error);
+                SendLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
 
@@ -148,7 +148,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             catch (Exception e)
             {
-                SendLogMessage(e.ToString(),LogMessageType.Error);
+                SendLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
 
@@ -260,7 +260,7 @@ namespace OsEngine.Market.Servers.Transaq
         {
             try
             {
-                lock(_commandLocker)
+                lock (_commandLocker)
                 {
                     IntPtr pData = MarshalUtf8.StringToHGlobalUtf8(command);
                     IntPtr pResult = SendCommand(pData);
@@ -280,7 +280,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             catch (Exception e)
             {
-                SendLogMessage(e.ToString(),LogMessageType.Error);
+                SendLogMessage(e.ToString(), LogMessageType.Error);
                 return null;
             }
 
@@ -376,7 +376,7 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<candles"))
                             {
-                                Candles newCandles = Deserialize<Candles>(data);
+                                TransaqEntity.Candles newCandles = Deserialize<TransaqEntity.Candles>(data);
 
                                 NewCandles?.Invoke(newCandles);
                             }
@@ -386,7 +386,7 @@ namespace OsEngine.Market.Servers.Transaq
                                 {
                                     NeedChangePassword?.Invoke();
 
-                                    if(IsConnected == true)
+                                    if (IsConnected == true)
                                     {
                                         IsConnected = false;
                                         Disconnected?.Invoke();
@@ -395,12 +395,12 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<server_status"))
                             {
-   
+
                                 ServerStatus status = Deserialize<ServerStatus>(data);
 
                                 if (status.Connected == "true")
                                 {
-                                    if(IsConnected == false 
+                                    if (IsConnected == false
                                         && data.Contains("recover=\"true\"") == false)
                                     {
                                         IsConnected = true;
@@ -453,7 +453,7 @@ namespace OsEngine.Market.Servers.Transaq
                                  || data.StartsWith("<union id=")
                                 || data.StartsWith("<candlekinds>"))
                             {
-                               // do nothin
+                                // do nothin
                             }
                             else // if (data.StartsWith("<error>"))
                             {
@@ -470,7 +470,7 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
-              
+
             }
         }
 
@@ -574,7 +574,7 @@ namespace OsEngine.Market.Servers.Transaq
         /// got candles
         /// пришли свечи
         /// </summary>
-        public event Action<Candles> NewCandles;
+        public event Action<TransaqEntity.Candles> NewCandles;
 
         /// <summary>
         /// got ticks

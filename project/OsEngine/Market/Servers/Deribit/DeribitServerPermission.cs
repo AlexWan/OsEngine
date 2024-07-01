@@ -163,12 +163,11 @@
                     "ETH",
                     "USDC",
                     "USDT",
-                    "BTC_USDC",
-                    "BTC_USDT",
-                    "ETH_BTC",
-                    "ETH_USDC",
-                    "ETH_USDT",
-                    "USDC_USDT"
+                    "SOL",
+                    "ETHW",
+                    "MATIC",
+                    "XRP",
+                    "EURR"
                 };
 
                 return values;
@@ -186,12 +185,12 @@
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

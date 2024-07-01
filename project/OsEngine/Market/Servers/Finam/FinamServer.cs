@@ -387,6 +387,12 @@ namespace OsEngine.Market.Servers.Finam
                 return "";
             }
 
+            // Как обновить данные по бумагам
+            // 1. Идём на сайт Финам: https://www.finam.ru/profile/moex-akcii/sberbank/export/old/
+            // 2. Заходим в источники страницы, через инструменты разработчика
+            // 3. В кэше находим файл icharts.js
+            // 4. Копируем содержимое этого файла в текстовик FinamSecurities.txt, который рядом с exe файлом OsEngine
+
             string result = "";
 
             try
@@ -402,6 +408,12 @@ namespace OsEngine.Market.Servers.Finam
                 // ignore
             }
 
+            if(result != null)
+            {
+                result = result.Replace("\n", "");
+                result = result.Replace("\r", "");
+            }
+
             return result;
         }
 
@@ -411,7 +423,7 @@ namespace OsEngine.Market.Servers.Finam
         /// </summary>
         public static string GetIchartsPath()
         {
-            var response = GetPage("https://www.finam.ru/profile/moex-akcii/gazprom/export/");
+            var response = GetPage("https://www.finam.ru/profile/moex-akcii/sberbank/export/old/");
 
             if(response == null)
             {
@@ -457,6 +469,11 @@ namespace OsEngine.Market.Servers.Finam
             string[] arraySets = response.Split('=');
             string[] arrayIds = arraySets[1].Split('[')[1].Split(']')[0].Split(',');
 
+            for (int i = 0; i < arrayIds.Length; i++)
+            {
+                arrayIds[i] = arrayIds[i].Replace(" ", "");
+            }
+
             string names = arraySets[2].Split('[')[1].Split(']')[0];
 
             List<string> arrayNames = new List<string>();
@@ -466,12 +483,13 @@ namespace OsEngine.Market.Servers.Finam
             for (int i = 1; i < names.Length; i++)
             {
                 if ((names[i] == '\'' && i + 1 == names.Length)
+                    || i + 1 == names.Length
                     ||
-                    (names[i] == '\'' && names[i + 1] == ',' && names[i + 2] == '\''))
+                    (names[i] == '\'' && names[i + 1] == ',' && names[i + 3] == '\''))
                 {
                     arrayNames.Add(name);
                     name = "";
-                    i += 2;
+                    i += 3;
                 }
                 else
                 {
@@ -479,10 +497,34 @@ namespace OsEngine.Market.Servers.Finam
                 }
             }
             string[] arrayCodes = arraySets[3].Split('[')[1].Split(']')[0].Split(',');
+            arrayCodes[0] = arrayCodes[0].Substring(1, arrayCodes[0].Length - 1);
+            for (int i = 1;i < arrayCodes.Length;i++)
+            {
+                arrayCodes[i] = arrayCodes[i].Substring(2, arrayCodes[i].Length-2);
+            }
+
             string[] arrayMarkets = arraySets[4].Split('[')[1].Split(']')[0].Split(',');
+
+            for (int i = 1; i < arrayMarkets.Length; i++)
+            {
+                arrayMarkets[i] = arrayMarkets[i].Substring(1, arrayMarkets[i].Length - 1);
+            }
+
             string[] arrayDecp = arraySets[5].Split('{')[1].Split('}')[0].Split(',');
+
+            for (int i = 0; i < arrayDecp.Length; i++)
+            {
+                arrayDecp[i] = arrayDecp[i].Replace(" ", "");
+            }
+
             string[] arrayFormatStrs = arraySets[6].Split('[')[1].Split(']')[0].Split(',');
             string[] arrayEmitentChild = arraySets[7].Split('[')[1].Split(']')[0].Split(',');
+
+            for (int i = 0; i < arrayEmitentChild.Length; i++)
+            {
+                arrayEmitentChild[i] = arrayEmitentChild[i].Replace(" ", "");
+            }
+
             string[] arrayEmitentUrls = arraySets[8].Split('{')[1].Split('}')[0].Split(',');
 
             _finamSecurities = new List<FinamSecurity>();
@@ -681,7 +723,7 @@ namespace OsEngine.Market.Servers.Finam
 
             _securitiesToSend.Enqueue(_securities);
 
-            SendLogMessage(OsLocalization.Market.Message52 + _securities.Count, LogMessageType.System);
+            SendLogMessage(OsLocalization.Market.Message52 + " " + _securities.Count, LogMessageType.System);
         }
 
         private void CreatePortfolio()

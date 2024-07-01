@@ -123,6 +123,10 @@ namespace OsEngine.Language
           "Eng:Auto update_" +
           "Ru:Обновление_");
 
+        public string Label16 => OsLocalization.ConvertToLocString(
+          "Eng:Show_" +
+          "Ru:Показывать_");
+
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +
             "Ru:Эквити_");

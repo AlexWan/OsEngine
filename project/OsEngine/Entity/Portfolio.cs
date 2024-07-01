@@ -78,7 +78,70 @@ namespace OsEngine.Entity
                 _positionOnBoard = new List<PositionOnBoard>();
             }
 
-            _positionOnBoard.Add(position);
+            if (_positionOnBoard.Count == 0)
+            {
+                _positionOnBoard.Add(position);
+            }
+            else if (position.SecurityNameCode == "USDT"
+                || position.SecurityNameCode == "USDC"
+                || position.SecurityNameCode == "USD"
+                || position.SecurityNameCode == "RUB"
+                || position.SecurityNameCode == "EUR")
+            {
+                _positionOnBoard.Insert(0, position);
+            }
+            else if (_positionOnBoard.Count == 1)
+            {
+                if (FirstIsBiggerThanSecond(position.SecurityNameCode, _positionOnBoard[0].SecurityNameCode))
+                {
+                    _positionOnBoard.Add(position);
+                }
+                else
+                {
+                    _positionOnBoard.Insert(0, position);
+                }
+            }
+            else
+            { // insert name sort
+
+                bool isInsert = false;
+
+                for (int i = 0; i < _positionOnBoard.Count; i++)
+                {
+                    if (_positionOnBoard[i].SecurityNameCode == "USDT"
+                  || _positionOnBoard[i].SecurityNameCode == "USDC"
+                  || _positionOnBoard[i].SecurityNameCode == "USD"
+                  || _positionOnBoard[i].SecurityNameCode == "RUB"
+                  || _positionOnBoard[i].SecurityNameCode == "EUR")
+                    {
+                        continue;
+                    }
+
+                    if (FirstIsBiggerThanSecond(
+                        position.SecurityNameCode,
+                        _positionOnBoard[i].SecurityNameCode) == false)
+                    {
+                        _positionOnBoard.Insert(i, position);
+                        isInsert = true;
+                        break;
+                    }
+                }
+
+                if (isInsert == false)
+                {
+                    _positionOnBoard.Add(position);
+                }
+            }
+        }
+
+        private bool FirstIsBiggerThanSecond(string s1, string s2)
+        {
+            for (int i = 0; i < (s1.Length > s2.Length ? s2.Length : s1.Length); i++)
+            {
+                if (s1.ToCharArray()[i] < s2.ToCharArray()[i]) return false;
+                if (s1.ToCharArray()[i] > s2.ToCharArray()[i]) return true;
+            }
+            return false;
         }
 
         /// <summary>

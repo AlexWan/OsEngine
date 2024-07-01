@@ -930,7 +930,7 @@ namespace OsEngine.OsData
                 // ignore
             }
 
-            for (int i = 0; DataPies != null &&i < DataPies.Count; i++)
+            for (int i = 0; DataPies != null && i < DataPies.Count; i++)
             {
                 DataPies[i].Delete();
             }
@@ -940,13 +940,13 @@ namespace OsEngine.OsData
                 DataPies.Clear();
             }
 
-            for(int i = 0;i < MdSourses.Count;i++)
+            for (int i = 0; i < MdSourses.Count; i++)
             {
                 MdSourses[i].Delete();
                 MdSourses[i].NewLogMessageEvent -= SendNewLogMessage;
             }
 
-            if(MdSourses != null)
+            if (MdSourses != null)
             {
                 MdSourses = null;
             }
@@ -1084,6 +1084,20 @@ namespace OsEngine.OsData
             return result;
         }
 
+        public int Objects()
+        {
+            int result = 0;
+
+            List<DataPie> pieses = DataPies;
+
+            for (int i2 = 0; i2 < pieses.Count; i2++)
+            {
+                result += pieses[i2].ObjectCount;
+            }
+
+            return result;
+        }
+
         // загрузка данных 
 
         public void Process(IServer server, SettingsToLoadSecurity param)
@@ -1098,7 +1112,7 @@ namespace OsEngine.OsData
                 {
                     ProcessMarketDepth(server, param);
                 }
-                else if (TimeFrame == TimeFrame.Sec1 
+                else if (TimeFrame == TimeFrame.Sec1
                     || TimeFrame == TimeFrame.Sec2
                     || TimeFrame == TimeFrame.Sec5
                     || TimeFrame == TimeFrame.Sec10
@@ -1333,7 +1347,7 @@ namespace OsEngine.OsData
         {
             if (_isDeleted) { return; }
 
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
             timeFrameBuilder.TimeFrame = TimeFrame;
 
             if (pie.Status == DataPieStatus.Load)
@@ -1538,7 +1552,7 @@ namespace OsEngine.OsData
 
             Status = SecurityLoadStatus.Load;
 
-            if(needToSave)
+            if (needToSave)
             {
                 SaveTradeDataExitFile(DataPies);
             }
@@ -1548,7 +1562,7 @@ namespace OsEngine.OsData
         {
             if (_isDeleted) { return; }
 
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
             timeFrameBuilder.TimeFrame = TimeFrame;
 
             string id = SecId;
@@ -1652,7 +1666,7 @@ namespace OsEngine.OsData
             {
                 using (StreamWriter writer = new StreamWriter(_pathMyTxtFile, false))
                 {
-                    for(int i = 0;i < extTrades.Count;i++)
+                    for (int i = 0; i < extTrades.Count; i++)
                     {
                         writer.WriteLine(extTrades[i].GetSaveString());
                     }
@@ -1694,9 +1708,9 @@ namespace OsEngine.OsData
 
             MarketDepthLoader loader = null;
 
-            for(int i = 0;i < MdSourses.Count;i++)
+            for (int i = 0; i < MdSourses.Count; i++)
             {
-                if(MdSourses[i].SecName == SecName 
+                if (MdSourses[i].SecName == SecName
                     && MdSourses[i].SecClass == SecClass
                     && MdSourses[i].Depth == param.MarketDepthDepth)
                 {
@@ -1705,7 +1719,7 @@ namespace OsEngine.OsData
                 }
             }
 
-            if(loader == null)
+            if (loader == null)
             {
                 loader = new MarketDepthLoader(SecName, SecClass, param.Source, param.MarketDepthDepth);
                 loader.NewLogMessageEvent += SendNewLogMessage;
@@ -1721,7 +1735,7 @@ namespace OsEngine.OsData
 
             StringBuilder builder = new StringBuilder();
 
-            if(source.SaveStrings == null)
+            if (source.SaveStrings == null)
             {
                 return;
             }
@@ -1730,14 +1744,14 @@ namespace OsEngine.OsData
             {
                 string str = null;
 
-                if(source.SaveStrings.TryDequeue(out str))
+                if (source.SaveStrings.TryDequeue(out str))
                 {
-                    if(string.IsNullOrEmpty(str))
+                    if (string.IsNullOrEmpty(str))
                     {
                         continue;
                     }
 
-                    if(source.SaveStrings.IsEmpty == false)
+                    if (source.SaveStrings.IsEmpty == false)
                     {
                         builder.Append(str + "\r");
                     }
@@ -1748,12 +1762,12 @@ namespace OsEngine.OsData
                 }
             }
 
-            if(builder.Length == 0)
+            if (builder.Length == 0)
             {
                 return;
             }
 
-            if(MainWindow.ProccesIsWorked == false)
+            if (MainWindow.ProccesIsWorked == false)
             {
                 return;
             }
@@ -1815,7 +1829,7 @@ namespace OsEngine.OsData
                 return null;
             }
 
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
             timeFrameBuilder.TimeFrame = TimeFrame;
 
             CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" }, StartProgram.IsOsConverter);
@@ -1913,7 +1927,7 @@ namespace OsEngine.OsData
         {
             _isDeleted = true;
 
-            if(MarketDepthSource != null)
+            if (MarketDepthSource != null)
             {
                 MarketDepthSource.Clear();
                 MarketDepthSource.Delete();
@@ -1966,7 +1980,7 @@ namespace OsEngine.OsData
 
         private void MarketDepthSource_MarketDepthUpdateEvent(MarketDepth md)
         {
-            if(_isDeleted == true)
+            if (_isDeleted == true)
             {
                 return;
             }
@@ -2178,7 +2192,7 @@ namespace OsEngine.OsData
                 start = Trades[0].Time;
             }
 
-            StartFact =  start;
+            StartFact = start;
 
             // 2 актуальное время конца
 
@@ -2208,7 +2222,7 @@ namespace OsEngine.OsData
                 ObjectCount = Candles.Count;
             }
 
-            if (Trades != null 
+            if (Trades != null
                 && Trades.Count != 0)
             {
                 ObjectCount = Trades.Count;

@@ -1849,7 +1849,16 @@ namespace OsEngine.Journal.Internal
 
                 if (UserSelectActionEvent != null)
                 {
-                    UserSelectActionEvent(GetPositionForNumber(number), SignalType.FindPosition);
+                    Position pos = GetPositionForNumber(number);
+
+                    if(pos == null 
+                        || pos.State == PositionStateType.OpeningFail)
+                    {
+                        return;
+                    }
+
+
+                    UserSelectActionEvent(pos, SignalType.FindPosition);
                 }
             }
             catch (Exception error)
@@ -1895,7 +1904,6 @@ namespace OsEngine.Journal.Internal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
 
         // work with context menu
 

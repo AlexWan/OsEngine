@@ -10,6 +10,7 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Trend
@@ -18,6 +19,7 @@ namespace OsEngine.Robots.Trend
     /// Trend strategy on interseption PriceChannel indicator
     /// Трендовая стратегия на пересечение индикатора PriceChannel
     /// </summary>
+    [Bot("PriceChannelTrade")]
     public class PriceChannelTrade : BotPanel
     {
         public PriceChannelTrade(string name, StartProgram startProgram)

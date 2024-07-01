@@ -1894,7 +1894,14 @@ namespace OsEngine.Market.Servers.OKX
 
             if (!item.clOrdId.Equals(String.Empty))
             {
-                newOrder.NumberUser = Convert.ToInt32(item.clOrdId);
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(item.clOrdId);
+                }
+                catch
+                {
+                    // ignore
+                }
             }
 
             newOrder.NumberMarket = item.ordId.ToString();

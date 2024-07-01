@@ -57,7 +57,6 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
             myBrush = new SolidBrush(Color.FromArgb(alfa, Color.WhiteSmoke));
         }
 
-
         private void DrawRouletteClip(ChartPaintEventArgs e)
         {
             if (RouletteOnFaza == 0 )
@@ -72,11 +71,11 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
             }
         }
 
-        
         private void _chart_PostPaint(object sender, ChartPaintEventArgs e)
         {
             try
             {
+                return;
                 DrawRouletteClip(e);
                 if (RouletteRectangle == null)
                 {
@@ -120,6 +119,7 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
         {
             try
             {
+                return;
                 ChartArea area = null;
                 for (int i = 0; i < _chart.ChartAreas.Count; i++)
                 {
@@ -178,10 +178,9 @@ namespace OsEngine.Charts.CandleChart.ChartAddons
             }
         }
 
-      
-
         private void _chart_MouseMoveRoulette(object sender, MouseEventArgs e)
         {
+            return;
             if (RouletteRectangle == null)
             {
                 return;

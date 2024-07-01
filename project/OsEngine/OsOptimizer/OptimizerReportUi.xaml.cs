@@ -14,6 +14,7 @@ using OsEngine.Logging;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.OsOptimizer.OptEntity;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace OsEngine.OsOptimizer
 {
@@ -75,7 +76,14 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
-            _reports = reports;
+
+            _reports = new List<OptimazerFazeReport>();
+
+            for (int i = 0; i < reports.Count; i++)
+            {
+                _reports.Add(reports[i]);
+            }
+
             RepaintResults();
         }
 

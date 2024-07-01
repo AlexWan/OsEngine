@@ -11,6 +11,7 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 /*
 pair trading robot building spread and trading based on the intersection of MA on the spread chart
@@ -27,6 +28,7 @@ namespace OsEngine.Robots.MarketMaker
     /// pair trading robot building spread and trading based on the intersection of MA on the spread chart
     /// робот для парного трейдинга строящий спред и торгующий на основе данных о пересечении машек на графике спреда
     /// </summary>
+    [Bot("PairTraderSpreadSma")]
     public class PairTraderSpreadSma : BotPanel
     {
         public PairTraderSpreadSma(string name, StartProgram startProgram)

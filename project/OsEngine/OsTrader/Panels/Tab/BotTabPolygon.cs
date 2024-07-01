@@ -14,6 +14,7 @@ using System.Windows.Forms.Integration;
 using System.Threading;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using System.Collections;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -534,6 +535,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Sequences[i].ProfitGreaterThanSignalValueEvent -= Pair_ProfitGreaterThanSignalValueEvent;
                         Sequences[i].LogMessageEvent -= Pair_LogMessageEvent;
 
+                        for(int i2 = 0;i2 <  _uiList.Count;i2++)
+                        {
+                            if (_uiList[i2].Polygon.Name == Sequences[i].Name)
+                            {
+                                _uiList[i2].Close();
+                                break;
+                            }
+                        }
+
                         Sequences[i].Delete();
                         Sequences.RemoveAt(i);
                         SaveSequencesNames();
@@ -751,7 +761,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.ServerType = server;
             tab.Connector.EmulatorIsOn = _emulatorIsOn;
             tab.Connector.CandleMarketDataType = CandleMarketDataType.Tick;
-            tab.Connector.CandleCreateMethodType = CandleCreateMethodType.Simple;
+            tab.Connector.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
             tab.Connector.SaveTradesInCandles = false;
             tab.Connector.Save();
         }
@@ -1468,6 +1478,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
 
                     BotTabPolygonUi ui = new BotTabPolygonUi(pair);
+                    ui.LogMessageEvent += SendNewLogMessage;
                     ui.Show();
                     _uiList.Add(ui);
 
@@ -1501,6 +1512,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (_uiList[i].NameElement == name)
                     {
                         _uiList[i].Closed -= Ui_Closed;
+                        _uiList[i].LogMessageEvent -= SendNewLogMessage;
                         _uiList.RemoveAt(i);
                         return;
                     }
@@ -1881,6 +1893,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
+                if(Tab1.Connector == null)
+                {
+                    return "";
+                }
+
                 string result = "";
 
                 if (string.IsNullOrEmpty(Tab1.Connector.SecurityName) == false)
@@ -2033,6 +2050,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
+                if(Tab1.Connector == null)
+                {
+                    return "";
+                }
+
                 if (string.IsNullOrEmpty(Tab1.Connector.SecurityName))
                 {
                     return "";
@@ -2060,6 +2082,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
+                if(Tab2.Connector == null)
+                {
+                    return "";
+                }
                 if (string.IsNullOrEmpty(Tab2.Connector.SecurityName))
                 {
                     return "";
@@ -2087,6 +2113,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
+                if(Tab3.Connector == null)
+                {
+                    return "";
+                }
+
                 if (string.IsNullOrEmpty(Tab3.Connector.SecurityName))
                 {
                     return "";
@@ -2314,6 +2345,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void CheckSecurityInTab(BotTabSimple tab, string currency)
         {
+            if(tab.Connector == null)
+            {
+                return;
+            }
             currency = currency.ToLower();
 
             string secInTab = tab.Connector.SecurityName;
@@ -2343,96 +2378,110 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void TradeLogic()
         {
-            SendNewLogMessage(OsLocalization.Trader.Label366 + " " + SecuritiesInSequence, LogMessageType.System);
-
-            string baseCurrency = BaseCurrency;
-            string endCurrency = EndCurrencyTab3;
-
-            if (string.IsNullOrEmpty(baseCurrency))
+            try
             {
-                SendNewLogMessage(OsLocalization.Trader.Label361, LogMessageType.Error);
-                return;
-            }
+                if(Tab1.Connector == null
+                    || Tab2.Connector == null
+                    || Tab3.Connector == null)
+                {
+                    return;
+                }
 
-            if (string.IsNullOrEmpty(endCurrency))
+                SendNewLogMessage(OsLocalization.Trader.Label366 + " " + SecuritiesInSequence, LogMessageType.System);
+
+                string baseCurrency = BaseCurrency;
+                string endCurrency = EndCurrencyTab3;
+
+                if (string.IsNullOrEmpty(baseCurrency))
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label361, LogMessageType.Error);
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(endCurrency))
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label362, LogMessageType.Error);
+                    return;
+                }
+
+                if (baseCurrency.ToLower() != endCurrency.ToLower())
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label363, LogMessageType.Error);
+                    return;
+                }
+
+                CheckCloseSequence();
+
+                if (Tab1.PositionsOpenAll.Count != 0
+                    || Tab2.PositionsOpenAll.Count != 0
+                    || Tab3.PositionsOpenAll.Count != 0)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label363, LogMessageType.Error);
+                    return;
+                }
+
+                // берём грубые объёмы
+
+                decimal tradeQty1Buy = EndQtyTab1;
+                decimal tradeQty2Sell = tradeQty1Buy;
+                decimal tradeQty3Sell = EndQtyTab2;
+
+                if (tradeQty1Buy == 0
+                    || tradeQty2Sell == 0
+                    || tradeQty3Sell == 0)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label364, LogMessageType.Error);
+                    return;
+                }
+
+                // отсекаем комиссию от объёмов, если это включено
+
+                if (CommisionIsSubstract
+                    && ComissionType == ComissionPolygonType.Percent
+                    && ComissionValue != 0)
+                {
+                    tradeQty2Sell = tradeQty2Sell - (tradeQty2Sell * (ComissionValue / 100));
+                    tradeQty3Sell = tradeQty3Sell - (tradeQty3Sell * ((ComissionValue * 2) / 100));
+                }
+
+                // обрезаем объёмы по кол-ву знаков
+
+                tradeQty1Buy = Math.Round(tradeQty1Buy, Tab1.Securiti.DecimalsVolume);
+                tradeQty2Sell = Math.Round(tradeQty2Sell, Tab2.Securiti.DecimalsVolume);
+                tradeQty3Sell = Math.Round(tradeQty3Sell, Tab3.Securiti.DecimalsVolume);
+
+                Tab1PosStatus = PolygonPositionStatus.None;
+                Tab2PosStatus = PolygonPositionStatus.None;
+                Tab3PosStatus = PolygonPositionStatus.None;
+
+                // выставляем ордера
+
+                SendOrder(Tab1, tradeQty1Buy, Side.Buy, 1);
+                SendNewLogMessage("Trade " + Tab1.Connector.SecurityName + " Qty: " + tradeQty1Buy + " Side: " + Side.Buy, LogMessageType.System);
+
+                if (Tab1PosStatus == PolygonPositionStatus.Fail)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label367, LogMessageType.Error);
+                    return;
+                }
+
+                SendOrder(Tab2, tradeQty2Sell, Side.Sell, 2);
+                SendNewLogMessage("Trade " + Tab2.Connector.SecurityName + " Qty: " + tradeQty2Sell + " Side: " + Side.Sell, LogMessageType.System);
+
+                if (Tab2PosStatus == PolygonPositionStatus.Fail)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label367, LogMessageType.Error);
+                    return;
+                }
+
+                SendOrder(Tab3, tradeQty3Sell, Side.Sell, 3);
+                SendNewLogMessage("Trade " + Tab3.Connector.SecurityName + " Qty: " + tradeQty3Sell + " Side: " + Side.Sell, LogMessageType.System);
+
+            }
+            catch (Exception ex)
             {
-                SendNewLogMessage(OsLocalization.Trader.Label362, LogMessageType.Error);
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            if (baseCurrency.ToLower() != endCurrency.ToLower())
-            {
-                SendNewLogMessage(OsLocalization.Trader.Label363, LogMessageType.Error);
-                return;
-            }
-
-            CheckCloseSequence();
-
-            if (Tab1.PositionsOpenAll.Count != 0
-                || Tab2.PositionsOpenAll.Count != 0
-                || Tab3.PositionsOpenAll.Count != 0)
-            {
-                SendNewLogMessage(OsLocalization.Trader.Label363, LogMessageType.Error);
-                return;
-            }
-
-            // берём грубые объёмы
-
-            decimal tradeQty1Buy = EndQtyTab1;
-            decimal tradeQty2Sell = tradeQty1Buy;
-            decimal tradeQty3Sell = EndQtyTab2;
-
-            if (tradeQty1Buy == 0
-                || tradeQty2Sell == 0
-                || tradeQty3Sell == 0)
-            {
-                SendNewLogMessage(OsLocalization.Trader.Label364, LogMessageType.Error);
-                return;
-            }
-
-            // отсекаем комиссию от объёмов, если это включено
-
-            if (CommisionIsSubstract
-                && ComissionType == ComissionPolygonType.Percent
-                && ComissionValue != 0)
-            {
-                tradeQty2Sell = tradeQty2Sell - (tradeQty2Sell * (ComissionValue / 100));
-                tradeQty3Sell = tradeQty3Sell - (tradeQty3Sell * ((ComissionValue * 2) / 100));
-            }
-
-            // обрезаем объёмы по кол-ву знаков
-
-            tradeQty1Buy = Math.Round(tradeQty1Buy, Tab1.Securiti.DecimalsVolume);
-            tradeQty2Sell = Math.Round(tradeQty2Sell, Tab2.Securiti.DecimalsVolume);
-            tradeQty3Sell = Math.Round(tradeQty3Sell, Tab3.Securiti.DecimalsVolume);
-
-            Tab1PosStatus = PolygonPositionStatus.None;
-            Tab2PosStatus = PolygonPositionStatus.None;
-            Tab3PosStatus = PolygonPositionStatus.None;
-
-            // выставляем ордера
-
-            SendOrder(Tab1, tradeQty1Buy, Side.Buy, 1);
-            SendNewLogMessage("Trade " + Tab1.Connector.SecurityName + " Qty: " + tradeQty1Buy + " Side: " + Side.Buy, LogMessageType.System);
-
-            if (Tab1PosStatus == PolygonPositionStatus.Fail)
-            {
-                SendNewLogMessage(OsLocalization.Trader.Label367, LogMessageType.Error);
-                return;
-            }
-
-            SendOrder(Tab2, tradeQty2Sell, Side.Sell, 2);
-            SendNewLogMessage("Trade " + Tab2.Connector.SecurityName + " Qty: " + tradeQty2Sell + " Side: " + Side.Sell, LogMessageType.System);
-
-            if (Tab2PosStatus == PolygonPositionStatus.Fail)
-            {
-                SendNewLogMessage(OsLocalization.Trader.Label367, LogMessageType.Error);
-                return;
-            }
-
-            SendOrder(Tab3, tradeQty3Sell, Side.Sell, 3);
-            SendNewLogMessage("Trade " + Tab3.Connector.SecurityName + " Qty: " + tradeQty3Sell + " Side: " + Side.Sell, LogMessageType.System);
-
         }
 
         private void SendOrder(BotTabSimple tab, decimal volume, Side side, int tabNum)

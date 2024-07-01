@@ -3,11 +3,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Trend strategy at the intersection of the MACD indicator
 /// “рендова€ стратеги€ на пересечение индикатора MACD
 /// </summary>
+[Bot("MacdRevers")]
 public class MacdRevers : BotPanel
 {
     public MacdRevers(string name, StartProgram startProgram)

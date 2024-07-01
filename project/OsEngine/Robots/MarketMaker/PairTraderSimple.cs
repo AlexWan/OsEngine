@@ -4,6 +4,7 @@ using System.IO;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.MarketMaker
@@ -13,6 +14,7 @@ namespace OsEngine.Robots.MarketMaker
     /// robot for pair trading. trading two papers based on their acceleration to each other by candle
     ///  робот для парного трейдинга. торговля двумя бумагами на основе их ускорения друг к другу по свечкам
     /// </summary>
+    [Bot("PairTraderSimple")]
     public class PairTraderSimple : BotPanel
     {
 

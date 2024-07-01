@@ -16,6 +16,7 @@ using System.Drawing;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Journal;
+using OsEngine.Logging;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -219,104 +220,126 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabPairUi_Closed(object sender, EventArgs e)
         {
-            TextBoxCorrelationLookBack.TextChanged -= TextBoxCorrelationLookBack_TextChanged;
-            TextBoxCointegrationLookBack.TextChanged -= TextBoxCointegrationLookBack_TextChanged;
-            TextBoxCointegrationDeviation.TextChanged -= TextBoxCointegrationDeviation_TextChanged;
-
-            ButtonCorrelationReload.Click -= ButtonCorrelationReload_Click;
-            ButtonCointegrationReload.Click -= ButtonCointegrationReload_Click;
-            ButtonBuy1Sell2.Click -= ButtonBuy1Sell2_Click;
-            ButtonBuy2Sell1.Click -= ButtonBuy2Sell1_Click;
-            ButtonClosePositions.Click -= ButtonClosePositions_Click;
-            ButtonPairJournal.Click -= ButtonPairJournal_Click;
-            ButtonHideShowRightPanel.Click -= ButtonHideShowRightPanel_Click;
-
-            CheckBoxCorrelationAutoIsOn.Click -= CheckBoxCorrelationAutoIsOn_Click;
-            CheckBoxCointegrationAutoIsOn.Click -= CheckBoxCointegrationAutoIsOn_Click;
-
-            _pair.Tab1.CandleUpdateEvent -= Tab1_CandleUpdateEvent;
-            _pair.Tab2.CandleUpdateEvent -= Tab2_CandleUpdateEvent;
-            _pair.Tab1.CandleFinishedEvent -= Tab1_CandleUpdateEvent;
-            _pair.Tab2.CandleFinishedEvent -= Tab2_CandleUpdateEvent;
-            _pair.Tab1.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
-            _pair.Tab2.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
-
-            _pair.Tab1.PositionNetVolumeChangeEvent -= Tab_PositionNetVolumeChangeEvent;
-            _pair.Tab2.PositionNetVolumeChangeEvent -= Tab_PositionNetVolumeChangeEvent;
-
-            _pair.CorrelationChangeEvent -= _pair_CorrelationChangeEvent;
-            _pair.CointegrationChangeEvent -= _pair_CointegrationChangeEvent;
-            _pair.PairDeletedEvent -= _pair_PairDeletedEvent;
-
-            _pair.Tab1.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
-            _pair.Tab1.PositionOpeningFailEvent -= Tab_PositionOpeningSuccesEvent;
-            _pair.Tab1.PositionClosingFailEvent -= Tab_PositionOpeningSuccesEvent;
-            _pair.Tab1.PositionClosingSuccesEvent -= Tab_PositionOpeningSuccesEvent;
-
-            _pair.Tab2.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
-            _pair.Tab2.PositionOpeningFailEvent -= Tab_PositionOpeningSuccesEvent;
-            _pair.Tab2.PositionClosingFailEvent -= Tab_PositionOpeningSuccesEvent;
-            _pair.Tab2.PositionClosingSuccesEvent -= Tab_PositionOpeningSuccesEvent;
-
-            Closed -= BotTabPairUi_Closed;
-
-            if (_pair.Tab1.StartProgram == StartProgram.IsTester)
-            { // управление прорисовкой для тестера
-
-                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
-                server.TestingEndEvent -= Server_TestingEndEvent;
-                server.TestingFastEvent -= Server_TestingFastEvent;
-                server.TestingStartEvent -= Server_TestingStartEvent;
-                server.TestRegimeChangeEvent -= Server_TestRegimeChangeEvent;
-            }
-
-            _pair = null;
-
-            if (_chartSec1 != null)
+            try
             {
-                if(_chartSec1.Indicators != null)
+                Closed -= BotTabPairUi_Closed;
+
+                TextBoxCorrelationLookBack.TextChanged -= TextBoxCorrelationLookBack_TextChanged;
+                TextBoxCointegrationLookBack.TextChanged -= TextBoxCointegrationLookBack_TextChanged;
+                TextBoxCointegrationDeviation.TextChanged -= TextBoxCointegrationDeviation_TextChanged;
+
+                ButtonCorrelationReload.Click -= ButtonCorrelationReload_Click;
+                ButtonCointegrationReload.Click -= ButtonCointegrationReload_Click;
+                ButtonBuy1Sell2.Click -= ButtonBuy1Sell2_Click;
+                ButtonBuy2Sell1.Click -= ButtonBuy2Sell1_Click;
+                ButtonClosePositions.Click -= ButtonClosePositions_Click;
+                ButtonPairJournal.Click -= ButtonPairJournal_Click;
+                ButtonHideShowRightPanel.Click -= ButtonHideShowRightPanel_Click;
+
+                CheckBoxCorrelationAutoIsOn.Click -= CheckBoxCorrelationAutoIsOn_Click;
+                CheckBoxCointegrationAutoIsOn.Click -= CheckBoxCointegrationAutoIsOn_Click;
+
+                TextBoxSec1Volume.TextChanged -= TextBoxSec1Volume_TextChanged;
+                TextBoxSec1Slippage.TextChanged -= TextBoxSec1Slippage_TextChanged;
+
+                TextBoxSec2Volume.TextChanged -= TextBoxSec2Volume_TextChanged;
+                TextBoxSec2Slippage.TextChanged -= TextBoxSec2Slippage_TextChanged;
+
+                TextBoxSec1Volume.TextChanged -= TextBoxSec1Volume_TextChanged;
+                TextBoxSec1Slippage.TextChanged -= TextBoxSec1Slippage_TextChanged;
+
+                TextBoxSec2Volume.TextChanged -= TextBoxSec2Volume_TextChanged;
+                TextBoxSec2Slippage.TextChanged -= TextBoxSec2Slippage_TextChanged;
+
+                if (_chartSec1 != null)
                 {
-                    _chartSec1.Indicators.Clear();
+                    if (_chartSec1.Indicators != null)
+                    {
+                        _chartSec1.Indicators.Clear();
+                    }
+
+                    _chartSec1.Delete();
+                    _chartSec1 = null;
                 }
 
-                _chartSec1.Delete();
-                _chartSec1 = null;
-            }
-
-            if (_chartSec2 != null)
-            {
-                if (_chartSec2.Indicators != null)
+                if (_chartSec2 != null)
                 {
-                    _chartSec2.Indicators.Clear();
+                    if (_chartSec2.Indicators != null)
+                    {
+                        _chartSec2.Indicators.Clear();
+                    }
+
+                    _chartSec2.Delete();
+                    _chartSec2 = null;
                 }
 
-                _chartSec2.Delete();
-                _chartSec2 = null;
-            }
+                if (_chartCorrelation != null)
+                {
+                    _chartCorrelation.Series.Clear();
+                    _chartCorrelation = null;
+                }
 
-            if (_chartCorrelation != null)
+                if (_chartCointegration != null)
+                {
+                    _chartCointegration.Series.Clear();
+                    _chartCointegration = null;
+                }
+
+                if (_pair.Tab1 != null)
+                {
+                    _pair.Tab1.CandleUpdateEvent -= Tab1_CandleUpdateEvent;
+                    _pair.Tab1.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+                    _pair.Tab1.PositionOpeningFailEvent -= Tab_PositionOpeningSuccesEvent;
+                    _pair.Tab1.PositionClosingFailEvent -= Tab_PositionOpeningSuccesEvent;
+                    _pair.Tab1.PositionClosingSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+                    _pair.Tab1.CandleFinishedEvent -= Tab1_CandleUpdateEvent;
+
+                    if(_pair.Tab1.Connector != null)
+                    {
+                        _pair.Tab1.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+                    }
+                   
+                    _pair.Tab1.PositionNetVolumeChangeEvent -= Tab_PositionNetVolumeChangeEvent;
+
+                    if (_pair.Tab1.StartProgram == StartProgram.IsTester)
+                    { // управление прорисовкой для тестера
+
+                        TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
+                        server.TestingEndEvent -= Server_TestingEndEvent;
+                        server.TestingFastEvent -= Server_TestingFastEvent;
+                        server.TestingStartEvent -= Server_TestingStartEvent;
+                        server.TestRegimeChangeEvent -= Server_TestRegimeChangeEvent;
+                    }
+                }
+
+                if(_pair.Tab2 != null)
+                {
+                    _pair.Tab2.CandleUpdateEvent -= Tab2_CandleUpdateEvent;
+                    _pair.Tab2.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+                    _pair.Tab2.PositionOpeningFailEvent -= Tab_PositionOpeningSuccesEvent;
+                    _pair.Tab2.PositionClosingFailEvent -= Tab_PositionOpeningSuccesEvent;
+                    _pair.Tab2.PositionClosingSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+                    _pair.Tab2.CandleFinishedEvent -= Tab2_CandleUpdateEvent;
+
+                    if(_pair.Tab2.Connector != null)
+                    {
+                        _pair.Tab2.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
+                    }
+
+                    _pair.Tab2.PositionNetVolumeChangeEvent -= Tab_PositionNetVolumeChangeEvent;
+                }
+
+                _pair.CorrelationChangeEvent -= _pair_CorrelationChangeEvent;
+                _pair.CointegrationChangeEvent -= _pair_CointegrationChangeEvent;
+                _pair.PairDeletedEvent -= _pair_PairDeletedEvent;
+                _pair = null;
+
+
+            }
+            catch
             {
-                _chartCorrelation.Series.Clear();
-                _chartCorrelation = null;
+                // ignore
             }
-
-            if (_chartCointegration != null)
-            {
-                _chartCointegration.Series.Clear();
-                _chartCointegration = null;
-            }
-
-            TextBoxSec1Volume.TextChanged -= TextBoxSec1Volume_TextChanged;
-            TextBoxSec1Slippage.TextChanged -= TextBoxSec1Slippage_TextChanged;
-
-            TextBoxSec2Volume.TextChanged -= TextBoxSec2Volume_TextChanged;
-            TextBoxSec2Slippage.TextChanged -= TextBoxSec2Slippage_TextChanged;
-
-            TextBoxSec1Volume.TextChanged -= TextBoxSec1Volume_TextChanged;
-            TextBoxSec1Slippage.TextChanged -= TextBoxSec1Slippage_TextChanged;
-
-            TextBoxSec2Volume.TextChanged -= TextBoxSec2Volume_TextChanged;
-            TextBoxSec2Slippage.TextChanged -= TextBoxSec2Slippage_TextChanged;
         }
 
         private void ButtonHideShowRightPanel_Click(object sender, RoutedEventArgs e)
@@ -406,7 +429,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journalUi2 = new JournalUi2(panelsJournal, _pair.Tab1.StartProgram);
                 _journalUi2.Closed += _journalUi_Closed;
-
+                _journalUi2.LogMessageEvent += _journalUi2_LogMessageEvent;
                 _journalUi2.Show();
 
             }
@@ -416,8 +439,20 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        private void _journalUi2_LogMessageEvent(string message, LogMessageType type)
+        {
+            if (_pair == null)
+            {
+                return;
+            }
+            _pair.Tab1.SetNewLogMessage(message, type);
+        }
+
         private void _journalUi_Closed(object sender, EventArgs e)
         {
+            _journalUi2.Closed -= _journalUi_Closed;
+            _journalUi2.LogMessageEvent -= _journalUi2_LogMessageEvent;
+            _journalUi2.IsErase = true;
             _journalUi2 = null;
         }
 

@@ -10,8 +10,8 @@ using System.IO;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 /* Description
 Counter Trend Strategy Based on Willams% R Indicator
@@ -28,6 +28,7 @@ namespace OsEngine.Robots.CounterTrend
     /// Counter Trend Strategy Based on Willams% R Indicator
     /// Контртрендовая стратегия на основе индикатора Willams %R
     /// </summary>
+    [Bot("WilliamsRangeTrade")]
     public class WilliamsRangeTrade : BotPanel
     {
         public WilliamsRangeTrade(string name, StartProgram startProgram)

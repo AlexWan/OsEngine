@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Position detail" Height="540" Width="1400" MinWidth="800" MinHeight="500" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" ResizeMode="CanResize"  WindowStartupLocation="CenterScreen">
     <Grid>
-        <Rectangle Margin="0,104,5,5" HorizontalAlignment="Right" Width="438"/>
+        <Rectangle Margin="0,104,5,35" HorizontalAlignment="Right" Width="438"/>
         <Label Name="PositionLabel3" Content="Trades" HorizontalAlignment="Right" Margin="0,104,314,0" VerticalAlignment="Top" FontWeight="Bold" />
         <Rectangle Margin="5,104,448,0" Height="180" VerticalAlignment="Top"/>
         <Rectangle Margin="5,289,448,5"/>
@@ -11,10 +11,12 @@
         <Label Name="PositionLabel2" Content="Closing" HorizontalAlignment="Left" Margin="10,289,0,0" VerticalAlignment="Top" FontWeight="Bold" />
         <Rectangle Margin="5,5,5,0" Height="94" VerticalAlignment="Top"/>
         <WindowsFormsHost Name="FormsHostMainGrid" Height="89" Margin="10,10,9,0" VerticalAlignment="Top"/>
-        <WindowsFormsHost Name="FormsHostTreid" HorizontalAlignment="Right" Margin="0,127,10,35" Width="429"/>
+        <WindowsFormsHost Name="FormsHostTreid" HorizontalAlignment="Right" Margin="0,127,10,75" Width="429"/>
         <WindowsFormsHost Name="FormsHostOpenDealGrid" Height="157" Margin="10,127,451,0" VerticalAlignment="Top"/>
         <WindowsFormsHost Name="FormsHostCloseDealGrid" Margin="10,312,451,5"/>
         <Button Name="SaveChangesButton" Content="Save changes" HorizontalAlignment="Right" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="429" Click="SaveChangesButton_Click"/>
+        <TextBox Name="TextBoxStartDepo" HorizontalAlignment="Right" Margin="0,0,10,45" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="178"/>
+        <Label Name="LabelStartDepo" Content="Start deposit on position open" HorizontalAlignment="Right" Margin="0,0,224,45" VerticalAlignment="Bottom"/>
 
     </Grid>
 </Window>

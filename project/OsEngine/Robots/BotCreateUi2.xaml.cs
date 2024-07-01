@@ -869,7 +869,9 @@ namespace OsEngine.Robots
         {
             List<BotDescription> descriptions = new List<BotDescription>();
 
-            for (int i = 0; i < _botsIncluded.Count; i++)
+            for (int i = 0; 
+                _botsIncluded != null && i < _botsIncluded.Count; 
+                i++)
             {
                 BotDescription curDescription = GetBotDescription(_botsIncluded[i], false);
 
@@ -879,7 +881,9 @@ namespace OsEngine.Robots
                 }
             }
 
-            for (int i = 0; i < _botsFromScript.Count; i++)
+            for (int i = 0; 
+                _botsFromScript != null && i < _botsFromScript.Count; 
+                i++)
             {
                 BotDescription curDescription = GetBotDescription(_botsFromScript[i], true);
 

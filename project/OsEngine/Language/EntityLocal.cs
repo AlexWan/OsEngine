@@ -268,7 +268,7 @@ namespace OsEngine.Language
             "Ru:Цена шага цены_");
 
         public string SecuritiesColumn6 => OsLocalization.ConvertToLocString(
-            "Eng:Price lot_" +
+            "Eng:Collateral_" +
             "Ru:ГО_");
 
         public string SecuritiesColumn7 => OsLocalization.ConvertToLocString(
@@ -450,6 +450,10 @@ namespace OsEngine.Language
         public string PositionBuyAtStopColumn11 => OsLocalization.ConvertToLocString(
              "Eng:Lifetime type_" +
              "Ru:Тип жизни заявки_");
+
+        public string PositionStartDepoLabel => OsLocalization.ConvertToLocString(
+             "Eng:Starting deposit on opening position_" +
+             "Ru:Стартовый депозит на открытии позицию_");
 
         public string CustomColorDialogUiTitle => OsLocalization.ConvertToLocString(
              "Eng:Color dialog_" +

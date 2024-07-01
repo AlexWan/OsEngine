@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.OsTrader.Gui.RobotUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Bot Trader" Height="800" Width="1350" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
+        Title="Bot Station" Height="800" Width="1350" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="700" MinHeight="500" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="466*"/>
@@ -35,7 +35,7 @@
                         <Button Name="ButtonNewBot" Content="Add bot" HorizontalAlignment="Left" Margin="66,70,0,0" VerticalAlignment="Top" Width="106" Click="ButtonNewBot_Click"/>
                         <Button Name="ButtonDeleteBot"  Content="Delete" HorizontalAlignment="Left" Margin="172,70,0,0" VerticalAlignment="Top" Width="55" Click="ButtonDeleteBot_Click"/>
                         <Label Name="LabelBotControl" Content="Bot control" HorizontalAlignment="Left" Margin="10,190,0,0" VerticalAlignment="Top"  FontSize="18" Height="26"/>
-                        <Button Name="ButtonStrategSettings" Content="Position support"  HorizontalAlignment="Left" Margin="65,337,0,0" VerticalAlignment="Top" Width="161" Click="buttonStrategManualSettings_Click"/>
+                        <Button Name="ButtonStrategSettings" Content="Position support"  HorizontalAlignment="Left" Margin="65,337,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategManualSettings_Click"/>
                         <Button Name="ButtonStrategSettingsIndividual" Content="Bot trade settings" HorizontalAlignment="Left" Margin="66,230,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategIndividualSettings_Click" Height="24"/>
                         <Button Name="ButtonRedactTab" Content="Data settings"  HorizontalAlignment="Left" Margin="66,283,0,0" VerticalAlignment="Top" Width="161" Click="ButtonRedactTab_Click"  />
                         <Button Name="ButtonJournalCommunity" Content="Journal" HorizontalAlignment="Left" Margin="66,97,0,0" VerticalAlignment="Top" Width="161" Click="ButtonJournalCommunity_Click"/>

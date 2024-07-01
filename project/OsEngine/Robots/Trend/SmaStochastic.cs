@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Trend
@@ -18,6 +18,7 @@ namespace OsEngine.Robots.Trend
     /// Trend strategy based on 2 indicators Sma and RSI
     /// Трендовая стратегия на основе 2х индикаторов Sma и RSI
     /// </summary>
+    [Bot("SmaStochastic")]
     public class SmaStochastic : BotPanel
     {
         public SmaStochastic(string name, StartProgram startProgram)

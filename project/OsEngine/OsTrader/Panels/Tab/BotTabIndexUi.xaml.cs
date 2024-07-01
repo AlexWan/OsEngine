@@ -95,10 +95,15 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             ButtonRebuildFormulaNow.Click += ButtonRebuildFormulaNow_Click;
 
+            TextBoxDepth.Text = spread.CalculationDepth.ToString();
+            TextBoxDepth.TextChanged += TextBoxDepth_TextChanged;
+
+
             CheckDayComboBox();
             CheckHourComboBox();
 
             Title = OsLocalization.Trader.Label81;
+            LabelDepth.Content = OsLocalization.Trader.Label411;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             ButtonClearAllSecurities.Content = OsLocalization.Trader.Label369;
             TabControlItem1.Header = OsLocalization.Trader.Label374;
@@ -125,6 +130,30 @@ namespace OsEngine.OsTrader.Panels.Tab
             Thread worker = new Thread(PricePainterThreadWorker);
             worker.Name = "BotTabIndexPricePainter";
             worker.Start();
+        }
+
+        private void TextBoxDepth_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if (TextBoxDepth.Text == "")
+                {
+                    return;
+                }
+
+                int value = Convert.ToInt32(TextBoxDepth.Text);
+
+                if (value < 50)
+                {
+                    return;
+                }
+                _spread.CalculationDepth = value;
+                _spread.Save();
+            }
+            catch
+            {
+                TextBoxDepth.Text = _spread.CalculationDepth.ToString();
+            }
         }
 
         private void CheckDayComboBox()
@@ -570,16 +599,16 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void PricePainterThreadWorker()
         {
-            while(true)
+            while (true)
             {
                 Thread.Sleep(3000);
 
-                if(_windowIsClosed)
+                if (_windowIsClosed)
                 {
                     return;
                 }
 
-                if(MainWindow.ProccesIsWorked == false)
+                if (MainWindow.ProccesIsWorked == false)
                 {
                     return;
                 }
@@ -592,6 +621,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(_sourcesGrid == null)
+                {
+                    return;
+                }
+
                 if (_sourcesGrid.InvokeRequired)
                 {
                     _sourcesGrid.Invoke(new Action(PaintPrices));
@@ -602,31 +636,30 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     DataGridViewRow row = _sourcesGrid.Rows[i];
 
-                    if(row == null)
+                    if (row == null)
                     {
                         continue;
                     }
 
                     DataGridViewCell priceCell = row.Cells[4];
 
-                    if(priceCell == null)
+                    if (priceCell == null)
                     {
                         continue;
                     }
 
                     List<Candle> candles = _spread.Tabs[i].Candles(false);
 
-                    decimal price = 0;
+                    string priceInStr = "";
 
-                    if (candles != null 
+                    if (candles != null
                         && candles.Count > 0)
                     {
-                        price = candles[candles.Count - 1].Close;
+                        priceInStr = 
+                            candles[candles.Count - 1].Close.ToString() + " " + candles[candles.Count - 1].TimeStart.TimeOfDay;
                     }
 
-                    string priceInStr = price.ToString();
-
-                    if(priceCell.Value == null 
+                    if (priceCell.Value == null
                         || priceCell.Value.ToString() != priceInStr)
                     {
                         priceCell.Value = priceInStr;

@@ -25,6 +25,9 @@ namespace OsEngine.OsTrader.Panels
 {
     public partial class BotPanelChartUi
     {
+
+        #region Constructor
+
         public BotPanelChartUi(BotPanel panel)
         {
             InitializeComponent();
@@ -57,9 +60,8 @@ namespace OsEngine.OsTrader.Panels
             }
 
             LocationChanged += RobotUi_LocationChanged;
-            TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
 
-            if(string.IsNullOrEmpty(panel.PublicName) == false)
+            if (string.IsNullOrEmpty(panel.PublicName) == false)
             {
                 Title = panel.GetType().Name + " / " + panel.PublicName;
             }
@@ -85,164 +87,52 @@ namespace OsEngine.OsTrader.Panels
 
             UpdateTabsInStopLimitViewer();
             panel.NewTabCreateEvent += UpdateTabsInStopLimitViewer;
-        }
 
-        private void UpdateTabsInStopLimitViewer()
-        {
-            try
-            {
-                List<BotTabSimple> allTabs = new List<BotTabSimple>();
-
-                if (_panel.TabsSimple != null)
-                {
-                    allTabs.AddRange(_panel.TabsSimple);
-                }
-                if (_panel.TabsScreener != null)
-                {
-                    for (int i = 0; i < _panel.TabsScreener.Count; i++)
-                    {
-                        if (_panel.TabsScreener[i].Tabs != null)
-                        {
-                            allTabs.AddRange(_panel.TabsScreener[i].Tabs);
-                        }
-                    }
-                }
-
-                _stopLimitsViewer.LoadTabToWatch(allTabs);
-            }
-            catch(Exception ex)
-            {
-                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void BotPanelChartUi_Closed(object sender, EventArgs e)
-        {
-            Closed -= BotPanelChartUi_Closed;
-            _panel.StopPaint();
-            _panel.NewTabCreateEvent -= UpdateTabsInStopLimitViewer;
-            _panel = null;
-            LocationChanged -= RobotUi_LocationChanged;
-            TabControlBotsName.SizeChanged -= TabControlBotsName_SizeChanged;
-
-            if (_testerServer != null)
-            {
-                _testerServer.TestingFastEvent -= Serv_TestingFastEvent;
-                _testerServer.TestingEndEvent -= _testerServer_TestingEndEvent;
-                _testerServer = null;
-            }
-
-            _stopLimitsViewer.UserSelectActionEvent -= _stopLimitsViewer_UserSelectActionEvent;
-            _stopLimitsViewer.LogMessageEvent -= SendNewLogMessage;
-            _stopLimitsViewer.ClearDelete();
-            _stopLimitsViewer = null;
-        }
-
-        // стоп - лимиты
-
-        private void _stopLimitsViewer_UserSelectActionEvent(int limitNum, Alerts.SignalType signal)
-        {
-            try
-            {
-
-                List<BotTabSimple> allTabs = new List<BotTabSimple>();
-
-                if(_panel.TabsSimple != null)
-                {
-                    allTabs.AddRange(_panel.TabsSimple);
-                }
-                if (_panel.TabsScreener != null)
-                {
-                    for(int i = 0;i < _panel.TabsScreener.Count;i++)
-                    {
-                        if (_panel.TabsScreener[i].Tabs != null)
-                        {
-                            allTabs.AddRange(_panel.TabsScreener[i].Tabs);
-                        }
-                    }
-                }
-
-                for (int i = 0; i < allTabs.Count; i++)
-                {
-                    if (signal == SignalType.DeleteAllPoses)
-                    {
-                        allTabs[i].BuyAtStopCancel();
-                        allTabs[i].SellAtStopCancel();
-                    }
-                    else
-                    {
-                        for (int i2 = 0; i2 < allTabs[i].PositionOpenerToStop.Count; i2++)
-                        {
-                            if (allTabs[i].PositionOpenerToStop[i2].Number == limitNum)
-                            {
-                                allTabs[i].PositionOpenerToStop.RemoveAt(i2);
-                                allTabs[i].UpdateStopLimits();
-                                return;
-                            }
-                        }
-                    }
-                }
-
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        // для тестирования
-
-        TesterServer _testerServer = null;
-
-        BuyAtStopPositionsViewer _stopLimitsViewer;
-
-        private void Serv_TestingFastEvent()
-        {
-            if (_testerServer.TestingFastIsActivate == true)
-            {
-                _panel.StopPaint();
-                _stopLimitsViewer.StopPaint();
-            }
-            else if (_testerServer.TestingFastIsActivate == false)
-            {
-                StartPaint();
-                _panel.MoveChartToTheRight();
-                _stopLimitsViewer.StartPaint();
-            }
-        }
-
-        private void _testerServer_TestingEndEvent()
-        {
-             StartPaint();
-             _panel.MoveChartToTheRight();
-             _stopLimitsViewer.StartPaint();
-        }
-
-        public void StartPaint()
-        {
-            _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
-             HostClosePosition, HostBotLog, RectChart,
-             HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, TextBoxVolumeFast);
+            rectToMove.MouseEnter += RectToMove_MouseEnter;
+            rectToMove.MouseLeave += RectToMove_MouseLeave;
+            rectToMove.MouseDown += RectToMove_MouseDown;
         }
 
         private BotPanel _panel;
 
-        void TabControlBotsName_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void BotPanelChartUi_Closed(object sender, EventArgs e)
         {
-            double up = TabControlBotsName.ActualHeight - 28;
-
-            if (up < 0)
+            try
             {
-                up = 0;
+                Closed -= BotPanelChartUi_Closed;
+
+                rectToMove.MouseEnter -= RectToMove_MouseEnter;
+                rectToMove.MouseLeave -= RectToMove_MouseLeave;
+                rectToMove.MouseDown -= RectToMove_MouseDown;
+
+                LocationChanged -= RobotUi_LocationChanged;
+
+                if (_panel != null)
+                {
+                    _panel.StopPaint();
+                    _panel.NewTabCreateEvent -= UpdateTabsInStopLimitViewer;
+                    _panel = null;
+                }
+
+                if (_testerServer != null)
+                {
+                    _testerServer.TestingFastEvent -= Serv_TestingFastEvent;
+                    _testerServer.TestingEndEvent -= _testerServer_TestingEndEvent;
+                    _testerServer = null;
+                }
+
+                if (_stopLimitsViewer != null)
+                {
+                    _stopLimitsViewer.UserSelectActionEvent -= _stopLimitsViewer_UserSelectActionEvent;
+                    _stopLimitsViewer.LogMessageEvent -= SendNewLogMessage;
+                    _stopLimitsViewer.ClearDelete();
+                    _stopLimitsViewer = null;
+                }
             }
-
-            // GreedChartPanel.Margin = new Thickness(5, up, 315, 10);
-        }
-
-        private void RobotUi_LocationChanged(object sender, EventArgs e)
-        {
-            WindowCoordinate.X = Convert.ToDecimal(Left);
-            WindowCoordinate.Y = Convert.ToDecimal(Top);
+            catch
+            {
+                // ignore
+            }
         }
 
         private void Local()
@@ -277,156 +167,159 @@ namespace OsEngine.OsTrader.Panels
             ButtonMoreOpenPositionDetail.Content = OsLocalization.Trader.Label197;
         }
 
-        private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
+        #endregion
+
+        #region Stop-Limits
+
+        private void UpdateTabsInStopLimitViewer()
         {
-            if(_panel.ActivTab == null)
-            {
-                return;
-            }
-
-            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
-            {
-                return;
-            }
-
-            decimal volume;
-
             try
             {
-                volume = TextBoxVolumeFast.Text.ToDecimal();
+                List<BotTabSimple> allTabs = new List<BotTabSimple>();
+
+                if (_panel.TabsSimple != null)
+                {
+                    allTabs.AddRange(_panel.TabsSimple);
+                }
+                if (_panel.TabsScreener != null)
+                {
+                    for (int i = 0; i < _panel.TabsScreener.Count; i++)
+                    {
+                        if (_panel.TabsScreener[i].Tabs != null)
+                        {
+                            allTabs.AddRange(_panel.TabsScreener[i].Tabs);
+                        }
+                    }
+                }
+
+                _stopLimitsViewer.LoadTabToWatch(allTabs);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show(OsLocalization.Trader.Label49);
-                return;
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-            ((BotTabSimple)_panel.ActivTab).BuyAtMarket(volume);
         }
 
-        private void buttonSellFast_Click(object sender, RoutedEventArgs e)
+        private BuyAtStopPositionsViewer _stopLimitsViewer;
+
+        private void _stopLimitsViewer_UserSelectActionEvent(int limitNum, Alerts.SignalType signal)
         {
-            if (_panel.ActivTab == null)
-            {
-                return;
-            }
-            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
-            {
-                return;
-            }
-            decimal volume;
             try
             {
-                volume = TextBoxVolumeFast.Text.ToDecimal();
+
+                List<BotTabSimple> allTabs = new List<BotTabSimple>();
+
+                if (_panel.TabsSimple != null)
+                {
+                    allTabs.AddRange(_panel.TabsSimple);
+                }
+                if (_panel.TabsScreener != null)
+                {
+                    for (int i = 0; i < _panel.TabsScreener.Count; i++)
+                    {
+                        if (_panel.TabsScreener[i].Tabs != null)
+                        {
+                            allTabs.AddRange(_panel.TabsScreener[i].Tabs);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < allTabs.Count; i++)
+                {
+                    if (signal == SignalType.DeleteAllPoses)
+                    {
+                        allTabs[i].BuyAtStopCancel();
+                        allTabs[i].SellAtStopCancel();
+                    }
+                    else
+                    {
+                        for (int i2 = 0; i2 < allTabs[i].PositionOpenerToStop.Count; i2++)
+                        {
+                            if (allTabs[i].PositionOpenerToStop[i2].Number == limitNum)
+                            {
+                                allTabs[i].PositionOpenerToStop.RemoveAt(i2);
+                                allTabs[i].UpdateStopLimits();
+                                return;
+                            }
+                        }
+                    }
+                }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                MessageBox.Show(OsLocalization.Trader.Label49);
-                return;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-            ((BotTabSimple)_panel.ActivTab).SellAtMarket(volume);
         }
 
-        // ручное управление позицией
+        #endregion
 
-        private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
+        #region Tester
+
+        private TesterServer _testerServer = null;
+
+        private void Serv_TestingFastEvent()
         {
-            if (_panel.ActivTab == null)
-            {
-                return;
-            }
-            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
-            {
-                return;
-            }
-            decimal volume;
             try
             {
-                volume = Decimal.Parse(TextBoxVolumeFast.Text.Replace(",",
-                        CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                    CultureInfo.InvariantCulture);
+                if (_testerServer.TestingFastIsActivate == true)
+                {
+                    _panel.StopPaint();
+                    _stopLimitsViewer.StopPaint();
+                }
+                else if (_testerServer.TestingFastIsActivate == false)
+                {
+                    StartPaint();
+                    _panel.MoveChartToTheRight();
+                    _stopLimitsViewer.StartPaint();
+                }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                MessageBox.Show(OsLocalization.Trader.Label49);
-                return;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            decimal price;
-
-            try
-            {
-                price = TextBoxPrice.Text.ToDecimal();
-            }
-            catch (Exception)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label50);
-                return;
-            }
-
-            if (price == 0)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label50);
-                return;
-            }
-            ((BotTabSimple)_panel.ActivTab).BuyAtLimit(volume, price);
-
         }
 
-        private void ButtonSellLimit_Click(object sender, RoutedEventArgs e)
+        private void _testerServer_TestingEndEvent()
         {
-            if (_panel.ActivTab == null)
-            {
-                return;
-            }
-            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
-            {
-                return;
-            }
-            decimal volume;
             try
             {
-                volume = TextBoxVolumeFast.Text.ToDecimal();
+                StartPaint();
+                _panel.MoveChartToTheRight();
+                _stopLimitsViewer.StartPaint();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show(OsLocalization.Trader.Label49);
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
 
-            decimal price;
+        #endregion
 
+        #region Location
+
+        public void StartPaint()
+        {
             try
             {
-                price = TextBoxPrice.Text.ToDecimal();
+                _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
+                HostClosePosition, HostBotLog, RectChart,
+                HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, TextBoxVolumeFast);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show(OsLocalization.Trader.Label50);
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            if (price == 0)
-            {
-                MessageBox.Show(OsLocalization.Trader.Label50);
-                return;
-            }
-
-            ((BotTabSimple)_panel.ActivTab).SellAtLimit(volume, price);
         }
 
-        private void ButtonCloseLimit_Click(object sender, RoutedEventArgs e)
+        private void RobotUi_LocationChanged(object sender, EventArgs e)
         {
-            if (_panel.ActivTab == null)
-            {
-                return;
-            }
-            if (_panel.ActivTab.GetType().Name != "BotTabSimple")
-            {
-                return;
-            }
-
-            ((BotTabSimple)_panel.ActivTab).CloseAllOrderInSystem();
+            WindowCoordinate.X = Convert.ToDecimal(Left);
+            WindowCoordinate.Y = Convert.ToDecimal(Top);
         }
+
+        #endregion
+
+        #region Journal
 
         private JournalUi2 _journalUi;
 
@@ -463,6 +356,7 @@ namespace OsEngine.OsTrader.Panels
 
                 _journalUi = new JournalUi2(panelsJournal, _panel.StartProgram);
                 _journalUi.Closed += _journalUi_Closed;
+                _journalUi.LogMessageEvent += _journalUi_LogMessageEvent;
                 _journalUi.Show();
             }
             catch (Exception error)
@@ -471,63 +365,291 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
+        private void _journalUi_LogMessageEvent(string message, LogMessageType type)
+        {
+            try
+            {
+                if (_panel == null)
+                {
+                    return;
+                }
+                _panel.SendNewLogMessage(message, type);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
         private void _journalUi_Closed(object sender, EventArgs e)
         {
-            _journalUi.Closed -= _journalUi_Closed;
-            _journalUi.IsErase = true;
-            _journalUi = null;
+            try
+            {
+                _journalUi.Closed -= _journalUi_Closed;
+                _journalUi.LogMessageEvent -= _journalUi_LogMessageEvent;
+                _journalUi.IsErase = true;
+                _journalUi = null;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
+
+        #endregion
+
+        #region Trading
+
+        private void buttonBuyFast_Click_1(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel.ActivTab == null)
+                {
+                    return;
+                }
+
+                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                {
+                    return;
+                }
+
+                decimal volume;
+
+                try
+                {
+                    volume = TextBoxVolumeFast.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label49);
+                    return;
+                }
+             ((BotTabSimple)_panel.ActivTab).BuyAtMarket(volume);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void buttonSellFast_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel.ActivTab == null)
+                {
+                    return;
+                }
+                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                {
+                    return;
+                }
+                decimal volume;
+                try
+                {
+                    volume = TextBoxVolumeFast.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label49);
+                    return;
+                }
+            ((BotTabSimple)_panel.ActivTab).SellAtMarket(volume);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel.ActivTab == null)
+                {
+                    return;
+                }
+                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                {
+                    return;
+                }
+                decimal volume;
+                try
+                {
+                    volume = Decimal.Parse(TextBoxVolumeFast.Text.Replace(",",
+                            CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                        CultureInfo.InvariantCulture);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label49);
+                    return;
+                }
+
+                decimal price;
+
+                try
+                {
+                    price = TextBoxPrice.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label50);
+                    return;
+                }
+
+                if (price == 0)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label50);
+                    return;
+                }
+            ((BotTabSimple)_panel.ActivTab).BuyAtLimit(volume, price);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonSellLimit_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel.ActivTab == null)
+                {
+                    return;
+                }
+                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                {
+                    return;
+                }
+                decimal volume;
+                try
+                {
+                    volume = TextBoxVolumeFast.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label49);
+                    return;
+                }
+
+                decimal price;
+
+                try
+                {
+                    price = TextBoxPrice.Text.ToDecimal();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label50);
+                    return;
+                }
+
+                if (price == 0)
+                {
+                    MessageBox.Show(OsLocalization.Trader.Label50);
+                    return;
+                }
+
+            ((BotTabSimple)_panel.ActivTab).SellAtLimit(volume, price);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonCloseLimit_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel.ActivTab == null)
+                {
+                    return;
+                }
+                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                {
+                    return;
+                }
+
+            ((BotTabSimple)_panel.ActivTab).CloseAllOrderInSystem();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Bot managment
 
         private void ButtonRiskManager_Click(object sender, RoutedEventArgs e)
         {
-            _panel.ShowPanelRiskManagerDialog();
+            try
+            {
+                _panel.ShowPanelRiskManagerDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ButtonStrategParametr_Click(object sender, RoutedEventArgs e)
         {
-            _panel.ShowParametrDialog();
+            try
+            {
+                _panel.ShowParametrDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ButtonStrategIndividualSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (_panel == null)
+            try
             {
-                return;
-            }
+                if (_panel == null)
+                {
+                    return;
+                }
 
-            _panel.ShowIndividualSettingsDialog();
+                _panel.ShowIndividualSettingsDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
-        private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)
+        private void ButtonStrategManualSettings_Click(object sender, RoutedEventArgs e)
         {
-            if (_panel.ActivTab == null)
+            try
             {
-                return;
+                if (_panel.ActivTab == null)
+                {
+                    return;
+                }
+                if (_panel.ActivTab.GetType().Name == "BotTabSimple")
+                {
+                    ((BotTabSimple)_panel.ActivTab).ShowManualControlDialog();
+                }
+                else if (_panel.ActivTab.GetType().Name == "BotTabScreener")
+                {
+                    ((BotTabScreener)_panel.ActivTab).ShowManualControlDialog();
+                }
             }
-            if (_panel.ActivTab.GetType().Name == "BotTabSimple")
+            catch (Exception ex)
             {
-                ((BotTabSimple)_panel.ActivTab).ShowManualControlDialog();
-            }
-            else if (_panel.ActivTab.GetType().Name == "BotTabScreener")
-            {
-                ((BotTabScreener)_panel.ActivTab).ShowManualControlDialog();
-            }
-
-        }
-
-        private void SendNewLogMessage(string message, LogMessageType type)
-        {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
-            else if (type == LogMessageType.Error)
-            {
-                MessageBox.Show(message);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-
-        public event Action<string, LogMessageType> LogMessageEvent;
 
         private void ButtonRedactTab_Click(object sender, RoutedEventArgs e)
         {
@@ -538,7 +660,7 @@ namespace OsEngine.OsTrader.Panels
                     MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
-                if(_panel.ActivTab == null)
+                if (_panel.ActivTab == null)
                 {
                     return;
                 }
@@ -573,213 +695,58 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
-        private void ButtonHideInformPanel_Click(object sender, RoutedEventArgs e)
-        {
-            HideInformPanel();
-            SaveLeftPanelPosition();
-        }
+        #endregion
 
-        private void ButtonShowInformPanel_Click(object sender, RoutedEventArgs e)
-        {
-            ShowInformPanel();
-            SaveLeftPanelPosition();
-        }
-
-        private void ButtonHideShowSettingsPanel_Click(object sender, RoutedEventArgs e)
-        {
-            if (ButtonHideShowSettingsPanel.Content.ToString() == ">")
-            {
-                HideSettigsPanel();
-            }
-            else if (ButtonHideShowSettingsPanel.Content.ToString() == "<")
-            {
-                ShowSettingsPanel();
-            }
-            SaveLeftPanelPosition();
-        }
-
-        private void HideInformPanel()
-        {
-            TabControlPrime.Visibility = Visibility.Hidden;
-            GridPrime.RowDefinitions[1].Height = new GridLength(0);
-            GreedTraderEngine.Margin = new Thickness(0, 0, 0, 0);
-            ButtonShowInformPanel.Visibility = Visibility.Visible;
-
-            //GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
-
-            if (GreedTraderEngine.Visibility == Visibility.Visible)
-            {
-                GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
-            }
-            else
-            {
-                GreedChartPanel.Margin = new Thickness(0, 26, 0, 0);
-            }
-            _informPanelIsHide = true;
-        }
-
-        private void ShowInformPanel()
-        {
-            ButtonShowInformPanel.Visibility = Visibility.Hidden;
-
-            GridPrime.RowDefinitions[1].Height = new GridLength(190);
-            GreedTraderEngine.Margin = new Thickness(0, 0, 0, 182);
-            TabControlPrime.Visibility = Visibility.Visible;
-
-            //GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
-
-            if (GreedTraderEngine.Visibility == Visibility.Visible)
-            {
-                GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
-            }
-            else
-            {
-                GreedChartPanel.Margin = new Thickness(0, 26, 0, 10);
-            }
-            _informPanelIsHide = false;
-        }
-
-        private void HideSettigsPanel()
-        {
-            ButtonHideShowSettingsPanel.Content = "<";
-            GreedTraderEngine.Visibility = Visibility.Hidden;
-
-            if (TabControlPrime.Visibility == Visibility.Visible)
-            {
-                GreedChartPanel.Margin = new Thickness(0, 26, 0, 10);
-            }
-            else
-            {
-                GreedChartPanel.Margin = new Thickness(0, 26, 0, 0);
-            }
-            _settingsPanelIsHide = true;
-        }
-
-        private void ShowSettingsPanel()
-        {
-            ButtonHideShowSettingsPanel.Content = ">";
-            GreedTraderEngine.Visibility = Visibility.Visible;
-
-            if (TabControlPrime.Visibility == Visibility.Visible)
-            {
-                GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
-            }
-            else
-            {
-                GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
-            }
-            _settingsPanelIsHide = false;
-        }
-
-        // сохранение и загрузка состояния схлопывающихся панелей
-
-        private string _panelName;
-
-        private bool _settingsPanelIsHide;
-
-        private bool _informPanelIsHide;
-
-        private void CheckPanels()
-        {
-            if (!File.Exists(@"Engine\LayoutRobotUi" + _panelName + ".txt"))
-            {
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\LayoutRobotUi" + _panelName + ".txt"))
-                {
-                    _settingsPanelIsHide = Convert.ToBoolean(reader.ReadLine());
-                    _informPanelIsHide = Convert.ToBoolean(reader.ReadLine());
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-
-            if (_settingsPanelIsHide)
-            {
-                HideSettigsPanel();
-            }
-
-            if (_informPanelIsHide)
-            {
-                HideInformPanel();
-            }
-        }
-
-        private void SaveLeftPanelPosition()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\LayoutRobotUi" + _panelName + ".txt", false))
-                {
-                    writer.WriteLine(_settingsPanelIsHide);
-                    writer.WriteLine(_informPanelIsHide);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
+        #region Open position GUI
 
         private List<PositionOpenUi2> _guisOpenPos = new List<PositionOpenUi2>();
 
         private void ButtonMoreOpenPositionDetail_Click(object sender, RoutedEventArgs e)
         {
-            if (_panel.ActivTab == null)
-            {
-                return;
-            }
-
-            BotTabSimple activTab = null;
-
             try
             {
-                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                if (_panel.ActivTab == null)
                 {
                     return;
                 }
 
-                activTab = (BotTabSimple)_panel.ActivTab;
+                BotTabSimple activTab = null;
+
+                try
+                {
+                    if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                    {
+                        return;
+                    }
+
+                    activTab = (BotTabSimple)_panel.ActivTab;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    return;
+                }
+
+                for (int i = 0; i < _guisOpenPos.Count; i++)
+                {
+                    if (_guisOpenPos[i].Tab.TabName == activTab.TabName)
+                    {
+                        _guisOpenPos[i].Activate();
+                        return;
+                    }
+                }
+
+                PositionOpenUi2 ui = new PositionOpenUi2(activTab);
+                ui.Show();
+
+                _guisOpenPos.Add(ui);
+
+                ui.Closing += Ui_Closing;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            for (int i = 0;i < _guisOpenPos.Count;i++)
-            {
-                if (_guisOpenPos[i].Tab.TabName == activTab.TabName)
-                {
-                    _guisOpenPos[i].Activate();
-                    return;
-                }
-            }
-
-            /*if(activTab.Connector.ServerType == ServerType.None
-                || string.IsNullOrEmpty(activTab.Connector.SecurityName)
-                || activTab.IsConnected == false 
-                || activTab.IsReadyToTrade == false)
-            {
-                activTab.SetNewLogMessage(OsLocalization.Trader.Label195, LogMessageType.Error);
-                return;
-            }*/
-
-            PositionOpenUi2 ui = new PositionOpenUi2(activTab);
-            ui.Show();
-
-            _guisOpenPos.Add(ui);
-
-            ui.Closing += Ui_Closing;
-
         }
 
         private void Ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -797,10 +764,334 @@ namespace OsEngine.OsTrader.Panels
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Resizing areas
+
+        private string _panelName;
+
+        private bool _settingsPanelIsHide;
+
+        private bool _informPanelIsHide;
+
+        private bool _lowPanelIsBig;
+
+        private void CheckPanels()
+        {
+            try
+            {
+                if (!File.Exists(@"Engine\LayoutRobotUi" + _panelName + ".txt"))
+                {
+                    return;
+                }
+
+                try
+                {
+                    using (StreamReader reader = new StreamReader(@"Engine\LayoutRobotUi" + _panelName + ".txt"))
+                    {
+                        _settingsPanelIsHide = Convert.ToBoolean(reader.ReadLine());
+                        _informPanelIsHide = Convert.ToBoolean(reader.ReadLine());
+                        _lowPanelIsBig = Convert.ToBoolean(reader.ReadLine());
+                        reader.Close();
+                    }
+                }
+                catch (Exception)
+                {
+                    // ignore
+                }
+
+                if (_settingsPanelIsHide)
+                {
+                    HideSettingsPanel();
+                }
+
+                if (_informPanelIsHide)
+                {
+                    HideInformPanel();
+                }
+
+                if (_informPanelIsHide == false &&
+                    _lowPanelIsBig)
+                {
+                    DoBigLowPanel();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void SaveLeftPanelPosition()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\LayoutRobotUi" + _panelName + ".txt", false))
+                {
+                    writer.WriteLine(_settingsPanelIsHide);
+                    writer.WriteLine(_informPanelIsHide);
+                    writer.WriteLine(_lowPanelIsBig);
+                    writer.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonHideInformPanel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                HideInformPanel();
+                SaveLeftPanelPosition();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonShowInformPanel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ShowInformPanel();
+                SaveLeftPanelPosition();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonHideShowSettingsPanel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (ButtonHideShowSettingsPanel.Content.ToString() == ">")
+                {
+                    HideSettingsPanel();
+                }
+                else if (ButtonHideShowSettingsPanel.Content.ToString() == "<")
+                {
+                    ShowSettingsPanel();
+                }
+                SaveLeftPanelPosition();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void HideInformPanel()
+        {
+            try
+            {
+                TabControlPrime.Visibility = Visibility.Hidden;
+                GridPrime.RowDefinitions[1].Height = new GridLength(0);
+                GreedTraderEngine.Margin = new Thickness(0, 0, 0, 0);
+                ButtonShowInformPanel.Visibility = Visibility.Visible;
+
+                //GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
+
+                if (GreedTraderEngine.Visibility == Visibility.Visible)
+                {
+                    GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
+                }
+                else
+                {
+                    GreedChartPanel.Margin = new Thickness(0, 26, 0, 0);
+                }
+                _informPanelIsHide = true;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ShowInformPanel()
+        {
+            try
+            {
+                ButtonShowInformPanel.Visibility = Visibility.Hidden;
+
+                GridPrime.RowDefinitions[1].Height = new GridLength(190);
+                GreedTraderEngine.Margin = new Thickness(0, 0, 0, 182);
+                GreedPozitonLogHost.Height = 167;
+
+                TabControlPrime.Visibility = Visibility.Visible;
+
+                //GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
+
+                if (GreedTraderEngine.Visibility == Visibility.Visible)
+                {
+                    GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
+                }
+                else
+                {
+                    GreedChartPanel.Margin = new Thickness(0, 26, 0, 10);
+                }
+                _informPanelIsHide = false;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void HideSettingsPanel()
+        {
+            try
+            {
+                ButtonHideShowSettingsPanel.Content = "<";
+                GreedTraderEngine.Visibility = Visibility.Hidden;
+
+                if (TabControlPrime.Visibility == Visibility.Visible)
+                {
+                    GreedChartPanel.Margin = new Thickness(0, 26, 0, 10);
+                }
+                else
+                {
+                    GreedChartPanel.Margin = new Thickness(0, 26, 0, 0);
+                }
+                _settingsPanelIsHide = true;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ShowSettingsPanel()
+        {
+            try
+            {
+                ButtonHideShowSettingsPanel.Content = ">";
+                GreedTraderEngine.Visibility = Visibility.Visible;
+
+                if (TabControlPrime.Visibility == Visibility.Visible)
+                {
+                    GreedChartPanel.Margin = new Thickness(0, 26, 308, 10);
+                }
+                else
+                {
+                    GreedChartPanel.Margin = new Thickness(0, 26, 308, 0);
+                }
+                _settingsPanelIsHide = false;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Increasing the log area 
+
+        private void RectToMove_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (GreedPozitonLogHost.Cursor == System.Windows.Input.Cursors.ScrollN)
+                {
+                    DoBigLowPanel();
+                    _lowPanelIsBig = true;
+                    SaveLeftPanelPosition();
+                }
+                else if (GreedPozitonLogHost.Cursor == System.Windows.Input.Cursors.ScrollS)
+                {
+                    DoSmallLowPanel();
+                    _lowPanelIsBig = false;
+                    SaveLeftPanelPosition();
+                }
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RectToMove_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            try
+            {
+                GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.Arrow;
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RectToMove_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            try
+            {
+                if (GridPrime.RowDefinitions[1].Height.Value == 190)
+                {
+                    GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.ScrollN;
+                }
+                if (GridPrime.RowDefinitions[1].Height.Value == 500)
+                {
+                    GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.ScrollS;
+                }
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void DoBigLowPanel()
+        {
+            GridPrime.RowDefinitions[1].Height = new GridLength(500, GridUnitType.Pixel);
+            GreedTraderEngine.Margin = new Thickness(0, 0, 0, 492);
+            GreedPozitonLogHost.Height = 475;
+            this.MinHeight = 600;
+        }
+
+        private void DoSmallLowPanel()
+        {
+            GridPrime.RowDefinitions[1].Height = new GridLength(190, GridUnitType.Pixel);
+            GreedTraderEngine.Margin = new Thickness(0, 0, 0, 182);
+            GreedPozitonLogHost.Height = 167;
+            this.MinHeight = 300;
+
+        }
+
+        #endregion
+
+        #region Logging
+
+        private void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+            else if(_panel != null)
+            {
+                _panel.SendNewLogMessage(message, type);
+            }
+            else if (type == LogMessageType.Error)
+            {
+                MessageBox.Show(message);
+            }
+        }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 }

@@ -15,15 +15,15 @@ using MessageBox = System.Windows.MessageBox;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.IO;
-
+using OsEngine.Candles;
+using OsEngine.Candles.Factory;
+using OsEngine.Candles.Series;
 
 namespace OsEngine.Market.Connectors
 {
-    /// <summary>
-    /// Логика взаимодействия для MassSourcesCreateUi.xaml
-    /// </summary>
     public partial class MassSourcesCreateUi : Window
     {
+        #region Constructor
 
         public MassSourcesCreateUi(MassSourcesCreator connectorBot)
         {
@@ -42,6 +42,7 @@ namespace OsEngine.Market.Connectors
                 TextBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
                 TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
                 TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
+                TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;
 
                 List<IServer> servers = ServerMaster.GetServers();
 
@@ -66,16 +67,6 @@ namespace OsEngine.Market.Connectors
                 Label6.Content = OsLocalization.Market.Label6;
                 Label8.Content = OsLocalization.Market.Label8;
                 Label9.Content = OsLocalization.Market.Label9;
-                LabelTimeFrame.Content = OsLocalization.Market.Label10;
-                LabelCountTradesInCandle.Content = OsLocalization.Market.Label11;
-                CheckBoxSetForeign.Content = OsLocalization.Market.Label12;
-                LabelDeltaPeriods.Content = OsLocalization.Market.Label13;
-                LabelVolumeToClose.Content = OsLocalization.Market.Label14;
-                LabelRencoPunkts.Content = OsLocalization.Market.Label15;
-                CheckBoxRencoIsBuildShadows.Content = OsLocalization.Market.Label16;
-                LabelRangeCandlesPunkts.Content = OsLocalization.Market.Label17;
-                LabelReversCandlesPunktsMinMove.Content = OsLocalization.Market.Label18;
-                LabelReversCandlesPunktsBackMove.Content = OsLocalization.Market.Label19;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
                 LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
                 LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
@@ -93,6 +84,8 @@ namespace OsEngine.Market.Connectors
                 ComboBoxTypeServer_SelectionChanged(null, null);
 
                 Closed += MassSourcesCreateUi_Closed;
+
+                ActivateCandlesTypesControls();
             }
             catch (Exception error)
             {
@@ -102,6 +95,8 @@ namespace OsEngine.Market.Connectors
             this.Activate();
             this.Focus();
         }
+
+        public MassSourcesCreator SourcesCreator;
 
         private void ActivateGui()
         {
@@ -135,7 +130,6 @@ namespace OsEngine.Market.Connectors
             {
                 ComboBoxTypeServer.IsEnabled = false;
                 CheckBoxIsEmulator.IsEnabled = false;
-                CheckBoxSetForeign.IsEnabled = false;
                 ComboBoxTypeServer.SelectedItem = ServerType.Tester;
                 //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
                 //ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
@@ -162,58 +156,6 @@ namespace OsEngine.Market.Connectors
             ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
             ComboBoxCandleMarketDataType.SelectedItem = SourcesCreator.CandleMarketDataType;
 
-            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Simple);
-            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Renko);
-            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.HeikenAshi);
-            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Delta);
-            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Volume);
-            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Ticks);
-            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Range);
-            ComboBoxCandleCreateMethodType.Items.Add(CandleCreateMethodType.Rеvers);
-
-            ComboBoxCandleCreateMethodType.SelectedItem = SourcesCreator.CandleCreateMethodType;
-
-            CheckBoxSetForeign.IsChecked = SourcesCreator.SetForeign;
-
-            LoadTimeFrameBox();
-
-            TextBoxCountTradesInCandle.Text = SourcesCreator.CountTradeInCandle.ToString();
-            _countTradesInCandle = SourcesCreator.CountTradeInCandle;
-            TextBoxCountTradesInCandle.TextChanged += TextBoxCountTradesInCandle_TextChanged;
-
-            TextBoxVolumeToClose.Text = SourcesCreator.VolumeToCloseCandleInVolumeType.ToString();
-            _volumeToClose = SourcesCreator.VolumeToCloseCandleInVolumeType;
-            TextBoxVolumeToClose.TextChanged += TextBoxVolumeToClose_TextChanged;
-
-            TextBoxRencoPunkts.Text = SourcesCreator.RencoPunktsToCloseCandleInRencoType.ToString();
-            _rencoPuncts = SourcesCreator.RencoPunktsToCloseCandleInRencoType;
-            TextBoxRencoPunkts.TextChanged += TextBoxRencoPunkts_TextChanged;
-
-            if (SourcesCreator.RencoIsBuildShadows)
-            {
-                CheckBoxRencoIsBuildShadows.IsChecked = true;
-            }
-
-            TextBoxDeltaPeriods.Text = SourcesCreator.DeltaPeriods.ToString();
-            TextBoxDeltaPeriods.TextChanged += TextBoxDeltaPeriods_TextChanged;
-            _deltaPeriods = SourcesCreator.DeltaPeriods;
-
-            TextBoxRangeCandlesPunkts.Text = SourcesCreator.RangeCandlesPunkts.ToString();
-            TextBoxRangeCandlesPunkts.TextChanged += TextBoxRangeCandlesPunkts_TextChanged;
-            _rangeCandlesPunkts = SourcesCreator.RangeCandlesPunkts;
-
-            TextBoxReversCandlesPunktsMinMove.Text = SourcesCreator.ReversCandlesPunktsMinMove.ToString();
-            TextBoxReversCandlesPunktsMinMove.TextChanged += TextBoxReversCandlesPunktsMinMove_TextChanged;
-            _reversCandlesPunktsBackMove = SourcesCreator.ReversCandlesPunktsBackMove;
-
-            TextBoxReversCandlesPunktsBackMove.Text = SourcesCreator.ReversCandlesPunktsBackMove.ToString();
-            TextBoxReversCandlesPunktsBackMove.TextChanged += TextBoxReversCandlesPunktsBackMove_TextChanged;
-            _reversCandlesPunktsMinMove = SourcesCreator.ReversCandlesPunktsMinMove;
-
-            ShowDopCandleSettings();
-
-            ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
-
             ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
             ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
             ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
@@ -235,329 +177,202 @@ namespace OsEngine.Market.Connectors
 
         private void MassSourcesCreateUi_Closed(object sender, EventArgs e)
         {
-            List<IServer> serversAll = ServerMaster.GetServers();
-
-            for (int i = 0; serversAll != null && i < serversAll.Count; i++)
+            try
             {
-                if (serversAll[i] == null)
+                List<IServer> serversAll = ServerMaster.GetServers();
+
+                for (int i = 0; serversAll != null && i < serversAll.Count; i++)
+                {
+                    if (serversAll[i] == null)
+                    {
+                        continue;
+                    }
+                    serversAll[i].SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
+                    serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
+                ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
+                ComboBoxCandleCreateMethodType.SelectionChanged -= ComboBoxCandleCreateMethodType_SelectionChanged;
+                CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
+                ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+                _gridSecurities.CellClick -= _gridSecurities_CellClick;
+                Closed -= MassSourcesCreateUi_Closed;
+
+                DeleteCandleRealizationGrid();
+                DeleteGridSecurities();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                _selectedSeries = null;
+                _series.Clear();
+                _series = null;
+                _searchResults.Clear();
+                _searchResults = null;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
+
+        #region Other income events
+
+        private void ButtonAccept_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                MassSourcesCreator curSettings = GetCurSettings();
+
+                SourcesCreator.CandleCreateMethodType = curSettings.CandleCreateMethodType;
+                SourcesCreator.ComissionType = curSettings.ComissionType;
+                SourcesCreator.ComissionValue = curSettings.ComissionValue;
+                SourcesCreator.EmulatorIsOn = curSettings.EmulatorIsOn;
+                SourcesCreator.PortfolioName = curSettings.PortfolioName;
+                SourcesCreator.SaveTradesInCandles = curSettings.SaveTradesInCandles;
+                SourcesCreator.SecuritiesClass = curSettings.SecuritiesClass;
+                SourcesCreator.SecuritiesNames = curSettings.SecuritiesNames;
+                SourcesCreator.ServerType = curSettings.ServerType;
+                SourcesCreator.TimeFrame = curSettings.TimeFrame;
+                SourcesCreator.CandleMarketDataType = curSettings.CandleMarketDataType;
+                SourcesCreator.CandleSeriesRealization.SetSaveString(curSettings.CandleSeriesRealization.GetSaveString());
+                IsAccepted = true;
+                Close();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public bool IsAccepted;
+
+        private MassSourcesCreator GetCurSettings()
+        {
+            MassSourcesCreator curCreator = new MassSourcesCreator(StartProgram.IsTester);
+
+            curCreator.PortfolioName = ComboBoxPortfolio.Text;
+            if (CheckBoxIsEmulator.IsChecked != null)
+            {
+                curCreator.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
+            }
+
+            Enum.TryParse(ComboBoxTypeServer.Text, true, out curCreator.ServerType);
+
+            CandleMarketDataType createType;
+            Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
+            curCreator.CandleMarketDataType = createType;
+
+            ComissionType typeComission;
+            Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
+            curCreator.ComissionType = typeComission;
+
+            if (ComboBoxClass.SelectedItem != null)
+            {
+                curCreator.SecuritiesClass = ComboBoxClass.SelectedItem.ToString();
+            }
+
+            try
+            {
+                curCreator.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            curCreator.CandleCreateMethodType = ComboBoxCandleCreateMethodType.Text;
+            curCreator.SaveTradesInCandles = _saveTradesInCandles;
+
+            ACandlesSeriesRealization candlesCur = curCreator.CandleSeriesRealization;
+
+            for (int i = 0; i < _series.Count; i++)
+            {
+                if (candlesCur.GetType().Name == _series[i].GetType().Name)
+                {
+                    for (int j = 0; j < _series[i].Parameters.Count; j++)
+                    {
+                        candlesCur.Parameters[j].LoadParamFromString(_series[i].Parameters[j].GetStringToSave().Split('#')[1]);
+
+                        if (candlesCur.Parameters[j].SysName == "TimeFrame"
+                            && candlesCur.Parameters[j].Type == CandlesParameterType.StringCollection)
+                        {
+                            string tfStr = ((CandlesParameterString)candlesCur.Parameters[j]).ValueString;
+
+                            TimeFrame tf = TimeFrame.Sec1;
+
+                            if (Enum.TryParse(tfStr, out tf))
+                            {
+                                curCreator.TimeFrame = tf;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+
+            List<ActivatedSecurity> securities = new List<ActivatedSecurity>();
+
+            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            {
+                DataGridViewCheckBoxCell checkBoxCell = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
+
+                if (checkBoxCell.Value == null ||
+                    Convert.ToBoolean(checkBoxCell.Value.ToString()) == false)
                 {
                     continue;
                 }
-                serversAll[i].SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
-                serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+
+                ActivatedSecurity sec = GetSecurity(_gridSecurities.Rows[i]);
+
+                if (sec == null)
+                {
+                    continue;
+                }
+
+                securities.Add(sec);
             }
 
-            TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
-            TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
-            TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
-            TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
-            ComboBoxClass.SelectionChanged -= ComboBoxClass_SelectionChanged;
-            ComboBoxTypeServer.SelectionChanged -= ComboBoxTypeServer_SelectionChanged;
-            TextBoxCountTradesInCandle.TextChanged -= TextBoxCountTradesInCandle_TextChanged;
-            TextBoxVolumeToClose.TextChanged -= TextBoxVolumeToClose_TextChanged;
-            TextBoxRencoPunkts.TextChanged -= TextBoxRencoPunkts_TextChanged;
-            TextBoxDeltaPeriods.TextChanged -= TextBoxDeltaPeriods_TextChanged;
-            TextBoxRangeCandlesPunkts.TextChanged -= TextBoxRangeCandlesPunkts_TextChanged;
-            TextBoxReversCandlesPunktsMinMove.TextChanged -= TextBoxReversCandlesPunktsMinMove_TextChanged;
-            TextBoxReversCandlesPunktsBackMove.TextChanged -= TextBoxReversCandlesPunktsBackMove_TextChanged;
-            ComboBoxCandleCreateMethodType.SelectionChanged -= ComboBoxCandleCreateMethodType_SelectionChanged;
-            CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
-            ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
-            ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+            curCreator.SecuritiesNames = securities;
 
-            _gridSecurities.CellClick -= _gridSecurities_CellClick;
-
-            Closed -= MassSourcesCreateUi_Closed;
-
-            DataGridFactory.ClearLinks(_gridSecurities);
-            _gridSecurities = null;
-            SecuritiesHost.Child = null;
+            return curCreator;
         }
 
-        public MassSourcesCreator SourcesCreator;
-
-        public bool IsAssepted;
-
-        public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
+        private ActivatedSecurity GetSecurity(DataGridViewRow row)
         {
-            if (CheckBoxSaveTradeArrayInCandle.Dispatcher.CheckAccess() == false)
+            ActivatedSecurity sec = new ActivatedSecurity();
+            sec.SecurityClass = row.Cells[1].Value.ToString();
+            sec.SecurityName = row.Cells[3].Value.ToString();
+
+            if (row.Cells[6].Value != null)
             {
-                CheckBoxSaveTradeArrayInCandle.Dispatcher.Invoke(new Action<bool>(IsCanChangeSaveTradesInCandles), canChangeSettingsSaveCandlesIn);
-                return;
+                sec.IsOn = Convert.ToBoolean(row.Cells[6].Value);
             }
 
-            if (canChangeSettingsSaveCandlesIn == false)
-            {
-                CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
-            }
+            return sec;
         }
 
-        private void TextBoxReversCandlesPunktsBackMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            try
-            {
-                if (TextBoxReversCandlesPunktsBackMove.Text == "" ||
-                    TextBoxReversCandlesPunktsBackMove.Text.EndsWith(",") ||
-                    TextBoxReversCandlesPunktsBackMove.Text.EndsWith(".") ||
-                    TextBoxReversCandlesPunktsBackMove.Text == "0")
-                {
-                    return;
-                }
-                if (
-
-                        TextBoxReversCandlesPunktsBackMove.Text.ToDecimal() <= 0)
-                {
-                    throw new Exception();
-                }
-                _reversCandlesPunktsBackMove =
-                        TextBoxReversCandlesPunktsBackMove.Text.ToDecimal();
-            }
-            catch
-            {
-                TextBoxReversCandlesPunktsBackMove.Text = SourcesCreator.ReversCandlesPunktsBackMove.ToString();
-            }
-        }
-
-        private void TextBoxReversCandlesPunktsMinMove_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            try
-            {
-                if (TextBoxReversCandlesPunktsMinMove.Text == "" ||
-                    TextBoxReversCandlesPunktsMinMove.Text.EndsWith(",") ||
-                    TextBoxReversCandlesPunktsMinMove.Text.EndsWith(".") ||
-                    TextBoxReversCandlesPunktsMinMove.Text == "0")
-                {
-                    return;
-                }
-                if (
-                        TextBoxReversCandlesPunktsMinMove.Text.ToDecimal() <= 0)
-                {
-                    throw new Exception();
-                }
-                _reversCandlesPunktsMinMove =
-                        TextBoxReversCandlesPunktsMinMove.Text.ToDecimal();
-            }
-            catch
-            {
-                TextBoxReversCandlesPunktsMinMove.Text = SourcesCreator.ReversCandlesPunktsMinMove.ToString();
-            }
-        }
-
-        private void TextBoxRangeCandlesPunkts_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            try
-            {
-                if (TextBoxRangeCandlesPunkts.Text == "" ||
-                    TextBoxRangeCandlesPunkts.Text.EndsWith(",") ||
-                    TextBoxRangeCandlesPunkts.Text.EndsWith(".") ||
-                    TextBoxRangeCandlesPunkts.Text == "0")
-                {
-                    return;
-                }
-                if (
-                        TextBoxRangeCandlesPunkts.Text.ToDecimal() <= 0)
-                {
-                    throw new Exception();
-                }
-                _rangeCandlesPunkts =
-                        TextBoxRangeCandlesPunkts.Text.ToDecimal();
-            }
-            catch
-            {
-                TextBoxRangeCandlesPunkts.Text = SourcesCreator.RangeCandlesPunkts.ToString();
-            }
-        }
-
-        void ComboBoxCandleCreateMethodType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            ShowDopCandleSettings(); ;
-        }
-
-        private int _countTradesInCandle;
-
-        private decimal _rencoPuncts;
-
-        private decimal _volumeToClose;
-
-        private decimal _deltaPeriods;
-
-        private decimal _rangeCandlesPunkts;
-
-        private decimal _reversCandlesPunktsMinMove;
-
-        private decimal _reversCandlesPunktsBackMove;
-
-        private bool _saveTradesInCandles;
-
-        void TextBoxDeltaPeriods_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            try
-            {
-                if (TextBoxDeltaPeriods.Text == "" ||
-                    TextBoxDeltaPeriods.Text.EndsWith(",") ||
-                    TextBoxDeltaPeriods.Text.EndsWith(".") ||
-                    TextBoxDeltaPeriods.Text == "0")
-                {
-                    return;
-                }
-                if (
-                        TextBoxDeltaPeriods.Text.ToDecimal() <= 0)
-                {
-                    throw new Exception();
-                }
-                _deltaPeriods =
-                        TextBoxDeltaPeriods.Text.ToDecimal();
-            }
-            catch
-            {
-                TextBoxDeltaPeriods.Text = _deltaPeriods.ToString();
-            }
-        }
-
-        /// <summary>
-        /// the number of trades in the candle with timeframe "Trades" has changed
-        /// изменилось кол-во трейдов в свече с ТФ "трейды"
-        /// </summary>
-        void TextBoxCountTradesInCandle_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            try
-            {
-                if (Convert.ToInt32(TextBoxCountTradesInCandle.Text) <= 0)
-                {
-                    throw new Exception();
-                }
-                _countTradesInCandle = Convert.ToInt32(TextBoxCountTradesInCandle.Text);
-            }
-            catch
-            {
-                TextBoxCountTradesInCandle.Text = _countTradesInCandle.ToString();
-            }
-        }
-
-        private void TextBoxRencoPunkts_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            try
-            {
-                if (TextBoxRencoPunkts.Text == "" ||
-                    TextBoxRencoPunkts.Text.EndsWith(",") ||
-                    TextBoxRencoPunkts.Text.EndsWith(".") ||
-                    TextBoxRencoPunkts.Text == "0")
-                {
-                    return;
-                }
-                if (
-                        TextBoxRencoPunkts.Text.ToDecimal() <= 0)
-                {
-                    throw new Exception();
-                }
-                _rencoPuncts =
-                        TextBoxRencoPunkts.Text.ToDecimal();
-            }
-            catch
-            {
-                TextBoxRencoPunkts.Text = _rencoPuncts.ToString();
-            }
-        }
-
-        private void TextBoxVolumeToClose_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            try
-            {
-                if (TextBoxVolumeToClose.Text == "" ||
-                    TextBoxVolumeToClose.Text.EndsWith(",") ||
-                    TextBoxVolumeToClose.Text.EndsWith(".") ||
-                    TextBoxVolumeToClose.Text == "0")
-                {
-                    return;
-                }
-
-                if (
-                        TextBoxVolumeToClose.Text.ToDecimal() <= 0)
-                {
-                    throw new Exception();
-                }
-                _volumeToClose =
-                        TextBoxVolumeToClose.Text.ToDecimal();
-            }
-            catch
-            {
-                TextBoxVolumeToClose.Text = _volumeToClose.ToString();
-            }
-        }
-
-        /// <summary>
-        /// it's need when security changes. For test connection we look at Timeframe for this security
-        /// нужно когда изменяется бумага. При тестовом подключении смотрим здесь ТайФреймы для этой бумаги
-        /// </summary>
-        void ComboBoxSecurities_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            GetTimeFramesInTester();
-        }
-
-        private void GetTimeFramesInTester()
-        {
-            TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
-
-            if (server.TypeTesterData != TesterDataType.Candle)
-            {
-                return;
-            }
-
-            string lastTf = null;
-
-            if (ComboBoxTimeFrame.SelectedItem != null)
-            {
-                lastTf = ComboBoxTimeFrame.SelectedItem.ToString();
-            }
-
-            ComboBoxTimeFrame.Items.Clear();
-
-            List<SecurityTester> securities = server.SecuritiesTester;
-
-            if (securities == null)
-            {
-                return;
-            }
-
-            List<string> frames = new List<string>();
-
-            for (int i = 0; i < securities.Count; i++)
-            {
-                if (frames.Find(f => f == securities[i].TimeFrame.ToString()) == null)
-                {
-                    frames.Add(securities[i].TimeFrame.ToString());
-                }
-            }
-
-            for (int i = 0; i < frames.Count; i++)
-            {
-                ComboBoxTimeFrame.Items.Add(frames[i]);
-            }
-
-            if (lastTf == null)
-            {
-                ComboBoxTimeFrame.SelectedItem = securities[0].TimeFrame.ToString();
-            }
-            else
-            {
-                TimeFrame oldFrame;
-                Enum.TryParse(lastTf, out oldFrame);
-
-                ComboBoxTimeFrame.SelectedItem = oldFrame;
-            }
-        }
-
-        /// <summary>
-        /// selected server for now
-        /// выбранный в данным момент сервер
-        /// </summary>
-        private ServerType _selectedType;
-
-        /// <summary>
-        /// user changed server type to connect
-        /// пользователь изменил тип сервера для подключения
-        /// </summary>
-        void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             try
             {
@@ -583,7 +398,7 @@ namespace OsEngine.Market.Connectors
 
                 if (server != null)
                 {
-                    server.SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
+                    server.SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                     server.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
                 }
 
@@ -593,9 +408,9 @@ namespace OsEngine.Market.Connectors
 
                 if (server2 != null)
                 {
-                    server2.SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
+                    server2.SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                     server2.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
-                    server2.SecuritiesChangeEvent += server_SecuritiesCharngeEvent;
+                    server2.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
                     server2.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
                 }
 
@@ -613,38 +428,50 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// happens after switching the class of displayed instruments
-        /// происходит после переключения класса отображаемых инструментов
-        /// </summary>
-        void ComboBoxClass_SelectionChanged(object sender,
-            System.Windows.Controls.SelectionChangedEventArgs e)
+        private ServerType _selectedType;
+
+        public void IsCanChangeSaveTradesInCandles(bool canChangeSettingsSaveCandlesIn)
         {
-            LoadSecurityOnBox();
+            try
+            {
+                if (CheckBoxSaveTradeArrayInCandle.Dispatcher.CheckAccess() == false)
+                {
+                    CheckBoxSaveTradeArrayInCandle.Dispatcher.Invoke(new Action<bool>(IsCanChangeSaveTradesInCandles), canChangeSettingsSaveCandlesIn);
+                    return;
+                }
+
+                if (canChangeSettingsSaveCandlesIn == false)
+                {
+                    CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
-        /// <summary>
-        /// new securities arrived at the server
-        /// на сервер пришли новые бумаги
-        /// </summary>
-        void server_SecuritiesCharngeEvent(List<Security> securities)
+        private bool _saveTradesInCandles;
+
+        #endregion
+
+        #region Portfolio and class controls
+
+        private void server_SecuritiesChangeEvent(List<Security> securities)
         {
             LoadClassOnBox();
         }
 
-        /// <summary>
-        /// new accounts arrived at the server
-        /// на сервер пришли новые счета
-        /// </summary>
-        void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
+        private void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
         {
             LoadPortfolioOnBox();
         }
 
-        /// <summary>
-        /// unload accounts to the form
-        /// выгружает счета на форму
-        /// </summary>
+        private void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            LoadSecurityOnBox();
+        }
+
         private void LoadPortfolioOnBox()
         {
             try
@@ -733,10 +560,6 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// place classes in the window
-        /// поместить классы в окно
-        /// </summary>
         private void LoadClassOnBox()
         {
             try
@@ -792,65 +615,11 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        #region работа с бумагами на гриде
+        #endregion
 
-        /// <summary>
-        /// upload data from storage to form
-        /// выгрузить данные из хранилища на форму
-        /// </summary>
-        private void LoadSecurityOnBox()
-        {
-            try
-            {
-                List<IServer> serversAll = ServerMaster.GetServers();
+        #region Securities grid
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
-
-                if (server == null)
-                {
-                    return;
-                }
-                // clear all
-                // стираем всё
-
-                // download available instruments
-                // грузим инструменты доступные для скачивания
-
-                var securities = server.Securities;
-
-                List<Security> securitiesToLoad = new List<Security>();
-
-                if (securities != null)
-                {
-                    for (int i = 0; i < securities.Count; i++)
-                    {
-                        if (securities[i] == null)
-                        {
-                            continue;
-                        }
-                        string classSec = securities[i].NameClass;
-                        if (ComboBoxClass.SelectedItem != null && ComboBoxClass.SelectedItem.Equals(classSec))
-                        {
-                            securitiesToLoad.Add(securities[i]);
-                        }
-                    }
-                }
-
-                // download already running instruments
-                // грузим уже запущенные инструменты
-
-                UpdateGrid(securitiesToLoad);
-                UpdateSearchResults();
-                UpdateSearchPanel();
-                CheckBoxSelectAllCheckBox.IsChecked = false;
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        DataGridView _gridSecurities;
+        private DataGridView _gridSecurities;
 
         private void CreateGrid()
         {
@@ -922,26 +691,62 @@ namespace OsEngine.Market.Connectors
             _gridSecurities.CellClick += _gridSecurities_CellClick;
         }
 
-        private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void DeleteGridSecurities()
         {
-            _gridSecurities.ClearSelection();
+            DataGridFactory.ClearLinks(_gridSecurities);
+            _gridSecurities.CellClick -= _gridSecurities_CellClick;
+            SecuritiesHost.Child = null;
+        }
 
-            for (int i = 0; i < _gridSecurities.RowCount; i++)
+        private void LoadSecurityOnBox()
+        {
+            try
             {
-                if (i == e.RowIndex)
+                List<IServer> serversAll = ServerMaster.GetServers();
+
+                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+
+                if (server == null)
                 {
-                    for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                    return;
+                }
+                // clear all
+                // стираем всё
+
+                // download available instruments
+                // грузим инструменты доступные для скачивания
+
+                var securities = server.Securities;
+
+                List<Security> securitiesToLoad = new List<Security>();
+
+                if (securities != null)
+                {
+                    for (int i = 0; i < securities.Count; i++)
                     {
-                        _gridSecurities.Rows[e.RowIndex].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#ffffff");
+                        if (securities[i] == null)
+                        {
+                            continue;
+                        }
+                        string classSec = securities[i].NameClass;
+                        if (ComboBoxClass.SelectedItem != null && ComboBoxClass.SelectedItem.Equals(classSec))
+                        {
+                            securitiesToLoad.Add(securities[i]);
+                        }
                     }
                 }
-                else
-                {
-                    for (int y = 0; y < _gridSecurities.ColumnCount; y++)
-                    {
-                        _gridSecurities.Rows[i].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#FFA1A1A1");
-                    }
-                }
+
+                // download already running instruments
+                // грузим уже запущенные инструменты
+
+                UpdateGrid(securitiesToLoad);
+                UpdateSearchResults();
+                UpdateSearchPanel();
+                CheckBoxSelectAllCheckBox.IsChecked = false;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -991,182 +796,504 @@ namespace OsEngine.Market.Connectors
 
                 _gridSecurities.Rows.Add(nRow);
             }
+        }
 
+        private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                _gridSecurities.ClearSelection();
+
+                for (int i = 0; i < _gridSecurities.RowCount; i++)
+                {
+                    if (i == e.RowIndex)
+                    {
+                        for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                        {
+                            _gridSecurities.Rows[e.RowIndex].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#ffffff");
+                        }
+                    }
+                    else
+                    {
+                        for (int y = 0; y < _gridSecurities.ColumnCount; y++)
+                        {
+                            _gridSecurities.Rows[i].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#FFA1A1A1");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void CheckBoxSelectAllCheckBox_Click(object sender, RoutedEventArgs e)
         {
-            bool isCheck = CheckBoxSelectAllCheckBox.IsChecked.Value;
-
-            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            try
             {
-                _gridSecurities.Rows[i].Cells[6].Value = isCheck;
+                bool isCheck = CheckBoxSelectAllCheckBox.IsChecked.Value;
+
+                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                {
+                    _gridSecurities.Rows[i].Cells[6].Value = isCheck;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         #endregion
 
-        #region поиск по таблице бумаг
+        #region Search in securities grid
+
+        private List<int> _searchResults = new List<int>();
 
         private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (TextBoxSearchSecurity.Text == ""
-                && TextBoxSearchSecurity.IsKeyboardFocused == false)
+            try
             {
-                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                if (TextBoxSearchSecurity.Text == ""
+                    && TextBoxSearchSecurity.IsKeyboardFocused == false)
+                {
+                    TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void TextBoxSearchSecurity_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (TextBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+            try
             {
-                TextBoxSearchSecurity.Text = "";
+                if (TextBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+                {
+                    TextBoxSearchSecurity.Text = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void TextBoxSearchSecurity_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            if (TextBoxSearchSecurity.Text == "")
+            try
             {
-                TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                if (TextBoxSearchSecurity.Text == "")
+                {
+                    TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
-        List<int> _searchResults = new List<int>();
-
         private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            UpdateSearchResults();
-            UpdateSearchPanel();
+            try
+            {
+                UpdateSearchResults();
+                UpdateSearchPanel();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void UpdateSearchResults()
         {
-            _searchResults.Clear();
-
-            string key = TextBoxSearchSecurity.Text;
-
-            if (key == "")
+            try
             {
-                UpdateSearchPanel();
-                return;
+                _searchResults.Clear();
+
+                string key = TextBoxSearchSecurity.Text;
+
+                if (key == "")
+                {
+                    UpdateSearchPanel();
+                    return;
+                }
+
+                key = key.ToLower();
+
+                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                {
+                    string security = "";
+                    string secSecond = "";
+
+                    if (_gridSecurities.Rows[i].Cells[4].Value != null)
+                    {
+                        security = _gridSecurities.Rows[i].Cells[4].Value.ToString();
+                    }
+
+                    if (_gridSecurities.Rows[i].Cells[3].Value != null)
+                    {
+                        secSecond = _gridSecurities.Rows[i].Cells[3].Value.ToString();
+                    }
+
+                    security = security.ToLower();
+                    secSecond = secSecond.ToLower();
+
+                    if (security.Contains(key) ||
+                        secSecond.Contains(key))
+                    {
+                        _searchResults.Add(i);
+                    }
+                }
             }
-
-            key = key.ToLower();
-
-            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+            catch (Exception ex)
             {
-                string security = "";
-                string secSecond = "";
-
-                if (_gridSecurities.Rows[i].Cells[4].Value != null)
-                {
-                    security = _gridSecurities.Rows[i].Cells[4].Value.ToString();
-                }
-
-                if (_gridSecurities.Rows[i].Cells[3].Value != null)
-                {
-                    secSecond = _gridSecurities.Rows[i].Cells[3].Value.ToString();
-                }
-
-                security = security.ToLower();
-                secSecond = secSecond.ToLower();
-
-                if (security.Contains(key) ||
-                    secSecond.Contains(key))
-                {
-                    _searchResults.Add(i);
-                }
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void UpdateSearchPanel()
         {
-            if (_searchResults.Count == 0)
+            try
             {
-                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
-                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
-                LabelCurrentResultShow.Visibility = Visibility.Hidden;
-                LabelCommasResultShow.Visibility = Visibility.Hidden;
-                LabelCountResultsShow.Visibility = Visibility.Hidden;
-                return;
+                if (_searchResults.Count == 0)
+                {
+                    ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                    ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                    LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                    LabelCommasResultShow.Visibility = Visibility.Hidden;
+                    LabelCountResultsShow.Visibility = Visibility.Hidden;
+                    return;
+                }
+
+                int firstRow = _searchResults[0];
+
+                _gridSecurities.Rows[firstRow].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = firstRow;
+
+                if (_searchResults.Count < 2)
+                {
+                    ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                    ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                    LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                    LabelCommasResultShow.Visibility = Visibility.Hidden;
+                    LabelCountResultsShow.Visibility = Visibility.Hidden;
+                    return;
+                }
+
+                LabelCurrentResultShow.Content = 1.ToString();
+                LabelCountResultsShow.Content = (_searchResults.Count).ToString();
+
+                ButtonRightInSearchResults.Visibility = Visibility.Visible;
+                ButtonLeftInSearchResults.Visibility = Visibility.Visible;
+                LabelCurrentResultShow.Visibility = Visibility.Visible;
+                LabelCommasResultShow.Visibility = Visibility.Visible;
+                LabelCountResultsShow.Visibility = Visibility.Visible;
             }
-
-            int firstRow = _searchResults[0];
-
-            _gridSecurities.Rows[firstRow].Selected = true;
-            _gridSecurities.FirstDisplayedScrollingRowIndex = firstRow;
-
-            if (_searchResults.Count < 2)
+            catch (Exception ex)
             {
-                ButtonRightInSearchResults.Visibility = Visibility.Hidden;
-                ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
-                LabelCurrentResultShow.Visibility = Visibility.Hidden;
-                LabelCommasResultShow.Visibility = Visibility.Hidden;
-                LabelCountResultsShow.Visibility = Visibility.Hidden;
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            LabelCurrentResultShow.Content = 1.ToString();
-            LabelCountResultsShow.Content = (_searchResults.Count).ToString();
-
-            ButtonRightInSearchResults.Visibility = Visibility.Visible;
-            ButtonLeftInSearchResults.Visibility = Visibility.Visible;
-            LabelCurrentResultShow.Visibility = Visibility.Visible;
-            LabelCommasResultShow.Visibility = Visibility.Visible;
-            LabelCountResultsShow.Visibility = Visibility.Visible;
         }
 
         private void ButtonLeftInSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
-
-            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
-
-            if (indexRow <= 0)
+            try
             {
-                indexRow = maxRowIndex;
-                LabelCurrentResultShow.Content = maxRowIndex.ToString();
+                int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
+
+                int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+                if (indexRow <= 0)
+                {
+                    indexRow = maxRowIndex;
+                    LabelCurrentResultShow.Content = maxRowIndex.ToString();
+                }
+                else
+                {
+                    LabelCurrentResultShow.Content = (indexRow).ToString();
+                }
+
+                int realInd = _searchResults[indexRow - 1];
+
+                _gridSecurities.Rows[realInd].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
             }
-            else
+            catch (Exception ex)
             {
-                LabelCurrentResultShow.Content = (indexRow).ToString();
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            int realInd = _searchResults[indexRow - 1];
-
-            _gridSecurities.Rows[realInd].Selected = true;
-            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
         }
 
         private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
-
-            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
-
-            if (indexRow >= maxRowIndex)
+            try
             {
-                indexRow = 0;
-                LabelCurrentResultShow.Content = 1.ToString();
+                int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
+
+                int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+                if (indexRow >= maxRowIndex)
+                {
+                    indexRow = 0;
+                    LabelCurrentResultShow.Content = 1.ToString();
+                }
+                else
+                {
+                    LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+                }
+
+                int realInd = _searchResults[indexRow];
+
+                _gridSecurities.Rows[realInd].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
             }
-            else
+            catch (Exception ex)
             {
-                LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
 
-            int realInd = _searchResults[indexRow];
+        private void TextBoxSearchSecurity_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            try
+            {
+                if (e.Key == Key.Enter)
+                {
+                    int rowIndex = 0;
+                    for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                    {
+                        if (_gridSecurities.Rows[i].Selected == true)
+                        {
+                            rowIndex = i;
+                            break;
+                        }
+                        if (i == _gridSecurities.Rows.Count - 1)
+                        {
+                            return;
+                        }
+                    }
 
-            _gridSecurities.Rows[realInd].Selected = true;
-            _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+                    DataGridViewCheckBoxCell checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowIndex].Cells[6];
+                    if (Convert.ToBoolean(checkBox.Value) == false)
+                    {
+                        checkBox.Value = true;
+                        TextBoxSearchSecurity.Text = "";
+                    }
+                    else
+                    {
+                        checkBox.Value = false;
+                        TextBoxSearchSecurity.Text = "";
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
 
-        private void LoadTimeFrameBox()
+        #region TimeFrame selection. Candles type selection
+
+        private List<ACandlesSeriesRealization> _series = new List<ACandlesSeriesRealization>();
+
+        private ACandlesSeriesRealization _selectedSeries;
+
+        private void ActivateCandlesTypesControls()
         {
-            ComboBoxTimeFrame.Items.Clear();
+            try
+            {
+                List<string> types = CandleFactory.GetCandlesNames();
+
+                for (int i = 0; i < types.Count; i++)
+                {
+                    ComboBoxCandleCreateMethodType.Items.Add(types[i]);
+                }
+
+                ComboBoxCandleCreateMethodType.SelectedItem = SourcesCreator.CandleCreateMethodType;
+                ComboBoxCandleCreateMethodType.SelectionChanged += ComboBoxCandleCreateMethodType_SelectionChanged;
+
+                for (int i = 0; i < types.Count; i++)
+                {
+                    _series.Add(CandleFactory.CreateCandleSeriesRealization(types[i]));
+                    _series[_series.Count - 1].Init(SourcesCreator.StartProgram);
+                }
+
+                ACandlesSeriesRealization candlesCur = SourcesCreator.CandleSeriesRealization;
+
+                for (int i = 0; i < _series.Count; i++)
+                {
+                    if (candlesCur.GetType().Name == _series[i].GetType().Name)
+                    {
+                        for (int j = 0; j < _series[i].Parameters.Count; j++)
+                        {
+                            _series[i].Parameters[j].LoadParamFromString(candlesCur.Parameters[j].GetStringToSave().Split('#')[1]);
+
+                        }
+                        _selectedSeries = _series[i];
+                        break;
+                    }
+                }
+
+                CreateCandleRealizationGrid();
+                RepaintCandleRealizationGrid(_selectedSeries);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DataGridView _candlesRealizationGrid;
+
+        private void CreateCandleRealizationGrid()
+        {
+            try
+            {
+                DataGridView newGrid =
+                DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.DisplayedCells);
+
+                newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+                newGrid.ScrollBars = ScrollBars.Vertical;
+                DataGridViewCellStyle style = newGrid.DefaultCellStyle;
+
+                DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+                cell0.Style = style;
+
+                DataGridViewColumn colum0 = new DataGridViewColumn();
+                colum0.CellTemplate = cell0;
+                colum0.HeaderText = "Parameter name";
+                colum0.ReadOnly = true;
+                colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                newGrid.Columns.Add(colum0);
+
+                DataGridViewColumn colum2 = new DataGridViewColumn();
+                colum2.CellTemplate = cell0;
+                colum2.HeaderText = "Value";
+                colum2.ReadOnly = false;
+                colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                newGrid.Columns.Add(colum2);
+
+                _candlesRealizationGrid = newGrid;
+                HostCandleSeriesParameters.Child = _candlesRealizationGrid;
+
+                _candlesRealizationGrid.CellEndEdit += _candlesRealizationGrid_CellEndEdit;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void DeleteCandleRealizationGrid()
+        {
+            DataGridFactory.ClearLinks(_candlesRealizationGrid);
+            _candlesRealizationGrid.CellEndEdit -= _candlesRealizationGrid_CellEndEdit;
+            _candlesRealizationGrid = null;
+            HostCandleSeriesParameters.Child = null;
+        }
+
+        private void RepaintCandleRealizationGrid(ACandlesSeriesRealization candlesRealization)
+        {
+            try
+            {
+                if (_candlesRealizationGrid == null)
+                {
+                    return;
+                }
+                _candlesRealizationGrid.Rows.Clear();
+
+                List<ICandleSeriesParameter> parameters = candlesRealization.Parameters;
+
+                for (int i = 0; i < parameters.Count; i++)
+                {
+                    _candlesRealizationGrid.Rows.Add(GetRowCandlesParameters(parameters[i]));
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DataGridViewRow GetRowCandlesParameters(ICandleSeriesParameter param)
+        {
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[0].Value = param.Label;
+
+            if (param.Type == CandlesParameterType.Int)
+            {
+                row.Cells.Add(new DataGridViewTextBoxCell());
+                row.Cells[1].Value = ((CandlesParameterInt)param).ValueInt.ToString();
+            }
+            else if (param.Type == CandlesParameterType.Decimal)
+            {
+                row.Cells.Add(new DataGridViewTextBoxCell());
+                row.Cells[1].Value = ((CandlesParameterDecimal)param).ValueDecimal.ToString();
+            }
+            else if (param.Type == CandlesParameterType.Bool)
+            {
+                DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
+                cell.Value = ((CandlesParameterBool)param).ValueBool;
+                row.Cells.Add(cell);
+            }
+            else if (param.Type == CandlesParameterType.StringCollection)
+            {
+                DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+
+                CandlesParameterString paramStr = (CandlesParameterString)param;
+
+                if (paramStr.SysName == "TimeFrame")
+                {
+                    LoadTimeFrameBox(cell);
+                }
+                else
+                {
+                    for (int i = 0; i < paramStr.ValuesString.Count; i++)
+                    {
+                        cell.Items.Add(paramStr.ValuesString[i]);
+                    }
+                }
+
+                for (int i = 0; i < cell.Items.Count; i++)
+                {
+                    if (cell.Items[i].ToString() == paramStr.ValueString)
+                    {
+                        cell.Value = paramStr.ValueString;
+                        break;
+                    }
+                }
+
+                if (cell.Value == null &&
+                    cell.Items.Count > 0)
+                {
+                    cell.Value = cell.Items[0].ToString();
+                    paramStr.ValueString = cell.Items[0].ToString();
+                }
+
+                row.Cells.Add(cell);
+            }
+
+            return row;
+        }
+
+        private void LoadTimeFrameBox(DataGridViewComboBoxCell box)
+        {
+            if (ComboBoxCandleCreateMethodType.SelectedItem == null)
+            {
+                return;
+            }
 
             if (SourcesCreator.StartProgram == StartProgram.IsTester)
             {
@@ -1179,29 +1306,29 @@ namespace OsEngine.Market.Connectors
                     // candle manager builds any Timeframe
                     // если строим данные на тиках или стаканах, то можно использовать любой ТФ
                     // менеджер свечей построит любой
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min30);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min20);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min15);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min10);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min5);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min3);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min2);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min1);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec10);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec5);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec2);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
+                    box.Items.Add(TimeFrame.Day.ToString());
+                    box.Items.Add(TimeFrame.Hour4.ToString());
+                    box.Items.Add(TimeFrame.Hour2.ToString());
+                    box.Items.Add(TimeFrame.Hour1.ToString());
+                    box.Items.Add(TimeFrame.Min45.ToString());
+                    box.Items.Add(TimeFrame.Min30.ToString());
+                    box.Items.Add(TimeFrame.Min20.ToString());
+                    box.Items.Add(TimeFrame.Min15.ToString());
+                    box.Items.Add(TimeFrame.Min10.ToString());
+                    box.Items.Add(TimeFrame.Min5.ToString());
+                    box.Items.Add(TimeFrame.Min3.ToString());
+                    box.Items.Add(TimeFrame.Min2.ToString());
+                    box.Items.Add(TimeFrame.Min1.ToString());
+                    box.Items.Add(TimeFrame.Sec30.ToString());
+                    box.Items.Add(TimeFrame.Sec20.ToString());
+                    box.Items.Add(TimeFrame.Sec15.ToString());
+                    box.Items.Add(TimeFrame.Sec10.ToString());
+                    box.Items.Add(TimeFrame.Sec5.ToString());
+                    box.Items.Add(TimeFrame.Sec2.ToString());
+                    box.Items.Add(TimeFrame.Sec1.ToString());
 
                     ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick;
-                    ComboBoxCandleMarketDataType.IsEnabled = false;
+                    ComboBoxCandleMarketDataType.IsEnabled = true;
                 }
                 else
                 {
@@ -1210,7 +1337,32 @@ namespace OsEngine.Market.Connectors
                     // далее, если используем готовые свечки, то нужно ставить только те ТФ, которые есть
                     // и вставляются они только когда мы выбираем бумагу в методе 
 
-                    GetTimeFramesInTester();
+
+                    TesterServer serverr = (TesterServer)ServerMaster.GetServers()[0];
+
+                    if (serverr.TypeTesterData != TesterDataType.Candle)
+                    {
+                        return;
+                    }
+
+                    List<SecurityTester> securities = serverr.SecuritiesTester;
+
+                    if (securities == null ||
+                        securities.Count == 0)
+                    {
+                        return;
+                    }
+
+                    string name = securities[0].Security.Name;
+
+                    for (int i = 0; i < securities.Count; i++)
+                    {
+                        if (name == securities[i].Security.Name)
+                        {
+                            box.Items.Add(securities[i].TimeFrame.ToString());
+                        }
+                    }
+
                     ComboBoxCandleCreateMethodType.SelectedItem = CandleCreateMethodType.Simple;
                     ComboBoxCandleCreateMethodType.IsEnabled = false;
 
@@ -1222,119 +1374,328 @@ namespace OsEngine.Market.Connectors
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer serverr = serversAll.Find(server1 => server1.ServerType == _selectedType);
 
                 IServerPermission permission = ServerMaster.GetServerPermission(_selectedType);
 
-                if (server == null
+                if (serverr == null
                     || permission == null)
                 {
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min30);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min20);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min15);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min10);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min5);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min3);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min2);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Min1);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec10);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec5);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec2);
-                    ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
+                    box.Items.Add(TimeFrame.Day.ToString());
+                    box.Items.Add(TimeFrame.Hour4.ToString());
+                    box.Items.Add(TimeFrame.Hour2.ToString());
+                    box.Items.Add(TimeFrame.Hour1.ToString());
+                    box.Items.Add(TimeFrame.Min45.ToString());
+                    box.Items.Add(TimeFrame.Min30.ToString());
+                    box.Items.Add(TimeFrame.Min20.ToString());
+                    box.Items.Add(TimeFrame.Min15.ToString());
+                    box.Items.Add(TimeFrame.Min10.ToString());
+                    box.Items.Add(TimeFrame.Min5.ToString());
+                    box.Items.Add(TimeFrame.Min3.ToString());
+                    box.Items.Add(TimeFrame.Min2.ToString());
+                    box.Items.Add(TimeFrame.Min1.ToString());
+                    box.Items.Add(TimeFrame.Sec30.ToString());
+                    box.Items.Add(TimeFrame.Sec20.ToString());
+                    box.Items.Add(TimeFrame.Sec15.ToString());
+                    box.Items.Add(TimeFrame.Sec10.ToString());
+                    box.Items.Add(TimeFrame.Sec5.ToString());
+                    box.Items.Add(TimeFrame.Sec2.ToString());
+                    box.Items.Add(TimeFrame.Sec1.ToString());
                 }
                 else
                 {
                     if (permission.TradeTimeFramePermission.TimeFrameDayIsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Day);
+                        box.Items.Add(TimeFrame.Day.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameHour4IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Hour4);
+                        box.Items.Add(TimeFrame.Hour4.ToString());
+
                     if (permission.TradeTimeFramePermission.TimeFrameHour2IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Hour2);
+                        box.Items.Add(TimeFrame.Hour2.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameHour1IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Hour1);
+                        box.Items.Add(TimeFrame.Hour1.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin45IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min45);
+                        box.Items.Add(TimeFrame.Min45.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin30IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min30);
+                        box.Items.Add(TimeFrame.Min30.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin20IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min20);
+                        box.Items.Add(TimeFrame.Min20.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin15IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min15);
+                        box.Items.Add(TimeFrame.Min15.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin10IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min10);
+                        box.Items.Add(TimeFrame.Min10.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin5IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min5);
+                        box.Items.Add(TimeFrame.Min5.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin3IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min3);
+                        box.Items.Add(TimeFrame.Min3.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin2IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min2);
+                        box.Items.Add(TimeFrame.Min2.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameMin1IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Min1);
+                        box.Items.Add(TimeFrame.Min1.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameSec30IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec30);
+                        box.Items.Add(TimeFrame.Sec30.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameSec20IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec20);
+                        box.Items.Add(TimeFrame.Sec20.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameSec15IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec15);
+                        box.Items.Add(TimeFrame.Sec15.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameSec10IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec10);
+                        box.Items.Add(TimeFrame.Sec10.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameSec5IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec5);
+                        box.Items.Add(TimeFrame.Sec5.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameSec2IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec2);
+                        box.Items.Add(TimeFrame.Sec2.ToString());
 
                     if (permission.TradeTimeFramePermission.TimeFrameSec1IsOn)
-                        ComboBoxTimeFrame.Items.Add(TimeFrame.Sec1);
+                        box.Items.Add(TimeFrame.Sec1.ToString());
                 }
 
-                CandleMarketDataType createType = CandleMarketDataType.Tick;
-                if (ComboBoxCandleMarketDataType.SelectedItem != null)
-                {
-                    Enum.TryParse(ComboBoxCandleMarketDataType.SelectedItem.ToString(), true, out createType);
-                }
-
-            }
-
-            ComboBoxTimeFrame.SelectedItem = SourcesCreator.TimeFrame;
-
-            if (ComboBoxTimeFrame.SelectedItem == null)
-            {
-                ComboBoxTimeFrame.SelectedItem = TimeFrame.Min1;
             }
         }
 
-        // log messages
-        // сообщения в лог 
+        private void ComboBoxCandleCreateMethodType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                string seriesType = ComboBoxCandleCreateMethodType.SelectedValue.ToString();
 
-        /// <summary>
-        /// send new message to up
-        /// выслать новое сообщение на верх
-        /// </summary>
+                for (int i = 0; i < _series.Count; i++)
+                {
+                    if (_series[i].GetType().Name == seriesType)
+                    {
+                        _selectedSeries = _series[i];
+                        break;
+                    }
+                }
+
+                RepaintCandleRealizationGrid(_selectedSeries);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _candlesRealizationGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+
+                if (_candlesRealizationGrid.Rows[row].Cells[1].Value == null)
+                {
+                    return;
+                }
+
+                string value = _candlesRealizationGrid.Rows[row].Cells[1].Value.ToString();
+
+                ICandleSeriesParameter param = _selectedSeries.Parameters[row];
+
+                if (param.Type == CandlesParameterType.Int)
+                {
+                    try
+                    {
+                        ((CandlesParameterInt)param).ValueInt = Convert.ToInt32(value);
+                    }
+                    catch
+                    {
+                        _candlesRealizationGrid.Rows[row].Cells[1].Value = ((CandlesParameterInt)param).ValueInt.ToString();
+                    }
+                }
+                else if (param.Type == CandlesParameterType.Decimal)
+                {
+                    try
+                    {
+                        ((CandlesParameterDecimal)param).ValueDecimal = value.ToDecimal();
+                    }
+                    catch
+                    {
+                        _candlesRealizationGrid.Rows[row].Cells[1].Value = ((CandlesParameterDecimal)param).ValueDecimal.ToString();
+                    }
+                }
+                else if (param.Type == CandlesParameterType.Bool)
+                {
+                    try
+                    {
+                        ((CandlesParameterBool)param).ValueBool = Convert.ToBoolean(value);
+                    }
+                    catch
+                    {
+                        _candlesRealizationGrid.Rows[row].Cells[1].Value = ((CandlesParameterBool)param).ValueBool;
+                    }
+                }
+                else if (param.Type == CandlesParameterType.StringCollection)
+                {
+                    ((CandlesParameterString)param).ValueString = value;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Load or save settings
+
+        private void ButtonSaveSet_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+
+                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(saveFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = saveFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    using (FileStream stream = File.Create(filePath))
+                    {
+                        // do nothin
+                    }
+                }
+
+                MassSourcesCreator curSettings = GetCurSettings();
+
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(filePath))
+                    {
+                        writer.WriteLine(curSettings.GetSaveString());
+                    }
+                }
+                catch (Exception error)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                    ui.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonLoadSet_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+                openFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                openFileDialog.RestoreDirectory = true;
+                openFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(openFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = openFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    return;
+                }
+
+                try
+                {
+                    using (StreamReader reader = new StreamReader(filePath))
+                    {
+                        string fileStr = reader.ReadToEnd();
+
+                        SourcesCreator.LoadFromString(fileStr);
+                        LoadSettingsOnGui(SourcesCreator);
+                        ActivateGui();
+                    }
+                }
+                catch (Exception error)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                    ui.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void LoadSettingsOnGui(MassSourcesCreator curCreator)
+        {
+            try
+            {
+                ComboBoxPortfolio.Text = curCreator.PortfolioName;
+                CheckBoxIsEmulator.IsChecked = curCreator.EmulatorIsOn;
+                ComboBoxTypeServer.Text = curCreator.ServerType.ToString();
+                ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
+                ComboBoxCandleCreateMethodType.Text = curCreator.CandleCreateMethodType.ToString();
+                ComboBoxComissionType.Text = curCreator.ComissionType.ToString();
+                ComboBoxClass.SelectedItem = curCreator.SecuritiesClass.ToString();
+                TextBoxComissionValue.Text = curCreator.ComissionValue.ToString();
+
+                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                {
+                    DataGridViewCheckBoxCell checkBoxCell = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
+
+                    string securityName = _gridSecurities.Rows[i].Cells[3].Value.ToString();
+
+                    bool isInArray = false;
+
+                    for (int j = 0; j < curCreator.SecuritiesNames.Count; j++)
+                    {
+                        if (curCreator.SecuritiesNames[j].SecurityName == securityName)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray)
+                    {
+                        checkBoxCell.Value = true;
+                    }
+                    else
+                    {
+                        checkBoxCell.Value = false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Logging
+
         private void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -1343,380 +1704,8 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// outgoing log message
-        /// исходящее сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        // additional settings for different types of candles
-        // дополнительные настройки разных типов свечей
-
-        private void ShowDopCandleSettings()
-        {
-            ClearDopCandleSettings();
-
-            CandleCreateMethodType type;
-
-            Enum.TryParse(ComboBoxCandleCreateMethodType.SelectedItem.ToString(), out type);
-
-            if (type == CandleCreateMethodType.Simple)
-            {
-                CreateSimpleCandleSettings();
-            }
-
-            if (type == CandleCreateMethodType.Delta)
-            {
-                CreateDeltaCandleSettings();
-            }
-
-            if (type == CandleCreateMethodType.Ticks)
-            {
-                CreateTicksCandleSettings();
-            }
-
-            if (type == CandleCreateMethodType.Renko)
-            {
-                CreateRencoCandleSettings();
-            }
-
-            if (type == CandleCreateMethodType.Volume)
-            {
-                CreateVolumeCandleSettings();
-            }
-
-            if (type == CandleCreateMethodType.HeikenAshi)
-            {
-                CreateHaikenAshiCandleSettings();
-            }
-
-            if (type == CandleCreateMethodType.Range)
-            {
-                CreateRangeCandleSettings();
-            }
-
-            if (type == CandleCreateMethodType.Rеvers)
-            {
-                CreateReversCandleSettings();
-            }
-        }
-
-        private void ClearDopCandleSettings()
-        {
-            CheckBoxRencoIsBuildShadows.Visibility = Visibility.Hidden;
-            TextBoxDeltaPeriods.Visibility = Visibility.Hidden;
-            LabelDeltaPeriods.Visibility = Visibility.Hidden;
-            ComboBoxTimeFrame.Visibility = Visibility.Hidden;
-            CheckBoxSetForeign.Visibility = Visibility.Hidden;
-            TextBoxCountTradesInCandle.Visibility = Visibility.Hidden;
-            LabelTimeFrame.Visibility = Visibility.Hidden;
-            LabelCountTradesInCandle.Visibility = Visibility.Hidden;
-            TextBoxVolumeToClose.Visibility = Visibility.Hidden;
-            LabelVolumeToClose.Visibility = Visibility.Hidden;
-            TextBoxRencoPunkts.Visibility = Visibility.Hidden;
-            LabelRencoPunkts.Visibility = Visibility.Hidden;
-
-            LabelRangeCandlesPunkts.Visibility = Visibility.Hidden;
-            LabelReversCandlesPunktsBackMove.Visibility = Visibility.Hidden;
-            LabelReversCandlesPunktsMinMove.Visibility = Visibility.Hidden;
-            TextBoxRangeCandlesPunkts.Visibility = Visibility.Hidden;
-            TextBoxReversCandlesPunktsBackMove.Visibility = Visibility.Hidden;
-            TextBoxReversCandlesPunktsMinMove.Visibility = Visibility.Hidden;
-        }
-
-        private void CreateSimpleCandleSettings()
-        {
-            ComboBoxTimeFrame.Visibility = Visibility.Visible;
-            ComboBoxTimeFrame.Margin = new Thickness(206, 360, 0, 0);
-
-            LabelTimeFrame.Visibility = Visibility.Visible;
-            LabelTimeFrame.Margin = new Thickness(41, 360, 0, 0);
-
-            CheckBoxSetForeign.Visibility = Visibility.Visible;
-            CheckBoxSetForeign.Margin = new Thickness(120, 400, 0, 0);
-
-            this.Height = 490;
-        }
-
-        private void CreateDeltaCandleSettings()
-        {
-            TextBoxDeltaPeriods.Visibility = Visibility.Visible;
-            LabelDeltaPeriods.Visibility = Visibility.Visible;
-
-            TextBoxDeltaPeriods.Margin = new Thickness(246, 360, 0, 0);
-            LabelDeltaPeriods.Margin = new Thickness(41, 360, 0, 0);
-
-            this.Height = 465;
-        }
-
-        private void CreateTicksCandleSettings()
-        {
-            TextBoxCountTradesInCandle.Visibility = Visibility.Visible;
-            LabelCountTradesInCandle.Visibility = Visibility.Visible;
-
-            TextBoxCountTradesInCandle.Margin = new Thickness(206, 360, 0, 0);
-            LabelCountTradesInCandle.Margin = new Thickness(41, 360, 0, 0);
-            Height = 465;
-        }
-
-        private void CreateRencoCandleSettings()
-        {
-            TextBoxRencoPunkts.Visibility = Visibility.Visible;
-            TextBoxRencoPunkts.Margin = new Thickness(206, 360, 0, 0);
-
-            LabelRencoPunkts.Visibility = Visibility.Visible;
-            LabelRencoPunkts.Margin = new Thickness(41, 360, 0, 0);
-
-            CheckBoxRencoIsBuildShadows.Visibility = Visibility.Visible;
-            CheckBoxRencoIsBuildShadows.Margin = new Thickness(120, 400, 0, 0);
-            Height = 500;
-        }
-
-        private void CreateVolumeCandleSettings()
-        {
-            LabelVolumeToClose.Visibility = Visibility.Visible;
-            TextBoxVolumeToClose.Visibility = Visibility.Visible;
-
-            LabelVolumeToClose.Margin = new Thickness(41, 360, 0, 0);
-            TextBoxVolumeToClose.Margin = new Thickness(206, 360, 0, 0);
-            Height = 465;
-        }
-
-        private void CreateHaikenAshiCandleSettings()
-        {
-            ComboBoxTimeFrame.Visibility = Visibility.Visible;
-            ComboBoxTimeFrame.Margin = new Thickness(206, 360, 0, 0);
-
-            LabelTimeFrame.Visibility = Visibility.Visible;
-            LabelTimeFrame.Margin = new Thickness(41, 360, 0, 0);
-
-            Height = 465;
-        }
-
-        private void CreateRangeCandleSettings()
-        {
-            LabelRangeCandlesPunkts.Visibility = Visibility.Visible;
-            TextBoxRangeCandlesPunkts.Visibility = Visibility.Visible;
-
-            LabelRangeCandlesPunkts.Margin = new Thickness(41, 360, 0, 0);
-            TextBoxRangeCandlesPunkts.Margin = new Thickness(206, 360, 0, 0);
-            Height = 465;
-
-        }
-
-        private void CreateReversCandleSettings()
-        {
-            TextBoxReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
-            TextBoxReversCandlesPunktsMinMove.Margin = new Thickness(206, 360, 0, 0);
-
-            LabelReversCandlesPunktsMinMove.Visibility = Visibility.Visible;
-            LabelReversCandlesPunktsMinMove.Margin = new Thickness(41, 360, 0, 0);
-
-            TextBoxReversCandlesPunktsBackMove.Visibility = Visibility.Visible;
-            TextBoxReversCandlesPunktsBackMove.Margin = new Thickness(206, 390, 0, 0);
-
-            LabelReversCandlesPunktsBackMove.Visibility = Visibility.Visible;
-            LabelReversCandlesPunktsBackMove.Margin = new Thickness(41, 390, 0, 0);
-
-            Height = 490;
-        }
-
-        /// <summary>
-        /// accept button
-        /// кнопка принять
-        /// </summary>
-        private void ButtonAccept_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SourcesCreator = GetCurSettings();
-                IsAssepted = true;
-                Close();
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private MassSourcesCreator GetCurSettings()
-        {
-            MassSourcesCreator curCreator = new MassSourcesCreator(StartProgram.IsTester);
-
-            curCreator.PortfolioName = ComboBoxPortfolio.Text;
-            if (CheckBoxIsEmulator.IsChecked != null)
-            {
-                curCreator.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
-            }
-            TimeFrame timeFrame;
-            Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
-
-            curCreator.TimeFrame = timeFrame;
-            Enum.TryParse(ComboBoxTypeServer.Text, true, out curCreator.ServerType);
-
-            CandleMarketDataType createType;
-            Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
-            curCreator.CandleMarketDataType = createType;
-
-            CandleCreateMethodType methodType;
-            Enum.TryParse(ComboBoxCandleCreateMethodType.Text, true, out methodType);
-
-            ComissionType typeComission;
-            Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-            curCreator.ComissionType = typeComission;
-
-            if (ComboBoxClass.SelectedItem != null)
-            {
-                curCreator.SecuritiesClass = ComboBoxClass.SelectedItem.ToString();
-            }
-
-            try
-            {
-                curCreator.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
-            }
-            catch
-            {
-                // ignore
-            }
-
-            curCreator.CandleCreateMethodType = methodType;
-
-            if (CheckBoxSetForeign.IsChecked.HasValue)
-            {
-                curCreator.SetForeign = CheckBoxSetForeign.IsChecked.Value;
-            }
-
-            curCreator.RencoPunktsToCloseCandleInRencoType = _rencoPuncts;
-            curCreator.CountTradeInCandle = _countTradesInCandle;
-            curCreator.VolumeToCloseCandleInVolumeType = _volumeToClose;
-            curCreator.DeltaPeriods = _deltaPeriods;
-            curCreator.RangeCandlesPunkts = _rangeCandlesPunkts;
-            curCreator.ReversCandlesPunktsMinMove = _reversCandlesPunktsMinMove;
-            curCreator.ReversCandlesPunktsBackMove = _reversCandlesPunktsBackMove;
-            curCreator.SaveTradesInCandles = _saveTradesInCandles;
-
-            if (CheckBoxRencoIsBuildShadows.IsChecked != null)
-            {
-                curCreator.RencoIsBuildShadows = CheckBoxRencoIsBuildShadows.IsChecked.Value;
-            }
-
-            List<ActivatedSecurity> securities = new List<ActivatedSecurity>();
-
-            for (int i = 0; i < _gridSecurities.Rows.Count; i++)
-            {
-                DataGridViewCheckBoxCell checkBoxCell = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
-
-                if (checkBoxCell.Value == null ||
-                    Convert.ToBoolean(checkBoxCell.Value.ToString()) == false)
-                {
-                    continue;
-                }
-
-                ActivatedSecurity sec = GetSecurity(_gridSecurities.Rows[i]);
-
-                if (sec == null)
-                {
-                    continue;
-                }
-
-                securities.Add(sec);
-            }
-
-            curCreator.SecuritiesNames = securities;
-
-            return curCreator;
-        }
-
-        private ActivatedSecurity GetSecurity(DataGridViewRow row)
-        {
-            ActivatedSecurity sec = new ActivatedSecurity();
-            sec.SecurityClass = row.Cells[1].Value.ToString();
-            sec.SecurityName = row.Cells[3].Value.ToString();
-
-            if (row.Cells[6].Value != null)
-            {
-                sec.IsOn = Convert.ToBoolean(row.Cells[6].Value);
-            }
-
-            return sec;
-        }
-
-        private void ButtonSaveSet_Click(object sender, RoutedEventArgs e)
-        {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
-            saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-
-            saveFileDialog.RestoreDirectory = true;
-            saveFileDialog.ShowDialog();
-
-            if (string.IsNullOrEmpty(saveFileDialog.FileName))
-            {
-                return;
-            }
-
-            string filePath = saveFileDialog.FileName;
-
-            if (File.Exists(filePath) == false)
-            {
-                using (FileStream stream = File.Create(filePath))
-                {
-                    // do nothin
-                }
-            }
-
-            MassSourcesCreator curSettings = GetCurSettings();
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(filePath))
-                {
-                    writer.WriteLine(curSettings.GetSaveString());
-                }
-            }
-            catch (Exception error)
-            {
-                CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
-                ui.ShowDialog();
-            }
-        }
-
-        private void ButtonLoadSet_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            openFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
-            openFileDialog.RestoreDirectory = true;
-            openFileDialog.ShowDialog();
-
-            if (string.IsNullOrEmpty(openFileDialog.FileName))
-            {
-                return;
-            }
-
-            string filePath = openFileDialog.FileName;
-
-            if (File.Exists(filePath) == false)
-            {
-                return;
-            }
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(filePath))
-                {
-                    string fileStr = reader.ReadToEnd();
-
-                    SourcesCreator.LoadFromString(fileStr);
-
-                    ActivateGui();
-                }
-            }
-            catch (Exception error)
-            {
-                CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
-                ui.ShowDialog();
-            }
-        }
+        #endregion
     }
 }

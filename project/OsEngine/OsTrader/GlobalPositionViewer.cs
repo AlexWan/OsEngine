@@ -467,52 +467,58 @@ namespace OsEngine.OsTrader
 
             while (true)
             {
-                await Task.Delay(5000);
-
-
-                List<Position> openPositions = new List<Position>();
-                List<Position> closePositions = new List<Position>();
-
-                for (int i = 0; _journals != null && i < _journals.Count; i++)
+                try
                 {
-                    if (_journals[i].OpenPositions != null && _journals[i].OpenPositions.Count != 0)
+                    await Task.Delay(5000);
+
+                    if (MainWindow.ProccesIsWorked == false)
                     {
-                        openPositions.AddRange(_journals[i].OpenPositions);
+                        return;
                     }
-                    if (_journals[i].CloseAllPositions != null)
+
+                    List<Position> openPositions = new List<Position>();
+                    List<Position> closePositions = new List<Position>();
+
+                    for (int i = 0; _journals != null && i < _journals.Count; i++)
                     {
-                        for(int i2 = _journals[i].CloseAllPositions.Count-1;i2 > -1 && i2 > _journals[i].CloseAllPositions.Count - 30;i2--)
+                        if (_journals[i].OpenPositions != null
+                            && _journals[i].OpenPositions.Count != 0)
                         {
-                            closePositions.Add(_journals[i].CloseAllPositions[i2]);
+                            openPositions.AddRange(_journals[i].OpenPositions);
+                        }
+                        if (_journals[i].CloseAllPositions != null)
+                        {
+                            for (int i2 = _journals[i].CloseAllPositions.Count - 1; i2 > -1 && i2 > _journals[i].CloseAllPositions.Count - 30; i2--)
+                            {
+                                closePositions.Add(_journals[i].CloseAllPositions[i2]);
+                            }
                         }
                     }
-                }
 
-                for(int i = 0;i < closePositions.Count;i++)
-                {
-                    for(int i2 = 1;i2 < closePositions.Count;i2++)
-                    {// УЛЬТИМАТ. Сортировка пузыриком!
-                        if (closePositions[i2].Number < closePositions[i2-1].Number)
-                        {
-                            Position pos = closePositions[i2];
-                            closePositions[i2] = closePositions[i2 - 1];
-                            closePositions[i2 - 1] = pos;
+                    for (int i = 0; i < closePositions.Count; i++)
+                    {
+                        for (int i2 = 1; i2 < closePositions.Count; i2++)
+                        {// УЛЬТИМАТ. Сортировка пузыриком!
+                            if (closePositions[i2].Number < closePositions[i2 - 1].Number)
+                            {
+                                Position pos = closePositions[i2];
+                                closePositions[i2] = closePositions[i2 - 1];
+                                closePositions[i2 - 1] = pos;
+                            }
                         }
                     }
+
+                    CheckPosition(_gridOpenPoses, openPositions);
+
+                    if (_gridClosePoses != null)
+                    {
+                        CheckPosition(_gridClosePoses, closePositions);
+                    }
                 }
-
-
-                CheckPosition(_gridOpenPoses, openPositions);
-
-                if(_gridClosePoses!= null)
+                catch(Exception e)
                 {
-                    CheckPosition(_gridClosePoses, closePositions);
-                }
-                
-
-                if (!MainWindow.ProccesIsWorked)
-                {
-                    return;
+                    SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                    await Task.Delay(5000);
                 }
             }
         }

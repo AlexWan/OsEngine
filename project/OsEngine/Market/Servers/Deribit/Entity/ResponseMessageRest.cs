@@ -88,13 +88,56 @@ namespace OsEngine.Market.Servers.Deribit.Entity
             public List<string> ticks { get; set; }
         }
     }
-    /*public class ResponseTickData
+
+    public class ResponseMessageAllOrders
     {
-        public string price;
-        public string direction;
-        public string amount;
-        public string trade_id;
-        public string timestamp;
-        public string trade_seq;
-    }*/
+        public List<Result> result { get; set; }
+
+        public class Result
+        {
+            public string price { get; set; }
+            public string order_state { get; set; }
+            public string order_id { get; set; }
+            public string label { get; set; }
+            public string last_update_timestamp { get; set; }
+            public string instrument_name { get; set; }
+            public string direction { get; set; }
+            public string creation_timestamp { get; set; }
+            public string amount { get; set; }
+        }
+    }
+
+    public class ResponseMessageGetOrder
+    {
+        public Result result { get; set; }
+
+        public class Result
+        {
+            public string price { get; set; }
+            public string order_state { get; set; }
+            public string order_id { get; set; }
+            public string label { get; set; }
+            public string last_update_timestamp { get; set; }
+            public string instrument_name { get; set; }
+            public string direction { get; set; }
+            public string creation_timestamp { get; set; }
+            public string amount { get; set; }
+        }
+    }
+
+    public class ResponseMessageGetMyTradesBySecurity
+    {
+        public List<Result> result { get; set; }
+
+        public class Result
+        {
+            public string price { get; set; }           
+            public string order_id { get; set; }           
+            public string instrument_name { get; set; }            
+            public string direction { get; set; }
+            public string timestamp { get; set; }
+            public string amount { get; set; }
+            public string trade_id { get; set; }
+        }
+    }
 }

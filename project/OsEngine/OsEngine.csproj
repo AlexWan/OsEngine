@@ -94,7 +94,7 @@
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OpenFAST, Version=1.1.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -112,9 +112,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Vendors\qC.dll</HintPath>
     </Reference>
-    <Reference Include="QUIKSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=eb70e0fec970faf8, processorArchitecture=MSIL">
-      <HintPath>..\packages\QUIKSharp.1.0.0\lib\net45\QUIKSharp.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="QUIKSharp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=eb70e0fec970faf8, processorArchitecture=MSIL">
+      <HintPath>..\packages\QUIKSharp.2.0.0\lib\net461\QUIKSharp.dll</HintPath>
     </Reference>
     <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -136,11 +135,20 @@
       <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
     </Reference>
     <Reference Include="System.Reflection.TypeExtensions, Version=4.1.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.7.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization">
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Text.Encoding.CodePages, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encoding.CodePages.4.7.0\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Channels, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Channels.4.7.1\lib\net461\System.Threading.Channels.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Forms.DataVisualization" />
@@ -188,6 +196,27 @@
     <Compile Include="Alerts\AlertToPriceCreateUi.xaml.cs">
       <DependentUpon>AlertToPriceCreateUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Candles\Candle.cs" />
+    <Compile Include="Candles\CandleConverter.cs" />
+    <Compile Include="Candles\CandleManager.cs" />
+    <Compile Include="Candles\CandleSeries.cs" />
+    <Compile Include="Candles\Factory\CandleFactory.cs" />
+    <Compile Include="Candles\Factory\CandleSeriesParameter.cs" />
+    <Compile Include="Candles\Series\ACandlesSeriesRealization.cs" />
+    <Compile Include="Candles\Series\Delta.cs" />
+    <Compile Include="Candles\Series\DeltaAdaptive.cs" />
+    <Compile Include="Candles\Series\HeikenAshi.cs" />
+    <Compile Include="Candles\Series\Range.cs" />
+    <Compile Include="Candles\Series\RangeVolatilityAdaptive.cs" />
+    <Compile Include="Candles\Series\Revers.cs" />
+    <Compile Include="Candles\Series\ReversVolatilityAdaptive.cs" />
+    <Compile Include="Candles\Series\Simple.cs" />
+    <Compile Include="Candles\Series\Tick.cs" />
+    <Compile Include="Candles\Series\TickAdaptive.cs" />
+    <Compile Include="Candles\Series\TimeShiftCandle.cs" />
+    <Compile Include="Candles\Series\TimeSpanCandle.cs" />
+    <Compile Include="Candles\Series\VolumeAdaptive.cs" />
+    <Compile Include="Candles\TimeFrameBuilder.cs" />
     <Compile Include="Charts\CandleChart\CandleChartUi.xaml.cs">
       <DependentUpon>CandleChartUi.xaml</DependentUpon>
     </Compile>
@@ -400,7 +429,6 @@
     <Compile Include="Entity\AwaitUi.xaml.cs">
       <DependentUpon>AwaitUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\CointegrationBuilder.cs" />
     <Compile Include="Entity\ColorCustomDialog.xaml.cs">
       <DependentUpon>ColorCustomDialog.xaml</DependentUpon>
@@ -428,7 +456,6 @@
     <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
-    <Compile Include="Entity\TimeFrameBuilder.cs" />
     <Compile Include="Entity\Utils\CompressionUtils.cs" />
     <Compile Include="Indicators\AC.cs" />
     <Compile Include="Indicators\Aindicator.cs" />
@@ -585,6 +612,7 @@
     <Compile Include="Market\Servers\Bybit\Entities\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Deribit\DeribitServer.cs" />
     <Compile Include="Market\Servers\Deribit\DeribitServerPermission.cs" />
+    <Compile Include="Market\Servers\Deribit\Entity\JsonRequest.cs" />
     <Compile Include="Market\Servers\Deribit\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\Deribit\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
@@ -823,9 +851,6 @@
     <Compile Include="Market\ServerMasterUi.xaml.cs">
       <DependentUpon>ServerMasterUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\CandleManager.cs" />
-    <Compile Include="Entity\Candle.cs" />
-    <Compile Include="Entity\CandleSeries.cs" />
     <Compile Include="Entity\Position.cs" />
     <Compile Include="Entity\PositionOpenerToStop.cs" />
     <Compile Include="Entity\MarketDepth.cs" />
@@ -1095,6 +1120,8 @@
     <Compile Include="Robots\PairArbitrage\PairCointegrationSideTrader.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationNegative.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationTrader.cs" />
+    <Compile Include="Robots\Patterns\ThreeSoldierVolatilityAdaptive.cs" />
+    <Compile Include="Robots\Screeners\PinBarScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
@@ -1134,9 +1161,6 @@
     <Compile Include="Robots\Trend\ParabolicSarTradeUi.xaml.cs">
       <DependentUpon>ParabolicSarTradeUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Robots\Patterns\PinBarTradeUi.xaml.cs">
-      <DependentUpon>PinBarTradeUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\Patterns\PivotPointsRobotUi.xaml.cs">
       <DependentUpon>PivotPointsRobotUi.xaml</DependentUpon>
     </Compile>
@@ -1148,9 +1172,6 @@
     </Compile>
     <Compile Include="Robots\Trend\SmaStochasticUi.xaml.cs">
       <DependentUpon>SmaStochasticUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Robots\Patterns\ThreeSoldierUi.xaml.cs">
-      <DependentUpon>ThreeSoldierUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\CounterTrend\WilliamsRangeTradeUi.xaml.cs">
       <DependentUpon>WilliamsRangeTradeUi.xaml</DependentUpon>
@@ -1184,14 +1205,8 @@
     <Compile Include="OsTrader\Panels\Tab\BotTabIndex.cs" />
     <Compile Include="OsTrader\Panels\Tab\IIBotTab.cs" />
     <Compile Include="OsTrader\Panels\Tab\Internal\AcebergMaker.cs" />
-    <Compile Include="OsTrader\Panels\Tab\Internal\PositionCloseUi.xaml.cs">
-      <DependentUpon>PositionCloseUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionCreator.cs" />
     <Compile Include="OsTrader\RiskManager\RiskManager.cs" />
-    <Compile Include="OsTrader\Panels\Tab\Internal\PositionStopUi.xaml.cs">
-      <DependentUpon>PositionStopUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="OsTrader\Gui\RobotUi.xaml.cs">
       <DependentUpon>RobotUi.xaml</DependentUpon>
     </Compile>
@@ -1706,10 +1721,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Robots\Patterns\PinBarTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Robots\Patterns\PivotPointsRobotUi.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -1723,10 +1734,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\Trend\SmaStochasticUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Robots\Patterns\ThreeSoldierUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1759,14 +1766,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\MarketMaker\PairTraderSpreadSmaUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\Tab\Internal\PositionCloseUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsTrader\Panels\Tab\Internal\PositionStopUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1814,6 +1813,15 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="lua\config.json" />
+    <None Include="lua\dkjson.lua" />
+    <None Include="lua\qscallbacks.lua" />
+    <None Include="lua\qsfunctions.lua" />
+    <None Include="lua\qsutils.lua" />
+    <None Include="lua\QuikSharp.lua" />
+    <None Include="lua\Quik_2.lua" />
+    <None Include="lua\socket.lua" />
+    <None Include="lua\USAGE.RU.md" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -1850,9 +1858,6 @@
     <None Include="Resources\wolf01.wav" />
     <None Include="Resources\Duck.wav" />
     <None Include="Resources\Bird.wav" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Robots\1readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\MainWIndow\test.png" />
@@ -1898,7 +1903,14 @@
   <ItemGroup>
     <Resource Include="Images\MainWIndow\gear.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="lua\clibs64\5.1_MD\socket\core.dll" />
+    <Content Include="lua\clibs64\5.1_MT\socket\core.dll" />
+    <Content Include="lua\clibs64\53_MD\socket\core.dll" />
+    <Content Include="lua\clibs64\53_MT\socket\core.dll" />
+    <Content Include="lua\clibs\5.1_MD\socket\core.dll" />
+    <Content Include="lua\clibs\5.1_MT\socket\core.dll" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\generateButton.png" />
   </ItemGroup>

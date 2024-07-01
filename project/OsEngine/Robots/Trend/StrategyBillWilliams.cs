@@ -9,8 +9,8 @@ using System.Windows;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Language;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Trend
@@ -19,6 +19,7 @@ namespace OsEngine.Robots.Trend
     /// Bill Williams' trend strategy on the Alligator and fractals
     /// трендовая стратегия Билла Вильямса на Аллигаторе и фракталах
     /// </summary>
+    [Bot("StrategyBillWilliams")]
     public class StrategyBillWilliams : BotPanel
     {
         public StrategyBillWilliams(string name, StartProgram startProgram)
@@ -79,7 +80,7 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         public override string GetNameStrategyType()
         {
-            return "Williams Band";
+            return "StrategyBillWilliams";
         }
 
         /// <summary>
@@ -190,7 +191,7 @@ namespace OsEngine.Robots.Trend
             }
 
             if (StartProgram == StartProgram.IsOsTrader
-                && DateTime.Now.Hour < 10)
+                && candles[candles.Count-1].TimeStart.Hour < 10)
             {
                 return;
             }

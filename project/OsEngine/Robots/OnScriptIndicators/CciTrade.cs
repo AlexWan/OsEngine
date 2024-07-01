@@ -5,11 +5,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Counter Trend Strategy Based on CCI Indicator. Max - 3 poses
 /// Контртрендовая стратегия на основе индикатора CCI. Входит в три позиции
 /// </summary>
+[Bot("CciTrade")]
 public class CciTrade : BotPanel
 {
     public CciTrade(string name, StartProgram startProgram)

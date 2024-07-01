@@ -16,7 +16,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public override void Process()
         {
-            if(string.IsNullOrEmpty(SecuritiesSeparator))
+            if (string.IsNullOrEmpty(SecuritiesSeparator))
             {
                 SetNewError("Error -1. Securities separator is null or empty ");
                 TestEnded();
@@ -38,7 +38,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                for(int i = 0;i < securitiesActivated.Count;i++)
+                for (int i = 0; i < securitiesActivated.Count; i++)
                 {
                     StartTestSecurity(securitiesActivated[i]);
                 }
@@ -57,26 +57,26 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<Security> securitiesFromServer = Server.Securities;
 
-            if(secInArray.Length == 0)
+            if (secInArray.Length == 0)
             {
                 return null;
             }
-            if(securitiesFromServer == null)
+            if (securitiesFromServer == null)
             {
                 return null;
             }
 
             List<Security> securitiesActivated = new List<Security>();
 
-            for(int i = 0;i < securitiesFromServer.Count;i++)
+            for (int i = 0; i < securitiesFromServer.Count; i++)
             {
                 string curSec = securitiesFromServer[i].Name;
 
                 string curClass = securitiesFromServer[i].NameClass;
 
-                for(int j = 0;j < secInArray.Length;j++)
+                for (int j = 0; j < secInArray.Length; j++)
                 {
-                    if(curSec == secInArray[j]
+                    if (curSec == secInArray[j]
                         && curClass == SecClass)
                     {
                         securitiesActivated.Add(securitiesFromServer[i]);
@@ -90,8 +90,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void StartTestSecurity(Security security)
         {
-           //1.Скачать по N инструментам все имеющиеся свечи за 1 год.Просмотреть входящие в сет данные.Проверить время старта и конца данных.
-           //2.Скачать по N инструментам все имеющиеся свечи за ПРОШЛЫЙ год.Просмотреть входящие в сет данные.Проверить время старта и конца данных.
+            //1.Скачать по N инструментам все имеющиеся свечи за 1 год.Просмотреть входящие в сет данные.Проверить время старта и конца данных.
+            //2.Скачать по N инструментам все имеющиеся свечи за ПРОШЛЫЙ год.Просмотреть входящие в сет данные.Проверить время старта и конца данных.
 
             DateTime lastMidnightTime = DateTime.Now;
 
@@ -231,7 +231,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private TimeFrameBuilder GetTfBuilder(Security security, TimeFrame timeFrame)
         {
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsTrader);
             timeFrameBuilder.TimeFrame = timeFrame;
 
             return timeFrameBuilder;

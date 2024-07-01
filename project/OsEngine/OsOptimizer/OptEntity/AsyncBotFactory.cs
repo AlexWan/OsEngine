@@ -94,20 +94,28 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
 
             while (true)
             {
-                Thread.Sleep(10);
-                if (MainWindow.ProccesIsWorked == false)
+                try
                 {
-                    return;
-                }
+                    Thread.Sleep(10);
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
 
-                if (_isActivate == false)
-                {
-                    continue;
-                }
+                    if (_isActivate == false)
+                    {
+                        continue;
+                    }
 
-                if (_botsToStart[num].Count != 0)
+                    if (_botsToStart[num].Count != 0)
+                    {
+                        Load(_botsToStart[num]);
+                    }
+                }
+                catch (Exception e)
                 {
-                    Load(_botsToStart[num]);
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(e.ToString());
+                    ui.ShowDialog();
                 }
             }
         }
@@ -118,7 +126,16 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
             {
 
                 BotPanel bot = BotFactory.GetStrategyForName(_botType, names[0], _startProgramm, _isScript);
-                names.RemoveAt(0);
+
+                try
+                {
+                    names.RemoveAt(0);
+                }
+                catch
+                {
+                    // ignore
+                }
+             
                 lock (_botLocker)
                 {
                     _bots.Add(bot);

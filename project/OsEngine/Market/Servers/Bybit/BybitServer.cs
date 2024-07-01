@@ -2233,6 +2233,7 @@ namespace OsEngine.Market.Servers.Bybit
                     request.Headers.Add("X-BAPI-SIGN-TYPE", "2");
                     request.Headers.Add("X-BAPI-TIMESTAMP", timestamp);
                     request.Headers.Add("X-BAPI-RECV-WINDOW", RecvWindow);
+                    request.Headers.Add("referer", "OsEngine");
 
                     HttpResponseMessage response = httpClient?.SendAsync(request).Result;
 

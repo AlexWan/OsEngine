@@ -4,9 +4,11 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using System;
+using OsEngine.OsTrader.Panels.Attributes;
 
 namespace OsEngine.Robots.OnScriptIndicators
 {
+    [Bot("FundBalanceDivergenceBot")]
     public class FundBalanceDivergenceBot : BotPanel
     {
         public FundBalanceDivergenceBot(string name, StartProgram startProgram)

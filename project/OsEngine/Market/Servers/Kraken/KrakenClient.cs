@@ -9,9 +9,7 @@ using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Kraken.KrakenEntity;
-using Trade = OsEngine.Entity.Trade;
 
 namespace OsEngine.Market.Servers.Kraken
 {
@@ -671,14 +669,22 @@ namespace OsEngine.Market.Servers.Kraken
         {
             while (true)
             {
-                Thread.Sleep(5000);
-
-                if (_isDisposed == true)
+                try
                 {
-                    return;
-                }
+                    Thread.Sleep(5000);
 
-                GetOrders();
+                    if (_isDisposed == true)
+                    {
+                        return;
+                    }
+
+                    GetOrders();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
             }
         }
 

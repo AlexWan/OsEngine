@@ -458,8 +458,21 @@ namespace OsEngine.Entity
                 {
                     if (i < depth.Bids.Count)
                     {
-                        _marketDepthTable.Rows[25 + i].Cells[2].Value = depth.Bids[i].Price.ToStringWithNoEndZero();
-                        _marketDepthTable.Rows[25 + i].Cells[3].Value = depth.Bids[i].Bid.ToStringWithNoEndZero();
+                        string price = depth.Bids[i].Price.ToStringWithNoEndZero();
+                        string bid = depth.Bids[i].Bid.ToStringWithNoEndZero();
+
+                        if(_marketDepthTable.Rows[25 + i].Cells[2].Value == null ||
+                            _marketDepthTable.Rows[25 + i].Cells[2].Value.ToString() != price)
+                        {
+                            _marketDepthTable.Rows[25 + i].Cells[2].Value = price;
+                        }
+                        
+                        if(_marketDepthTable.Rows[25 + i].Cells[3].Value == null ||
+                            _marketDepthTable.Rows[25 + i].Cells[3].Value.ToString() != bid)
+                        {
+                            _marketDepthTable.Rows[25 + i].Cells[3].Value = bid;
+                        }
+
                         if (depth.Bids[i].Bid > maxVol)
                         {
                             maxVol = depth.Bids[i].Bid;
@@ -480,8 +493,20 @@ namespace OsEngine.Entity
                 {
                     if (i < depth.Asks.Count)
                     {
-                        _marketDepthTable.Rows[24 - i].Cells[2].Value = depth.Asks[i].Price.ToStringWithNoEndZero();
-                        _marketDepthTable.Rows[24 - i].Cells[3].Value = depth.Asks[i].Ask.ToStringWithNoEndZero();
+                        string price = depth.Asks[i].Price.ToStringWithNoEndZero();
+                        string ask = depth.Asks[i].Ask.ToStringWithNoEndZero();
+
+                        if(_marketDepthTable.Rows[24 - i].Cells[2].Value == null ||
+                            _marketDepthTable.Rows[24 - i].Cells[2].Value.ToString() != price)
+                        {
+                            _marketDepthTable.Rows[24 - i].Cells[2].Value = price;
+                        }
+                        
+                        if(_marketDepthTable.Rows[24 - i].Cells[3].Value == null ||
+                            _marketDepthTable.Rows[24 - i].Cells[3].Value.ToString() != ask)
+                        {
+                            _marketDepthTable.Rows[24 - i].Cells[3].Value = ask;
+                        }
 
                         if (depth.Asks[i].Ask > maxVol)
                         {
@@ -502,6 +527,11 @@ namespace OsEngine.Entity
                 // объём в палках для аска
                 for (int i = 0; depth.Bids != null && i < 25 && i < depth.Bids.Count; i++)
                 {
+                    if (maxVol == 0)
+                    {
+                        break;
+                    }
+
                     int percentFromMax = Convert.ToInt32(depth.Bids[i].Bid / maxVol * 50);
 
                     if (percentFromMax == 0)
@@ -515,13 +545,21 @@ namespace OsEngine.Entity
                         builder.Append('|');
                     }
 
-                    _marketDepthTable.Rows[25 + i].Cells[1].Value = builder;
-
+                    if(_marketDepthTable.Rows[25 + i].Cells[1].Value == null ||
+                        _marketDepthTable.Rows[25 + i].Cells[1].Value.ToString() != builder.ToString())
+                    {
+                        _marketDepthTable.Rows[25 + i].Cells[1].Value = builder.ToString();
+                    }
                 }
+
                 // volume in bid sticks
                 // объём в палках для бида
                 for (int i = 0; depth.Asks != null && i < 25 && i < depth.Asks.Count; i++)
                 {
+                    if(maxVol == 0)
+                    {
+                        break;
+                    }
                     int percentFromMax = Convert.ToInt32(depth.Asks[i].Ask / maxVol * 50);
 
                     if (percentFromMax == 0)
@@ -536,7 +574,11 @@ namespace OsEngine.Entity
                         builder.Append('|');
                     }
 
-                    _marketDepthTable.Rows[24 - i].Cells[1].Value = builder;
+                    if(_marketDepthTable.Rows[24 - i].Cells[1].Value == null ||
+                        _marketDepthTable.Rows[24 - i].Cells[1].Value.ToString() != builder.ToString())
+                    {
+                        _marketDepthTable.Rows[24 - i].Cells[1].Value = builder.ToString();
+                    }
                 }
 
                 decimal maxSeries;

@@ -85,6 +85,25 @@ namespace OsEngine.PrimeSettings
 
         private static bool _rebootTradeUiLigth;
 
+        public static bool ReportCriticalErrors
+        {
+            get
+            {
+                return _reportCriticalErrors;
+            }
+            set
+            {
+                if(_reportCriticalErrors == value)
+                {
+                    return;
+                }
+                _reportCriticalErrors = value;
+                Save();
+            }
+        }
+
+        private static bool _reportCriticalErrors = true;
+
         public static bool AutoStartApi
         {
             get
@@ -199,6 +218,7 @@ namespace OsEngine.PrimeSettings
                     writer.WriteLine(_port);
                     writer.WriteLine(_labelInHeaderBotStation);
                     writer.WriteLine(_rebootTradeUiLigth);
+                    writer.WriteLine(_reportCriticalErrors);
 
                     writer.Close();
                 }
@@ -235,12 +255,14 @@ namespace OsEngine.PrimeSettings
                     _port = reader.ReadLine();
                     _labelInHeaderBotStation = reader.ReadLine();
                     _rebootTradeUiLigth = Convert.ToBoolean(reader.ReadLine());
+                    _reportCriticalErrors = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
                 }
             }
             catch (Exception)
             {
+                _reportCriticalErrors = true;
                 // ignore
             }
         }

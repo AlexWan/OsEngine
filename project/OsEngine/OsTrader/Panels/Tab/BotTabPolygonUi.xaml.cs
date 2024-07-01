@@ -23,7 +23,7 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// </summary>
     public partial class BotTabPolygonUi : Window
     {
-        PolygonToTrade _polygon;
+        public PolygonToTrade Polygon;
 
         public string NameElement;
 
@@ -32,43 +32,43 @@ namespace OsEngine.OsTrader.Panels.Tab
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             GlobalGUILayout.Listen(this, "botTabPairUi_" + polygon.Name);
-            _polygon = polygon;
+            Polygon = polygon;
 
             NameElement = polygon.Name;
 
-            TextBoxBaseCurrency.Text = _polygon.BaseCurrency;
+            TextBoxBaseCurrency.Text = Polygon.BaseCurrency;
             TextBoxBaseCurrency.TextChanged += TextBoxBaseCurrency_TextChanged;
 
-            TextBoxSeparatorToSecurities.Text = _polygon.SeparatorToSecurities;
+            TextBoxSeparatorToSecurities.Text = Polygon.SeparatorToSecurities;
             TextBoxSeparatorToSecurities.TextChanged += TextBoxSeparatorToSecurities_TextChanged;
 
             ComboBoxComissionType.Items.Add(ComissionPolygonType.None.ToString());
             ComboBoxComissionType.Items.Add(ComissionPolygonType.Percent.ToString());
-            ComboBoxComissionType.SelectedItem = _polygon.ComissionType.ToString();
+            ComboBoxComissionType.SelectedItem = Polygon.ComissionType.ToString();
             ComboBoxComissionType.SelectionChanged += ComboBoxComissionType_SelectionChanged;
 
-            TextBoxComissionValue.Text = _polygon.ComissionValue.ToString();
+            TextBoxComissionValue.Text = Polygon.ComissionValue.ToString();
             TextBoxComissionValue.TextChanged += TextBoxComissionValue_TextChanged;
 
-            CheckBoxCommisionIsSubstract.IsChecked = _polygon.CommisionIsSubstract;
+            CheckBoxCommisionIsSubstract.IsChecked = Polygon.CommisionIsSubstract;
             CheckBoxCommisionIsSubstract.Click += CheckBoxCommisionIsSubstract_Click;
 
             ComboBoxDelayType.Items.Add(DelayPolygonType.ByExecution.ToString());
             ComboBoxDelayType.Items.Add(DelayPolygonType.InMLS.ToString());
             ComboBoxDelayType.Items.Add(DelayPolygonType.Instantly.ToString());
-            ComboBoxDelayType.SelectedItem = _polygon.DelayType.ToString();
+            ComboBoxDelayType.SelectedItem = Polygon.DelayType.ToString();
             ComboBoxDelayType.SelectionChanged += ComboBoxDelayType_SelectionChanged;
 
-            TextBoxDelayMls.Text = _polygon.DelayMls.ToString();
+            TextBoxDelayMls.Text = Polygon.DelayMls.ToString();
             TextBoxDelayMls.TextChanged += TextBoxDelayMls_TextChanged;
 
-            TextBoxLimitQtyStart.Text = _polygon.QtyStart.ToString();
+            TextBoxLimitQtyStart.Text = Polygon.QtyStart.ToString();
             TextBoxLimitQtyStart.TextChanged += TextBoxLimitQtyStart_TextChanged;
 
-            TextBoxLimitSlippage.Text = _polygon.SlippagePercent.ToString();
+            TextBoxLimitSlippage.Text = Polygon.SlippagePercent.ToString();
             TextBoxLimitSlippage.TextChanged += TextBoxLimitSlippage_TextChanged;
 
-            TextBoxProfitToSignal.Text = _polygon.ProfitToSignal.ToString();
+            TextBoxProfitToSignal.Text = Polygon.ProfitToSignal.ToString();
             TextBoxProfitToSignal.TextChanged += TextBoxProfitToSignal_TextChanged;
 
             ComboBoxActionOnSignalType.Items.Add(PolygonActionOnSignalType.Bot_Event.ToString());
@@ -76,12 +76,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             ComboBoxActionOnSignalType.Items.Add(PolygonActionOnSignalType.Alert.ToString());
             ComboBoxActionOnSignalType.Items.Add(PolygonActionOnSignalType.None.ToString());
 
-            ComboBoxActionOnSignalType.SelectedItem = _polygon.ActionOnSignalType.ToString();
+            ComboBoxActionOnSignalType.SelectedItem = Polygon.ActionOnSignalType.ToString();
             ComboBoxActionOnSignalType.SelectionChanged += ComboBoxActionOnSignalType_SelectionChanged;
 
             ComboBoxOrderPriceType.Items.Add(OrderPriceType.Limit.ToString());
             ComboBoxOrderPriceType.Items.Add(OrderPriceType.Market.ToString());
-            ComboBoxOrderPriceType.SelectedItem = _polygon.OrderPriceType.ToString();
+            ComboBoxOrderPriceType.SelectedItem = Polygon.OrderPriceType.ToString();
             ComboBoxOrderPriceType.SelectionChanged += ComboBoxOrderPriceType_SelectionChanged;
 
             PaintSecNames();
@@ -113,20 +113,20 @@ namespace OsEngine.OsTrader.Panels.Tab
             LabelExecution.Content = OsLocalization.Trader.Label337;
             LabelOrderPriceType.Content = OsLocalization.Trader.Label338;
 
-            _marketDepthPainter1 = new MarketDepthPainter(_polygon.Tab1.TabName + "Ui");
-            _marketDepthPainter1.ProcessMarketDepth(_polygon.Tab1.MarketDepth);
+            _marketDepthPainter1 = new MarketDepthPainter(Polygon.Tab1.TabName + "Ui");
+            _marketDepthPainter1.ProcessMarketDepth(Polygon.Tab1.MarketDepth);
             _marketDepthPainter1.StartPaint(HostSec1, null, null);
-            _polygon.Tab1.MarketDepthUpdateEvent += Tab1_MarketDepthUpdateEvent;
+            Polygon.Tab1.MarketDepthUpdateEvent += Tab1_MarketDepthUpdateEvent;
 
-            _marketDepthPainter2 = new MarketDepthPainter(_polygon.Tab2.TabName + "Ui");
-            _marketDepthPainter2.ProcessMarketDepth(_polygon.Tab2.MarketDepth);
+            _marketDepthPainter2 = new MarketDepthPainter(Polygon.Tab2.TabName + "Ui");
+            _marketDepthPainter2.ProcessMarketDepth(Polygon.Tab2.MarketDepth);
             _marketDepthPainter2.StartPaint(HostSec2, null, null);
-            _polygon.Tab2.MarketDepthUpdateEvent += Tab2_MarketDepthUpdateEvent;
+            Polygon.Tab2.MarketDepthUpdateEvent += Tab2_MarketDepthUpdateEvent;
 
-            _marketDepthPainter3 = new MarketDepthPainter(_polygon.Tab3.TabName + "Ui");
-            _marketDepthPainter3.ProcessMarketDepth(_polygon.Tab3.MarketDepth);
+            _marketDepthPainter3 = new MarketDepthPainter(Polygon.Tab3.TabName + "Ui");
+            _marketDepthPainter3.ProcessMarketDepth(Polygon.Tab3.MarketDepth);
             _marketDepthPainter3.StartPaint(HostSec3, null, null);
-            _polygon.Tab3.MarketDepthUpdateEvent += Tab3_MarketDepthUpdateEvent;
+            Polygon.Tab3.MarketDepthUpdateEvent += Tab3_MarketDepthUpdateEvent;
 
             CreateGrid();
 
@@ -135,7 +135,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             Thread painterThread = new Thread(PainterThread);
             painterThread.Start();
 
-            if (_polygon.ShowTradePanelOnChart == false)
+            if (Polygon.ShowTradePanelOnChart == false)
             {
                 ButtonHideShowRightPanel_Click(null, null);
             }
@@ -146,66 +146,86 @@ namespace OsEngine.OsTrader.Panels.Tab
             ButtonSec2.Click += ButtonSec2_Click;
             ButtonSec3.Click += ButtonSec3_Click;
 
-            _polygon.StartPaintLog(HostLog);
+            Polygon.StartPaintLog(HostLog);
         }
 
         private void BotTabPolygonUi_Closed(object sender, EventArgs e)
         {
-            _uiClosed = true;
-
-            ButtonHideShowRightPanel.Click -= ButtonHideShowRightPanel_Click;
-            ButtonBuyLimit.Click -= ButtonBuyLimit_Click;
-            ButtonSec1.Click -= ButtonSec1_Click;
-            ButtonSec2.Click -= ButtonSec2_Click;
-            ButtonSec3.Click -= ButtonSec3_Click;
-
-            TextBoxBaseCurrency.TextChanged -= TextBoxBaseCurrency_TextChanged;
-            TextBoxSeparatorToSecurities.TextChanged -= TextBoxSeparatorToSecurities_TextChanged;
-            ComboBoxComissionType.SelectionChanged -= ComboBoxComissionType_SelectionChanged;
-            TextBoxComissionValue.TextChanged -= TextBoxComissionValue_TextChanged;
-            CheckBoxCommisionIsSubstract.Click -= CheckBoxCommisionIsSubstract_Click;
-            ComboBoxDelayType.SelectionChanged -= ComboBoxDelayType_SelectionChanged;
-            TextBoxDelayMls.TextChanged -= TextBoxDelayMls_TextChanged;
-            TextBoxLimitQtyStart.TextChanged -= TextBoxLimitQtyStart_TextChanged;
-            TextBoxLimitSlippage.TextChanged -= TextBoxLimitSlippage_TextChanged;
-            TextBoxProfitToSignal.TextChanged -= TextBoxProfitToSignal_TextChanged;
-            ComboBoxActionOnSignalType.SelectionChanged -= ComboBoxActionOnSignalType_SelectionChanged;
-            ComboBoxOrderPriceType.SelectionChanged -= ComboBoxOrderPriceType_SelectionChanged;
-
-            if (_marketDepthPainter1 != null)
+            try
             {
-                _marketDepthPainter1.Delete();
-                _marketDepthPainter1 = null;
-            }
+                _uiClosed = true;
 
-            if (_marketDepthPainter2 != null)
+                ButtonHideShowRightPanel.Click -= ButtonHideShowRightPanel_Click;
+                ButtonBuyLimit.Click -= ButtonBuyLimit_Click;
+                ButtonSec1.Click -= ButtonSec1_Click;
+                ButtonSec2.Click -= ButtonSec2_Click;
+                ButtonSec3.Click -= ButtonSec3_Click;
+
+                TextBoxBaseCurrency.TextChanged -= TextBoxBaseCurrency_TextChanged;
+                TextBoxSeparatorToSecurities.TextChanged -= TextBoxSeparatorToSecurities_TextChanged;
+                ComboBoxComissionType.SelectionChanged -= ComboBoxComissionType_SelectionChanged;
+                TextBoxComissionValue.TextChanged -= TextBoxComissionValue_TextChanged;
+                CheckBoxCommisionIsSubstract.Click -= CheckBoxCommisionIsSubstract_Click;
+                ComboBoxDelayType.SelectionChanged -= ComboBoxDelayType_SelectionChanged;
+                TextBoxDelayMls.TextChanged -= TextBoxDelayMls_TextChanged;
+                TextBoxLimitQtyStart.TextChanged -= TextBoxLimitQtyStart_TextChanged;
+                TextBoxLimitSlippage.TextChanged -= TextBoxLimitSlippage_TextChanged;
+                TextBoxProfitToSignal.TextChanged -= TextBoxProfitToSignal_TextChanged;
+                ComboBoxActionOnSignalType.SelectionChanged -= ComboBoxActionOnSignalType_SelectionChanged;
+                ComboBoxOrderPriceType.SelectionChanged -= ComboBoxOrderPriceType_SelectionChanged;
+
+                if (_marketDepthPainter1 != null)
+                {
+                    _marketDepthPainter1.Delete();
+                    _marketDepthPainter1 = null;
+                }
+
+                if (_marketDepthPainter2 != null)
+                {
+                    _marketDepthPainter2.Delete();
+                    _marketDepthPainter2 = null;
+                }
+
+                if (_marketDepthPainter3 != null)
+                {
+                    _marketDepthPainter3.Delete();
+                    _marketDepthPainter3 = null;
+                }
+
+                if (Polygon.Tab1 != null)
+                {
+                    Polygon.Tab1.MarketDepthUpdateEvent -= Tab1_MarketDepthUpdateEvent;
+                }
+
+                if (Polygon.Tab2 != null)
+                {
+                    Polygon.Tab2.MarketDepthUpdateEvent -= Tab2_MarketDepthUpdateEvent;
+                }
+
+                if (Polygon.Tab3 != null)
+                {
+                    Polygon.Tab3.MarketDepthUpdateEvent -= Tab3_MarketDepthUpdateEvent;
+                }
+
+                Polygon.StopPaintLog();
+
+                Polygon = null;
+
+                DataGridFactory.ClearLinks(_grid);
+                _grid.Rows.Clear();
+                _grid.Columns.Clear();
+                _grid = null;
+                HostSequence.Child = null;
+
+                HostLog.Child = null;
+                HostSec1.Child = null;
+                HostSec2.Child = null;
+                HostSec3.Child = null;
+            }
+            catch
             {
-                _marketDepthPainter2.Delete();
-                _marketDepthPainter2 = null;
+                // ignore
             }
-
-            if (_marketDepthPainter3 != null)
-            {
-                _marketDepthPainter3.Delete();
-                _marketDepthPainter3 = null;
-            }
-
-            _polygon.Tab1.MarketDepthUpdateEvent -= Tab1_MarketDepthUpdateEvent;
-            _polygon.Tab2.MarketDepthUpdateEvent -= Tab2_MarketDepthUpdateEvent;
-            _polygon.Tab3.MarketDepthUpdateEvent -= Tab3_MarketDepthUpdateEvent;
-            _polygon.StopPaintLog();
-            _polygon = null;
-
-            DataGridFactory.ClearLinks(_grid);
-            _grid.Rows.Clear();
-            _grid.Columns.Clear();
-            _grid = null;
-            HostSequence.Child = null;
-
-            HostLog.Child = null;
-            HostSec1.Child = null;
-            HostSec2.Child = null;
-            HostSec3.Child = null;
         }
 
         private void Tab1_MarketDepthUpdateEvent(MarketDepth md)
@@ -237,31 +257,45 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void PaintSecNames()
         {
-            if (string.IsNullOrEmpty(_polygon.Tab1.Connector.SecurityName) == false)
+            try
             {
-                ButtonSec1.Content = _polygon.Tab1.Connector.SecurityName + "  " + _polygon.Tab1TradeSide;
-            }
-            else
-            {
-                ButtonSec1.Content = OsLocalization.Trader.Label314;
-            }
+                if(Polygon.Tab1.Connector == null ||
+                    Polygon.Tab2.Connector == null ||
+                    Polygon.Tab3.Connector == null)
+                {
+                    return;
+                }
 
-            if (string.IsNullOrEmpty(_polygon.Tab2.Connector.SecurityName) == false)
-            {
-                ButtonSec2.Content = _polygon.Tab2.Connector.SecurityName + "  " + _polygon.Tab2TradeSide;
-            }
-            else
-            {
-                ButtonSec2.Content = OsLocalization.Trader.Label314;
-            }
+                if (string.IsNullOrEmpty(Polygon.Tab1.Connector.SecurityName) == false)
+                {
+                    ButtonSec1.Content = Polygon.Tab1.Connector.SecurityName + "  " + Polygon.Tab1TradeSide;
+                }
+                else
+                {
+                    ButtonSec1.Content = OsLocalization.Trader.Label314;
+                }
 
-            if (string.IsNullOrEmpty(_polygon.Tab3.Connector.SecurityName) == false)
-            {
-                ButtonSec3.Content = _polygon.Tab3.Connector.SecurityName + "  " + _polygon.Tab3TradeSide;
+                if (string.IsNullOrEmpty(Polygon.Tab2.Connector.SecurityName) == false)
+                {
+                    ButtonSec2.Content = Polygon.Tab2.Connector.SecurityName + "  " + Polygon.Tab2TradeSide;
+                }
+                else
+                {
+                    ButtonSec2.Content = OsLocalization.Trader.Label314;
+                }
+
+                if (string.IsNullOrEmpty(Polygon.Tab3.Connector.SecurityName) == false)
+                {
+                    ButtonSec3.Content = Polygon.Tab3.Connector.SecurityName + "  " + Polygon.Tab3TradeSide;
+                }
+                else
+                {
+                    ButtonSec3.Content = OsLocalization.Trader.Label314;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                ButtonSec3.Content = OsLocalization.Trader.Label314;
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -277,12 +311,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                Enum.TryParse(ComboBoxOrderPriceType.SelectedItem.ToString(), out _polygon.OrderPriceType);
-                _polygon.Save();
+                Enum.TryParse(ComboBoxOrderPriceType.SelectedItem.ToString(), out Polygon.OrderPriceType);
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -290,12 +324,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                Enum.TryParse(ComboBoxActionOnSignalType.SelectedItem.ToString(), out _polygon.ActionOnSignalType);
-                _polygon.Save();
+                Enum.TryParse(ComboBoxActionOnSignalType.SelectedItem.ToString(), out Polygon.ActionOnSignalType);
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -303,12 +337,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _polygon.ProfitToSignal = TextBoxProfitToSignal.Text.ToString().ToDecimal();
-                _polygon.Save();
+                Polygon.ProfitToSignal = TextBoxProfitToSignal.Text.ToString().ToDecimal();
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -316,12 +350,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _polygon.SlippagePercent = TextBoxLimitSlippage.Text.ToString().ToDecimal();
-                _polygon.Save();
+                Polygon.SlippagePercent = TextBoxLimitSlippage.Text.ToString().ToDecimal();
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -329,12 +363,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _polygon.QtyStart = TextBoxLimitQtyStart.Text.ToString().ToDecimal();
-                _polygon.Save();
+                Polygon.QtyStart = TextBoxLimitQtyStart.Text.ToString().ToDecimal();
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -342,12 +376,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _polygon.DelayMls = Convert.ToInt32(TextBoxDelayMls.Text.ToString());
-                _polygon.Save();
+                Polygon.DelayMls = Convert.ToInt32(TextBoxDelayMls.Text.ToString());
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -355,12 +389,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                Enum.TryParse(ComboBoxDelayType.SelectedItem.ToString(), out _polygon.DelayType);
-                _polygon.Save();
+                Enum.TryParse(ComboBoxDelayType.SelectedItem.ToString(), out Polygon.DelayType);
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -368,12 +402,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _polygon.CommisionIsSubstract = CheckBoxCommisionIsSubstract.IsChecked.Value;
-                _polygon.Save();
+                Polygon.CommisionIsSubstract = CheckBoxCommisionIsSubstract.IsChecked.Value;
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -381,12 +415,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _polygon.ComissionValue = TextBoxComissionValue.Text.ToString().ToDecimal();
-                _polygon.Save();
+                Polygon.ComissionValue = TextBoxComissionValue.Text.ToString().ToDecimal();
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -394,12 +428,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                Enum.TryParse(ComboBoxComissionType.SelectedItem.ToString(), out _polygon.ComissionType);
-                _polygon.Save();
+                Enum.TryParse(ComboBoxComissionType.SelectedItem.ToString(), out Polygon.ComissionType);
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -407,12 +441,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _polygon.SeparatorToSecurities = TextBoxSeparatorToSecurities.Text;
-                _polygon.Save();
+                Polygon.SeparatorToSecurities = TextBoxSeparatorToSecurities.Text;
+                Polygon.Save();
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -420,141 +454,219 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _polygon.BaseCurrency = TextBoxBaseCurrency.Text;
-                _polygon.Save();
+                Polygon.BaseCurrency = TextBoxBaseCurrency.Text;
+                Polygon.Save();
 
-                _polygon.CheckSequence();
+                Polygon.CheckSequence();
 
                 PaintSecNames();
             }
-            catch
+            catch (Exception ex) 
             {
-                // ignore
+                Polygon?.SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
         private void ButtonSec1_Click(object sender, RoutedEventArgs e)
         {
-            string baseCurrency = _polygon.BaseCurrency;
-
-            if (string.IsNullOrEmpty(baseCurrency))
+            try
             {
-                CustomMessageBoxUi messageUi = new CustomMessageBoxUi(OsLocalization.Trader.Label333);
-                messageUi.ShowDialog();
-                return;
+                string baseCurrency = Polygon.BaseCurrency;
+
+                if (string.IsNullOrEmpty(baseCurrency))
+                {
+                    CustomMessageBoxUi messageUi = new CustomMessageBoxUi(OsLocalization.Trader.Label333);
+                    messageUi.ShowDialog();
+                    return;
+                }
+
+                BotTabPoligonSecurityAddUi ui
+                    = new BotTabPoligonSecurityAddUi(Polygon.Tab1.Connector, baseCurrency, Polygon.Tab1TradeSide);
+                ui.LogMessageEvent += SendNewLogMessage;
+                ui.ShowDialog();
+                ui.LogMessageEvent -= SendNewLogMessage;
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers == null ||
+                    servers.Count == 0)
+                {
+                    return;
+                }
+
+                if (Polygon.Tab1.Connector.SecurityName != null)
+                {
+                    Polygon.Tab1TradeSide = ui.OperationSide;
+                    ButtonSec1.Content = Polygon.Tab1.Connector.SecurityName + "  " + Polygon.Tab1TradeSide;
+                    Polygon.Save();
+
+                    Polygon.CheckSequence();
+                    PaintSecNames();
+                }
             }
-
-            BotTabPoligonSecurityAddUi ui
-                = new BotTabPoligonSecurityAddUi(_polygon.Tab1.Connector, baseCurrency, _polygon.Tab1TradeSide);
-            ui.ShowDialog();
-
-            List<IServer> servers = ServerMaster.GetServers();
-
-            if (servers == null ||
-                servers.Count == 0)
+            catch (Exception ex)
             {
-                return;
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            if (_polygon.Tab1.Connector.SecurityName != null)
-            {
-                _polygon.Tab1TradeSide = ui.OperationSide;
-                ButtonSec1.Content = _polygon.Tab1.Connector.SecurityName + "  " + _polygon.Tab1TradeSide;
-                _polygon.Save();
-
-                _polygon.CheckSequence();
-                PaintSecNames();
-            }
-
         }
 
         private void ButtonSec2_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(_polygon.Tab1.Connector.SecurityName))
+            try
             {
-                CustomMessageBoxUi messageUi = new CustomMessageBoxUi(OsLocalization.Trader.Label334);
-                messageUi.ShowDialog();
-                return;
+                if (string.IsNullOrEmpty(Polygon.Tab1.Connector.SecurityName))
+                {
+                    CustomMessageBoxUi messageUi = new CustomMessageBoxUi(OsLocalization.Trader.Label334);
+                    messageUi.ShowDialog();
+                    return;
+                }
+
+                string lastCurrency = Polygon.Tab1.Connector.SecurityName.ToLower().Replace(".txt", "");
+
+                lastCurrency = lastCurrency.Replace(Polygon.BaseCurrency.ToLower(), "");
+
+                if (string.IsNullOrEmpty(Polygon.SeparatorToSecurities) == false)
+                {
+                    lastCurrency = lastCurrency.Replace(Polygon.SeparatorToSecurities, "");
+                }
+
+                Side side = Side.Buy;
+
+                if (Polygon.Tab1TradeSide == Side.Buy)
+                {
+                    side = Side.Sell;
+                }
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers == null ||
+                    servers.Count == 0)
+                {
+                    return;
+                }
+
+                BotTabPoligonSecurityAddUi ui
+        = new BotTabPoligonSecurityAddUi(Polygon.Tab2.Connector, lastCurrency, side);
+
+                ui.LogMessageEvent += SendNewLogMessage;
+                ui.ShowDialog();
+                ui.LogMessageEvent -= SendNewLogMessage;
+
+                if (Polygon.Tab2.Connector.SecurityName != null)
+                {
+                    Polygon.Tab2TradeSide = ui.OperationSide;
+                    ButtonSec2.Content = Polygon.Tab2.Connector.SecurityName + "  " + Polygon.Tab2TradeSide;
+                    Polygon.Save();
+
+                    Polygon.CheckSequence();
+                    PaintSecNames();
+
+                }
             }
-
-            string lastCurrency = _polygon.Tab1.Connector.SecurityName.ToLower().Replace(".txt", "");
-
-            lastCurrency = lastCurrency.Replace(_polygon.BaseCurrency.ToLower(), "");
-
-            if(string.IsNullOrEmpty(_polygon.SeparatorToSecurities) == false)
+            catch (Exception ex)
             {
-                lastCurrency = lastCurrency.Replace(_polygon.SeparatorToSecurities, "");
-            }
-           
-            Side side = Side.Buy;
-
-            if (_polygon.Tab1TradeSide == Side.Buy)
-            {
-                side = Side.Sell;
-            }
-
-            List<IServer> servers = ServerMaster.GetServers();
-
-            if (servers == null ||
-                servers.Count == 0)
-            {
-                return;
-            }
-
-            BotTabPoligonSecurityAddUi ui
-    = new BotTabPoligonSecurityAddUi(_polygon.Tab2.Connector, lastCurrency, side);
-            ui.ShowDialog();
-
-            if (_polygon.Tab2.Connector.SecurityName != null)
-            {
-                _polygon.Tab2TradeSide = ui.OperationSide;
-                ButtonSec2.Content = _polygon.Tab2.Connector.SecurityName + "  " + _polygon.Tab2TradeSide;
-                _polygon.Save();
-
-                _polygon.CheckSequence();
-                PaintSecNames();
-
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void ButtonSec3_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(_polygon.Tab2.Connector.SecurityName))
+            try
             {
-                CustomMessageBoxUi messageUi = new CustomMessageBoxUi(OsLocalization.Trader.Label334);
-                messageUi.ShowDialog();
-                return;
+                if (string.IsNullOrEmpty(Polygon.Tab2.Connector.SecurityName))
+                {
+                    CustomMessageBoxUi messageUi = new CustomMessageBoxUi(OsLocalization.Trader.Label334);
+                    messageUi.ShowDialog();
+                    return;
+                }
+
+                string lastCurrency = Polygon.EndCurrencyTab2;
+
+                Side side = Side.Buy;
+
+                if (Polygon.Tab2TradeSide == Side.Buy)
+                {
+                    side = Side.Sell;
+                }
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers == null ||
+                    servers.Count == 0)
+                {
+                    return;
+                }
+
+                BotTabPoligonSecurityAddUi ui
+        = new BotTabPoligonSecurityAddUi(Polygon.Tab3.Connector, lastCurrency, side);
+
+                ui.LogMessageEvent += SendNewLogMessage;
+                ui.ShowDialog();
+                ui.LogMessageEvent -= SendNewLogMessage;
+
+                if (Polygon.Tab3.Connector.SecurityName != null)
+                {
+                    Polygon.Tab3TradeSide = ui.OperationSide;
+                    ButtonSec3.Content = Polygon.Tab3.Connector.SecurityName + "  " + Polygon.Tab3TradeSide;
+                    Polygon.Save();
+
+                    Polygon.CheckSequence();
+                    PaintSecNames();
+                }
             }
-
-            string lastCurrency = _polygon.EndCurrencyTab2;
-
-            Side side = Side.Buy;
-
-            if (_polygon.Tab2TradeSide == Side.Buy)
+            catch (Exception ex)
             {
-                side = Side.Sell;
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
 
-            List<IServer> servers = ServerMaster.GetServers();
-
-            if (servers == null ||
-                servers.Count == 0)
+        private void ButtonHideShowRightPanel_Click(object sender, RoutedEventArgs e)
+        {
+            try
             {
-                return;
+                bool showTradePanel = false;
+
+                if (GridTradePanel.Width == 0)
+                {
+                    GridTradePanel.Visibility = Visibility.Visible;
+                    GridLog.Width = 600;
+                    GridTradePanel.Width = 600;
+                    ButtonHideShowRightPanel.Content = ">";
+                    GreedChartPanel.Margin = new Thickness(0, 0, 600, 0);
+                    MinWidth = 700;
+                    showTradePanel = true;
+                }
+                else
+                {
+                    GridTradePanel.Visibility = Visibility.Hidden;
+                    GridLog.Width = 0;
+                    GridTradePanel.Width = 0;
+                    ButtonHideShowRightPanel.Content = "<";
+                    GreedChartPanel.Margin = new Thickness(0, 0, 15, 0);
+                    MinWidth = 200;
+                }
+
+                if (sender != null)
+                {
+                    Polygon.ShowTradePanelOnChart = showTradePanel;
+                }
             }
-
-            BotTabPoligonSecurityAddUi ui
-    = new BotTabPoligonSecurityAddUi(_polygon.Tab3.Connector, lastCurrency, side);
-            ui.ShowDialog();
-
-            if (_polygon.Tab3.Connector.SecurityName != null)
+            catch (Exception ex)
             {
-                _polygon.Tab3TradeSide = ui.OperationSide;
-                ButtonSec3.Content = _polygon.Tab3.Connector.SecurityName + "  " + _polygon.Tab3TradeSide;
-                _polygon.Save();
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
-                _polygon.CheckSequence();
-                PaintSecNames();
+        private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Thread worker = new Thread(Polygon.TradeLogic);
+                worker.Start();
+            }
+            catch (Exception ex)
+            {
+                Polygon?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -645,6 +757,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             while (true)
             {
                 Thread.Sleep(1000);
+
                 if (_uiClosed)
                 {
                     return;
@@ -790,7 +903,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception error)
             {
-                _polygon.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                Polygon.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -803,47 +916,50 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
-                if (_polygon.BaseCurrency == null)
+                if (Polygon.BaseCurrency == null)
                 {
                     return null;
                 }
 
-                string firstCurrency = _polygon.BaseCurrency.ToLower();
+                string firstCurrency = Polygon.BaseCurrency.ToLower();
                 string endCurrency = "";
 
 
-                if (_polygon.Tab1.Connector.IsConnected)
+                if (Polygon.Tab1.Connector != null &&
+                    Polygon.Tab1.Connector.IsConnected)
                 {
                     DataGridViewRow row1 =
-                        GetTabRow(1, _polygon.Tab1.Connector.SecurityName, _polygon.Tab1TradeSide,
-                        _polygon.Tab1.PriceBestBid, _polygon.Tab1.PriceBestAsk,
-                        _polygon.BaseCurrency.ToLower(), _polygon.QtyStart,
-                        _polygon.EndCurrencyTab1, _polygon.EndQtyTab1);
+                        GetTabRow(1, Polygon.Tab1.Connector.SecurityName, Polygon.Tab1TradeSide,
+                        Polygon.Tab1.PriceBestBid, Polygon.Tab1.PriceBestAsk,
+                        Polygon.BaseCurrency.ToLower(), Polygon.QtyStart,
+                        Polygon.EndCurrencyTab1, Polygon.EndQtyTab1);
                     rows.Add(row1);
 
-                    endCurrency = _polygon.EndCurrencyTab1;
+                    endCurrency = Polygon.EndCurrencyTab1;
                 }
 
-                if (_polygon.Tab2.Connector.IsConnected)
+                if (Polygon.Tab2.Connector != null &&
+                    Polygon.Tab2.Connector.IsConnected)
                 {
                     DataGridViewRow row2 =
-                    GetTabRow(2, _polygon.Tab2.Connector.SecurityName, _polygon.Tab2TradeSide,
-                    _polygon.Tab2.PriceBestBid, _polygon.Tab2.PriceBestAsk,
-                    _polygon.EndCurrencyTab1, _polygon.EndQtyTab1,
-                    _polygon.EndCurrencyTab2, _polygon.EndQtyTab2);
+                    GetTabRow(2, Polygon.Tab2.Connector.SecurityName, Polygon.Tab2TradeSide,
+                    Polygon.Tab2.PriceBestBid, Polygon.Tab2.PriceBestAsk,
+                    Polygon.EndCurrencyTab1, Polygon.EndQtyTab1,
+                    Polygon.EndCurrencyTab2, Polygon.EndQtyTab2);
                     rows.Add(row2);
-                    endCurrency = _polygon.EndCurrencyTab2;
+                    endCurrency = Polygon.EndCurrencyTab2;
                 }
 
-                if (_polygon.Tab3.Connector.IsConnected)
+                if (Polygon.Tab3.Connector != null &&
+                    Polygon.Tab3.Connector.IsConnected)
                 {
                     DataGridViewRow row3 =
-                   GetTabRow(3, _polygon.Tab3.Connector.SecurityName, _polygon.Tab3TradeSide,
-                  _polygon.Tab3.PriceBestBid, _polygon.Tab3.PriceBestAsk,
-                  _polygon.EndCurrencyTab2, _polygon.EndQtyTab2,
-                  _polygon.EndCurrencyTab3, _polygon.EndQtyTab3);
+                   GetTabRow(3, Polygon.Tab3.Connector.SecurityName, Polygon.Tab3TradeSide,
+                  Polygon.Tab3.PriceBestBid, Polygon.Tab3.PriceBestAsk,
+                  Polygon.EndCurrencyTab2, Polygon.EndQtyTab2,
+                  Polygon.EndCurrencyTab3, Polygon.EndQtyTab3);
                     rows.Add(row3);
-                    endCurrency = _polygon.EndCurrencyTab3;
+                    endCurrency = Polygon.EndCurrencyTab3;
                 }
 
                 if (firstCurrency == endCurrency)
@@ -859,7 +975,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception error)
             {
-                _polygon.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                Polygon.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
             return null;
         }
@@ -916,7 +1032,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells[nRow.Cells.Count - 1].Value = OsLocalization.Trader.Label339;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = _polygon.ProfitToDealAbs;
+            nRow.Cells[nRow.Cells.Count - 1].Value = Polygon.ProfitToDealAbs;
 
             return nRow;
         }
@@ -937,45 +1053,24 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells[nRow.Cells.Count - 1].Value = OsLocalization.Trader.Label340;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = _polygon.ProfitToDealPercent;
+            nRow.Cells[nRow.Cells.Count - 1].Value = Polygon.ProfitToDealPercent;
 
             return nRow;
         }
 
-        private void ButtonHideShowRightPanel_Click(object sender, RoutedEventArgs e)
+        #region Logging
+
+        private void SendNewLogMessage(string message, LogMessageType type)
         {
-            bool showTradePanel = false;
-
-            if (GridTradePanel.Width == 0)
+            if (LogMessageEvent != null)
             {
-                GridTradePanel.Visibility = Visibility.Visible;
-                GridLog.Width = 600;
-                GridTradePanel.Width = 600;
-                ButtonHideShowRightPanel.Content = ">";
-                GreedChartPanel.Margin = new Thickness(0, 0, 600, 0);
-                MinWidth = 700;
-                showTradePanel = true;
-            }
-            else
-            {
-                GridTradePanel.Visibility = Visibility.Hidden;
-                GridLog.Width = 0;
-                GridTradePanel.Width = 0;
-                ButtonHideShowRightPanel.Content = "<";
-                GreedChartPanel.Margin = new Thickness(0, 0, 15, 0);
-                MinWidth = 200;
-            }
-
-            if (sender != null)
-            {
-                _polygon.ShowTradePanelOnChart = showTradePanel;
+                LogMessageEvent(message, type);
             }
         }
 
-        private void ButtonBuyLimit_Click(object sender, RoutedEventArgs e)
-        {
-            Thread worker = new Thread(_polygon.TradeLogic);
-            worker.Start();
-        }
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
     }
 }

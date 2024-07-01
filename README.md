@@ -9,7 +9,7 @@
 
 This is a full range of programs required to automate trading on the stock exchange.
 
-![algotasks](https://user-images.githubusercontent.com/26077466/243118924-bfb99f06-1107-495e-a266-12ba0c8d5a55.jpg)
+![algotasks](https://github.com/AlexWan/OsEngine/assets/26077466/0590b1e3-ecf2-4027-a3ac-4967916f0289)
 
 It includes:
 
@@ -74,7 +74,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 | [![LMAX](https://user-images.githubusercontent.com/26077466/239535509-2336139b-b648-4a66-b2a6-cb6d2b3e91b6.png)](https://www.lmax.com)                                                   | LMAX                | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
 
 
-*Included with OsEngine is more than 30 built-in robots*
+*Included with OsEngine is more than 200 built-in robots*
 
 1) Сlassic trend robots like moving average crossing, bill Williams strategy or Jesse Livermore trend strategy.
 
@@ -83,6 +83,9 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 3) Arbitrage strategies for trading divergences of correlating instruments, including one-legged arbitrage.
 
 Until August 2023, the project was distributed under the Apache 2 licence. Since September 2023 it is distributed under a commercial licence. All rights belong to Wang Technologies Ltd. In order to use any part of the project in your commercial projects, you need to obtain an extended licence on the site of the right holder.
+
+By downloading Os Engine, you agree that if a critical error occurs, information about it will be sent to the developer. Instructions on how to disable this functionality: https://os-engine-eng.com/posts/crash-reception-server.html
+
 
 
 ![oslogo250](https://user-images.githubusercontent.com/26077466/264690708-54b9eca1-09ef-4e6c-b9cf-442e4c1b7dc3.png)
@@ -160,7 +163,7 @@ Until August 2023, the project was distributed under the Apache 2 licence. Since
 | [![LMAX](https://user-images.githubusercontent.com/26077466/239535509-2336139b-b648-4a66-b2a6-cb6d2b3e91b6.png)](https://www.lmax.com)                                                   | LMAX                | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)       | ![no](https://user-images.githubusercontent.com/26077466/239537736-63d17a8f-7bdf-4209-8455-a2994c137fed.png)   |
 
 
-*В комплекте с OsEngine идёт более 30ти встроенных роботов*
+*В комплекте с OsEngine идёт более 200 встроенных роботов*
 
 1) классические трендовые роботы, вроде пересечения машек, стратегии Билла Вильямса или трендовой стратегии Джесси Ливермора.
 
@@ -175,3 +178,5 @@ FAQ: https://o-s-a.net/os-engine-faq
 До августа 2023 года проект распространялся под лицензией Apache 2. С сентября 2023 года распространяется под коммерческой лицензией. Все права принадлежат ООО "Ван Технологии". Для того чтобы использовать любую часть проекта, добавленного в репозиторий начиная с сентября 2023 года в своих коммерческих проектах, Вам необходимо получить расширенную лицензию на сайте правообладателя.
 
 Разьяснения относительно лицензионного соглашения: https://o-s-a.net/os-engine-license-about 
+
+Загружая Os Engine, Вы соглашаетесь с тем что в случае возникновения критической ошибки, информация об этом будет выслана разработчику. Инструкция о том как отключить данный функционал: https://o-s-a.net/posts/crash-server.html

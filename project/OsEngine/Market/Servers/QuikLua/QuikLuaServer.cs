@@ -33,6 +33,7 @@ namespace OsEngine.Market.Servers.QuikLua
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterBoolean(OsLocalization.Market.Label109, false);
+            CreateParameterString("Client code",null);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label107;
             ServerParameters[1].Comment = OsLocalization.Market.Label107;
@@ -40,12 +41,16 @@ namespace OsEngine.Market.Servers.QuikLua
             ServerParameters[3].Comment = OsLocalization.Market.Label96;
             ServerParameters[4].Comment = OsLocalization.Market.Label97;
             ServerParameters[5].Comment = OsLocalization.Market.Label110;
+            ServerParameters[6].Comment = OsLocalization.Market.Label121;
 
             ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[2]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[3]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[4]).ValueChange += QuikLuaServer_ParametrValueChange;
+
+            ((QuikLuaServerRealization)ServerRealization).ClientCodeFromSettings
+                = (ServerParameterString)ServerParameters[6];
         }
 
         /// <summary>
@@ -99,6 +104,8 @@ namespace OsEngine.Market.Servers.QuikLua
             worker3.Start();
         }
 
+        public ServerParameterString ClientCodeFromSettings;
+
         public ServerType ServerType => ServerType.QuikLua;
 
         public ServerConnectStatus ServerStatus { get; set; }
@@ -136,6 +143,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     _useOther = (ServerParameterBool)ServerParameters[4];
 
                     QuikLua = new QuikSharp.Quik(QuikSharp.Quik.DefaultPort, new InMemoryStorage());
+                    //QuikLua.DefaultSendTimeout = new TimeSpan(0, 0, 5);
                     QuikLua.Events.OnConnected += EventsOnOnConnected;
                     QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
                     QuikLua.Events.OnConnectedToQuik += EventsOnOnConnectedToQuik;
@@ -365,9 +373,9 @@ namespace OsEngine.Market.Servers.QuikLua
                         , Convert.ToInt32(exp.Substring(4, 2))
                         , Convert.ToInt32(exp.Substring(6, 2)));
 
-                    newSec.Go = Convert.ToDecimal(QuikLua.Trading
+                    newSec.Go = QuikLua.Trading
                         .GetParamEx(classCode, secCode, "SELLDEPO")
-                        .Result.ParamValue.Replace('.', Separator));
+                        .Result.ParamValue.Replace('.', Separator).ToDecimal();
                 }
                 else if (oneSec.ClassCode == "SPBOPT")
                 {
@@ -383,13 +391,13 @@ namespace OsEngine.Market.Servers.QuikLua
                         , Convert.ToInt32(exp.Substring(4, 2))
                         , Convert.ToInt32(exp.Substring(6, 2)));
 
-                    newSec.Go = Convert.ToDecimal(QuikLua.Trading
+                    newSec.Go = QuikLua.Trading
                         .GetParamEx(classCode, secCode, "SELLDEPO")
-                        .Result.ParamValue.Replace('.', Separator));
+                        .Result.ParamValue.Replace('.', Separator).ToDecimal();
 
-                    newSec.Strike = Convert.ToDecimal(QuikLua.Trading
+                    newSec.Strike = QuikLua.Trading
                         .GetParamEx(classCode, secCode, "STRIKE")
-                        .Result.ParamValue.Replace('.', Separator));
+                        .Result.ParamValue.Replace('.', Separator).ToDecimal();
                 }
                 else
                 {
@@ -413,21 +421,21 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 newSec.NameClass = oneSec.ClassCode;
 
-                newSec.PriceLimitHigh = Convert.ToDecimal(QuikLua.Trading
+                newSec.PriceLimitHigh = QuikLua.Trading
                     .GetParamEx(classCode, secCode, "PRICEMAX")
-                    .Result.ParamValue.Replace('.', Separator));
+                    .Result.ParamValue.Replace('.', Separator).ToDecimal();
 
-                newSec.PriceLimitLow = Convert.ToDecimal(QuikLua.Trading
+                newSec.PriceLimitLow = QuikLua.Trading
                     .GetParamEx(classCode, secCode, "PRICEMIN")
-                    .Result.ParamValue.Replace('.', Separator));
+                    .Result.ParamValue.Replace('.', Separator).ToDecimal();
 
-                newSec.PriceStep = Convert.ToDecimal(QuikLua.Trading
+                newSec.PriceStep = QuikLua.Trading
                     .GetParamEx(classCode, secCode, "SEC_PRICE_STEP")
-                    .Result.ParamValue.Replace('.', Separator));
+                    .Result.ParamValue.Replace('.', Separator).ToDecimal();
 
-                newSec.PriceStepCost = Convert.ToDecimal(QuikLua.Trading
-                    .GetParamEx(classCode, secCode, "STEPPRICET")
-                    .Result.ParamValue.Replace('.', Separator));
+                newSec.PriceStepCost = QuikLua.Trading
+                    .GetParamEx(classCode, secCode, "STEPPRICE")
+                    .Result.ParamValue.Replace('.', Separator).ToDecimal();
 
                 if (newSec.PriceStep == 0 &&
                     newSec.Decimals > 0)
@@ -580,25 +588,25 @@ namespace OsEngine.Market.Servers.QuikLua
                         if (qPortfolio != null && qPortfolio.InAssets != null)
                         {
                             var begin = qPortfolio.InAssets.Replace('.', separator);
-                            myPortfolio.ValueBegin = Convert.ToDecimal(begin.Remove(begin.Length - 4));
+                            myPortfolio.ValueBegin = begin.Remove(begin.Length - 4).ToDecimal();
                         }
 
                         if (qPortfolio != null && qPortfolio.Assets != null)
                         {
                             var current = qPortfolio.Assets.Replace('.', separator);
-                            myPortfolio.ValueCurrent = Convert.ToDecimal(current.Remove(current.Length - 4));
+                            myPortfolio.ValueCurrent = current.Remove(current.Length - 4).ToDecimal();
                         }
 
                         if (qPortfolio != null && qPortfolio.TotalLockedMoney != null)
                         {
                             var blocked = qPortfolio.TotalLockedMoney.Replace('.', separator);
-                            myPortfolio.ValueBlocked = Convert.ToDecimal(blocked.Remove(blocked.Length - 4));
+                            myPortfolio.ValueBlocked = blocked.Remove(blocked.Length - 4).ToDecimal();
                         }
 
                         if (qPortfolio != null && qPortfolio.ProfitLoss != null)
                         {
                             var profit = qPortfolio.ProfitLoss.Replace('.', separator);
-                            myPortfolio.Profit = Convert.ToDecimal(profit.Remove(profit.Length - 4));
+                            myPortfolio.Profit = profit.Remove(profit.Length - 4).ToDecimal();
                         }
                     }
 
@@ -797,6 +805,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
+        private string _clientCode;
+
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SendOrder(Order order)
         {
@@ -808,7 +818,23 @@ namespace OsEngine.Market.Servers.QuikLua
                 QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
                 qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
-                qOrder.Account = order.PortfolioNumber;
+                qOrder.Account = order.PortfolioNumber; // "SPBFUT02F5M"
+
+                List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
+
+                if (string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false)
+                {
+                    _clientCode = ClientCodeFromSettings.Value;
+                }
+                else
+                {
+                    if (_clientCode == null)
+                    {
+                        _clientCode = QuikLua.Class.GetClientCode().Result;
+                    }
+                }
+
+                qOrder.ClientCode = _clientCode;
                 qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
                 qOrder.Quantity = Convert.ToInt32(order.Volume);
                 qOrder.Operation = order.Side == Side.Buy ? Operation.Buy : Operation.Sell;
@@ -1105,6 +1131,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private object _getCandlesLocker = new object();
 
+        private RateGate _gateToGetCandles = new RateGate(1, TimeSpan.FromMilliseconds(500));
+
         /// <summary>
         /// take candles by instrument
         /// взять свечи по инструменту
@@ -1119,6 +1147,8 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 lock (_getCandlesLocker)
                 {
+                    _gateToGetCandles.WaitToProceed();
+
                     if (timeSpan.TotalMinutes > 1440 ||
                         timeSpan.TotalMinutes < 1)
                     {

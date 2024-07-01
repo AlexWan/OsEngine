@@ -3,11 +3,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Trend strategy at the intersection of the indicator RVI
 /// “рендова€ стратеги€ на пересечение индикатора RVI
 /// </summary>
+[Bot("RviTrade")]
 public class RviTrade : BotPanel
 {
     public RviTrade(string name, StartProgram startProgram)

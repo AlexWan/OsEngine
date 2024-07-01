@@ -516,6 +516,42 @@ namespace OsEngine.Language
             "Eng:Change of order price. Number _" +
             "Ru:Смена цены ордера. Номер _");
 
+        public string Label121 => OsLocalization.ConvertToLocString(
+            "Eng:You can set a client code if your broker (BСS / VTB / etc) requires it. Or when trading on a sub-account _" +
+            "Ru:Вы можете установить код клиента, если этого требует Ваш брокер (БКС / ВТБ / etc). Или когда торгуете на саб-счёте _");
+
+        public string Label122 => OsLocalization.ConvertToLocString(
+            "Eng:Value type_" +
+            "Ru:Тип переменной_");
+
+        public string Label123 => OsLocalization.ConvertToLocString(
+            "Eng:Seconds shift_" +
+            "Ru:Сдвиг секунд_");
+
+        public string Label124 => OsLocalization.ConvertToLocString(
+            "Eng:Forced start from zero_" +
+            "Ru:Перезапуск сборки с нуля_");
+
+        public string Label125 => OsLocalization.ConvertToLocString(
+            "Eng:Candles count in day_" +
+            "Ru:Кол-во свечей за день_");
+
+        public string Label126 => OsLocalization.ConvertToLocString(
+            "Eng:Adaptive days look back_" +
+            "Ru:Адаптируем за кол-во дней_");
+
+        public string Label127 => OsLocalization.ConvertToLocString(
+           "Eng:Min move volatility mult_" +
+           "Ru:Мин. движение. Множитель волатильности_");
+
+        public string Label128 => OsLocalization.ConvertToLocString(
+           "Eng:Back move volatility mult_" +
+           "Ru:Откат. Множитель волатильности_");
+
+        public string Label129 => OsLocalization.ConvertToLocString(
+           "Eng:Vertical segments of volatility_" +
+           "Ru:Вертикальных отрезков волатильности_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");

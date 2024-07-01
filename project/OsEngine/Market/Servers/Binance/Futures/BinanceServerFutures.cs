@@ -247,7 +247,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.Futures;
                 security.Exchange = ServerType.BinanceFutures.ToString();
-                security.Lot = sec.filters[1].minQty.ToDecimal();
+                security.Lot = 1;
                 security.PriceStep = sec.filters[0].tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
 
@@ -553,7 +553,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             List<Candle> candles = GetCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
 
-            for(int i  = 1; candles != null && i < candles.Count;i++)
+            for (int i  = 1; candles != null && i < candles.Count;i++)
             {
                 if (candles[i-1].TimeStart == candles[i].TimeStart)
                 {
@@ -1490,9 +1490,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                         if (_queuePublicMessages.TryDequeue(out mes))
                         {
-                            if (mes.Contains("error"))
+                            if (mes.Contains("\"depthUpdate\""))
                             {
-                                SendLogMessage(mes, LogMessageType.Error);
+                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponseFutures());
+                                UpdateMarketDepth(quotes);
                             }
                             else if (mes.Contains("\"e\":\"trade\""))
                             {
@@ -1505,10 +1506,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                                 UpdateTrades(quotes);
                             }
-                            else if (mes.Contains("\"depthUpdate\""))
+                            else if (mes.Contains("error"))
                             {
-                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponseFutures());
-                                UpdateMarketDepth(quotes);
+                                SendLogMessage(mes, LogMessageType.Error);
                             }
                         }
                     }

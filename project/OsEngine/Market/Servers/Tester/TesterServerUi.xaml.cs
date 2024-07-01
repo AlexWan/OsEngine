@@ -330,15 +330,16 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         void ChangeProgressBar()
         {
-            if (!ProgressBar.Dispatcher.CheckAccess())
-            {
-                ProgressBar.Dispatcher.Invoke(ChangeProgressBar);
-                return;
-            }
-
             try
             {
-                if(_server == null)
+                if (!ProgressBar.Dispatcher.CheckAccess())
+                {
+                    ProgressBar.Dispatcher.Invoke(ChangeProgressBar);
+                    return;
+                }
+
+
+                if (_server == null)
                 {
                     return;
                 }
@@ -598,22 +599,30 @@ namespace OsEngine.Market.Servers.Tester
         {
             while(true)
             {
-                Thread.Sleep(3000);
-
-                if (_uiIsClosed)
+                try
                 {
-                    return;
-                }
+                    Thread.Sleep(3000);
 
-                if(_neadToUpdateChartValue == false)
+                    if (_uiIsClosed)
+                    {
+                        return;
+                    }
+
+                    if (_neadToUpdateChartValue == false)
+                    {
+                        continue;
+                    }
+
+                    _neadToUpdateChartValue = false;
+
+                    PaintProfitOnChart();
+                    Resize();
+
+                }
+                catch(Exception ex)
                 {
-                    continue;
+                    _server?.SendLogMessage(ex.ToString(),LogMessageType.Error);
                 }
-
-                _neadToUpdateChartValue = false;
-
-                PaintProfitOnChart();
-                Resize();
             }
         }
 
@@ -702,13 +711,13 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void PaintProfitOnChart()
         {
-            if(_chartReport == null)
-            {
-                return;
-            }
-
             try
             {
+                if (_chartReport == null)
+                {
+                    return;
+                }
+
                 List<decimal> portfolio = _server.ProfitArray;
 
                 if (portfolio == null || portfolio.Count == 0)
@@ -837,74 +846,81 @@ namespace OsEngine.Market.Servers.Tester
 
         private void Resize()
         {
-            if (_chartReport.InvokeRequired)
+            try
             {
-                _chartReport.Invoke(new Action(Resize));
-                return;
-            }
-
-            Series profitSeries = _chartReport.Series.FindByName("SeriesProfit");
-
-            ChartArea area = _chartReport.ChartAreas[0];
-
-            if (profitSeries == null ||
-                profitSeries.Points == null ||
-                profitSeries.Points.Count < 1)
-            {
-                return;
-            }
-
-            int firstX = 0; // first candle displayed/первая отображаемая свеча
-            int lastX = profitSeries.Points.Count; // последняя отображаемая свеча
-
-            if (_chartReport.ChartAreas[0].AxisX.ScrollBar.IsVisible)
-            {// if you have already selected a range, assign the first and last based on this range/если уже выбран какой-то диапазон, назначаем первую и последнюю исходя из этого диапазона
-                firstX = Convert.ToInt32(area.AxisX.ScaleView.Position);
-                lastX = Convert.ToInt32(area.AxisX.ScaleView.Position) +
-                              Convert.ToInt32(area.AxisX.ScaleView.Size) + 1;
-            }
-
-            if (firstX < 0)
-            {
-                firstX = 0;
-                lastX = firstX +
-                              Convert.ToInt32(area.AxisX.ScaleView.Size) + 1;
-            }
-
-            if (firstX == lastX ||
-                firstX > lastX ||
-                firstX < 0 ||
-                lastX <= 0)
-            {
-                return;
-            }
-
-            double max = 0;
-            double min = double.MaxValue;
-
-            for (int i = firstX; profitSeries.Points != null && i < profitSeries.Points.Count && i < lastX; i++)
-            {
-                if (profitSeries.Points[i].YValues.Max() > max)
+                if (_chartReport.InvokeRequired)
                 {
-                    max = profitSeries.Points[i].YValues.Max();
+                    _chartReport.Invoke(new Action(Resize));
+                    return;
                 }
-                if (profitSeries.Points[i].YValues.Min() < min && profitSeries.Points[i].YValues.Min() != 0)
+
+                Series profitSeries = _chartReport.Series.FindByName("SeriesProfit");
+
+                ChartArea area = _chartReport.ChartAreas[0];
+
+                if (profitSeries == null ||
+                    profitSeries.Points == null ||
+                    profitSeries.Points.Count < 1)
                 {
-                    min = profitSeries.Points[i].YValues.Min();
+                    return;
                 }
+
+                int firstX = 0; // first candle displayed/первая отображаемая свеча
+                int lastX = profitSeries.Points.Count; // последняя отображаемая свеча
+
+                if (_chartReport.ChartAreas[0].AxisX.ScrollBar.IsVisible)
+                {// if you have already selected a range, assign the first and last based on this range/если уже выбран какой-то диапазон, назначаем первую и последнюю исходя из этого диапазона
+                    firstX = Convert.ToInt32(area.AxisX.ScaleView.Position);
+                    lastX = Convert.ToInt32(area.AxisX.ScaleView.Position) +
+                                  Convert.ToInt32(area.AxisX.ScaleView.Size) + 1;
+                }
+
+                if (firstX < 0)
+                {
+                    firstX = 0;
+                    lastX = firstX +
+                                  Convert.ToInt32(area.AxisX.ScaleView.Size) + 1;
+                }
+
+                if (firstX == lastX ||
+                    firstX > lastX ||
+                    firstX < 0 ||
+                    lastX <= 0)
+                {
+                    return;
+                }
+
+                double max = 0;
+                double min = double.MaxValue;
+
+                for (int i = firstX; profitSeries.Points != null && i < profitSeries.Points.Count && i < lastX; i++)
+                {
+                    if (profitSeries.Points[i].YValues.Max() > max)
+                    {
+                        max = profitSeries.Points[i].YValues.Max();
+                    }
+                    if (profitSeries.Points[i].YValues.Min() < min && profitSeries.Points[i].YValues.Min() != 0)
+                    {
+                        min = profitSeries.Points[i].YValues.Min();
+                    }
+                }
+
+
+                if (min == double.MaxValue ||
+                    max == 0 ||
+                    max == min ||
+                    max < min)
+                {
+                    return;
+                }
+
+                area.AxisY2.Maximum = max;
+                area.AxisY2.Minimum = min;
             }
-
-
-            if (min == double.MaxValue ||
-                max == 0 ||
-                max == min ||
-                max < min)
+            catch(Exception ex)
             {
-                return;
+                _server?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            area.AxisY2.Maximum = max;
-            area.AxisY2.Minimum = min;
         }
 
         // instrument table
