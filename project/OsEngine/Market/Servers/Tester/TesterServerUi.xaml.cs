@@ -17,6 +17,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.ZB;
 using Color = System.Drawing.Color;
 
 namespace OsEngine.Market.Servers.Tester
@@ -161,6 +162,9 @@ namespace OsEngine.Market.Servers.Tester
             
             ComboBoxSets.SelectionChanged += ComboBoxSets_SelectionChanged;
 
+            CheckBoxRemoveTrades.IsChecked = _server.RemoveTradesFromMemory;
+            CheckBoxRemoveTrades.Click += CheckBoxRemoveTrades_Click;
+
             // data for test/данные для тестирования
 
             ComboBoxDataType.Items.Add(TesterDataType.Candle);
@@ -202,6 +206,7 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label37;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
+            CheckBoxRemoveTrades.Content = OsLocalization.Market.Label130; 
 
             ButtonNextPos.Content = OsLocalization.Market.Label62;
             ButtonGoTo.Content = OsLocalization.Market.Label63;
@@ -226,6 +231,11 @@ namespace OsEngine.Market.Servers.Tester
             }
 
             GlobalGUILayout.Listen(this, "testerServerGui");
+        }
+
+        private void CheckBoxRemoveTrades_Click(object sender, RoutedEventArgs e)
+        {
+            _server.RemoveTradesFromMemory = CheckBoxRemoveTrades.IsChecked.Value;
         }
 
         private CultureInfo _currentCulture;
