@@ -1347,7 +1347,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         _lastFASTMulticastTime = DateTime.Now;
 
-                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length - 4))
                         {
                             FastDecoder decoder = new FastDecoder(context, stream);
                             OpenFAST.Message msg = decoder.ReadMessage();
@@ -1599,7 +1599,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         _lastFASTMulticastTime = DateTime.Now;
 
-                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length - 4))
                         {
                             FastDecoder decoder = new FastDecoder(context, stream);
                             OpenFAST.Message msg = decoder.ReadMessage();
@@ -1732,7 +1732,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         _lastFASTMulticastTime = DateTime.Now;
 
-                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length - 4))
                         {
                             FastDecoder decoder = new FastDecoder(context, stream);
                             OpenFAST.Message msg = decoder.ReadMessage();
@@ -1845,7 +1845,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                     
                     _lastFASTMulticastTime = DateTime.Now;
 
-                    using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                    using (MemoryStream stream = new MemoryStream(buffer, 4, length - 4))
                     {
                         FastDecoder decoder = new FastDecoder(context, stream);
                         OpenFAST.Message msg = decoder.ReadMessage();
@@ -1974,7 +1974,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                     _lastFASTMulticastTime = DateTime.Now;
 
-                    using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                    using (MemoryStream stream = new MemoryStream(buffer, 4, length - 4))
                     {
                         FastDecoder decoder = new FastDecoder(context, stream);
                         OpenFAST.Message msg = decoder.ReadMessage();
@@ -2084,7 +2084,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         _lastFASTMulticastTime = DateTime.Now;
 
-                        using (MemoryStream stream = new MemoryStream(buffer, 4, length))
+                        using (MemoryStream stream = new MemoryStream(buffer, 4, length - 4))
                         {
                             FastDecoder decoder = new FastDecoder(context, stream);
                             OpenFAST.Message msg = decoder.ReadMessage();
