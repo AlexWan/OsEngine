@@ -58,6 +58,7 @@ using OsEngine.Market.Servers.MoexAlgopack;
 using OsEngine.Market.Servers.HTX.Spot;
 using OsEngine.Market.Servers.HTX.Futures;
 using OsEngine.Market.Servers.HTX.Swap;
+using OsEngine.Market.Servers.MoexFixFastSpot;
 
 namespace OsEngine.Market
 {
@@ -198,6 +199,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
                 serverTypes.Add(ServerType.MoexAlgopack);
+                serverTypes.Add(ServerType.MoexFixFastSpot);
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
@@ -285,6 +287,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
                 serverTypes.Add(ServerType.MoexAlgopack);
+                serverTypes.Add(ServerType.MoexFixFastSpot);
                 serverTypes.Add(ServerType.AscendEx_BitMax);
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
@@ -387,6 +390,10 @@ namespace OsEngine.Market
                 if (type == ServerType.MoexAlgopack)
                 {
                     newServer = new MoexAlgopackServer();
+                }
+                if (type == ServerType.MoexFixFastSpot)
+                {
+                    newServer = new MoexFixFastSpotServer();
                 }
                 if (type == ServerType.XTSpot)
                 {
@@ -1012,6 +1019,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new MoexAlgopackServerPermission();
                 }
+                else if (type == ServerType.MoexFixFastSpot)
+                {
+                    serverPermission = new MoexFixFastSpotServerPermission();
+                }
                 else if (type == ServerType.XTSpot)
                 {
                     serverPermission = new XTSpotServerPermission();
@@ -1540,5 +1551,10 @@ namespace OsEngine.Market
         /// HTXSwap exchange
         /// </summary>
         HTXSwap,
+
+        /// <summary>
+        /// FIX/FAST for MOEX Spot
+        /// </summary>
+        MoexFixFastSpot,
     }
 }
