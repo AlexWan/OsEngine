@@ -96,6 +96,9 @@
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="OpenFAST">
+      <HintPath>bin\Debug\OpenFAST.dll</HintPath>
+    </Reference>
     <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Vendors\protobuf-net.dll</HintPath>
@@ -774,6 +777,25 @@
     <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseTrades.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServer.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServerPermission.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\AFIXHeader.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\AFIXMessageBody.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\FASTHeader.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\FASTLogonMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\FIXMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\Header.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\HeartbeatMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\LogonMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\LogoutMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\MarketDataRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\NewOrderSingleMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\OrderCancelReplaceRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\OrderCancelRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\OrderMassCancelRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\ResendRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\TestRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\Trailer.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\MoexFixFastSpotServer.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\MoexFixFastSpotServerPermission.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssDataServer.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssPermission.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
