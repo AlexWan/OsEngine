@@ -675,13 +675,33 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 5 Data
 
+        public RateGate _rateGateCandles = new RateGate(1, TimeSpan.FromMilliseconds(500));
+
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
+            _rateGateCandles.WaitToProceed();
+
             CandlesResponce securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
+
+            if (securityResponce == null)
+            {
+                securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
+            }
+
+            if (securityResponce == null)
+            {
+                return null;
+            }
 
             List<Candle> candles = new List<Candle>();
 
             ConvertCandles(securityResponce, candles);
+
+            if (candles == null ||
+               candles.Count == 0)
+            {
+                return null;
+            }
 
             candles.Reverse();
 
