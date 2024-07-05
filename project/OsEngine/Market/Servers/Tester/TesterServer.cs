@@ -126,6 +126,26 @@ namespace OsEngine.Market.Servers.Tester
             _ui = null;
         }
 
+        public bool RemoveTradesFromMemory
+        {
+            get
+            {
+                return _removeTradesFromMemory;
+            }
+            set
+            {
+                if (value == _removeTradesFromMemory)
+                {
+                    return;
+                }
+
+                _removeTradesFromMemory = value;
+                Save();
+            }
+        }
+        private bool _removeTradesFromMemory;
+
+
         /// <summary>
 		/// data type that the tester orders
         /// тип данных которые заказывает тестер
@@ -178,6 +198,7 @@ namespace OsEngine.Market.Servers.Tester
                     Enum.TryParse(reader.ReadLine(), out _orderExecutionType);
                     _profitMarketIsOn = Convert.ToBoolean(reader.ReadLine());
                     _guiIsOpenFullSettings = Convert.ToBoolean(reader.ReadLine());
+                    _removeTradesFromMemory = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -207,7 +228,7 @@ namespace OsEngine.Market.Servers.Tester
                     writer.WriteLine(_orderExecutionType);
                     writer.WriteLine(_profitMarketIsOn);
                     writer.WriteLine(_guiIsOpenFullSettings);
-
+                    writer.WriteLine(_removeTradesFromMemory);
                     writer.Close();
                 }
             }
@@ -3868,17 +3889,25 @@ namespace OsEngine.Market.Servers.Tester
 
             if (NewTradeEvent != null)
             {
-                foreach (var trades in _allTrades)
+                for (int i = 0; i < _allTrades.Length; i++)
                 {
+                    List<Trade> trades = _allTrades[i];
+
                     if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode
                         && tradesNew[0].TimeFrameInTester == trades[0].TimeFrameInTester)
                     {
+                        if (_removeTradesFromMemory
+                            && trades.Count > 1000)
+                        {
+                            _allTrades[i] = _allTrades[i].GetRange(trades.Count - 1000, 1000);
+                            trades = _allTrades[i];
+                        }
+
                         NewTradeEvent(trades);
                         break;
                     }
                 }
             }
-
             if (NewBidAscIncomeEvent != null)
             {
                 NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode,""));

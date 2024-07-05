@@ -161,6 +161,9 @@ namespace OsEngine.Market.Servers.Tester
             
             ComboBoxSets.SelectionChanged += ComboBoxSets_SelectionChanged;
 
+            CheckBoxRemoveTrades.IsChecked = _server.RemoveTradesFromMemory;
+            CheckBoxRemoveTrades.Click += CheckBoxRemoveTrades_Click;
+
             // data for test/данные для тестирования
 
             ComboBoxDataType.Items.Add(TesterDataType.Candle);
@@ -268,6 +271,11 @@ namespace OsEngine.Market.Servers.Tester
 
             _log.StopPaint();
             _log = null;
+        }
+
+        private void CheckBoxRemoveTrades_Click(object sender, RoutedEventArgs e)
+        {
+            _server.RemoveTradesFromMemory = CheckBoxRemoveTrades.IsChecked.Value;
         }
 
         /// <summary>

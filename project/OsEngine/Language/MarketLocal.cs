@@ -552,6 +552,10 @@ namespace OsEngine.Language
            "Eng:Vertical segments of volatility_" +
            "Ru:Вертикальных отрезков волатильности_");
 
+        public string Label130 => OsLocalization.ConvertToLocString(
+           "Eng:Remove trades from memory_" +
+           "Ru:Удалять трейды из памяти_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
