@@ -679,42 +679,63 @@ namespace OsEngine.Market.Servers.OKX
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            _rateGateCandles.WaitToProceed();
+           return GetLastCandleHistoryRecursive(security, timeFrameBuilder, candleCount, 1);
+        }
 
-            CandlesResponce securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
-
-            if (securityResponce == null)
+        public List<Candle> GetLastCandleHistoryRecursive(
+            Security security, TimeFrameBuilder timeFrameBuilder, int candleCount, int recurseNumber)
+        {
+            try
             {
-                securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
-            }
+                _rateGateCandles.WaitToProceed();
 
-            if (securityResponce == null)
-            {
-                return null;
-            }
+                CandlesResponce securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
 
-            List<Candle> candles = new List<Candle>();
-
-            ConvertCandles(securityResponce, candles);
-
-            if (candles == null ||
-               candles.Count == 0)
-            {
-                return null;
-            }
-
-            candles.Reverse();
-
-            if (candles != null && candles.Count != 0)
-            {
-                for (int i = 0; i < candles.Count; i++)
+                if (securityResponce == null)
                 {
-                    candles[i].State = CandleState.Finished;
+                    securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
                 }
-                candles[candles.Count - 1].State = CandleState.Started;
+
+                if (securityResponce == null)
+                {
+                    return null;
+                }
+
+                List<Candle> candles = new List<Candle>();
+
+                ConvertCandles(securityResponce, candles);
+
+                if (candles == null ||
+                   candles.Count == 0)
+                {
+                    return null;
+                }
+
+                candles.Reverse();
+
+                if (candles != null && candles.Count != 0)
+                {
+                    for (int i = 0; i < candles.Count; i++)
+                    {
+                        candles[i].State = CandleState.Finished;
+                    }
+                    candles[candles.Count - 1].State = CandleState.Started;
+                }
+
+                return candles;
+            }
+            catch
+            {
+
             }
 
-            return candles;
+            if(recurseNumber < 5)
+            {
+                recurseNumber++;
+                return GetLastCandleHistoryRecursive(security, timeFrameBuilder, candleCount, recurseNumber);
+            }
+
+            return null;
         }
 
         private CandlesResponce GetResponseCandles(string nameSec, TimeSpan tf)

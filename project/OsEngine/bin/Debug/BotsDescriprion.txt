@@ -31,11 +31,12 @@ OneLegArbitrage&Trading robot on the index. The intersection of MA on the index 
 PairRsiTrade&Pair trading based on the RSI indicator Logic: if RsiOne > RsiTwo + RsiSpread - then we are Sell on the first instrument and Buy on the second one. Logic: if RsiTwo > RsiOne + RsiSpread - then we are Buy on the first instrument and Sell on the second one. Exit: on the return signal.&Include&&Simple 2*&RSI*RSI*&
 PriceChannelBreak&When the candle is closed outside the PriceChannel channel, we enter the position, the stop loss is at the extremum of the last candle from the entry candle, take profit by the channel size from the close of the candle at which the entry occurred&Include&&Simple 1*&PriceChannel*&
 PriceChannelVolatility&Breakthrough of the channel built by PriceChannel + -ATR * coefficient, additional input when the price leaves below the channel line by ATR * coefficient. Trailing stop on the bottom line of the PriceChannel channel&Include&&Simple 1*&PriceChannel*ATR*&
+ParabolicSarTrade&Trend strategy at the intersection of the ParabolicSar indicator. if Price < lastSar - close position and open Short. if Price > lastSar - close position and open Long.&Include&&Simple 1*&ParabolicSaR*&
+PriceChannelTrade&Trend strategy on interseption PriceChannel indicator. if PriceLow < _lastPriceChDown - close position and open Short. if PriceHigh > _lastPriceChUp - close position and open Long.&Include&&Simple 1*&PriceChannel*&
+PinBarScreener&&Include&&Screener 1*&Sma*&
 PinBarTrade&&Include&&Simple 1*&Sma*&
 PivotPointsRobot&&Include&&Simple 1*&PivotPoints*&
 PatternTrader&Pattern trading robot&Include&&Simple 1*&&
-ParabolicSarTrade&Trend strategy at the intersection of the ParabolicSar indicator. if Price < lastSar - close position and open Short. if Price > lastSar - close position and open Long.&Include&&Simple 1*&ParabolicSaR*&
-PriceChannelTrade&Trend strategy on interseption PriceChannel indicator. if PriceLow < _lastPriceChDown - close position and open Short. if PriceHigh > _lastPriceChUp - close position and open Long.&Include&&Simple 1*&PriceChannel*&
 PairCointegrationSideTrader&The robot trades on a chart of deviations of one instrument from another, calculated through their difference with the multiplier. Two lines, calculated from the standard deviation multiplied by the multiplier, are superimposed on this graph (Cointegration). Above and below zero. When the current deviation is higher than the upper line on the deviation chart - we enter a position expecting the instruments to converge. We close the previous position. When the current deviation is below the bottom line on the Deviation chart - enter the position, counting on the instruments convergence. Closing the previous position.&Include&&Pair 1*&&
 PairCorrelationNegative&Bot - trading pairs in the trend If the correlation is below -0.8 and we are on some side of the cointegration - enter counting on a further spread. Exit - when correlation rises above 0.8&Include&&Pair 1*&&
 PairCorrelationTrader&if the correlation is higher than 0.9 and we are on some side of the cointegration - enter, counting on the pair convergence Exit by the inverse cointegration signal&Include&&Pair 1*&&
@@ -51,8 +52,9 @@ StrategyBillWilliams&&Include&&Simple 1*&Alligator*Fractal*AwesomeOscillator*&
 SmaScreener&If there is a position, exit by trailing stop. If there is no position. Open long if the last N candles we were above the moving average&Include&&Screener 1*&Sma*&
 SmaTrendSample&Trend robot SmaTrendSample Buy: lastCandlePrice > smaValue and lastCandlePrice > upChannel.Sell: lastCandlePrice < smaValue and lastCandlePrice < downChannel.Exit: By TralingStop&Include&&Simple 1*&Sma*Envelops*&
 StrategyBollinger&The Countertrend robot Buy: 1. Price below BollingerDownLine. Sell: 1. The price is more than BollingerUpLine. Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*MovingAverage*&
-ThreeSoldier&Trading robot Three Soldiers. When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop&Include&&Simple 1*&&
 TradeLineExample&Example of trading on sloping levels&Include&&Simple 1*&ZigZag*&
+ThreeSoldierVolatilityAdaptive&Trading robot Three Soldiers adaptive by volatility. When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop&Include&&Simple 1*&&
+ThreeSoldier&Trading robot Three Soldiers. When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop&Include&&Simple 1*&&
 TwoLegArbitrage&Pair trading based on index analysis. Buy: when the RSI indicator built on the index goes below the oversold level. Sell: when the RSI indicator built on the index goes above the oversold level. Exit: by reverse system.&Include&&Simple 2*Index 1*&Rsi*&
 TimeOfDayBot&TimeOfDayBot. We choose which position we want to open Sell and Buy and set the entry time. Exit: by stop and profit %.&Include&&Simple 1*&&
 TestBotCandlesComparison&&Include&&&&
