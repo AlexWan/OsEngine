@@ -1030,13 +1030,14 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 var trade = new Trade();
 
                 trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(jtTrade.T));
-                trade.Price = jtTrade.P.ToDecimal();
+                trade.Price = jtTrade.p.ToDecimal();
                 trade.MicroSeconds = 0;
-                trade.Id = jtTrade.A.ToString();
-                trade.Volume = Math.Abs(jtTrade.Q.ToDecimal());
+                trade.Id = jtTrade.a.ToString();
+                trade.Volume = Math.Abs(jtTrade.q.ToDecimal());
                 trade.SecurityNameCode = secName;
 
-                if (jtTrade.Q.ToDecimal() >= 0)
+                if (jtTrade.m[0] == 'T'
+                    || jtTrade.m[0] == 't')
                 {
                     trade.Side = Side.Buy;
                     trade.Ask = 0;
@@ -1044,7 +1045,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     trade.Bid = trade.Price;
                     trade.BidsVolume = trade.Volume;
                 }
-                else if (jtTrade.Q.ToDecimal() < 0)
+                else
                 {
                     trade.Side = Side.Sell;
                     trade.Ask = trade.Price;
