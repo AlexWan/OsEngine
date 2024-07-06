@@ -1119,6 +1119,7 @@
     <Compile Include="Robots\PairArbitrage\PairCointegrationSideTrader.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationNegative.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationTrader.cs" />
+    <Compile Include="Robots\Patterns\VolatilityAdaptiveCandlesTrader.cs" />
     <Compile Include="Robots\Patterns\ThreeSoldierVolatilityAdaptive.cs" />
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
