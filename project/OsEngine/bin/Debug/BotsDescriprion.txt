@@ -7,6 +7,7 @@ ClusterEngine&blank strategy for manual trading&Include&&Cluster 1*&&
 CciTrade&Counter Trend Strategy Based on CCI Indicator. Max - 3 poses Buy: 1. CCI is less than DownLine. Sell: 1. CCI more UpLine. Exit: on the return signal.&Include&&Simple 1*&CCI*&
 ChangePriceBotExtStopMarket&&Include&&Simple 1*&&
 CustomParamsUseBotSample&&Include&&Simple 1*&Sma*Sma*ATR*&
+CustomCandlesImpulseTrader&Trading robot for adaptive by volatility candle series. if he sees a movement to one side in a short period of time, it enters the position&Include&&Simple 1*&&
 CurrencyArbitrageClassic&A robot for classic currency arbitrage&Include&&Polygon 1*&&
 CurrencyMoveExplorer&Robot for research. Saves slices of the situation on the bundle of instruments within 3 seconds after receiving a signal that there is profit on the sequence.&Include&&Polygon 1*&&
 ClusterCountertrend&The Countertrend robot Buy: we buy if we are under the largest volume for sale in the last 10 candles. Sell: sell if we are above the largest purchase volume for the last 10 candles. Exit logic: By return signal.&Include&&Simple 1*Cluster 1*&&
@@ -61,6 +62,7 @@ TestBotCandlesComparison&&Include&&&&
 TestBotConnection&Do not turn on - robot for connection testing&Include&&Screener 1*&Sma*&
 TestBotOpenAndCanselOrders&&Include&&&&
 TestBotTradesInCandlesTest&Do not enable - a robot for testing the synchronism of the array of trades in the candle and the candles themselves&Include&&Screener 1*&Sma*&
+VolatilityAdaptiveCandlesTrader&&Include&&Simple 1*&&
 WilliamsRangeTrade&Counter Trend Strategy Based on Willams% R Indicator Buy: 1. Williams Range is smaller than DownLine. sell: 1. Williams Range is larger than UpLine. exit: 1. On the return signal&Include&&Simple 1*&WilliamsRange*&
 WServerTester&&Include&&&&
 ADDivergence&The trend robot on AD indicator divergence and price. Buy: at the price, the minimum for a certain period of time is below the previous minimum, and on the indicator, the minimum is higher than the previous one. Sell: on the price the maximum for a certain period of time is higher than the previous maximum, and on the indicator the maximum is lower than the previous one.Exit: after n number of candles.&Script&&Simple 1*&ZigZagAD*ZigZag*&
