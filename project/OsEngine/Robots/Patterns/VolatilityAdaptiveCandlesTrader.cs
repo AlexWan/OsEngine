@@ -41,7 +41,7 @@ namespace OsEngine.Robots.Patterns
 
             DaysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 1, 0, 20, 1);
 
-            HeightSignalCandleVolaPecrent = CreateParameter("Height signal candle volatility percent", 20, 0, 20, 1m);
+            HeightSignalCandleVolaPercent = CreateParameter("Height signal candle volatility percent", 20, 0, 20, 1m);
 
             TrailingStopVolaPercent = CreateParameter("Height trail stop volatility percent", 10, 0, 20, 1m);
         }
@@ -69,7 +69,7 @@ namespace OsEngine.Robots.Patterns
         public StrategyParameterString TradeAssetInPortfolio;
 
         public StrategyParameterInt DaysVolatilityAdaptive;
-        public StrategyParameterDecimal HeightSignalCandleVolaPecrent;
+        public StrategyParameterDecimal HeightSignalCandleVolaPercent;
         public StrategyParameterDecimal TrailingStopVolaPercent;
 
         // volatility adaptation
@@ -77,7 +77,7 @@ namespace OsEngine.Robots.Patterns
         private void AdaptSignalCandleHeight(List<Candle> candles)
         {
             if (DaysVolatilityAdaptive.ValueInt <= 0
-                || HeightSignalCandleVolaPecrent.ValueDecimal <= 0)
+                || HeightSignalCandleVolaPercent.ValueDecimal <= 0)
             {
                 return;
             }
@@ -152,9 +152,9 @@ namespace OsEngine.Robots.Patterns
 
             volaPercentSma = volaPercentSma / volaInDaysPercent.Count;
 
-            // 3 считаем размер свечей с учётом этой волатильности
+            // 3 считаем размер параметров с учётом этой волатильности
 
-            decimal signalCandleHeight = volaPercentSma * (HeightSignalCandleVolaPecrent.ValueDecimal / 100);
+            decimal signalCandleHeight = volaPercentSma * (HeightSignalCandleVolaPercent.ValueDecimal / 100);
             HeightSignalCandle.ValueDecimal = signalCandleHeight;
 
             decimal trailStopHeight = volaPercentSma * (TrailingStopVolaPercent.ValueDecimal / 100);
