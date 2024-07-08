@@ -44,6 +44,8 @@ namespace OsEngine.Robots.Patterns
             HeightSignalCandleVolaPercent = CreateParameter("Height signal candle volatility percent", 20, 0, 20, 1m);
 
             TrailingStopVolaPercent = CreateParameter("Height trail stop volatility percent", 10, 0, 20, 1m);
+
+            Description = "Trading robot for adaptive candles by volatility";
         }
 
         public override string GetNameStrategyType()

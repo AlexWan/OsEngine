@@ -46,6 +46,8 @@ namespace OsEngine.Robots.Patterns
             _sma.Save();
 
             ParametrsChangeByUser += PinBarTrade_ParametrsChangeByUser;
+
+            Description = "Robot for trading the PinBar pattern in trend. ";
         }
 
         private void PinBarTrade_ParametrsChangeByUser()

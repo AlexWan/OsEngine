@@ -35,7 +35,7 @@ PriceChannelVolatility&Breakthrough of the channel built by PriceChannel + -ATR 
 ParabolicSarTrade&Trend strategy at the intersection of the ParabolicSar indicator. if Price < lastSar - close position and open Short. if Price > lastSar - close position and open Long.&Include&&Simple 1*&ParabolicSaR*&
 PriceChannelTrade&Trend strategy on interseption PriceChannel indicator. if PriceLow < _lastPriceChDown - close position and open Short. if PriceHigh > _lastPriceChUp - close position and open Long.&Include&&Simple 1*&PriceChannel*&
 PinBarScreener&&Include&&Screener 1*&Sma*&
-PinBarTrade&&Include&&Simple 1*&Sma*&
+PinBarTrade&Robot for trading the PinBar pattern in trend. &Include&&Simple 1*&Sma*&
 PivotPointsRobot&&Include&&Simple 1*&PivotPoints*&
 PatternTrader&Pattern trading robot&Include&&Simple 1*&&
 PairCointegrationSideTrader&The robot trades on a chart of deviations of one instrument from another, calculated through their difference with the multiplier. Two lines, calculated from the standard deviation multiplied by the multiplier, are superimposed on this graph (Cointegration). Above and below zero. When the current deviation is higher than the upper line on the deviation chart - we enter a position expecting the instruments to converge. We close the previous position. When the current deviation is below the bottom line on the Deviation chart - enter the position, counting on the instruments convergence. Closing the previous position.&Include&&Pair 1*&&
@@ -62,7 +62,7 @@ TestBotCandlesComparison&&Include&&&&
 TestBotConnection&Do not turn on - robot for connection testing&Include&&Screener 1*&Sma*&
 TestBotOpenAndCanselOrders&&Include&&&&
 TestBotTradesInCandlesTest&Do not enable - a robot for testing the synchronism of the array of trades in the candle and the candles themselves&Include&&Screener 1*&Sma*&
-VolatilityAdaptiveCandlesTrader&&Include&&Simple 1*&&
+VolatilityAdaptiveCandlesTrader&Trading robot for adaptive candles by volatility&Include&&Simple 1*&&
 WilliamsRangeTrade&Counter Trend Strategy Based on Willams% R Indicator Buy: 1. Williams Range is smaller than DownLine. sell: 1. Williams Range is larger than UpLine. exit: 1. On the return signal&Include&&Simple 1*&WilliamsRange*&
 WServerTester&&Include&&&&
 ADDivergence&The trend robot on AD indicator divergence and price. Buy: at the price, the minimum for a certain period of time is below the previous minimum, and on the indicator, the minimum is higher than the previous one. Sell: on the price the maximum for a certain period of time is higher than the previous maximum, and on the indicator the maximum is lower than the previous one.Exit: after n number of candles.&Script&&Simple 1*&ZigZagAD*ZigZag*&
