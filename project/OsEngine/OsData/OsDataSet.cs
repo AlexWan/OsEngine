@@ -1164,7 +1164,16 @@ namespace OsEngine.OsData
                     || TimeFrame == TimeFrame.Sec20
                     || TimeFrame == TimeFrame.Sec30)
             {
-                interval = new TimeSpan(3, 0, 0, 0);
+                TimeSpan timeInSet = TimeEnd - TimeStart;
+
+                if(timeInSet.TotalDays >= 3)
+                {
+                    interval = new TimeSpan(3, 0, 0, 0);
+                }
+                else
+                { // Если заказано меньше 3 дней
+                    interval = new TimeSpan(1, 0, 0, 0);
+                }
             }
 
             // 1 минутки рубим на месяца
