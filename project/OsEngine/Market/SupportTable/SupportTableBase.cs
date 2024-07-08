@@ -58,6 +58,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(quikLua);
 
+            SupportConnection fixFast = new SupportConnection()
+            {
+                ServerType = ServerType.MoexFixFastSpot,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Moex\\FixFast.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(fixFast);
+
             SupportConnection plaza = new SupportConnection()
             {
                 ServerType = ServerType.Plaza,
