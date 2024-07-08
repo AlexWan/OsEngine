@@ -1170,9 +1170,17 @@ namespace OsEngine.OsData
                 {
                     interval = new TimeSpan(3, 0, 0, 0);
                 }
-                else
-                { // Если заказано меньше 3 дней
+                else if (timeInSet.TotalDays >= 2)
+                {
+                    interval = new TimeSpan(2, 0, 0, 0);
+                }
+                else if (timeInSet.TotalDays >= 1)
+                {
                     interval = new TimeSpan(1, 0, 0, 0);
+                }
+                else
+                {
+                    interval = new TimeSpan(0, 0, 0, 0);
                 }
             }
 
