@@ -15,17 +15,17 @@ namespace OsEngine.Robots.TechSamples
     {
         public ElementsOnChartSampleBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            // creating a source
+            // создание источника / creating a source
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            //  create an indicator on the second chart area (MacdArea)
+            // создание индикатора на второй области графика (MacdArea) / create an indicator on the second chart area (MacdArea)
             _macd = IndicatorsFactory.CreateIndicatorByName("MACD", name + "MacdArea", false);
             _macd = (Aindicator)_tab.CreateCandleIndicator(_macd, "MacdArea");
             _macd.Save();
 
-            // create buttons and subscribe to the event of clicking on them
+            // создание кнопок и подписка на событие нажатия / create buttons and subscribe to the event of clicking on them
             _buttonAddPointOnPrimeArea = CreateParameterButton("Point on prime chart");
             _buttonAddPointOnPrimeArea.UserClickOnButtonEvent += _buttonAddPointOnPrimeArea_UserClickOnButtonEvent;
 
@@ -74,8 +74,8 @@ namespace OsEngine.Robots.TechSamples
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            // на завершении свечи - нужно обновить время конца линии и обновить линии
-            // иначе обновляться линия не будет. По умолчанию - всё отрезки
+            // на завершении свечи - нужно обновить время конца линии и обновить линии / at the end of the candle, you need to update the end time of the line and refresh the lines
+            // иначе обновляться линия не будет. По умолчанию - всё отрезки / otherwise the line will not be updated. By default, all segments
             if (_lineOnPrimeChart != null)
             {
                 _lineOnPrimeChart.TimeEnd = candles[candles.Count - 1].TimeStart;
@@ -89,14 +89,14 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        // button handlers
+        // обработчики кнопок / button handlers
 
         PointElement _point;
 
         private void _buttonAddPointOnPrimeArea_UserClickOnButtonEvent()
         {
             if (_tab.IsConnected == false)
-            {// if the source isn't ready. Go out
+            {// если источник не готов. Выйти / if the source isn't ready. Go out
                 return;
             }
 
@@ -104,7 +104,7 @@ namespace OsEngine.Robots.TechSamples
 
             if(candles.Count == 0 ||
                 candles.Count < 10)
-            {// if there are too few candles. Go out
+            {// если слишком мало свечей. Выйти / if there are too few candles. Go out
                 return;
             }
 
@@ -159,7 +159,7 @@ namespace OsEngine.Robots.TechSamples
             line.TimeEnd = candles[candles.Count-1].TimeStart;
             line.CanResize = true;
             line.Color = Color.White;
-            line.LineWidth = 3; // Line thickness
+            line.LineWidth = 3; // Толщина линии / line thickness
 
             line.Label = "Some label on Line";
             line.Font = new Font("Arial", 10);
@@ -199,7 +199,7 @@ namespace OsEngine.Robots.TechSamples
             line.TimeStart = candles[candles.Count - 10].TimeStart;
             line.TimeEnd = candles[candles.Count - 5].TimeStart;
             line.Color = Color.Green;
-            line.LineWidth = 1; // Line thickness
+            line.LineWidth = 1; // Толщина линии / line thickness
 
             line.Label = "Some label on segment";
 
@@ -231,14 +231,14 @@ namespace OsEngine.Robots.TechSamples
                 _tab.DeleteChartElement(_lineOnSecondChart);
             }
 
-            // second parameter - name of the area on the chart for the line 
+            // second parameter -  имя области на графике для линии / name of the area on the chart for the line
             LineHorisontal line = new LineHorisontal("Some line on second area", "MacdArea", false);
 
             line.Value = _macd.DataSeries[0].Last;
             line.TimeStart = candles[0].TimeStart;
             line.TimeEnd = candles[candles.Count - 1].TimeStart;
             line.Color = Color.White;
-            line.LineWidth = 5; // Line thickness
+            line.LineWidth = 5; // Толщина линии / line thickness
 
             line.Label = "Some label on second chart";
             _tab.SetChartElement(line);
@@ -277,7 +277,7 @@ namespace OsEngine.Robots.TechSamples
             line.TimeEnd = candles[candles.Count - 1].TimeStart;
 
             line.Color = Color.Bisque;
-            line.LineWidth = 3; // Толщина линии
+            line.LineWidth = 3; // Толщина линии / line thickness
 
             line.Label = "Some label on Line Inclined";
             _tab.SetChartElement(line);
