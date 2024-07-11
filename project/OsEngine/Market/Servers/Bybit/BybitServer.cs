@@ -425,6 +425,7 @@ namespace OsEngine.Market.Servers.Bybit
         #region 4 Portfolios
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+
         private void ThreadGetPortfolios()
         {
             Thread.Sleep(20000);
@@ -675,11 +676,20 @@ namespace OsEngine.Market.Servers.Bybit
         #endregion 4
 
         #region 5 Data
+
+        private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            _rateGateGetCandleHistory.WaitToProceed();
+            return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, false, DateTime.UtcNow, candleCount);
+        }
+
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, DateTime timeEnd, int CountToLoad)
         {
             try
             {
-                if(ServerStatus != ServerConnectStatus.Connect)
+                if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     return null;
                 }
@@ -717,11 +727,6 @@ namespace OsEngine.Market.Servers.Bybit
                 HandlerExeption(ex);
             }
             return null;
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, false, DateTime.UtcNow, candleCount);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -1287,14 +1292,18 @@ namespace OsEngine.Market.Servers.Bybit
 
         #region 9 Security subscrible
 
-        List<string> SubscribleSecuritySpot = new List<string>();
+        private List<string> SubscribleSecuritySpot = new List<string>();
 
-        List<string> SubscribleSecurityLinear = new List<string>();
+        private List<string> SubscribleSecurityLinear = new List<string>();
+
+        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(150));
 
         public void Subscrible(Security security)
         {
             try
             {
+                _rateGateSubscrible.WaitToProceed();
+
                 if (!security.Name.EndsWith(".P"))
                 {
                     if (SubscribleSecuritySpot.Exists(s => s == security.Name) == true)
