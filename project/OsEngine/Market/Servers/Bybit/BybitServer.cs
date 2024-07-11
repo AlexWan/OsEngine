@@ -951,7 +951,7 @@ namespace OsEngine.Market.Servers.Bybit
                 webSocketPublicLinear.MessageReceived += WebSocketPublic_MessageReceivedLinear;
                 webSocketPublicLinear.Closed += WebSocketPublic_Closed;
                 webSocketPublicLinear.Error += WebSocketPublic_Error;
-                webSocketPublicLinear.Opened += WebSocketPublic_Opened; ;
+                webSocketPublicLinear.Opened += WebSocketPublic_Opened;
                 if (webSocketPublicLinear.State != WebSocketState.Open)
                 {
                     webSocketPublicLinear.Open();
@@ -1747,12 +1747,15 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         continue;
                     }
-                    //             Console.WriteLine(_message);
+
+                   
                     Category category = Category.linear;
+
                     if (_message.EndsWith(".SPOT"))
                     {
                         category = Category.spot;
                     }
+
                     string message = _message.Replace("}.SPOT", "}");
 
                     SubscribleMessage subscribleMessage =

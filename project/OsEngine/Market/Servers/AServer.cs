@@ -1576,6 +1576,17 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
+                for (int i = 0; _securities != null && i < _securities.Count; i++)
+                {
+                    if (_securities[i].NameClass == securityClass &&
+                        string.IsNullOrEmpty(_securities[i].NameId) == false &&
+                            _securities[i].NameId == securityName)
+                    {
+                        security = _securities[i];
+                        break;
+                    }
+                }
+
                 if (security == null)
                 {
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
