@@ -173,7 +173,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }
