@@ -469,8 +469,16 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (TestingStartEvent != null)
                 {
-                    TestingStartEvent();
+                    try
+                    {
+                        TestingStartEvent();
+                    }
+                    catch(Exception ex)
+                    {
+                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                 }
+
                 _isFirstStart = false;
             }
             catch (Exception ex)
