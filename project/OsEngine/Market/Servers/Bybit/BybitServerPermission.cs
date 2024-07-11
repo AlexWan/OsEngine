@@ -168,7 +168,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus

@@ -5,9 +5,11 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Bybit.Entities;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.MoexFixFastSpot;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
@@ -244,8 +246,6 @@ namespace OsEngine.Market.Servers.Bybit
 
             }
         }
-
-        private string MyIDPrefix = "o_ExAVP";    // префикс ордеров
 
         private string main_Url = "https://api.bybit.com";
 
@@ -1431,11 +1431,6 @@ namespace OsEngine.Market.Servers.Bybit
 
                 for (int i = 0; i < responseMyTrades.data.Count; i++)
                 {
-                    if (!responseMyTrades.data[i].orderLinkId.Contains(MyIDPrefix))
-                    {
-                        continue;
-                    }
-
                     MyTrade myTrade = new MyTrade();
                     
                     if (responseMyTrades.data[i].category == Category.spot.ToString())
@@ -1484,10 +1479,7 @@ namespace OsEngine.Market.Servers.Bybit
                 for (int i = 0; i < responseMyTrades.data.Count; i++)
                 {
                     OrderStateType stateType = OrderStateType.None;
-                    if (!responseMyTrades.data[i].orderLinkId.Contains(MyIDPrefix))
-                    {
-                        continue;
-                    }
+
                     //Console.WriteLine("UpdateOrder - " + message);
                     stateType = responseMyTrades.data[i].orderStatus.ToUpper() switch
                     {
@@ -1516,7 +1508,16 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         newOrder.TimeCancel = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].updatedTime));
                     }
-                    newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].orderLinkId.Replace(MyIDPrefix, ""));
+
+                    try
+                    {
+                        newOrder.NumberUser = Convert.ToInt32(responseMyTrades.data[i].orderLinkId);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
                     newOrder.TypeOrder = responseMyTrades.data[i].orderType.ToLower() == "market" ? OrderPriceType.Market : OrderPriceType.Limit;
                     newOrder.NumberMarket = responseMyTrades.data[i].orderId;
                     newOrder.Side = responseMyTrades.data[i].side.ToUpper().Contains("BUY") ? Side.Buy : Side.Sell;
@@ -1890,7 +1891,7 @@ namespace OsEngine.Market.Servers.Bybit
                     parameters["marketUnit"] = "baseCoin";
                 }
 
-                parameters["orderLinkId"] = MyIDPrefix + order.NumberUser.ToString();
+                parameters["orderLinkId"] = order.NumberUser.ToString();
                 parameters["positionIdx"] = 0;// hedge_mode;
 
                 DateTime startTime = DateTime.Now;
@@ -1943,7 +1944,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 parameters["symbol"] = order.SecurityNameCode.Replace(".P", "");
-                parameters["orderLinkId"] = MyIDPrefix + order.NumberUser.ToString();
+                parameters["orderLinkId"] = order.NumberUser.ToString();
                 parameters["price"] = newPrice.ToString().Replace(",", ".");
                 JToken place_order_response = CreatePrivateQuery(parameters, HttpMethod.Post, "/v5/order/amend");
                 if (place_order_response != null)
@@ -1978,7 +1979,8 @@ namespace OsEngine.Market.Servers.Bybit
             Dictionary<string, object> parameters = new Dictionary<string, object>();
 
             if (
-                (order.SecurityClassCode != null && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString()))
+                (order.SecurityClassCode != null 
+                && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString()))
                 || order.SecurityNameCode.EndsWith(".P")
                )
             {
@@ -1989,7 +1991,15 @@ namespace OsEngine.Market.Servers.Bybit
                 parameters["category"] = Category.spot.ToString();
             }
             parameters["symbol"] = order.SecurityNameCode.Replace(".P", ""); 
-            parameters["orderLinkId"] = MyIDPrefix + order.NumberUser.ToString();
+
+            if(string.IsNullOrEmpty(order.NumberMarket) == false )
+            {
+                parameters["orderId"] = order.NumberMarket;
+            }
+            else
+            {
+                parameters["orderLinkId"] = order.NumberUser.ToString();
+            }
 
             try
             {
@@ -2063,7 +2073,7 @@ namespace OsEngine.Market.Servers.Bybit
                     continue;
                 }
                 
-                parametrs["orderLinkId"] = MyIDPrefix + order.NumberUser;
+                parametrs["orderLinkId"] = order.NumberUser;
                 JToken bOrders = CreatePrivateQuery(parametrs, HttpMethod.Get, "/v5/order/history");
 
                 if (bOrders == null)
@@ -2136,14 +2146,110 @@ namespace OsEngine.Market.Servers.Bybit
            
         }
 
-        public void GetAllActivOrders()
-        {
-
-        }
-
         public void GetOrderStatus(Order order)
         {
 
+
+
+        }
+
+        public void GetAllActivOrders()
+        {
+            List<Order> ordersOpenAll = new List<Order>();
+
+            List<Order> spotOrders = GetOpenOrders(Category.spot);
+
+            if (spotOrders != null
+                && spotOrders.Count > 0)
+            {
+                ordersOpenAll.AddRange(spotOrders);
+            }
+
+            List<Order> linearOrders = GetOpenOrders(Category.linear);
+
+            if (linearOrders != null
+                && linearOrders.Count > 0)
+            {
+                ordersOpenAll.AddRange(linearOrders);
+            }
+
+            for(int i = 0;i < ordersOpenAll.Count;i++)
+            {
+                MyOrderEvent?.Invoke(ordersOpenAll[i]);
+            }
+        }
+
+        private List<Order> GetOpenOrders(Category category)
+        {
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+            parameters["category"] = category;
+            parameters["openOnly"] = "0";
+
+            if(category == Category.linear)
+            {
+                parameters["settleCoin"] = "USDT";
+            }
+
+            JToken orders_response = CreatePrivateQuery(parameters, HttpMethod.Get, "/v5/order/realtime");
+
+            if(orders_response == null)
+            {
+                return null;
+            }
+
+            JToken ordChild = orders_response.SelectToken("result.list");
+
+            List<Order> activeOrders = new List<Order>();
+
+            foreach(JToken order in ordChild)
+            {
+                Order newOrder = new Order();
+                newOrder.State = OrderStateType.Activ;
+                newOrder.TypeOrder = OrderPriceType.Limit;
+                newOrder.PortfolioNumber = "BybitUNIFIED";
+
+                newOrder.NumberMarket = order.SelectToken("orderId").ToString();
+                newOrder.SecurityNameCode = order.SelectToken("symbol").ToString();
+
+                if(category == Category.linear
+                    && newOrder.SecurityNameCode.EndsWith(".P") == false)
+                {
+                    newOrder.SecurityNameCode = newOrder.SecurityNameCode + ".P";
+                }
+                
+                newOrder.Price = order.SelectToken("price").ToString().ToDecimal();
+                newOrder.Volume = order.SelectToken("qty").ToString().ToDecimal();
+               
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.SelectToken("updatedTime").ToString()));
+                newOrder.TimeCreate = newOrder.TimeCallBack;
+
+                string numUser = order.SelectToken("orderLinkId").ToString();
+                if(string.IsNullOrEmpty(numUser) == false)
+                {
+                    try
+                    {
+                        newOrder.NumberUser = Convert.ToInt32(numUser);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+                
+                string side = order.SelectToken("side").ToString();
+                if(side == "Buy")
+                {
+                    newOrder.Side = Side.Buy;
+                }
+                else
+                {
+                    newOrder.Side = Side.Sell;
+                }
+                activeOrders.Add(newOrder);
+            }
+
+            return activeOrders;
         }
 
         #endregion 11
