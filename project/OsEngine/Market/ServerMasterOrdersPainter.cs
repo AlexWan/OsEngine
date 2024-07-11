@@ -193,6 +193,11 @@ namespace OsEngine.Market
                         {
                             Order order = _orders[i];
 
+                            if(order == null)
+                            {
+                                continue;
+                            }
+
                             if (order.State == OrderStateType.Activ
                                 || order.State == OrderStateType.Pending
                                 || order.State == OrderStateType.None)
