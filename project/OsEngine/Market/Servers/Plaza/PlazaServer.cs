@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.Plaza
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "11111111");
-            CreateParameterInt("Кол-во заявок в секунду", 30);
+            CreateParameterInt("Max orders per second", 30);
             CreateParameterBoolean("Cancel on disconnect", true);
             CreateParameterInt("p2lrpcq or p2tcp", 1);
         }

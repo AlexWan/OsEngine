@@ -577,7 +577,14 @@ namespace OsEngine.OsTrader.Panels
 
                 if (DeleteEvent != null)
                 {
-                    DeleteEvent();
+                    try
+                    {
+                        DeleteEvent();
+                    }
+                    catch(Exception ex)
+                    {
+                        SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception error)
