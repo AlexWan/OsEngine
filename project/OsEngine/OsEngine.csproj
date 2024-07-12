@@ -616,7 +616,6 @@
     <Compile Include="Market\Servers\Deribit\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
-    <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
     <Compile Include="Market\Servers\Entity\ServerParameter.cs" />
     <Compile Include="Market\Servers\ExMo\ExmoClient.cs" />
     <Compile Include="Market\Servers\ExMo\ExmoServer.cs" />
@@ -825,9 +824,12 @@
     <Compile Include="Market\Servers\Pionex\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Pionex\PionexServerSpot.cs" />
     <Compile Include="Market\Servers\Pionex\PionexServerSpotPermission.cs" />
-    <Compile Include="Market\Servers\Plaza\Internal\PlazaClient.cs" />
-    <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\Plaza\Entity\BitMask.cs" />
+    <Compile Include="Market\Servers\Plaza\Entity\PlazaChangePriceOrderEntity.cs" />
+    <Compile Include="Market\Servers\Plaza\Entity\PositionOnBoardSander.cs" />
+    <Compile Include="Market\Servers\Plaza\Entity\RevisionInfo.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
+    <Compile Include="Market\Servers\Plaza\PlazaServerPermission.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerCandleStorage.cs" />
@@ -1930,6 +1932,7 @@
     <Resource Include="Images\MainWIndow\alor1.png" />
     <Resource Include="Images\MainWIndow\alor2.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets" Condition="Exists('..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
