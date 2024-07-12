@@ -1131,6 +1131,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new HTXSwapServerPermission();
                 }
+                else if (type == ServerType.Plaza)
+                {
+                    serverPermission = new PlazaServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
