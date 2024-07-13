@@ -3705,7 +3705,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                 OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
                 msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
-                msg.MassCancelRequestType = "7";
+                msg.MassCancelRequestType = "1";
                 msg.TradingSessionID = security.NameClass;
                 msg.Symbol = security.NameId;
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
