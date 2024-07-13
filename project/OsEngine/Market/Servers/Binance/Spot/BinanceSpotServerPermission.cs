@@ -76,7 +76,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         }
         public bool DataFeedTfDayCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTfTickCanLoad
         {

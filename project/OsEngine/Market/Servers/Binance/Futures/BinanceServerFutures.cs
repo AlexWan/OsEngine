@@ -713,6 +713,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 case 120:
                     needTf = "2h";
                     break;
+                case 1440:
+                    needTf = "1d";
+                    break;
             }
 
             string endPoint = "" + type_str_selector + "/v1/klines";

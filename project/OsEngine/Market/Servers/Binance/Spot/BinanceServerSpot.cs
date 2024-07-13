@@ -609,6 +609,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 case 120:
                     needTf = "2h";
                     break;
+                case 1440:
+                    needTf = "1d";
+                    break;
             }
 
             if (needTf == "")
