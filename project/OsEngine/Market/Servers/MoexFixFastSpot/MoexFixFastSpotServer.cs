@@ -39,13 +39,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             CreateParameterString("MFIX Trade Sever Address", "");
             CreateParameterString("MFIX Trade Sever Port", "");
             CreateParameterString("MFIX Trade Sever TargetCompId", "");
-            CreateParameterString("MFIX Trade Capture Sever Address", "");
-            CreateParameterString("MFIX Trade Capture Sever Port", "");
-            CreateParameterString("MFIX Trade Capture Sever TargetCompId", "");
             CreateParameterString("MFIX Trade Server Login", "");
             CreateParameterPassword("MFIX Trade Server Password", "");
-            CreateParameterString("MFIX Trade Capture Server Login", "");
-            CreateParameterPassword("MFIX Trade Capture Server Password", "");
             CreateParameterString("MFIX Trade Account", "");
             CreateParameterString("MFIX Trade Client Code", "");
 
@@ -56,7 +51,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
             // new passwords
             CreateParameterPassword("NEW MFIX Trade Server Password", "");
-            CreateParameterPassword("NEW MFIX Trade Capture Server Password", "");
         }
     }
 
@@ -104,15 +98,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
             Thread worker9 = new Thread(MFIXTradeServerConnection);
             worker9.Name = "MFIXTradeServerConnectionMoexFixFastSpot";
-            worker9.Start();
+            worker9.Start();                       
 
-            Thread worker10 = new Thread(MFIXTradeCaptureServerConnection);
-            worker10.Name = "MFIXTradeCaptureServerConnectionMoexFixFastSpot";
-            worker10.Start();
-
-            Thread worker11 = new Thread(HistoricalReplayThread);
-            worker11.Name = "HistoricalReplayMoexFixFastSpot";
-            worker11.Start();            
+            Thread worker10 = new Thread(HistoricalReplayThread);
+            worker10.Name = "HistoricalReplayMoexFixFastSpot";
+            worker10.Start();            
         }
 
         public void Connect()
@@ -128,55 +118,36 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 _MFIXTradeServerAddress = ((ServerParameterString)ServerParameters[0]).Value;
                 _MFIXTradeServerPort = ((ServerParameterString)ServerParameters[1]).Value;
                 _MFIXTradeServerTargetCompId = ((ServerParameterString)ServerParameters[2]).Value;
-                _MFIXTradeCaptureServerAddress = ((ServerParameterString)ServerParameters[3]).Value;
-                _MFIXTradeCaptureServerPort = ((ServerParameterString)ServerParameters[4]).Value;
-                _MFIXTradeCaptureServerTargetCompId = ((ServerParameterString)ServerParameters[5]).Value;
                 
-                _MFIXTradeServerLogin = ((ServerParameterString)ServerParameters[6]).Value;
-                _MFIXTradeServerPassword = ((ServerParameterPassword)ServerParameters[7]).Value;
-                
-                _MFIXTradeCaptureServerLogin = ((ServerParameterString)ServerParameters[8]).Value;
-                _MFIXTradeCaptureServerPassword = ((ServerParameterPassword)ServerParameters[9]).Value;
+                _MFIXTradeServerLogin = ((ServerParameterString)ServerParameters[3]).Value;
+                _MFIXTradeServerPassword = ((ServerParameterPassword)ServerParameters[4]).Value;
+                                
+                _MFIXTradeAccount = ((ServerParameterString)ServerParameters[5]).Value;         
+                _MFIXTradeClientCode = ((ServerParameterString)ServerParameters[6]).Value;
 
-                _MFIXTradeAccount = ((ServerParameterString)ServerParameters[10]).Value;         
-                _MFIXTradeClientCode = ((ServerParameterString)ServerParameters[11]).Value;
-
-                _ConfigDir = ((ServerParameterPath)ServerParameters[12]).Value;
+                _ConfigDir = ((ServerParameterPath)ServerParameters[7]).Value;
                               
-                int orderActionsLimit = ((ServerParameterInt)ServerParameters[13]).Value;
+                int orderActionsLimit = ((ServerParameterInt)ServerParameters[8]).Value;
 
                 _rateGateForOrders = new RateGate(orderActionsLimit, TimeSpan.FromSeconds(1));
 
-                _MFIXTradeServerNewPassword = ((ServerParameterPassword)ServerParameters[14]).Value;
-                _MFIXTradeCaptureServerNewPassword = ((ServerParameterPassword)ServerParameters[15]).Value;
-
+                _MFIXTradeServerNewPassword = ((ServerParameterPassword)ServerParameters[9]).Value;
+                
                 if (_MFIXTradeServerNewPassword == _MFIXTradeServerPassword) // if already changed password
                 {
-                    ((ServerParameterPassword)ServerParameters[14]).Value = "";
+                    ((ServerParameterPassword)ServerParameters[9]).Value = "";
                     _MFIXTradeServerNewPassword = "";
-                }
-
-                if (_MFIXTradeCaptureServerNewPassword == _MFIXTradeCaptureServerPassword) // if already changed password
-                {
-                    ((ServerParameterPassword)ServerParameters[15]).Value = "";
-                    _MFIXTradeCaptureServerNewPassword = "";
-                }
+                }                               
 
                 if (string.IsNullOrEmpty(_MFIXTradeServerAddress) || string.IsNullOrEmpty(_MFIXTradeServerPort) || string.IsNullOrEmpty(_MFIXTradeServerTargetCompId))
                 {
                     SendLogMessage("Connection terminated. You must specify FIX Trade Server Credentials", LogMessageType.Error);
                     return;
                 }
-
-                if (string.IsNullOrEmpty(_MFIXTradeCaptureServerAddress) || string.IsNullOrEmpty(_MFIXTradeCaptureServerPort) || string.IsNullOrEmpty(_MFIXTradeCaptureServerTargetCompId))
+                
+                if (string.IsNullOrEmpty(_MFIXTradeServerLogin) || string.IsNullOrEmpty(_MFIXTradeServerPassword))
                 {
-                    SendLogMessage("Connection terminated. You must specify FIX Trade Capture Server Credentials", LogMessageType.Error);
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(_MFIXTradeServerLogin) || string.IsNullOrEmpty(_MFIXTradeServerPassword) || string.IsNullOrEmpty(_MFIXTradeCaptureServerLogin) || string.IsNullOrEmpty(_MFIXTradeCaptureServerPassword))
-                {
-                    SendLogMessage("Connection terminated. You must specify FIX Trade server and Trade Capture server login/password", LogMessageType.Error);
+                    SendLogMessage("Connection terminated. You must specify FIX Trade server login/password", LogMessageType.Error);
                     return;
                 }
 
@@ -209,8 +180,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         private void ConnectionCheckThread()
         {
-            DateTime lastMFIXTradeTestRequestTime = DateTime.MinValue;
-            DateTime lastMFIXTradeCaptureTestRequestTime = DateTime.MinValue;
+            DateTime lastMFIXTradeTestRequestTime = DateTime.MinValue;            
 
             while (true)
             {
@@ -244,40 +214,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         msg.TestReqID = "OsEngine";
 
                         string message = SendFIXMessage(_MFIXTradeSocket, header, msg);
-                        WriteLogOutgoingFIXMessage(message, FIXServer.MFIXTrade);
+                        WriteLogOutgoingFIXMessage(message);
 
                         lastMFIXTradeTestRequestTime = DateTime.Now;
                     }
-                }
-
-                if (_lastMFIXTradeCaptureTime.AddMinutes(1) < DateTime.Now)
-                {
-                    if (lastMFIXTradeCaptureTestRequestTime > _lastMFIXTradeCaptureTime) // already send test request
-                    {
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            SendLogMessage("MFIX Trade Capture server connection lost. No response for too long", LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
-                    }
-                    else
-                    {  // 1. send Test Request (1)
-                        Header header = new Header();
-                        header.MsgType = "1"; // Test Request
-                        header.SenderCompID = _MFIXTradeCaptureServerLogin;
-                        header.TargetCompID = _MFIXTradeCaptureServerTargetCompId;
-                        header.MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++;
-
-                        TestRequestMessage msg = new TestRequestMessage();
-                        msg.TestReqID = "OsEngine";
-
-                        string message = SendFIXMessage(_MFIXTradeCaptureSocket, header, msg);
-                        WriteLogOutgoingFIXMessage(message, FIXServer.MFIXTradeCapture);
-
-                        lastMFIXTradeCaptureTestRequestTime = DateTime.Now;
-                    }
-                }
+                }               
 
                 // FIX/FAST Multicast server
                 if (_lastFASTMulticastTime.AddMinutes(2) < DateTime.Now)
@@ -335,21 +276,15 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         private string _MFIXTradeServerAddress;
         private string _MFIXTradeServerPort;
         private string _MFIXTradeServerTargetCompId;
-        private string _MFIXTradeCaptureServerAddress;
-        private string _MFIXTradeCaptureServerPort;
-        private string _MFIXTradeCaptureServerTargetCompId;
         private string _MFIXTradeServerLogin;
         private string _MFIXTradeServerPassword;
-        private string _MFIXTradeCaptureServerLogin;
-        private string _MFIXTradeCaptureServerPassword;
         private string _MFIXTradeAccount; // торговый счет
         private string _MFIXTradeClientCode; // код клиента
 
         private string _ConfigDir;
 
         private string _MFIXTradeServerNewPassword;
-        private string _MFIXTradeCaptureServerNewPassword;
-
+        
         private MessageTemplate[] _templates;
         
         private Socket _instrumentSocketA;
@@ -377,11 +312,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         private Socket _MFIXTradeSocket;
         private long _MFIXTradeMsgSeqNum = 1;
         private long _MFIXTradeMsgSeqNumIncoming = 1;
-
-        private Socket _MFIXTradeCaptureSocket;
-        private long _MFIXTradeCaptureMsgSeqNum = 1;
-        private long _MFIXTradeCaptureMsgSeqNumIncoming = 1;
-
+        
         #endregion
 
         #region 3 Securities
@@ -448,6 +379,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         
         private void CreateSocketConnections()
         {
+            _lastFASTMulticastTime = DateTime.Now;
+
             try
             {                
                 // прочитать конфиг FIX/FAST соединения и создать сокеты
@@ -650,7 +583,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         private bool EstablishMFIXTradeConnection()
         {
-            // 1. Создаем и отправляем два запроса на подключение (Logon)
+            // 1. Создаем и отправляем запрос на подключение (Logon)
 
             //Создаем заголовк
             Header tradeServerLogonHeader = new Header();
@@ -658,29 +591,16 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             tradeServerLogonHeader.SenderCompID = _MFIXTradeServerLogin;
             tradeServerLogonHeader.TargetCompID = _MFIXTradeServerTargetCompId;
             tradeServerLogonHeader.MsgSeqNum = _MFIXTradeMsgSeqNum++;
-            
-            Header tradeCaptureServerLogonHeader = new Header();
-            tradeCaptureServerLogonHeader.MsgType = "A"; //Тип сообщения на установку сессии
-            tradeCaptureServerLogonHeader.SenderCompID = _MFIXTradeCaptureServerLogin;
-            tradeCaptureServerLogonHeader.TargetCompID = _MFIXTradeCaptureServerTargetCompId;
-            tradeCaptureServerLogonHeader.MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++;
-
+                       
             //Создаем сообщение на подключение onLogon
             LogonMessage logonTServerMessageBody = new LogonMessage();
             logonTServerMessageBody.EncryptMethod = 0;
             logonTServerMessageBody.HeartBtInt = 30;
             logonTServerMessageBody.ResetSeqNumFlag = tradeServerLogonHeader.MsgSeqNum == 1;
             logonTServerMessageBody.Password = _MFIXTradeServerPassword;
-            logonTServerMessageBody.NewPassword = _MFIXTradeServerNewPassword;
+            logonTServerMessageBody.NewPassword = _MFIXTradeServerNewPassword;           
 
-            LogonMessage logonTCServerMessageBody = new LogonMessage();
-            logonTCServerMessageBody.EncryptMethod = 0;
-            logonTCServerMessageBody.HeartBtInt = 30;
-            logonTCServerMessageBody.ResetSeqNumFlag = tradeCaptureServerLogonHeader.MsgSeqNum == 1;
-            logonTCServerMessageBody.Password = _MFIXTradeCaptureServerPassword;
-            logonTCServerMessageBody.NewPassword = _MFIXTradeCaptureServerNewPassword;
-
-            // 2. Создаем два сокета и подключаемся к ним
+            // 2. Создаем сокет и подключаемся
             // MFIX Trade Server
             IPAddress ipAddr = IPAddress.Parse(_MFIXTradeServerAddress);
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, int.Parse(_MFIXTradeServerPort));
@@ -689,27 +609,13 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             _MFIXTradeSocket = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             //Подключаемся
             _MFIXTradeSocket.Connect(ipEndPoint);
-
-            // MFIX Trade Capture Server
-            ipAddr = IPAddress.Parse(_MFIXTradeCaptureServerAddress);
-            ipEndPoint = new IPEndPoint(ipAddr, int.Parse(_MFIXTradeCaptureServerPort));
-
-            //Создаем сокет для подключения
-            _MFIXTradeCaptureSocket = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //Подключаемся
-            _MFIXTradeCaptureSocket.Connect(ipEndPoint);
-                                   
+                                 
             //Отправляем сообщение
             string tServerLogonMessage = SendFIXMessage(_MFIXTradeSocket, tradeServerLogonHeader, logonTServerMessageBody);
-            WriteLogOutgoingFIXMessage(tServerLogonMessage, FIXServer.MFIXTrade);
+            WriteLogOutgoingFIXMessage(tServerLogonMessage);
             SendLogMessage($"Connecting to MFIX Trade server with MsgSeqNum={tradeServerLogonHeader.MsgSeqNum}", LogMessageType.System);
 
-            string tCaptureServerLogonMessage = SendFIXMessage(_MFIXTradeCaptureSocket, tradeCaptureServerLogonHeader, logonTCServerMessageBody);
-            WriteLogOutgoingFIXMessage(tCaptureServerLogonMessage, FIXServer.MFIXTradeCapture);
-            SendLogMessage($"Connecting to MFIX Trade Capture server with MsgSeqNum={tradeCaptureServerLogonHeader.MsgSeqNum}", LogMessageType.System);
-
             bool tradeServerConnected = false;
-            bool tradeCaptureServerConnected = false;
 
             //Получаем ответ от сервера
             byte[] bytes = new byte[4096];
@@ -717,7 +623,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
             DateTime startTime = DateTime.Now;
 
-            while (tradeServerConnected == false || tradeCaptureServerConnected == false)
+            while (tradeServerConnected == false)
             {
                 if (startTime.AddMinutes(1) < DateTime.Now)
                 {
@@ -729,78 +635,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                     }
 
                     return false;
-                }
-
-                bytesRec = 0;
-                if (tradeCaptureServerConnected == false)
-                {
-                    try
-                    {
-                        bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage("Error receiving FIX Message " + ex.ToString(), LogMessageType.Error);
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
-                    }
-
-                    if (bytesRec > 0)
-                    {
-                        string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                        WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTradeCapture);
-
-                        FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
-
-                        if (fixMessage.MessageType == "Logon")
-                        {
-                            if (fixMessage.MsgSeqNum > _MFIXTradeCaptureMsgSeqNumIncoming)
-                            {
-                                // need to make Resend Request
-                                Header resendRequestHeader = new Header();
-                                resendRequestHeader.MsgType = "2"; //Resend Request
-                                resendRequestHeader.SenderCompID = _MFIXTradeCaptureServerLogin;
-                                resendRequestHeader.TargetCompID = _MFIXTradeCaptureServerTargetCompId;
-                                resendRequestHeader.MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++;                                
-
-                                ResendRequestMessage resendRequestMessageBody = new ResendRequestMessage();
-                                resendRequestMessageBody.BeginSeqNo = _MFIXTradeCaptureMsgSeqNumIncoming;
-                                resendRequestMessageBody.EndSeqNo = fixMessage.MsgSeqNum - 1;
-
-                                string resendRequestMessage = SendFIXMessage(_MFIXTradeCaptureSocket, resendRequestHeader, resendRequestMessageBody);
-                                WriteLogOutgoingFIXMessage(resendRequestMessage, FIXServer.MFIXTradeCapture);
-                                SendLogMessage($"Making Resend Request to MFIX Trade Capture server", LogMessageType.System);
-                            } else
-                            {
-                                _MFIXTradeCaptureMsgSeqNumIncoming++;
-                            }
-
-                            tradeCaptureServerConnected = true;
-                            SendLogMessage("MFIX Trade capture server connected", LogMessageType.System);
-
-                            if (fixMessage.Fields.ContainsKey("SessionStatus"))
-                            {
-                                int SessionStatus = int.Parse(fixMessage.Fields["SessionStatus"]);
-
-                                string Text = "";
-                                if (fixMessage.Fields.ContainsKey("Text"))
-                                {
-                                    Text = fixMessage.Fields["Text"];
-                                }
-
-                                if (SessionStatus == 0) // set new password
-                                {
-                                    SendLogMessage($"New password was set successfully for MFIX Trade Capture server for login {_MFIXTradeCaptureServerLogin}. {Text}", LogMessageType.System);
-                                } else if (SessionStatus == 3) // new password not set
-                                {
-                                    SendLogMessage($"Failed to set new password for MFIX Trade Capture server for login {_MFIXTradeCaptureServerLogin}. {Text}", LogMessageType.Error);
-                                }                                
-                            }
-                        }
-                    }
                 }
 
                 bytesRec = 0;
@@ -822,7 +656,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                     if (bytesRec > 0)
                     {
                         string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                        WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTrade);
+                        WriteLogIncomingFIXMessage(serverMessage);
 
                         FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
 
@@ -842,7 +676,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 resendRequestMessageBody.EndSeqNo = fixMessage.MsgSeqNum - 1;
 
                                 string resendRequestMessage = SendFIXMessage(_MFIXTradeSocket, resendRequestHeader, resendRequestMessageBody);
-                                WriteLogOutgoingFIXMessage(resendRequestMessage, FIXServer.MFIXTrade);
+                                WriteLogOutgoingFIXMessage(resendRequestMessage);
                                 SendLogMessage($"Making Resend Request to MFIX Trade server", LogMessageType.System);
                             }
                             else
@@ -889,7 +723,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 return; // сокет еще не создан
             }
 
-            // Создаем и отправляем два запроса на отключение (Logout)
+            // Создаем и отправляем запрос на отключение (Logout)
 
             //Создаем заголовк
             Header tradeServerLogoutHeader = new Header();
@@ -897,25 +731,15 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             tradeServerLogoutHeader.SenderCompID = _MFIXTradeServerLogin;
             tradeServerLogoutHeader.TargetCompID = _MFIXTradeServerTargetCompId;
             tradeServerLogoutHeader.MsgSeqNum = _MFIXTradeMsgSeqNum++;
-
-            Header tradeCaptureServerLogoutHeader = new Header();
-            tradeCaptureServerLogoutHeader.MsgType = "5"; //Тип сообщения Logout
-            tradeCaptureServerLogoutHeader.SenderCompID = _MFIXTradeCaptureServerLogin;
-            tradeCaptureServerLogoutHeader.TargetCompID = _MFIXTradeCaptureServerTargetCompId;
-            tradeCaptureServerLogoutHeader.MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++;
-
+                       
             //Создаем сообщение Logout
             LogoutMessage logoutTServerMessageBody = new LogoutMessage();            
-            LogoutMessage logoutTCServerMessageBody = new LogoutMessage();
                        
             //Отправляем сообщение
             string logonMessageTServer = SendFIXMessage(_MFIXTradeSocket, tradeServerLogoutHeader, logoutTServerMessageBody);
-            WriteLogOutgoingFIXMessage(logonMessageTServer, FIXServer.MFIXTrade);
-
-            string logonMessageTCServer = SendFIXMessage(_MFIXTradeCaptureSocket, tradeCaptureServerLogoutHeader, logoutTCServerMessageBody);
-            WriteLogOutgoingFIXMessage(logonMessageTCServer, FIXServer.MFIXTradeCapture);
-
-            while (_MFIXTradeSocket != null || _MFIXTradeCaptureSocket != null)
+            WriteLogOutgoingFIXMessage(logonMessageTServer);
+            
+            while (_MFIXTradeSocket != null)
             {
                 Thread.Sleep(1); // ждем когда сокет закроется
             }
@@ -1272,7 +1096,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 
         private DateTime _lastInstrumentDefinitionsTime = DateTime.MinValue;
         private DateTime _lastMFIXTradeTime = DateTime.MinValue;
-        private DateTime _lastMFIXTradeCaptureTime = DateTime.MinValue;
         private DateTime _lastFASTMulticastTime = DateTime.MinValue;
         private bool _allSecuritiesLoaded = false;
         private long _totNumReports = 0;
@@ -3464,7 +3287,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                     _lastMFIXTradeTime = DateTime.Now;
 
                     string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                    WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTrade);
+                    WriteLogIncomingFIXMessage(serverMessage);
 
                     FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
                     
@@ -3487,7 +3310,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         hbMsg.TestReqID = TestReqID;
                                                 
                         string heartbeatMessage = SendFIXMessage(_MFIXTradeSocket, header, hbMsg);
-                        WriteLogOutgoingFIXMessage(heartbeatMessage, FIXServer.MFIXTrade);
+                        WriteLogOutgoingFIXMessage(heartbeatMessage);
                     }
 
                     // 1. Обрабатываем ExecutionReport
@@ -3504,11 +3327,15 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         string LastPx = fixMessage.Fields.ContainsKey("LastPx") ? fixMessage.Fields["LastPx"] : "0";
 
                         string TransactTime = fixMessage.Fields["TransactTime"];
+                        DateTime TransactionTime = DateTime.ParseExact(TransactTime, "yyyyMMdd-HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+
                         string Text = fixMessage.Fields.ContainsKey("Text") ? fixMessage.Fields["Text"] : "";
+
+                        string Symbol = fixMessage.Fields["Symbol"];
 
                         Order order = new Order();
 
-                        order.SecurityNameCode = fixMessage.Fields["Symbol"];
+                        order.SecurityNameCode = Symbol;
                         order.SecurityClassCode = fixMessage.Fields["TradingSessionID"];
                         order.PortfolioNumber = fixMessage.Fields["Account"];
                         order.NumberMarket = fixMessage.Fields["OrderID"];
@@ -3574,12 +3401,12 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         else
                         {
                             order.TypeOrder = OrderPriceType.Market;
-                        }                                                
+                        }
 
-                        order.TimeCallBack = DateTime.ParseExact(TransactTime, "yyyyMMdd-HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
-                                                                      
+                        order.TimeCallBack = TransactionTime;
+
                         if (OrdStatus == "0" || OrdStatus == "9" || OrdStatus == "E")
-                        {                            
+                        {
                             order.State = OrderStateType.Activ;
                         }
                         else if (OrdStatus == "1")
@@ -3601,7 +3428,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             else
                             {
                                 order.State = OrderStateType.Cancel;
-                            }                             
+                            }
                         }
                         else if (OrdStatus == "8")
                         {
@@ -3609,6 +3436,23 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                             SendLogMessage($"MFIX sent order status 'fail' with comment: {order.Comment}", LogMessageType.Error);
                         }
+
+                        if (ExecType == "F")  // MyTrades
+                        {                               
+                            string tradeId = fixMessage.Fields["ExecID"].Split('|')[0];
+
+                            MyTrade trade = new MyTrade();
+
+                            trade.SecurityNameCode = Symbol;
+                            trade.Price = LastPx.ToDecimal();
+                            trade.Volume = LastQty.ToDecimal();
+                            trade.NumberOrderParent = order.NumberMarket;
+                            trade.NumberTrade = tradeId;
+                            trade.Time = TransactionTime;
+                            trade.Side = order.Side;
+
+                            MyTradeEvent(trade);
+                        }                                               
 
                         MyOrderEvent(order);
                     }
@@ -3673,132 +3517,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 }
             }
         }
-
-        private void MFIXTradeCaptureServerConnection()
-        {
-            byte[] bytes = new byte[4096];
-            int bytesRec = 0;
-
-            Thread.Sleep(1000);
-           
-            while (true)
-            {
-                try
-                {
-                    if (_MFIXTradeCaptureSocket == null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    try
-                    {
-                        bytesRec = _MFIXTradeCaptureSocket.Receive(bytes);
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage("Error receiving FIX Message " + ex.ToString(), LogMessageType.Error);
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
-                    }
-
-                    _lastMFIXTradeCaptureTime = DateTime.Now;
-
-                    string serverMessage = Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                    WriteLogIncomingFIXMessage(serverMessage, FIXServer.MFIXTradeCapture);
-
-                    FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
-
-                    if (fixMessage.MsgSeqNum == _MFIXTradeCaptureMsgSeqNumIncoming)
-                    {
-                        _MFIXTradeCaptureMsgSeqNumIncoming++;
-                    }
-
-                    // 0. Обрабатываем TestRequest
-                    if (fixMessage.MessageType == "TestRequest")
-                    {
-                        Header header = new Header();
-                        header.MsgType = "0"; //Тип сообщения на установку сессии
-                        header.SenderCompID = _MFIXTradeCaptureServerLogin;
-                        header.TargetCompID = _MFIXTradeCaptureServerTargetCompId;
-                        header.MsgSeqNum = _MFIXTradeCaptureMsgSeqNum++;
-                        
-                        string TestReqID = fixMessage.Fields["TestReqID"];
-                        HeartbeatMessage hbMsg = new HeartbeatMessage();
-                        hbMsg.TestReqID = TestReqID;
-                        
-                        string heartbeatMessage = SendFIXMessage(_MFIXTradeCaptureSocket, header, hbMsg);
-                        WriteLogOutgoingFIXMessage(heartbeatMessage, FIXServer.MFIXTradeCapture);
-                    }
-
-                    // 1. Обрабатываем TradingSessionStatus
-                    if (fixMessage.MessageType == "TradingSessionStatus")
-                    {
-                        string TradingSessionID = fixMessage.Fields["TradingSessionID"];
-                        string Text = fixMessage.Fields["Text"];
-                        SendLogMessage($"MFIX TC Server => {TradingSessionID}: {Text}", LogMessageType.System);                        
-                    }
-
-                    // 2. Обрабатываем TradeCaptureReport
-                    if (fixMessage.MessageType == "TradeCaptureReport")
-                    {
-                        string ExecType = fixMessage.Fields["ExecType"];
-
-                        if (ExecType != "F")
-                            continue;
-
-                        string Symbol = fixMessage.Fields["Symbol"];                                               
-                        string price = fixMessage.Fields["LastPx"];
-                        string qty = fixMessage.Fields["LastQty"];
-                        string transactionTime = fixMessage.Fields["TransactTime"];
-                        string tradeId = fixMessage.Fields["ExecID"].Split('|')[0];
-                                                
-                        MyTrade trade = new MyTrade();
-
-                        trade.SecurityNameCode = Symbol;
-                        trade.Price = price.ToDecimal();
-                        trade.Volume = qty.ToDecimal();
-                        trade.NumberOrderParent = fixMessage.Fields["OrderID"];
-                        trade.NumberTrade = tradeId;
-                        trade.Time = DateTime.ParseExact(transactionTime, "yyyyMMdd-HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture); // 	transactionTime	"20240511-13:09:35"	string
-                        trade.Side = fixMessage.Fields["Side"] == "1" ? Side.Buy : Side.Sell;
-                        
-                        MyTradeEvent(trade);                       
-                    }
-
-                    // 3. Обрабатываем Logout
-                    if (fixMessage.MessageType == "Logout")
-                    {
-                        _MFIXTradeCaptureSocket.Close();
-                        _MFIXTradeCaptureSocket = null;
-
-                        SendLogMessage("MFIX Trade capture server disconnected", LogMessageType.System);
-                    }
-
-                    // Sequence Reset
-                    if (fixMessage.MessageType == "SequenceReset")
-                    {
-                        string GapFillFlag = fixMessage.Fields["GapFillFlag"];
-                        _MFIXTradeCaptureMsgSeqNumIncoming = long.Parse(fixMessage.Fields["NewSeqNo"]) + 1; // new sequence number with loss of data
-                    }
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
-                }
-            }
-        }        
-        
+                
         public event Action<Trade> NewTradesEvent;
 
         public event Action<MarketDepth> MarketDepthEvent;
@@ -3844,7 +3563,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 msg.Price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString().Replace(',', '.') : "0";
                 
                 string newSingleOrderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
-                WriteLogOutgoingFIXMessage(newSingleOrderMessage, FIXServer.MFIXTrade);
+                WriteLogOutgoingFIXMessage(newSingleOrderMessage);
             }
             catch (Exception exception)
             {
@@ -3909,7 +3628,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 msg.Price = order.TypeOrder == OrderPriceType.Limit ? newPrice.ToString().Replace(',', '.') : "0";
                                
                 string orderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
-                WriteLogOutgoingFIXMessage(orderMessage, FIXServer.MFIXTrade);
+                WriteLogOutgoingFIXMessage(orderMessage);
             }
             catch (Exception error)
             {
@@ -3937,7 +3656,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
 
                 string orderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
-                WriteLogOutgoingFIXMessage(orderMessage, FIXServer.MFIXTrade);
+                WriteLogOutgoingFIXMessage(orderMessage);
             }
             catch (Exception exception)
             {
@@ -3964,7 +3683,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 msg.PartyID = _MFIXTradeClientCode;
 
                 string orderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
-                WriteLogOutgoingFIXMessage(orderMessage, FIXServer.MFIXTrade);
+                WriteLogOutgoingFIXMessage(orderMessage);
             }
             catch (Exception exception)
             {
@@ -3994,7 +3713,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 msg.PartyID = _MFIXTradeClientCode;
 
                 string orderMessage = SendFIXMessage(_MFIXTradeSocket, header, msg);
-                WriteLogOutgoingFIXMessage(orderMessage, FIXServer.MFIXTrade);
+                WriteLogOutgoingFIXMessage(orderMessage);
             }
             catch (Exception exception)
             {
@@ -4058,29 +3777,18 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         private StreamWriter _logFile = new StreamWriter("Engine\\Log\\FIXFAST_Multicast_UDP-log.txt");
         private StreamWriter _logFileXOrders = new StreamWriter("Engine\\Log\\FIXFAST_Multicast_UDP-log-XOrders.txt");
 
-        private StreamWriter _logFileMFIX = new StreamWriter($"Engine\\Log\\MFIX_{DateTime.Now.ToString("yyyy-MM-dd")}.txt");
-        private StreamWriter _logFileMFIXTradeCapture = new StreamWriter($"Engine\\Log\\MFIX_TradeCapture_{DateTime.Now.ToString("yyyy-MM-dd")}.txt");
+        private StreamWriter _logFileMFIX = new StreamWriter($"Engine\\Log\\MFIX_{DateTime.Now.ToString("yyyy-MM-dd")}.txt");              
 
-        private enum FIXServer
+        private void WriteLogOutgoingFIXMessage(string message)
         {
-            MFIXTrade,
-            MFIXTradeCapture,
+            _logFileMFIX.WriteLine($"{DateTime.UtcNow} >>> [MFIX Trade]: {message}");
+            _logFileMFIX.Flush();
         }
 
-        private void WriteLogOutgoingFIXMessage(string message, FIXServer server = FIXServer.MFIXTrade)
+        private void WriteLogIncomingFIXMessage(string message)
         {
-            StreamWriter writer = server == FIXServer.MFIXTrade ? _logFileMFIX : _logFileMFIXTradeCapture;
-
-            writer.WriteLine($"{DateTime.UtcNow} >>> [{server}]: {message}");
-            writer.Flush();
-        }
-
-        private void WriteLogIncomingFIXMessage(string message, FIXServer server)
-        {
-            StreamWriter writer = server == FIXServer.MFIXTrade ? _logFileMFIX : _logFileMFIXTradeCapture;
-
-            writer.WriteLine($"{DateTime.UtcNow} <<< [{server}]: {message}");
-            writer.Flush();
+            _logFileMFIX.WriteLine($"{DateTime.UtcNow} <<< [MFIX Trade]: {message}");
+            _logFileMFIX.Flush();
         }
 
         private void WriteLog(string message, string source)
