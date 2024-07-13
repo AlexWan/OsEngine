@@ -476,6 +476,7 @@ namespace OsEngine.OsData
             SettingsToLoadSecurities.Tf1HourIsOn = param.Tf1HourIsOn;
             SettingsToLoadSecurities.Tf2HourIsOn = param.Tf2HourIsOn;
             SettingsToLoadSecurities.Tf4HourIsOn = param.Tf4HourIsOn;
+            SettingsToLoadSecurities.TfDayIsOn = param.TfDayIsOn;
             SettingsToLoadSecurities.TfTickIsOn = param.TfTickIsOn;
             SettingsToLoadSecurities.TfMarketDepthIsOn = param.TfMarketDepthIsOn;
 
@@ -721,6 +722,15 @@ namespace OsEngine.OsData
             else
             {
                 TryDeleteLoader(TimeFrame.Hour4);
+            }
+
+            if (SettingsToLoadSecurities.TfDayIsOn)
+            {
+                TryCreateLoader(TimeFrame.Day);
+            }
+            else
+            {
+                TryDeleteLoader(TimeFrame.Day);
             }
 
             if (SettingsToLoadSecurities.TfTickIsOn)
@@ -2088,6 +2098,15 @@ namespace OsEngine.OsData
 
             MarketDepthDepth = Convert.ToInt32(saveArray[22]);
             NeadToUpdate = Convert.ToBoolean(saveArray[23]);
+
+            try
+            {
+                TfDayIsOn = Convert.ToBoolean(saveArray[24]);
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         public string GetSaveStr()
@@ -2121,6 +2140,7 @@ namespace OsEngine.OsData
             result += TimeEnd.ToString(CultureInfo.InvariantCulture) + "%";
             result += MarketDepthDepth + "%";
             result += NeadToUpdate + "%";
+            result += TfDayIsOn + "%";
 
             return result;
         }
@@ -2147,6 +2167,7 @@ namespace OsEngine.OsData
         public bool Tf1HourIsOn;
         public bool Tf2HourIsOn;
         public bool Tf4HourIsOn;
+        public bool TfDayIsOn;
         public bool TfTickIsOn;
         public bool TfMarketDepthIsOn;
         public int MarketDepthDepth;

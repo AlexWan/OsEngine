@@ -1670,7 +1670,7 @@ namespace OsEngine.Market.Servers.Finam
                 if (_timeFrame == TimeFrame.Day)
                 {
                     _timeFrameFinam = 8.ToString();
-                    _timeFrameSpan = new TimeSpan(24, 0, 0, 0);
+                    _timeFrameSpan = new TimeSpan(0, 24, 0, 0);
                 }
                 else if (_timeFrame == TimeFrame.Hour1)
                 {
@@ -2269,6 +2269,7 @@ namespace OsEngine.Market.Servers.Finam
             }
 
             string timeStartInStrToName = timeStart.Year.ToString()[2].ToString() + timeStart.Year.ToString()[3].ToString() + timeStart.Month + TimeStart.Day;
+            
             string timeEndInStrToName = timeEnd.Year.ToString()[2].ToString() + timeEnd.Year.ToString()[3].ToString() + timeEnd.Month + timeEnd.Day;
 
             string timeFrom = timeStart.ToShortDateString();
