@@ -531,176 +531,217 @@ namespace OsEngine.Market.Servers.Finam
 
             for (int i = 0; i < arrayIds.Length; i++)
             {
-                _finamSecurities.Add(new FinamSecurity());
+                string url = arrayEmitentUrls[i].Split(':')[1];
 
-                _finamSecurities[i].Code = arrayCodes[i].TrimStart('\'').TrimEnd('\'');
-                _finamSecurities[i].Decp = arrayDecp[i].Split(':')[1];
-                _finamSecurities[i].EmitentChild = arrayEmitentChild[i];
-                _finamSecurities[i].Id = arrayIds[i];
-                _finamSecurities[i].Name = arrayNames[i];
-                _finamSecurities[i].Url = arrayEmitentUrls[i].Split(':')[1];
-
-                _finamSecurities[i].MarketId = arrayMarkets[i];
-
-                if (_finamSecurities[i].MarketId == "7")
+                if(url.Contains("-smal")
+                    || url.Contains("-fqbr")
+                    || url.Contains("-tqbd"))
                 {
-                    _finamSecurities[i].Name =
-                        _finamSecurities[i].Name.Replace("*", "")
+                    continue;
+                }
+
+                FinamSecurity finamSecurity = new FinamSecurity();
+
+                finamSecurity.Code = arrayCodes[i].TrimStart('\'').TrimEnd('\'');
+                finamSecurity.Decp = arrayDecp[i].Split(':')[1];
+                finamSecurity.EmitentChild = arrayEmitentChild[i];
+                finamSecurity.Id = arrayIds[i];
+                finamSecurity.Name = arrayNames[i];
+                finamSecurity.Url = url;
+
+                finamSecurity.MarketId = arrayMarkets[i];
+
+                if (finamSecurity.MarketId == "7")
+                {
+                    finamSecurity.Name =
+                        finamSecurity.Name.Replace("*", "")
                             .Replace("-", "")
                             .Replace("_", "")
                             .ToUpper();
 
-                    _finamSecurities[i].Code = _finamSecurities[i].Name;
+                    finamSecurity.Code = finamSecurity.Name;
 
-                    if (_finamSecurities[i].Name == "MINI D&JFUT")
+                    if (finamSecurity.Name == "MINI D&JFUT")
                     {
-                        _finamSecurities[i].Code = "DANDI.MINIFUT";
+                        finamSecurity.Code = "DANDI.MINIFUT";
                     }
 
                 }
 
                 if (Convert.ToInt32(arrayMarkets[i]) == 200)
                 {
-                    _finamSecurities[i].Market = "МосБиржа топ";
+                    finamSecurity.Market = "МосБиржа топ";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 1)
                 {
-                    _finamSecurities[i].Market = "МосБиржа акции";
+                    finamSecurity.Market = "МосБиржа акции";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 14)
                 {
-                    _finamSecurities[i].Market = "МосБиржа фьючерсы";
+                    finamSecurity.Market = "МосБиржа фьючерсы";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 41)
                 {
-                    _finamSecurities[i].Market = "Курс рубля";
+                    finamSecurity.Market = "Курс рубля";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 45)
                 {
-                    _finamSecurities[i].Market = "МосБиржа валютный рынок";
+                    finamSecurity.Market = "МосБиржа валютный рынок";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 2)
                 {
-                    _finamSecurities[i].Market = "МосБиржа облигации";
+                    finamSecurity.Market = "МосБиржа облигации";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 12)
                 {
-                    _finamSecurities[i].Market = "МосБиржа внесписочные облигации";
+                    finamSecurity.Market = "МосБиржа внесписочные облигации";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 29)
                 {
-                    _finamSecurities[i].Market = "МосБиржа пифы";
+                    finamSecurity.Market = "МосБиржа пифы";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 515)
                 {
-                    _finamSecurities[i].Market = "Мосбиржа ETF";
+                    finamSecurity.Market = "Мосбиржа ETF";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 8)
                 {
-                    _finamSecurities[i].Market = "Расписки";
+                    finamSecurity.Market = "Расписки";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 519)
                 {
-                    _finamSecurities[i].Market = "Еврооблигации";
+                    finamSecurity.Market = "Еврооблигации";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 517)
                 {
-                    _finamSecurities[i].Market = "Санкт-Петербургская биржа";
+                    finamSecurity.Market = "Санкт-Петербургская биржа";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 6)
                 {
-                    _finamSecurities[i].Market = "Мировые индексы";
+                    finamSecurity.Market = "Мировые индексы";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 24)
                 {
-                    _finamSecurities[i].Market = "Товары";
+                    finamSecurity.Market = "Товары";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 5)
                 {
-                    _finamSecurities[i].Market = "Мировые валюты";
+                    finamSecurity.Market = "Мировые валюты";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 25)
                 {
-                    _finamSecurities[i].Market = "Акции США(BATS)";
+                    finamSecurity.Market = "Акции США(BATS)";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 7)
                 {
-                    _finamSecurities[i].Market = "Фьючерсы США";
+                    finamSecurity.Market = "Фьючерсы США";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 27)
                 {
-                    _finamSecurities[i].Market = "Отрасли экономики США";
+                    finamSecurity.Market = "Отрасли экономики США";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 26)
                 {
-                    _finamSecurities[i].Market = "Гособлигации США";
+                    finamSecurity.Market = "Гособлигации США";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 28)
                 {
-                    _finamSecurities[i].Market = "ETF";
+                    finamSecurity.Market = "ETF";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 30)
                 {
-                    _finamSecurities[i].Market = "Индексы мировой экономики";
+                    finamSecurity.Market = "Индексы мировой экономики";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 91)
                 {
-                    _finamSecurities[i].Market = "Российские индексы";
+                    finamSecurity.Market = "Российские индексы";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 3)
                 {
-                    _finamSecurities[i].Market = "РТС";
+                    finamSecurity.Market = "РТС";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 20)
                 {
-                    _finamSecurities[i].Market = "RTS Board";
+                    finamSecurity.Market = "RTS Board";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 10)
                 {
-                    _finamSecurities[i].Market = "РТС-GAZ";
+                    finamSecurity.Market = "РТС-GAZ";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 17)
                 {
-                    _finamSecurities[i].Market = "ФОРТС Архив";
+                    finamSecurity.Market = "ФОРТС Архив";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 31)
                 {
-                    _finamSecurities[i].Market = "Сырье Архив";
+                    finamSecurity.Market = "Сырье Архив";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 38)
                 {
-                    _finamSecurities[i].Market = "RTS Standard Архив";
+                    finamSecurity.Market = "RTS Standard Архив";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 16)
                 {
-                    _finamSecurities[i].Market = "ММВБ Архив";
+                    finamSecurity.Market = "ММВБ Архив";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 18)
                 {
-                    _finamSecurities[i].Market = "РТС Архив";
+                    finamSecurity.Market = "РТС Архив";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 9)
                 {
-                    _finamSecurities[i].Market = "СПФБ Архив";
+                    finamSecurity.Market = "СПФБ Архив";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 32)
                 {
-                    _finamSecurities[i].Market = "РТС-BOARD Архив";
+                    finamSecurity.Market = "РТС-BOARD Архив";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 39)
                 {
-                    _finamSecurities[i].Market = "Расписки Архив";
+                    finamSecurity.Market = "Расписки Архив";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == -1)
                 {
-                    _finamSecurities[i].Market = "Отрасли";
+                    finamSecurity.Market = "Отрасли";
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 520)
                 {
-                    _finamSecurities[i].Market = "Криптовалюты";
+                    finamSecurity.Market = "Криптовалюты";
+                }
+
+                if(finamSecurity.Market == null)
+                {
+                    continue;
+                }
+
+                bool isInArray = false;
+
+                for(int j = 0; j< _finamSecurities.Count;j++)
+                {
+                    FinamSecurity secInArray = _finamSecurities[j];
+
+                    if (secInArray.Id == finamSecurity.Id
+                        && secInArray.Market == finamSecurity.Market)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+
+                    if (secInArray.Code == finamSecurity.Code
+                       && secInArray.Market == finamSecurity.Market)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if(isInArray == false)
+                {
+                    _finamSecurities.Add(finamSecurity);
                 }
             }
 
+         
             _securities = new List<Security>();
 
             for (int i = 0; i < _finamSecurities.Count; i++)
@@ -1087,7 +1128,8 @@ namespace OsEngine.Market.Servers.Finam
 
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
                     {
-                        if (_securities[i].NameId == securityName)
+                        if (_securities[i].NameId == securityName
+                            && _securities[i].NameClass == securityClass)
                         {
                             security = _securities[i];
                             break;
