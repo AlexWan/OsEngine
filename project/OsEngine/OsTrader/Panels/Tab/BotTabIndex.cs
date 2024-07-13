@@ -2533,6 +2533,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     newIndex.Name = "A" + i;
                     newIndex.Candles = candles;
+                    newIndex.Security = tabsInIndex[i].Security;
 
                     secInIndex.Add(newIndex);
                 }
@@ -2548,6 +2549,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     newIndex.Name = "A" + i;
                     newIndex.SecName = tabsInIndex[i].Security.Name;
                     newIndex.Candles = candles;
+                    newIndex.Security = tabsInIndex[i].Security;
                     SetVolume(newIndex, daysLookBack);
 
                     secInIndex.Add(newIndex);
@@ -2595,6 +2597,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     newIndex.Name = "A" + i;
                     newIndex.SecName = tabsInIndex[i].Security.Name;
                     newIndex.Candles = candles;
+                    newIndex.Security = tabsInIndex[i].Security;
                     SetVolatility(newIndex, daysLookBack);
 
                     secInIndex.Add(newIndex);
@@ -2671,8 +2674,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 allVolume += candlesToVol[i].Center * candlesToVol[i].Volume;
             }
 
-            security.SummVolume = allVolume;
+            if(security.Security.Lot > 1)
+            {
+                allVolume = allVolume * security.Security.Lot;
+            }
 
+            security.SummVolume = allVolume;
         }
 
         /// <summary>
@@ -2820,6 +2827,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         public decimal VolatylityDayPercent;
 
         public List<Candle> Candles;
+
+        public Security Security;
 
         public decimal LastPrice
         {
