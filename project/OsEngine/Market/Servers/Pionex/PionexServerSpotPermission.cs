@@ -88,6 +88,10 @@ namespace OsEngine.Market.Servers.Pionex
         {
             get { return false; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
 
         #endregion
 

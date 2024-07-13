@@ -75,6 +75,10 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             get { return true; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
         public bool DataFeedTfTickCanLoad
         {
             get { return true; }

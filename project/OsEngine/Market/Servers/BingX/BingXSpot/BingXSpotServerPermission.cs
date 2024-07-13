@@ -93,6 +93,11 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
             get { return false; }
         }
 
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }

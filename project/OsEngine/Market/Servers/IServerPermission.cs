@@ -42,6 +42,8 @@ namespace OsEngine.Market.Servers
 
         bool DataFeedTf4HourCanLoad { get; }
 
+        bool DataFeedTfDayCanLoad { get; }
+
         bool DataFeedTfTickCanLoad { get; }
 
         bool DataFeedTfMarketDepthCanLoad { get; }

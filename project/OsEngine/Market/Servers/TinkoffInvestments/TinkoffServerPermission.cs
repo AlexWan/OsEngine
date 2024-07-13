@@ -104,6 +104,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             get { return true; }
         }
 
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region Trade permission

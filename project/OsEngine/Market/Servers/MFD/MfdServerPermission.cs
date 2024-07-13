@@ -78,6 +78,10 @@ namespace OsEngine.Market.Servers.MFD
         {
             get { return false; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
         public bool DataFeedTfTickCanLoad
         {
             get { return true; }

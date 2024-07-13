@@ -78,6 +78,10 @@ namespace OsEngine.Market.Servers.OKX
         {
             get { return true; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }

@@ -79,6 +79,10 @@ namespace OsEngine.Market.Servers.Kraken
         {
             get { return true; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }

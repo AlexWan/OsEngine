@@ -79,6 +79,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             get { return false; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
         public bool DataFeedTfTickCanLoad
         {
             get { return true; }

@@ -74,6 +74,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             get { return false; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
         public bool DataFeedTfTickCanLoad
         {
             get { return true; }
