@@ -106,7 +106,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         public bool DataFeedTfDayCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
