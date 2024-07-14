@@ -1019,6 +1019,11 @@ namespace OsEngine.Language
         public string ServerParamToken => OsLocalization.ConvertToLocString(
             "Eng:Token_" +
             "Ru:Token_");
+
+        public string Memo => OsLocalization.ConvertToLocString(
+            "Eng:Memo_" +
+            "Ru:Memo_");
+
         public string ServerParamSubscription => OsLocalization.ConvertToLocString(
             "Eng:Paid subscription_" +
             "Ru:Платная подписка_");

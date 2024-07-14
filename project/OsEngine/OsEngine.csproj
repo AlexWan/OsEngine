@@ -586,6 +586,15 @@
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\RequestWebsocketAuth.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseWebSocketMessageAction.cs" />
+    <Compile Include="Market\Servers\BitMart\BitMart.cs" />
+    <Compile Include="Market\Servers\BitMart\BitMartServerPermission.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartClient.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartOrdersRest.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartPortfolioRest.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartPortfolioSocket.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartSecurityRest.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartSecuritySocket.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartSubscribleSocket.cs" />
     <Compile Include="Market\Servers\BitMaxFutures\BitMaxFuturesServer.cs" />
     <Compile Include="Market\Servers\BitMax\BitMaxEntity.cs" />
     <Compile Include="Market\Servers\BitMax\BitMaxMarketDepthCreator.cs" />
