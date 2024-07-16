@@ -46,6 +46,8 @@ namespace OsEngine.Robots.High_Frequency
             task.Start();
 
             Description = "robot analyzing the density of the market depth";
+
+            DeleteEvent += HighFrequencyTrader_DeleteEvent;
         }
 
         /// <summary>
@@ -256,8 +258,14 @@ namespace OsEngine.Robots.High_Frequency
             _tab.CloseAtMarket(position, position.OpenVolume);
         }
 
-        // отзыв заявок в реальном подключении
         // withdrawal orders in real connection
+
+        private void HighFrequencyTrader_DeleteEvent()
+        {
+            _isDeleted = true;
+        }
+
+        private bool _isDeleted = false;
 
         /// <summary>
         /// positions to be recalled
@@ -282,7 +290,12 @@ namespace OsEngine.Robots.High_Frequency
                         return;
                     }
 
-                    for (int i = 0; i < _positionsToClose.Count; i++)
+                    if(_isDeleted)
+                    {
+                        return;
+                    }
+
+                    for (int i = 0; _positionsToClose != null && i < _positionsToClose.Count; i++)
                     {
                         Position pos = _positionsToClose[i];
 
@@ -292,6 +305,7 @@ namespace OsEngine.Robots.High_Frequency
                         }
 
                         if (pos.OpenOrders != null &&
+                            pos.OpenOrders.Count > 0 &&
                             !string.IsNullOrWhiteSpace(pos.OpenOrders[0].NumberMarket))
                         {
                             _tab.CloseAllOrderToPosition(pos);
