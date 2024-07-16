@@ -36,7 +36,6 @@ namespace OsEngine.Market.Servers.BitMart
         }
     }
 
-
     public class BitMartServerRealization : IServerRealization
     {
         #region 1 Constructor, Status, Connection
@@ -72,7 +71,9 @@ namespace OsEngine.Market.Servers.BitMart
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 _memo = ((ServerParameterString)ServerParameters[2]).Value;
 
-                if (string.IsNullOrEmpty(_publicKey) || string.IsNullOrEmpty(_secretKey) || string.IsNullOrEmpty(_memo))
+                if (string.IsNullOrEmpty(_publicKey) 
+                    || string.IsNullOrEmpty(_secretKey) 
+                    || string.IsNullOrEmpty(_memo))
                 {
                     SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the BitMart website",
                         LogMessageType.Error);
@@ -158,6 +159,7 @@ namespace OsEngine.Market.Servers.BitMart
         #region 3 Securities
 
         private List<Security> _securities = new List<Security>();
+
         public void GetSecurities()
         {
             UpdateSec();
@@ -247,7 +249,7 @@ namespace OsEngine.Market.Servers.BitMart
                     newSecurity.DecimalsVolume = GetDecimalsVolume(item.quote_increment);
                     newSecurity.PriceStep = GetPriceStep( newSecurity.Decimals );
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.Lot = item.base_min_size.ToDecimal();
+                    newSecurity.Lot = 1;
                     newSecurity.SecurityType = SecurityType.CurrencyPair;
                     newSecurity.Exchange = ServerType.BitMart.ToString();
                     newSecurity.MinTradeAmount = item.min_buy_amount.ToDecimal() ;
@@ -850,7 +852,6 @@ namespace OsEngine.Market.Servers.BitMart
             }
         }
 
-
         private void WebSocketData_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
             try
@@ -989,7 +990,6 @@ namespace OsEngine.Market.Servers.BitMart
             }
         }
 
-
         private void WebSocketPortfolio_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
             try
@@ -1064,8 +1064,6 @@ namespace OsEngine.Market.Servers.BitMart
             }
         }
 
-        
-
         #endregion
 
         #region 9 WebSocket Security subscrible
@@ -1073,6 +1071,7 @@ namespace OsEngine.Market.Servers.BitMart
         private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         private readonly object _securitiesSubcriptionsLock = new object();
+
         private HashSet<string> _securitiesSubscriptions = new HashSet<string>();
 
         public void Subscrible(Security security)
@@ -1200,7 +1199,9 @@ namespace OsEngine.Market.Servers.BitMart
                 trade.Price = quotes.price.ToDecimal();
                 trade.Time = ConvertToDateTimeFromUnixFromSeconds(quotes.s_t.ToString());
                 trade.Id = quotes.s_t.ToString() + quotes.side + quotes.symbol;
-                if (quotes.side == "buy") {
+
+                if (quotes.side == "buy") 
+                {
                     trade.Side = Side.Buy;
                 } else
                 {
@@ -1493,7 +1494,6 @@ namespace OsEngine.Market.Servers.BitMart
             return order;
         }
 
-
         private void UpDateMyPortfolio(string data)
         {
             //https://developer-pro.bitmart.com/en/spot/#private-balance-change
@@ -1640,11 +1640,6 @@ namespace OsEngine.Market.Servers.BitMart
             }
         }
 
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             //unsupported by API
@@ -2115,7 +2110,6 @@ namespace OsEngine.Market.Servers.BitMart
             return trade;
         }
 
-
         #endregion
 
         #region 12 Helpers
@@ -2156,5 +2150,4 @@ namespace OsEngine.Market.Servers.BitMart
 
         #endregion
     }
-
 }
