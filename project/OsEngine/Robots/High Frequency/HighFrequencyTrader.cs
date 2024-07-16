@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Market;
@@ -272,27 +273,37 @@ namespace OsEngine.Robots.High_Frequency
         {
             while (true)
             {
-                await Task.Delay(1000);
-
-                if (MainWindow.ProccesIsWorked == false)
+                try
                 {
-                    return;
+                    await Task.Delay(1000);
+
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    for (int i = 0; i < _positionsToClose.Count; i++)
+                    {
+                        Position pos = _positionsToClose[i];
+
+                        if (pos.State != PositionStateType.Opening)
+                        {
+                            continue;
+                        }
+
+                        if (pos.OpenOrders != null &&
+                            !string.IsNullOrWhiteSpace(pos.OpenOrders[0].NumberMarket))
+                        {
+                            _tab.CloseAllOrderToPosition(pos);
+                            _positionsToClose.RemoveAt(i);
+                            i--;
+                        }
+                    }
                 }
-
-                for (int i = 0; i < _positionsToClose.Count; i++)
+                catch(Exception e)
                 {
-                    if (_positionsToClose[i].State != PositionStateType.Opening)
-                    {
-                        continue;
-                    }
-
-                    if (_positionsToClose[i].OpenOrders != null &&
-                        !string.IsNullOrWhiteSpace(_positionsToClose[i].OpenOrders[0].NumberMarket))
-                    {
-                        _tab.CloseAllOrderToPosition(_positionsToClose[i]);
-                        _positionsToClose.RemoveAt(i);
-                        i--;
-                    }
+                    Thread.Sleep(5000);
+                    _tab.SetNewLogMessage(e.ToString(),Logging.LogMessageType.Error);
                 }
             }
         }

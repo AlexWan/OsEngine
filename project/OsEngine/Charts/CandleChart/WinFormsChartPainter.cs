@@ -20,7 +20,6 @@ using OsEngine.Charts.ColorKeeper;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Logging;
-using OsEngine.Market;
 using Color = System.Drawing.Color;
 using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
