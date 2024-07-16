@@ -763,7 +763,15 @@ namespace OsEngine.Market.Servers
                     SendLogMessage(OsLocalization.Market.Message11, LogMessageType.Error);
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    ServerRealization.Dispose();
+
+                    try
+                    {
+                        ServerRealization.Dispose();
+                    }
+                    catch(Exception ex)
+                    {
+                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
 
                     DeleteCandleManager();
 
