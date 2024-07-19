@@ -3,7 +3,6 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.OKX.Entity;
 using OsEngine.Market.Servers.XT.XTSpot.Entity;
 using System;
 using System.Collections.Concurrent;
@@ -382,6 +381,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     return (int)timeSlice.TotalHours / (int)tf.TotalHours;
                 }
+                else if(tf.Days != 0)
+                {
+                    return (int)timeSlice.TotalDays;
+                }
                 else
                 {
                     return (int)timeSlice.TotalMinutes / tf.Minutes;
@@ -394,6 +397,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 if (tf.Minutes != 0)
                 {
                     return $"{tf.Minutes}m";
+                }
+                else if (tf.Days !=0)
+                {
+                    return $"1d";
                 }
                 else
                 {
