@@ -101,7 +101,7 @@
 
         public bool DataFeedTfDayCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
