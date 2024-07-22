@@ -373,7 +373,7 @@ namespace OsEngine.Market.Servers.Tester
             try
             {
 
-                if (_lastStartSecurityTime.AddSeconds(5) > DateTime.Now)
+                if (_lastStartSecurityTime.AddSeconds(10) > DateTime.Now)
                 {
                     SendLogMessage(OsLocalization.Market.Message97, LogMessageType.Error);
                     return;
@@ -387,42 +387,38 @@ namespace OsEngine.Market.Servers.Tester
 
                 SendLogMessage(OsLocalization.Market.Message35, LogMessageType.System);
 
-
-                if (_isFirstStart == false)
+                if (_candleSeriesTesterActivate != null)
                 {
-                    if (_candleSeriesTesterActivate != null)
+                    for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
                     {
-                        for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
-                        {
-                            _candleSeriesTesterActivate[i].Clear();
-                        }
+                        _candleSeriesTesterActivate[i].Clear();
                     }
-
-                    _candleSeriesTesterActivate = new List<SecurityTester>();
-
-                    int countSeriesInLastTest = _candleManager.ActiveSeriesCount;
-
-                    _candleManager.Clear();
-
-                    if (NeadToReconnectEvent != null)
-                    {
-                        NeadToReconnectEvent();
-                    }
-
-                    int timeToWaitConnect = 100 + countSeriesInLastTest * 40;
-
-                    if (timeToWaitConnect > 10000)
-                    {
-                        timeToWaitConnect = 10000;
-                    }
-
-                    if (timeToWaitConnect < 1000)
-                    {
-                        timeToWaitConnect = 1000;
-                    }
-
-                    Thread.Sleep(timeToWaitConnect);
                 }
+
+                _candleSeriesTesterActivate = new List<SecurityTester>();
+
+                int countSeriesInLastTest = _candleManager.ActiveSeriesCount;
+
+                _candleManager.Clear();
+
+                if (NeadToReconnectEvent != null)
+                {
+                    NeadToReconnectEvent();
+                }
+
+                int timeToWaitConnect = 100 + countSeriesInLastTest * 60;
+
+                if (timeToWaitConnect > 10000)
+                {
+                    timeToWaitConnect = 10000;
+                }
+
+                if (timeToWaitConnect < 1000)
+                {
+                    timeToWaitConnect = 1000;
+                }
+
+                Thread.Sleep(timeToWaitConnect);
 
                 _allTrades = null;
 
@@ -473,7 +469,7 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         TestingStartEvent();
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         SendLogMessage(ex.ToString(), LogMessageType.Error);
                     }
@@ -483,7 +479,7 @@ namespace OsEngine.Market.Servers.Tester
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
