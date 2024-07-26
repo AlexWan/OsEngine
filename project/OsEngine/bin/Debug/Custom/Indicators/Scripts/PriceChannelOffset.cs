@@ -5,7 +5,6 @@ using OsEngine.Indicators;
 
 namespace OsEngine.Indicators
 {
-    [Indicator("PriceChannelOffset")]
     internal class PriceChannelOffset : Aindicator
     {
         private IndicatorParameterInt _length;
