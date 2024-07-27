@@ -60,6 +60,7 @@ using OsEngine.Market.Servers.HTX.Futures;
 using OsEngine.Market.Servers.HTX.Swap;
 using OsEngine.Market.Servers.MoexFixFastSpot;
 using OsEngine.Market.Servers.BitMart;
+using OsEngine.Market.Servers.MoexFixFastCurrency;
 
 namespace OsEngine.Market
 {
@@ -205,7 +206,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.NinjaTrader);
                 serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.BitMart);
-
+                serverTypes.Add(ServerType.MoexFixFastCurrency);
                 serverTypes.Add(ServerType.AstsBridge);
 
 
@@ -563,6 +564,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.BitMart)
                 {
                     newServer = new BitMartServer();
+                }
+                else if (type == ServerType.MoexFixFastCurrency)
+                {
+                    newServer = new MoexFixFastCurrencyServer();
                 }
 
                 if (newServer == null)
@@ -1144,6 +1149,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new BitMartServerPermission();
                 }
+                else if (type == ServerType.MoexFixFastCurrency)
+                {
+                    serverPermission = new MoexFixFastCurrencyServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1573,5 +1582,10 @@ namespace OsEngine.Market
         /// BitMart exchange
         /// </summary>
         BitMart,
+
+        /// <summary>
+        /// FIX/FAST for MOEX currency 
+        /// </summary>
+        MoexFixFastCurrency,
     }
 }

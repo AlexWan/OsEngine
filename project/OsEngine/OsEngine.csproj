@@ -785,6 +785,16 @@
     <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseTrades.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServer.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServerPermission.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\FastConnection.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\IDsModifiedOrder.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\MessageConstructor.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\NumbersData.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\OrderChange.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\RejectMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\Snapshot.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\WaitingTrade.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\MoexFixFastCurrencyServer.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\MoexFixFastCurrencyServerPermission.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\FIX\AFIXHeader.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\FIX\AFIXMessageBody.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\FIX\FASTHeader.cs" />
