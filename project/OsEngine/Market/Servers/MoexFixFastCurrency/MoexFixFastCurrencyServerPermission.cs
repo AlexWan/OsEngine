@@ -161,7 +161,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool IsTradeServer

@@ -156,9 +156,6 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
                     if ((_socketSecurityStreamA != null || _socketSecurityStreamB != null))
                     {
-                        _tradeMessages = new ConcurrentQueue<OpenFAST.Message>();
-                        _orderMessages = new ConcurrentQueue<OpenFAST.Message>();
-
                         ServerStatus = ServerConnectStatus.Connect;
                         ConnectEvent();
                     }
@@ -222,6 +219,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
                 _timeLastDataReceipt = DateTime.Now.AddMinutes(30);
                 _timeOfTheLastMFIXMessage = DateTime.Now.AddMinutes(30);
+
+                _tradeMessages = new ConcurrentQueue<OpenFAST.Message>();
+                _orderMessages = new ConcurrentQueue<OpenFAST.Message>();
 
             }
 
@@ -767,11 +767,15 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             {
                 _fxMFIXTradeTcpClient = new TcpClient(fxMFIXTradeAddress, fxMFIXTradePort);
                 _fxMFIXTradeStream = _fxMFIXTradeTcpClient.GetStream();
-
+    
                 if (_fxMFIXTradeTcpClient.Connected)
                 {
                     _fxMFIXTradeMessages = new MessageConstructor(_senderCompID, _FXMFIXTradeTargetCompID);
-                    string logonMsg = _fxMFIXTradeMessages.LogonMessage(_password, _msgSeqNum, 30, true, _MFIXTradeServerNewPassword);
+
+                    bool resetSeqNum = _msgSeqNum == 1 ? true : false;
+
+                    string logonMsg = _fxMFIXTradeMessages.LogonMessage(_password, _msgSeqNum, 30, resetSeqNum, _MFIXTradeServerNewPassword);
+                   
                     SendFXMFIXTradeMessage(logonMsg);
 
                     DateTime waitStartConnect = DateTime.Now;
@@ -3201,8 +3205,6 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                 return needSocket;
             }
 
-          
-
             private OpenFAST.Context CreateNewContext()
             {
                 OpenFAST.Context context = new OpenFAST.Context();
@@ -3271,9 +3273,6 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             }
 
             #endregion
-
-
         }
-
     }
 }

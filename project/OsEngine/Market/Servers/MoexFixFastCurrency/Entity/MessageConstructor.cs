@@ -450,13 +450,16 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
         private int CalculateChecksum(string dataToCalculate)
         {
             byte[] byteToCalculate = Encoding.ASCII.GetBytes(dataToCalculate);
+
             int checksum = 0;
-            foreach (byte chData in byteToCalculate)
+                     
+            for (int i = 0; i < byteToCalculate.Length; i++)
             {
-                checksum += chData;
+                checksum += byteToCalculate[i];
             }
+
             return checksum % 256;
-        }
+       }
 
         /// <summary>
         /// Возврат кода сообщения
