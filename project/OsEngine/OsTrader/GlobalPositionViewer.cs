@@ -508,9 +508,14 @@ namespace OsEngine.OsTrader
                         }
                     }
 
-                    CheckPosition(_gridOpenPoses, openPositions);
+                    if(_gridOpenPoses != null 
+                        && openPositions.Count < 500)
+                    {
+                        CheckPosition(_gridOpenPoses, openPositions);
+                    }
 
-                    if (_gridClosePoses != null)
+                    if (_gridClosePoses != null
+                        && closePositions.Count < 500)
                     {
                         CheckPosition(_gridClosePoses, closePositions);
                     }
