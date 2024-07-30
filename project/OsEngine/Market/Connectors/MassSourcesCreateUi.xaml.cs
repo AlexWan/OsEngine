@@ -242,6 +242,8 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                _candlesRealizationGrid.EndEdit();
+
                 MassSourcesCreator curSettings = GetCurSettings();
 
                 SourcesCreator.CandleCreateMethodType = curSettings.CandleCreateMethodType;

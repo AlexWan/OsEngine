@@ -253,6 +253,8 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
+                _candlesRealizationGrid.EndEdit();
+
                 Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
 
                 _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
