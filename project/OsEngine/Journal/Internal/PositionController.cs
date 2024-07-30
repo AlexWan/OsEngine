@@ -1295,6 +1295,7 @@ namespace OsEngine.Journal.Internal
             try
             {
                 DataGridView newGrid = DataGridFactory.GetDataGridPosition();
+                newGrid.ScrollBars = ScrollBars.Vertical;
 
                 return newGrid;
             }
