@@ -442,12 +442,6 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (depth.Bids[0].Bid == 0 ||
-                    depth.Asks[0].Ask == 0)
-                {
-                    return;
-                }
-
                 decimal maxVol = 0;
 
                 decimal allBid = 0;
@@ -659,7 +653,8 @@ namespace OsEngine.Entity
         {
             try
             {
-                if (_hostMd == null)
+                if (_hostMd == null 
+                    || _marketDepthTable == null)
                 {
                     return;
                 }
@@ -669,10 +664,13 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (ask != 0 && bid != 0)
+                if (ask != 0)
+                {
+                    _marketDepthTable.Rows[24].Cells[2].Value = ask.ToStringWithNoEndZero();
+                }
+                if (bid != 0)
                 {
                     _marketDepthTable.Rows[25].Cells[2].Value = bid.ToStringWithNoEndZero();
-                    _marketDepthTable.Rows[24].Cells[2].Value = ask.ToStringWithNoEndZero();
                 }
 
                 if (_marketDepthTable.Rows[26].Cells[2].Value != null ||

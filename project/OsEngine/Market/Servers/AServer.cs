@@ -1749,10 +1749,11 @@ namespace OsEngine.Market.Servers
                     ServerTime = myDepth.Time;
                 }
 
-                if (myDepth.Asks == null ||
-                     myDepth.Asks.Count == 0
-                     || myDepth.Bids == null ||
-                      myDepth.Bids.Count == 0)
+                if ((myDepth.Asks == null ||
+                      myDepth.Asks.Count == 0)
+                     &&
+                     ( myDepth.Bids == null ||
+                    myDepth.Bids.Count == 0))
                 {
                     return;
                 }
@@ -1817,10 +1818,21 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            decimal bestBid = newMarketDepth.Bids[0].Price;
-            decimal bestAsk = newMarketDepth.Asks[0].Price;
+            decimal bestBid = 0;
+            if(newMarketDepth.Bids != null &&
+                newMarketDepth.Bids.Count > 0)
+            {
+                bestBid = newMarketDepth.Bids[0].Price;
+            }
 
-            if (bestBid == 0 ||
+            decimal bestAsk = 0;
+            if(newMarketDepth.Asks != null &&
+                newMarketDepth.Asks.Count > 0)
+            {
+                bestAsk = newMarketDepth.Asks[0].Price;
+            }
+           
+            if (bestBid == 0 &&
                 bestAsk == 0)
             {
                 return;
@@ -2064,14 +2076,18 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            if (depth.Asks == null || depth.Asks.Count == 0 ||
-                depth.Bids == null || depth.Bids.Count == 0)
+            if(depth.Asks != null &&
+                depth.Asks.Count > 0)
             {
-                return;
+                trade.Ask = depth.Asks[0].Price;
             }
-
-            trade.Ask = depth.Asks[0].Price;
-            trade.Bid = depth.Bids[0].Price;
+          
+            if(depth.Bids != null &&
+                depth.Bids.Count > 0)
+            {
+                trade.Bid = depth.Bids[0].Price;
+            }
+            
             trade.BidsVolume = depth.BidSummVolume;
             trade.AsksVolume = depth.AskSummVolume;
         }
