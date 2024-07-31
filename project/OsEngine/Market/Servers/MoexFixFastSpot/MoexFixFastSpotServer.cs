@@ -36,9 +36,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             ServerRealization = realization;
 
             // MFIX
-            CreateParameterString("MFIX Trade Sever Address", "");
-            CreateParameterString("MFIX Trade Sever Port", "");
-            CreateParameterString("MFIX Trade Sever TargetCompId", "");
+            CreateParameterString("MFIX Trade Server Address", "");
+            CreateParameterString("MFIX Trade Server Port", "");
+            CreateParameterString("MFIX Trade Server TargetCompId", "");
             CreateParameterString("MFIX Trade Server Login", "");
             CreateParameterPassword("MFIX Trade Server Password", "");
             CreateParameterString("MFIX Trade Account", "");
