@@ -3352,7 +3352,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         try
                         {
-                            order.NumberUser = Convert.ToInt32(fixMessage.Fields["ClOrdID"]);
+                            order.NumberUser = ExtractNumberUserFromServerString(fixMessage.Fields["ClOrdID"]);
                         }
                         catch
                         {
@@ -3363,7 +3363,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         {
                             try
                             {
-                                order.NumberUser = Convert.ToInt32(fixMessage.Fields["OrigClOrdID"]);
+                                order.NumberUser = ExtractNumberUserFromServerString(fixMessage.Fields["OrigClOrdID"]);
                             }
                             catch
                             {
@@ -3549,7 +3549,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 NewOrderSingleMessage msg = new NewOrderSingleMessage();
-                msg.ClOrdID = order.NumberUser.ToString();
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
                 msg.NoPartyID = "1";
                 msg.PartyID = _MFIXTradeClientCode;
                 msg.Account = _MFIXTradeAccount;
@@ -3614,8 +3614,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderCancelReplaceRequestMessage msg = new OrderCancelReplaceRequestMessage();
-                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие/изменение
-                msg.OrigClOrdID = order.NumberUser.ToString();
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие/изменение
+                msg.OrigClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
                 msg.OrderID = order.NumberMarket;
                 msg.PartyID = _MFIXTradeClientCode;
                 msg.Account = _MFIXTradeAccount;
@@ -3649,9 +3649,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderCancelRequestMessage msg = new OrderCancelRequestMessage();
-                msg.OrigClOrdID = order.NumberUser.ToString();
-                msg.OrderID = _changedOrderIds.ContainsKey(order.NumberUser) ? _changedOrderIds[order.NumberUser] : order.NumberMarket.ToString(); // по-умолчанию снимаем ордер по пользовательскому номеру
-                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.OrigClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
+                msg.OrderID = _MFIXTradeClientCode + "//" + (_changedOrderIds.ContainsKey(order.NumberUser) ? _changedOrderIds[order.NumberUser] : order.NumberMarket.ToString()); // по-умолчанию снимаем ордер по пользовательскому номеру
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
                 msg.Side = order.Side == Side.Buy ? "1" : "2";
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
 
@@ -3677,7 +3677,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;                
 
                 OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
-                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
                 msg.Account = _MFIXTradeAccount;
                 msg.PartyID = _MFIXTradeClientCode;
@@ -3704,7 +3704,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
-                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
                 msg.MassCancelRequestType = "1";
                 msg.TradingSessionID = security.NameClass;
                 msg.Symbol = security.NameId;
@@ -3767,6 +3767,22 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
 
             return context;
+        }
+
+        int ExtractNumberUserFromServerString(string serverString)
+        {
+            // Split the string using double slash as the delimiter
+            string[] parts = serverString.Split(new string[] { "//" }, StringSplitOptions.None);
+
+            // Check if the split resulted in enough parts
+            if (parts.Length > 1)
+            {
+                return int.Parse(parts[1]); 
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         #endregion
