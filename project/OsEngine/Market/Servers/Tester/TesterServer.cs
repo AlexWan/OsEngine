@@ -373,7 +373,7 @@ namespace OsEngine.Market.Servers.Tester
             try
             {
 
-                if (_lastStartSecurityTime.AddSeconds(10) > DateTime.Now)
+                if (_lastStartSecurityTime.AddSeconds(5) > DateTime.Now)
                 {
                     SendLogMessage(OsLocalization.Market.Message97, LogMessageType.Error);
                     return;
@@ -3721,6 +3721,10 @@ namespace OsEngine.Market.Servers.Tester
             else if (frameSpan == new TimeSpan(0, 2, 0, 0))
             {
                 timeFrame = TimeFrame.Hour2;
+            }
+            else if (frameSpan == new TimeSpan(0, 4, 0, 0))
+            {
+                timeFrame = TimeFrame.Hour4;
             }
             else if (frameSpan == new TimeSpan(1, 0, 0, 0) )
             {

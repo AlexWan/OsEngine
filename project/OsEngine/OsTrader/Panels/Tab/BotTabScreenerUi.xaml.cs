@@ -239,6 +239,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                _candlesRealizationGrid.EndEdit();
+
                 _screener.PortfolioName = ComboBoxPortfolio.Text;
                 if (CheckBoxIsEmulator.IsChecked != null)
                 {

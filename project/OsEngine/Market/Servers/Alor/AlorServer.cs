@@ -383,7 +383,7 @@ namespace OsEngine.Market.Servers.Alor
                     }
                     else if (item.type == "PS")
                     {
-                        newSecurity.NameClass = "Stock Pref";
+                        newSecurity.NameClass = "Stock";
                     }
                     else if (newSecurity.SecurityType == SecurityType.Fund)
                     {

@@ -691,21 +691,22 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             while (true)
             {
-                Thread.Sleep(10000);
-
-                if (MainWindow.ProccesIsWorked == false)
-                {
-                    return;
-                }
-
-                if (QuikLua == null ||
-                    ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    continue;
-                }
-
                 try
                 {
+                    Thread.Sleep(10000);
+
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    if (QuikLua == null ||
+                        ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        continue;
+                    }
+
+
                     for (int i = 0; i < _myOrdersInMarket.Count; i++)
                     {
                         await CheckOrder(_myOrdersInMarket[i]);
@@ -725,6 +726,8 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
+                _rateGateSendOrder.WaitToProceed();
+
                 QuikSharp.DataStructures.Transaction.Order order =
                     await QuikLua.Orders.GetOrder_by_transID(
                         ord.SecurityNameCode.Split('+')[1],
@@ -803,17 +806,14 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
-
         private string _clientCode;
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void SendOrder(Order order)
         {
-            _rateGateSendOrder.WaitToProceed();
-
             try
             {
+                _rateGateSendOrder.WaitToProceed();
 
                 QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
 
@@ -927,10 +927,10 @@ namespace OsEngine.Market.Servers.QuikLua
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void CancelOrder(Order order)
         {
-            _rateGateCancelOrder.WaitToProceed();
-
             try
             {
+                _rateGateSendOrder.WaitToProceed();
+
                 _ordersAllReadyCanseled.Add(order);
                 QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
                 qOrder.SecCode = order.SecurityNameCode.Split('+')[0];

@@ -1199,14 +1199,22 @@ namespace OsEngine.Market.Connectors
                     GlassChangeEvent(glass);
                 }
 
-                if (glass.Bids.Count == 0 ||
-                    glass.Asks.Count == 0)
+                decimal bestBid = 0;
+                
+                if (glass.Bids != null &&
+                     glass.Bids.Count > 0)
                 {
-                    return;
+                    bestBid = glass.Bids[0].Price;
                 }
 
-                decimal bestBid = glass.Bids[0].Price;
-                decimal bestAsk = glass.Asks[0].Price;
+                decimal bestAsk = 0;
+                
+                if(glass.Asks!= null &&
+                    glass.Asks.Count > 0)
+                {
+                    bestAsk = glass.Asks[0].Price;
+                }
+              
 
                 if (EmulatorIsOn)
                 {

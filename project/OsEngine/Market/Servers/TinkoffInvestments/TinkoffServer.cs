@@ -1516,7 +1516,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 TradeInstrument tradeInstrument = new TradeInstrument();
                 tradeInstrument.InstrumentId = security.NameId;
 
-                SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest{ SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { tradeInstrument }};
+                SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest{ SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { tradeInstrument }, TradeType = TradeSourceType.TradeSourceAll };
                 marketDataRequestTrades.SubscribeTradesRequest = subscribeTradesRequest;
                 
                 _marketDataStream.RequestStream.WriteAsync(marketDataRequestTrades).Wait();
