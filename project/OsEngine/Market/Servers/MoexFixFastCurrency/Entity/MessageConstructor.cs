@@ -53,7 +53,6 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
         /// <param name="clordId">11. Уникальный  пользовательский  идентификатор  заявки, установленный  торгующей  организацией  или  инвестором, интересы которого представляет посредническая организация.</param>
         /// <param name="partiesParams">Стороны заявки. Обычно содержит код клиента. </param>
         /// <param name="symbol">55. идентификатор финансового  инструмента. </param>
-        /// <param name="orderQtyParams">Объем заявки, выраженный в лотах</param>
         /// <param name="account">1. Торговый счет, в счет которого подается заявка.</param>
         /// <param name="maxFloor">111. Максимальное  количество  лотов  в  пределах  объема  заявки, которое будет показано на бирже в любой момент времени (Для заявок типа Айсберг).</param>
         /// <param name="aceberg">Тип заявки Айсберг?</param>
@@ -99,7 +98,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
             return headerAndMessageAndTrailer.Replace("|", "\u0001");
         }
 
-      
+
 
         /// <summary>
         /// Стороны заявки. Обычно содержит код клиента.
@@ -107,7 +106,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
         /// <returns></returns>
         public string ConstructParties(string[] partiesParams)
         {
-  
+
             StringBuilder msg = new StringBuilder();
             msg.Append("453=" + partiesParams[0] + "|");
             msg.Append("448=" + partiesParams[1] + "|");
@@ -116,16 +115,15 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
 
             return msg.ToString();
         }
- 
+
         /// <summary>
         /// Отмена/снятие ранее размещенной заявки
         /// </summary>
         /// <param name="origClOrdId">Пользовательский  идентификатор  заявки,  которую  надо  снять.</param>
-        /// <param name="orderID">Биржевой номер заявки, которую надо снять. Условно обязательное, если не  указано  поле  OrigClOrdID  (41)</param>
+        /// <param name="orderID">Биржевой номер заявки, которую надо снять. </param>
         /// <param name="clordId">Уникальный идентификатор сообщения Order Cancel Request (F) - запроса на снятие заявки.</param>
-        /// <param name="side"></param>
-        /// <param name="messageSequenceNumber"></param>
-        /// <returns></returns>
+        /// <param name="side">Направление сделки</param>
+        /// <param name="messageSequenceNumber">Номер исходящих сообщений</param>
         public string OrderCanselMessage(string origClOrdId, string orderID, string clordId, string side, long messageSequenceNumber)
         {
             StringBuilder body = new StringBuilder();
@@ -144,7 +142,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
         }
 
         /// <summary>
-        /// 
+        /// Снять все заявки
         /// </summary>
         /// <param name="clordId">Уникальный идентификатор сообщения</param>
         /// <param name="massCancelRequestType">Тип массового запроса на снятие заявок.</param>
@@ -221,10 +219,8 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
         }
 
         /// <summary>
-        /// Logons the message.
+        /// Logon
         /// </summary>
-        /// <param name="messageSequenceNumber">The message sequence number.</param>
-        /// <param name="heartBeatSeconds">The heart beat seconds.</param>
         /// <param name="resetSeqNum">Индикатор,  указывающий  должны  ли  обе  стороны  сбросить  счетчики сообщений. По умолчанию "Нет"</param>
         public string LogonMessage(string password, long messageSequenceNumber, int heartBeatSeconds, bool resetSeqNum, string newPassword, string languageID = "E")
         {
@@ -233,7 +229,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
             body.Append("98=0|");
             body.Append("108=" + heartBeatSeconds + "|");
 
-          if (resetSeqNum)
+            if (resetSeqNum)
                 body.Append("141=Y|");
             else body.Append("141=N|");
 
@@ -242,7 +238,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
             if (!string.IsNullOrEmpty(newPassword))
                 body.Append("925=" + newPassword + "|");
 
-           // body.Append("6936=" + languageID + "|");
+            // body.Append("6936=" + languageID + "|"); // функция смены языка не нужна постоянно
 
             string header = ConstructHeader(SessionMessageCode(MessageType.Logon), messageSequenceNumber, body.ToString());
             string headerAndBody = header + body;
@@ -440,7 +436,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
             header.Append(message);
             return header.ToString();
         }
-      
+
         private string ConstructTrailer(string message)
         {
             string trailer = "10=" + CalculateChecksum(message.Replace("|", "\u0001").ToString()).ToString().PadLeft(3, '0') + "|";
@@ -452,14 +448,14 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency.Entity
             byte[] byteToCalculate = Encoding.ASCII.GetBytes(dataToCalculate);
 
             int checksum = 0;
-                     
+
             for (int i = 0; i < byteToCalculate.Length; i++)
             {
                 checksum += byteToCalculate[i];
             }
 
             return checksum % 256;
-       }
+        }
 
         /// <summary>
         /// Возврат кода сообщения
