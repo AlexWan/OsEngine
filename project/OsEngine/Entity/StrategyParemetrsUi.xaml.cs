@@ -19,6 +19,8 @@ namespace OsEngine.Entity
     {
         private List<IIStrategyParameter> _parameters;
 
+        BotPanel _panel;
+
         public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings, BotPanel panel)
         {
             InitializeComponent();
@@ -29,6 +31,7 @@ namespace OsEngine.Entity
             Width = (double)settings.Width;
 
             _parameters = parameters;
+            _panel = panel;
 
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
             ButtonUpdate.Content = OsLocalization.Entity.ButtonUpdate;
@@ -82,8 +85,9 @@ namespace OsEngine.Entity
         {
             this.Closed -= ParemetrsUi_Closed;
             _parameters = null;
+            _panel = null;
 
-            if(_tabs != null)
+            if (_tabs != null)
             {
                 for (int i = 0;i < _tabs.Count; i++)
                 {
@@ -93,7 +97,7 @@ namespace OsEngine.Entity
                 _tabs = null;
             }
 
-
+         
         }
 
         List<List<IIStrategyParameter>> GetParamSortedByTabName()
@@ -417,8 +421,15 @@ namespace OsEngine.Entity
                 return;
             }
 
-            StrategyParameterButton param = (StrategyParameterButton)_parameters[index];
-            param.Click();
+            try
+            {
+                StrategyParameterButton param = (StrategyParameterButton)_parameters[index];
+                param.Click();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         private void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
