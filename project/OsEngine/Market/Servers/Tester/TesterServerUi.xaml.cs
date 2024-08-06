@@ -13,6 +13,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using Grpc.Core;
+using OsEngine.Charts;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
@@ -739,8 +740,8 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
-                _chartReport.Series[0].Points.Clear();
-                _chartReport.Series[1].Points.Clear();
+                _chartReport.Series[0].Points.ClearFast();
+                _chartReport.Series[1].Points.ClearFast();
 
                 for (int i = 0; i < portfolio.Count; i++)
                 {
