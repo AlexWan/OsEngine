@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Windows;
-using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
+using OsEngine.Helpers;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 
@@ -395,15 +394,7 @@ namespace OsEngine.Market.Servers.MFD
 
                 string[] line = lines[i].Split(';');
 
-                int year = Convert.ToInt32(line[2].Substring(0, 4));
-                int month = Convert.ToInt32(line[2].Substring(4, 2));
-                int day = Convert.ToInt32(line[2].Substring(6, 2));
-
-                int hour = Convert.ToInt32(line[3].Substring(0, 2));
-                int minute = Convert.ToInt32(line[3].Substring(2, 2));
-                int second = Convert.ToInt32(line[3].Substring(4, 2));
-
-                DateTime  timeStart = new DateTime(year, month, day, hour, minute, second);
+                DateTime timeStart = DateTimeParseHelper.ParseFromTwoStrings(line[2], line[3]);
 
                 Candle candle = new Candle();
                 candle.Open = line[4].ToDecimal();
@@ -497,15 +488,7 @@ namespace OsEngine.Market.Servers.MFD
 
                 string[] line = lines[i].Split(';');
 
-                int year = Convert.ToInt32(line[2].Substring(0, 4));
-                int month = Convert.ToInt32(line[2].Substring(4, 2));
-                int day = Convert.ToInt32(line[2].Substring(6, 2));
-
-                int hour = Convert.ToInt32(line[3].Substring(0, 2));
-                int minute = Convert.ToInt32(line[3].Substring(2, 2));
-                int second = Convert.ToInt32(line[3].Substring(4, 2));
-
-                DateTime timeStart = new DateTime(year, month, day, hour, minute, second);
+                DateTime timeStart = DateTimeParseHelper.ParseFromTwoStrings(line[2], line[3]);
 
                 Trade trade = new Trade();
                 trade.Price = line[4].ToDecimal();

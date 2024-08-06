@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using OsEngine.Entity;
+using OsEngine.Helpers;
 using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.AstsBridge
@@ -2116,9 +2117,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             if (fieldT != null)
             {
-                hour = Convert.ToInt32(fieldT.Value[0].ToString() + fieldT.Value[1].ToString());
-                min = Convert.ToInt32(fieldT.Value[2].ToString() + fieldT.Value[3].ToString());
-                sec = Convert.ToInt32(fieldT.Value[4].ToString() + fieldT.Value[5].ToString());
+                DateTimeParseHelper.ParseDateOrTimeString(fieldT.Value, out hour, out min, out sec);
             }
 
             int day = 0;
@@ -2127,9 +2126,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             if (fieldD != null)
             {
-                day = Convert.ToInt32(fieldD.Value[6].ToString() + fieldD.Value[7].ToString());
-                month = Convert.ToInt32(fieldD.Value[4].ToString() + fieldD.Value[5].ToString());
-                year = Convert.ToInt32(fieldD.Value[0].ToString() + fieldD.Value[1].ToString() + fieldD.Value[2].ToString() + fieldD.Value[3].ToString());
+                DateTimeParseHelper.ParseDateOrTimeString(fieldD.Value, out year, out month, out day);
             }
 
             DateTime result = new DateTime(year, month, day, hour, min, sec);
