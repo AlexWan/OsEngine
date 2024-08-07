@@ -448,6 +448,7 @@
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\DateTimeParseHelper.cs" />
     <Compile Include="Logging\ServerTelegram.cs" />
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
@@ -1943,7 +1944,6 @@
     <Resource Include="Images\MainWIndow\alor1.png" />
     <Resource Include="Images\MainWIndow\alor2.png" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets" Condition="Exists('..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
