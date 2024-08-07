@@ -45,11 +45,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _ishimoku = ishimoku;
 
-            TextBoxPeriodOne.Text = _ishimoku.LenghtFirst.ToString();
-            TextBoxPerionTwo.Text = _ishimoku.LenghtSecond.ToString();
-            TextBoxPerionThree.Text = _ishimoku.LenghtFird.ToString();
-            TextBoxShift.Text = _ishimoku.LenghtSdvig.ToString();
-            TextBoxChinkou.Text = _ishimoku.LenghtChinkou.ToString();
+            TextBoxPeriodOne.Text = _ishimoku.LengthFirst.ToString();
+            TextBoxPerionTwo.Text = _ishimoku.LengthSecond.ToString();
+            TextBoxPerionThree.Text = _ishimoku.LengthFird.ToString();
+            TextBoxShift.Text = _ishimoku.LengthSdvig.ToString();
+            TextBoxChinkou.Text = _ishimoku.LengthChinkou.ToString();
 
             HostLineLate.Child = new TextBox();
             HostLineLate.Child.BackColor = _ishimoku.ColorLineLate;
@@ -104,11 +104,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return;
             }
 
-            _ishimoku.LenghtFirst = Convert.ToInt32(TextBoxPeriodOne.Text);
-            _ishimoku.LenghtSecond = Convert.ToInt32(TextBoxPerionTwo.Text);
-            _ishimoku.LenghtFird = Convert.ToInt32(TextBoxPerionThree.Text);
-            _ishimoku.LenghtSdvig = Convert.ToInt32(TextBoxShift.Text);
-            _ishimoku.LenghtChinkou = Convert.ToInt32(TextBoxChinkou.Text);
+            _ishimoku.LengthFirst = Convert.ToInt32(TextBoxPeriodOne.Text);
+            _ishimoku.LengthSecond = Convert.ToInt32(TextBoxPerionTwo.Text);
+            _ishimoku.LengthFird = Convert.ToInt32(TextBoxPerionThree.Text);
+            _ishimoku.LengthSdvig = Convert.ToInt32(TextBoxShift.Text);
+            _ishimoku.LengthChinkou = Convert.ToInt32(TextBoxChinkou.Text);
 
             _ishimoku.ColorEtalonLine = HostEtalonLine.Child.BackColor;
             _ishimoku.ColorLineRounded = HostLineRounded.Child.BackColor;

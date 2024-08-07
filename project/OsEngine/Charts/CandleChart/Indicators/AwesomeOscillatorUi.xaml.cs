@@ -43,8 +43,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _awesomeOscillatoro = awesomeOscillator;
 
-            TextBoxLenghtLong.Text = _awesomeOscillatoro.LenghtLong.ToString();
-            TextBoxLenghtShort.Text = _awesomeOscillatoro.LenghtShort.ToString();
+            TextBoxLengthLong.Text = _awesomeOscillatoro.LengthLong.ToString();
+            TextBoxLengthShort.Text = _awesomeOscillatoro.LengthShort.ToString();
 
             HostColorUp.Child = new TextBox();
             HostColorUp.Child.BackColor = _awesomeOscillatoro.ColorUp;
@@ -80,8 +80,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenghtLong.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxLenghtShort.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLengthLong.Text) <= 0 ||
+                    Convert.ToInt32(TextBoxLengthShort.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -95,8 +95,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _awesomeOscillatoro.ColorUp = HostColorUp.Child.BackColor;
             _awesomeOscillatoro.ColorDown = HostColorDown.Child.BackColor;
 
-            _awesomeOscillatoro.LenghtLong = Convert.ToInt32(TextBoxLenghtLong.Text);
-            _awesomeOscillatoro.LenghtShort = Convert.ToInt32(TextBoxLenghtShort.Text);
+            _awesomeOscillatoro.LengthLong = Convert.ToInt32(TextBoxLengthLong.Text);
+            _awesomeOscillatoro.LengthShort = Convert.ToInt32(TextBoxLengthShort.Text);
 
             if (CheckBoxPaintOnOff.IsChecked.HasValue)
             {

@@ -3,9 +3,9 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.Windows;
-using System.Windows.Forms;
 using MessageBox = System.Windows.MessageBox;
 using TextBox = System.Windows.Forms.TextBox;
 
@@ -19,7 +19,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <summary>
         /// индикатор который мы настраиваем
         /// </summary>
-        private DonchianChannel _donchian;
+        private DonchianChannel _indicator;
 
         /// <summary>
         /// изменились ли настройки
@@ -30,24 +30,32 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// конструктор
         /// </summary>
         /// <param name="bollinger">индикатор который мы будем настраивать</param>
-        public DonchianChannelUi(DonchianChannel donchian)
+        public DonchianChannelUi(DonchianChannel indicator)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
-            _donchian = donchian;
+            _indicator = indicator;
 
-            TextBoxLenght.Text = _donchian.Lenght.ToString();
+            TextBoxLength.Text = _indicator.Length.ToString();
             HostColorUp.Child = new TextBox();
-            HostColorUp.Child.BackColor = _donchian.ColorUp;
+            HostColorUp.Child.BackColor = _indicator.ColorUp;
 
             HostColorDown.Child = new TextBox();
-            HostColorDown.Child.BackColor = _donchian.ColorDown;
+            HostColorDown.Child.BackColor = _indicator.ColorDown;
 
             HostColorAvg.Child = new TextBox();
-            HostColorAvg.Child.BackColor = _donchian.ColorAvg;
+            HostColorAvg.Child.BackColor = _indicator.ColorAvg;
 
-            CheckBoxPaintOnOff.IsChecked = _donchian.PaintOn;
+            CheckBoxPaintOnOff.IsChecked = _indicator.PaintOn;
+
+
+            ButtonColorUp.Content = OsLocalization.Charts.LabelButtonIndicatorColorUp;
+            ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColorDown;
+            ButtonColorAvg.Content = OsLocalization.Charts.LabelButtonIndicatorColor;
+            CheckBoxPaintOnOff.Content = OsLocalization.Charts.LabelPaintIntdicatorIsVisible;
+            ButtonAccept.Content = OsLocalization.Charts.LabelButtonIndicatorAccept;
+            LabelPeriod.Content = OsLocalization.Charts.LabelIndicatorPeriod;
 
             this.Activate();
             this.Focus();
@@ -60,7 +68,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -71,18 +79,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return;
             }
 
-            _donchian.ColorUp = HostColorUp.Child.BackColor;
-            _donchian.ColorDown = HostColorDown.Child.BackColor;
-            _donchian.ColorAvg = HostColorAvg.Child.BackColor;
+            _indicator.ColorUp = HostColorUp.Child.BackColor;
+            _indicator.ColorDown = HostColorDown.Child.BackColor;
+            _indicator.ColorAvg = HostColorAvg.Child.BackColor;
 
-            _donchian.Lenght = Convert.ToInt32(TextBoxLenght.Text);
+            _indicator.Length = Convert.ToInt32(TextBoxLength.Text);
 
             if (CheckBoxPaintOnOff.IsChecked.HasValue)
             {
-                _donchian.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
+                _indicator.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
             }
 
-            _donchian.Save();
+            _indicator.Save();
             IsChange = true;
             Close();
         }

@@ -43,7 +43,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _vhf = vhf;
 
-            TextBoxLenght.Text = _vhf.Nperiod.ToString();
+            TextBoxLength.Text = _vhf.Nperiod.ToString();
 
             HostColorBase.Child = new TextBox();
             HostColorBase.Child.BackColor = _vhf.ColorBase;
@@ -66,7 +66,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -78,7 +78,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             _vhf.ColorBase = HostColorBase.Child.BackColor;
-            _vhf.Nperiod = Convert.ToInt32(TextBoxLenght.Text);
+            _vhf.Nperiod = Convert.ToInt32(TextBoxLength.Text);
             _vhf.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
 
 

@@ -43,7 +43,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _mA = mA;
 
-            TextBoxLenght.Text = _mA.Lenght.ToString();
+            TextBoxLength.Text = _mA.Length.ToString();
             TextBoxKaufmanFast.Text = _mA.KaufmanFastEma.ToString();
             TextBoxKaufmanSlow.Text = _mA.KaufmanSlowEma.ToString();
             HostColor.Child = new TextBox();
@@ -108,7 +108,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0 ||
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0 ||
                     Convert.ToInt32(TextBoxKaufmanSlow.Text) <= 0 ||
                     Convert.ToInt32(TextBoxKaufmanFast.Text) <= 0)
                 {
@@ -123,7 +123,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             _mA.ColorBase = HostColor.Child.BackColor;
-            _mA.Lenght = Convert.ToInt32(TextBoxLenght.Text);
+            _mA.Length = Convert.ToInt32(TextBoxLength.Text);
             _mA.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
             _mA.KaufmanFastEma = Convert.ToInt32(TextBoxKaufmanFast.Text);
             _mA.KaufmanSlowEma = Convert.ToInt32(TextBoxKaufmanSlow.Text);

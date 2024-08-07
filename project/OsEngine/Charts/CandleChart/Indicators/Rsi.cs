@@ -29,7 +29,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = uniqName;
             TypeIndicator = IndicatorChartPaintType.Line;
-            Lenght = 5;
+            Length = 5;
             ColorBase = Color.Green;
             PaintOn = true;
             CanDelete = canDelete;
@@ -46,7 +46,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
             TypeIndicator = IndicatorChartPaintType.Line;
-            Lenght = 5;
+            Length = 5;
             ColorBase = Color.Green;
             PaintOn = true;
             CanDelete = canDelete;
@@ -117,7 +117,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator calculation length
         /// длинна расчёта индикатора
         /// </summary>
-        public int Lenght { get; set; }
+        public int Length { get; set; }
 
         /// <summary>
         /// indicator color
@@ -147,7 +147,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -174,7 +174,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
 
                     writer.Close();
                 }
@@ -349,7 +349,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private decimal GetValue(List<Candle> candles, int index)
         {
-            if (index - Lenght - 1 <= 0)
+            if (index - Length - 1 <= 0)
             {
                 return 0;
             }
@@ -380,8 +380,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     priceChangeHigh[i] = 0;
                 }
 
-                MovingAverageHard(priceChangeHigh, priceChangeHighAverage, Lenght, i);
-                MovingAverageHard(priceChangeLow, priceChangeLowAverage, Lenght, i);
+                MovingAverageHard(priceChangeHigh, priceChangeHighAverage, Length, i);
+                MovingAverageHard(priceChangeLow, priceChangeLowAverage, Length, i);
             }
 
             decimal averageHigh = priceChangeHighAverage[index];

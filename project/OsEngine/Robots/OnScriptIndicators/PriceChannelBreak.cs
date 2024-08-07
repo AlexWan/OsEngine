@@ -24,14 +24,14 @@ public class PriceChannelBreak : BotPanel
 
         Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
         Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
-        Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
-        IndLenght = CreateParameter("IndLength", 10, 10, 80, 3);
+        Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
+        IndLength = CreateParameter("Ind Length", 10, 10, 80, 3);
 
         _pc = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
         _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");
 
-        _pc.ParametersDigit[0].Value = IndLenght.ValueInt;
-        _pc.ParametersDigit[1].Value = IndLenght.ValueInt;
+        _pc.ParametersDigit[0].Value = IndLength.ValueInt;
+        _pc.ParametersDigit[1].Value = IndLength.ValueInt;
 
         _pc.Save();
 
@@ -47,11 +47,11 @@ public class PriceChannelBreak : BotPanel
 
     void Event_ParametrsChangeByUser()
     {
-        if (IndLenght.ValueInt != _pc.ParametersDigit[0].Value ||
-            IndLenght.ValueInt != _pc.ParametersDigit[1].Value)
+        if (IndLength.ValueInt != _pc.ParametersDigit[0].Value ||
+            IndLength.ValueInt != _pc.ParametersDigit[1].Value)
         {
-            _pc.ParametersDigit[0].Value = IndLenght.ValueInt;
-            _pc.ParametersDigit[1].Value = IndLenght.ValueInt;
+            _pc.ParametersDigit[0].Value = IndLength.ValueInt;
+            _pc.ParametersDigit[1].Value = IndLength.ValueInt;
 
             _pc.Reload();
         }
@@ -109,7 +109,7 @@ public class PriceChannelBreak : BotPanel
     /// indicator length
     /// длинна индикатора
     /// </summary>
-    public StrategyParameterInt IndLenght;
+    public StrategyParameterInt IndLength;
 
     private decimal _lastPrice;
     private decimal _lastPcUp;

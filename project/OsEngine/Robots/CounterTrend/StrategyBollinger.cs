@@ -36,7 +36,7 @@ namespace OsEngine.Robots.CounterTrend
             _bollinger = new Bollinger(name + "Bollinger", false);
             _bollinger = _tab.CreateIndicator(_bollinger);
 
-            _moving = new MovingAverage(name + "Moving", false) { Lenght = 15 };
+            _moving = new MovingAverage(name + "Moving", false) { Length = 15 };
             _moving = _tab.CreateIndicator(_moving);
 
             _tab.CandleFinishedEvent += Bot_CandleFinishedEvent;

@@ -355,8 +355,8 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 int sdvig = 0;
 
-                int[] lenghtFull = new int[1];
-                Marshal.Copy(IntPtr.Add(new IntPtr(ptrOnTable),  sdvig), lenghtFull, 0, 1);
+                int[] lengthFull = new int[1];
+                Marshal.Copy(IntPtr.Add(new IntPtr(ptrOnTable),  sdvig), lengthFull, 0, 1);
 
                 ptrOnTable += 1; // shift to the length to int / сдвигаем на длинну длинны инта
 
@@ -430,7 +430,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             type.Name = GetString(ptr, out ptr, sdvig, out sdvig);
             type.Header = GetString(ptr, out ptr, sdvig, out sdvig);
             type.Description = GetString(ptr, out ptr, sdvig, out sdvig);
-            type.Lenght = GetInt(ptr, out ptr, sdvig);
+            type.Length = GetInt(ptr, out ptr, sdvig);
 
             int numType = GetInt(ptr, out ptr, sdvig);
             if (numType == 0)
@@ -555,7 +555,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 field.Header = GetString(ptr, out ptr, sdvig, out sdvig);
                 field.Description = GetString(ptr, out ptr, sdvig, out sdvig);
                 
-                field.Lenght = GetInt(ptr, out ptr, sdvig);
+                field.Length = GetInt(ptr, out ptr, sdvig);
 
                 int type = GetInt(ptr, out ptr, sdvig);
 
@@ -1133,7 +1133,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     UniversalField fieldNew = new UniversalField();
 
                     fieldNew.Name = field.Name;
-                    fieldNew.Value = GetStringWhenWeKnownLength(ptr, out ptr, sdvig, out sdvig, field.Lenght);
+                    fieldNew.Value = GetStringWhenWeKnownLength(ptr, out ptr, sdvig, out sdvig, field.Length);
                     fieldNew.Decimals = field.CountDecimal;
 
                     row.Fields.Add(fieldNew);
@@ -1423,7 +1423,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     string acc = order.PortfolioNumber.Split('@')[0];
 
-                    for (int i = 0; field.Lenght > acc.Length; i++)
+                    for (int i = 0; field.Length > acc.Length; i++)
                     {
                         acc += " ";
                     }
@@ -1458,7 +1458,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     string name = "TQBR"; //mySecurity.NameClass;
 
-                    for (int i = 0; field.Lenght > name.Length; i++)
+                    for (int i = 0; field.Length > name.Length; i++)
                     {
                         name += " ";
                     }
@@ -1468,9 +1468,9 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     string name = mySecurity.Name;
 
-                    if (field.Lenght > name.Length)
+                    if (field.Length > name.Length)
                     {
-                        name += new string(' ', field.Lenght - name.Length);
+                        name += new string(' ', field.Length - name.Length);
                     }
                     result.Append(name);
                 }
@@ -1510,9 +1510,9 @@ namespace OsEngine.Market.Servers.AstsBridge
                     // the first cell 44/первая ячейка 44
                     string volume = order.Volume.ToString();
 
-                    if (field.Lenght > volume.Length)
+                    if (field.Length > volume.Length)
                     {
-                        volume = volume.Insert(0, new string('0', field.Lenght - volume.Length));
+                        volume = volume.Insert(0, new string('0', field.Length - volume.Length));
                     }
 
                     result.Append(volume);
@@ -1522,9 +1522,9 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     string hide = "0";
 
-                    if (field.Lenght > hide.Length)
+                    if (field.Length > hide.Length)
                     {
-                        hide = hide.Insert(0, new string('0', field.Lenght - hide.Length));
+                        hide = hide.Insert(0, new string('0', field.Length - hide.Length));
                     }
 
                     result.Append(hide);
@@ -1533,9 +1533,9 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {// the first cell 64/первая ячейка 64
                     string refB = "@" + order.NumberUser.ToString();
 
-                    if (field.Lenght > refB.Length)
+                    if (field.Length > refB.Length)
                     {
-                        refB = refB.Insert(0, new string(' ', field.Lenght - refB.Length));
+                        refB = refB.Insert(0, new string(' ', field.Length - refB.Length));
                     }
 
                     result.Append(refB);
@@ -1545,9 +1545,9 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     string code = "";
 
-                    if (field.Lenght > code.Length)
+                    if (field.Length > code.Length)
                     {
-                        code += new string(' ', field.Lenght - code.Length);
+                        code += new string(' ', field.Length - code.Length);
                     }
 
                     result.Append(code);
@@ -1556,9 +1556,9 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     string code = ClientCode;
 
-                    if (field.Lenght > code.Length)
+                    if (field.Length > code.Length)
                     {
-                        code += new string(' ', field.Lenght - code.Length);
+                        code += new string(' ', field.Length - code.Length);
                     }
 
                     result.Append(code);
@@ -1591,9 +1591,9 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     string code = "";
 
-                    if (field.Lenght > code.Length)
+                    if (field.Length > code.Length)
                     {
-                        code += new string(' ', field.Lenght - code.Length);
+                        code += new string(' ', field.Length - code.Length);
                     }
 
                     result.Append(code);
@@ -2191,7 +2191,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// size
         /// размер int
         /// </summary>
-        public int Lenght;
+        public int Length;
 
         /// <summary>
         /// type of type
@@ -2358,7 +2358,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// size
         /// размер
         /// </summary>
-        public int Lenght;
+        public int Length;
 
         /// <summary>
         /// field type

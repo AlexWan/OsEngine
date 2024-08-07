@@ -44,14 +44,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 // стоп
 
                 CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
-                TextBoxStopPercentLenght.Text = _strategySettings.StopDistance.ToStringWithNoEndZero();
+                TextBoxStopPercentLength.Text = _strategySettings.StopDistance.ToStringWithNoEndZero();
                 TextBoxSlipageStop.Text = _strategySettings.StopSlipage.ToStringWithNoEndZero();
 
                 // profit
                 // профит
 
                 CheckBoxProfitIsOn.IsChecked = _strategySettings.ProfitIsOn;
-                TextBoxProfitPercentLenght.Text = _strategySettings.ProfitDistance.ToStringWithNoEndZero();
+                TextBoxProfitPercentLength.Text = _strategySettings.ProfitDistance.ToStringWithNoEndZero();
                 TextBoxSlipageProfit.Text = _strategySettings.ProfitSlipage.ToStringWithNoEndZero();
 
                 // closing position
@@ -118,9 +118,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 if (Convert.ToInt32(TextBoxSecondToOpen.Text) <= 0 ||
                     Convert.ToInt32(TextBoxSecondToClose.Text) <= 0 ||
-                    TextBoxStopPercentLenght.Text.ToDecimal() <= 0 ||
+                    TextBoxStopPercentLength.Text.ToDecimal() <= 0 ||
                     TextBoxSlipageStop.Text.ToDecimal() <= 0 ||
-                    TextBoxProfitPercentLenght.Text.ToDecimal() <= 0 ||
+                    TextBoxProfitPercentLength.Text.ToDecimal() <= 0 ||
                     TextBoxSlipageProfit.Text.ToDecimal() <= 0 ||
                     TextBoxSetbackToClose.Text.ToDecimal() <= 0 ||
                     Convert.ToInt32(TextBoxSecondToOpen.Text) <= 0 ||
@@ -142,13 +142,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 // stop
                 // стоп
                 _strategySettings.StopIsOn = CheckBoxStopIsOn.IsChecked.Value;
-                _strategySettings.StopDistance = TextBoxStopPercentLenght.Text.ToDecimal();
+                _strategySettings.StopDistance = TextBoxStopPercentLength.Text.ToDecimal();
                 _strategySettings.StopSlipage =TextBoxSlipageStop.Text.ToDecimal();
 
                 // profit
                 // профит
                 _strategySettings.ProfitIsOn = CheckBoxProfitIsOn.IsChecked.Value;
-                _strategySettings.ProfitDistance = TextBoxProfitPercentLenght.Text.ToDecimal();
+                _strategySettings.ProfitDistance = TextBoxProfitPercentLength.Text.ToDecimal();
                 _strategySettings.ProfitSlipage = TextBoxSlipageProfit.Text.ToDecimal();
 
                 // closing position

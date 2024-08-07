@@ -29,7 +29,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public EfficiencyRatio(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            Lenght = 14;
+            Length = 14;
             TypeIndicator = IndicatorChartPaintType.Line;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             ColorBase = Color.DodgerBlue;
@@ -48,7 +48,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            Lenght = 14;
+            Length = 14;
             TypeIndicator = IndicatorChartPaintType.Line;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             ColorBase = Color.DodgerBlue;
@@ -136,7 +136,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
-        public int Lenght;
+        public int Length;
 
         /// <summary>
         /// is indicator tracing enabled
@@ -160,7 +160,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(PaintOn);
                     writer.WriteLine(TypeCalculationAverage);
                     writer.Close();
@@ -189,7 +189,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out TypeCalculationAverage);
                     reader.ReadLine();
@@ -361,13 +361,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             decimal eR1 = 0;
             decimal eR2 = 0;
 
-            if (index - Lenght > 0)
+            if (index - Length > 0)
             {
-                eR1 = Math.Abs(candles[index].Close - candles[index - Lenght].Close);
+                eR1 = Math.Abs(candles[index].Close - candles[index - Length].Close);
 
                 eR2 = 0;
 
-                for (int i = 0; i <= Lenght; i++)
+                for (int i = 0; i <= Length; i++)
                 {
                     eR2 += Math.Abs(candles[index - i].Close - candles[index - i - 1].Close);
                 }

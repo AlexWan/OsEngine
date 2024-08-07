@@ -5,7 +5,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Accept" Margin="0,0,10,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="119"/>
-        <TextBox x:Name ="TextBoxLenght"  Margin="154,24,23,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox x:Name ="TextBoxLength"  Margin="154,24,23,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Right" Margin="0,24,176,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" Margin="0,78,23,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="127" />
         <Button x:Name="ButtonColorAdx" Content="Color" Margin="22,51,176,0" VerticalAlignment="Top" Click="ButtonColorAdx_Click"  />

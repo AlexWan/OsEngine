@@ -43,8 +43,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _mA = mA;
 
-            TextBoxLenght1.Text = _mA.Lenght1.ToString();
-            TextBoxLenght2.Text = _mA.Lenght2.ToString();
+            TextBoxLength1.Text = _mA.Length1.ToString();
+            TextBoxLength2.Text = _mA.Length2.ToString();
             HostColor.Child = new TextBox();
             HostColor.Child.BackColor = _mA.ColorBase;
 
@@ -68,7 +68,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if ((Convert.ToInt32(TextBoxLenght1.Text) <= 0) || (Convert.ToInt32(TextBoxLenght2.Text) <= 0))
+                if ((Convert.ToInt32(TextBoxLength1.Text) <= 0) 
+                    || (Convert.ToInt32(TextBoxLength2.Text) <= 0))
                 {
                     throw new Exception("error");
                 }
@@ -81,8 +82,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             _mA.ColorBase = HostColor.Child.BackColor;
-            _mA.Lenght1 = Convert.ToInt32(TextBoxLenght1.Text);
-            _mA.Lenght2 = Convert.ToInt32(TextBoxLenght2.Text);
+            _mA.Length1 = Convert.ToInt32(TextBoxLength1.Text);
+            _mA.Length2 = Convert.ToInt32(TextBoxLength2.Text);
             _mA.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
             //Enum.TryParse(ComboBoxPriceField.SelectedItem.ToString(), true, out _mA.TypePointsToSearch);
 

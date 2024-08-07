@@ -427,8 +427,8 @@ namespace OsEngine.OsMiner.Patterns
         {
             PatternIndicators pattern = (PatternIndicators)_pattern.GetTempPattern(PatternType.Indicators);
 
-            TextBoxPatternIndicatorLenght.Text = pattern.Length.ToString();
-            TextBoxPatternIndicatorLenght.TextChanged += TextBoxPatternIndicatorLenght_TextChanged;
+            TextBoxPatternIndicatorLength.Text = pattern.Length.ToString();
+            TextBoxPatternIndicatorLength.TextChanged += TextBoxPatternIndicatorLength_TextChanged;
 
             ComboBoxPatternIndicatorSearchType.Items.Add(PatternIndicatorSearchType.CandlePosition);
             ComboBoxPatternIndicatorSearchType.Items.Add(PatternIndicatorSearchType.IndicatorsAngle);
@@ -445,16 +445,16 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.Save();
         }
 
-        void TextBoxPatternIndicatorLenght_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxPatternIndicatorLength_TextChanged(object sender, TextChangedEventArgs e)
         {
             PatternIndicators pattern = (PatternIndicators)_pattern.GetTempPattern(PatternType.Indicators);
             try
             {
-                pattern.Length = Convert.ToInt32(TextBoxPatternIndicatorLenght.Text);
+                pattern.Length = Convert.ToInt32(TextBoxPatternIndicatorLength.Text);
             }
             catch (Exception)
             {
-                TextBoxPatternIndicatorLenght.Text = pattern.Length.ToString();
+                TextBoxPatternIndicatorLength.Text = pattern.Length.ToString();
             }
             _pattern.GetPatternToIndex();
             _pattern.Save();

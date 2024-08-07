@@ -28,7 +28,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AdaptiveLookBack(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            Lenght = 5;
+            Length = 5;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
@@ -46,7 +46,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            Lenght = 5;
+            Length = 5;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
@@ -129,7 +129,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
-        public int Lenght;
+        public int Length;
 
         /// <summary>
         /// is indicator tracing enabled
@@ -153,7 +153,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(PaintOn);
                     writer.Close();
                 }
@@ -181,7 +181,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.ReadLine();
 
@@ -359,7 +359,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         private decimal GetValue(List<Candle> candles,int index, bool updateOnly)
         {
             if (index< 5 ||
-                index < Lenght + 3)
+                index < Length + 3)
             {
                 return 0;
             }
@@ -410,11 +410,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 
             }
 
-            int lastSwingInCalc = (_swingBarArray.Count - Lenght);
+            int lastSwingInCalc = (_swingBarArray.Count - Length);
 
             if (lastSwingInCalc >= 0)
             {
-                return (index - _swingBarArray[lastSwingInCalc])/Lenght;
+                return (index - _swingBarArray[lastSwingInCalc])/Length;
             }
 
             return 0;

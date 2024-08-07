@@ -42,9 +42,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _so = so;
 
-            TextBoxLenght.Text = _so.P1.ToString();
-            TextBoxLenght2.Text = _so.P2.ToString();
-            TextBoxLenght3.Text = _so.P3.ToString();
+            TextBoxLength.Text = _so.P1.ToString();
+            TextBoxLength2.Text = _so.P2.ToString();
+            TextBoxLength3.Text = _so.P3.ToString();
 
             HostColor1.Child = new TextBox();
             HostColor1.Child.BackColor = _so.ColorUp;
@@ -87,9 +87,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0||
-                    Convert.ToInt32(TextBoxLenght2.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxLenght3.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0||
+                    Convert.ToInt32(TextBoxLength2.Text) <= 0 ||
+                    Convert.ToInt32(TextBoxLength3.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -103,9 +103,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _so.ColorUp = HostColor1.Child.BackColor;
             _so.ColorDown = HostColor2.Child.BackColor;
 
-            _so.P1 = Convert.ToInt32(TextBoxLenght.Text);
-            _so.P2 = Convert.ToInt32(TextBoxLenght2.Text);
-            _so.P3 = Convert.ToInt32(TextBoxLenght3.Text);
+            _so.P1 = Convert.ToInt32(TextBoxLength.Text);
+            _so.P2 = Convert.ToInt32(TextBoxLength2.Text);
+            _so.P3 = Convert.ToInt32(TextBoxLength3.Text);
 
             _so.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
 

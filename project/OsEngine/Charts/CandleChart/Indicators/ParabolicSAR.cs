@@ -116,11 +116,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public string Name { get; set; }
 
         /// <summary>
-        /// длинна рассчёта индикатора
-        /// </summary>
-        public int Lenght { get; set; }
-
-        /// <summary>
         /// коэф. приращения
         /// </summary>
         public double Af { get; set; }

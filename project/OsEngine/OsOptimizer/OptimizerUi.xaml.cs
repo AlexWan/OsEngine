@@ -23,8 +23,6 @@ using OsEngine.Layout;
 using System.IO;
 using System.Windows.Markup;
 using System.Globalization;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using QuikSharp;
 
 namespace OsEngine.OsOptimizer
 {
