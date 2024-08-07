@@ -38,11 +38,11 @@ namespace OsEngine.OsMiner.Patterns
 
             InitializeTabClosePosition();
 
-            _gridPatternsToOpen = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridPatternsToOpen = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _gridPatternsToOpen.MouseClick += _gridPatternsToOpen_MouseClick;
             _gridPatternsToOpen.CellValueChanged += _gridPatternsToOpen_CellValueChanged;
 
-            _gridPatternsToClose = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridPatternsToClose = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _gridPatternsToClose.MouseClick += _gridPatternsToClose_MouseClick;
             _gridPatternsToClose.CellValueChanged += _gridPatternsToClose_CellValueChanged;
 

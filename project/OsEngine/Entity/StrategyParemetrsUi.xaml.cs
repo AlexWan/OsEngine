@@ -227,7 +227,8 @@ namespace OsEngine.Entity
         private void CreateTable()
         {
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
-                DataGridViewAutoSizeRowsMode.None);
+                DataGridViewAutoSizeRowsMode.AllCells);
+
             _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();

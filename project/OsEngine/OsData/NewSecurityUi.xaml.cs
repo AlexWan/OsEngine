@@ -94,7 +94,7 @@ namespace OsEngine.OsData
         private void CreateTable()
         {
             _gridSecurities = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+                DataGridViewAutoSizeRowsMode.AllCells);
             _gridSecurities.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();

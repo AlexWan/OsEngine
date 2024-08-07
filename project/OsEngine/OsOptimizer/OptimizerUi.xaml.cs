@@ -2679,7 +2679,9 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableResults()
         {
-            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells);
+
             _gridResults.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();

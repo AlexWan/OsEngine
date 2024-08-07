@@ -307,7 +307,7 @@ namespace OsEngine.OsMiner
         /// </summary>
         private void CreateSetsDataGrid()
         {
-            _gridSets = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridSets = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridSets.DefaultCellStyle;

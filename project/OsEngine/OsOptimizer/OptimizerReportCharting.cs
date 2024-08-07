@@ -275,7 +275,9 @@ namespace OsEngine.OsOptimizer
 
         private void CreateStepsOfOptimization()
         {
-            _gridStepsOfOptimization = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None,true);
+            _gridStepsOfOptimization = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells,true);
+
             _gridStepsOfOptimization.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();

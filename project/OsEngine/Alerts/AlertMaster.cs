@@ -83,7 +83,8 @@ namespace OsEngine.Alerts
                 return;
             }
 
-            GridViewBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
+            GridViewBox = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = GridViewBox.DefaultCellStyle;
