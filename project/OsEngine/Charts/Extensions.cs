@@ -6,10 +6,6 @@ namespace OsEngine.Charts
 {
     public static class Extensions
     {
-        private static readonly PropertyInfo CommonPropertyInfo = typeof(DataPointCollection).GetProperty("Common", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static PropertyInfo ChartPicturePropertyInfo;
-        private static MethodInfo ChartPictureTypeResetMethodInfo;
-            
         /// <summary>
         /// Быстрая очистка коллекции точек. 
         /// </summary>
@@ -24,28 +20,22 @@ namespace OsEngine.Charts
         public static void ClearFast(this DataPointCollection dataPointCollection)
         {
             if (dataPointCollection == null)
-                return;
-
-            // вообще тут еще проверка на .items.IsReadOnly с выбросом исключения, но тут такого быть не может, поэтому можно пропустить 
-
-            var commonPropertyValue = CommonPropertyInfo.GetValue(dataPointCollection);
-            if (commonPropertyValue != null)
             {
-                if (ChartPicturePropertyInfo == null)
-                    ChartPicturePropertyInfo = commonPropertyValue.GetType().GetProperty("ChartPicture", BindingFlags.NonPublic | BindingFlags.Instance);
-
-                var chartPictureValue = ChartPicturePropertyInfo.GetValue(commonPropertyValue);
-                if (chartPictureValue != null)
-                {
-                    if (ChartPictureTypeResetMethodInfo == null)
-                        ChartPictureTypeResetMethodInfo = chartPictureValue.GetType().GetMethod("ResetMinMaxFromData", BindingFlags.Instance | BindingFlags.NonPublic);
-                    ChartPictureTypeResetMethodInfo.Invoke(chartPictureValue, Array.Empty<object>());
-                }
+                return;
+            }
+                
+            if(dataPointCollection.Count == 0)
+            {
+                return;
             }
 
             dataPointCollection.SuspendUpdates();
+
             for (int i = dataPointCollection.Count - 1; i >= 0; --i)
+            {
                 dataPointCollection.RemoveAt(i);
+            }
+
             dataPointCollection.ResumeUpdates();
         }
     }

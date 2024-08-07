@@ -448,7 +448,6 @@
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\DateTimeParseHelper.cs" />
     <Compile Include="Logging\ServerTelegram.cs" />
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
