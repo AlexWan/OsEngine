@@ -280,7 +280,7 @@ namespace OsEngine.Charts.CandleChart
                 Series oldcandleSeries = FindSeriesByNameSafe("SeriesCandle");
                 if (oldcandleSeries.Points.Count != 0)
                 {
-                    oldcandleSeries.Points.Clear();
+                    oldcandleSeries.Points.ClearFast();
                 }
                     
                 //_chartElements = new List<IChartElement>();
@@ -306,7 +306,7 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (_chart.Series[i].Points.Count != 0)
                     {
-                        _chart.Series[i].Points.Clear();
+                        _chart.Series[i].Points.ClearFast();
                     }
  
                 }
@@ -922,7 +922,7 @@ namespace OsEngine.Charts.CandleChart
                         {
                             ClearLabelOnY2(mySeries.Name + "Label", mySeries.ChartArea, mySeries.Points[0].Color);
                         }
-                        mySeries.Points.Clear();
+                        mySeries.Points.ClearFast();
                         _chart.Series.Remove(FindSeriesByNameSafe(indicator.Name + i));
 
                         if (_labelSeries != null)
@@ -3992,7 +3992,7 @@ namespace OsEngine.Charts.CandleChart
                     Series mySeries = FindSeriesByNameSafe(indicatorCandle.Name + i);
                     if (mySeries != null)
                     {
-                        mySeries.Points.Clear();
+                        mySeries.Points.ClearFast();
                     }
                 }
 
@@ -4022,7 +4022,7 @@ namespace OsEngine.Charts.CandleChart
                     _chart.Invoke(new Action<Series>(ClearIndicatorSeries), series);
                     return;
                 }
-                series.Points.Clear();
+                series.Points.ClearFast();
             }
             catch (Exception error)
             {
@@ -4147,7 +4147,7 @@ namespace OsEngine.Charts.CandleChart
                 values.Count == 0)
             {
                 Series needClearSeries = FindSeriesByNameSafe(nameSeries);
-                needClearSeries?.Points.Clear();
+                needClearSeries?.Points.ClearFast();
                 return;
             }
 
