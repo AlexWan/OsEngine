@@ -37,9 +37,6 @@ namespace OsEngine.Market.Servers.Optimizer
             CreateGrid();
             PaintGrid();
 
-            TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
-            TextBoxTo.TextChanged += TextBoxTo_TextChanged;
-
             // progress-bar/прогресс бар
 
             List<string> sets = _server.Sets;
@@ -77,8 +74,6 @@ namespace OsEngine.Market.Servers.Optimizer
             Label23.Header = OsLocalization.Market.Label23;
             Label24.Content = OsLocalization.Market.Label24;
             Label25.Content = OsLocalization.Market.Label25;
-            LabelFrom.Content = OsLocalization.Market.Label26;
-            LabelTo.Content = OsLocalization.Market.Label27;
             Label28.Content = OsLocalization.Market.Label28;
             ButtonSetDataFromPath.Content = OsLocalization.Market.ButtonSetFolder;
 
@@ -177,9 +172,6 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
-            SliderTo.ValueChanged -= SliderTo_ValueChanged;
-
             _myGridView.Rows.Clear();
 
             List<SecurityTester> securities = _server.SecuritiesTester;
@@ -239,20 +231,6 @@ namespace OsEngine.Market.Servers.Optimizer
                     _myGridView.Rows.Add(nRow);
                 }
             }
-
-            TextBoxFrom.Text = _server.TimeStart.ToString(_currentCulture);
-            TextBoxTo.Text = _server.TimeEnd.ToString(_currentCulture);
-
-            SliderFrom.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-            SliderFrom.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
-            SliderFrom.Value = (_server.TimeStart - DateTime.MinValue).TotalMinutes;
-
-            SliderTo.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-            SliderTo.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
-            SliderTo.Value = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-
-            SliderFrom.ValueChanged += SliderFrom_ValueChanged;
-            SliderTo.ValueChanged += SliderTo_ValueChanged;
         }
 
         private void _myGridView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
@@ -321,88 +299,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
 
             PaintGrid();
-        }
-
-        // sliders. Set the start and finish test times
-        // слайдеры. Установка начального и конечного времени тестирования
-
-        private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
-
-            DateTime to = DateTime.MinValue.AddMinutes(SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value);
-            _server.TimeEnd = to;
-            TextBoxTo.Text = to.ToString(_currentCulture);
-
-            if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
-            {
-                SliderFrom.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value;
-            }
-            TextBoxTo.TextChanged += TextBoxTo_TextChanged;
-        }
-
-        void SliderFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
-
-            DateTime from = DateTime.MinValue.AddMinutes(SliderFrom.Value);
-            _server.TimeStart = from;
-            TextBoxFrom.Text = from.ToString(_currentCulture);
-
-            if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
-            {
-                SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderFrom.Value;
-            }
-
-            TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
-        }
-
-        void TextBoxTo_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            DateTime to;
-            try
-            {
-                to = Convert.ToDateTime(TextBoxTo.Text, _currentCulture);
-
-                if (to < _server.TimeMin ||
-                    to > _server.TimeMax)
-                {
-                    throw new Exception();
-                }
-            }
-            catch (Exception)
-            {
-                TextBoxTo.Text = _server.TimeEnd.ToString(_currentCulture);
-                return;
-            }
-
-            _server.TimeEnd = to;
-            // SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - to.Minute;
-            // SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value
-            SliderTo.Value = SliderFrom.Minimum + SliderTo.Maximum - (to - DateTime.MinValue).TotalMinutes;
-        }
-
-        void TextBoxFrom_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            DateTime from;
-            try
-            {
-                from = Convert.ToDateTime(TextBoxFrom.Text, _currentCulture);
-
-                if (from < _server.TimeMin ||
-                    from > _server.TimeMax)
-                {
-                    throw new Exception();
-                }
-            }
-            catch (Exception)
-            {
-                TextBoxFrom.Text = _server.TimeStart.ToString(_currentCulture);
-                return;
-            }
-
-            _server.TimeStart = from;
-            SliderFrom.Value = (_server.TimeStart - DateTime.MinValue).TotalMinutes;
         }
 
         private void ButtonSetDataFromPath_Click(object sender, RoutedEventArgs e)

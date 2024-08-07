@@ -23,6 +23,8 @@ using OsEngine.Layout;
 using System.IO;
 using System.Windows.Markup;
 using System.Globalization;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using QuikSharp;
 
 namespace OsEngine.OsOptimizer
 {
@@ -106,6 +108,7 @@ namespace OsEngine.OsOptimizer
             DatePickerEnd.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
             DatePickerStart.DisplayDate = _master.TimeStart;
             DatePickerEnd.DisplayDate = _master.TimeEnd;
+
             TextBoxPercentFiltration.Text = _master.PercentOnFilration.ToString();
 
             CheckBoxLastInSample.IsChecked = _master.LastInSample;
@@ -674,12 +677,14 @@ namespace OsEngine.OsOptimizer
 
         void DatePickerEnd_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            _master.TimeEnd = DatePickerEnd.DisplayDate;
+            _lastUpdateTimePicker = DateTime.Now;
+            _master.TimeEnd = DatePickerEnd.SelectedDate.Value;
         }
 
         void DatePickerStart_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            _master.TimeStart = DatePickerStart.DisplayDate;
+            _lastUpdateTimePicker = DateTime.Now;
+            _master.TimeStart = DatePickerStart.SelectedDate.Value;
         }
 
         void TextBoxFiltertValue_TextChanged(object sender, TextChangedEventArgs e)
@@ -837,19 +842,32 @@ namespace OsEngine.OsOptimizer
 
         // events from the server / события из сервера
 
+        DateTime _lastUpdateTimePicker;
+
         /// <summary>
         /// inbound event: the start or end time of the data in the server has changed
         /// входящее событие: изменилась начальная или конечное время данных в сервере
         /// </summary>
         void _master_DateTimeStartEndChange()
         {
+            if (_lastUpdateTimePicker.AddSeconds(2) > DateTime.Now)
+            {
+                return;
+            }
+
             if (!DatePickerStart.Dispatcher.CheckAccess())
             {
                 DatePickerStart.Dispatcher.Invoke(_master_DateTimeStartEndChange);
                 return;
             }
+
+            _lastUpdateTimePicker = DateTime.Now;
+
             DatePickerStart.SelectedDate = _master.TimeStart;
             DatePickerEnd.SelectedDate = _master.TimeEnd;
+
+            /*DatePickerStart.Text = _master.TimeStart.ToString(_currentCulture);
+            DatePickerEnd.Text = _master.TimeEnd.ToString(_currentCulture);*/
         }
 
         // Table of Papers and Time Frames for ordinary tabs / таблица Бумаг и таймФреймов для обычных вкладок
