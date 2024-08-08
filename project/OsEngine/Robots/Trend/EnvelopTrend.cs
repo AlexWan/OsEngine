@@ -3,13 +3,11 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Trend
@@ -18,6 +16,7 @@ namespace OsEngine.Robots.Trend
     /// Trend strategy based on indicator Envelop
     /// Трендовая стратегия на основе индикатора конверт(Envelop)
     /// </summary>
+    [Bot("EnvelopTrend")]
     public class EnvelopTrend : BotPanel
     {
         public EnvelopTrend(string name, StartProgram startProgram) : base(name, startProgram)
@@ -40,7 +39,7 @@ namespace OsEngine.Robots.Trend
             TrailStop = CreateParameter("Trail Stop", 0.1m, 0.1m, 5, 0.1m);
 
             _envelop.Deviation = EnvelopDeviation.ValueDecimal;
-            _envelop.MovingAverage.Lenght = EnvelopMovingLength.ValueInt;
+            _envelop.MovingAverage.Length = EnvelopMovingLength.ValueInt;
 
             ParametrsChangeByUser += EnvelopTrend_ParametrsChangeByUser;
 
@@ -54,7 +53,7 @@ namespace OsEngine.Robots.Trend
         private void EnvelopTrend_ParametrsChangeByUser()
         {
             _envelop.Deviation = EnvelopDeviation.ValueDecimal;
-            _envelop.MovingAverage.Lenght = EnvelopMovingLength.ValueInt;
+            _envelop.MovingAverage.Length = EnvelopMovingLength.ValueInt;
             _envelop.Reload();
         }
 
@@ -137,7 +136,7 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            if(candles.Count +5 < _envelop.MovingAverage.Lenght)
+            if(candles.Count +5 < _envelop.MovingAverage.Length)
             {
                 return;
             }

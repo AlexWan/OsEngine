@@ -98,7 +98,12 @@
         {
             get { return true; }
         }
-        
+
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return true; }
+        }
+
         #endregion
 
         #region Trade permission

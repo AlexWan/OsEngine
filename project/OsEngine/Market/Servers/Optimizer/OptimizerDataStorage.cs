@@ -293,17 +293,24 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public void ReloadSecurities(bool thisThread)
         {
-            // чистим все данные, отключаемся
-            SecuritiesTester = null;
+            try
+            {
+                // чистим все данные, отключаемся
+                SecuritiesTester = null;
 
-            if (thisThread == false)
-            {
-                _needToReloadSecurities = true;
-                Save();
+                if (thisThread == false)
+                {
+                    _needToReloadSecurities = true;
+                    Save();
+                }
+                else
+                {
+                    LoadSecurities();
+                }
             }
-            else
+            catch(Exception ex)
             {
-                LoadSecurities();
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -424,60 +431,67 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void LoadSecurities()
         {
-            if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activSet))
+            try
             {
-                if (!Directory.Exists(_activSet))
+                if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activSet))
                 {
-                    return;
-                }
-                string[] directories = Directory.GetDirectories(_activSet);
+                    if (!Directory.Exists(_activSet))
+                    {
+                        return;
+                    }
+                    string[] directories = Directory.GetDirectories(_activSet);
 
-                if (directories.Length == 0)
+                    if (directories.Length == 0)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
+                        return;
+                    }
+
+                    for (int i = 0; i < directories.Length; i++)
+                    {
+                        LoadSeciruty(directories[i]);
+                    }
+
+                }
+                else if (_sourceDataType == TesterSourceDataType.Folder && !string.IsNullOrWhiteSpace(_pathToFolder))
+                { // simple files from folder / простые файлы из папки
+
+                    string[] files = Directory.GetFiles(_pathToFolder);
+
+                    if (files.Length == 0)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message28, LogMessageType.Error);
+                    }
+                    if (TypeTesterData == TesterDataType.Candle)
+                    {
+                        LoadCandleFromFolder(_pathToFolder);
+                    }
+                    if (TypeTesterData == TesterDataType.TickAllCandleState ||
+                        TypeTesterData == TesterDataType.TickOnlyReadyCandle)
+                    {
+                        LoadTickFromFolder(_pathToFolder);
+                    }
+                    if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
+                        TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
+                    {
+                        LoadMarketDepthFromFolder(_pathToFolder);
+                    }
+
+                }
+
+                if (SecuritiesChangeEvent != null)
                 {
-                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
-                    return;
+                    SecuritiesChangeEvent(Securities);
                 }
 
-                for (int i = 0; i < directories.Length; i++)
+                if (TimeChangeEvent != null)
                 {
-                    LoadSeciruty(directories[i]);
+                    TimeChangeEvent(TimeStart, TimeEnd);
                 }
-
             }
-            else if (_sourceDataType == TesterSourceDataType.Folder && !string.IsNullOrWhiteSpace(_pathToFolder))
-            { // simple files from folder / простые файлы из папки
-
-                string[] files = Directory.GetFiles(_pathToFolder);
-
-                if (files.Length == 0)
-                {
-                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.Error);
-                }
-                if (TypeTesterData == TesterDataType.Candle)
-                {
-                    LoadCandleFromFolder(_pathToFolder);
-                }
-                if (TypeTesterData == TesterDataType.TickAllCandleState ||
-                    TypeTesterData == TesterDataType.TickOnlyReadyCandle)
-                {
-                    LoadTickFromFolder(_pathToFolder);
-                }
-                if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
-                    TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
-                {
-                    LoadMarketDepthFromFolder(_pathToFolder);
-                }
-
-            }
-
-            if (SecuritiesChangeEvent != null)
+            catch(Exception ex)
             {
-                SecuritiesChangeEvent(Securities);
-            }
-
-            if (TimeChangeEvent != null)
-            {
-                TimeChangeEvent(TimeStart, TimeEnd);
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -488,39 +502,46 @@ namespace OsEngine.Market.Servers.Optimizer
         /// <param name="path">instrument folder path/путь к папке с инструментом</param>
         private void LoadSeciruty(string path)
         {
-            string[] directories = Directory.GetDirectories(path);
-
-            if (directories.Length == 0)
+            try
             {
-                return;
+                string[] directories = Directory.GetDirectories(path);
+
+                if (directories.Length == 0)
+                {
+                    return;
+                }
+
+                TimeMax = DateTime.MinValue;
+                TimeEnd = DateTime.MaxValue;
+                TimeMin = DateTime.MaxValue;
+                TimeStart = DateTime.MinValue;
+                TimeNow = DateTime.MinValue;
+
+                for (int i = 0; i < directories.Length; i++)
+                {
+                    string name = directories[i].Split('\\')[3];
+
+                    if (name == "MarketDepth" &&
+                        (_typeTesterData == TesterDataType.MarketDepthAllCandleState ||
+                        _typeTesterData == TesterDataType.MarketDepthOnlyReadyCandle))
+                    {
+                        LoadMarketDepthFromFolder(directories[i]);
+                    }
+                    else if (name == "Tick" &&
+                        (_typeTesterData == TesterDataType.TickAllCandleState ||
+                        _typeTesterData == TesterDataType.TickOnlyReadyCandle))
+                    {
+                        LoadTickFromFolder(directories[i]);
+                    }
+                    else if (_typeTesterData == TesterDataType.Candle)
+                    {
+                        LoadCandleFromFolder(directories[i]);
+                    }
+                }
             }
-
-            TimeMax = DateTime.MinValue;
-            TimeEnd = DateTime.MaxValue;
-            TimeMin = DateTime.MaxValue;
-            TimeStart = DateTime.MinValue;
-            TimeNow = DateTime.MinValue;
-
-            for (int i = 0; i < directories.Length; i++)
+            catch(Exception ex)
             {
-                string name = directories[i].Split('\\')[3];
-
-                if (name == "MarketDepth" && 
-                    (_typeTesterData == TesterDataType.MarketDepthAllCandleState ||
-                    _typeTesterData == TesterDataType.MarketDepthOnlyReadyCandle))
-                {
-                    LoadMarketDepthFromFolder(directories[i]);
-                }
-                else if (name == "Tick" &&
-                    (_typeTesterData == TesterDataType.TickAllCandleState ||
-                    _typeTesterData == TesterDataType.TickOnlyReadyCandle))
-                {
-                    LoadTickFromFolder(directories[i]);
-                }
-                else if(_typeTesterData == TesterDataType.Candle)
-                {
-                    LoadCandleFromFolder(directories[i]);
-                }
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -618,69 +639,69 @@ namespace OsEngine.Market.Servers.Optimizer
                                 close.ToString(culture).Split(',').Length > 1)
                             {
                                 // if the real part takes place / если имеет место вещественная часть
-                                int lenght = 1;
+                                int length = 1;
 
                                 if (open.ToString(culture).Split(',').Length > 1 &&
-                                    open.ToString(culture).Split(',')[1].Length > lenght)
+                                    open.ToString(culture).Split(',')[1].Length > length)
                                 {
-                                    lenght = open.ToString(culture).Split(',')[1].Length;
+                                    length = open.ToString(culture).Split(',')[1].Length;
                                 }
 
                                 if (high.ToString(culture).Split(',').Length > 1 &&
-                                    high.ToString(culture).Split(',')[1].Length > lenght)
+                                    high.ToString(culture).Split(',')[1].Length > length)
                                 {
-                                    lenght = high.ToString(culture).Split(',')[1].Length;
+                                    length = high.ToString(culture).Split(',')[1].Length;
                                 }
 
                                 if (low.ToString(culture).Split(',').Length > 1 &&
-                                    low.ToString(culture).Split(',')[1].Length > lenght)
+                                    low.ToString(culture).Split(',')[1].Length > length)
                                 {
-                                    lenght = low.ToString(culture).Split(',')[1].Length;
+                                    length = low.ToString(culture).Split(',')[1].Length;
                                 }
 
                                 if (close.ToString(culture).Split(',').Length > 1 &&
-                                    close.ToString(culture).Split(',')[1].Length > lenght)
+                                    close.ToString(culture).Split(',')[1].Length > length)
                                 {
-                                    lenght = close.ToString(culture).Split(',')[1].Length;
+                                    length = close.ToString(culture).Split(',')[1].Length;
                                 }
 
-                                if (lenght == 1 && minPriceStep > 0.1m)
+                                if (length == 1 && minPriceStep > 0.1m)
                                 {
                                     minPriceStep = 0.1m;
                                 }
-                                if (lenght == 2 && minPriceStep > 0.01m)
+                                if (length == 2 && minPriceStep > 0.01m)
                                 {
                                     minPriceStep = 0.01m;
                                 }
-                                if (lenght == 3 && minPriceStep > 0.001m)
+                                if (length == 3 && minPriceStep > 0.001m)
                                 {
                                     minPriceStep = 0.001m;
                                 }
-                                if (lenght == 4 && minPriceStep > 0.0001m)
+                                if (length == 4 && minPriceStep > 0.0001m)
                                 {
                                     minPriceStep = 0.0001m;
                                 }
-                                if (lenght == 5 && minPriceStep > 0.00001m)
+                                if (length == 5 && minPriceStep > 0.00001m)
                                 {
                                     minPriceStep = 0.00001m;
                                 }
-                                if (lenght == 6 && minPriceStep > 0.000001m)
+                                if (length == 6 && minPriceStep > 0.000001m)
                                 {
                                     minPriceStep = 0.000001m;
                                 }
-                                if (lenght == 7 && minPriceStep > 0.0000001m)
+                                if (length == 7 && minPriceStep > 0.0000001m)
                                 {
                                     minPriceStep = 0.0000001m;
                                 }
-                                if (lenght == 8 && minPriceStep > 0.00000001m)
+                                if (length == 8 && minPriceStep > 0.00000001m)
                                 {
                                     minPriceStep = 0.00000001m;
                                 }
-                                if (lenght == 9 && minPriceStep > 0.000000001m)
+                                if (length == 9 && minPriceStep > 0.000000001m)
                                 {
                                     minPriceStep = 0.000000001m;
                                 }
-                                if (lenght == 10 && minPriceStep > 0.0000000001m)
+                                if (length == 10 && minPriceStep > 0.0000000001m)
                                 {
                                     minPriceStep = 0.0000000001m;
                                 }
@@ -688,11 +709,11 @@ namespace OsEngine.Market.Servers.Optimizer
                             else
                             {
                                 // if the real part doesn't take place / если вещественной части нет
-                                int lenght = 1;
+                                int length = 1;
 
                                 for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
                                 {
-                                    lenght = lenght * 10;
+                                    length = length * 10;
                                 }
 
                                 int lengthLow = 1;
@@ -701,9 +722,9 @@ namespace OsEngine.Market.Servers.Optimizer
                                 {
                                     lengthLow = lengthLow * 10;
 
-                                    if (lenght > lengthLow)
+                                    if (length > lengthLow)
                                     {
-                                        lenght = lengthLow;
+                                        length = lengthLow;
                                     }
                                 }
 
@@ -713,9 +734,9 @@ namespace OsEngine.Market.Servers.Optimizer
                                 {
                                     lengthHigh = lengthHigh * 10;
 
-                                    if (lenght > lengthHigh)
+                                    if (length > lengthHigh)
                                     {
-                                        lenght = lengthHigh;
+                                        length = lengthHigh;
                                     }
                                 }
 
@@ -725,14 +746,14 @@ namespace OsEngine.Market.Servers.Optimizer
                                 {
                                     lengthClose = lengthClose * 10;
 
-                                    if (lenght > lengthClose)
+                                    if (length > lengthClose)
                                     {
-                                        lenght = lengthClose;
+                                        length = lengthClose;
                                     }
                                 }
-                                if (minPriceStep > lenght)
+                                if (minPriceStep > length)
                                 {
-                                    minPriceStep = lenght;
+                                    minPriceStep = length;
                                 }
 
                                 if (minPriceStep == 1 &&
@@ -905,52 +926,52 @@ namespace OsEngine.Market.Servers.Optimizer
                         if (open.ToString(culture).Split(',').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
-                            int lenght = 1;
+                            int length = 1;
 
                             if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > lenght)
+                                open.ToString(culture).Split(',')[1].Length > length)
                             {
-                                lenght = open.ToString(culture).Split(',')[1].Length;
+                                length = open.ToString(culture).Split(',')[1].Length;
                             }
 
 
-                            if (lenght == 1 && minPriceStep > 0.1m)
+                            if (length == 1 && minPriceStep > 0.1m)
                             {
                                 minPriceStep = 0.1m;
                             }
-                            if (lenght == 2 && minPriceStep > 0.01m)
+                            if (length == 2 && minPriceStep > 0.01m)
                             {
                                 minPriceStep = 0.01m;
                             }
-                            if (lenght == 3 && minPriceStep > 0.001m)
+                            if (length == 3 && minPriceStep > 0.001m)
                             {
                                 minPriceStep = 0.001m;
                             }
-                            if (lenght == 4 && minPriceStep > 0.0001m)
+                            if (length == 4 && minPriceStep > 0.0001m)
                             {
                                 minPriceStep = 0.0001m;
                             }
-                            if (lenght == 5 && minPriceStep > 0.00001m)
+                            if (length == 5 && minPriceStep > 0.00001m)
                             {
                                 minPriceStep = 0.00001m;
                             }
-                            if (lenght == 6 && minPriceStep > 0.000001m)
+                            if (length == 6 && minPriceStep > 0.000001m)
                             {
                                 minPriceStep = 0.000001m;
                             }
-                            if (lenght == 7 && minPriceStep > 0.0000001m)
+                            if (length == 7 && minPriceStep > 0.0000001m)
                             {
                                 minPriceStep = 0.0000001m;
                             }
-                            if (lenght == 8 && minPriceStep > 0.00000001m)
+                            if (length == 8 && minPriceStep > 0.00000001m)
                             {
                                 minPriceStep = 0.00000001m;
                             }
-                            if (lenght == 9 && minPriceStep > 0.000000001m)
+                            if (length == 9 && minPriceStep > 0.000000001m)
                             {
                                 minPriceStep = 0.000000001m;
                             }
-                            if (lenght == 10 && minPriceStep > 0.0000000001m)
+                            if (length == 10 && minPriceStep > 0.0000000001m)
                             {
                                 minPriceStep = 0.0000000001m;
                             }
@@ -958,19 +979,19 @@ namespace OsEngine.Market.Servers.Optimizer
                         else
                         {
                             // if the real part doesn't take place / если вещественной части нет
-                            int lenght = 1;
+                            int length = 1;
 
                             for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
                             {
-                                lenght = lenght * 10;
+                                length = length * 10;
                             }
 
-                            if (minPriceStep > lenght)
+                            if (minPriceStep > length)
                             {
-                                minPriceStep = lenght;
+                                minPriceStep = length;
                             }
 
-                            if (lenght == 1 &&
+                            if (length == 1 &&
                                 open % 5 == 0)
                             {
                                 countFive++;
@@ -1141,52 +1162,52 @@ namespace OsEngine.Market.Servers.Optimizer
                         if (open.ToString(culture).Split(',').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
-                            int lenght = 1;
+                            int length = 1;
 
                             if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > lenght)
+                                open.ToString(culture).Split(',')[1].Length > length)
                             {
-                                lenght = open.ToString(culture).Split(',')[1].Length;
+                                length = open.ToString(culture).Split(',')[1].Length;
                             }
 
 
-                            if (lenght == 1 && minPriceStep > 0.1m)
+                            if (length == 1 && minPriceStep > 0.1m)
                             {
                                 minPriceStep = 0.1m;
                             }
-                            if (lenght == 2 && minPriceStep > 0.01m)
+                            if (length == 2 && minPriceStep > 0.01m)
                             {
                                 minPriceStep = 0.01m;
                             }
-                            if (lenght == 3 && minPriceStep > 0.001m)
+                            if (length == 3 && minPriceStep > 0.001m)
                             {
                                 minPriceStep = 0.001m;
                             }
-                            if (lenght == 4 && minPriceStep > 0.0001m)
+                            if (length == 4 && minPriceStep > 0.0001m)
                             {
                                 minPriceStep = 0.0001m;
                             }
-                            if (lenght == 5 && minPriceStep > 0.00001m)
+                            if (length == 5 && minPriceStep > 0.00001m)
                             {
                                 minPriceStep = 0.00001m;
                             }
-                            if (lenght == 6 && minPriceStep > 0.000001m)
+                            if (length == 6 && minPriceStep > 0.000001m)
                             {
                                 minPriceStep = 0.000001m;
                             }
-                            if (lenght == 7 && minPriceStep > 0.0000001m)
+                            if (length == 7 && minPriceStep > 0.0000001m)
                             {
                                 minPriceStep = 0.0000001m;
                             }
-                            if (lenght == 8 && minPriceStep > 0.00000001m)
+                            if (length == 8 && minPriceStep > 0.00000001m)
                             {
                                 minPriceStep = 0.00000001m;
                             }
-                            if (lenght == 9 && minPriceStep > 0.000000001m)
+                            if (length == 9 && minPriceStep > 0.000000001m)
                             {
                                 minPriceStep = 0.000000001m;
                             }
-                            if (lenght == 10 && minPriceStep > 0.0000000001m)
+                            if (length == 10 && minPriceStep > 0.0000000001m)
                             {
                                 minPriceStep = 0.0000000001m;
                             }
@@ -1194,19 +1215,19 @@ namespace OsEngine.Market.Servers.Optimizer
                         else
                         {
                             // if the real part doesn't take place / если вещественной части нет
-                            int lenght = 1;
+                            int length = 1;
 
                             for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
                             {
-                                lenght = lenght * 10;
+                                length = length * 10;
                             }
 
-                            if (minPriceStep > lenght)
+                            if (minPriceStep > length)
                             {
-                                minPriceStep = lenght;
+                                minPriceStep = length;
                             }
 
-                            if (lenght == 1 &&
+                            if (length == 1 &&
                                 open % 5 == 0)
                             {
                                 countFive++;
@@ -1377,7 +1398,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 timeFrame = TimeFrame.Hour4;
             }
-            else if (frameSpan == new TimeSpan(24, 0, 0, 0))
+            else if (frameSpan == new TimeSpan(1, 0, 0, 0))
             {
                 timeFrame = TimeFrame.Day;
             }
@@ -1750,9 +1771,11 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             lock (_lockerLoadCandles)
             {
+
                 SecurityTester sec =
                 SecuritiesTester.Find(
                     s =>
+                        s != null && 
                         s.Security.Name == security.Name && s.TimeFrame == timeFrame &&
                         s.DataType == SecurityTesterDataType.Candle);
 
@@ -2001,6 +2024,20 @@ DateTime timeEnd)
         /// время завершения скачивания этой серии свечек
         /// </summary>
         public DateTime TimeEnd;
+
+        public DateTime TimeEndAddDay
+        {
+            get
+            {
+                if (_timeEndAddDay == DateTime.MinValue)
+                {
+                    _timeEndAddDay = TimeEnd.AddDays(1);
+                }
+                return _timeEndAddDay;
+            }
+        }
+
+        private DateTime _timeEndAddDay;
 
         public void ClearDelete()
         {

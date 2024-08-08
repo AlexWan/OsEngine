@@ -21,9 +21,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 Security mySecurity = null;
 
-                for(int i = 0;i < securities.Count; i++)
+                for (int i = 0; i < securities.Count; i++)
                 {
-                    if (securities[i].Name == SecName 
+                    if (securities[i].Name == SecName
                         && securities[i].NameClass == SecClass)
                     {
                         mySecurity = securities[i];
@@ -31,7 +31,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     }
                 }
 
-                if(mySecurity == null)
+                if (mySecurity == null)
                 {
                     SetNewError("Error 0. Security set user is not found " + SecName);
                     TestEnded();
@@ -83,7 +83,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             IServerPermission permission = ServerMaster.GetServerPermission(Server.ServerType);
 
-            if(permission == null)
+            if (permission == null)
             {
                 SetNewError("Error 2. No server permission to server. Type: " + Server.ServerType.ToString());
                 return;
@@ -180,7 +180,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
         }
 
-        private void CheckCandleData(TimeFrame timeFrame,Security security,DateTime startTime, DateTime endTime)
+        private void CheckCandleData(TimeFrame timeFrame, Security security, DateTime startTime, DateTime endTime)
         {
             SetNewServiceInfo("Tf checked: " + timeFrame.ToString());
 
@@ -195,13 +195,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 candles = Server.GetCandleDataToSecurity(secName, secClass, builder, startTime, endTime, startTime, false);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SetNewError("Error 3. Exception on server request. " + timeFrame.ToString() + "\n" + ex.ToString());
                 return;
             }
 
-            if(candles == null)
+            if (candles == null)
             {
                 SetNewError("Error 4. Null in array. " + timeFrame.ToString());
                 return;
@@ -224,7 +224,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             startTimeReal = candles[0].TimeStart;
             endTimeReal = candles[candles.Count - 1].TimeStart;
 
-            for (int i = 0;i < candles.Count;i++)
+            for (int i = 0; i < candles.Count; i++)
             {
                 if (candles[i].TimeStart.Day != curDay)
                 {
@@ -233,9 +233,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            if(daysCount != 2)
+            if (daysCount != 2)
             {
-                SetNewError("Error 6. Days in candles is not 2. " + timeFrame.ToString() + "\n" 
+                SetNewError("Error 6. Days in candles is not 2. " + timeFrame.ToString() + "\n"
                     + " StartTime: " + startTimeReal.ToString()
                     + " EndTime: " + endTimeReal.ToString());
             }
@@ -300,7 +300,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
         }
 
-        private void CheckNullCandleData(TimeFrame timeFrame,Security security,DateTime startTime, DateTime endTime)
+        private void CheckNullCandleData(TimeFrame timeFrame, Security security, DateTime startTime, DateTime endTime)
         {
             SetNewServiceInfo("Timeframe prohibited. Waiting for null response: " + timeFrame.ToString());
 
@@ -356,7 +356,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private TimeFrameBuilder GetTfBuilder(Security security, TimeFrame timeFrame)
         {
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsTrader);
             timeFrameBuilder.TimeFrame = timeFrame;
 
             return timeFrameBuilder;

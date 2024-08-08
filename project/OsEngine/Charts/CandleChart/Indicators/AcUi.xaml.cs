@@ -42,8 +42,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _ac = ac;
 
-            TextBoxLenght.Text = _ac.LenghtLong.ToString();
-            TextBoxLenghtAverage.Text = _ac.LenghtShort.ToString();
+            TextBoxLength.Text = _ac.LengthLong.ToString();
+            TextBoxLengthAverage.Text = _ac.LengthShort.ToString();
             CheckBoxPaintOnOff.IsChecked = _ac.PaintOn;
 
             HostColorUp.Child = new TextBox();
@@ -71,8 +71,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0
-                    || Convert.ToInt32(TextBoxLenghtAverage.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0
+                    || Convert.ToInt32(TextBoxLengthAverage.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -86,9 +86,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _ac.ColorUp = HostColorUp.Child.BackColor;
             _ac.ColorDown = HostColorDown.Child.BackColor;
 
-            _ac.LenghtLong = Convert.ToInt32(TextBoxLenght.Text);
+            _ac.LengthLong = Convert.ToInt32(TextBoxLength.Text);
             _ac.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
-            _ac.LenghtShort = Convert.ToInt32(TextBoxLenghtAverage.Text);
+            _ac.LengthShort = Convert.ToInt32(TextBoxLengthAverage.Text);
             _ac.Save();
 
             IsChange = true;

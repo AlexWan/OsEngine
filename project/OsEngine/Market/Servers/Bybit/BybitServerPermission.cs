@@ -79,6 +79,10 @@ namespace OsEngine.Market.Servers.Bybit
         {
             get { return true; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return true; }
+        }
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }
@@ -168,12 +172,12 @@ namespace OsEngine.Market.Servers.Bybit
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
     }
 }

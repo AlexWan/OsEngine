@@ -325,17 +325,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _t2 = new List<decimal>();
 
                 _tM1 = new MovingAverage(false);
-                _tM1.Lenght = P2;
+                _tM1.Length = P2;
                 _tM1.TypeCalculationAverage = TypeCalculationAverage;
 
                 _tM2 = new MovingAverage(false);
-                _tM2.Lenght = P2;
+                _tM2.Length = P2;
                 _tM2.TypeCalculationAverage = TypeCalculationAverage;
 
                 _k = new List<decimal>();
 
                 _kM = new MovingAverage(false);
-                _kM.Lenght = P3;
+                _kM.Length = P3;
                 _kM.TypeCalculationAverage = TypeCalculationAverage;
             }
 
@@ -408,17 +408,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _t2 = new List<decimal>();
 
             _tM1 = new MovingAverage(false);
-            _tM1.Lenght = P2;
+            _tM1.Length = P2;
             _tM1.TypeCalculationAverage = TypeCalculationAverage;
 
             _tM2 = new MovingAverage(false);
-            _tM2.Lenght = P2;
+            _tM2.Length = P2;
             _tM2.TypeCalculationAverage = TypeCalculationAverage;
 
             _k = new List<decimal>();
 
             _kM = new MovingAverage(false);
-            _kM.Lenght = P3;
+            _kM.Length = P3;
             _kM.TypeCalculationAverage = TypeCalculationAverage;
 
             for (int i = 0; i < candles.Count; i++)

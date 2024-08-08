@@ -43,7 +43,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _trix = trix;
 
-            TextBoxLenght.Text = _trix.Period.ToString();
+            TextBoxLength.Text = _trix.Period.ToString();
 
             HostColorBase.Child = new TextBox();
             HostColorBase.Child.BackColor = _trix.ColorBase;
@@ -76,7 +76,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -88,7 +88,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             _trix.ColorBase = HostColorBase.Child.BackColor;
-            _trix.Period = Convert.ToInt32(TextBoxLenght.Text);
+            _trix.Period = Convert.ToInt32(TextBoxLength.Text);
             _trix.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
 
             Enum.TryParse(Movingbox.Text, out _trix.TypeCalculationAverage);

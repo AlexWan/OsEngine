@@ -87,6 +87,11 @@
             get { return false; }
         }
 
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }

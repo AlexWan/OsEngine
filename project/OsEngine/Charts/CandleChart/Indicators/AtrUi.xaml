@@ -5,7 +5,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Accept" Height="22" FontSize="14" FontFamily="Calibri" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="118" Click="ButtonAccept_Click"/>
-        <TextBox x:Name ="TextBoxLenght" Height="23" Margin="0,21,21,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
+        <TextBox x:Name ="TextBoxLength" Height="23" Margin="0,21,21,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
         <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Right" Margin="0,21,162,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
         <CheckBox Name="CheckBoxExponential" Content="Exponentially weighted" HorizontalAlignment="Right" Margin="0,92,27,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Right" Margin="0,71,27,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>

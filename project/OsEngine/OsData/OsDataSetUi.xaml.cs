@@ -82,6 +82,7 @@ namespace OsEngine.OsData
             CheckBoxTf2HourIsOn.IsChecked = set.BaseSettings.Tf2HourIsOn;
             CheckBoxTf4HourIsOn.IsChecked = set.BaseSettings.Tf4HourIsOn;
             CheckBoxTfTickIsOn.IsChecked = set.BaseSettings.TfTickIsOn;
+            CheckBoxTfDayIsOn.IsChecked = set.BaseSettings.TfDayIsOn;
             CheckBoxTfMarketDepthIsOn.IsChecked = set.BaseSettings.TfMarketDepthIsOn;
 
             List < ServerType > serverTypes = ServerMaster.ActiveServersTypes;
@@ -280,6 +281,7 @@ namespace OsEngine.OsData
                     CheckBoxTf1HourIsOn.IsEnabled = true;
                     CheckBoxTf2HourIsOn.IsEnabled = true;
                     CheckBoxTf4HourIsOn.IsEnabled = true;
+                    CheckBoxTfDayIsOn.IsEnabled = true;
 
                     CheckBoxTf1SecondIsOn.IsEnabled = false;
                     CheckBoxTf2SecondIsOn.IsEnabled = false;
@@ -314,6 +316,7 @@ namespace OsEngine.OsData
 
                     UpdComboBoxToPermission(CheckBoxTfMarketDepthIsOn,permission.DataFeedTfMarketDepthCanLoad);
                     UpdComboBoxToPermission(CheckBoxTfTickIsOn,permission.DataFeedTfTickCanLoad);
+                    UpdComboBoxToPermission(CheckBoxTfDayIsOn, permission.DataFeedTfDayCanLoad);
                 }
             }
         }
@@ -386,6 +389,8 @@ namespace OsEngine.OsData
             _set.BaseSettings.Tf2HourIsOn = CheckBoxTf2HourIsOn.IsChecked.Value;
             _set.BaseSettings.Tf4HourIsOn = CheckBoxTf4HourIsOn.IsChecked.Value;
             _set.BaseSettings.TfTickIsOn = CheckBoxTfTickIsOn.IsChecked.Value;
+            _set.BaseSettings.TfDayIsOn = CheckBoxTfDayIsOn.IsChecked.Value;
+
             _set.BaseSettings.TfMarketDepthIsOn = CheckBoxTfMarketDepthIsOn.IsChecked.Value;
             _set.BaseSettings.MarketDepthDepth = Convert.ToInt32(ComboBoxMarketDepthDepth.SelectedValue.ToString());
 
@@ -426,7 +431,7 @@ namespace OsEngine.OsData
         /// </summary>
         private void CreateSecuritiesTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _grid.DefaultCellStyle;

@@ -42,7 +42,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _roc = roc;
 
-            TextBoxLenght.Text = _roc.Period.ToString();
+            TextBoxLength.Text = _roc.Period.ToString();
 
             HostColorBase.Child = new TextBox();
             HostColorBase.Child.BackColor = _roc.ColorBase;
@@ -71,7 +71,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -83,7 +83,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             _roc.ColorBase = HostColorBase.Child.BackColor;
-            _roc.Period = Convert.ToInt32(TextBoxLenght.Text);
+            _roc.Period = Convert.ToInt32(TextBoxLength.Text);
             _roc.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
             Enum.TryParse(CandleBox.Text, out _roc.TypePoint);
 

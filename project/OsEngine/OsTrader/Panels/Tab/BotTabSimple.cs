@@ -187,6 +187,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (Securiti != null
+                    && Portfolio != null)
+                {
+                    _chartMaster?.SetNewSecurity(Securiti.Name, _connector.TimeFrameBuilder, Portfolio.Number, Connector.ServerType);
+                }
+
                 _chartMaster?.StartPaint(gridChart, hostChart, rectangleChart);
                 _marketDepthPainter?.StartPaint(hostGlass, textBoxLimitPrice, textBoxVolume);
                 _journal?.StartPaint(hostOpenDeals, hostCloseDeals);
@@ -4823,8 +4829,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (StartProgram != StartProgram.IsOsTrader)
             {
-                if (marketDepth.Asks == null || marketDepth.Asks.Count == 0 ||
-                    marketDepth.Bids == null || marketDepth.Bids.Count == 0)
+                if ((marketDepth.Asks == null || marketDepth.Asks.Count == 0)
+                    &&
+                   (marketDepth.Bids == null || marketDepth.Bids.Count == 0))
                 {
                     return;
                 }
@@ -4839,13 +4846,21 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             continue;
                         }
-                        CheckStop(openPositions[i], marketDepth.Asks[0].Price);
+
+                        if(marketDepth.Asks != null && marketDepth.Asks.Count > 0)
+                        {
+                            CheckStop(openPositions[i], marketDepth.Asks[0].Price);
+                        }
 
                         if (openPositions.Count <= i)
                         {
                             continue;
                         }
-                        CheckStop(openPositions[i], marketDepth.Bids[0].Price);
+
+                        if(marketDepth.Bids != null && marketDepth.Bids.Count > 0)
+                        {
+                            CheckStop(openPositions[i], marketDepth.Bids[0].Price);
+                        }
                     }
                 }
             }

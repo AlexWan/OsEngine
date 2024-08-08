@@ -30,7 +30,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public DynamicTrendDetector(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            Lenght = 14;
+            Length = 14;
             CorrectionCoeff = 3;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
@@ -49,7 +49,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            Lenght = 14;
+            Length = 14;
             CorrectionCoeff = 3;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
@@ -132,7 +132,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
-        public int Lenght { get; set; }
+        public int Length { get; set; }
         
         /// <summary>
         /// atr channel multiplier
@@ -162,7 +162,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(CorrectionCoeff);
                     writer.WriteLine(PaintOn);
                     writer.Close();
@@ -191,7 +191,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     CorrectionCoeff = Convert.ToDecimal(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.ReadLine();
@@ -426,7 +426,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             decimal correctionPercent = Decimal.Divide(CorrectionCoeff, 100);
             decimal coeffUp = 1m - correctionPercent;
             decimal coeffDown = 1m + correctionPercent;
-            if (Period < Lenght)
+            if (Period < Length)
             {
                 if (currentSide != Side.None)
                 {
@@ -453,8 +453,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
             } else
             {
-                startIdx = Math.Max(0, index - Lenght -1);
-                numItems = Math.Max(1, Lenght - 1);
+                startIdx = Math.Max(0, index - Length -1);
+                numItems = Math.Max(1, Length - 1);
                 subList = candles.GetRange(startIdx, numItems);
                 highs = subList.Select(o => o.High).ToList();
                 lows = subList.Select(o => o.Low).ToList();

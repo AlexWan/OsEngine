@@ -92,7 +92,7 @@ namespace OsEngine.OsConverter
             }
             catch (Exception error)
             {
-              SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -295,10 +295,10 @@ namespace OsEngine.OsConverter
                                           OsLocalization.Converter.Message7 + trade.Time.Month +
                                           OsLocalization.Converter.Message8, LogMessageType.System);
 
-                        TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+                        TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
                         timeFrameBuilder.TimeFrame = TimeFrame;
 
-                        CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" },StartProgram.IsOsConverter);
+                        CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" }, StartProgram.IsOsConverter);
 
                         series.IsStarted = true;
 

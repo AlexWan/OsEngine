@@ -3,6 +3,7 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 ///Breakthrough of the channel built by PriceChannel + -ATR * coefficient,
@@ -13,6 +14,7 @@ using OsEngine.OsTrader.Panels;
 /// дополнительный вход при уходе цены ниже линии канала на ATR*коэффициент.
 /// Трейлинг стоп по нижней линии канала PriceChannel
 /// </summary>
+[Bot("PriceChannelVolatility")]
 public class PriceChannelVolatility : BotPanel
 {
     public PriceChannelVolatility(string name, StartProgram startProgram)

@@ -11,6 +11,7 @@ using OsEngine.Market;
 using OsEngine.OsMiner;
 using OsEngine.OsMiner.Patterns;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Patterns
@@ -19,6 +20,7 @@ namespace OsEngine.Robots.Patterns
     /// pattern trading robot
     /// робот для торговли паттернами
     /// </summary>
+    [Bot("PatternTrader")]
     public class PatternTrader : BotPanel
     {
 
@@ -387,7 +389,7 @@ namespace OsEngine.Robots.Patterns
 
         /// <summary>
         /// exit patterns
-        /// одиночные паттерны для входа в позицию
+        /// одиночные паттерны для выхода в позицию
         /// </summary>
         public List<IPattern> PatternsToClose = new List<IPattern>();
 

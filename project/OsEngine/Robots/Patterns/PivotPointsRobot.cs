@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Patterns
@@ -18,6 +18,7 @@ namespace OsEngine.Robots.Patterns
     /// trading based on the Pivot Points indicator
     /// торговля на основе индикатора Pivot Points
     /// </summary>
+    [Bot("PivotPointsRobot")]
     public class PivotPointsRobot : BotPanel
     {
         public PivotPointsRobot(string name, StartProgram startProgram)

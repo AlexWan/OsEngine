@@ -32,7 +32,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
             Deviation = 2;
-            Lenght = 12;
+            Length = 12;
             PaintOn = true;
             CanDelete = canDelete;
             Load();
@@ -51,7 +51,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
             Deviation = 2;
-            Lenght = 12;
+            Length = 12;
             PaintOn = true;
             CanDelete = canDelete;
         }
@@ -139,7 +139,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длина расчёта индикатора
         /// </summary>
-        public int Lenght
+        public int Length
         { get; set; }
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     Deviation = Convert.ToDecimal(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
@@ -211,7 +211,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     writer.WriteLine(ColorUp.ToArgb());
                     writer.WriteLine(ColorDown.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(Deviation);
                     writer.WriteLine(PaintOn);
                     writer.Close();
@@ -402,7 +402,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private decimal[] GetValueSimple(List<Candle> candles, int index)
         {
-            if (index - Lenght <= 0)
+            if (index - Length <= 0)
             {
                 return new decimal[2];
             }
@@ -413,20 +413,20 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             decimal valueSma = 0;
 
-            for (int i = index - Lenght + 1; i < index + 1; i++)
+            for (int i = index - Length + 1; i < index + 1; i++)
             {
                 // running through past periods and collecting values
                 // бежим по прошлым периодам и собираем значения
                 valueSma += candles[i].Close;
             }
 
-            valueSma = valueSma / Lenght;
+            valueSma = valueSma / Length;
             // 2 count average deviation
             // 2 считаем среднее отклонение
             // find an array of deviations from mean
             // находим массив отклонений от средней
-            decimal[] valueDev = new decimal[Lenght];
-            for (int i = index - Lenght + 1, i2 = 0; i < index + 1; i++, i2++)
+            decimal[] valueDev = new decimal[Length];
+            for (int i = index - Length + 1, i2 = 0; i < index + 1; i++, i2++)
             {
                 // running through past periods and collecting values
                 // бежим по прошлым периодам и собираем значения
@@ -449,13 +449,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             // divide amount by number of elements in sample( if on n-1,so if n> 30) 
             //делим полученную сумму на количество элементов в выборке (или на n-1, если n>30)
-            if (Lenght > 30)
+            if (Length > 30)
             {
-                summ = summ/(Lenght - 1);
+                summ = summ/(Length - 1);
             }
             else
             {
-                summ = summ/Lenght;
+                summ = summ/Length;
             }
             // calculating root.
             // вычисляем корень

@@ -742,6 +742,10 @@ namespace OsEngine.OsTrader.Gui
 
         private void OnOffAll(bool value)
         {
+            if(_master.PanelsArray == null)
+            {
+                return;
+            }
             for(int i = 0;i < _master.PanelsArray.Count;i++)
             {
                 BotPanel bot = _master.PanelsArray[i];
@@ -757,6 +761,10 @@ namespace OsEngine.OsTrader.Gui
 
         private void OnOffEmulatorAll(bool value)
         {
+            if (_master.PanelsArray == null)
+            {
+                return;
+            }
             for (int i = 0; i < _master.PanelsArray.Count; i++)
             {
                 BotPanel bot = _master.PanelsArray[i];

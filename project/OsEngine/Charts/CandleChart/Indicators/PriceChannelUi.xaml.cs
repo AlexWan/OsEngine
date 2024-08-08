@@ -23,7 +23,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator that we're setting up
         /// индикатор который мы настраиваем
         /// </summary>
-        private PriceChannel _bollinger;
+        private PriceChannel _indicator;
 
         /// <summary>
         /// whether indicator settings have been changed
@@ -35,22 +35,21 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// constructor
         /// конструктор
         /// </summary>
-        /// <param name="bollinger">configuration indicator/индикатор для настройки</param>
-        public PriceChannelUi(PriceChannel bollinger)
+        public PriceChannelUi(PriceChannel indicator)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
-            _bollinger = bollinger;
+            _indicator = indicator;
 
-            TextBoxLenghtUp.Text = _bollinger.LenghtUpLine.ToString();
-            TextBoxLenghtDown.Text = _bollinger.LenghtDownLine.ToString();
+            TextBoxLengthUp.Text = _indicator.LengthUpLine.ToString();
+            TextBoxLengthDown.Text = _indicator.LengthDownLine.ToString();
             HostColorUp.Child = new TextBox();
-            HostColorUp.Child.BackColor = _bollinger.ColorUp;
+            HostColorUp.Child.BackColor = _indicator.ColorUp;
 
             HostColorDown.Child = new TextBox();
-            HostColorDown.Child.BackColor = _bollinger.ColorDown;
-            CheckBoxPaintOnOff.IsChecked = _bollinger.PaintOn;
+            HostColorDown.Child.BackColor = _indicator.ColorDown;
+            CheckBoxPaintOnOff.IsChecked = _indicator.PaintOn;
 
             ButtonColorUp.Content = OsLocalization.Charts.LabelButtonIndicatorColorUp;
             ButtonColorDown.Content = OsLocalization.Charts.LabelButtonIndicatorColorDown;
@@ -71,8 +70,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenghtUp.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxLenghtDown.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLengthUp.Text) <= 0 ||
+                    Convert.ToInt32(TextBoxLengthDown.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -83,18 +82,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return;
             }
 
-            _bollinger.ColorUp = HostColorUp.Child.BackColor;
-            _bollinger.ColorDown = HostColorDown.Child.BackColor;
+            _indicator.ColorUp = HostColorUp.Child.BackColor;
+            _indicator.ColorDown = HostColorDown.Child.BackColor;
 
-            _bollinger.LenghtUpLine = Convert.ToInt32(TextBoxLenghtUp.Text);
-            _bollinger.LenghtDownLine = Convert.ToInt32(TextBoxLenghtDown.Text);
+            _indicator.LengthUpLine = Convert.ToInt32(TextBoxLengthUp.Text);
+            _indicator.LengthDownLine = Convert.ToInt32(TextBoxLengthDown.Text);
 
             if (CheckBoxPaintOnOff.IsChecked.HasValue)
             {
-                _bollinger.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
+                _indicator.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
             }
 
-            _bollinger.Save();
+            _indicator.Save();
             IsChange = true;
             Close();
         }

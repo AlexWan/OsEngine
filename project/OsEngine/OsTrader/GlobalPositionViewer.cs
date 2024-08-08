@@ -508,7 +508,20 @@ namespace OsEngine.OsTrader
                         }
                     }
 
-                    CheckPosition(_gridOpenPoses, openPositions);
+                    if(openPositions.Count > 100)
+                    {
+                        openPositions = openPositions.GetRange(openPositions.Count - 100,100);
+                    }
+
+                    if (closePositions.Count > 100)
+                    {
+                        closePositions = closePositions.GetRange(closePositions.Count - 100, 100);
+                    }
+
+                    if (_gridOpenPoses != null)
+                    {
+                        CheckPosition(_gridOpenPoses, openPositions);
+                    }
 
                     if (_gridClosePoses != null)
                     {

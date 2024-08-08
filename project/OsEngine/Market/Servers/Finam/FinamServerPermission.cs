@@ -74,6 +74,10 @@ namespace OsEngine.Market.Servers.Finam
         {
             get { return false; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return true; }
+        }
         public bool DataFeedTfTickCanLoad
         {
             get { return true; }

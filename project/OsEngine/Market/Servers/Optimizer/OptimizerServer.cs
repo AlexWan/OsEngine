@@ -477,7 +477,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void LoadNextData()
         {
-            if (TimeNow > _storages[0].TimeEnd.AddDays(1))
+            if (TimeNow > _storages[0].TimeEndAddDay)
             {
                 _testerRegime = TesterRegime.Pause;
 

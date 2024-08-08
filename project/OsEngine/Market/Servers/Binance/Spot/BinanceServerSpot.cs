@@ -207,7 +207,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     decimal minQty = sec.filters[1].minQty.ToDecimal();
 
-                    security.Lot = minQty;
+                    security.Lot = 1;
                     string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
 
                     if (qtyInStr.Split('.').Length > 1)
@@ -525,7 +525,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             string[] param = upd.Split(',');
 
                             newCandle = new Candle();
-                            newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(param[0]));
+                            newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(param[0].ToDouble());
                             newCandle.Low = param[3].ToDecimal();
                             newCandle.High = param[2].ToDecimal();
                             newCandle.Open = param[1].ToDecimal();
@@ -538,7 +538,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             string[] param = res2[i].Replace("\"", "").Split(',');
 
                             newCandle = new Candle();
-                            newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(param[0]));
+                            newCandle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(param[0].ToDouble());
                             newCandle.Low = param[3].ToDecimal();
                             newCandle.High = param[2].ToDecimal();
                             newCandle.Open = param[1].ToDecimal();
@@ -608,6 +608,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     break;
                 case 120:
                     needTf = "2h";
+                    break;
+                case 1440:
+                    needTf = "1d";
                     break;
             }
 
@@ -1030,13 +1033,14 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 var trade = new Trade();
 
                 trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(jtTrade.T));
-                trade.Price = jtTrade.P.ToDecimal();
+                trade.Price = jtTrade.p.ToDecimal();
                 trade.MicroSeconds = 0;
-                trade.Id = jtTrade.A.ToString();
-                trade.Volume = Math.Abs(jtTrade.Q.ToDecimal());
+                trade.Id = jtTrade.a.ToString();
+                trade.Volume = Math.Abs(jtTrade.q.ToDecimal());
                 trade.SecurityNameCode = secName;
 
-                if (jtTrade.Q.ToDecimal() >= 0)
+                if (jtTrade.m[0] == 'T'
+                    || jtTrade.m[0] == 't')
                 {
                     trade.Side = Side.Buy;
                     trade.Ask = 0;
@@ -1044,7 +1048,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     trade.Bid = trade.Price;
                     trade.BidsVolume = trade.Volume;
                 }
-                else if (jtTrade.Q.ToDecimal() < 0)
+                else
                 {
                     trade.Side = Side.Sell;
                     trade.Ask = trade.Price;
@@ -1472,19 +1476,19 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                         if (_newMessagePublic.TryDequeue(out mes))
                         {
-                            if (mes.Contains("error"))
+                            if (mes.Contains("\"lastUpdateId\""))
                             {
-                                SendLogMessage(mes, LogMessageType.Error);
+                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponse());
+                                UpdateMarketDepth(quotes);
                             }
                             else if (mes.Contains("\"e\"" + ":" + "\"trade\""))
                             {
                                 var quotes = JsonConvert.DeserializeAnonymousType(mes, new TradeResponse());
                                 UpdateTrades(quotes);
                             }
-                            else if (mes.Contains("\"lastUpdateId\""))
+                            else if (mes.Contains("error"))
                             {
-                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponse());
-                                UpdateMarketDepth(quotes);
+                                SendLogMessage(mes, LogMessageType.Error);
                             }
                         }
                     }
@@ -1647,7 +1651,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
-                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(order.E.ToDouble());
                 newOrder.NumberUser = orderNumUser;
 
                 newOrder.NumberMarket = order.i.ToString();
@@ -1678,7 +1682,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
-                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(order.E.ToDouble());
                 newOrder.TimeCancel = newOrder.TimeCallBack;
                 newOrder.NumberUser = orderNumUser;
                 newOrder.NumberMarket = order.i.ToString();
@@ -1707,7 +1711,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
-                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(order.E.ToDouble());
                 newOrder.NumberUser = orderNumUser;
                 newOrder.NumberMarket = order.i.ToString();
                 newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
@@ -1744,7 +1748,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {// ордер Done
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = order.s;
-                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(order.E.ToDouble());
                     newOrder.NumberUser = orderNumUser;
 
                     newOrder.NumberMarket = order.i.ToString();
@@ -1772,7 +1776,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
 
                 MyTrade trade = new MyTrade();
-                trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.T));
+                trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(order.T.ToDouble());
                 trade.NumberOrderParent = order.i.ToString();
                 trade.NumberTrade = order.t.ToString();
                 trade.Price = order.L.ToDecimal();
@@ -1816,7 +1820,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
-                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(order.E.ToDouble());
                 newOrder.TimeCancel = newOrder.TimeCallBack;
                 newOrder.NumberUser = orderNumUser;
                 newOrder.NumberMarket = order.i.ToString();
@@ -1845,7 +1849,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
-                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(order.E));
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(order.E.ToDouble());
                 newOrder.NumberUser = orderNumUser;
                 newOrder.NumberMarket = order.i.ToString();
                 newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
@@ -2448,7 +2452,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 newTrade.NumberOrderParent = myTrades[i].orderId;
                 newTrade.Volume = myTrades[i].qty.ToDecimal();
                 newTrade.Price = myTrades[i].price.ToDecimal();
-                newTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myTrades[i].time));
+                newTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(myTrades[i].time.ToDouble());
                 newTrade.Side = order.Side;
                 trades.Add(newTrade);
             }
@@ -2523,8 +2527,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     newOrder.TypeOrder = OrderPriceType.Limit;
                 }
 
-                newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orders[i].time));
-                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orders[i].updateTime));
+                newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(orders[i].time.ToDouble());
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(orders[i].updateTime.ToDouble());
 
                 if (myOrder.status == "NEW")
                 { 
@@ -2617,8 +2621,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     newOrder.Side = Side.Sell;
                 }
 
-                newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orders[i].time));
-                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orders[i].updateTime));
+                newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(orders[i].time.ToDouble());
+                newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(orders[i].updateTime.ToDouble());
 
                 try
                 {

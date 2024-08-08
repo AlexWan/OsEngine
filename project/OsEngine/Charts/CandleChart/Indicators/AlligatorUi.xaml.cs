@@ -43,18 +43,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _alligator = alligator;
 
-            TextBoxLenghtBase.Text = _alligator.LenghtBase.ToString();
+            TextBoxLengthBase.Text = _alligator.LengthBase.ToString();
             TextBoxShiftBase.Text = _alligator.ShiftBase.ToString();
             HostColorBase.Child = new TextBox();
             HostColorBase.Child.BackColor = _alligator.ColorBase;
 
 
-            TextBoxLenghtUp.Text = _alligator.LenghtUp.ToString();
+            TextBoxLengthUp.Text = _alligator.LengthUp.ToString();
             TextBoxShiftUp.Text = _alligator.ShiftUp.ToString();
             HostColorUp.Child = new TextBox();
             HostColorUp.Child.BackColor = _alligator.ColorUp;
 
-            TextBoxLenghtDown.Text = _alligator.LenghtDown.ToString();
+            TextBoxLengthDown.Text = _alligator.LengthDown.ToString();
             TextBoxShiftDown.Text = _alligator.ShiftDown.ToString();
             HostColorDown.Child = new TextBox();
             HostColorDown.Child.BackColor = _alligator.ColorDown;
@@ -101,9 +101,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenghtBase.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxLenghtDown.Text) <= 0 ||
-                    Convert.ToInt32(TextBoxLenghtUp.Text) <= 0 ||
+                if (Convert.ToInt32(TextBoxLengthBase.Text) <= 0 ||
+                    Convert.ToInt32(TextBoxLengthDown.Text) <= 0 ||
+                    Convert.ToInt32(TextBoxLengthUp.Text) <= 0 ||
                     Convert.ToInt32(TextBoxShiftBase.Text) <= 0 ||
                     Convert.ToInt32(TextBoxShiftDown.Text) <= 0 ||
                     Convert.ToInt32(TextBoxShiftUp.Text) <= 0)
@@ -119,15 +119,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
 
 
-            _alligator.LenghtBase = Convert.ToInt32(TextBoxLenghtBase.Text);
+            _alligator.LengthBase = Convert.ToInt32(TextBoxLengthBase.Text);
             _alligator.ShiftBase = Convert.ToInt32(TextBoxShiftBase.Text);
             _alligator.ColorBase = HostColorBase.Child.BackColor;
 
-            _alligator.LenghtUp = Convert.ToInt32(TextBoxLenghtUp.Text);
+            _alligator.LengthUp = Convert.ToInt32(TextBoxLengthUp.Text);
             _alligator.ShiftUp = Convert.ToInt32(TextBoxShiftUp.Text);
             _alligator.ColorUp = HostColorUp.Child.BackColor;
 
-            _alligator.LenghtDown = Convert.ToInt32(TextBoxLenghtDown.Text);
+            _alligator.LengthDown = Convert.ToInt32(TextBoxLengthDown.Text);
             _alligator.ShiftDown = Convert.ToInt32(TextBoxShiftDown.Text);
             _alligator.ColorDown = HostColorDown.Child.BackColor;
 

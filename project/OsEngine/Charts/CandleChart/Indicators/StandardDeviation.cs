@@ -79,7 +79,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = StandardDeviationTypePoints.Close;
             ColorBase = Color.DeepSkyBlue;
-            Lenght = 20;
+            Length = 20;
             PaintOn = true;
             CanDelete = canDelete;
             Load();
@@ -97,7 +97,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = StandardDeviationTypePoints.Close;
             ColorBase = Color.DeepSkyBlue;
-            Lenght = 20;
+            Length = 20;
             PaintOn = true;
             CanDelete = canDelete;
         }
@@ -175,9 +175,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         /// <summary>
         /// indicator calculation length
-        /// длинна рассчёта индикатора
+        /// длинна расчёта индикатора
         /// </summary>
-        public int Lenght { get; set; }
+        public int Length { get; set; }
 
         /// <summary>
         /// Standard Deviation indicator line color
@@ -207,7 +207,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out TypePointsToSearch);
                     reader.ReadLine();
@@ -235,7 +235,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(PaintOn);
                     writer.WriteLine(TypePointsToSearch);
                     writer.Close();
@@ -326,33 +326,33 @@ namespace OsEngine.Charts.CandleChart.Indicators
         private decimal GetValueStandardDeviation(List<Candle> candles, int index)
         {
 
-            //int Lenght3 = 20;
+            //int Length3 = 20;
 
-            if (index - Lenght <= 0)
+            if (index - Length <= 0)
             {
                 return 0;
             }
 
             decimal sd = 0;
 
-            int lenght2;
-            if (index - Lenght <= Lenght) lenght2 = index - Lenght; else lenght2 = Lenght;
+            int length2;
+            if (index - Length <= Length) length2 = index - Length; else length2 = Length;
 
             decimal sum = 0;
-            for (int j = index; j > index - Lenght; j--)
+            for (int j = index; j > index - Length; j--)
             {
                 sum += GetPoint(candles, j);
             }
 
-            var m = sum / Lenght;
+            var m = sum / Length;
 
-            for (int i = index; i > index - lenght2; i--)
+            for (int i = index; i > index - length2; i--)
             {
                 decimal x = GetPoint(candles, i) - m;  //Difference between values for period and average/разница между значениями за период и средней
-                double g = Math.Pow((double)x, 2.0);   // difference square/ квадрат зницы
+                double g = Math.Pow((double)x, 2.0);   // difference square
                 sd += (decimal)g;   //square footage/ сумма квадратов
             }
-            sd = (decimal)Math.Sqrt((double)sd / lenght2);  //find the root of sum/period // находим корень из суммы/период 
+            sd = (decimal)Math.Sqrt((double)sd / length2);  //find the root of sum/period // находим корень из суммы/период 
 
             return Math.Round(sd, 5);
 

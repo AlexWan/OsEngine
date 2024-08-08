@@ -99,6 +99,10 @@
             get { return true; }
         }
 
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
 
         #endregion
 

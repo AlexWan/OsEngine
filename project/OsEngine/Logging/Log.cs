@@ -594,7 +594,7 @@ namespace OsEngine.Logging
         /// </summary>
         /// <param name="message">message / сообщение</param>
         /// <param name="type">message type / тип сообщения</param>
-        private void ProcessMessage(string message, LogMessageType type)
+        public void ProcessMessage(string message, LogMessageType type)
         {
             if (_isDelete)
             {
@@ -658,6 +658,13 @@ namespace OsEngine.Logging
             try
             {
                 if (_isDelete == true)
+                {
+                    return;
+                }
+
+                if(_grid != null 
+                    && _grid.Rows != null
+                    && _grid.Rows.Count > 5000)
                 {
                     return;
                 }

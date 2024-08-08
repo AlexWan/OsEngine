@@ -9,8 +9,8 @@ using System.Windows;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Language;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Trend
@@ -19,6 +19,7 @@ namespace OsEngine.Robots.Trend
     /// Bill Williams' trend strategy on the Alligator and fractals
     /// трендовая стратегия Билла Вильямса на Аллигаторе и фракталах
     /// </summary>
+    [Bot("StrategyBillWilliams")]
     public class StrategyBillWilliams : BotPanel
     {
         public StrategyBillWilliams(string name, StartProgram startProgram)
@@ -42,9 +43,9 @@ namespace OsEngine.Robots.Trend
             _alligator = (Alligator)_tab.CreateCandleIndicator(_alligator, "Prime");
             _alligator.Save();
 
-            _alligator.LenghtDown = AlligatorSlowLineLength.ValueInt;
-            _alligator.LenghtBase = AlligatorMiddleLineLength.ValueInt;
-            _alligator.LenghtUp = AlligatorFastLineLength.ValueInt;
+            _alligator.LengthDown = AlligatorSlowLineLength.ValueInt;
+            _alligator.LengthBase = AlligatorMiddleLineLength.ValueInt;
+            _alligator.LengthUp = AlligatorFastLineLength.ValueInt;
 
             _fractal = new Fractal(name + "Fractal", false);
             _fractal = (Fractal)_tab.CreateCandleIndicator(_fractal, "Prime");
@@ -62,13 +63,13 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         void StrategyBillWilliams_ParametrsChangeByUser()
         {
-            if (AlligatorSlowLineLength.ValueInt != _alligator.LenghtDown ||
-                AlligatorMiddleLineLength.ValueInt != _alligator.LenghtBase ||
-                AlligatorFastLineLength.ValueInt != _alligator.LenghtUp)
+            if (AlligatorSlowLineLength.ValueInt != _alligator.LengthDown ||
+                AlligatorMiddleLineLength.ValueInt != _alligator.LengthBase ||
+                AlligatorFastLineLength.ValueInt != _alligator.LengthUp)
             {
-                _alligator.LenghtDown = AlligatorSlowLineLength.ValueInt;
-                _alligator.LenghtBase = AlligatorMiddleLineLength.ValueInt;
-                _alligator.LenghtUp = AlligatorFastLineLength.ValueInt;
+                _alligator.LengthDown = AlligatorSlowLineLength.ValueInt;
+                _alligator.LengthBase = AlligatorMiddleLineLength.ValueInt;
+                _alligator.LengthUp = AlligatorFastLineLength.ValueInt;
                 _alligator.Reload();
             }
         }
@@ -79,7 +80,7 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         public override string GetNameStrategyType()
         {
-            return "Williams Band";
+            return "StrategyBillWilliams";
         }
 
         /// <summary>
@@ -199,9 +200,9 @@ namespace OsEngine.Robots.Trend
                 _alligator.Values == null ||
                 _alligator.ValuesDown == null ||
                 _fractal == null ||
-                _alligator.LenghtBase > candles.Count ||
-                _alligator.LenghtDown > candles.Count ||
-                _alligator.LenghtUp > candles.Count)
+                _alligator.LengthBase > candles.Count ||
+                _alligator.LengthDown > candles.Count ||
+                _alligator.LengthUp > candles.Count)
             {
                 return;
             }

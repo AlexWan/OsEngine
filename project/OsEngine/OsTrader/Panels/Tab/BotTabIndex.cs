@@ -220,9 +220,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             MassSourcesCreator creator = GetCurrentCreator();
 
             MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
+            ui.LogMessageEvent += SendNewLogMessage;
             ui.ShowDialog();
 
-            if (ui.IsAssepted == false)
+            ui.LogMessageEvent -= SendNewLogMessage;
+            if (ui.IsAccepted == false)
             {
                 return;
             }
@@ -239,7 +241,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Tabs.RemoveAt(i);
                     isDeleteTab = true;
                 }
-            }
+             }
 
             if (isDeleteTab == true)
             {
@@ -280,23 +282,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return creator;
                 }
+
                 ConnectorCandles connector = Tabs[0];
                 creator.ServerType = connector.ServerType;
                 creator.TimeFrame = connector.TimeFrame;
                 creator.EmulatorIsOn = connector.EmulatorIsOn;
+                creator.SecuritiesClass = connector.SecurityClass;
+                creator.PortfolioName = connector.PortfolioName;
+                creator.SaveTradesInCandles = connector.SaveTradesInCandles;
+
                 creator.CandleCreateMethodType = connector.CandleCreateMethodType;
                 creator.CandleMarketDataType = connector.CandleMarketDataType;
-                creator.SetForeign = connector.SetForeign;
-                creator.CountTradeInCandle = connector.CountTradeInCandle;
-                creator.VolumeToCloseCandleInVolumeType = connector.VolumeToCloseCandleInVolumeType;
-                creator.RencoPunktsToCloseCandleInRencoType = connector.RencoPunktsToCloseCandleInRencoType;
-                creator.RencoIsBuildShadows = connector.RencoIsBuildShadows;
-                creator.DeltaPeriods = connector.DeltaPeriods;
-                creator.RangeCandlesPunkts = connector.RangeCandlesPunkts;
-                creator.ReversCandlesPunktsMinMove = connector.ReversCandlesPunktsMinMove;
-                creator.ReversCandlesPunktsBackMove = connector.ReversCandlesPunktsBackMove;
                 creator.ComissionType = connector.ComissionType;
                 creator.ComissionValue = connector.ComissionValue;
+                creator.CandleSeriesRealization.SetSaveString(connector.TimeFrameBuilder.CandleSeriesRealization.GetSaveString());
             }
 
             for (int i = 0; i < Tabs.Count; i++)
@@ -417,15 +416,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.NeadToLoadServerData = false;
             connector.CandleCreateMethodType = creator.CandleCreateMethodType;
             connector.CandleMarketDataType = creator.CandleMarketDataType;
-            connector.SetForeign = creator.SetForeign;
-            connector.CountTradeInCandle = creator.CountTradeInCandle;
-            connector.VolumeToCloseCandleInVolumeType = creator.VolumeToCloseCandleInVolumeType;
-            connector.RencoPunktsToCloseCandleInRencoType = creator.RencoPunktsToCloseCandleInRencoType;
-            connector.RencoIsBuildShadows = creator.RencoIsBuildShadows;
-            connector.DeltaPeriods = creator.DeltaPeriods;
-            connector.RangeCandlesPunkts = creator.RangeCandlesPunkts;
-            connector.ReversCandlesPunktsMinMove = creator.ReversCandlesPunktsMinMove;
-            connector.ReversCandlesPunktsBackMove = creator.ReversCandlesPunktsBackMove;
+            connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(creator.CandleSeriesRealization.GetSaveString());
+            connector.TimeFrameBuilder.Save();
+
             connector.ComissionType = creator.ComissionType;
             connector.ComissionValue = creator.ComissionValue;
 
@@ -836,7 +829,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _iteration++;
 
-                if(_iteration > 1000)
+                if (_iteration > 1000)
                 {
                     return "";
                 }
@@ -894,7 +887,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             partTwo += s[j];
                         }
-                       
+
                         return Calculate(partOne + Calculate(inside) + partTwo);
                     }
                     else if (startindex != -1)
@@ -2540,6 +2533,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     newIndex.Name = "A" + i;
                     newIndex.Candles = candles;
+                    newIndex.Security = tabsInIndex[i].Security;
 
                     secInIndex.Add(newIndex);
                 }
@@ -2555,6 +2549,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     newIndex.Name = "A" + i;
                     newIndex.SecName = tabsInIndex[i].Security.Name;
                     newIndex.Candles = candles;
+                    newIndex.Security = tabsInIndex[i].Security;
                     SetVolume(newIndex, daysLookBack);
 
                     secInIndex.Add(newIndex);
@@ -2602,6 +2597,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     newIndex.Name = "A" + i;
                     newIndex.SecName = tabsInIndex[i].Security.Name;
                     newIndex.Candles = candles;
+                    newIndex.Security = tabsInIndex[i].Security;
                     SetVolatility(newIndex, daysLookBack);
 
                     secInIndex.Add(newIndex);
@@ -2678,8 +2674,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 allVolume += candlesToVol[i].Center * candlesToVol[i].Volume;
             }
 
-            security.SummVolume = allVolume;
+            if(security.Security.Lot > 1)
+            {
+                allVolume = allVolume * security.Security.Lot;
+            }
 
+            security.SummVolume = allVolume;
         }
 
         /// <summary>
@@ -2827,6 +2827,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         public decimal VolatylityDayPercent;
 
         public List<Candle> Candles;
+
+        public Security Security;
 
         public decimal LastPrice
         {

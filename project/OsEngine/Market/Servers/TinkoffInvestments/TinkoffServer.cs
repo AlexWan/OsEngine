@@ -20,10 +20,6 @@ using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
-using OsEngine.Market.Servers.Alor.Json;
-using RestSharp;
-using OsEngine.Market.Servers.Transaq.TransaqEntity;
-using OsEngine.Market.Servers.OKX.Entity;
 
 namespace OsEngine.Market.Servers.TinkoffInvestments
 {
@@ -1520,7 +1516,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 TradeInstrument tradeInstrument = new TradeInstrument();
                 tradeInstrument.InstrumentId = security.NameId;
 
-                SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest{ SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { tradeInstrument }};
+                SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest{ SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { tradeInstrument }, TradeType = TradeSourceType.TradeSourceAll };
                 marketDataRequestTrades.SubscribeTradesRequest = subscribeTradesRequest;
                 
                 _marketDataStream.RequestStream.WriteAsync(marketDataRequestTrades).Wait();

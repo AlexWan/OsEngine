@@ -17,7 +17,10 @@ using OsEngine.Robots.Engines;
 using OsEngine.Language;
 using OsEngine.Alerts;
 using OsEngine.Market.Connectors;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using OsEngine.Candles.Series;
+using OsEngine.Candles;
+using OsEngine.Market.Servers;
+using OsEngine.Candles.Factory;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -112,11 +115,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                         _screeners.Count != 0 &&
                         i < _screeners.Count; i++)
                     {
-                        for (int i2 = 0; _screeners[i].Tabs != null &&
-                            _screeners[i].Tabs.Count != 0 &&
-                            i2 < _screeners[i].Tabs.Count; i2++)
+                        BotTabScreener curScreener = _screeners[i];
+
+                        if(curScreener._host != null)
                         {
-                            PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
+                            for (int i2 = 0; curScreener.Tabs != null &&
+                                 curScreener.Tabs.Count != 0 &&
+                                 i2 < curScreener.Tabs.Count; i2++)
+                            {
+                                PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
+                            }
                         }
 
                         _screeners[i].TryLoadTabs();
@@ -259,7 +267,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Tab number
         /// </summary>
         public int TabNum { get; set; }
-		
+
         /// <summary>
         /// custom name robot
         /// пользовательское имя робота
@@ -437,19 +445,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(_emulatorIsOn);
                     writer.WriteLine(CandleMarketDataType);
                     writer.WriteLine(CandleCreateMethodType);
-                    writer.WriteLine(SetForeign);
-                    writer.WriteLine(CountTradeInCandle);
-                    writer.WriteLine(VolumeToCloseCandleInVolumeType);
-                    writer.WriteLine(RencoPunktsToCloseCandleInRencoType);
-                    writer.WriteLine(RencoIsBuildShadows);
-                    writer.WriteLine(DeltaPeriods);
-                    writer.WriteLine(RangeCandlesPunkts);
-                    writer.WriteLine(ReversCandlesPunktsMinMove);
-                    writer.WriteLine(ReversCandlesPunktsBackMove);
                     writer.WriteLine(ComissionType);
                     writer.WriteLine(ComissionValue);
                     writer.WriteLine(SaveTradesInCandles);
                     writer.WriteLine(_eventsIsOn);
+
+                    writer.WriteLine(CandleSeriesRealization.GetType().Name);
+                    writer.WriteLine(CandleSeriesRealization.GetSaveString());
 
                     for (int i = 0; i < SecuritiesNames.Count; i++)
                     {
@@ -472,6 +474,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             if (!File.Exists(@"Engine\" + TabName + @"ScreenerSet.txt"))
             {
+                _candleCreateMethodType = "Simple";
+                CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization("Simple");
+                CandleSeriesRealization.Init(_startProgram);
                 return;
             }
             try
@@ -486,21 +491,26 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     _emulatorIsOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out CandleMarketDataType);
-                    Enum.TryParse(reader.ReadLine(), out CandleCreateMethodType);
+                    CandleCreateMethodType = reader.ReadLine();
 
-                    SetForeign = Convert.ToBoolean(reader.ReadLine());
-                    CountTradeInCandle = Convert.ToInt32(reader.ReadLine());
-                    VolumeToCloseCandleInVolumeType = reader.ReadLine().ToDecimal();
-                    RencoPunktsToCloseCandleInRencoType = reader.ReadLine().ToDecimal();
-                    RencoIsBuildShadows = Convert.ToBoolean(reader.ReadLine());
-                    DeltaPeriods = reader.ReadLine().ToDecimal();
-                    RangeCandlesPunkts = reader.ReadLine().ToDecimal();
-                    ReversCandlesPunktsMinMove = reader.ReadLine().ToDecimal();
-                    ReversCandlesPunktsBackMove = reader.ReadLine().ToDecimal();
-                    Enum.TryParse(reader.ReadLine(), out ComissionType);
-                    ComissionValue = reader.ReadLine().ToDecimal();
-                    SaveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
-                    _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
+                    try
+                    {
+                        Enum.TryParse(reader.ReadLine(), out ComissionType);
+                        ComissionValue = reader.ReadLine().ToDecimal();
+                        SaveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
+                        _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
+
+                        string seriesName = reader.ReadLine();
+                        CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization(seriesName);
+                        CandleSeriesRealization.Init(_startProgram);
+                        CandleSeriesRealization.SetSaveString(reader.ReadLine());
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
+
 
                     while (reader.EndOfStream == false)
                     {
@@ -508,7 +518,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (string.IsNullOrEmpty(str))
                         {
-                            break;
+                            continue;
                         }
                         ActivatedSecurity sec = new ActivatedSecurity();
                         sec.SetFromStr(str);
@@ -520,6 +530,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception)
             {
+                _candleCreateMethodType = "Simple";
+                CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization("Simple");
+                CandleSeriesRealization.Init(_startProgram);
+
                 // ignore
             }
         }
@@ -545,7 +559,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
             }
 
-            if(TabDeletedEvent != null)
+            if (TabDeletedEvent != null)
             {
                 TabDeletedEvent();
             }
@@ -614,7 +628,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             set
             {
-                if(_emulatorIsOn == value)
+                if (_emulatorIsOn == value)
                 {
                     return;
                 }
@@ -645,52 +659,32 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Method for creating candles
         /// </summary>
-        public CandleCreateMethodType CandleCreateMethodType;
+        public string CandleCreateMethodType
+        {
+            get { return _candleCreateMethodType; }
+            set
+            {
+                string newType = value;
 
-        /// <summary>
-        /// Whether it is necessary to request non-trading intervals
-        /// </summary>
-        public bool SetForeign;
+                if (newType == _candleCreateMethodType)
+                {
+                    return;
+                }
 
-        /// <summary>
-        /// Number of trades in a candle
-        /// </summary>
-        public int CountTradeInCandle = 100;
+                if (CandleSeriesRealization != null)
+                {
+                    CandleSeriesRealization.Delete();
+                    CandleSeriesRealization = null;
+                }
+                _candleCreateMethodType = newType;
+                CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization(newType);
+                CandleSeriesRealization.Init(_startProgram);
 
-        /// <summary>
-        /// Volume to close the candle
-        /// </summary>
-        public decimal VolumeToCloseCandleInVolumeType = 1000;
+                SaveSettings();
 
-        /// <summary>
-        /// Movement to close the candle in Renco type candles
-        /// </summary>
-        public decimal RencoPunktsToCloseCandleInRencoType = 100;
-
-        /// <summary>
-        /// Do we build shadows in candles like Renco
-        /// </summary>
-        public bool RencoIsBuildShadows;
-
-        /// <summary>
-        /// Delta period
-        /// </summary>
-        public decimal DeltaPeriods = 1000;
-
-        /// <summary>
-        /// Candle Items Range
-        /// </summary>
-        public decimal RangeCandlesPunkts;
-
-        /// <summary>
-        /// Minimum Pullback for Range Candles
-        /// </summary>
-        public decimal ReversCandlesPunktsMinMove;
-
-        /// <summary>
-        /// Rollback to create candle down for Range candles
-        /// </summary>
-        public decimal ReversCandlesPunktsBackMove;
+            }
+        }
+        private string _candleCreateMethodType;
 
         /// <summary>
         /// Commission type for positions
@@ -707,6 +701,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool SaveTradesInCandles;
 
+        public ACandlesSeriesRealization CandleSeriesRealization;
+
         public bool IsLoadTabs = false;
 
         public bool NeadToReloadTabs = false;
@@ -716,85 +712,103 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void TryReLoadTabs()
         {
-            if (NeadToReloadTabs == false)
+            try
             {
-                return;
-            }
-
-            if (_tabIsLoad == false)
-            {
-                return;
-            }
-
-            if (TabsReadyToLoad() == false)
-            {
-                return;
-            }
-
-            // 1 remove unwanted tabs
-
-            bool deleteSomeTabs = false;
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i]) == false)
+                if (NeadToReloadTabs == false)
                 {
-                    Tabs[i].Clear();
-                    Tabs[i].Delete();
-                    Tabs.RemoveAt(i);
-                    i--;
-                    deleteSomeTabs = true;
+                    return;
                 }
-            }
 
-            if (deleteSomeTabs)
-            {
-                RePaintSecuritiesGrid();
-            }
-
-            // 2 update data in tabs
-
-            //for (int i = 0; i < Tabs.Count; i++)
-            //{
-            //    UpdateTabSettings(Tabs[i]);
-            //}
-
-            // 3 create missing tabs
-            IsLoadTabs = true;
-            for (int i = 0; i < SecuritiesNames.Count; i++)
-            {
-                int tabCount = Tabs.Count;
-
-                TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
-
-                if (tabCount != Tabs.Count)
+                if (_tabIsLoad == false)
                 {
-                    UpdateTabSettings(Tabs[Tabs.Count - 1]);
-                    PaintNewRow();
+                    return;
+                }
 
-                    if (NewTabCreateEvent != null)
+                if (TabsReadyToLoad() == false)
+                {
+                    return;
+                }
+
+                // 1 remove unwanted tabs
+
+                bool deleteSomeTabs = false;
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i]) == false)
                     {
-                        NewTabCreateEvent(Tabs[Tabs.Count - 1]);
+                        string chartName = Tabs[i].TabName + "_Engine";
+
+                        for (int i2 = 0; _chartEngines != null && i2 < _chartEngines.Count; i2++)
+                        {
+                            if (chartName == _chartEngines[i2].NameStrategyUniq)
+                            {
+                                _chartEngines[i2].CloseGui();
+                                break;
+                            }
+                        }
+
+                        Tabs[i].Clear();
+                        Tabs[i].Delete();
+                        Tabs.RemoveAt(i);
+                        i--;
+                        deleteSomeTabs = true;
                     }
                 }
-            }
-            IsLoadTabs = false;
-            ReloadIndicatorsOnTabs();
 
-            if (Tabs.Count != 0)
+                if (deleteSomeTabs)
+                {
+                    RePaintSecuritiesGrid();
+                }
+
+                // 2 update data in tabs
+
+                //for (int i = 0; i < Tabs.Count; i++)
+                //{
+                //    UpdateTabSettings(Tabs[i]);
+                //}
+
+                // 3 create missing tabs
+                IsLoadTabs = true;
+                for (int i = 0; i < SecuritiesNames.Count; i++)
+                {
+                    int tabCount = Tabs.Count;
+
+                    TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
+
+                    if (tabCount != Tabs.Count)
+                    {
+                        UpdateTabSettings(Tabs[Tabs.Count - 1]);
+                        PaintNewRow();
+
+                        if (NewTabCreateEvent != null)
+                        {
+                            NewTabCreateEvent(Tabs[Tabs.Count - 1]);
+                        }
+                    }
+                }
+                IsLoadTabs = false;
+                ReloadIndicatorsOnTabs();
+
+                if (Tabs.Count != 0)
+                {
+                    Tabs[0].IndicatorUpdateEvent -= BotTabScreener_IndicatorUpdateEvent;
+                    Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
+                }
+
+                for (int i = 0; Tabs != null && i < Tabs.Count; i++)
+                {
+                    UpdateTabSettings(Tabs[i]);
+                }
+
+                SaveTabs();
+
+                NeadToReloadTabs = false;
+            }
+            catch (Exception ex)
             {
-                Tabs[0].IndicatorUpdateEvent -= BotTabScreener_IndicatorUpdateEvent;
-                Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            for (int i = 0; Tabs != null && i < Tabs.Count; i++)
-            {
-                UpdateTabSettings(Tabs[i]);
-            }
-
-            SaveTabs();
-
-            NeadToReloadTabs = false;
         }
 
         /// <summary>
@@ -807,21 +821,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.EmulatorIsOn = _emulatorIsOn;
             tab.Connector.CandleMarketDataType = CandleMarketDataType;
             tab.Connector.CandleCreateMethodType = CandleCreateMethodType;
-            tab.Connector.SetForeign = SetForeign;
-            tab.Connector.CountTradeInCandle = CountTradeInCandle;
-            tab.Connector.VolumeToCloseCandleInVolumeType = VolumeToCloseCandleInVolumeType;
-            tab.Connector.RencoPunktsToCloseCandleInRencoType = RencoPunktsToCloseCandleInRencoType;
-            tab.Connector.RencoIsBuildShadows = RencoIsBuildShadows;
-            tab.Connector.DeltaPeriods = DeltaPeriods;
-            tab.Connector.RangeCandlesPunkts = RangeCandlesPunkts;
-            tab.Connector.ReversCandlesPunktsMinMove = ReversCandlesPunktsMinMove;
-            tab.Connector.ReversCandlesPunktsBackMove = ReversCandlesPunktsBackMove;
+            tab.Connector.TimeFrame = this.TimeFrame;
+            tab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
             tab.Connector.SaveTradesInCandles = SaveTradesInCandles;
             tab.Connector.ComissionType = ComissionType;
             tab.Connector.ComissionValue = ComissionValue;
             tab.ComissionType = ComissionType;
             tab.ComissionValue = ComissionValue;
-            tab.IsCreatedByScreener = true;			
+            tab.IsCreatedByScreener = true;
         }
 
         /// <summary>
@@ -858,19 +865,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.EmulatorIsOn = _emulatorIsOn;
             newTab.Connector.CandleMarketDataType = CandleMarketDataType;
             newTab.Connector.CandleCreateMethodType = CandleCreateMethodType;
-            newTab.Connector.SetForeign = SetForeign;
-            newTab.Connector.CountTradeInCandle = CountTradeInCandle;
-            newTab.Connector.VolumeToCloseCandleInVolumeType = VolumeToCloseCandleInVolumeType;
-            newTab.Connector.RencoPunktsToCloseCandleInRencoType = RencoPunktsToCloseCandleInRencoType;
-            newTab.Connector.RencoIsBuildShadows = RencoIsBuildShadows;
-            newTab.Connector.DeltaPeriods = DeltaPeriods;
-            newTab.Connector.RangeCandlesPunkts = RangeCandlesPunkts;
-            newTab.Connector.ReversCandlesPunktsMinMove = ReversCandlesPunktsMinMove;
-            newTab.Connector.ReversCandlesPunktsBackMove = ReversCandlesPunktsBackMove;
+            newTab.Connector.TimeFrame = frame;
+            newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
+            newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
             newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
             newTab.ComissionType = ComissionType;
             newTab.ComissionValue = ComissionValue;
-            newTab.IsCreatedByScreener = true;			
+            newTab.IsCreatedByScreener = true;
 
             curTabs.Add(newTab);
 
@@ -897,6 +898,39 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (tab.Connector.TimeFrame != frame)
             {
                 return false;
+            }
+
+            if(tab.TimeFrameBuilder.CandleSeriesRealization.GetType().Name 
+                != CandleSeriesRealization.GetType().Name)
+            {
+                return false;
+            }
+
+            for(int i = 0;i < tab.TimeFrameBuilder.CandleSeriesRealization.Parameters.Count;i++)
+            {
+                ICandleSeriesParameter paramInTab = tab.TimeFrameBuilder.CandleSeriesRealization.Parameters[i];
+                ICandleSeriesParameter paramInScreener = CandleSeriesRealization.Parameters[i];
+
+                if (paramInTab.Type == CandlesParameterType.StringCollection
+                    && ((CandlesParameterString)paramInTab).ValueString != ((CandlesParameterString)paramInScreener).ValueString)
+                {
+                    return false;
+                }
+                else if (paramInTab.Type == CandlesParameterType.Int
+                    && ((CandlesParameterInt)paramInTab).ValueInt != ((CandlesParameterInt)paramInScreener).ValueInt)
+                {
+                    return false;
+                }
+                else if (paramInTab.Type == CandlesParameterType.Bool
+                    && ((CandlesParameterBool)paramInTab).ValueBool != ((CandlesParameterBool)paramInScreener).ValueBool)
+                {
+                    return false;
+                }
+                else if (paramInTab.Type == CandlesParameterType.Decimal
+                    && ((CandlesParameterDecimal)paramInTab).ValueDecimal != ((CandlesParameterDecimal)paramInScreener).ValueDecimal)
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -999,17 +1033,35 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowDialog()
         {
-            if (ServerMaster.GetServers() == null ||
-    ServerMaster.GetServers().Count == 0)
+            try
             {
-                AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
-                uiMessage.Show();
-                return;
+                if (ServerMaster.GetServers() == null ||
+                    ServerMaster.GetServers().Count == 0)
+                {
+                    AlertMessageSimpleUi uiMessage = new AlertMessageSimpleUi(OsLocalization.Market.Message1);
+                    uiMessage.Show();
+                    return;
+                }
+
+                if (StartProgram == StartProgram.IsTester)
+                {
+                    IServer server = ServerMaster.GetServers()[0];
+
+                    if (server.Portfolios == null
+                        ||
+                        server.Portfolios.Count == 0)
+                    {
+                        return;
+                    }
+                }
+
+                BotTabScreenerUi ui = new BotTabScreenerUi(this);
+                ui.ShowDialog();
             }
-
-            BotTabScreenerUi ui = new BotTabScreenerUi(this);
-            ui.ShowDialog();
-
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1022,39 +1074,44 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void ShowChart(int tabyNum)
         {
-            string botName = this.TabName + "Engine" + tabyNum;
-
-            if (_chartEngines.Find(b => b.NameStrategyUniq == botName) != null)
+            try
             {
-                return;
-            }
+                string botName = Tabs[tabyNum].TabName + "_Engine";
 
-            CandleEngine bot = new CandleEngine(botName, _startProgram);
-
-            BotTabSimple myTab = Tabs[tabyNum];
-
-            //bot.TabCreate(BotTabType.Simple);
-            bot.GetTabs().Clear();
-            bot.GetTabs().Add(myTab);
-            bot.TabsSimple[0] = myTab;
-            bot.ActivTab = myTab;
-
-            bot.ChartClosedEvent += (string nameBot) =>
-            {
-                for (int i = 0; i < _chartEngines.Count; i++)
+                if (_chartEngines.Find(b => b.NameStrategyUniq == botName) != null)
                 {
-                    if (_chartEngines[i].NameStrategyUniq == nameBot)
-                    {
-                        _chartEngines.RemoveAt(i);
-                        break;
-                    }
+                    return;
                 }
-            };
 
-            _chartEngines.Add(bot);
-            bot.ShowChartDialog();
+                CandleEngine bot = new CandleEngine(botName, _startProgram);
 
+                BotTabSimple myTab = Tabs[tabyNum];
 
+                //bot.TabCreate(BotTabType.Simple);
+                bot.GetTabs().Clear();
+                bot.GetTabs().Add(myTab);
+                bot.TabsSimple[0] = myTab;
+                bot.ActivTab = myTab;
+
+                bot.ChartClosedEvent += (string nameBot) =>
+                {
+                    for (int i = 0; i < _chartEngines.Count; i++)
+                    {
+                        if (_chartEngines[i].NameStrategyUniq == nameBot)
+                        {
+                            _chartEngines.RemoveAt(i);
+                            break;
+                        }
+                    }
+                };
+
+                _chartEngines.Add(bot);
+                bot.ShowChartDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1062,8 +1119,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary> 
         public void StartPaint(WindowsFormsHost host)
         {
-            _host = host;
-            RePaintSecuritiesGrid();
+            try
+            {
+                _host = host;
+                RePaintSecuritiesGrid();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -1071,19 +1135,26 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void StopPaint()
         {
-            if (_host == null)
+            try
             {
-                return;
-            }
+                if (_host == null)
+                {
+                    return;
+                }
 
-            if (_host.Dispatcher.CheckAccess() == false)
+                if (_host.Dispatcher.CheckAccess() == false)
+                {
+                    _host.Dispatcher.Invoke(new Action(StopPaint));
+                    return;
+                }
+
+                _host.Child = null;
+                _host = null;
+            }
+            catch (Exception ex)
             {
-                _host.Dispatcher.Invoke(new Action(StopPaint));
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            _host.Child = null;
-            _host = null;
         }
 
         /// <summary>
@@ -1104,7 +1175,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             // number, class, instrument code, last, bid and ask prices, number of positions, Chart
 
             DataGridView newGrid =
-                DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.DisplayedCells);
+                DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             newGrid.ScrollBars = ScrollBars.Vertical;
@@ -1181,32 +1252,39 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void NewGrid_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            if (mouse.Button == MouseButtons.Right)
+            try
             {
-                // refer to the creation of the settings window
-                CreateGridDialog(mouse);
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                if (mouse.Button == MouseButtons.Right)
+                {
+                    // refer to the creation of the settings window
+                    CreateGridDialog(mouse);
+                }
+                if (mouse.Button == MouseButtons.Left)
+                {
+                    // send to watch the chart
+                    if (SecuritiesDataGrid.SelectedCells == null ||
+                        SecuritiesDataGrid.SelectedCells.Count == 0)
+                    {
+                        return;
+                    }
+                    int tabRow = SecuritiesDataGrid.SelectedCells[0].RowIndex;
+                    int tabColumn = SecuritiesDataGrid.SelectedCells[0].ColumnIndex;
+
+                    if (tabColumn == 7)
+                    {
+                        ShowChart(tabRow);
+                    }
+
+                    SecuritiesDataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+                    prevActiveRow = tabRow;
+                }
             }
-            if (mouse.Button == MouseButtons.Left)
+            catch (Exception ex)
             {
-                // send to watch the chart
-                if (SecuritiesDataGrid.SelectedCells == null ||
-                    SecuritiesDataGrid.SelectedCells.Count == 0)
-                {
-                    return;
-                }
-                int tabRow = SecuritiesDataGrid.SelectedCells[0].RowIndex;
-                int tabColumn = SecuritiesDataGrid.SelectedCells[0].ColumnIndex;
-
-                if (tabColumn == 7)
-                {
-                    ShowChart(tabRow);
-                }
-
-                SecuritiesDataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
-                SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-                prevActiveRow = tabRow;
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -1215,35 +1293,42 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void RePaintSecuritiesGrid()
         {
-            if (_host == null)
+            try
             {
-                return;
+                if (_host == null)
+                {
+                    return;
+                }
+
+                if (_host.Dispatcher.CheckAccess() == false)
+                {
+                    _host.Dispatcher.Invoke(new Action(RePaintSecuritiesGrid));
+                    return;
+                }
+
+                int showRow = SecuritiesDataGrid.FirstDisplayedScrollingRowIndex;
+
+                SecuritiesDataGrid.Rows.Clear();
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[i], i));
+                }
+
+                if (_host != null)
+                {
+                    _host.Child = SecuritiesDataGrid;
+                }
+
+                if (showRow > 0 &&
+                    showRow < SecuritiesDataGrid.Rows.Count)
+                {
+                    SecuritiesDataGrid.FirstDisplayedScrollingRowIndex = showRow;
+                }
             }
-
-            if (_host.Dispatcher.CheckAccess() == false)
+            catch (Exception ex)
             {
-                _host.Dispatcher.Invoke(new Action(RePaintSecuritiesGrid));
-                return;
-            }
-
-            int showRow = SecuritiesDataGrid.FirstDisplayedScrollingRowIndex;
-
-            SecuritiesDataGrid.Rows.Clear();
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[i], i));
-            }
-
-            if (_host != null)
-            {
-                _host.Child = SecuritiesDataGrid;
-            }
-
-            if (showRow > 0 &&
-                showRow < SecuritiesDataGrid.Rows.Count)
-            {
-                SecuritiesDataGrid.FirstDisplayedScrollingRowIndex = showRow;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1252,18 +1337,25 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void PaintNewRow()
         {
-            if (_host == null)
+            try
             {
-                return;
-            }
+                if (_host == null)
+                {
+                    return;
+                }
 
-            if (_host.Dispatcher.CheckAccess() == false)
+                if (_host.Dispatcher.CheckAccess() == false)
+                {
+                    _host.Dispatcher.Invoke(new Action(PaintNewRow));
+                    return;
+                }
+
+                SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count - 1], Tabs.Count - 1));
+            }
+            catch (Exception ex)
             {
-                _host.Dispatcher.Invoke(new Action(PaintNewRow));
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[Tabs.Count - 1], Tabs.Count - 1));
         }
 
         /// <summary>
@@ -1304,20 +1396,27 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void CreateGridDialog(MouseEventArgs mouse)
         {
-            if (Tabs.Count == 0)
+            try
             {
-                return;
+                if (Tabs.Count == 0)
+                {
+                    return;
+                }
+
+                BotTabSimple tab = Tabs[0];
+
+                System.Windows.Forms.ContextMenu menu = tab.GetContextDialog();
+
+                SecuritiesDataGrid.ContextMenu = menu;
+
+                SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+
+                //SuncFirstTab();
             }
-
-            BotTabSimple tab = Tabs[0];
-
-            System.Windows.Forms.ContextMenu menu = tab.GetContextDialog();
-
-            SecuritiesDataGrid.ContextMenu = menu;
-
-            SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));
-
-            //SuncFirstTab();
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1326,14 +1425,21 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void ShowManualControlDialog()
         {
-            if(Tabs.Count == 0)
+            try
             {
-                SendNewLogMessage(OsLocalization.Trader.Label231, LogMessageType.Error);
-                return;
-            }
+                if (Tabs.Count == 0)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label231, LogMessageType.Error);
+                    return;
+                }
 
-            Tabs[0].ShowManualControlDialog();
-            SuncFirstTab();
+                Tabs[0].ShowManualControlDialog();
+                SuncFirstTab();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1350,28 +1456,35 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <returns></returns>
         public void CreateCandleIndicator(int num, string type, List<string> param, string nameArea = "Prime")
         {
-            //return _chartMaster.CreateIndicator(indicator, nameArea);
+            try
+            {       
 
-            if (_indicators.Find(ind => ind.Num == num) != null)
-            {
-                NeadToReloadTabs = true;
-                return;
+                if (_indicators.Find(ind => ind.Num == num) != null)
+                {
+                    NeadToReloadTabs = true;
+                    return;
+                }
+
+                IndicatorOnTabs indicator = new IndicatorOnTabs();
+                indicator.Num = num;
+                indicator.Type = type;
+                indicator.NameArea = nameArea;
+
+                if (param != null)
+                {
+                    indicator.Params = param;
+                }
+
+                _indicators.Add(indicator);
+
+                SaveIndicators();
+                ReloadIndicatorsOnTabs();
+
             }
-
-            IndicatorOnTabs indicator = new IndicatorOnTabs();
-            indicator.Num = num;
-            indicator.Type = type;
-            indicator.NameArea = nameArea;
-
-            if (param != null)
+            catch (Exception ex)
             {
-                indicator.Params = param;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            _indicators.Add(indicator);
-
-            SaveIndicators();
-            ReloadIndicatorsOnTabs();
         }
 
         /// <summary>

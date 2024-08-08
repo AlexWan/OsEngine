@@ -285,7 +285,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 _fi = new List<decimal>();
                 _movingAverage = new MovingAverage(false);
-                _movingAverage.Lenght = Period;
+                _movingAverage.Length = Period;
                 _movingAverage.TypePointsToSearch = TypePoint;
                 _movingAverage.TypeCalculationAverage = TypeCalculationAverage;
 
@@ -353,7 +353,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _fi = new List<decimal>();
 
             _movingAverage = new MovingAverage(false);
-            _movingAverage.Lenght = Period;
+            _movingAverage.Length = Period;
             _movingAverage.TypePointsToSearch = TypePoint;
             _movingAverage.TypeCalculationAverage = TypeCalculationAverage;
 

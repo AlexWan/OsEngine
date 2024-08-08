@@ -40,7 +40,7 @@ namespace OsEngine.Charts.CandleChart
             _name = nameBoss + "ChartMaster";
             _startProgram = startProgram;
 
-            if(_startProgram != StartProgram.IsOsOptimizer)
+            if (_startProgram != StartProgram.IsOsOptimizer)
             {
                 Load();
                 _canSave = true;
@@ -49,7 +49,7 @@ namespace OsEngine.Charts.CandleChart
 
         private void UpDateChartPainter()
         {
-            if(ChartCandle != null)
+            if (ChartCandle != null)
             {
                 ChartCandle.Delete();
                 ChartCandle.ChartClickEvent -= ChartCandle_ChartClickEvent;
@@ -68,7 +68,7 @@ namespace OsEngine.Charts.CandleChart
 
             if (_indicators != null)
             {
-                for(int i = 0;i < _indicators.Count;i++)
+                for (int i = 0; i < _indicators.Count; i++)
                 {
                     LoadIndicatorOnChart(_indicators[i]);
                 }
@@ -87,7 +87,7 @@ namespace OsEngine.Charts.CandleChart
             {
                 return;
             }
-            if (timeFrameBuilder.CandleCreateMethodType != CandleCreateMethodType.Simple)
+            if (timeFrameBuilder.CandleCreateMethodType != "Simple")
             {
                 ChartCandle.SetNewTimeFrame(TimeSpan.FromSeconds(1), timeFrameBuilder.TimeFrame);
             }
@@ -103,7 +103,7 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void Load()
         {
-            if(_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -140,211 +140,217 @@ namespace OsEngine.Charts.CandleChart
                             continue;
                         }
 
-                        if (indicator[0] == "TickVolume")
+                        if (indicator[0] == "DonchianChannel")
+                        {
+                            CreateIndicator(new DonchianChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
+                        else if (indicator[0] == "TickVolume")
                         {
                             CreateIndicator(new TickVolume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "StochRsi")
+                        else if (indicator[0] == "StochRsi")
                         {
                             CreateIndicator(new StochRsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "UltimateOscillator")
+                        else if (indicator[0] == "UltimateOscillator")
                         {
                             CreateIndicator(new UltimateOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Vwap")
+                        else if (indicator[0] == "Vwap")
                         {
                             CreateIndicator(new Vwap(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "KalmanFilter")
+                        else if (indicator[0] == "KalmanFilter")
                         {
                             CreateIndicator(new KalmanFilter(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "PivotPoints")
+                        else if (indicator[0] == "PivotPoints")
                         {
                             CreateIndicator(new PivotPoints(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Pivot")
+                        else if (indicator[0] == "Pivot")
                         {
                             CreateIndicator(new Pivot(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "VolumeOscillator")
+                        else if (indicator[0] == "VolumeOscillator")
                         {
                             CreateIndicator(new VolumeOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "ParabolicSaR")
+                        else if (indicator[0] == "ParabolicSaR")
                         {
                             CreateIndicator(new ParabolicSaR(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "BfMfi")
+                        else if (indicator[0] == "BfMfi")
                         {
                             CreateIndicator(new BfMfi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "BullsPower")
+                        else if (indicator[0] == "BullsPower")
                         {
                             CreateIndicator(new BullsPower(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "BearsPower")
+                        else if (indicator[0] == "BearsPower")
                         {
                             CreateIndicator(new BearsPower(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Cmo")
+                        else if (indicator[0] == "Cmo")
                         {
                             CreateIndicator(new Cmo(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Cci")
+                        else if (indicator[0] == "Cci")
                         {
                             CreateIndicator(new Cci(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "StandardDeviation")
+                        else if (indicator[0] == "StandardDeviation")
                         {
                             CreateIndicator(new StandardDeviation(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "MovingAverage")
+                        else if (indicator[0] == "MovingAverage")
                         {
                             CreateIndicator(new MovingAverage(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Bollinger")
+                        else if (indicator[0] == "Bollinger")
                         {
                             CreateIndicator(new Bollinger(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Fractal")
+                        else if (indicator[0] == "Fractal")
                         {
                             CreateIndicator(new Fractal(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "ForceIndex")
+                        else if (indicator[0] == "ForceIndex")
                         {
                             CreateIndicator(new ForceIndex(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "OnBalanceVolume")
+                        else if (indicator[0] == "OnBalanceVolume")
                         {
                             CreateIndicator(new OnBalanceVolume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "StochasticOscillator")
+                        else if (indicator[0] == "StochasticOscillator")
                         {
                             CreateIndicator(new StochasticOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Rsi")
+                        else if (indicator[0] == "Rsi")
                         {
                             CreateIndicator(new Rsi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Roc")
+                        else if (indicator[0] == "Roc")
                         {
                             CreateIndicator(new Roc(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Rvi")
+                        else if (indicator[0] == "Rvi")
                         {
                             CreateIndicator(new Rvi(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Volume")
+                        else if (indicator[0] == "Volume")
                         {
                             CreateIndicator(new Volume(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "AwesomeOscillator")
+                        else if (indicator[0] == "AwesomeOscillator")
                         {
                             CreateIndicator(new AwesomeOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "AccumulationDistribution")
+                        else if (indicator[0] == "AccumulationDistribution")
                         {
                             CreateIndicator(new AccumulationDistribution(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Adx")
+                        else if (indicator[0] == "Adx")
                         {
                             CreateIndicator(new Adx(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Atr")
+                        else if (indicator[0] == "Atr")
                         {
                             CreateIndicator(new Atr(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Alligator")
+                        else if (indicator[0] == "Alligator")
                         {
                             CreateIndicator(new Alligator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "PriceChannel")
+                        else if (indicator[0] == "PriceChannel")
                         {
                             CreateIndicator(new PriceChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "PriceOscillator")
+                        else if (indicator[0] == "PriceOscillator")
                         {
                             CreateIndicator(new PriceOscillator(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "MacdHistogram")
+                        else if (indicator[0] == "MacdHistogram")
                         {
                             CreateIndicator(new MacdHistogram(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "MacdLine")
+                        else if (indicator[0] == "MacdLine")
                         {
                             CreateIndicator(new MacdLine(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Momentum")
+                        else if (indicator[0] == "Momentum")
                         {
                             CreateIndicator(new Momentum(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "MoneyFlowIndex")
+                        else if (indicator[0] == "MoneyFlowIndex")
                         {
                             CreateIndicator(new MoneyFlowIndex(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Envelops")
+                        else if (indicator[0] == "Envelops")
                         {
                             CreateIndicator(new Envelops(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "EfficiencyRatio")
+                        else if (indicator[0] == "EfficiencyRatio")
                         {
                             CreateIndicator(new EfficiencyRatio(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Line")
+                        else if (indicator[0] == "Line")
                         {
                             CreateIndicator(new CandleChart.Indicators.Line(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "AdaptiveLookBack")
+                        else if (indicator[0] == "AdaptiveLookBack")
                         {
                             CreateIndicator(new AdaptiveLookBack(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "IvashovRange")
+                        else if (indicator[0] == "IvashovRange")
                         {
                             CreateIndicator(new IvashovRange(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Ac")
+                        else if (indicator[0] == "Ac")
                         {
                             CreateIndicator(new Ac(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "VerticalHorizontalFilter")
+                        else if (indicator[0] == "VerticalHorizontalFilter")
                         {
                             CreateIndicator(new VerticalHorizontalFilter(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "WilliamsRange")
+                        else if (indicator[0] == "WilliamsRange")
                         {
                             CreateIndicator(new WilliamsRange(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Trix")
+                        else if (indicator[0] == "Trix")
                         {
                             CreateIndicator(new Trix(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "Ichimoku")
+                        else if (indicator[0] == "Ichimoku")
                         {
                             CreateIndicator(new Ichimoku(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "TradeThread")
+                        else if (indicator[0] == "TradeThread")
                         {
                             CreateIndicator(new TradeThread(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "LinearRegressionCurve")
+                        else if (indicator[0] == "LinearRegressionCurve")
                         {
                             CreateIndicator(new LinearRegressionCurve(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        if (indicator[0] == "SimpleVWAP")
+                        else if (indicator[0] == "SimpleVWAP")
                         {
                             CreateIndicator(new SimpleVWAP(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-
-                        if (indicator[0] == "DTD")
+                        else if (indicator[0] == "DTD")
                         {
                             CreateIndicator(new DynamicTrendDetector(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-
-                        if (indicator[0] == "AtrChannel")
+                        else if (indicator[0] == "AtrChannel")
                         {
                             CreateIndicator(new AtrChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
+                        }
+                        else 
+                        {
+                            NewLogMessage("Chart can`t load indicator with name: " + indicator[0], LogMessageType.Error);
                         }
                     }
 
@@ -382,7 +388,7 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            if(_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
@@ -411,7 +417,7 @@ namespace OsEngine.Charts.CandleChart
                             }
                         }
                     }
-                    if (ChartCandle != null && 
+                    if (ChartCandle != null &&
                         ChartCandle.AreaIsCreate("TradeArea") == true)
                     {
                         writer.WriteLine("Trades");
@@ -449,7 +455,7 @@ namespace OsEngine.Charts.CandleChart
                     _indicators = null;
                 }
 
-                if(_startProgram != StartProgram.IsOsOptimizer)
+                if (_startProgram != StartProgram.IsOsOptimizer)
                 {
                     if (File.Exists(@"Engine\" + Name + @".txt"))
                     {
@@ -472,7 +478,7 @@ namespace OsEngine.Charts.CandleChart
 
                 if (_chartElements != null)
                 {
-                    for(int i = 0;i < _chartElements.Count;i++)
+                    for (int i = 0; i < _chartElements.Count; i++)
                     {
                         _chartElements[i].UpdeteEvent -= myElement_UpdeteEvent;
                         _chartElements[i].DeleteEvent -= myElement_DeleteEvent;
@@ -482,13 +488,13 @@ namespace OsEngine.Charts.CandleChart
                     _chartElements.Clear();
                     _chartElements = null;
                 }
-                if(_alertArray != null)
+                if (_alertArray != null)
                 {
                     _alertArray.Clear();
                     _alertArray = null;
                 }
-                
-                if(_myPosition != null)
+
+                if (_myPosition != null)
                 {
                     _myPosition = null;
                 }
@@ -547,7 +553,7 @@ namespace OsEngine.Charts.CandleChart
         private void ChartCandle_LastXIndexChangeEvent(int curXFromRight)
         {
 
-            if(_bindChart == null &&
+            if (_bindChart == null &&
                 ChartCandle != null)
             {
                 ChartCandle.LastXIndexChangeEvent -= ChartCandle_LastXIndexChangeEvent;
@@ -569,7 +575,7 @@ namespace OsEngine.Charts.CandleChart
 
         private void CheckBindAreaSize(int size)
         {
-            if(_bindChart == null)
+            if (_bindChart == null)
             {
                 return;
             }
@@ -595,7 +601,7 @@ namespace OsEngine.Charts.CandleChart
 
         public void SetAxisXSize(int size)
         {
-            if(ChartCandle == null)
+            if (ChartCandle == null)
             {
                 return;
             }
@@ -677,7 +683,7 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
-                if(ChartCandle == null)
+                if (ChartCandle == null)
                 {
                     UpDateChartPainter();
                 }
@@ -954,7 +960,7 @@ namespace OsEngine.Charts.CandleChart
         private int _lastAbsoluteSizeX;
 
         private ChartPositionTradeSize _lastTipeSizeX;
-        
+
         // indicator management управление индикаторами
 
         /// <summary>
@@ -1126,7 +1132,7 @@ namespace OsEngine.Charts.CandleChart
 
             try
             {
-                if(ChartCandle != null)
+                if (ChartCandle != null)
                 {
                     ChartCandle.DeleteIndicator(indicator);
                 }
@@ -1158,7 +1164,7 @@ namespace OsEngine.Charts.CandleChart
         /// <returns>true-created//true - создан//false-no//false - нет</returns>
         public bool IndicatorIsCreate(string name)
         {
-            if(ChartCandle == null)
+            if (ChartCandle == null)
             {
                 return false;
             }
@@ -1174,7 +1180,7 @@ namespace OsEngine.Charts.CandleChart
         /// <returns></returns>
         public bool AreaIsCreate(string name)
         {
-            if(ChartCandle != null)
+            if (ChartCandle != null)
             {
                 return ChartCandle.AreaIsCreate(name);
             }
@@ -1207,7 +1213,7 @@ namespace OsEngine.Charts.CandleChart
                     _chartElements = new List<IChartElement>();
                 }
 
-                if(_startProgram == StartProgram.IsOsOptimizer)
+                if (_startProgram == StartProgram.IsOsOptimizer)
                 {
                     return;
                 }
@@ -1230,8 +1236,8 @@ namespace OsEngine.Charts.CandleChart
                 myElement.DeleteEvent += myElement_DeleteEvent;
                 // 2 sending it over for a drawing.
                 // 2 отправляем на прорисовку
-                
-                if(ChartCandle != null && _startProgram 
+
+                if (ChartCandle != null && _startProgram
                     != StartProgram.IsOsOptimizer)
                 {
                     ChartCandle.ProcessElem(myElement);
@@ -1250,11 +1256,11 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="element">element/элемент</param>
         public void DeleteChartElement(IChartElement element)
         {
-            if(ChartCandle != null)
+            if (ChartCandle != null)
             {
                 ChartCandle.ProcessClearElem(element);
             }
-            
+
             try
             {
                 // if there is such an element in the collection of elements - delete
@@ -1288,7 +1294,7 @@ namespace OsEngine.Charts.CandleChart
 
             List<IChartElement> listToDelete = new List<IChartElement>();
 
-            for(int i = 0;i < _chartElements.Count;i++)
+            for (int i = 0; i < _chartElements.Count; i++)
             {
                 listToDelete.Add(_chartElements[i]);
             }
@@ -1324,12 +1330,12 @@ namespace OsEngine.Charts.CandleChart
             {
                 _chartElements.Add(element);
             }
-            if(ChartCandle != null)
+            if (ChartCandle != null)
             {
                 ChartCandle.ProcessElem(element);
             }
         }
-      
+
         // Alert management управление Алертов
 
         /// <summary>
@@ -1357,11 +1363,11 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (_alertArray[i].TypeAlert == AlertType.ChartAlert)
                     {
-                        if(ChartCandle != null)
+                        if (ChartCandle != null)
                         {
                             AlertToChart alertCur = (AlertToChart)_alertArray[i];
 
-                            if(alertCur.Lines == null)
+                            if (alertCur.Lines == null)
                             {
                                 continue;
                             }
@@ -1386,12 +1392,12 @@ namespace OsEngine.Charts.CandleChart
 
         public void DeleteAlert(IIAlert alert)
         {
-            if(ChartCandle == null)
+            if (ChartCandle == null)
             {
                 return;
             }
 
-            if(alert.TypeAlert== AlertType.ChartAlert)
+            if (alert.TypeAlert == AlertType.ChartAlert)
             {
                 ChartCandle.RemoveAlert((AlertToChart)alert);
             }
@@ -1434,7 +1440,7 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                if (candles == null 
+                if (candles == null
                     || candles.Count == 0)
                 {
                     return;
@@ -1457,9 +1463,9 @@ namespace OsEngine.Charts.CandleChart
 
                 bool isFirstTime = false;
 
-                if(_myCandles == null 
+                if (_myCandles == null
                     || _myCandles.Count - candles.Count < -5
-                    || _myCandles.Count - candles.Count >  5)
+                    || _myCandles.Count - candles.Count > 5)
                 {
                     isFirstTime = true;
                 }
@@ -1470,11 +1476,11 @@ namespace OsEngine.Charts.CandleChart
                 {
                     if (canReload)
                     {
-                        if(_startProgram == StartProgram.IsOsTrader)
+                        if (_startProgram == StartProgram.IsOsTrader)
                         {
                             ChartCandle?.ProcessCandles(candles);
 
-                            if(_lastCandleIncome.AddSeconds(1) < DateTime.Now)
+                            if (_lastCandleIncome.AddSeconds(1) < DateTime.Now)
                             {
                                 _lastCandleIncome = DateTime.Now;
                                 ChartCandle?.ProcessPositions(_myPosition);
@@ -1504,7 +1510,7 @@ namespace OsEngine.Charts.CandleChart
                     }
                     if (canReload && _alertArray != null && _alertArray.Count != 0)
                     {
-                        if(isFirstTime)
+                        if (isFirstTime)
                         {
                             PaintAlerts(_alertArray, true);
                         }
@@ -1552,7 +1558,7 @@ namespace OsEngine.Charts.CandleChart
             }
             _myPosition = position;
 
-            if(ChartCandle != null)
+            if (ChartCandle != null)
             {
                 ChartCandle.ProcessPositions(position);
             }
@@ -1586,7 +1592,7 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
-                if(ChartCandle == null)
+                if (ChartCandle == null)
                 {
                     UpDateChartPainter();
                 }
@@ -1604,10 +1610,10 @@ namespace OsEngine.Charts.CandleChart
                 {
                     ChartCandle.ProcessElem(_chartElements[i]);
                 }
-               
+
                 PaintAlerts(_alertArray, true);
 
-                if(_lastStopChartScale > 10)
+                if (_lastStopChartScale > 10)
                 {
                     ChartCandle.OpenChartScale = _lastStopChartScale;
                     ChartCandle.MoveChartToTheRight(_lastStopChartScale);
@@ -1631,16 +1637,16 @@ namespace OsEngine.Charts.CandleChart
 
                 ChartCandle = null;
 
-                if(painter.OpenChartScale != 0)
+                if (painter.OpenChartScale != 0)
                 {
                     _lastStopChartScale = painter.OpenChartScale;
                 }
-                
+
                 painter.StopPaint();
                 painter.Delete();
-                
+
             }
-           
+
             if (_grid != null)
             {
                 _grid.Children.Clear();
@@ -1660,11 +1666,11 @@ namespace OsEngine.Charts.CandleChart
         {
             _myCandles = null;
 
-            if(ChartCandle != null)
+            if (ChartCandle != null)
             {
                 ChartCandle.ClearDataPointsAndSizeValue();
             }
-           
+
             _myPosition = null;
             _myStopLimit = null;
 
@@ -1673,7 +1679,7 @@ namespace OsEngine.Charts.CandleChart
                 _indicators[i].Clear();
             }
 
-            if(_alertArray != null)
+            if (_alertArray != null)
             {
                 _alertArray = null;
             }
@@ -1815,14 +1821,6 @@ namespace OsEngine.Charts.CandleChart
             {
                 ChartCandle.ClearDataPointsAndSizeValue();
                 SetNewTimeFrameToChart(timeFrameBuilder);   //AVP  рефакторинг, чтоб нижний код два раза не повторялся.
-                /*if (timeFrameBuilder.CandleCreateMethodType != CandleCreateMethodType.Simple) // AVP этот код перенес в SetNewTimeFrameToChart
-                {
-                    ChartCandle.SetNewTimeFrame(TimeSpan.FromSeconds(1), timeFrameBuilder.TimeFrame);
-                }
-                else
-                {
-                    ChartCandle.SetNewTimeFrame(timeFrameBuilder.TimeFrameTimeSpan, timeFrameBuilder.TimeFrame);
-                }*/
             }
 
             string lastSecurity = _securityOnThisChart;
@@ -1839,11 +1837,11 @@ namespace OsEngine.Charts.CandleChart
 
             if (lastSecurity == security)
             {
-                if(positions != null)
+                if (positions != null)
                 {
                     SetPosition(positions);
                 }
-                if(limits != null)
+                if (limits != null)
                 {
                     SetStopLimits(limits);
                 }
@@ -1870,7 +1868,7 @@ namespace OsEngine.Charts.CandleChart
         /// candles built method
         /// метод построения свечей на чарте
         /// </summary>
-        private CandleCreateMethodType _candleCreateMethodTypeOnThisChart;
+        private string _candleCreateMethodTypeOnThisChart;
 
         private System.Windows.Controls.Label _label;
 
@@ -1895,7 +1893,7 @@ namespace OsEngine.Charts.CandleChart
 
             string label = _serverType.ToString();
 
-            if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+            if (_timeFrameBuilder.CandleCreateMethodType == "Simple")
             {
                 label += " / " + security + " / " + _timeFrameSecurity;
             }
@@ -1934,7 +1932,7 @@ namespace OsEngine.Charts.CandleChart
 
             _label.Content = _serverType;
 
-            if (_timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+            if (_timeFrameBuilder.CandleCreateMethodType == "Simple")
             {
                 _label.Content += " / " + security + " / " + _timeFrameSecurity;
             }

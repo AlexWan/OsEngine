@@ -29,7 +29,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public Atr(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            Lenght = 14;
+            Length = 14;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
@@ -48,7 +48,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            Lenght = 14;
+            Length = 14;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
@@ -131,7 +131,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
-        public int Lenght;
+        public int Length;
 
         /// <summary>
         /// is indicator tracing enabled
@@ -161,7 +161,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(PaintOn);
                     writer.WriteLine(IsWatr);
                     writer.Close();
@@ -190,7 +190,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     IsWatr = Convert.ToBoolean(reader.ReadLine());
 
@@ -365,10 +365,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TrueRangeReload(candles, index);
             if (!IsWatr)
             {
-                _moving = MovingAverageWild(_trueRange, _moving, Lenght, index);
+                _moving = MovingAverageWild(_trueRange, _moving, Length, index);
             } else
             {
-                _moving = MovingAverageExponentiallyWeighted(_trueRange, _moving, Lenght, index);
+                _moving = MovingAverageExponentiallyWeighted(_trueRange, _moving, Length, index);
             }
             
 
@@ -456,7 +456,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     lastValueMoving = moving[moving.Count - 2];
                 }
 
-                moving[moving.Count - 1] = Math.Round((lastValueMoving * (Lenght - 1) + lastValueSeries) / Lenght, 7);
+                moving[moving.Count - 1] = Math.Round((lastValueMoving * (Length - 1) + lastValueSeries) / Length, 7);
 
             }
 
@@ -465,7 +465,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         private List<decimal> MovingAverageExponentiallyWeighted(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
         {
-            decimal lambda = Convert.ToDecimal(2.0 / (Lenght + 1));
+            decimal lambda = Convert.ToDecimal(2.0 / (Length + 1));
 
             if (moving == null || length > valuesSeries.Count)
             {

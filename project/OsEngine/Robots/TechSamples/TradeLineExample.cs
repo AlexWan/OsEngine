@@ -42,7 +42,7 @@ namespace OsEngine.Robots._MyRobots
 
         // Indicator setting 
         public StrategyParameterInt PeriodPC;
-        private StrategyParameterInt LenghtZig;
+        private StrategyParameterInt LengthZig;
 
         // Indicator
         Aindicator _PC;
@@ -75,13 +75,13 @@ namespace OsEngine.Robots._MyRobots
 
             // Setting indicator 
 
-            LenghtZig = CreateParameter("Period Zig", 16, 1, 20, 1, "Indicators");
+            LengthZig = CreateParameter("Period Zig", 16, 1, 20, 1, "Indicators");
 
 
             // Create indicator ZigZag
             _ZZ = IndicatorsFactory.CreateIndicatorByName("ZigZag", name + "ZigZag", false);
             _ZZ = (Aindicator)_tab.CreateCandleIndicator(_ZZ, "Prime");
-            ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = LenghtZig.ValueInt;
+            ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = LengthZig.ValueInt;
             _ZZ.Save();
 
             // Events           
@@ -105,7 +105,7 @@ namespace OsEngine.Robots._MyRobots
         //Indicator Update event
         private void TradeLineExample_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = LenghtZig.ValueInt;
+            ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = LengthZig.ValueInt;
             _ZZ.Save();
             _ZZ.Reload();
         }
@@ -132,7 +132,7 @@ namespace OsEngine.Robots._MyRobots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LenghtZig.ValueInt + 50)
+            if (candles.Count < LengthZig.ValueInt + 50)
             {
                 return;
             }

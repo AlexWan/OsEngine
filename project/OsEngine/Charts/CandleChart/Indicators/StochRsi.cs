@@ -25,7 +25,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = uniqName;
             TypeIndicator = IndicatorChartPaintType.Line;
-            RsiLenght = 14;
+            RsiLength = 14;
             StochasticLength = 14;
             K = 3;
             D = 3;
@@ -47,7 +47,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
             TypeIndicator = IndicatorChartPaintType.Line;
-            RsiLenght = 14;
+            RsiLength = 14;
             StochasticLength = 14;
             K = 3;
             D = 3;
@@ -124,7 +124,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator calculation length
         /// длинна расчёта индикатора
         /// </summary>
-        public int RsiLenght
+        public int RsiLength
         {
             get { return _rsiLength;}
             set
@@ -134,7 +134,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     return;
                 }
                 _rsiLength = value;
-                _rsi.Lenght = value;
+                _rsi.Length = value;
             }
         }
         private int _rsiLength;
@@ -183,7 +183,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorK = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    RsiLenght = Convert.ToInt32(reader.ReadLine());
+                    RsiLength = Convert.ToInt32(reader.ReadLine());
                     StochasticLength = Convert.ToInt32(reader.ReadLine());
                     K = Convert.ToInt32(reader.ReadLine());
                     D = Convert.ToInt32(reader.ReadLine());
@@ -213,7 +213,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorK.ToArgb());
-                    writer.WriteLine(RsiLenght);
+                    writer.WriteLine(RsiLength);
                     writer.WriteLine(StochasticLength);
                     writer.WriteLine(K);
                     writer.WriteLine(D);
@@ -524,9 +524,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             return min;
         }
 
-        private decimal GetMoving(List<decimal> values, int index, int Lenght)
+        private decimal GetMoving(List<decimal> values, int index, int length)
         {
-            if (index - Lenght <= 0 ||
+            if (index - length <= 0 ||
                 index >= values.Count)
             {
                 return 0;
@@ -534,7 +534,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             decimal average = 0;
 
-            for (int i = index; i > index - Lenght && i > 0; i--)
+            for (int i = index; i > index - length && i > 0; i--)
             {
                 try
                 {
@@ -546,7 +546,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
             }
 
-            average = average / Lenght;
+            average = average / length;
 
             return Math.Round(average, 2);
         }

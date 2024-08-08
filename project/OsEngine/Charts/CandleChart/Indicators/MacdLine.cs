@@ -36,9 +36,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (!File.Exists(@"Engine\" + Name + @".txt"))
             {// если у нас первая загрузка
-                _maShort = new MovingAverage(uniqName + "ma1", false) { Lenght = 12, TypeCalculationAverage = MovingAverageTypeCalculation.Exponential };
-                _maLong = new MovingAverage(uniqName + "ma2", false) { Lenght = 26, TypeCalculationAverage = MovingAverageTypeCalculation.Exponential };
-                _maSignal = new MovingAverage(uniqName + "maSignal", false) { Lenght = 9, TypeCalculationAverage = MovingAverageTypeCalculation.Simple };
+                _maShort = new MovingAverage(uniqName + "ma1", false) { Length = 12, TypeCalculationAverage = MovingAverageTypeCalculation.Exponential };
+                _maLong = new MovingAverage(uniqName + "ma2", false) { Length = 26, TypeCalculationAverage = MovingAverageTypeCalculation.Exponential };
+                _maSignal = new MovingAverage(uniqName + "maSignal", false) { Length = 9, TypeCalculationAverage = MovingAverageTypeCalculation.Simple };
                 _maShort.Save();
                 _maLong.Save();
                 _maSignal.Save();
@@ -67,9 +67,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
             PaintOn = true;
-            _maShort = new MovingAverage(false) {Lenght = 12,TypeCalculationAverage = MovingAverageTypeCalculation.Exponential};
-            _maLong = new MovingAverage(false) { Lenght = 26, TypeCalculationAverage = MovingAverageTypeCalculation.Exponential };
-            _maSignal = new MovingAverage(false){Lenght = 9,TypeCalculationAverage = MovingAverageTypeCalculation.Simple};
+            _maShort = new MovingAverage(false) {Length = 12,TypeCalculationAverage = MovingAverageTypeCalculation.Exponential};
+            _maLong = new MovingAverage(false) { Length = 26, TypeCalculationAverage = MovingAverageTypeCalculation.Exponential };
+            _maSignal = new MovingAverage(false){Length = 9,TypeCalculationAverage = MovingAverageTypeCalculation.Simple};
             CanDelete = canDelete;
         }
 

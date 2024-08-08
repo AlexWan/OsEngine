@@ -76,7 +76,14 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
-            _reports = reports;
+
+            _reports = new List<OptimazerFazeReport>();
+
+            for (int i = 0; i < reports.Count; i++)
+            {
+                _reports.Add(reports[i]);
+            }
+
             RepaintResults();
         }
 
@@ -120,7 +127,9 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableFazes()
         {
-            _gridFazesEnd = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells, true);
+            _gridFazesEnd = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells, true);
+
             _gridFazesEnd.ScrollBars = ScrollBars.Vertical;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridFazesEnd.DefaultCellStyle;
@@ -252,7 +261,9 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableResults()
         {
-            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None, true);
+            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells, true);
+
             _gridResults.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();

@@ -482,7 +482,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 BotTabPoligonSecurityAddUi ui
                     = new BotTabPoligonSecurityAddUi(Polygon.Tab1.Connector, baseCurrency, Polygon.Tab1TradeSide);
+                ui.LogMessageEvent += SendNewLogMessage;
                 ui.ShowDialog();
+                ui.LogMessageEvent -= SendNewLogMessage;
 
                 List<IServer> servers = ServerMaster.GetServers();
 
@@ -545,7 +547,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 BotTabPoligonSecurityAddUi ui
         = new BotTabPoligonSecurityAddUi(Polygon.Tab2.Connector, lastCurrency, side);
+
+                ui.LogMessageEvent += SendNewLogMessage;
                 ui.ShowDialog();
+                ui.LogMessageEvent -= SendNewLogMessage;
 
                 if (Polygon.Tab2.Connector.SecurityName != null)
                 {
@@ -594,7 +599,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 BotTabPoligonSecurityAddUi ui
         = new BotTabPoligonSecurityAddUi(Polygon.Tab3.Connector, lastCurrency, side);
+
+                ui.LogMessageEvent += SendNewLogMessage;
                 ui.ShowDialog();
+                ui.LogMessageEvent -= SendNewLogMessage;
 
                 if (Polygon.Tab3.Connector.SecurityName != null)
                 {
@@ -1049,6 +1057,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             return nRow;
         }
+
+        #region Logging
+
+        private void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+        }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
 
     }
 }

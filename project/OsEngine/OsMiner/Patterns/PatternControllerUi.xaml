@@ -74,7 +74,7 @@
                         <TabItem Name="TabItemIndicatorPatterns" Header="Indicators">
                             <Grid >
                                 <Label Name="Label72" Content="Analysis of indicator lines" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                                <TextBox Name="TextBoxPatternIndicatorLenght" HorizontalAlignment="Left"  Height="23" Margin="128,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                                <TextBox Name="TextBoxPatternIndicatorLength" HorizontalAlignment="Left"  Height="23" Margin="128,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                                 <Label Name="Label67_3" Content="Length" HorizontalAlignment="Left" Margin="59,56,0,0" VerticalAlignment="Top"/>
                                 <ComboBox Name="ComboBoxPatternIndicatorSearchType" HorizontalAlignment="Left" Margin="128,123,0,0" VerticalAlignment="Top" Width="199"/>
                                 <Label Name="Label68_2" Content="Search method" HorizontalAlignment="Left" Margin="10,123,0,0" VerticalAlignment="Top"/>

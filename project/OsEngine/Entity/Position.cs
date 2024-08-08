@@ -759,12 +759,13 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (Direction == Side.Buy)
+                if (Direction == Side.Buy &&
+                    ask != 0)
                 {
                     ProfitOperationPersent = ask / entryPrice * 100 - 100;
                     ProfitOperationPunkt = ask - entryPrice;
                 }
-                else
+                else if(bid != 0)
                 {
                     ProfitOperationPersent = -(bid / entryPrice * 100 - 100);
                     ProfitOperationPunkt = entryPrice - bid;

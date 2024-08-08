@@ -96,6 +96,9 @@
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="OpenFAST">
+      <HintPath>bin\Debug\OpenFAST.dll</HintPath>
+    </Reference>
     <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Vendors\protobuf-net.dll</HintPath>
@@ -192,6 +195,27 @@
     <Compile Include="Alerts\AlertToPriceCreateUi.xaml.cs">
       <DependentUpon>AlertToPriceCreateUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Candles\Candle.cs" />
+    <Compile Include="Candles\CandleConverter.cs" />
+    <Compile Include="Candles\CandleManager.cs" />
+    <Compile Include="Candles\CandleSeries.cs" />
+    <Compile Include="Candles\Factory\CandleFactory.cs" />
+    <Compile Include="Candles\Factory\CandleSeriesParameter.cs" />
+    <Compile Include="Candles\Series\ACandlesSeriesRealization.cs" />
+    <Compile Include="Candles\Series\Delta.cs" />
+    <Compile Include="Candles\Series\DeltaAdaptive.cs" />
+    <Compile Include="Candles\Series\HeikenAshi.cs" />
+    <Compile Include="Candles\Series\Range.cs" />
+    <Compile Include="Candles\Series\RangeVolatilityAdaptive.cs" />
+    <Compile Include="Candles\Series\Revers.cs" />
+    <Compile Include="Candles\Series\ReversVolatilityAdaptive.cs" />
+    <Compile Include="Candles\Series\Simple.cs" />
+    <Compile Include="Candles\Series\Tick.cs" />
+    <Compile Include="Candles\Series\TickAdaptive.cs" />
+    <Compile Include="Candles\Series\TimeShiftCandle.cs" />
+    <Compile Include="Candles\Series\TimeSpanCandle.cs" />
+    <Compile Include="Candles\Series\VolumeAdaptive.cs" />
+    <Compile Include="Candles\TimeFrameBuilder.cs" />
     <Compile Include="Charts\CandleChart\CandleChartUi.xaml.cs">
       <DependentUpon>CandleChartUi.xaml</DependentUpon>
     </Compile>
@@ -397,6 +421,7 @@
     <Compile Include="Charts\CandleChart\Indicators\IndicarotCreateUi.xaml.cs">
       <DependentUpon>IndicarotCreateUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Charts\Extensions.cs" />
     <Compile Include="Entity\AcceptDialogUi.xaml.cs">
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
@@ -404,7 +429,6 @@
     <Compile Include="Entity\AwaitUi.xaml.cs">
       <DependentUpon>AwaitUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\CandleConverter.cs" />
     <Compile Include="Entity\CointegrationBuilder.cs" />
     <Compile Include="Entity\ColorCustomDialog.xaml.cs">
       <DependentUpon>ColorCustomDialog.xaml</DependentUpon>
@@ -432,7 +456,6 @@
     <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
     <Compile Include="Entity\StrategyParameter.cs" />
-    <Compile Include="Entity\TimeFrameBuilder.cs" />
     <Compile Include="Entity\Utils\CompressionUtils.cs" />
     <Compile Include="Indicators\AC.cs" />
     <Compile Include="Indicators\Aindicator.cs" />
@@ -564,6 +587,15 @@
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\RequestWebsocketAuth.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseWebSocketMessageAction.cs" />
+    <Compile Include="Market\Servers\BitMart\BitMart.cs" />
+    <Compile Include="Market\Servers\BitMart\BitMartServerPermission.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartClient.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartOrdersRest.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartPortfolioRest.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartPortfolioSocket.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartSecurityRest.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartSecuritySocket.cs" />
+    <Compile Include="Market\Servers\BitMart\Entity\BitMartSubscribleSocket.cs" />
     <Compile Include="Market\Servers\BitMaxFutures\BitMaxFuturesServer.cs" />
     <Compile Include="Market\Servers\BitMax\BitMaxEntity.cs" />
     <Compile Include="Market\Servers\BitMax\BitMaxMarketDepthCreator.cs" />
@@ -594,7 +626,6 @@
     <Compile Include="Market\Servers\Deribit\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Entity\BidAskSender.cs" />
     <Compile Include="Market\Servers\Entity\OrderSender.cs" />
-    <Compile Include="Market\Servers\Entity\PositionOnBoardSander.cs" />
     <Compile Include="Market\Servers\Entity\ServerParameter.cs" />
     <Compile Include="Market\Servers\ExMo\ExmoClient.cs" />
     <Compile Include="Market\Servers\ExMo\ExmoServer.cs" />
@@ -755,6 +786,25 @@
     <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseTrades.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServer.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServerPermission.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\AFIXHeader.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\AFIXMessageBody.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\FASTHeader.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\FASTLogonMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\FIXMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\Header.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\HeartbeatMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\LogonMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\LogoutMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\MarketDataRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\NewOrderSingleMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\OrderCancelReplaceRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\OrderCancelRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\OrderMassCancelRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\ResendRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\TestRequestMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\FIX\Trailer.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\MoexFixFastSpotServer.cs" />
+    <Compile Include="Market\Servers\MoexFixFastSpot\MoexFixFastSpotServerPermission.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssDataServer.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssPermission.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
@@ -784,9 +834,12 @@
     <Compile Include="Market\Servers\Pionex\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\Pionex\PionexServerSpot.cs" />
     <Compile Include="Market\Servers\Pionex\PionexServerSpotPermission.cs" />
-    <Compile Include="Market\Servers\Plaza\Internal\PlazaClient.cs" />
-    <Compile Include="Market\Servers\Plaza\Internal\PlazaMarketDepthCreator.cs" />
+    <Compile Include="Market\Servers\Plaza\Entity\BitMask.cs" />
+    <Compile Include="Market\Servers\Plaza\Entity\PlazaChangePriceOrderEntity.cs" />
+    <Compile Include="Market\Servers\Plaza\Entity\PositionOnBoardSander.cs" />
+    <Compile Include="Market\Servers\Plaza\Entity\RevisionInfo.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
+    <Compile Include="Market\Servers\Plaza\PlazaServerPermission.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\ServerCandleStorage.cs" />
@@ -809,9 +862,6 @@
     <Compile Include="Market\ServerMasterUi.xaml.cs">
       <DependentUpon>ServerMasterUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\CandleManager.cs" />
-    <Compile Include="Entity\Candle.cs" />
-    <Compile Include="Entity\CandleSeries.cs" />
     <Compile Include="Entity\Position.cs" />
     <Compile Include="Entity\PositionOpenerToStop.cs" />
     <Compile Include="Entity\MarketDepth.cs" />
@@ -1090,6 +1140,10 @@
     <Compile Include="Robots\PairArbitrage\PairCointegrationSideTrader.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationNegative.cs" />
     <Compile Include="Robots\PairArbitrage\PairCorrelationTrader.cs" />
+    <Compile Include="Robots\Patterns\CustomCandlesImpulseTrader.cs" />
+    <Compile Include="Robots\Patterns\VolatilityAdaptiveCandlesTrader.cs" />
+    <Compile Include="Robots\Patterns\ThreeSoldierVolatilityAdaptive.cs" />
+    <Compile Include="Robots\Screeners\PinBarScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
@@ -1129,9 +1183,6 @@
     <Compile Include="Robots\Trend\ParabolicSarTradeUi.xaml.cs">
       <DependentUpon>ParabolicSarTradeUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Robots\Patterns\PinBarTradeUi.xaml.cs">
-      <DependentUpon>PinBarTradeUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\Patterns\PivotPointsRobotUi.xaml.cs">
       <DependentUpon>PivotPointsRobotUi.xaml</DependentUpon>
     </Compile>
@@ -1143,9 +1194,6 @@
     </Compile>
     <Compile Include="Robots\Trend\SmaStochasticUi.xaml.cs">
       <DependentUpon>SmaStochasticUi.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Robots\Patterns\ThreeSoldierUi.xaml.cs">
-      <DependentUpon>ThreeSoldierUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\CounterTrend\WilliamsRangeTradeUi.xaml.cs">
       <DependentUpon>WilliamsRangeTradeUi.xaml</DependentUpon>
@@ -1199,6 +1247,7 @@
     <Compile Include="Robots\Patterns\ThreeSoldier.cs" />
     <Compile Include="Robots\MarketMaker\TwoLegArbitrage.cs" />
     <Compile Include="Robots\CounterTrend\WilliamsRangeTrade.cs" />
+    <Compile Include="Robots\Trend\TwoTimeFramesBot.cs" />
     <Page Include="Alerts\AlertMessageFullUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1695,10 +1744,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Robots\Patterns\PinBarTradeUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Robots\Patterns\PivotPointsRobotUi.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -1712,10 +1757,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\Trend\SmaStochasticUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Robots\Patterns\ThreeSoldierUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

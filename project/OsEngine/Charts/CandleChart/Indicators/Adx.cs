@@ -28,7 +28,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public Adx(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            Lenght = 14;
+            Length = 14;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
@@ -46,7 +46,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            Lenght = 14;
+            Length = 14;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
@@ -149,7 +149,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
-        public int Lenght;
+        public int Length;
 
         /// <summary>
         /// is indicator tracing enabled
@@ -173,7 +173,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(PaintOn);
                     writer.Close();
                 }
@@ -201,7 +201,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();
@@ -431,29 +431,29 @@ namespace OsEngine.Charts.CandleChart.Indicators
             // 1 рассчитываем новые направленные движения
             DmjReload(candles, index);
 
-            _dmjPlusAverage = MovingAverageWild(_dmjPlus, _dmjPlusAverage, Lenght, index);
-            _dmjMinusAverage = MovingAverageWild(_dmjMinus, _dmjMinusAverage, Lenght, index);
+            _dmjPlusAverage = MovingAverageWild(_dmjPlus, _dmjPlusAverage, Length, index);
+            _dmjMinusAverage = MovingAverageWild(_dmjMinus, _dmjMinusAverage, Length, index);
             // 2 calculate true range
             // 2 рассчитываем истинный диапазон
 
             TrueRangeReload(candles, index);
 
-            _trueRangeAverage = MovingAverageWild(_trueRange, _trueRangeAverage, Lenght, index);
+            _trueRangeAverage = MovingAverageWild(_trueRange, _trueRangeAverage, Length, index);
             // 3 smoothing movement through true range 
             // 3 сглаживаем движение через истинный диапазон 
 
             SdijReload(index);
 
 
-            //_mdiPlus = MovingAverageWild(_sDIjPlus, _mdiPlus, Lenght, index);
-            //_mdiMinus = MovingAverageWild(_sDIjMinus, _mdiMinus, Lenght, index);
+            //_mdiPlus = MovingAverageWild(_sDIjPlus, _mdiPlus, Length, index);
+            //_mdiMinus = MovingAverageWild(_sDIjMinus, _mdiMinus, Length, index);
 
             // 5 making an array DX
             // 5 делаем массив DX
 
             DxReload(index);
 
-            if (Lenght == 0 || Lenght > _dX.Count)
+            if (Length == 0 || Length > _dX.Count)
             {
                 // if it's not possible to calculate
                 // если рассчёт не возможен
@@ -463,7 +463,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 // calculating
                 // рассчитываем
-                _adX = MovingAverageWild(_dX, _adX, Lenght, index);
+                _adX = MovingAverageWild(_dX, _adX, Length, index);
                 return Math.Round(_adX[_adX.Count - 1],4);
             }
         }
@@ -621,7 +621,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     lastValueMoving = moving[moving.Count - 2];
                 }
 
-                moving[moving.Count - 1] = (lastValueMoving * (Lenght - 1) + lastValueSeries)/Lenght;
+                moving[moving.Count - 1] = (lastValueMoving * (Length - 1) + lastValueSeries)/Length;
 
             }
 

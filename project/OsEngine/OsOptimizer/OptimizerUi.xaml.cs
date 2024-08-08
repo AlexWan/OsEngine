@@ -106,6 +106,7 @@ namespace OsEngine.OsOptimizer
             DatePickerEnd.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
             DatePickerStart.DisplayDate = _master.TimeStart;
             DatePickerEnd.DisplayDate = _master.TimeEnd;
+
             TextBoxPercentFiltration.Text = _master.PercentOnFilration.ToString();
 
             CheckBoxLastInSample.IsChecked = _master.LastInSample;
@@ -139,8 +140,8 @@ namespace OsEngine.OsOptimizer
             _master.NeadToMoveUiToEvent += _master_NeadToMoveUiToEvent;
             TextBoxStrategyName.Text = _master.StrategyName;
 
-            Task task = new Task(PainterProgressArea);
-            task.Start();
+            Thread worker = new Thread(PainterProgressArea);
+            worker.Start();
 
             Label7.Content = OsLocalization.Optimizer.Label7;
             Label8.Content = OsLocalization.Optimizer.Label8;
@@ -284,16 +285,30 @@ namespace OsEngine.OsOptimizer
             TextBoxStrategyName.IsEnabled = true;
         }
 
+        private DateTime _lastTestEndEventTime = DateTime.MinValue;
+
+        private string _testEndEventLocker = "testEndEventLocker";
+
         /// <summary>
         /// inbound event: optimization process completed
         /// входящее событие: завершился процесс оптимизации
         /// </summary>
         void _master_TestReadyEvent(List<OptimazerFazeReport> reports)
         {
-            _reports = reports;
-            RepaintResults();
-            ShowResultDialog();
-            _testIsEnd = true;
+            lock(_testEndEventLocker)
+            {
+                if(_lastTestEndEventTime.AddSeconds(3) > DateTime.Now)
+                {
+                    return;
+                }
+
+                _lastTestEndEventTime = DateTime.Now;
+                _reports = reports;
+                RepaintResults();
+                ShowResultDialog();
+                _testIsEnd = true;
+
+            }
         }
 
         private bool _testIsEnd;
@@ -337,10 +352,10 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            OptimizerReportUi ui = new OptimizerReportUi(_master);
-            ui.Show();
-            ui.Paint(_reports);
-            ui.Activate();
+            OptimizerReportUi _uiReport = new OptimizerReportUi(_master);
+            _uiReport.Show();
+            _uiReport.Paint(_reports);
+            _uiReport.Activate();
         }
 
         // work on drawing progress bars / работа по рисованию прогресс Баров
@@ -395,11 +410,11 @@ namespace OsEngine.OsOptimizer
         /// place of work update stream progress on progress bars
         /// место работы потока обновляющего прогресс на прогрессБарах
         /// </summary>
-        private async void PainterProgressArea()
+        private void PainterProgressArea()
         {
             while (true)
             {
-                await Task.Delay(500);
+                Thread.Sleep(1500);
 
                 if (MainWindow.ProccesIsWorked == false)
                 {
@@ -415,58 +430,78 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void PaintAllProgressBars()
         {
-            if (_progressBars == null ||
-                _progressBars.Count == 0)
+            try
             {
-                return;
-            }
-
-            if (!_progressBars[0].Dispatcher.CheckAccess())
-            {
-                _progressBars[0].Dispatcher.Invoke(PaintAllProgressBars);
-                return;
-            }
-
-            if(_testIsEnd)
-            {
-                ProgressBarPrime.Maximum = 100;
-                ProgressBarPrime.Value = 100;
-
-                for (int i2 = 0; i2 > -1 && i2 < _progressBars.Count; i2++)
-                {
-                    _progressBars[i2].Maximum = 100;
-                    _progressBars[i2].Value = 100;
-                }
-
-                return;
-            }
-
-            ProgressBarStatus primeStatus = _master.PrimeProgressBarStatus;
-
-            if (primeStatus.MaxValue != 0 &&
-                primeStatus.CurrentValue != 0)
-            {
-                ProgressBarPrime.Maximum = primeStatus.MaxValue;
-                ProgressBarPrime.Value = primeStatus.CurrentValue;
-            }
-
-            List<ProgressBarStatus> statuses = _master.ProgressBarStatuses;
-
-            if (statuses == null ||
-                statuses.Count == 0)
-            {
-                return;
-            }
-
-
-            for (int i = statuses.Count - 1, i2 = 0; i > -1 && i2 < _progressBars.Count; i2++, i--)
-            {
-                if (statuses[i] == null)
+                if (_progressBars == null ||
+                    _progressBars.Count == 0)
                 {
                     return;
                 }
-                _progressBars[i2].Maximum = statuses[i].MaxValue;
-                _progressBars[i2].Value = statuses[i].CurrentValue;
+
+                if (!_progressBars[0].Dispatcher.CheckAccess())
+                {
+                    _progressBars[0].Dispatcher.Invoke(PaintAllProgressBars);
+                    return;
+                }
+
+                if (_testIsEnd)
+                {
+                    ProgressBarPrime.Maximum = 100;
+                    ProgressBarPrime.Value = 100;
+
+                    for (int i2 = 0; i2 > -1 && i2 < _progressBars.Count; i2++)
+                    {
+                        _progressBars[i2].Maximum = 100;
+                        _progressBars[i2].Value = 100;
+                    }
+
+                    return;
+                }
+
+                ProgressBarStatus primeStatus = _master.PrimeProgressBarStatus;
+
+                if (primeStatus.MaxValue != 0 &&
+                    primeStatus.CurrentValue != 0)
+                {
+                    ProgressBarPrime.Maximum = primeStatus.MaxValue;
+                    ProgressBarPrime.Value = primeStatus.CurrentValue;
+                }
+
+                List<ProgressBarStatus> statuses = _master.ProgressBarStatuses;
+
+                if (statuses == null ||
+                    statuses.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = statuses.Count - 1, i2 = 0; i > -1 && i2 < _progressBars.Count; i2++, i--)
+                {
+                    ProgressBarStatus status = statuses[i];
+
+                    if (status == null)
+                    {
+                        return;
+                    }
+
+                    if (status.IsFinalized)
+                    {
+                        continue;
+                    }
+
+                    _progressBars[i2].Maximum = status.MaxValue;
+                    _progressBars[i2].Value = status.CurrentValue;
+
+                    if (status.MaxValue != 0 &&
+                        status.MaxValue == status.CurrentValue)
+                    {
+                        status.IsFinalized = true;
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
@@ -572,6 +607,38 @@ namespace OsEngine.OsOptimizer
 
             _testIsEnd = false;
 
+            int botsCount = _master.GetMaxBotsCount();
+
+            if (botsCount > 100000)
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label60);
+
+                ui.ShowDialog();
+
+                if (!ui.UserAcceptActioin)
+                {
+                    return;
+                }
+            }
+
+            if(_master.Fazes != null &&
+                _master.Fazes.Count > 1 &&
+                (_master.FilterDealsCountIsOn 
+                || _master.FilterMaxDrowDownIsOn 
+                || _master.FilterMiddleProfitIsOn
+                || _master.FilterProfitFactorIsOn
+                || _master.FilterProfitIsOn))
+            {
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label61);
+
+                ui.ShowDialog();
+
+                if (!ui.UserAcceptActioin)
+                {
+                    return;
+                }
+            }
+
             if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 
                 && _master.Start())
             {
@@ -608,12 +675,14 @@ namespace OsEngine.OsOptimizer
 
         void DatePickerEnd_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            _master.TimeEnd = DatePickerEnd.DisplayDate;
+            _lastUpdateTimePicker = DateTime.Now;
+            _master.TimeEnd = DatePickerEnd.SelectedDate.Value;
         }
 
         void DatePickerStart_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            _master.TimeStart = DatePickerStart.DisplayDate;
+            _lastUpdateTimePicker = DateTime.Now;
+            _master.TimeStart = DatePickerStart.SelectedDate.Value;
         }
 
         void TextBoxFiltertValue_TextChanged(object sender, TextChangedEventArgs e)
@@ -771,19 +840,32 @@ namespace OsEngine.OsOptimizer
 
         // events from the server / события из сервера
 
+        DateTime _lastUpdateTimePicker;
+
         /// <summary>
         /// inbound event: the start or end time of the data in the server has changed
         /// входящее событие: изменилась начальная или конечное время данных в сервере
         /// </summary>
         void _master_DateTimeStartEndChange()
         {
+            if (_lastUpdateTimePicker.AddSeconds(2) > DateTime.Now)
+            {
+                return;
+            }
+
             if (!DatePickerStart.Dispatcher.CheckAccess())
             {
                 DatePickerStart.Dispatcher.Invoke(_master_DateTimeStartEndChange);
                 return;
             }
+
+            _lastUpdateTimePicker = DateTime.Now;
+
             DatePickerStart.SelectedDate = _master.TimeStart;
             DatePickerEnd.SelectedDate = _master.TimeEnd;
+
+            /*DatePickerStart.Text = _master.TimeStart.ToString(_currentCulture);
+            DatePickerEnd.Text = _master.TimeEnd.ToString(_currentCulture);*/
         }
 
         // Table of Papers and Time Frames for ordinary tabs / таблица Бумаг и таймФреймов для обычных вкладок
@@ -2597,7 +2679,9 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void CreateTableResults()
         {
-            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells);
+
             _gridResults.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();

@@ -30,11 +30,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = uniqName;
             TypeIndicator = IndicatorChartPaintType.Line;
 
-            LenghtFirst = 9;
-            LenghtSecond = 26;
-            LenghtFird = 52;
-            LenghtSdvig = 26;
-            LenghtChinkou = 26;
+            LengthFirst = 9;
+            LengthSecond = 26;
+            LengthFird = 52;
+            LengthSdvig = 26;
+            LengthChinkou = 26;
 
             ColorEtalonLine = Color.BlueViolet;
             ColorLineRounded = Color.OrangeRed;
@@ -59,10 +59,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             TypeIndicator = IndicatorChartPaintType.Line;
 
-            LenghtFirst = 9;
-            LenghtSecond = 26;
-            LenghtFird = 52;
-            LenghtSdvig = 26;
+            LengthFirst = 9;
+            LengthSecond = 26;
+            LengthFird = 52;
+            LengthSdvig = 26;
 
             ColorEtalonLine = Color.BlueViolet;
             ColorLineRounded = Color.OrangeRed;
@@ -212,31 +212,31 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period one
         /// период один
         /// </summary>
-        public int LenghtFirst;
+        public int LengthFirst;
 
         /// <summary>
         /// period two
         /// период два
         /// </summary>
-        public int LenghtSecond;
+        public int LengthSecond;
 
         /// <summary>
         /// period three
         /// период три
         /// </summary>
-        public int LenghtFird;
+        public int LengthFird;
 
         /// <summary>
         /// shift
         /// сдвиг
         /// </summary>
-        public int LenghtSdvig;
+        public int LengthSdvig;
 
         /// <summary>
         /// shift
         /// сдвиг
         /// </summary>
-        public int LenghtChinkou;
+        public int LengthChinkou;
 
         /// <summary>
         /// is indicator tracing enabled
@@ -259,9 +259,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
-                    writer.WriteLine(LenghtFirst);
-                    writer.WriteLine(LenghtSecond);
-                    writer.WriteLine(LenghtFird);
+                    writer.WriteLine(LengthFirst);
+                    writer.WriteLine(LengthSecond);
+                    writer.WriteLine(LengthFird);
 
                     writer.WriteLine(ColorEtalonLine.ToArgb());
                     writer.WriteLine(ColorLineRounded.ToArgb());
@@ -271,8 +271,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
                     writer.WriteLine(PaintOn);
 
-                    writer.WriteLine(LenghtSdvig);
-                    writer.WriteLine(LenghtChinkou);
+                    writer.WriteLine(LengthSdvig);
+                    writer.WriteLine(LengthChinkou);
 
                     writer.Close();
                 }
@@ -299,9 +299,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
-                    LenghtFirst = Convert.ToInt32(reader.ReadLine());
-                    LenghtSecond = Convert.ToInt32(reader.ReadLine());
-                    LenghtFird = Convert.ToInt32(reader.ReadLine());
+                    LengthFirst = Convert.ToInt32(reader.ReadLine());
+                    LengthSecond = Convert.ToInt32(reader.ReadLine());
+                    LengthFird = Convert.ToInt32(reader.ReadLine());
 
                     ColorEtalonLine = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorLineRounded = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
@@ -311,8 +311,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
 
-                    LenghtSdvig = Convert.ToInt32(reader.ReadLine());
-                    LenghtChinkou = Convert.ToInt32(reader.ReadLine());
+                    LengthSdvig = Convert.ToInt32(reader.ReadLine());
+                    LengthChinkou = Convert.ToInt32(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -442,16 +442,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 ValuesLineSecond_Senkou_span_B = new List<decimal>();
             }
 
-            ValuesEtalonLine_Kejun_sen.Add(GetLine(candles, candles.Count - 1, LenghtSecond, 0));
-            ValuesLineRounded_Teken_sen.Add(GetLine(candles, candles.Count - 1, LenghtFirst, 0));
+            ValuesEtalonLine_Kejun_sen.Add(GetLine(candles, candles.Count - 1, LengthSecond, 0));
+            ValuesLineRounded_Teken_sen.Add(GetLine(candles, candles.Count - 1, LengthFirst, 0));
 
-            if (candles.Count - 1 >= LenghtChinkou)
+            if (candles.Count - 1 >= LengthChinkou)
             {
-                ValuesLineLate_Chinkou_span.Add(GetLineLate(candles, candles.Count - 1 - LenghtChinkou));
+                ValuesLineLate_Chinkou_span.Add(GetLineLate(candles, candles.Count - 1 - LengthChinkou));
             }
 
             ValuesLineFirst_Senkkou_span_A.Add(GetLineFirst(candles, candles.Count - 1));
-            ValuesLineSecond_Senkou_span_B.Add(GetLine(candles, candles.Count - 1, LenghtFird, LenghtSdvig));
+            ValuesLineSecond_Senkou_span_B.Add(GetLine(candles, candles.Count - 1, LengthFird, LengthSdvig));
         }
 
         /// <summary>
@@ -473,16 +473,16 @@ namespace OsEngine.Charts.CandleChart.Indicators
             for (int i = 0; i < candles.Count; i++)
             {
 
-                ValuesEtalonLine_Kejun_sen.Add(GetLine(candles, i, LenghtSecond, 0));
-                ValuesLineRounded_Teken_sen.Add(GetLine(candles, i, LenghtFirst, 0));
+                ValuesEtalonLine_Kejun_sen.Add(GetLine(candles, i, LengthSecond, 0));
+                ValuesLineRounded_Teken_sen.Add(GetLine(candles, i, LengthFirst, 0));
 
-                if (i >= LenghtChinkou)
+                if (i >= LengthChinkou)
                 {
-                    ValuesLineLate_Chinkou_span.Add(GetLineLate(candles, i - LenghtChinkou));
+                    ValuesLineLate_Chinkou_span.Add(GetLineLate(candles, i - LengthChinkou));
                 }
 
                 ValuesLineFirst_Senkkou_span_A.Add(GetLineFirst(candles, i));
-                ValuesLineSecond_Senkou_span_B.Add(GetLine(candles, i, LenghtFird, LenghtSdvig));
+                ValuesLineSecond_Senkou_span_B.Add(GetLine(candles, i, LengthFird, LengthSdvig));
             }
         }
 
@@ -496,17 +496,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
-            ValuesEtalonLine_Kejun_sen[ValuesEtalonLine_Kejun_sen.Count - 1] = (GetLine(candles, candles.Count - 1, LenghtSecond, 0));
-            ValuesLineRounded_Teken_sen[ValuesLineRounded_Teken_sen.Count - 1] = (GetLine(candles, candles.Count - 1, LenghtFirst, 0));
+            ValuesEtalonLine_Kejun_sen[ValuesEtalonLine_Kejun_sen.Count - 1] = (GetLine(candles, candles.Count - 1, LengthSecond, 0));
+            ValuesLineRounded_Teken_sen[ValuesLineRounded_Teken_sen.Count - 1] = (GetLine(candles, candles.Count - 1, LengthFirst, 0));
 
-            if (candles.Count >= LenghtChinkou)
+            if (candles.Count >= LengthChinkou)
             {
-                ValuesLineLate_Chinkou_span[ValuesLineLate_Chinkou_span.Count - 1] = (GetLineLate(candles, candles.Count - 1 - LenghtChinkou));
+                ValuesLineLate_Chinkou_span[ValuesLineLate_Chinkou_span.Count - 1] = (GetLineLate(candles, candles.Count - 1 - LengthChinkou));
             }
 
             ValuesLineLate_Chinkou_span[ValuesLineLate_Chinkou_span.Count - 1] = (GetLineLate(candles, candles.Count - 1));
             ValuesLineFirst_Senkkou_span_A[ValuesLineFirst_Senkkou_span_A.Count - 1] = (GetLineFirst(candles, candles.Count - 1));
-            ValuesLineSecond_Senkou_span_B[ValuesLineSecond_Senkou_span_B.Count - 1] = (GetLine(candles, candles.Count - 1, LenghtFird, LenghtSdvig));
+            ValuesLineSecond_Senkou_span_B[ValuesLineSecond_Senkou_span_B.Count - 1] = (GetLine(candles, candles.Count - 1, LengthFird, LengthSdvig));
 
         }
 
@@ -540,25 +540,25 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public decimal GetLineLate(List<Candle> candles, int index)
         {
 
-            if (index + LenghtChinkou >= candles.Count)
+            if (index + LengthChinkou >= candles.Count)
             {
                 return candles[candles.Count - 1].Close;
             }
 
-            return candles[index + LenghtChinkou].Close;
+            return candles[index + LengthChinkou].Close;
         }
 
         public decimal GetLineFirst(List<Candle> candles, int index)
         {
-            if (LenghtSdvig >= index + 1 ||
-                LenghtFirst >= index + 1 ||
-                index - LenghtSdvig < LenghtSdvig ||
-                index - LenghtSdvig < LenghtFirst)
+            if (LengthSdvig >= index + 1 ||
+                LengthFirst >= index + 1 ||
+                index - LengthSdvig < LengthSdvig ||
+                index - LengthSdvig < LengthFirst)
             {
                 return 0;
             }
 
-            return (ValuesEtalonLine_Kejun_sen[index - LenghtSdvig] + ValuesLineRounded_Teken_sen[index - LenghtSdvig]) / 2;
+            return (ValuesEtalonLine_Kejun_sen[index - LengthSdvig] + ValuesLineRounded_Teken_sen[index - LengthSdvig]) / 2;
         }
     }
 }

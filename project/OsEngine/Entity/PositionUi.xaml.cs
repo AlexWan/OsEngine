@@ -41,6 +41,9 @@ namespace OsEngine.Entity
             PositionLabel3.Content = OsLocalization.Entity.PositionLabel3;
             SaveChangesButton.Content = OsLocalization.Entity.PositionLabel4;
 
+            LabelStartDepo.Content = OsLocalization.Entity.PositionStartDepoLabel;
+            TextBoxStartDepo.Text = _position.PortfolioValueOnOpenPosition.ToString();
+
             this.Activate();
             this.Focus();
         }
@@ -933,14 +936,32 @@ namespace OsEngine.Entity
                 return;
             }
 
-            SyncPositionWithOrdersAndMyTrades();
-            SavePosition();
-            SaveOrders(_position.OpenOrders, _openOrdersGrid.Rows);
-            SaveOrders(_position.CloseOrders, _closeOrdersGrid.Rows);
-            SaveMyTrades();
+            try
+            {
+                _position.PortfolioValueOnOpenPosition = Convert.ToDecimal(TextBoxStartDepo.Text);
+            }
+            catch
+            {
+                // ignore
+            }
+            
+            try
+            {
+                SyncPositionWithOrdersAndMyTrades();
+                SavePosition();
+                SaveOrders(_position.OpenOrders, _openOrdersGrid.Rows);
+                SaveOrders(_position.CloseOrders, _closeOrdersGrid.Rows);
+                SaveMyTrades();
 
-            PositionChanged = true;
-            Close();
+                PositionChanged = true;
+                Close();
+            }
+            catch(Exception ex)
+            {
+                CustomMessageBoxUi box = new CustomMessageBoxUi(ex.Message);
+                box.ShowDialog();
+                return;
+            }
         }
 
         public bool PositionChanged;

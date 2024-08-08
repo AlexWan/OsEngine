@@ -385,7 +385,11 @@ namespace OsEngine
         {
             string message = OsLocalization.MainWindow.Message5 + e.ExceptionObject;
 
-            _messageToCrashServer = "Crash%" + message;
+            message = _startProgram + "  " + message;
+
+            message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
+
+            _messageToCrashServer = "Crash% " + message;
             Thread worker = new Thread(SendMessageInCrashServer);
             worker.Start();
 
@@ -399,6 +403,8 @@ namespace OsEngine
                 MessageBox.Show(message);
             }
         }
+
+        private StartProgram _startProgram;
 
         private void Reboot(string message)
         {
@@ -425,6 +431,7 @@ namespace OsEngine
         {
             try
             {
+                _startProgram = StartProgram.IsTester;
                 Hide();
                 TesterUi candleOneUi = new TesterUi();
                 candleOneUi.ShowDialog();
@@ -443,6 +450,7 @@ namespace OsEngine
         {
             try
             {
+                _startProgram = StartProgram.IsTester;
                 Hide();
                 TesterUiLight candleOneUi = new TesterUiLight();
                 candleOneUi.ShowDialog();
@@ -461,6 +469,7 @@ namespace OsEngine
         {
             try
             {
+                _startProgram = StartProgram.IsOsTrader;
                 Hide();
                 RobotUi candleOneUi = new RobotUi();
                 candleOneUi.ShowDialog();
@@ -479,6 +488,7 @@ namespace OsEngine
         {
             try
             {
+                _startProgram = StartProgram.IsOsTrader;
                 Hide();
                 RobotUiLight candleOneUi = new RobotUiLight();
                 candleOneUi.ShowDialog();
@@ -497,6 +507,7 @@ namespace OsEngine
         {
             try
             {
+                _startProgram = StartProgram.IsOsData;
                 Hide();
                 OsDataUi ui = new OsDataUi();
                 ui.ShowDialog();
@@ -515,6 +526,7 @@ namespace OsEngine
         {
             try
             {
+                _startProgram = StartProgram.IsOsConverter;
                 Hide();
                 OsConverterUi ui = new OsConverterUi();
                 ui.ShowDialog();
@@ -533,6 +545,7 @@ namespace OsEngine
         {
             try
             {
+                _startProgram = StartProgram.IsOsOptimizer;
                 Hide();
                 OptimizerUi ui = new OptimizerUi();
                 ui.ShowDialog();
@@ -551,6 +564,7 @@ namespace OsEngine
         {
             try
             {
+                _startProgram = StartProgram.IsOsMiner;
                 Hide();
                 OsMinerUi ui = new OsMinerUi();
                 ui.ShowDialog();

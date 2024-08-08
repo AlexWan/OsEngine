@@ -58,6 +58,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(quikLua);
 
+            SupportConnection fixFast = new SupportConnection()
+            {
+                ServerType = ServerType.MoexFixFastSpot,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Moex\\FixFast.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(fixFast);
+
             SupportConnection plaza = new SupportConnection()
             {
                 ServerType = ServerType.Plaza,
@@ -272,6 +282,16 @@ namespace OsEngine.Market.SupportTable
                 Discount = 5
             };
             supportList.Add(woo);
+
+            SupportConnection bitMart = new SupportConnection()
+            {
+                ServerType = ServerType.BitMart,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMart.png",
+                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
+                Discount = 0
+            };
+            supportList.Add(bitMart);
 
             SupportConnection bitmex = new SupportConnection()
             {

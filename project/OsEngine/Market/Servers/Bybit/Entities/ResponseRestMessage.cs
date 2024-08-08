@@ -96,6 +96,4 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string time { get; set; }
         public string isBlockTrade { get; set; }
     }
-
-
 }

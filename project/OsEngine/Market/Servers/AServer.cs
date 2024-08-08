@@ -717,7 +717,7 @@ namespace OsEngine.Market.Servers
                         }
 
                         DeleteCandleManager();
- 
+
                         ServerRealization.Connect();
                         LastStartServerTime = DateTime.Now;
 
@@ -763,7 +763,15 @@ namespace OsEngine.Market.Servers
                     SendLogMessage(OsLocalization.Market.Message11, LogMessageType.Error);
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    ServerRealization.Dispose();
+
+                    try
+                    {
+                        ServerRealization.Dispose();
+                    }
+                    catch(Exception ex)
+                    {
+                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
 
                     DeleteCandleManager();
 
@@ -795,7 +803,7 @@ namespace OsEngine.Market.Servers
         {
             if (_candleManager == null)
             {
-                _candleManager = new CandleManager(this,StartProgram.IsOsTrader);
+                _candleManager = new CandleManager(this, StartProgram.IsOsTrader);
                 _candleManager.CandleUpdateEvent += _candleManager_CandleUpdateEvent;
                 _candleManager.LogMessageEvent += SendLogMessage;
             }
@@ -833,7 +841,7 @@ namespace OsEngine.Market.Servers
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
                         {
-                            if(TestValue_CanSendOrdersUp)
+                            if (TestValue_CanSendOrdersUp)
                             {
                                 if (NewOrderIncomeEvent != null)
                                 {
@@ -859,7 +867,7 @@ namespace OsEngine.Market.Servers
 
                         if (_myTradesToSend.TryDequeue(out myTrade))
                         {
-                            if(TestValue_CanSendOrdersUp)
+                            if (TestValue_CanSendOrdersUp)
                             {
                                 _myTrades.Add(myTrade);
                                 _neadToBeepOnTrade = true;
@@ -1152,7 +1160,7 @@ namespace OsEngine.Market.Servers
 
                     if (positions != null)
                     {
-                        for(int i2 = 0;i2 < positions.Count;i2++)
+                        for (int i2 = 0; i2 < positions.Count; i2++)
                         {
                             curPortfolio.SetNewPosition(positions[i2]);
                         }
@@ -1211,7 +1219,7 @@ namespace OsEngine.Market.Servers
 
             for (int i = 0; i < _securities.Count; i++)
             {
-                if(_securities[i].Name == securityName &&
+                if (_securities[i].Name == securityName &&
                     _securities[i].NameClass == securityClass)
                 {
                     _frequentlyUsedSecurities.Add(_securities[i]);
@@ -1246,7 +1254,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (securities == null 
+                if (securities == null
                     || securities.Count == 0)
                 {
                     return;
@@ -1444,7 +1452,7 @@ namespace OsEngine.Market.Servers
                 _candleManager.StopSeries(series);
             }
 
-            if(_candleStorage != null)
+            if (_candleStorage != null)
             {
                 _candleStorage.RemoveSeries(series);
             }
@@ -1466,7 +1474,7 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-            if(series.IsMergedByTradesFromFile == false)
+            if (series.IsMergedByTradesFromFile == false)
             {
                 series.IsMergedByTradesFromFile = true;
 
@@ -1475,7 +1483,7 @@ namespace OsEngine.Market.Servers
                 {
                     List<Trade> trades = GetAllTradesToSecurity(series.Security);
 
-                    if(trades != null && trades.Count > 0)
+                    if (trades != null && trades.Count > 0)
                     {
                         series.LoadTradesInCandles(trades);
                     }
@@ -1529,10 +1537,10 @@ namespace OsEngine.Market.Servers
 
                 return ServerRealization.GetLastCandleHistory(security, timeFrameBuilder, candleCount);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SendLogMessage(
-                    "AServer. GetLastCandleHistory method error: " + ex.ToString(), 
+                    "AServer. GetLastCandleHistory method error: " + ex.ToString(),
                     LogMessageType.Error);
 
                 return null;
@@ -1576,6 +1584,17 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
+                for (int i = 0; _securities != null && i < _securities.Count; i++)
+                {
+                    if (_securities[i].NameClass == securityClass &&
+                        string.IsNullOrEmpty(_securities[i].NameId) == false &&
+                            _securities[i].NameId == securityName)
+                    {
+                        security = _securities[i];
+                        break;
+                    }
+                }
+
                 if (security == null)
                 {
                     for (int i = 0; _securities != null && i < _securities.Count; i++)
@@ -1596,7 +1615,7 @@ namespace OsEngine.Market.Servers
 
                 List<Candle> candles = null;
 
-                if (timeFrameBuilder.CandleCreateMethodType == CandleCreateMethodType.Simple)
+                if (timeFrameBuilder.CandleCreateMethodType == "Simple")
                 {
                     lock (_loadDataLocker)
                     {
@@ -1730,10 +1749,11 @@ namespace OsEngine.Market.Servers
                     ServerTime = myDepth.Time;
                 }
 
-                if (myDepth.Asks == null ||
-                     myDepth.Asks.Count == 0
-                     || myDepth.Bids == null ||
-                      myDepth.Bids.Count == 0)
+                if ((myDepth.Asks == null ||
+                      myDepth.Asks.Count == 0)
+                     &&
+                     ( myDepth.Bids == null ||
+                    myDepth.Bids.Count == 0))
                 {
                     return;
                 }
@@ -1798,10 +1818,21 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            decimal bestBid = newMarketDepth.Bids[0].Price;
-            decimal bestAsk = newMarketDepth.Asks[0].Price;
+            decimal bestBid = 0;
+            if(newMarketDepth.Bids != null &&
+                newMarketDepth.Bids.Count > 0)
+            {
+                bestBid = newMarketDepth.Bids[0].Price;
+            }
 
-            if (bestBid == 0 ||
+            decimal bestAsk = 0;
+            if(newMarketDepth.Asks != null &&
+                newMarketDepth.Asks.Count > 0)
+            {
+                bestAsk = newMarketDepth.Asks[0].Price;
+            }
+           
+            if (bestBid == 0 &&
                 bestAsk == 0)
             {
                 return;
@@ -1928,7 +1959,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if(trade == null)
+                if (trade == null)
                 {
                     return;
                 }
@@ -1945,7 +1976,7 @@ namespace OsEngine.Market.Servers
                     BathTradeMarketDepthData(trade);
                 }
 
-                lock(_newTradesLocker)
+                lock (_newTradesLocker)
                 {
                     // save / сохраняем
                     if (_allTrades == null)
@@ -1979,11 +2010,11 @@ namespace OsEngine.Market.Servers
                                 return;
                             }
 
-                            if(_needToUpdateOnlyTradesWithNewPrice.Value == true)
+                            if (_needToUpdateOnlyTradesWithNewPrice.Value == true)
                             {
                                 Trade lastTrade = curList[curList.Count - 1];
 
-                                if(lastTrade == null 
+                                if (lastTrade == null
                                     || lastTrade.Price == trade.Price)
                                 {
                                     return;
@@ -2040,19 +2071,23 @@ namespace OsEngine.Market.Servers
                 }
             }
 
-            if(depth == null)
+            if (depth == null)
             {
                 return;
             }
 
-            if (depth.Asks == null || depth.Asks.Count == 0 ||
-                depth.Bids == null || depth.Bids.Count == 0)
+            if(depth.Asks != null &&
+                depth.Asks.Count > 0)
             {
-                return;
+                trade.Ask = depth.Asks[0].Price;
             }
-
-            trade.Ask = depth.Asks[0].Price;
-            trade.Bid = depth.Bids[0].Price;
+          
+            if(depth.Bids != null &&
+                depth.Bids.Count > 0)
+            {
+                trade.Bid = depth.Bids[0].Price;
+            }
+            
             trade.BidsVolume = depth.BidSummVolume;
             trade.AsksVolume = depth.AskSummVolume;
         }
@@ -2146,7 +2181,7 @@ namespace OsEngine.Market.Servers
 
                 try
                 {
-                    if(_ordersToExecute.IsEmpty == true)
+                    if (_ordersToExecute.IsEmpty == true)
                     {
                         await Task.Delay(1);
                         continue;
@@ -2166,7 +2201,7 @@ namespace OsEngine.Market.Servers
                             {
                                 ServerRealization.CancelOrder(order.Order);
                             }
-                            else if(order.OrderSendType == OrderSendType.ChangePrice 
+                            else if (order.OrderSendType == OrderSendType.ChangePrice
                                 && IsCanChangeOrderPrice)
                             {
                                 ServerRealization.ChangeOrderPrice(order.Order, order.NewPrice);
@@ -2267,7 +2302,7 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if(_portfolios == null ||
+                if (_portfolios == null ||
                     _portfolios.Count == 0)
                 {
                     SendLogMessage("AServer Error. You can't Execute order when Portfolious is null "
@@ -2278,7 +2313,7 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if(string.IsNullOrEmpty(order.PortfolioNumber) == true)
+                if (string.IsNullOrEmpty(order.PortfolioNumber) == true)
                 {
                     SendLogMessage("AServer Error. You can't Execute order without specifying his portfolio "
                          + order.NumberUser, LogMessageType.Error);
@@ -2290,16 +2325,16 @@ namespace OsEngine.Market.Servers
 
                 Portfolio myPortfolio = null;
 
-                for(int i = 0;i < _portfolios.Count;i++)
+                for (int i = 0; i < _portfolios.Count; i++)
                 {
-                    if (_portfolios[i].Number ==  order.PortfolioNumber)
+                    if (_portfolios[i].Number == order.PortfolioNumber)
                     {
                         myPortfolio = _portfolios[i];
                         break;
                     }
                 }
 
-                if(myPortfolio == null)
+                if (myPortfolio == null)
                 {
                     SendLogMessage("AServer Error. You can't Execute order. Error portfolio name: "
                          + order.PortfolioNumber, LogMessageType.Error);
@@ -2343,19 +2378,19 @@ namespace OsEngine.Market.Servers
             {
                 if (string.IsNullOrEmpty(order.NumberMarket))
                 {
-                    SendLogMessage("AServer Error. You can't change order price an order without a stock exchange number " 
+                    SendLogMessage("AServer Error. You can't change order price an order without a stock exchange number "
                         + order.NumberUser, LogMessageType.Error);
                     return;
                 }
 
-                if(ServerRealization.ServerStatus == ServerConnectStatus.Disconnect)
+                if (ServerRealization.ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("AServer Error. You can't change order price when server status Disconnect " 
+                    SendLogMessage("AServer Error. You can't change order price when server status Disconnect "
                         + order.NumberUser, LogMessageType.Error);
                     return;
                 }
 
-                if(order.Price == newPrice)
+                if (order.Price == newPrice)
                 {
                     return;
                 }
@@ -2390,21 +2425,21 @@ namespace OsEngine.Market.Servers
 
                 if (string.IsNullOrEmpty(order.NumberMarket))
                 {
-                    SendLogMessage("AServer Error. You can't cancel an order without a stock exchange number " 
+                    SendLogMessage("AServer Error. You can't cancel an order without a stock exchange number "
                         + order.NumberUser, LogMessageType.Error);
                     return;
                 }
 
                 if (ServerRealization.ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("AServer Error. You can't cancel order when server status Disconnect " 
+                    SendLogMessage("AServer Error. You can't cancel order when server status Disconnect "
                         + order.NumberUser, LogMessageType.Error);
                     return;
                 }
 
                 OrderCounter saveOrder = null;
 
-                for (int i = 0;i < _canceledOrders.Count;i++)
+                for (int i = 0; i < _canceledOrders.Count; i++)
                 {
                     if (_canceledOrders[i].NumberMarket == order.NumberMarket)
                     {
@@ -2413,13 +2448,13 @@ namespace OsEngine.Market.Servers
                     }
                 }
 
-                if(saveOrder == null)
+                if (saveOrder == null)
                 {
                     saveOrder = new OrderCounter();
                     saveOrder.NumberMarket = order.NumberMarket;
                     _canceledOrders.Add(saveOrder);
 
-                    if(_canceledOrders.Count > 50)
+                    if (_canceledOrders.Count > 50)
                     {
                         _canceledOrders.RemoveAt(0);
                     }
@@ -2427,15 +2462,15 @@ namespace OsEngine.Market.Servers
 
                 saveOrder.NumberOfCalls++;
 
-                if(saveOrder.NumberOfCalls >= 5)
+                if (saveOrder.NumberOfCalls >= 5)
                 {
                     saveOrder.NumberOfErrors++;
 
-                    if( saveOrder.NumberOfErrors <= 3 )
+                    if (saveOrder.NumberOfErrors <= 3)
                     {
                         SendLogMessage(
                         "AServer Error. You can't cancel order. There have already been five attempts to cancel order. "
-                         + "NumberUser: "+ order.NumberUser
+                         + "NumberUser: " + order.NumberUser
                          + " NumberMarket: " + order.NumberMarket
                          , LogMessageType.Error);
                     }
@@ -2573,7 +2608,7 @@ namespace OsEngine.Market.Servers
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

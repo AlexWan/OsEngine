@@ -10,6 +10,7 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Trend
@@ -18,6 +19,7 @@ namespace OsEngine.Robots.Trend
     /// Trend strategy at the intersection of the ParabolicSar indicator
     /// Трендовая стратегия на пересечение индикатора ParabolicSar
     /// </summary>
+    [Bot("ParabolicSarTrade")]
     public class ParabolicSarTrade : BotPanel
     {
         public ParabolicSarTrade(string name, StartProgram startProgram)

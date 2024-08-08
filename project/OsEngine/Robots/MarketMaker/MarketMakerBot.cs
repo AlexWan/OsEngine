@@ -10,11 +10,12 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.MarketMaker
 {
-
+    [Bot("MarketMakerBot")]
     public class MarketMakerBot : BotPanel
     {
         public MarketMakerBot(string name, StartProgram startProgram)

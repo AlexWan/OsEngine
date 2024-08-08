@@ -10,6 +10,7 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
+using OsEngine.OsTrader.Panels.Attributes;
 /* Description
 Fisher based on multithreading
 
@@ -21,6 +22,7 @@ price. Those. if the price has returned half or more of the original movement.
  */
 namespace OsEngine.Robots.High_Frequency
 {
+    [Bot("Fisher")]
     public class Fisher : BotPanel
     {
         public Fisher(string name, StartProgram startProgram)

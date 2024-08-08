@@ -44,7 +44,11 @@ namespace OsEngine.Journal
             OsEngine.Layout.StickyBorders.Listen(this);
             _startProgram = startProgram;
             _botsJournals = botsJournals;
-            LoadGroups();
+
+            if(botsJournals.Count > 1)
+            {
+                LoadGroups();
+            }
 
             ComboBoxChartType.Items.Add("Absolute");
             ComboBoxChartType.Items.Add("Percent 1 contract");
@@ -880,7 +884,7 @@ namespace OsEngine.Journal
                 decimal profitSum = 0;
                 decimal profitSumLong = 0;
                 decimal profitSumShort = 0;
-                decimal maxYVal = 0;
+                decimal maxYVal = decimal.MinValue;
                 decimal minYval = decimal.MaxValue;
 
                 decimal maxYValBars = 0;
@@ -888,8 +892,6 @@ namespace OsEngine.Journal
 
                 decimal curProfit = 0;
                 string chartType = ComboBoxChartType.SelectedItem.ToString();
-
-
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
@@ -997,7 +999,7 @@ namespace OsEngine.Journal
                 _chartEquity.Series.Add(nullLine);
 
                 if (minYval != decimal.MaxValue &&
-                    maxYVal != 0 &&
+                    maxYVal != decimal.MinValue &&
                     minYval != maxYVal)
                 {
                     decimal chartHeigh = maxYVal - minYval;
@@ -1103,6 +1105,7 @@ namespace OsEngine.Journal
 
                 _chartVolume.BackColor = Color.FromArgb(17, 18, 23);
                 _chartVolume.Click += _chartVolume_Click;
+                _chartVolume.MouseWheel += _chartVolume_MouseWheel;
             }
             catch (Exception error)
             {
@@ -1450,7 +1453,7 @@ namespace OsEngine.Journal
             }
         }
 
-        void _chartVolume_Click(object sender, EventArgs e)
+        private void _chartVolume_Click(object sender, EventArgs e)
         {
             try
             {
@@ -1506,6 +1509,21 @@ namespace OsEngine.Journal
             catch(Exception error)
             {
                 SendNewLogMessage(error.ToString(),LogMessageType.Error);
+            }
+        }
+
+        private void _chartVolume_MouseWheel(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (_chartVolume.ChartAreas[0].AxisX.ScaleView.IsZoomed)
+                {
+                    _chartVolume.ChartAreas[0].AxisX.ScaleView.ZoomReset();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2990,6 +3008,10 @@ namespace OsEngine.Journal
 
         private void SaveGroups()
         {
+            if (_botsJournals.Count == 1)
+            {
+                return;
+            }
             try
             {
                 string path = @"Engine\" + _startProgram + @"JournalSettings.txt";

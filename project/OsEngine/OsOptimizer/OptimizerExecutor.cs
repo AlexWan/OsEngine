@@ -30,6 +30,7 @@ namespace OsEngine.OsOptimizer
             _master = master;
 
             _asyncBotFactory = new AsyncBotFactory();
+            _asyncBotFactory.LogMessageEvent += SendLogMessage;
         }
 
         /// <summary>
@@ -664,6 +665,12 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void EndOfFazeFiltration(OptimazerFazeReport bots, OptimazerFazeReport botsToOutOfSample)
         {
+            if(bots.Reports == null ||
+                bots.Reports.Count == 0)
+            {
+                return;
+            }
+
             int startCount = bots.Reports.Count;
 
             for (int i = 0; i < bots.Reports.Count; i++)
@@ -797,169 +804,201 @@ namespace OsEngine.OsOptimizer
             List<IIStrategyParameter> paramOptimized,
             OptimizerServer server, StartProgram regime)
         {
-            BotPanel bot = _asyncBotFactory.GetBot(_master.StrategyName, botName);
-
-            for (int i = 0; i < parametrs.Count; i++)
+            BotPanel bot = null;
+            
+            try
             {
-                IIStrategyParameter par = null;
+                bot = _asyncBotFactory.GetBot(_master.StrategyName, botName);
 
-                if (paramOptimized != null)
+                if (bot.Parameters.Count != parametrs.Count)
                 {
-                  par = paramOptimized.Find(p => p.Name == parametrs[i].Name);
-                }
-                bool isInOptimizeParams = true;
-
-                if (par == null)
-                {
-                    isInOptimizeParams = false;
-                    par = parametrs[i];
-                }
-
-                if(par == null)
-                {
-                    continue;
-                }
-
-                if (par.Type == StrategyParameterType.Bool)
-                {
-                    ((StrategyParameterBool)bot.Parameters[i]).ValueBool = ((StrategyParameterBool)par).ValueBool;
-                }
-                else if (par.Type == StrategyParameterType.String)
-                {
-                    ((StrategyParameterString)bot.Parameters[i]).ValueString = ((StrategyParameterString)par).ValueString;
-                }
-                else if (par.Type == StrategyParameterType.TimeOfDay)
-                {
-                    ((StrategyParameterTimeOfDay)bot.Parameters[i]).Value = ((StrategyParameterTimeOfDay)par).Value;
-                }
-                else if (par.Type == StrategyParameterType.CheckBox)
-                {
-                    ((StrategyParameterCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterCheckBox)par).CheckState;
-                }
-
-                if(isInOptimizeParams == true 
-                    || paramOptimized == null)
-                {
-                    if (par.Type == StrategyParameterType.Int)
-                    {
-                        ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueInt;
-                    }
-                    else if (par.Type == StrategyParameterType.Decimal)
-                    {
-                        ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimal;
-                    }
-                    else if (par.Type == StrategyParameterType.DecimalCheckBox)
-                    {
-                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimal;
-                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
-                    }					
-                }
-                else //if (isInOptimizeParams == false)
-                {
-                    if (par.Type == StrategyParameterType.Int)
-                    {
-                        ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueIntDefolt;
-                    }
-                    else if (par.Type == StrategyParameterType.Decimal)
-                    {
-                        ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimalDefolt;
-                    }
-                    else if (par.Type == StrategyParameterType.DecimalCheckBox)
-                    {
-                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimalDefolt;
-                        ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
-                    }					
+                    return null;
                 }
             }
-
-            // custom tabs
-            // настраиваем вкладки
-            for (int i = 0; i < _master.TabsSimpleNamesAndTimeFrames.Count; i++)
+            catch(Exception ex)
             {
-                bot.TabsSimple[i].Connector.ServerType = ServerType.Optimizer;
-                bot.TabsSimple[i].Connector.PortfolioName = server.Portfolios[0].Number;
-                bot.TabsSimple[i].Connector.SecurityName = _master.TabsSimpleNamesAndTimeFrames[i].NameSecurity;
-                bot.TabsSimple[i].Connector.TimeFrame =
-                    _master.TabsSimpleNamesAndTimeFrames[i].TimeFrame;
-                bot.TabsSimple[i].Connector.ServerUid = server.NumberServer;
-                bot.TabsSimple[i].ComissionType = _master.CommissionType;
-                bot.TabsSimple[i].ComissionValue = _master.CommissionValue;
-
-                if (server.TypeTesterData == TesterDataType.Candle)
-                {
-                    bot.TabsSimple[i].Connector.CandleMarketDataType = CandleMarketDataType.Tick;
-                }
-                else if (server.TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
-                         server.TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
-                {
-                    bot.TabsSimple[i].Connector.CandleMarketDataType =
-                        CandleMarketDataType.MarketDepth;
-                }
-
-                bot.TabsSimple[i].ManualPositionSupport.DoubleExitIsOn = _master.ManualControl.DoubleExitIsOn;
-                bot.TabsSimple[i].ManualPositionSupport.DoubleExitSlipage = _master.ManualControl.DoubleExitSlipage;
-
-                bot.TabsSimple[i].ManualPositionSupport.ProfitDistance = _master.ManualControl.ProfitDistance;
-                bot.TabsSimple[i].ManualPositionSupport.ProfitIsOn = _master.ManualControl.ProfitIsOn;
-                bot.TabsSimple[i].ManualPositionSupport.ProfitSlipage = _master.ManualControl.ProfitSlipage;
-
-                bot.TabsSimple[i].ManualPositionSupport.SecondToCloseIsOn = _master.ManualControl.SecondToCloseIsOn;
-                bot.TabsSimple[i].ManualPositionSupport.SecondToClose = _master.ManualControl.SecondToClose;
-
-                bot.TabsSimple[i].ManualPositionSupport.SecondToOpenIsOn = _master.ManualControl.SecondToOpenIsOn;
-                bot.TabsSimple[i].ManualPositionSupport.SecondToOpen = _master.ManualControl.SecondToOpen;
-
-                bot.TabsSimple[i].ManualPositionSupport.SetbackToCloseIsOn = _master.ManualControl.SetbackToCloseIsOn;
-                bot.TabsSimple[i].ManualPositionSupport.SetbackToClosePosition = _master.ManualControl.SetbackToClosePosition;
-
-                bot.TabsSimple[i].ManualPositionSupport.SetbackToOpenIsOn = _master.ManualControl.SetbackToOpenIsOn;
-                bot.TabsSimple[i].ManualPositionSupport.SetbackToOpenPosition= _master.ManualControl.SetbackToOpenPosition;
-
-                bot.TabsSimple[i].ManualPositionSupport.StopDistance = _master.ManualControl.StopDistance;
-                bot.TabsSimple[i].ManualPositionSupport.StopIsOn = _master.ManualControl.StopIsOn;
-                bot.TabsSimple[i].ManualPositionSupport.StopSlipage= _master.ManualControl.StopSlipage;
-
-                bot.TabsSimple[i].ManualPositionSupport.ProfitDistance = _master.ManualControl.ProfitDistance;
-                bot.TabsSimple[i].ManualPositionSupport.ProfitIsOn = _master.ManualControl.ProfitIsOn;
-                bot.TabsSimple[i].ManualPositionSupport.ProfitSlipage = _master.ManualControl.ProfitSlipage;
-
-                bot.TabsSimple[i].ManualPositionSupport.TypeDoubleExitOrder = _master.ManualControl.TypeDoubleExitOrder;
-                bot.TabsSimple[i].ManualPositionSupport.ValuesType = _master.ManualControl.ValuesType;
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return null;
             }
 
-            for (int i = 0; _master.TabsIndexNamesAndTimeFrames != null &&
-                            i < _master.TabsIndexNamesAndTimeFrames.Count; i++)
+            try
             {
-                bot.TabsIndex[i].Tabs.Clear();
-                for (int i2 = 0; i2 < _master.TabsIndexNamesAndTimeFrames[i].NamesSecurity.Count; i2++)
+                for (int i = 0; i < parametrs.Count; i++)
                 {
-                    if (i2 >= bot.TabsIndex[i].Tabs.Count)
+                    IIStrategyParameter par = null;
+
+                    if (paramOptimized != null)
                     {
-                        bot.TabsIndex[i].CreateNewSecurityConnector();
+                        par = paramOptimized.Find(p => p.Name == parametrs[i].Name);
+                    }
+                    bool isInOptimizeParams = true;
+
+                    if (par == null)
+                    {
+                        isInOptimizeParams = false;
+                        par = parametrs[i];
                     }
 
-                    bot.TabsIndex[i].Tabs[i2].ServerType = ServerType.Optimizer;
-                    bot.TabsIndex[i].Tabs[i2].PortfolioName = server.Portfolios[0].Number;
-                    bot.TabsIndex[i].Tabs[i2].SecurityName = _master.TabsIndexNamesAndTimeFrames[i].NamesSecurity[i2];
-                    bot.TabsIndex[i].Tabs[i2].ServerUid = server.NumberServer;
-                    bot.TabsIndex[i].Tabs[i2].TimeFrame =
-                        _master.TabsIndexNamesAndTimeFrames[i].TimeFrame;
+                    if (par == null)
+                    {
+                        continue;
+                    }
+
+                    if (par.Type == StrategyParameterType.Bool)
+                    {
+                        ((StrategyParameterBool)bot.Parameters[i]).ValueBool = ((StrategyParameterBool)par).ValueBool;
+                    }
+                    else if (par.Type == StrategyParameterType.String)
+                    {
+                        ((StrategyParameterString)bot.Parameters[i]).ValueString = ((StrategyParameterString)par).ValueString;
+                    }
+                    else if (par.Type == StrategyParameterType.TimeOfDay)
+                    {
+                        ((StrategyParameterTimeOfDay)bot.Parameters[i]).Value = ((StrategyParameterTimeOfDay)par).Value;
+                    }
+                    else if (par.Type == StrategyParameterType.CheckBox)
+                    {
+                        ((StrategyParameterCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterCheckBox)par).CheckState;
+                    }
+
+                    if (isInOptimizeParams == true
+                        || paramOptimized == null)
+                    {
+                        if (par.Type == StrategyParameterType.Int)
+                        {
+                            ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueInt;
+                        }
+                        else if (par.Type == StrategyParameterType.Decimal)
+                        {
+                            ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimal;
+                        }
+                        else if (par.Type == StrategyParameterType.DecimalCheckBox)
+                        {
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimal;
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
+                        }
+                    }
+                    else //if (isInOptimizeParams == false)
+                    {
+                        if (par.Type == StrategyParameterType.Int)
+                        {
+                            ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueIntDefolt;
+                        }
+                        else if (par.Type == StrategyParameterType.Decimal)
+                        {
+                            ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimalDefolt;
+                        }
+                        else if (par.Type == StrategyParameterType.DecimalCheckBox)
+                        {
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimalDefolt;
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                return null;
+            }
+           
+            try
+            {
+
+                // custom tabs
+                // настраиваем вкладки
+                for (int i = 0; i < _master.TabsSimpleNamesAndTimeFrames.Count; i++)
+                {
+                    bot.TabsSimple[i].Connector.ServerType = ServerType.Optimizer;
+                    bot.TabsSimple[i].Connector.PortfolioName = server.Portfolios[0].Number;
+                    bot.TabsSimple[i].Connector.SecurityName = _master.TabsSimpleNamesAndTimeFrames[i].NameSecurity;
+                    bot.TabsSimple[i].Connector.TimeFrame =
+                        _master.TabsSimpleNamesAndTimeFrames[i].TimeFrame;
+                    bot.TabsSimple[i].Connector.ServerUid = server.NumberServer;
+                    bot.TabsSimple[i].ComissionType = _master.CommissionType;
+                    bot.TabsSimple[i].ComissionValue = _master.CommissionValue;
 
                     if (server.TypeTesterData == TesterDataType.Candle)
                     {
-                        bot.TabsIndex[i].Tabs[i2].CandleMarketDataType = CandleMarketDataType.Tick;
+                        bot.TabsSimple[i].Connector.CandleMarketDataType = CandleMarketDataType.Tick;
                     }
                     else if (server.TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
                              server.TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
                     {
-                        bot.TabsIndex[i].Tabs[i2].CandleMarketDataType =
+                        bot.TabsSimple[i].Connector.CandleMarketDataType =
                             CandleMarketDataType.MarketDepth;
                     }
-                }
-                bot.TabsIndex[i].UserFormula = _master.TabsIndexNamesAndTimeFrames[i].Formula;
-            }
 
-            return bot;
+                    bot.TabsSimple[i].ManualPositionSupport.DoubleExitIsOn = _master.ManualControl.DoubleExitIsOn;
+                    bot.TabsSimple[i].ManualPositionSupport.DoubleExitSlipage = _master.ManualControl.DoubleExitSlipage;
+
+                    bot.TabsSimple[i].ManualPositionSupport.ProfitDistance = _master.ManualControl.ProfitDistance;
+                    bot.TabsSimple[i].ManualPositionSupport.ProfitIsOn = _master.ManualControl.ProfitIsOn;
+                    bot.TabsSimple[i].ManualPositionSupport.ProfitSlipage = _master.ManualControl.ProfitSlipage;
+
+                    bot.TabsSimple[i].ManualPositionSupport.SecondToCloseIsOn = _master.ManualControl.SecondToCloseIsOn;
+                    bot.TabsSimple[i].ManualPositionSupport.SecondToClose = _master.ManualControl.SecondToClose;
+
+                    bot.TabsSimple[i].ManualPositionSupport.SecondToOpenIsOn = _master.ManualControl.SecondToOpenIsOn;
+                    bot.TabsSimple[i].ManualPositionSupport.SecondToOpen = _master.ManualControl.SecondToOpen;
+
+                    bot.TabsSimple[i].ManualPositionSupport.SetbackToCloseIsOn = _master.ManualControl.SetbackToCloseIsOn;
+                    bot.TabsSimple[i].ManualPositionSupport.SetbackToClosePosition = _master.ManualControl.SetbackToClosePosition;
+
+                    bot.TabsSimple[i].ManualPositionSupport.SetbackToOpenIsOn = _master.ManualControl.SetbackToOpenIsOn;
+                    bot.TabsSimple[i].ManualPositionSupport.SetbackToOpenPosition = _master.ManualControl.SetbackToOpenPosition;
+
+                    bot.TabsSimple[i].ManualPositionSupport.StopDistance = _master.ManualControl.StopDistance;
+                    bot.TabsSimple[i].ManualPositionSupport.StopIsOn = _master.ManualControl.StopIsOn;
+                    bot.TabsSimple[i].ManualPositionSupport.StopSlipage = _master.ManualControl.StopSlipage;
+
+                    bot.TabsSimple[i].ManualPositionSupport.ProfitDistance = _master.ManualControl.ProfitDistance;
+                    bot.TabsSimple[i].ManualPositionSupport.ProfitIsOn = _master.ManualControl.ProfitIsOn;
+                    bot.TabsSimple[i].ManualPositionSupport.ProfitSlipage = _master.ManualControl.ProfitSlipage;
+
+                    bot.TabsSimple[i].ManualPositionSupport.TypeDoubleExitOrder = _master.ManualControl.TypeDoubleExitOrder;
+                    bot.TabsSimple[i].ManualPositionSupport.ValuesType = _master.ManualControl.ValuesType;
+                }
+
+                for (int i = 0; _master.TabsIndexNamesAndTimeFrames != null &&
+                                i < _master.TabsIndexNamesAndTimeFrames.Count; i++)
+                {
+                    bot.TabsIndex[i].Tabs.Clear();
+                    for (int i2 = 0; i2 < _master.TabsIndexNamesAndTimeFrames[i].NamesSecurity.Count; i2++)
+                    {
+                        if (i2 >= bot.TabsIndex[i].Tabs.Count)
+                        {
+                            bot.TabsIndex[i].CreateNewSecurityConnector();
+                        }
+
+                        bot.TabsIndex[i].Tabs[i2].ServerType = ServerType.Optimizer;
+                        bot.TabsIndex[i].Tabs[i2].PortfolioName = server.Portfolios[0].Number;
+                        bot.TabsIndex[i].Tabs[i2].SecurityName = _master.TabsIndexNamesAndTimeFrames[i].NamesSecurity[i2];
+                        bot.TabsIndex[i].Tabs[i2].ServerUid = server.NumberServer;
+                        bot.TabsIndex[i].Tabs[i2].TimeFrame =
+                            _master.TabsIndexNamesAndTimeFrames[i].TimeFrame;
+
+                        if (server.TypeTesterData == TesterDataType.Candle)
+                        {
+                            bot.TabsIndex[i].Tabs[i2].CandleMarketDataType = CandleMarketDataType.Tick;
+                        }
+                        else if (server.TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
+                                 server.TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
+                        {
+                            bot.TabsIndex[i].Tabs[i2].CandleMarketDataType =
+                                CandleMarketDataType.MarketDepth;
+                        }
+                    }
+                    bot.TabsIndex[i].UserFormula = _master.TabsIndexNamesAndTimeFrames[i].Formula;
+                }
+
+                return bot;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return null;
+            }
         }
 
         /// <summary>
@@ -1001,6 +1040,13 @@ namespace OsEngine.OsOptimizer
 
             BotPanel bot = CreateNewBot(botName,
                 parametrs, parametrs, server, startProgram);
+
+            if(bot == null)
+            {
+                SendLogMessage("Test over whith error. A different robot is selected in the optimizer", LogMessageType.Error);
+                awaitObj.Dispose();
+                return null;
+            }
 
             DateTime timeStartWaiting = DateTime.Now;
 

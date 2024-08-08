@@ -193,7 +193,7 @@ namespace OsEngine.Indicators
 
                     if (myPath == "")
                     {
-                        MessageBox.Show("Error! Indicator with name " + nameClass + "not found");
+                        MessageBox.Show("Error! Indicator with name " + nameClass + " not found");
                         return Indicator;
                     }
 

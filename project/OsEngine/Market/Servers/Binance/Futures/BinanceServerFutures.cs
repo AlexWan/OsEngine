@@ -247,7 +247,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.Futures;
                 security.Exchange = ServerType.BinanceFutures.ToString();
-                security.Lot = sec.filters[1].minQty.ToDecimal();
+                security.Lot = 1;
                 security.PriceStep = sec.filters[0].tickSize.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
 
@@ -712,6 +712,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     break;
                 case 120:
                     needTf = "2h";
+                    break;
+                case 1440:
+                    needTf = "1d";
                     break;
             }
 
@@ -1490,9 +1493,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                         if (_queuePublicMessages.TryDequeue(out mes))
                         {
-                            if (mes.Contains("error"))
+                            if (mes.Contains("\"depthUpdate\""))
                             {
-                                SendLogMessage(mes, LogMessageType.Error);
+                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponseFutures());
+                                UpdateMarketDepth(quotes);
                             }
                             else if (mes.Contains("\"e\":\"trade\""))
                             {
@@ -1505,10 +1509,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                                 UpdateTrades(quotes);
                             }
-                            else if (mes.Contains("\"depthUpdate\""))
+                            else if (mes.Contains("error"))
                             {
-                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new DepthResponseFutures());
-                                UpdateMarketDepth(quotes);
+                                SendLogMessage(mes, LogMessageType.Error);
                             }
                         }
                     }

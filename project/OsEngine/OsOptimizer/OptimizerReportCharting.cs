@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
+using OsEngine.Charts;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -274,7 +275,9 @@ namespace OsEngine.OsOptimizer
 
         private void CreateStepsOfOptimization()
         {
-            _gridStepsOfOptimization = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.None,true);
+            _gridStepsOfOptimization = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells,true);
+
             _gridStepsOfOptimization.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -643,7 +646,7 @@ namespace OsEngine.OsOptimizer
                     _labelRobustnessMetricaValue.Content = Math.Round(robustness, 2).ToString() + " %";
                 }
 
-                _chartRobustness.Series[0].Points.Clear();
+                _chartRobustness.Series[0].Points.ClearFast();
 
                 DataPoint point1 = new DataPoint(1, countBestTwenty);
                 point1.AxisLabel = "Best 20%";
@@ -835,7 +838,7 @@ namespace OsEngine.OsOptimizer
 
                 Series series = _chartTotalProfit.Series[0];
 
-                series.Points.Clear();
+                series.Points.ClearFast();
 
                 if (profitsSumm.Count == 0)
                 {
@@ -1036,9 +1039,9 @@ namespace OsEngine.OsOptimizer
                 Series seriesAverageLine = _chartAverageProfit.Series[1];
                 Series seriesAveragePoint = _chartAverageProfit.Series[2];
 
-                seriesOosValues.Points.Clear();
-                seriesAverageLine.Points.Clear();
-                seriesAveragePoint.Points.Clear();
+                seriesOosValues.Points.ClearFast();
+                seriesAverageLine.Points.ClearFast();
+                seriesAveragePoint.Points.ClearFast();
 
                 if (values.Count == 0)
                 {
@@ -1232,9 +1235,9 @@ namespace OsEngine.OsOptimizer
                 Series seriesAverageLine = _chartProfitFactor.Series[1];
                 Series seriesAveragePoint = _chartProfitFactor.Series[2];
 
-                seriesOosValues.Points.Clear();
-                seriesAverageLine.Points.Clear();
-                seriesAveragePoint.Points.Clear();
+                seriesOosValues.Points.ClearFast();
+                seriesAverageLine.Points.ClearFast();
+                seriesAveragePoint.Points.ClearFast();
 
                 if (values.Count == 0)
                 {

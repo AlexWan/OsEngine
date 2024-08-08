@@ -3,10 +3,11 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
-
+using OsEngine.OsTrader.Panels.Attributes;
 
 namespace OsEngine.Robots.OnScriptIndicators
 {
+    [Bot("SmaTrendSample")]
     public class SmaTrendSample : BotPanel
     {
         public SmaTrendSample(string name, StartProgram startProgram)

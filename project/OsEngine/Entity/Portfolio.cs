@@ -78,19 +78,27 @@ namespace OsEngine.Entity
                 _positionOnBoard = new List<PositionOnBoard>();
             }
 
-            if(_positionOnBoard.Count == 0)
+            if (_positionOnBoard.Count == 0)
             {
                 _positionOnBoard.Add(position);
             }
-            else if(_positionOnBoard.Count == 1)
+            else if (position.SecurityNameCode == "USDT"
+                || position.SecurityNameCode == "USDC"
+                || position.SecurityNameCode == "USD"
+                || position.SecurityNameCode == "RUB"
+                || position.SecurityNameCode == "EUR")
             {
-                if(FirstIsBiggerThanSecond(position.SecurityNameCode,_positionOnBoard[0].SecurityNameCode))
+                _positionOnBoard.Insert(0, position);
+            }
+            else if (_positionOnBoard.Count == 1)
+            {
+                if (FirstIsBiggerThanSecond(position.SecurityNameCode, _positionOnBoard[0].SecurityNameCode))
                 {
                     _positionOnBoard.Add(position);
                 }
                 else
                 {
-                    _positionOnBoard.Insert(0,position);
+                    _positionOnBoard.Insert(0, position);
                 }
             }
             else
@@ -98,10 +106,19 @@ namespace OsEngine.Entity
 
                 bool isInsert = false;
 
-                for(int i = 0;i < _positionOnBoard.Count;i ++)
+                for (int i = 0; i < _positionOnBoard.Count; i++)
                 {
+                    if (_positionOnBoard[i].SecurityNameCode == "USDT"
+                  || _positionOnBoard[i].SecurityNameCode == "USDC"
+                  || _positionOnBoard[i].SecurityNameCode == "USD"
+                  || _positionOnBoard[i].SecurityNameCode == "RUB"
+                  || _positionOnBoard[i].SecurityNameCode == "EUR")
+                    {
+                        continue;
+                    }
+
                     if (FirstIsBiggerThanSecond(
-                        position.SecurityNameCode, 
+                        position.SecurityNameCode,
                         _positionOnBoard[i].SecurityNameCode) == false)
                     {
                         _positionOnBoard.Insert(i, position);
@@ -109,7 +126,7 @@ namespace OsEngine.Entity
                         break;
                     }
                 }
-                
+
                 if (isInsert == false)
                 {
                     _positionOnBoard.Add(position);

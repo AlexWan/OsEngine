@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 /* Description
 Overbought / Oversold RSI Contrand Strategy with Trend Filtering via MovingAverage
@@ -31,6 +32,7 @@ namespace OsEngine.Robots.CounterTrend
     /// Overbought / Oversold RSI Contrand Strategy with Trend Filtering via MovingAverage
     /// конттрендовая стратегия по перекупленности/перепроданности RSI с фильтром по тренду через MovingAverage
     /// </summary>
+    [Bot("RsiContrtrend")]
     public class RsiContrtrend : BotPanel
     {
         public RsiContrtrend(string name, StartProgram startProgram)
@@ -39,10 +41,10 @@ namespace OsEngine.Robots.CounterTrend
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _ma = new MovingAverage(name + "MA", false) { Lenght = 50, ColorBase = Color.CornflowerBlue, };
+            _ma = new MovingAverage(name + "MA", false) { Length = 50, ColorBase = Color.CornflowerBlue, };
             _ma = (MovingAverage)_tab.CreateCandleIndicator(_ma, "Prime");
 
-            _rsi = new Rsi(name + "RSI", false) { Lenght = 20, ColorBase = Color.Gold, };
+            _rsi = new Rsi(name + "RSI", false) { Length = 20, ColorBase = Color.Gold, };
             _rsi = (Rsi)_tab.CreateCandleIndicator(_rsi, "RsiArea");
 
             Upline = new LineHorisontal("upline", "RsiArea", false)
@@ -235,7 +237,7 @@ namespace OsEngine.Robots.CounterTrend
             _lastRsi = _rsi.Values[_rsi.Values.Count - 1];
 
 
-            if (_ma.Values.Count < _ma.Lenght + 1 || _rsi.Values == null || _rsi.Values.Count < _rsi.Lenght + 5)
+            if (_ma.Values.Count < _ma.Length + 1 || _rsi.Values == null || _rsi.Values.Count < _rsi.Length + 5)
             {
                 return;
 

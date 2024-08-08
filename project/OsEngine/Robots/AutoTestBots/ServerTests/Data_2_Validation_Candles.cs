@@ -23,7 +23,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 for (int i = 0; i < securities.Count; i++)
                 {
-                    if (securities[i].Name == SecName 
+                    if (securities[i].Name == SecName
                         && securities[i].NameClass == SecClass)
                     {
                         mySecurity = securities[i];
@@ -85,7 +85,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // шлём странные запросы, ожидая в ответ null или пустые массивы
 
-            CheckOldData(permission, security,lastMidnightTime);
+            CheckOldData(permission, security, lastMidnightTime);
             CheckFutureData(permission, security, lastMidnightTime);
             CheckStartFakeData(permission, security, lastMidnightTime);
             CheckActualFakeData(permission, security, lastMidnightTime);
@@ -306,7 +306,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            if (candles != null 
+            if (candles != null
                 && candles.Count != 0)
             {
                 SetNewError("RequestType: " + typeRequest + ".  Error 4. Array is note null. " + timeFrame.ToString());
@@ -316,7 +316,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private TimeFrameBuilder GetTfBuilder(Security security, TimeFrame timeFrame)
         {
-            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder();
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsTrader);
             timeFrameBuilder.TimeFrame = timeFrame;
 
             return timeFrameBuilder;
@@ -334,8 +334,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (permission.DataFeedTf1MinuteCanLoad)
             {
-               List<Candle> candles = GetCandles(TimeFrame.Min1, security, startTime, endTime);
-               ValidateCandles(candles, TimeFrame.Min1);
+                List<Candle> candles = GetCandles(TimeFrame.Min1, security, startTime, endTime);
+                ValidateCandles(candles, TimeFrame.Min1);
             }
             if (permission.DataFeedTf2MinuteCanLoad)
             {
@@ -420,12 +420,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             // 2 правильно ли расположено время в массиве. Сначала - старые данные. К концу массива - новые.
             // 3 нет ли задвоения свечек
 
-            for (int i = 1;i < candles.Count;i++)
+            for (int i = 1; i < candles.Count; i++)
             {
                 Candle candleNow = candles[i];
-                Candle candleLast = candles[i-1];
+                Candle candleLast = candles[i - 1];
 
-                if(candleLast.TimeStart > candleNow.TimeStart)
+                if (candleLast.TimeStart > candleNow.TimeStart)
                 {
                     SetNewError("Error 8. The time in the old candle is big than in the current candle " + timeFrame.ToString());
                     return;
@@ -446,7 +446,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 Candle candleNow = candles[i];
 
-                if(candleNow.Open > candleNow.High)
+                if (candleNow.Open > candleNow.High)
                 {
                     SetNewError("Error 10. Candle open above the high" + timeFrame.ToString());
                     return;
@@ -492,7 +492,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                if( candleNow.Open == candleNow.High
+                if (candleNow.Open == candleNow.High
                     && candleNow.High == candleNow.Low
                     && candleNow.Low == candleNow.Close
                     && candleNow.Volume == 0)
@@ -516,7 +516,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 Candle candleNow = candles[i];
                 Candle candleLast = candles[i - 1];
 
-                if(candleNow.TimeStart.Date != candleLast.TimeStart.Date)
+                if (candleNow.TimeStart.Date != candleLast.TimeStart.Date)
                 {
                     continue;
                 }
@@ -539,7 +539,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private TimeSpan GetTimeSpanFromTimeFrame(TimeFrame timeFrame)
         {
-            TimeSpan timeFrameSpan = new TimeSpan(); 
+            TimeSpan timeFrameSpan = new TimeSpan();
 
             if (timeFrame == TimeFrame.Min1)
             {

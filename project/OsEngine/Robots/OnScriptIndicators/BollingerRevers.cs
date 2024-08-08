@@ -3,11 +3,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Trend Strategy Based on Breaking Bollinger Lines
 /// Трендовая стратегия на основе пробития линий болинджера
 /// </summary>
+[Bot("BollingerRevers")]
 public class BollingerRevers : BotPanel
 {
     public BollingerRevers(string name, StartProgram startProgram)

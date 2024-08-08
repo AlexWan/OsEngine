@@ -69,7 +69,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<Security> secs = new List<Security>();
 
-            for(int i = 0;i < securitiesAll.Count;i++)
+            for (int i = 0; i < securitiesAll.Count; i++)
             {
                 if (securitiesAll[i].NameClass == SecClass)
                 {
@@ -77,7 +77,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            if(secs == null || secs.Count == 0)
+            if (secs == null || secs.Count == 0)
             {
                 this.SetNewError(
                 "Error 3. No securities in server! Class: " + SecClass);
@@ -99,7 +99,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 try
                 {
-                    CandleSeries series = Server.StartThisSecurity(secs[i].Name, new Entity.TimeFrameBuilder(), secs[i].NameClass);
+                    CandleSeries series = Server.StartThisSecurity(secs[i].Name, new Entity.TimeFrameBuilder(StartProgram.IsOsTrader), secs[i].NameClass);
 
                     if (series == null)
                     {

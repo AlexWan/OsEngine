@@ -32,8 +32,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
-            LenghtUpLine = 12;
-            LenghtDownLine = 12;
+            LengthUpLine = 12;
+            LengthDownLine = 12;
             PaintOn = true;
             CanDelete = canDelete;
             Load();
@@ -52,8 +52,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
-            LenghtUpLine = 12;
-            LenghtDownLine = 12;
+            LengthUpLine = 12;
+            LengthDownLine = 12;
             PaintOn = true;
             CanDelete = canDelete;
         }
@@ -141,14 +141,14 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// upper channel calculation length
         /// длина расчета верхнего канала
         /// </summary>
-        public int LenghtUpLine
+        public int LengthUpLine
         { get; set; }
 
         /// <summary>
         /// bottom channel calculation length
         /// длина расчета нижнего канала
         /// </summary>
-        public int LenghtDownLine
+        public int LengthDownLine
         { get; set; }
 
         /// <summary>
@@ -188,8 +188,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    LenghtUpLine = Convert.ToInt32(reader.ReadLine());
-                    LenghtDownLine = Convert.ToInt32(reader.ReadLine());
+                    LengthUpLine = Convert.ToInt32(reader.ReadLine());
+                    LengthDownLine = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
@@ -217,8 +217,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     writer.WriteLine(ColorUp.ToArgb());
                     writer.WriteLine(ColorDown.ToArgb());
-                    writer.WriteLine(LenghtUpLine);
-                    writer.WriteLine(LenghtDownLine);
+                    writer.WriteLine(LengthUpLine);
+                    writer.WriteLine(LengthDownLine);
                     writer.WriteLine(PaintOn);
                     writer.Close();
                 }
@@ -413,8 +413,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             // считаем верхнее значение
             decimal[] lines = new decimal[2];
 
-            if (index - LenghtUpLine <= 0 || 
-                candles.Count <= LenghtUpLine)
+            if (index - LengthUpLine <= 0 || 
+                candles.Count <= LengthUpLine)
             {
                 lines[0] = 0;
             }
@@ -422,7 +422,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 decimal upLine = 0;
 
-                for (int i = index; i > -1 && i > index - LenghtUpLine; i--)
+                for (int i = index; i > -1 && i > index - LengthUpLine; i--)
                 {
                     if (upLine < candles[i].High)
                     {
@@ -435,8 +435,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             //consider the upper value
             // считаем верхнее значение
 
-            if (index - LenghtDownLine <= 0 ||
-                candles.Count <= LenghtDownLine)
+            if (index - LengthDownLine <= 0 ||
+                candles.Count <= LengthDownLine)
             {
                 lines[1] = 0;
             }
@@ -444,7 +444,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 decimal downLine = decimal.MaxValue;
 
-                for (int i = index; i > -1 && i > index - LenghtDownLine; i--)
+                for (int i = index; i > -1 && i > index - LengthDownLine; i--)
                 {
                     if (downLine > candles[i].Low)
                     {

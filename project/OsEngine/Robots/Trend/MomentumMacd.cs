@@ -10,6 +10,7 @@ using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Trend
@@ -18,6 +19,7 @@ namespace OsEngine.Robots.Trend
     /// Trend strategy based on 2 indicators Momentum and Macd
     /// Трендовая стратегия на основе 2х индикаторов Momentum и Macd
     /// </summary>
+    [Bot("MomentumMacd")]
     public class MomentumMacd : BotPanel
     {
         public MomentumMacd(string name, StartProgram startProgram)
@@ -55,7 +57,7 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         public override string GetNameStrategyType()
         {
-            return "MomentumMACD";
+            return "MomentumMacd";
         }
 
         /// <summary>

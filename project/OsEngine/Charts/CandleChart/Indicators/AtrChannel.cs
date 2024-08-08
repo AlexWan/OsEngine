@@ -30,7 +30,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public AtrChannel(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            Lenght = 14;
+            Length = 14;
             Multiplier = 3;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
@@ -49,7 +49,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            Lenght = 14;
+            Length = 14;
             Multiplier = 3;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DodgerBlue;
@@ -132,7 +132,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна периода для рассчёта индикатора
         /// </summary>
-        public int Lenght { get; set; }
+        public int Length { get; set; }
         
         /// <summary>
         /// atr channel multiplier
@@ -162,7 +162,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(Multiplier);
                     writer.WriteLine(PaintOn);
                     writer.Close();
@@ -191,7 +191,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     Multiplier = Convert.ToDecimal(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.ReadLine();
@@ -270,7 +270,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             
             if (atr != null)
             {
-                atr.Lenght = Lenght;
+                atr.Length = Length;
                 atr.Reload();
             }
 
@@ -303,7 +303,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 atr = new Atr(false)
                 {
                     IsWatr = true,
-                    Lenght = Lenght
+                    Length = Length
                 };
             }
 
@@ -409,7 +409,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             decimal currentHigh = candles[index - 1].High;
             decimal currentLow = candles[index - 1].Low;
 
-            if (Values == null || Values.Count < Lenght)
+            if (Values == null || Values.Count < Length)
             {
                 HPrice = currentHigh;
                 LPrice = currentLow;

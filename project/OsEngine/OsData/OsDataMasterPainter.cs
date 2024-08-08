@@ -80,116 +80,150 @@ namespace OsEngine.OsData
 
         private void Master_NeadUpDateTableEvent()
         {
-            RePaintSetGrid();
+            try
+            {
+                RePaintSetGrid();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         void ServerMaster_ServerCreateEvent(IServer server)
         {
-            List<IServer> servers = ServerMaster.GetServers();
-
-            for (int i = 0; i < servers.Count; i++)
+            try
             {
-                if (servers[i].ServerType == ServerType.Optimizer)
+                List<IServer> servers = ServerMaster.GetServers();
+
+                for (int i = 0; i < servers.Count; i++)
                 {
-                    continue;
+                    if (servers[i].ServerType == ServerType.Optimizer)
+                    {
+                        continue;
+                    }
+                    servers[i].ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+                    servers[i].LogMessageEvent -= OsDataMaster_LogMessageEvent;
+
+                    servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
+                    servers[i].LogMessageEvent += OsDataMaster_LogMessageEvent;
+
                 }
-                servers[i].ConnectStatusChangeEvent -= ServerStatusChangeEvent;
-                servers[i].LogMessageEvent -= OsDataMaster_LogMessageEvent;
-
-                servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
-                servers[i].LogMessageEvent += OsDataMaster_LogMessageEvent;
-
+                RePaintSourceGrid();
             }
-            RePaintSourceGrid();
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         public void StopPaintActiveSet()
         {
-            if (_master.SelectSet == null)
+            try
             {
-                return;
-            }
-
-            OsDataSetPainter curPainter = null;
-
-            for (int i = 0; i < _painters.Count; i++)
-            {
-                if (_painters[i].NameSet == _master.SelectSet.SetName)
+                if (_master.SelectSet == null)
                 {
-                    curPainter = _painters[i];
-                    break;
+                    return;
                 }
-            }
 
-            if (curPainter == null)
+                OsDataSetPainter curPainter = null;
+
+                for (int i = 0; i < _painters.Count; i++)
+                {
+                    if (_painters[i].NameSet == _master.SelectSet.SetName)
+                    {
+                        curPainter = _painters[i];
+                        break;
+                    }
+                }
+
+                if (curPainter == null)
+                {
+                    curPainter = new OsDataSetPainter(_master.SelectSet);
+                    curPainter.NewLogMessageEvent += SendNewLogMessage;
+                    _painters.Add(curPainter);
+                }
+
+                curPainter.StopPaint();
+            }
+            catch (Exception error)
             {
-                curPainter = new OsDataSetPainter(_master.SelectSet);
-                curPainter.NewLogMessageEvent += SendNewLogMessage;
-                _painters.Add(curPainter);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            curPainter.StopPaint();
-            
         }
 
         public void StartPaintActiveSet()
         {
-            if (_master.Sets == null||
-                _master.Sets.Count == 0)
+            try
             {
-                return;
-            }
-
-            if(_master.SelectSet == null)
-            {
-                _master.SelectSet = _master.Sets[0];
-            }
-
-            OsDataSetPainter curPainter = null;
-
-            for(int i = 0;i < _painters.Count;i++)
-            {
-                if(_painters[i].NameSet == _master.SelectSet.SetName)
+                if (_master.Sets == null ||
+                    _master.Sets.Count == 0)
                 {
-                    curPainter = _painters[i];
-                    break;
+                    return;
                 }
-            }
 
-            if(curPainter == null)
+                if (_master.SelectSet == null)
+                {
+                    _master.SelectSet = _master.Sets[0];
+                }
+
+                OsDataSetPainter curPainter = null;
+
+                for (int i = 0; i < _painters.Count; i++)
+                {
+                    if (_painters[i].NameSet == _master.SelectSet.SetName)
+                    {
+                        curPainter = _painters[i];
+                        break;
+                    }
+                }
+
+                if (curPainter == null)
+                {
+                    curPainter = new OsDataSetPainter(_master.SelectSet);
+                    curPainter.NewLogMessageEvent += SendNewLogMessage;
+                    _painters.Add(curPainter);
+                }
+
+                curPainter.StartPaint(_hostChart, _setName, _labelTimeStart, _labelTimeEnd, _bar);
+            }
+            catch (Exception error)
             {
-                curPainter = new OsDataSetPainter(_master.SelectSet);
-                curPainter.NewLogMessageEvent += SendNewLogMessage;
-                _painters.Add(curPainter);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            curPainter.StartPaint(_hostChart, _setName, _labelTimeStart, _labelTimeEnd, _bar);
         }
 
         public void RefreshActiveSet()
         {
-            if (_master.SelectSet == null)
+            try
             {
-                return;
-            }
-
-            OsDataSetPainter curPainter = null;
-
-            for (int i = 0; i < _painters.Count; i++)
-            {
-                if (_painters[i].NameSet == _master.SelectSet.SetName)
+                if (_master.SelectSet == null)
                 {
-                    curPainter = _painters[i];
-                    break;
+                    return;
                 }
-            }
 
-            if (curPainter == null)
+                OsDataSetPainter curPainter = null;
+
+                for (int i = 0; i < _painters.Count; i++)
+                {
+                    if (_painters[i].NameSet == _master.SelectSet.SetName)
+                    {
+                        curPainter = _painters[i];
+                        break;
+                    }
+                }
+
+                if (curPainter == null)
+                {
+                    return;
+                }
+
+                curPainter.RePaintInterface();
+            }
+            catch (Exception error)
             {
-                return;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            curPainter.RePaintInterface();
         }
 
         List<OsDataSetPainter> _painters = new List<OsDataSetPainter>();
@@ -258,7 +292,9 @@ namespace OsEngine.OsData
         /// </summary>
         private void CreateSourceGrid()
         {
-            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells);
+
             newGrid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
@@ -290,64 +326,70 @@ namespace OsEngine.OsData
         /// </summary>
         private void RePaintSourceGrid()
         {
-            if (_gridSources.InvokeRequired)
+            try
             {
-                _gridSources.Invoke(new Action(RePaintSourceGrid));
-                return;
-            }
-
-            _gridSources.Rows.Clear();
-
-            List<ServerType> servers = ServerMaster.ServersTypesToOsData;
-
-            List<IServer> serversCreate = ServerMaster.GetServers();
-
-            if (serversCreate == null)
-            {
-                serversCreate = new List<IServer>();
-            }
-
-            for (int i = 0; i < servers.Count; i++)
-            {
-                DataGridViewRow row1 = new DataGridViewRow();
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-                row1.Cells[0].Value = servers[i];
-                row1.Cells.Add(new DataGridViewTextBoxCell());
-
-                IServer server = serversCreate.Find(s => s.ServerType == servers[i]);
-
-                if (server == null)
+                if (_gridSources.InvokeRequired)
                 {
-                    row1.Cells[1].Value = "Disabled";
-                }
-                else if (server != null && server.ServerStatus == ServerConnectStatus.Connect)
-                {
-                    row1.Cells[1].Value = "Connect";
-                    DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.MediumSeaGreen;
-                    style.SelectionBackColor = Color.Green;
-                    style.ForeColor = Color.Black;
-                    style.SelectionForeColor = Color.Black;
-                    row1.Cells[1].Style = style;
-                    row1.Cells[0].Style = style;
-                }
-                else
-                {
-                    row1.Cells[1].Value = "Disconnect";
-                    DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.Coral;
-                    style.SelectionBackColor = Color.Chocolate;
-                    style.ForeColor = Color.Black;
-                    style.SelectionForeColor = Color.Black;
-                    row1.Cells[1].Style = style;
-                    row1.Cells[0].Style = style;
+                    _gridSources.Invoke(new Action(RePaintSourceGrid));
+                    return;
                 }
 
-                _gridSources.Rows.Add(row1);
-            }
-            _gridSources[1, 0].Selected = true; // Select an invisible line to remove the default selection from the grid./Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
-            _gridSources.ClearSelection();
+                _gridSources.Rows.Clear();
 
+                List<ServerType> servers = ServerMaster.ServersTypesToOsData;
+
+                List<IServer> serversCreate = ServerMaster.GetServers();
+
+                if (serversCreate == null)
+                {
+                    serversCreate = new List<IServer>();
+                }
+
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    DataGridViewRow row1 = new DataGridViewRow();
+                    row1.Cells.Add(new DataGridViewTextBoxCell());
+                    row1.Cells[0].Value = servers[i];
+                    row1.Cells.Add(new DataGridViewTextBoxCell());
+
+                    IServer server = serversCreate.Find(s => s.ServerType == servers[i]);
+
+                    if (server == null)
+                    {
+                        row1.Cells[1].Value = "Disabled";
+                    }
+                    else if (server != null && server.ServerStatus == ServerConnectStatus.Connect)
+                    {
+                        row1.Cells[1].Value = "Connect";
+                        DataGridViewCellStyle style = new DataGridViewCellStyle();
+                        style.BackColor = Color.MediumSeaGreen;
+                        style.SelectionBackColor = Color.Green;
+                        style.ForeColor = Color.Black;
+                        style.SelectionForeColor = Color.Black;
+                        row1.Cells[1].Style = style;
+                        row1.Cells[0].Style = style;
+                    }
+                    else
+                    {
+                        row1.Cells[1].Value = "Disconnect";
+                        DataGridViewCellStyle style = new DataGridViewCellStyle();
+                        style.BackColor = Color.Coral;
+                        style.SelectionBackColor = Color.Chocolate;
+                        style.ForeColor = Color.Black;
+                        style.SelectionForeColor = Color.Black;
+                        row1.Cells[1].Style = style;
+                        row1.Cells[0].Style = style;
+                    }
+
+                    _gridSources.Rows.Add(row1);
+                }
+                _gridSources[1, 0].Selected = true; // Select an invisible line to remove the default selection from the grid./Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+                _gridSources.ClearSelection();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -355,28 +397,35 @@ namespace OsEngine.OsData
         /// </summary>
         void _gridSources_DoubleClick(object sender, EventArgs e)
         {
-            if (_gridSources.CurrentCell.RowIndex <= -1)
+            try
             {
-                return;
+                if (_gridSources.CurrentCell.RowIndex <= -1)
+                {
+                    return;
+                }
+
+                ServerType type;
+                Enum.TryParse(_gridSources.Rows[_gridSources.CurrentCell.RowIndex].Cells[0].Value.ToString(), out type);
+
+                if (ServerMaster.GetServers() == null)
+                {
+                    ServerMaster.CreateServer(type, false);
+                }
+
+                IServer server = ServerMaster.GetServers().Find(s => s.ServerType == type);
+
+                if (server == null)
+                {
+                    ServerMaster.CreateServer(type, false);
+                    server = ServerMaster.GetServers().Find(s => s.ServerType == type);
+                }
+
+                server.ShowDialog();
             }
-
-            ServerType type;
-            Enum.TryParse(_gridSources.Rows[_gridSources.CurrentCell.RowIndex].Cells[0].Value.ToString(), out type);
-
-            if (ServerMaster.GetServers() == null)
+            catch (Exception error)
             {
-                ServerMaster.CreateServer(type,false);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            IServer server = ServerMaster.GetServers().Find(s => s.ServerType == type);
-
-            if (server == null)
-            {
-                ServerMaster.CreateServer(type, false);
-                server = ServerMaster.GetServers().Find(s => s.ServerType == type);
-            }
-
-            server.ShowDialog();
         }
 
         /// <summary>
@@ -484,15 +533,22 @@ namespace OsEngine.OsData
         /// </summary>
         private void _gridset_DoubleClick(object sender, EventArgs e)
         {
-            if (_gridset.CurrentCell == null ||
-                _gridset.CurrentCell.RowIndex <= -1)
+            try
             {
-                return;
+                if (_gridset.CurrentCell == null ||
+                _gridset.CurrentCell.RowIndex <= -1)
+                {
+                    return;
+                }
+                int _rowIndex = _gridset.CurrentCell.RowIndex;
+                RedactThisSet(_rowIndex);
+                RePaintSetGrid();
+                _gridset.Rows[_rowIndex].Selected = true; // Return focus to the line you edited./Вернуть фокус на строку, которую редактировал.
             }
-            int _rowIndex = _gridset.CurrentCell.RowIndex;
-            RedactThisSet(_rowIndex);
-            RePaintSetGrid();
-            _gridset.Rows[_rowIndex].Selected = true; // Return focus to the line you edited./Вернуть фокус на строку, которую редактировал.
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -500,36 +556,43 @@ namespace OsEngine.OsData
         /// </summary>
         void _gridset_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            if (mouse.Button != MouseButtons.Right)
+            try
             {
-                if (_gridset.CurrentCell != null)
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                if (mouse.Button != MouseButtons.Right)
                 {
-                    ChangeActivSet(_gridset.CurrentCell.RowIndex);
+                    if (_gridset.CurrentCell != null)
+                    {
+                        ChangeActivSet(_gridset.CurrentCell.RowIndex);
+                    }
+
+                    return;
                 }
-                
-                return;
+
+                // creating a context menu/cоздание контекстного меню
+
+                MenuItem[] items = new MenuItem[3];
+
+                items[0] = new MenuItem();
+                items[0].Text = OsLocalization.Data.Label6;
+                items[0].Click += AddSet_Click;
+
+                items[1] = new MenuItem() { Text = OsLocalization.Data.Label7 };
+                items[1].Click += RedactSet_Click;
+
+                items[2] = new MenuItem() { Text = OsLocalization.Data.Label8 };
+                items[2].Click += DeleteSet_Click;
+
+                ContextMenu menu = new ContextMenu(items);
+
+                _gridset.ContextMenu = menu;
+                _gridset.ContextMenu.Show(_gridset, new Point(mouse.X, mouse.Y));
             }
-
-            // creating a context menu/cоздание контекстного меню
-
-            MenuItem[] items = new MenuItem[3];
-
-            items[0] = new MenuItem();
-            items[0].Text = OsLocalization.Data.Label6;
-            items[0].Click += AddSet_Click;
-
-            items[1] = new MenuItem() { Text = OsLocalization.Data.Label7 };
-            items[1].Click += RedactSet_Click;
-
-            items[2] = new MenuItem() { Text = OsLocalization.Data.Label8 };
-            items[2].Click += DeleteSet_Click;
-
-            ContextMenu menu = new ContextMenu(items);
-
-            _gridset.ContextMenu = menu;
-            _gridset.ContextMenu.Show(_gridset, new Point(mouse.X, mouse.Y));
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -537,7 +600,14 @@ namespace OsEngine.OsData
         /// </summary>
         private void AddSet_Click(object sender, EventArgs e)
         {
-            CreateNewSetDialog();
+            try
+            {
+                CreateNewSetDialog();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -545,12 +615,19 @@ namespace OsEngine.OsData
         /// </summary>
         void RedactSet_Click(object sender, EventArgs e)
         {
-            if (_gridset.CurrentCell == null ||
-                _gridset.CurrentCell.RowIndex <= -1)
+            try
             {
-                return;
+                if (_gridset.CurrentCell == null ||
+                    _gridset.CurrentCell.RowIndex <= -1)
+                {
+                    return;
+                }
+                RedactThisSet(_gridset.CurrentCell.RowIndex);
             }
-            RedactThisSet(_gridset.CurrentCell.RowIndex);
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -558,20 +635,27 @@ namespace OsEngine.OsData
         /// </summary>
         void DeleteSet_Click(object sender, EventArgs e)
         {
-            if (_gridset.CurrentCell == null || 
-                _gridset.CurrentCell.RowIndex <= -1)
+            try
             {
-                return;
+                if (_gridset.CurrentCell == null ||
+                    _gridset.CurrentCell.RowIndex <= -1)
+                {
+                    return;
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label9);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+                DeleteThisSet(_gridset.CurrentCell.RowIndex);
             }
-
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label9);
-            ui.ShowDialog();
-
-            if (ui.UserAcceptActioin == false)
+            catch (Exception error)
             {
-                return;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-            DeleteThisSet(_gridset.CurrentCell.RowIndex);
         }
 
         /// <summary>
@@ -580,34 +664,41 @@ namespace OsEngine.OsData
         /// <param name="index">new index/индекс нового</param>
         private void ChangeActivSet(int index)
         {
-            if (_master.Sets == null ||
-                _master.Sets.Count == 0)
+            try
             {
-                return;
-            }
+                if (_master.Sets == null ||
+                    _master.Sets.Count == 0)
+                {
+                    return;
+                }
 
-            if (index > _master.Sets.Count)
+                if (index > _master.Sets.Count)
+                {
+                    return;
+                }
+
+                OsDataSet currentSet = _master.Sets[index];
+
+                if (_master.SelectSet != null &&
+                    currentSet.SetName == _master.SelectSet.SetName)
+                {
+                    return;
+                }
+
+                if (_master.SelectSet != null &&
+                    currentSet.SetName != _master.SelectSet.SetName)
+                {
+                    StopPaintActiveSet();
+                }
+
+                _master.SelectSet = currentSet;
+
+                StartPaintActiveSet();
+            }
+            catch (Exception error)
             {
-                return;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            OsDataSet currentSet = _master.Sets[index];
-
-            if (_master.SelectSet != null &&
-                currentSet.SetName == _master.SelectSet.SetName)
-            {
-                return;
-            }
-
-            if (_master.SelectSet != null && 
-                currentSet.SetName != _master.SelectSet.SetName)
-            {
-                StopPaintActiveSet();
-            }
-
-            _master.SelectSet = currentSet;
-
-            StartPaintActiveSet();
         }
 
 
@@ -619,43 +710,50 @@ namespace OsEngine.OsData
         /// </summary>
         public void CreateNewSetDialog()
         {
-            if (_master.Sets == null)
+            try
             {
-                _master.Sets = new List<OsDataSet>();
+                if (_master.Sets == null)
+                {
+                    _master.Sets = new List<OsDataSet>();
+                }
+                OsDataSet set = new OsDataSet("Set_");
+                set.NewLogMessageEvent += SendNewLogMessage;
+
+                OsDataSetUi ui = new OsDataSetUi(set);
+                ui.ShowDialog();
+
+                if (!ui.IsSaved)
+                { // the user did not press the accept button in the form/пользователь не нажал на кнопку принять в форме
+                    set.BaseSettings.Regime = DataSetState.Off;
+                    set.Delete();
+                    return;
+                }
+
+                if (set.SetName == "Set_")
+                {
+                    set.BaseSettings.Regime = DataSetState.Off;
+                    set.Delete();
+                    MessageBox.Show(OsLocalization.Data.Label10);
+                    return;
+                }
+
+                if (_master.Sets.Find(dataSet => dataSet.SetName == set.SetName) != null)
+                {
+                    MessageBox.Show(OsLocalization.Data.Label11);
+                    set.BaseSettings.Regime = DataSetState.Off;
+                    set.Delete();
+                    return;
+                }
+
+                _master.Sets.Add(set);
+                set.Save();
+                ChangeActivSet(_master.Sets.Count - 1);
+                RePaintSetGrid();
             }
-            OsDataSet set = new OsDataSet("Set_");
-            set.NewLogMessageEvent += SendNewLogMessage;
-
-            OsDataSetUi ui = new OsDataSetUi(set);
-            ui.ShowDialog();
-
-            if (!ui.IsSaved)
-            { // the user did not press the accept button in the form/пользователь не нажал на кнопку принять в форме
-                set.BaseSettings.Regime = DataSetState.Off;
-                set.Delete();
-                return;
-            }
-
-            if (set.SetName == "Set_")
+            catch (Exception error)
             {
-                set.BaseSettings.Regime = DataSetState.Off;
-                set.Delete();
-                MessageBox.Show(OsLocalization.Data.Label10);
-                return;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
-            if (_master.Sets.Find(dataSet => dataSet.SetName == set.SetName) != null)
-            {
-                MessageBox.Show(OsLocalization.Data.Label11);
-                set.BaseSettings.Regime = DataSetState.Off;
-                set.Delete();
-                return;
-            }
-
-            _master.Sets.Add(set);
-            set.Save();
-            ChangeActivSet(_master.Sets.Count - 1);
-            RePaintSetGrid();
         }
 
         /// <summary>
@@ -663,28 +761,35 @@ namespace OsEngine.OsData
         /// </summary>
         public void DeleteThisSet(int num)
         {
-            if (_master.Sets == null)
+            try
             {
-                _master.Sets = new List<OsDataSet>();
-            }
+                if (_master.Sets == null)
+                {
+                    _master.Sets = new List<OsDataSet>();
+                }
 
-            if (num >= _master.Sets.Count)
+                if (num >= _master.Sets.Count)
+                {
+                    return;
+                }
+                _master.Sets[num].Delete();
+                _master.Sets[num].BaseSettings.Regime = DataSetState.Off;
+
+                if (_master.SelectSet != null
+                    && _master.Sets[num].SetName == _master.SelectSet.SetName)
+                {
+                    StopPaintActiveSet();
+                    _master.SelectSet = null;
+                }
+
+                _master.Sets.RemoveAt(num);
+
+                RePaintSetGrid();
+            }
+            catch (Exception error)
             {
-                return;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-            _master.Sets[num].Delete();
-            _master.Sets[num].BaseSettings.Regime =  DataSetState.Off;
-
-            if(_master.SelectSet != null 
-                && _master.Sets[num].SetName == _master.SelectSet.SetName)
-            {
-                StopPaintActiveSet();
-                _master.SelectSet = null;
-            }
-
-            _master.Sets.RemoveAt(num);
-
-            RePaintSetGrid();
         }
 
         /// <summary>
@@ -692,20 +797,27 @@ namespace OsEngine.OsData
         /// </summary>
         public void RedactThisSet(int num)
         {
-            if (num >= _master.Sets.Count)
+            try
             {
-                return;
+                if (num >= _master.Sets.Count)
+                {
+                    return;
+                }
+
+                OsDataSet set = _master.Sets[num];
+
+                OsDataSetUi ui = new OsDataSetUi(set);
+                ui.ShowDialog();
+
+                if (ui.IsSaved)
+                {
+                    set.Save();
+                    RefreshActiveSet();
+                }
             }
-
-            OsDataSet set = _master.Sets[num];
-
-            OsDataSetUi ui = new OsDataSetUi(set);
-            ui.ShowDialog();
-
-            if (ui.IsSaved)
+            catch (Exception error)
             {
-                set.Save();
-                RefreshActiveSet();
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
     }

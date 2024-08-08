@@ -2,38 +2,15 @@
 
 namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
 {
-    public class HistoryTrade
-    {
-        public string id;
-        public string price;
-        public string qty;
-        public string quoteQty;
-        public string time;
-        public string isBuyerMaker;
-        public string isBuyerMatch;
-    }
-
     public class AgregatedHistoryTrade
     {
-        [JsonProperty("a")]
-        public long A { get; set; }
-
-        [JsonProperty("p")]
-        public string P { get; set; }
-
-        [JsonProperty("q")]
-        public string Q { get; set; }
-
-        [JsonProperty("f")]
-        public long F { get; set; }
-
-        [JsonProperty("l")]
-        public long L { get; set; }
-
-        [JsonProperty("T")]
-        public long T { get; set; }
-
-        [JsonProperty("m")]
-        public bool M { get; set; }
+        public string a; //": 26129,         // Aggregate tradeId
+        public string p; //": "0.01633102",  // Price
+        public string q; //": "4.70443515",  // Quantity
+        public string f; //": 27781,         // First tradeId
+        public string l; //": 27781,         // Last tradeId
+        public string T; //: 1498793709153,  // Timestamp
+        public string m; //": true,          // Was the buyer the maker?
+        public string M; //": true           // Was the trade the best price match?
     }
 }

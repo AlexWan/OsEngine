@@ -23,7 +23,7 @@ namespace OsEngine.Robots.TechSamples
 
             Regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" }, "Base");
 
-            //делаем простотую надпись, которая будет разделять параметры в таблице
+            //делаем простотую надпись, которая будет разделять параметры в таблице / we make a simple label that will separate the parameters in the table
             CreateParameterLabel("labelSample", "Base", "Params", 30, 15, System.Drawing.Color.White, "Base");
 
             AtrCountToInter = CreateParameter("Atr count", 4m, 1, 10, 1, "Base");
@@ -59,17 +59,17 @@ namespace OsEngine.Robots.TechSamples
 
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            // customization param ui
+            // пользовательский интерфейс параметров настройки / customization param ui
 
             this.ParamGuiSettings.Title = "Custom param gui sample";
             this.ParamGuiSettings.Height = 800;
             this.ParamGuiSettings.Width = 600;
 
-            // 1 tab creation
+            // 1 создание вкладки / 1 tab creation
             CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab("Indicators values");
 
-            // 2 add on custom tab children control
-            // customTab.GridToPaint - it`s a control for your children controls
+            // 2 добавьте на пользовательскую вкладку дочерний элемент управления / 2 add on custom tab children control
+            // customTab.GridToPaint - it`s a control for your children controls / это средство управления для ваших дочерних элементов
             CreateTable();
             customTab.AddChildren(_host);
         }
@@ -235,7 +235,7 @@ namespace OsEngine.Robots.TechSamples
            
         }
 
-        // trade logic
+        // торговая логика / trade logic
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
@@ -262,12 +262,12 @@ namespace OsEngine.Robots.TechSamples
 
             if(positions.Count == 0)
             {
-                // openPos logic
+                // логика открытия позиций / openPos logic
                 OpenPosLogic(candles);
             }
             else
             {
-                // close logic
+                // логика закрытия позиций / close logic
                 ClosePosLogic(candles, positions[0]);
             }
         }

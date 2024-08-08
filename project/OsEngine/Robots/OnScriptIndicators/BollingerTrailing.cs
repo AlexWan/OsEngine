@@ -3,11 +3,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Bollinger Bands trading bargaining robot with pull-up Trailing-Stop through Bollinger Bands
 /// Робот торгующий прорыв Bollinger Bands с подтягивающимся Trailing-Stop по линии Bollinger Bands
 /// </summary>
+[Bot("BollingerTrailing")]
 public class BollingerTrailing : BotPanel
 {
 
@@ -20,12 +22,12 @@ public class BollingerTrailing : BotPanel
         Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
         Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
         Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
-        IndLenght = CreateParameter("IndLength", 10, 10, 80, 3);
+        IndLength = CreateParameter("IndLength", 10, 10, 80, 3);
         BollingerDeviation = CreateParameter("Bollinger Deviation", 2, 0.5m, 4, 0.1m);
 
         _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger",name + "Bollinger", false);
         _bollinger = (Aindicator)_tab.CreateCandleIndicator(_bollinger, "Prime");
-        _bollinger.ParametersDigit[0].Value = IndLenght.ValueInt;
+        _bollinger.ParametersDigit[0].Value = IndLength.ValueInt;
         _bollinger.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
         _bollinger.Save();
 
@@ -44,10 +46,10 @@ public class BollingerTrailing : BotPanel
 
     void Event_ParametrsChangeByUser()
     {
-        if (IndLenght.ValueInt != _bollinger.ParametersDigit[0].Value ||
+        if (IndLength.ValueInt != _bollinger.ParametersDigit[0].Value ||
             BollingerDeviation.ValueDecimal != _bollinger.ParametersDigit[1].Value)
         {
-            _bollinger.ParametersDigit[0].Value = IndLenght.ValueInt;
+            _bollinger.ParametersDigit[0].Value = IndLength.ValueInt;
             _bollinger.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
             _bollinger.Reload();
         }
@@ -103,7 +105,7 @@ public class BollingerTrailing : BotPanel
     /// indicator length
     /// длинна индикатора
     /// </summary>
-    public StrategyParameterInt IndLenght;
+    public StrategyParameterInt IndLength;
 
     public StrategyParameterDecimal BollingerDeviation;
 

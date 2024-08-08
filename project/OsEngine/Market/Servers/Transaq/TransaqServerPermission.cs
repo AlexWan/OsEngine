@@ -103,6 +103,10 @@ namespace OsEngine.Market.Servers.Transaq
         {
             get { return false; }
         }
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return false; }
+        }
 
         #endregion
 

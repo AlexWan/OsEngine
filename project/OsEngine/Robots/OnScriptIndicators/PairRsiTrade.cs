@@ -3,11 +3,13 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 
 /// <summary>
 /// Pair trading based on the RSI indicator
 /// Парная торговля на основе индикатора RSI
 /// </summary>
+[Bot("PairRsiTrade")]
 public class PairRsiTrade : BotPanel
 {
     public PairRsiTrade(string name, StartProgram startProgram)

@@ -21,7 +21,7 @@
         <TabControl Margin="10,21,12,10" Grid.Row="1">
             <TabItem Name="Label29" Header=" Broadcast data " FontSize="14">
                 <Grid>
-                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,125,0,0"/>
+                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,148,0,0"/>
                     <ComboBox x:Name="ComboBoxSets" Margin="366,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
                     <Label Name="Label28" Content="Sets" HorizontalAlignment="Left" Margin="324,5,0,0" VerticalAlignment="Top" />
                     <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="109,35,0,0" VerticalAlignment="Top" Width="184"/>
@@ -46,6 +46,7 @@
                     <TextBox Name="TextBoxTo" HorizontalAlignment="Left" Margin="96,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>
                     <Label Name="LabelFrom"  Content="From" HorizontalAlignment="Left" Margin="9,65,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
                     <Label Name="LabelTo"  Content="To" HorizontalAlignment="Left" Margin="9,95,0,0" VerticalAlignment="Top" FontFamily="Calibri" Width="24"/>
+                    <CheckBox Name="CheckBoxRemoveTrades" Content="Remove trades from memory" HorizontalAlignment="Left" Margin="10,123,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Name="Label30" Header=" Performance settings " FontSize="14">

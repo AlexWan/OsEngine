@@ -50,9 +50,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorBase = Color.DodgerBlue;
             TypeSerch = PriceOscillatorSerchType.Punkt;
             PaintOn = true;
-            _maShort = new MovingAverage(uniqName + "ma1", false) { Lenght = 12 };
+            _maShort = new MovingAverage(uniqName + "ma1", false) { Length = 12 };
             _maShort.Save();
-            _maLong = new MovingAverage(uniqName + "ma2",false){Lenght = 26};
+            _maLong = new MovingAverage(uniqName + "ma2",false){Length = 26};
             _maLong.Save();
             CanDelete = canDelete;
             Load();
@@ -72,8 +72,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorBase = Color.DodgerBlue;
             PaintOn = true;
             TypeSerch = PriceOscillatorSerchType.Punkt;
-            _maShort = new MovingAverage(false) {Lenght = 10};
-            _maLong = new MovingAverage(false) { Lenght = 20 };
+            _maShort = new MovingAverage(false) {Length = 10};
+            _maLong = new MovingAverage(false) { Length = 20 };
             CanDelete = canDelete;
         }
 

@@ -288,7 +288,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (_movingAverage == null)
             {
                 _movingAverage = new MovingAverage(false);
-                _movingAverage.Lenght = Period;
+                _movingAverage.Length = Period;
             }
 
             _movingAverage.Process(candles);
@@ -350,7 +350,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Values = new List<decimal>();
 
             _movingAverage = new MovingAverage(false);
-            _movingAverage.Lenght = Period;
+            _movingAverage.Length = Period;
             _movingAverage.Process(candles);
 
 
