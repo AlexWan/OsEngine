@@ -1119,6 +1119,7 @@
     <Compile Include="Robots\HomeWork\HomeWork4_IndicatorsTrend.cs" />
     <Compile Include="Robots\HomeWork\TableBot.cs" />
     <Compile Include="Robots\HomeWork\TelegramBot.cs" />
+    <Compile Include="Robots\HomeWork\Test.cs" />
     <Compile Include="Robots\IndexArbitrage\IndexArbitrageClassic.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiExchangePairArbitrageOnTheIndex.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiOneLegArbitrageInTrend.cs" />
@@ -1144,6 +1145,7 @@
     <Compile Include="Robots\Patterns\VolatilityAdaptiveCandlesTrader.cs" />
     <Compile Include="Robots\Patterns\ThreeSoldierVolatilityAdaptive.cs" />
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />
+    <Compile Include="Robots\Symphony.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
