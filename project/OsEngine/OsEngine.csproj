@@ -1120,6 +1120,7 @@
     <Compile Include="Robots\HomeWork\TableBot.cs" />
     <Compile Include="Robots\HomeWork\TelegramBot.cs" />
     <Compile Include="Robots\HomeWork\Test.cs" />
+    <Compile Include="Robots\HomeWork\Test1.cs" />
     <Compile Include="Robots\IndexArbitrage\IndexArbitrageClassic.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiExchangePairArbitrageOnTheIndex.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiOneLegArbitrageInTrend.cs" />
