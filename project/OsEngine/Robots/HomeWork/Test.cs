@@ -13,7 +13,7 @@ namespace OsEngine.Robots.HomeWork
     {
         private BotTabSimple _tab;
         private decimal _priceBid;
-        private decimal _volume = 1;
+        private decimal _volume = 10;
         private int _step = 2;
 
         public Test(string name, StartProgram startProgram) : base(name, startProgram)
@@ -30,7 +30,7 @@ namespace OsEngine.Robots.HomeWork
 
         private void MyServer_NewOrderIncomeEvent(Order obj)
         {
-            SendNewLogMessage($"Цена в MyServer_NewOrderIncomeEvent: {obj.Price}", Logging.LogMessageType.Error);
+            SendNewLogMessage($"Цена в MyServer_NewOrderIncomeEvent: {obj.Price}, exvol = {obj.VolumeExecute}", Logging.LogMessageType.Error);
 
             /*if (_tab.PositionsOpenAll.Count > 0)
             {
@@ -76,13 +76,13 @@ namespace OsEngine.Robots.HomeWork
                 {
                     //_step = 1;
                 }
-                if (_tab.PositionsOpenAll.Count > 0)
+                /*if (_tab.PositionsOpenAll.Count > 0)
                 {
                     _tab.PositionsOpenAll[0].OpenOrders[0].Volume++;
                     _tab.ChangeOrderPrice(_tab.PositionsOpenAll[0].OpenOrders[0], _priceBid - 1 * _step);
                     SendNewLogMessage($"Отправляем новую цену: {_priceBid - 1 * _step} и новый объем {_tab.PositionsOpenAll[0].OpenOrders[0].Volume}", Logging.LogMessageType.Error);
                     _step++;
-                }
+                }*/
 
                 Thread.Sleep(5000);
             }
@@ -90,8 +90,8 @@ namespace OsEngine.Robots.HomeWork
 
         private void _tab_OrderUpdateEvent(Order obj)
         {
-            SendNewLogMessage($"Цена в OrderUpdateEvent: {obj.Price}", Logging.LogMessageType.Error);
-            //SendNewLogMessage($"Цена в PositionsOpenAll: {_tab.PositionsOpenAll[0].OpenOrders[0].Price}", Logging.LogMessageType.Error);            
+            SendNewLogMessage($"Цена в OrderUpdateEvent: {obj.Price}, exvol = {obj.VolumeExecute}", Logging.LogMessageType.Error);
+            SendNewLogMessage($"Цена в PositionsOpenAll: {_tab.PositionsOpenAll[0].OpenOrders[0].Price}", Logging.LogMessageType.Error);            
         }
 
         private void _tab_MarketDepthUpdateEvent(MarketDepth obj)
@@ -99,8 +99,8 @@ namespace OsEngine.Robots.HomeWork
             _priceBid = obj.Bids[0].Price;
             if (_tab.PositionsOpenAll.Count == 0)
             {
-                _tab.BuyAtLimit(_volume, _priceBid - 1);
-                SendNewLogMessage($"Открываем ордер с ценой: {_priceBid - 1}", Logging.LogMessageType.Error);
+                _tab.BuyAtLimit(_volume, _priceBid +600);
+                SendNewLogMessage($"Открываем ордер с ценой: {_priceBid + 100}", Logging.LogMessageType.Error);
             }            
         }
 

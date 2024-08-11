@@ -139,8 +139,8 @@ namespace OsEngine.Robots.HomeWork
         {
             _candleArray = _tab.CandlesFinishedOnly.ToArray();
 
-            _bollinger.Lenght = Convert.ToInt32(_bollingerLenght.ValueInt);
-            _bollinger.Process(_tab.CandlesFinishedOnly);
+            //_bollinger.Lenght = Convert.ToInt32(_bollingerLenght.ValueInt);
+            //_bollinger.Process(_tab.CandlesFinishedOnly);
 
             _fractal.Process(_tab.CandlesFinishedOnly);
 
