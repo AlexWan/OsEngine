@@ -87,6 +87,22 @@ namespace OsEngine.Candles.Series
                 return;
             }
 
+            if (CandlesAll != null
+               && CandlesAll.Count > 0
+               && _rencoStartPrice == 0)
+            {
+                _rencoStartPrice = CandlesAll[CandlesAll.Count - 1].Close;
+
+                if (CandlesAll[CandlesAll.Count - 1].Close > CandlesAll[CandlesAll.Count - 1].Open)
+                {
+                    _rencoLastSide = Side.Buy;
+                }
+                else
+                {
+                    _rencoLastSide = Side.Sell;
+                }
+            }
+
             decimal renDist = RencoCandlesPoints.ValueDecimal;
 
             if (

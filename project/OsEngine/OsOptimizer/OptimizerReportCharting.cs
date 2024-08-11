@@ -276,7 +276,7 @@ namespace OsEngine.OsOptimizer
         private void CreateStepsOfOptimization()
         {
             _gridStepsOfOptimization = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
-                DataGridViewAutoSizeRowsMode.AllCells,true);
+                DataGridViewAutoSizeRowsMode.None,true);
 
             _gridStepsOfOptimization.ScrollBars = ScrollBars.Vertical;
 
