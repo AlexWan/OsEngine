@@ -30,8 +30,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = uniqName;
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DeepSkyBlue;
-            Lenght1 = 20;
-            Lenght2 = 10;
+            Length1 = 20;
+            Length2 = 10;
             PaintOn = true;
             CanDelete = canDelete;
             Load();
@@ -48,8 +48,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = Guid.NewGuid().ToString();
             TypeIndicator = IndicatorChartPaintType.Line;
             ColorBase = Color.DeepSkyBlue;
-            Lenght1 = 20;
-            Lenght2 = 10;
+            Length1 = 20;
+            Length2 = 10;
             PaintOn = true;
             CanDelete = canDelete;
         }
@@ -123,13 +123,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// longer MA period
         /// период MA большего периода
         /// </summary>
-        public int Lenght1 { get; set; }
+        public int Length1 { get; set; }
 
         /// <summary>
         /// shorter MA period
         /// период MA меньшего периода
         /// </summary>
-        public int Lenght2 { get; set; }
+        public int Length2 { get; set; }
 
         /// <summary>
         /// цвет линии индикатора Standard Deviation
@@ -157,8 +157,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght1 = Convert.ToInt32(reader.ReadLine());
-                    Lenght2 = Convert.ToInt32(reader.ReadLine());
+                    Length1 = Convert.ToInt32(reader.ReadLine());
+                    Length2 = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.ReadLine();
 
@@ -183,8 +183,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght1);
-                    writer.WriteLine(Lenght2);
+                    writer.WriteLine(Length1);
+                    writer.WriteLine(Length2);
                     writer.WriteLine(PaintOn);
                     writer.Close();
                 }
@@ -342,24 +342,24 @@ namespace OsEngine.Charts.CandleChart.Indicators
             //TypePointsToSearch = VolumeOscillatorTypePoints.Typical;
 
 
-            if ((index < Lenght1) || (index < Lenght2))
+            if ((index < Length1) || (index < Length2))
             {
                 return 0;
             }
 
             decimal sum1 = 0;
-            for (int i = index; i > index - Lenght1; i--)
+            for (int i = index; i > index - Length1; i--)
             {
                 sum1 += candles[i].Volume;  //GetPoint(candles, i);
             }
-            var ma1 = sum1 / Lenght1;
+            var ma1 = sum1 / Length1;
 
             decimal sum2 = 0;
-            for (int i = index; i > index - Lenght2; i--)
+            for (int i = index; i > index - Length2; i--)
             {
                 sum2 += candles[i].Volume;  //GetPoint(candles, i);
             }
-            var ma2 = sum2 / Lenght2;
+            var ma2 = sum2 / Length2;
 
             var vo = (100 * (ma2 - ma1) / ma1);
             return Math.Round(vo, 5);

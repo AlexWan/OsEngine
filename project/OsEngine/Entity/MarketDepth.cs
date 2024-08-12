@@ -78,19 +78,9 @@ namespace OsEngine.Entity
         {
             string[] save = str.Split('_');
 
-            int year =
-            Convert.ToInt32(save[0][0].ToString() + save[0][1].ToString() + save[0][2].ToString() +
-                      save[0][3].ToString());
-            int month = Convert.ToInt32(save[0][4].ToString() + save[0][5].ToString());
-            int day = Convert.ToInt32(save[0][6].ToString() + save[0][7].ToString());
-            int hour = Convert.ToInt32(save[1][0].ToString() + save[1][1].ToString());
-            int minute = Convert.ToInt32(save[1][2].ToString() + save[1][3].ToString());
-            int second = Convert.ToInt32(save[1][4].ToString() + save[1][5].ToString());
-
-            Time = new DateTime(year, month, day, hour, minute, second);
+            Time = DateTimeParseHelper.ParseFromTwoStrings(save[0], save[1]);
 
             Time = Time.AddMilliseconds(Convert.ToInt32(save[2]));
-
             
             string[] bids = save[3].Split('*');
 

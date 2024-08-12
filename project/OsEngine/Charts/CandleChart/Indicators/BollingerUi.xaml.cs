@@ -45,7 +45,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             TextBoxDeviation.Text = _bollinger.Deviation.ToString();
 
-            TextBoxLenght.Text = _bollinger.Lenght.ToString();
+            TextBoxLength.Text = _bollinger.Length.ToString();
             HostColorUp.Child = new TextBox();
             HostColorUp.Child.BackColor = _bollinger.ColorUp;
 
@@ -72,7 +72,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0 ||
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0 ||
                    Convert.ToDecimal(TextBoxDeviation.Text) <= 0)
                 {
                     throw new Exception("error");
@@ -88,7 +88,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _bollinger.ColorDown = HostColorDown.Child.BackColor;
             _bollinger.Deviation = Convert.ToDecimal(TextBoxDeviation.Text);
 
-            _bollinger.Lenght = Convert.ToInt32(TextBoxLenght.Text);
+            _bollinger.Length = Convert.ToInt32(TextBoxLength.Text);
 
             if (CheckBoxPaintOnOff.IsChecked.HasValue)
             {

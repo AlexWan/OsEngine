@@ -23,8 +23,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public IvashovRange(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            LenghtMa = 100;
-            LenghtAverage = 100;
+            LengthMa = 100;
+            LengthAverage = 100;
             TypeIndicator = IndicatorChartPaintType.Line;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             ColorBase = Color.DodgerBlue;
@@ -43,8 +43,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            LenghtMa = 100;
-            LenghtAverage = 100;
+            LengthMa = 100;
+            LengthAverage = 100;
             TypeIndicator = IndicatorChartPaintType.Line;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             ColorBase = Color.DodgerBlue;
@@ -134,13 +134,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length for moving average
         /// длинна периода для рассчёта машки
         /// </summary>
-        public int LenghtMa;
+        public int LengthMa;
 
         /// <summary>
         /// Length of period for smoothing out sliding
         /// длинна периода для сглаживания раздвижки
         /// </summary>
-        public int LenghtAverage;
+        public int LengthAverage;
 
         /// <summary>
         /// is indicator tracing enabled
@@ -164,10 +164,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(LenghtMa);
+                    writer.WriteLine(LengthMa);
                     writer.WriteLine(PaintOn);
                     writer.WriteLine(TypeCalculationAverage);
-                    writer.WriteLine(LenghtAverage);
+                    writer.WriteLine(LengthAverage);
                     writer.Close();
                 }
             }
@@ -194,10 +194,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    LenghtMa = Convert.ToInt32(reader.ReadLine());
+                    LengthMa = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out TypeCalculationAverage);
-                    LenghtAverage = Convert.ToInt32(reader.ReadLine());
+                    LengthAverage = Convert.ToInt32(reader.ReadLine());
                     reader.ReadLine();
 
                     reader.Close();
@@ -288,10 +288,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (_movingCandle == null)
             {
                 _movingCandle = new MovingAverage(false);
-                _movingCandle.Lenght = LenghtMa;
+                _movingCandle.Length = LengthMa;
 
                 _movingAverage = new MovingAverage(false);
-                _movingAverage.Lenght = LenghtAverage;
+                _movingAverage.Length = LengthAverage;
 
                 _range = new List<decimal>();
             }
@@ -359,11 +359,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _range = new List<decimal>();
 
             _movingCandle = new MovingAverage(false);
-            _movingCandle.Lenght = LenghtMa;
+            _movingCandle.Length = LengthMa;
             _movingCandle.Process(candles);
 
             _movingAverage = new MovingAverage(false);
-            _movingAverage.Lenght = LenghtAverage;
+            _movingAverage.Length = LengthAverage;
 
             for (int i = 0; i < candles.Count; i++)
             {
@@ -398,8 +398,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <returns>index value/значение индикатора по индексу</returns>
         private decimal GetValue(List<Candle> candles, int index)
         {
-            if (index < LenghtAverage ||
-                index < LenghtMa ||
+            if (index < LengthAverage ||
+                index < LengthMa ||
                _movingCandle.Values[index] == 0)
             {
                 return 0;

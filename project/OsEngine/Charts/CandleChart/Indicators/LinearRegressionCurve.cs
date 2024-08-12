@@ -32,7 +32,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Close;
             ColorBase = Color.DeepSkyBlue;
-            Lenght = 30;
+            Length = 30;
             Lag = 0;
             PaintOn = true;
             CanDelete = canDelete;
@@ -51,7 +51,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Close;
             ColorBase = Color.DeepSkyBlue;
-            Lenght = 12;
+            Length = 12;
             Lag = 0;
             PaintOn = true;
             CanDelete = canDelete;
@@ -132,7 +132,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// period length to calculate indicator
         /// длинна рассчёта индикатора
         /// </summary>
-        public int Lenght { get; set; }
+        public int Length { get; set; }
 
         /// <summary>
         /// lag in bars qty to calculate indicator
@@ -168,7 +168,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     Lag = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
 
@@ -199,7 +199,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(Lag);
                     writer.WriteLine(PaintOn);
                     writer.WriteLine(TypePointsToSearch);
@@ -371,20 +371,20 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private decimal CalcRegression(List<Candle> candles, int index)
         {
-            if (index - Lenght <= 0)
+            if (index - Length <= 0)
             {
                 return 0;
             }
 
-            decimal[] xVals = new decimal[Lenght];
-            decimal[] yVals = new decimal[Lenght];
+            decimal[] xVals = new decimal[Length];
+            decimal[] yVals = new decimal[Length];
 
             int counter = 0;
 
-            for (int i = index; i > index - Lenght; i--)
+            for (int i = index; i > index - Length; i--)
             {
-                xVals[Lenght - 1 - counter] = counter + 1;
-                yVals[Lenght - 1 - counter] = GetPoint(candles, i);
+                xVals[Length - 1 - counter] = counter + 1;
+                yVals[Length - 1 - counter] = GetPoint(candles, i);
                 counter++;
             }
 
@@ -565,20 +565,20 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         private decimal GetRegressionValue(List<decimal> values, int index)
         {
-            if (index - Lenght <= 0)
+            if (index - Length <= 0)
             {
                 return 0;
             }
 
-            decimal[] xVals = new decimal[Lenght];
-            decimal[] yVals = new decimal[Lenght];
+            decimal[] xVals = new decimal[Length];
+            decimal[] yVals = new decimal[Length];
 
             int counter = 0;
 
-            for (int i = index; i > index - Lenght; i--)
+            for (int i = index; i > index - Length; i--)
             {
-                xVals[Lenght - 1 - counter] = counter + 1;
-                yVals[Lenght - 1 - counter] = values[i];
+                xVals[Length - 1 - counter] = counter + 1;
+                yVals[Length - 1 - counter] = values[i];
                 counter++;
             }
 

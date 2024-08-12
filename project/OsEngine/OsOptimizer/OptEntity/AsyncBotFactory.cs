@@ -9,6 +9,7 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Robots;
 using System;
+using OsEngine.Logging;
 
 namespace OsEngine.OsOptimizer.OptimizerEntity
 {
@@ -114,8 +115,8 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                 }
                 catch (Exception e)
                 {
-                    CustomMessageBoxUi ui = new CustomMessageBoxUi(e.ToString());
-                    ui.ShowDialog();
+                    SendLogMessage("Optimizer critical error. \n Can`t create bot. Error: " + e.ToString(),LogMessageType.Error);
+                    Thread.Sleep(1000);
                 }
             }
         }
@@ -142,5 +143,15 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                 }
             }
         }
+
+        public void SendLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+        }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
     }
 }

@@ -33,7 +33,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 // if this is our first download.
                 // если у нас первая загрузка
-                MovingAverage = new MovingAverage(uniqName + "maSignal", false) { Lenght = 9, TypeCalculationAverage = MovingAverageTypeCalculation.Simple };
+                MovingAverage = new MovingAverage(uniqName + "maSignal", false) { Length = 9, TypeCalculationAverage = MovingAverageTypeCalculation.Simple };
             } 
             else
             {
@@ -58,7 +58,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorDown = Color.DarkRed;
             PaintOn = true;
             Deviation = 2;
-            MovingAverage = new MovingAverage(false){Lenght = 9,TypeCalculationAverage = MovingAverageTypeCalculation.Simple};
+            MovingAverage = new MovingAverage(false){Length = 9,TypeCalculationAverage = MovingAverageTypeCalculation.Simple};
             CanDelete = canDelete;
         }
 

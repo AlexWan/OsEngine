@@ -8,8 +8,8 @@ namespace OsEngine.Indicators
     [Indicator("AC")]
     internal class AC : Aindicator
     {
-        private IndicatorParameterInt _lenghtFastLine;
-        private IndicatorParameterInt _lenghtSlowLine;
+        private IndicatorParameterInt _lengthFastLine; 
+        private IndicatorParameterInt _lengthSlowLine;
         public IndicatorParameterString _candlePoint;
 
         private IndicatorDataSeries _series;
@@ -18,22 +18,22 @@ namespace OsEngine.Indicators
 
         public override void OnStateChange(IndicatorState state)
         {
-            _lenghtFastLine = CreateParameterInt("Fast line length", 5);
-            _lenghtSlowLine = CreateParameterInt("Slow line length", 34);
+            _lengthFastLine = CreateParameterInt("Fast line length", 5);
+            _lengthSlowLine = CreateParameterInt("Slow line length", 34);
             _candlePoint = CreateParameterStringCollection("Candle point", "Typical", Entity.CandlePointsArray);
 
             _series = CreateSeries("AC2", Color.DarkGreen, IndicatorChartPaintType.Column, true);
 
             _ao = IndicatorsFactory.CreateIndicatorByName("AO", Name + "AO", false);
-            ((IndicatorParameterInt)_ao.Parameters[0]).Bind(_lenghtFastLine);
-            ((IndicatorParameterInt)_ao.Parameters[1]).Bind(_lenghtSlowLine);
+            ((IndicatorParameterInt)_ao.Parameters[0]).Bind(_lengthFastLine);
+            ((IndicatorParameterInt)_ao.Parameters[1]).Bind(_lengthSlowLine);
             ((IndicatorParameterString)_ao.Parameters[2]).Bind(_candlePoint);
             ProcessIndicator("AO", _ao);
         }
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (index - _lenghtFastLine.ValueInt >= 0 && index - _lenghtSlowLine.ValueInt >= 0)
+            if (index - _lengthFastLine.ValueInt >= 0 && index - _lengthSlowLine.ValueInt >= 0)
             {
                 _series.Values[index] = GetValue(candles, index);
             }
@@ -41,8 +41,8 @@ namespace OsEngine.Indicators
 
         private decimal GetValue(List<Candle> candles, int index)
         {
-            var smaValue = Summ(_ao.DataSeries[0].Values, index - _lenghtFastLine.ValueInt, index);
-            return Math.Round(_ao.DataSeries[0].Values[index] - smaValue / _lenghtFastLine.ValueInt, 6);
+            var smaValue = Summ(_ao.DataSeries[0].Values, index - _lengthFastLine.ValueInt, index);
+            return Math.Round(_ao.DataSeries[0].Values[index] - smaValue / _lengthFastLine.ValueInt, 6);
         }
 
         private decimal Summ(List<decimal> values, int startIndex, int endIndex)

@@ -9,7 +9,7 @@
     <Grid>
         <Rectangle  Margin="5,5,5,37"/>
         <Button Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="119" Click="ButtonAccept_Click"/>
-        <TextBox Name ="TextBoxLenght" Height="23" Margin="150,18,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name ="TextBoxLength" Height="23" Margin="150,18,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelIndicatorPeriod" Content="RSI Period" HorizontalAlignment="Left" Margin="17,18,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColorK" Content="Color K" HorizontalAlignment="Left" Margin="17,134,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click" Height="22"/>
         <WindowsFormsHost Name="HostColor" Height="22" Margin="150,134,20,0" VerticalAlignment="Top"/>

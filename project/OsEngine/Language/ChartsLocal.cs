@@ -17,9 +17,11 @@ namespace OsEngine.Language
         public string LabelPaintIntdicatorIsVisible => OsLocalization.ConvertToLocString(
             "Eng:Is Visible_" +
             "Ru:Прорисовывать_");
+
         public string LabelIndicatorExponential => OsLocalization.ConvertToLocString(
             "Eng:Exponentially weighted_" +
             "Ru:Экспоненциальное взвешивание_");
+
         public string LabelIndicatorCorrectionCoeff => OsLocalization.ConvertToLocString(
             "Eng:Correction Coefficient_" +
             "Ru:Коэффциент коррекции_");
@@ -27,6 +29,7 @@ namespace OsEngine.Language
         public string LabelIndicatorMultiplier => OsLocalization.ConvertToLocString(
             "Eng:Multiplier_" +
             "Ru:Множитель_");
+
         public string LabelButtonIndicatorColor => OsLocalization.ConvertToLocString(
             "Eng:Color_" +
             "Ru:Цвет_");
@@ -160,7 +163,6 @@ namespace OsEngine.Language
             "Eng:Hide areas_" +
             "Ru:Скрыть области_");
 
-
         public string ChartMenuItem11 => OsLocalization.ConvertToLocString(
             "Eng:Show areas_" +
             "Ru:Показать области_");
@@ -218,6 +220,4 @@ namespace OsEngine.Language
             "Ru:Свечей_");
 
     }
-
-
 }

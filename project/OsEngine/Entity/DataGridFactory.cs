@@ -733,7 +733,7 @@ positionOpener.LifeTimeType
         public static DataGridView GetDataGridProxies()
         {
             DataGridView newGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
@@ -767,7 +767,7 @@ positionOpener.LifeTimeType
         public static DataGridView GetDataGridSecurities()
         {
             DataGridView grid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = grid.DefaultCellStyle;

@@ -20,13 +20,13 @@ public class RviTrade : BotPanel
 
         Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
         Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
-        Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
+        Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
 
-        RviLenght = CreateParameter("RviLength", 10, 10, 80, 3);
+        RviLength = CreateParameter("Rvi Length", 10, 10, 80, 3);
 
         _rvi = IndicatorsFactory.CreateIndicatorByName("RVI",name + "RviArea", false);
         _rvi = (Aindicator)_tab.CreateCandleIndicator(_rvi, "MacdArea");
-        _rvi.ParametersDigit[0].Value = RviLenght.ValueInt;
+        _rvi.ParametersDigit[0].Value = RviLength.ValueInt;
         _rvi.Save();
 
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
@@ -40,9 +40,9 @@ public class RviTrade : BotPanel
 
     void RviTrade_ParametrsChangeByUser()
     {
-        if (RviLenght.ValueInt != _rvi.ParametersDigit[0].Value)
+        if (RviLength.ValueInt != _rvi.ParametersDigit[0].Value)
         {
-            _rvi.ParametersDigit[0].Value = RviLenght.ValueInt;
+            _rvi.ParametersDigit[0].Value = RviLength.ValueInt;
             _rvi.Reload();
         }
     }
@@ -98,7 +98,7 @@ public class RviTrade : BotPanel
     /// indicator length
     /// длинна индикатора
     /// </summary>
-    public StrategyParameterInt RviLenght;
+    public StrategyParameterInt RviLength;
 
     private decimal _lastPrice;
     private decimal _lastRviUp;

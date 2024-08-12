@@ -706,11 +706,11 @@ namespace OsEngine.Market.Servers.QuikLua
                         continue;
                     }
 
-
                     for (int i = 0; i < _myOrdersInMarket.Count; i++)
                     {
                         await CheckOrder(_myOrdersInMarket[i]);
                     }
+
                 }
                 catch (Exception e)
                 {
@@ -804,7 +804,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Order> _myOrdersInMarket = new List<Order>();
 
-        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
         private string _clientCode;
 
@@ -1537,8 +1537,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         MyOrderEvent(order);
                     }
-
-                    CreateMyTrades(qOrder);
                 }
                 catch (Exception error)
                 {

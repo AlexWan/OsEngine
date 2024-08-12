@@ -102,7 +102,8 @@ namespace OsEngine.Market.Servers
 
         public void CreateParamDataGrid()
         {
-            _paramsGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
+            _paramsGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, 
+                DataGridViewAutoSizeRowsMode.AllCells);
             _paramsGrid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();

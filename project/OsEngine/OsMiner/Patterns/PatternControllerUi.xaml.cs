@@ -38,11 +38,11 @@ namespace OsEngine.OsMiner.Patterns
 
             InitializeTabClosePosition();
 
-            _gridPatternsToOpen = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridPatternsToOpen = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _gridPatternsToOpen.MouseClick += _gridPatternsToOpen_MouseClick;
             _gridPatternsToOpen.CellValueChanged += _gridPatternsToOpen_CellValueChanged;
 
-            _gridPatternsToClose = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridPatternsToClose = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
             _gridPatternsToClose.MouseClick += _gridPatternsToClose_MouseClick;
             _gridPatternsToClose.CellValueChanged += _gridPatternsToClose_CellValueChanged;
 
@@ -427,8 +427,8 @@ namespace OsEngine.OsMiner.Patterns
         {
             PatternIndicators pattern = (PatternIndicators)_pattern.GetTempPattern(PatternType.Indicators);
 
-            TextBoxPatternIndicatorLenght.Text = pattern.Length.ToString();
-            TextBoxPatternIndicatorLenght.TextChanged += TextBoxPatternIndicatorLenght_TextChanged;
+            TextBoxPatternIndicatorLength.Text = pattern.Length.ToString();
+            TextBoxPatternIndicatorLength.TextChanged += TextBoxPatternIndicatorLength_TextChanged;
 
             ComboBoxPatternIndicatorSearchType.Items.Add(PatternIndicatorSearchType.CandlePosition);
             ComboBoxPatternIndicatorSearchType.Items.Add(PatternIndicatorSearchType.IndicatorsAngle);
@@ -445,16 +445,16 @@ namespace OsEngine.OsMiner.Patterns
             _pattern.Save();
         }
 
-        void TextBoxPatternIndicatorLenght_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxPatternIndicatorLength_TextChanged(object sender, TextChangedEventArgs e)
         {
             PatternIndicators pattern = (PatternIndicators)_pattern.GetTempPattern(PatternType.Indicators);
             try
             {
-                pattern.Length = Convert.ToInt32(TextBoxPatternIndicatorLenght.Text);
+                pattern.Length = Convert.ToInt32(TextBoxPatternIndicatorLength.Text);
             }
             catch (Exception)
             {
-                TextBoxPatternIndicatorLenght.Text = pattern.Length.ToString();
+                TextBoxPatternIndicatorLength.Text = pattern.Length.ToString();
             }
             _pattern.GetPatternToIndex();
             _pattern.Save();

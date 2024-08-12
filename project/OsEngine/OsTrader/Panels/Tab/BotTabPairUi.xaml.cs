@@ -13,6 +13,7 @@ using System.Windows.Controls;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Collections.Generic;
 using System.Drawing;
+using OsEngine.Charts;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.Journal;
@@ -913,7 +914,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             try
             {
                 Series series = _chartCorrelation.Series[0];
-                series.Points.Clear();
+                series.Points.ClearFast();
 
                 for (int i = 0; i < values.Count; i++)
                 {
@@ -1036,7 +1037,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             try
             {
                 Series series = _chartCointegration.Series[0];
-                series.Points.Clear();
+                series.Points.ClearFast();
 
                 for (int i = 0; i < values.Count; i++)
                 {
@@ -1084,7 +1085,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Series seriesUpLine = _chartCointegration.Series[1];
-                seriesUpLine.Points.Clear();
+                seriesUpLine.Points.ClearFast();
 
                 if (_pair.LineUpCointegration != 0)
                 {
@@ -1093,7 +1094,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Series seriesDownLine = _chartCointegration.Series[2];
-                seriesDownLine.Points.Clear();
+                seriesDownLine.Points.ClearFast();
 
                 if (_pair.LineDownCointegration != 0)
                 {

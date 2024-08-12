@@ -340,7 +340,7 @@ namespace OsEngine.OsMiner
         /// </summary>
         private void CreatePatternGrid()
         {
-            _gridPatternsInSet = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.None);
+            _gridPatternsInSet = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridPatternsInSet.DefaultCellStyle;

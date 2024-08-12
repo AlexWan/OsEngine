@@ -42,9 +42,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _indicator = indicator;
 
-            TextBoxLenght.Text = _indicator.Period1.ToString();
-            TextBoxLenght2.Text = _indicator.Period2.ToString();
-            TextBoxLenght3.Text = _indicator.Period3.ToString();
+            TextBoxLength.Text = _indicator.Period1.ToString();
+            TextBoxLength2.Text = _indicator.Period2.ToString();
+            TextBoxLength3.Text = _indicator.Period3.ToString();
 
             HostColorBase.Child = new TextBox();
             HostColorBase.Child.BackColor = _indicator.ColorBase;
@@ -71,9 +71,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0 ||
-                     Convert.ToInt32(TextBoxLenght2.Text) <= 0 ||
-                      Convert.ToInt32(TextBoxLenght3.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0 ||
+                     Convert.ToInt32(TextBoxLength2.Text) <= 0 ||
+                      Convert.ToInt32(TextBoxLength3.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -85,10 +85,10 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
 
-            _indicator.Period2 = Convert.ToInt32(TextBoxLenght2.Text);
-            _indicator.Period3 = Convert.ToInt32(TextBoxLenght3.Text);
+            _indicator.Period2 = Convert.ToInt32(TextBoxLength2.Text);
+            _indicator.Period3 = Convert.ToInt32(TextBoxLength3.Text);
             _indicator.ColorBase = HostColorBase.Child.BackColor;
-            _indicator.Period1 = Convert.ToInt32(TextBoxLenght.Text);
+            _indicator.Period1 = Convert.ToInt32(TextBoxLength.Text);
             _indicator.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
 
             _indicator.Save();

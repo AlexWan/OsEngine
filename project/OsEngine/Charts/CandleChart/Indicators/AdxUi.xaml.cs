@@ -43,7 +43,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _adx = adx;
 
-            TextBoxLenght.Text = _adx.Lenght.ToString();
+            TextBoxLength.Text = _adx.Length.ToString();
 
             HostColorBase.Child = new TextBox();
             HostColorBase.Child.BackColor = _adx.ColorBase;
@@ -67,7 +67,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0)
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0)
                 {
                     throw new Exception("error");
                 }
@@ -79,7 +79,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
 
             _adx.ColorBase = HostColorBase.Child.BackColor;
-            _adx.Lenght= Convert.ToInt32(TextBoxLenght.Text);
+            _adx.Length= Convert.ToInt32(TextBoxLength.Text);
             _adx.PaintOn = CheckBoxPaintOnOff.IsChecked.Value;
 
             _adx.Save();

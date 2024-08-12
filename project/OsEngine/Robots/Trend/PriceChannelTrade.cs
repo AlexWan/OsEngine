@@ -178,8 +178,8 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            if (_priceCh.ValuesUp == null || _priceCh.ValuesUp.Count < _priceCh.LenghtUpLine + 3
-                || _priceCh.ValuesDown.Count < _priceCh.LenghtDownLine + 3)
+            if (_priceCh.ValuesUp == null || _priceCh.ValuesUp.Count < _priceCh.LengthUpLine + 3
+                || _priceCh.ValuesDown.Count < _priceCh.LengthDownLine + 3)
             {
                 return;
             }

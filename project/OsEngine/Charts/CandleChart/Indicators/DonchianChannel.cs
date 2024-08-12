@@ -30,7 +30,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorUp = Color.DodgerBlue;
             ColorAvg = Color.DarkRed;
             ColorDown = Color.DodgerBlue;
-            Lenght = 20;
+            Length = 20;
             PaintOn = true;
             CanDelete = canDelete;
             Load();
@@ -49,7 +49,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             ColorUp = Color.DodgerBlue;
             ColorAvg = Color.DarkRed;
             ColorDown = Color.DodgerBlue;
-            Lenght = 20;
+            Length = 20;
             PaintOn = true;
             CanDelete = canDelete;
         }
@@ -136,7 +136,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// <summary>
         /// длина расчёта индикатора
         /// </summary>
-        public int Lenght
+        public int Length
         { get; set; }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorAvg = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
@@ -202,7 +202,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     writer.WriteLine(ColorUp.ToArgb());
                     writer.WriteLine(ColorAvg.ToArgb());
                     writer.WriteLine(ColorDown.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(PaintOn);
                     writer.Close();
                 }
@@ -308,7 +308,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             List<decimal> indicatorValues = new List<decimal>();
 
-            if (lastCandleIndex-Lenght < 0)
+            if (lastCandleIndex-Length < 0)
             {
                 indicatorValues.Add(0);
                 indicatorValues.Add(0);
@@ -316,7 +316,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 return indicatorValues;
             }
             
-            for(int i=Lenght; i>=0; i--)
+            for(int i=Length; i>=0; i--)
             {
                 int candleIndex = lastCandleIndex - i;
 

@@ -62,7 +62,8 @@ namespace OsEngine.Entity
         /// <param name="color">Displayed color</param>
         /// <param name="tabName">Owner tab name</param>
         /// <exception cref="Exception">the parameter name of the robot contains a special character. This will cause errors. Take it away</exception>
-        public StrategyParameterLabel(string name, string label, string value, int rowHeight, int textHeight, System.Drawing.Color color, string tabName = null)
+        public StrategyParameterLabel(string name, string label, string value, int rowHeight, int textHeight, 
+            System.Drawing.Color color, string tabName = null)
         {
             if (name.HaveExcessInString())
             {
@@ -1363,7 +1364,8 @@ namespace OsEngine.Entity
         /// <param name="stop">last value in optimization</param>
         /// <param name="step">Step change in optimization</param>
         /// <param name="isChecked">is it active</param>
-        public StrategyParameterDecimalCheckBox(string name, decimal value, decimal start, decimal stop, decimal step, bool isChecked, string tabName = null)
+        public StrategyParameterDecimalCheckBox(string name, decimal value, decimal start, decimal stop, decimal step, 
+            bool isChecked, string tabName = null)
         {
             if (name.HaveExcessInString())
             {

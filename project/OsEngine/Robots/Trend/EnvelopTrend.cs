@@ -39,7 +39,7 @@ namespace OsEngine.Robots.Trend
             TrailStop = CreateParameter("Trail Stop", 0.1m, 0.1m, 5, 0.1m);
 
             _envelop.Deviation = EnvelopDeviation.ValueDecimal;
-            _envelop.MovingAverage.Lenght = EnvelopMovingLength.ValueInt;
+            _envelop.MovingAverage.Length = EnvelopMovingLength.ValueInt;
 
             ParametrsChangeByUser += EnvelopTrend_ParametrsChangeByUser;
 
@@ -53,7 +53,7 @@ namespace OsEngine.Robots.Trend
         private void EnvelopTrend_ParametrsChangeByUser()
         {
             _envelop.Deviation = EnvelopDeviation.ValueDecimal;
-            _envelop.MovingAverage.Lenght = EnvelopMovingLength.ValueInt;
+            _envelop.MovingAverage.Length = EnvelopMovingLength.ValueInt;
             _envelop.Reload();
         }
 
@@ -136,7 +136,7 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            if(candles.Count +5 < _envelop.MovingAverage.Lenght)
+            if(candles.Count +5 < _envelop.MovingAverage.Length)
             {
                 return;
             }

@@ -211,7 +211,7 @@ namespace OsEngine.Robots.Trend
             }
 
             if (_sma.Values == null || _stoc.ValuesUp == null ||
-                _sma.Lenght + 3 > _sma.Values.Count || _stoc.P1 + 3 > _stoc.ValuesUp.Count)
+                _sma.Length + 3 > _sma.Values.Count || _stoc.P1 + 3 > _stoc.ValuesUp.Count)
             {
                 return;
             }

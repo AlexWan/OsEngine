@@ -110,7 +110,7 @@ namespace OsEngine.OsOptimizer
         private void CreateTable()
         {
             _securitiesNamesGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.None);
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _securitiesNamesGrid.DefaultCellStyle;

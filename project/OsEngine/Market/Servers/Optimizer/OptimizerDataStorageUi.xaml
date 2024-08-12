@@ -11,7 +11,7 @@
         <TabControl Margin="10,10,12,10">
             <TabItem Name="Label22" Header="Broadcast data" FontSize="14">
                 <Grid >
-                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,125,0,0"/>
+                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,71,0,0"/>
                     <ComboBox x:Name="ComboBoxSets" Margin="365,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
                     <Label Name="Label28" Content="Sets" HorizontalAlignment="Left" Margin="323,5,0,0" VerticalAlignment="Top" />
                     <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="114,35,0,0" VerticalAlignment="Top" Width="178"/>
@@ -20,22 +20,6 @@
                     <TextBox x:Name="TextBoxDataPath" Margin="323,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <ComboBox x:Name="ComboBoxDataSourseType" HorizontalAlignment="Left" Margin="95,5,0,0" VerticalAlignment="Top" Width="197"/>
                     <Label Name="Label24" Content="Source" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top"  />
-                    <Slider x:Name="SliderFrom" Margin="267,65,10,0" VerticalAlignment="Top" Height="22"/>
-                    <Slider x:Name="SliderTo" Margin="267,95,12,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
-                        <Slider.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform/>
-                                <SkewTransform/>
-                                <RotateTransform Angle="-180"/>
-                                <TranslateTransform/>
-                            </TransformGroup>
-                        </Slider.RenderTransform>
-                    </Slider>
-
-                    <TextBox x:Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="95,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>
-                    <TextBox x:Name="TextBoxTo" HorizontalAlignment="Left" Margin="95,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>
-                    <Label x:Name="LabelFrom"  Content="From" HorizontalAlignment="Left" Margin="10,65,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
-                    <Label x:Name="LabelTo"  Content="To" HorizontalAlignment="Left" Margin="10,95,0,0" VerticalAlignment="Top" FontFamily="Calibri" />
                 </Grid>
             </TabItem>
             <TabItem Name="Label23" Header="Logging" FontSize="14">

@@ -389,7 +389,7 @@ namespace OsEngine.Robots.Patterns
 
         /// <summary>
         /// exit patterns
-        /// одиночные паттерны для входа в позицию
+        /// одиночные паттерны для выхода в позицию
         /// </summary>
         public List<IPattern> PatternsToClose = new List<IPattern>();
 

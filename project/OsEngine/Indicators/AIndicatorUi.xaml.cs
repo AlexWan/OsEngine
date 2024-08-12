@@ -59,7 +59,7 @@ namespace OsEngine.Indicators
         private void CreateGridParam()
         {
             _gridParam = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
-                DataGridViewAutoSizeRowsMode.None);
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridParam.DefaultCellStyle;
@@ -190,7 +190,7 @@ namespace OsEngine.Indicators
             //_series = CreateSeries("Ma", Color.DodgerBlue, IndicatorChartPaintType.Line, false);
 
             _gridVisual = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
-                DataGridViewAutoSizeRowsMode.None);
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridVisual.DefaultCellStyle;
@@ -318,7 +318,7 @@ namespace OsEngine.Indicators
             //_series = CreateSeries("Ma", Color.DodgerBlue, IndicatorChartPaintType.Line, false);
 
             _gridIndicators = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
-                DataGridViewAutoSizeRowsMode.None);
+                DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridIndicators.DefaultCellStyle;

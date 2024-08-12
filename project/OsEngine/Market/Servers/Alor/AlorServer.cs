@@ -1962,11 +1962,17 @@ namespace OsEngine.Market.Servers.Alor
                 return;
             }
 
-            portf.ValueBegin = baseMessage.portfolioLiquidationValue.ToDecimal();
+            if(portf.ValueBegin == 0)
+            {
+                portf.ValueBegin = baseMessage.portfolioLiquidationValue.ToDecimal();
+            }
+
             portf.ValueCurrent = baseMessage.portfolioLiquidationValue.ToDecimal();
+            
+            portf.ValueBlocked = baseMessage.portfolioLiquidationValue.ToDecimal() - baseMessage.buyingPower.ToDecimal();
+           
             portf.Profit = baseMessage.profit.ToDecimal();
             
-
             if (PortfolioEvent != null)
             {
                 PortfolioEvent(_myPortfolious);

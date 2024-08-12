@@ -11,7 +11,7 @@
     <Grid >
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="124" Click="ButtonAccept_Click"/>
-        <TextBox x:Name ="TextBoxLenght" Margin="154,18,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox x:Name ="TextBoxLength" Margin="154,18,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Left" Margin="22,18,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,108,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColorUp" Content="Color up" HorizontalAlignment="Left" Margin="20,48,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />

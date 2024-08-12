@@ -30,8 +30,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = uniqName;
             TypeIndicator = IndicatorChartPaintType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Exponential;
-            LenghtShort = 5;
-            LenghtLong = 32;
+            LengthShort = 5;
+            LengthLong = 32;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
             PaintOn = true;
@@ -50,8 +50,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = Guid.NewGuid().ToString();
 
             TypeIndicator = IndicatorChartPaintType.Column;
-            LenghtShort = 5;
-            LenghtLong = 32;
+            LengthShort = 5;
+            LengthLong = 32;
             ColorUp = Color.DodgerBlue;
             ColorDown = Color.DarkRed;
             PaintOn = true;
@@ -119,8 +119,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                     Values.Clear();
                 }
 
-                _longSma = new MovingAverage(false) { Lenght = LenghtLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
-                _shortSma = new MovingAverage (false){ Lenght = LenghtShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                _longSma = new MovingAverage(false) { Length = LengthLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                _shortSma = new MovingAverage (false){ Length = LengthShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
             }
         }
 
@@ -155,24 +155,24 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// long period length
         /// длинна длинного периода
         /// </summary>
-        public int LenghtLong
+        public int LengthLong
         {
             get
             {
                 if (_longSma == null)
                 {
-                    _longSma = new MovingAverage (false){ Lenght = 34, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                    _longSma = new MovingAverage (false){ Length = 34, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
                     
                 }
-                return _longSma.Lenght;
+                return _longSma.Length;
             }
             set
             {
                 if (_longSma == null)
                 {
-                    _longSma = new MovingAverage(false) { Lenght = 34, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                    _longSma = new MovingAverage(false) { Length = 34, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
                 }
-                _longSma.Lenght = value;
+                _longSma.Length = value;
             }
         }
 
@@ -180,23 +180,23 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// length of a short period
         /// длинна короткого периода
         /// </summary>
-        public int LenghtShort
+        public int LengthShort
         {
             get
             {
                 if (_shortSma == null)
                 {
-                    _shortSma = new MovingAverage(false) { Lenght = 5, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                    _shortSma = new MovingAverage(false) { Length = 5, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
                 }
-                return _shortSma.Lenght;
+                return _shortSma.Length;
             }
             set
             {
                 if (_shortSma == null)
                 {
-                    _shortSma = new MovingAverage(false) { Lenght = 5, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                    _shortSma = new MovingAverage(false) { Length = 5, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
                 }
-                _shortSma.Lenght = value;
+                _shortSma.Length = value;
             } 
         }
 
@@ -237,8 +237,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     writer.WriteLine(ColorUp.ToArgb());
                     writer.WriteLine(ColorDown.ToArgb());
-                    writer.WriteLine(LenghtShort);
-                    writer.WriteLine(LenghtLong);
+                    writer.WriteLine(LengthShort);
+                    writer.WriteLine(LengthLong);
                     writer.WriteLine(PaintOn);
                     writer.WriteLine(TypeCalculationAverage);
 
@@ -268,8 +268,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    LenghtShort = Convert.ToInt32(reader.ReadLine());
-                    LenghtLong = Convert.ToInt32(reader.ReadLine());
+                    LengthShort = Convert.ToInt32(reader.ReadLine());
+                    LengthLong = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     MovingAverageTypeCalculation typeCalculation;
                     Enum.TryParse(reader.ReadLine(), true, out typeCalculation);
@@ -335,8 +335,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 return;
             }
-            _longSma = new MovingAverage(false) { Lenght = LenghtLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
-            _shortSma = new MovingAverage(false) { Lenght = LenghtShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+            _longSma = new MovingAverage(false) { Length = LengthLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+            _shortSma = new MovingAverage(false) { Length = LengthShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
             Values = null;
             ProcessAll(_myCandles);
 
@@ -402,8 +402,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (Values == null)
             {
                 Values = new List<decimal>();
-                _longSma = new MovingAverage(false) { Lenght = LenghtLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
-                _shortSma = new MovingAverage(false) { Lenght = LenghtShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                _longSma = new MovingAverage(false) { Length = LengthLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                _shortSma = new MovingAverage(false) { Length = LengthShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
 
                 Values.Add(GetValueSimple(candles, candles.Count - 1));
             }
@@ -427,8 +427,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (_shortSma == null)
             {
-                _longSma = new MovingAverage(false) { Lenght = LenghtLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
-                _shortSma = new MovingAverage(false) { Lenght = LenghtShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                _longSma = new MovingAverage(false) { Length = LengthLong, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
+                _shortSma = new MovingAverage(false) { Length = LengthShort, TypeCalculationAverage = TypeCalculationAverage, TypePointsToSearch = PriceTypePoints.Median };
             }
             else
             {
@@ -470,8 +470,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _longSma.Process(candles);
             _shortSma.Process(candles);
 
-            if (index - LenghtLong <= 0 ||
-                index - LenghtShort <= 0)
+            if (index - LengthLong <= 0 ||
+                index - LengthShort <= 0)
             {
                 return 0;
             }

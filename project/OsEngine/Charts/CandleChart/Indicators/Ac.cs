@@ -24,8 +24,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public Ac(string uniqName, bool canDelete)
         {
             Name = uniqName;
-            LenghtLong = 34;
-            LenghtShort = 5;
+            LengthLong = 34;
+            LengthShort = 5;
             TypeIndicator = IndicatorChartPaintType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             PaintOn = true;
@@ -45,8 +45,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             Name = Guid.NewGuid().ToString();
 
-            LenghtLong = 34;
-            LenghtShort = 5;
+            LengthLong = 34;
+            LengthShort = 5;
             TypeIndicator = IndicatorChartPaintType.Column;
             TypeCalculationAverage = MovingAverageTypeCalculation.Simple;
             PaintOn = true;
@@ -141,13 +141,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// MA calculation period
         /// длинна периода для рассчёта машки
         /// </summary>
-        public int LenghtLong;
+        public int LengthLong;
 
         /// <summary>
         /// MA calculation period
         /// длинна периода для рассчёта машки
         /// </summary>
-        public int LenghtShort;
+        public int LengthShort;
 
         /// <summary>
         /// is indicator tracing enabled
@@ -172,8 +172,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     writer.WriteLine(ColorUp.ToArgb());
                     writer.WriteLine(ColorDown.ToArgb());
-                    writer.WriteLine(LenghtLong);
-                    writer.WriteLine(LenghtShort);
+                    writer.WriteLine(LengthLong);
+                    writer.WriteLine(LengthShort);
                     writer.WriteLine(PaintOn);
                     writer.WriteLine(TypeCalculationAverage);
                     writer.Close();
@@ -202,8 +202,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 {
                     ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    LenghtLong = Convert.ToInt32(reader.ReadLine());
-                    LenghtShort = Convert.ToInt32(reader.ReadLine());
+                    LengthLong = Convert.ToInt32(reader.ReadLine());
+                    LengthShort = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out TypeCalculationAverage);
                     reader.ReadLine();
@@ -281,11 +281,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (_ao == null)
             {
                 _ao = new AwesomeOscillator(false);
-                _ao.LenghtLong = LenghtLong;
-                _ao.LenghtShort = LenghtShort;
+                _ao.LengthLong = LengthLong;
+                _ao.LengthShort = LengthShort;
 
                 _movingAverage = new MovingAverage(false);
-                _movingAverage.Lenght = LenghtShort;
+                _movingAverage.Length = LengthShort;
             }
 
             _ao.Process(candles);
@@ -348,13 +348,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Values = new List<decimal>();
 
             _ao = new AwesomeOscillator(false);
-            _ao.LenghtLong = LenghtLong;
-            _ao.LenghtShort = LenghtShort;
+            _ao.LengthLong = LengthLong;
+            _ao.LengthShort = LengthShort;
 
             _ao.Process(candles);
 
             _movingAverage = new MovingAverage(false);
-            _movingAverage.Lenght = LenghtShort;
+            _movingAverage.Length = LengthShort;
             _movingAverage.Process(_ao.Values);
 
             for (int i = 0; i < candles.Count; i++)
@@ -390,7 +390,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         private decimal GetValue(int index)
         {
             if (
-                index < LenghtShort || index < LenghtLong ||
+                index < LengthShort || index < LengthLong ||
                _ao.Values[index] == 0)
             {
                 return 0;

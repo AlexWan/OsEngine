@@ -41,7 +41,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _rsi = rsi;
 
-            TextBoxLenght.Text = _rsi.RsiLenght.ToString();
+            TextBoxLength.Text = _rsi.RsiLength.ToString();
             HostColor.Child = new TextBox();
             HostColor.Child.BackColor = _rsi.ColorK;
             HostColorD.Child = new TextBox();
@@ -67,7 +67,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         {
             try
             {
-                if (Convert.ToInt32(TextBoxLenght.Text) <= 0 ||
+                if (Convert.ToInt32(TextBoxLength.Text) <= 0 ||
                     Convert.ToInt32(TextBoxStochasticLength.Text) <= 0 ||
                     Convert.ToInt32(TextBoxK.Text) <= 0 ||
                     Convert.ToInt32(TextBoxD.Text) <= 0)
@@ -83,7 +83,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             _rsi.ColorK = HostColor.Child.BackColor;
             _rsi.ColorD = HostColorD.Child.BackColor;
-            _rsi.RsiLenght = Convert.ToInt32(TextBoxLenght.Text);
+            _rsi.RsiLength = Convert.ToInt32(TextBoxLength.Text);
             _rsi.StochasticLength = Convert.ToInt32(TextBoxStochasticLength.Text);
             _rsi.K = Convert.ToInt32(TextBoxK.Text);
             _rsi.D = Convert.ToInt32(TextBoxD.Text);

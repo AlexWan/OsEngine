@@ -200,7 +200,7 @@ namespace OsEngine.Charts.ClusterChart
 
                 if (oldcandleSeries.Points.Count != 0)
                 {
-                    oldcandleSeries.Points.Clear();
+                    oldcandleSeries.Points.ClearFast();
                 }
 
                 //_chartElements = new List<IChartElement>();
@@ -225,7 +225,7 @@ namespace OsEngine.Charts.ClusterChart
                 {
                     if (_chart.Series[i].Points.Count != 0)
                     {
-                        _chart.Series[i].Points.Clear();
+                        _chart.Series[i].Points.ClearFast();
                     }
 
                 }

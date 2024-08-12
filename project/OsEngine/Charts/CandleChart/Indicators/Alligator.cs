@@ -30,15 +30,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Name = uniqName;
             TypeIndicator = IndicatorChartPaintType.Line;
 
-            LenghtBase = 8;
+            LengthBase = 8;
             ShiftBase = 5;
             ColorBase = Color.DarkRed;
 
-            LenghtUp = 5;
+            LengthUp = 5;
             ShiftUp = 3;
             ColorUp = Color.LawnGreen;
 
-            LenghtDown = 13;
+            LengthDown = 13;
             ShiftDown = 8;
             ColorDown = Color.DodgerBlue;
             
@@ -60,15 +60,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             TypeIndicator = IndicatorChartPaintType.Line;
 
-            LenghtBase = 8;
+            LengthBase = 8;
             ShiftBase = 5;
             ColorBase = Color.DarkRed;
 
-            LenghtUp = 5;
+            LengthUp = 5;
             ShiftUp = 3;
             ColorUp = Color.LawnGreen;
 
-            LenghtDown = 13;
+            LengthDown = 13;
             ShiftDown = 8;
             ColorDown = Color.DodgerBlue;
 
@@ -145,17 +145,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _maUp = new MovingAverage(false)
                 {
                     TypeCalculationAverage = value,
-                    Lenght = LenghtUp,
+                    Length = LengthUp,
                 };
                 _maDown = new MovingAverage(false)
                 {
                     TypeCalculationAverage = value,
-                    Lenght = LenghtDown,
+                    Length = LengthDown,
                 };
                 _maBase = new MovingAverage(false)
                 {
                     TypeCalculationAverage = value,
-                    Lenght = LenghtBase,
+                    Length = LengthBase,
                 };
             }
         }
@@ -211,7 +211,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         public Color ColorUp { get; set; }
 
         /// <summary>
-        /// centerline colour
+        /// centerline color
         /// цвет центральной линии
         /// </summary>
         public Color ColorBase { get; set; }
@@ -220,19 +220,19 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// speed line length
         /// длинна скоростной линии
         /// </summary>
-        public int LenghtUp;
+        public int LengthUp;
 
         /// <summary>
         /// centerline length
         /// длинна центральной линии
         /// </summary>
-        public int LenghtBase;
+        public int LengthBase;
 
         /// <summary>
         /// slow line length
         /// длинна медленной линии
         /// </summary>
-        public int LenghtDown;
+        public int LengthDown;
 
         /// <summary>
         /// topline shift
@@ -273,15 +273,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
-                    writer.WriteLine(LenghtBase);
+                    writer.WriteLine(LengthBase);
                     writer.WriteLine(ShiftBase);
                     writer.WriteLine(ColorBase.ToArgb());
 
-                    writer.WriteLine(LenghtUp);
+                    writer.WriteLine(LengthUp);
                     writer.WriteLine(ShiftUp);
                     writer.WriteLine(ColorUp.ToArgb());
 
-                    writer.WriteLine(LenghtDown);
+                    writer.WriteLine(LengthDown);
                     writer.WriteLine(ShiftDown);
                     writer.WriteLine(ColorDown.ToArgb());
                     
@@ -312,15 +312,15 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
-                    LenghtBase = Convert.ToInt32(reader.ReadLine());
+                    LengthBase = Convert.ToInt32(reader.ReadLine());
                     ShiftBase = Convert.ToInt32(reader.ReadLine());
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
 
-                    LenghtUp = Convert.ToInt32(reader.ReadLine());
+                    LengthUp = Convert.ToInt32(reader.ReadLine());
                     ShiftUp = Convert.ToInt32(reader.ReadLine());
                     ColorUp = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
 
-                    LenghtDown = Convert.ToInt32(reader.ReadLine());
+                    LengthDown = Convert.ToInt32(reader.ReadLine());
                     ShiftDown = Convert.ToInt32(reader.ReadLine());
                     ColorDown = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
 
@@ -536,7 +536,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _maUp = new MovingAverage(false)
                 {
                     TypeCalculationAverage = TypeCalculationAverage,
-                    Lenght = LenghtUp,
+                    Length = LengthUp,
                     TypePointsToSearch = PriceTypePoints.Median
                 };
             }
@@ -565,7 +565,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _maBase = new MovingAverage(false)
                 {
                     TypeCalculationAverage = TypeCalculationAverage,
-                    Lenght = LenghtBase,
+                    Length = LengthBase,
                     TypePointsToSearch = PriceTypePoints.Median
                 };
             }
@@ -594,7 +594,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _maDown = new MovingAverage(false)
                 {
                     TypeCalculationAverage = TypeCalculationAverage,
-                    Lenght = LenghtDown,
+                    Length = LengthDown,
                     TypePointsToSearch = PriceTypePoints.Median
                 };
             }

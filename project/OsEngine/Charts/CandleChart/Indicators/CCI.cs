@@ -36,7 +36,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Typical;
             ColorBase = Color.DeepSkyBlue;
-            Lenght = 20;
+            Length = 20;
             PaintOn = true;
             CanDelete = canDelete;
             Load();
@@ -54,7 +54,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             TypeIndicator = IndicatorChartPaintType.Line;
             TypePointsToSearch = PriceTypePoints.Typical;
             ColorBase = Color.DeepSkyBlue;
-            Lenght = 20;
+            Length = 20;
             PaintOn = true;
             CanDelete = canDelete;
         }
@@ -132,9 +132,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         /// <summary>
         /// period length to calculate indicator
-        /// длинна рассчёта индикатора
+        /// длинна расчёта индикатора
         /// </summary>
-        public int Lenght { get; set; }
+        public int Length { get; set; } 
 
         /// <summary>
         /// indicator line color
@@ -164,7 +164,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamReader reader = new StreamReader(@"Engine\" + Name + @".txt"))
                 {
                     ColorBase = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                    Lenght = Convert.ToInt32(reader.ReadLine());
+                    Length = Convert.ToInt32(reader.ReadLine());
                     PaintOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out TypePointsToSearch);
                     reader.ReadLine();
@@ -190,7 +190,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @".txt", false))
                 {
                     writer.WriteLine(ColorBase.ToArgb());
-                    writer.WriteLine(Lenght);
+                    writer.WriteLine(Length);
                     writer.WriteLine(PaintOn);
                     writer.WriteLine(TypePointsToSearch);
                     writer.Close();
@@ -382,27 +382,27 @@ namespace OsEngine.Charts.CandleChart.Indicators
         private decimal GetValueCci(List<Candle> candles, int index)
         {
 
-            if (index - Lenght <= 0)
+            if (index - Length <= 0)
             {
                 return 0;
             }
 
             decimal sum = 0;
-            for (int i = index; i > index - Lenght; i--)
+            for (int i = index; i > index - Length; i--)
             {
                 sum += GetPoint(candles, i);
             }
             // average count
             // подсчет средней
-            var ma = sum / Lenght;       
+            var ma = sum / Length;       
 
             decimal md = 0;
-            for (int i = index; i > index - Lenght; i--)
+            for (int i = index; i > index - Length; i--)
             {
                 md += Math.Abs(ma - GetPoint(candles, i));
             }
 
-            var cciP = (GetPoint(candles, index) - ma) / (md * 0.015m / Lenght);
+            var cciP = (GetPoint(candles, index) - ma) / (md * 0.015m / Length);
             return Math.Round(cciP, 5);
         }
     }

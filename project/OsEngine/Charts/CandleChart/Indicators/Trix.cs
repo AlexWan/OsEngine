@@ -292,17 +292,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 _vtrixMa3 = new List<decimal>();
 
                 _trixMa1 = new MovingAverage(false);
-                _trixMa1.Lenght = Period;
+                _trixMa1.Length = Period;
                 _trixMa1.TypePointsToSearch = TypePoint;
                 _trixMa1.TypeCalculationAverage = TypeCalculationAverage;
 
                 _trixMa2 = new MovingAverage(false);
-                _trixMa2.Lenght = Period;
+                _trixMa2.Length = Period;
                 _trixMa2.TypePointsToSearch = TypePoint;
                 _trixMa2.TypeCalculationAverage = TypeCalculationAverage;
 
                 _trixMa3 = new MovingAverage(false);
-                _trixMa3.Lenght = Period;
+                _trixMa3.Length = Period;
                 _trixMa3.TypePointsToSearch = TypePoint;
                 _trixMa3.TypeCalculationAverage = TypeCalculationAverage;
 
@@ -378,17 +378,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _vtrixMa3 = new List<decimal>();
 
             _trixMa1 = new MovingAverage(false);
-            _trixMa1.Lenght = Period;
+            _trixMa1.Length = Period;
             _trixMa1.TypePointsToSearch = TypePoint;
             _trixMa1.TypeCalculationAverage = TypeCalculationAverage;
 
             _trixMa2 = new MovingAverage(false);
-            _trixMa2.Lenght = Period;
+            _trixMa2.Length = Period;
             _trixMa2.TypePointsToSearch = TypePoint;
             _trixMa2.TypeCalculationAverage = TypeCalculationAverage;
 
             _trixMa3 = new MovingAverage(false);
-            _trixMa3.Lenght = Period;
+            _trixMa3.Length = Period;
             _trixMa3.TypePointsToSearch = TypePoint;
             _trixMa3.TypeCalculationAverage = TypeCalculationAverage;
 

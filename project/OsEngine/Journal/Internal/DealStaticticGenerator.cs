@@ -421,9 +421,9 @@ namespace OsEngine.Journal.Internal
 
         private static decimal GetValueStandardDeviation(List<decimal> candles)
         {
-            int lenght = candles.Count-1;
+            int length = candles.Count-1;
 
-            if(lenght < 2)
+            if(length < 2)
             {
                 return 0;
             }
@@ -432,21 +432,21 @@ namespace OsEngine.Journal.Internal
 
             decimal sum = 0;
 
-            for (int j = lenght; j > -1; j--)
+            for (int j = length; j > -1; j--)
             {
                 sum += candles[j];
             }
 
-            var m = sum / lenght;
+            var m = sum / length;
 
-            for (int i = lenght; i > -1; i--)
+            for (int i = length; i > -1; i--)
             {
                 decimal x = candles[i] - m;  //Difference between values for period and average/разница между значениями за период и средней
-                double g = Math.Pow((double)x, 2.0);   // difference square/ квадрат зницы
+                double g = Math.Pow((double)x, 2.0);   // difference square
                 sd += (decimal)g;   //square footage/ сумма квадратов
             }
 
-            sd = (decimal)Math.Sqrt((double)sd / lenght);  //find the root of sum/period // находим корень из суммы/период 
+            sd = (decimal)Math.Sqrt((double)sd / length);  //find the root of sum/period // находим корень из суммы/период 
 
             return Math.Round(sd, 5);
 

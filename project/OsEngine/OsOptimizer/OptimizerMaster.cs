@@ -733,7 +733,7 @@ namespace OsEngine.OsOptimizer
 
         private bool _lastInSample;
 
-        private decimal GetInSampleRecurs(decimal curLenghtInSample,int fazeCount, bool lastInSample, int allDays)
+        private decimal GetInSampleRecurs(decimal curLengthInSample,int fazeCount, bool lastInSample, int allDays)
         {
             // х = Y + Y/P * С;
             // x - общая длинна в днях. Уже известна
@@ -741,7 +741,7 @@ namespace OsEngine.OsOptimizer
             // P - процент OutOfSample от InSample
             // C - количество отрезков
 
-            decimal outOfSampleLength = curLenghtInSample * (_percentOnFilration / 100);
+            decimal outOfSampleLength = curLengthInSample * (_percentOnFilration / 100);
 
             int count = fazeCount;
 
@@ -750,16 +750,16 @@ namespace OsEngine.OsOptimizer
                 count--;
             }
 
-            int allLenght = Convert.ToInt32(curLenghtInSample + outOfSampleLength * count);
+            int allLength = Convert.ToInt32(curLengthInSample + outOfSampleLength * count);
 
-            if(allLenght > allDays)
+            if(allLength > allDays)
             {
-                curLenghtInSample--;
-                return GetInSampleRecurs(curLenghtInSample, fazeCount, lastInSample, allDays);
+                curLengthInSample--;
+                return GetInSampleRecurs(curLengthInSample, fazeCount, lastInSample, allDays);
             }
             else
             {
-                return curLenghtInSample;
+                return curLengthInSample;
             }
         }
 

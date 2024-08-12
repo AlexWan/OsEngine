@@ -5,7 +5,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Button x:Name ="ButtonAccept"  Content="Accept" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="152" Click="ButtonAccept_Click"/>
-        <TextBox x:Name ="TextBoxLenght" HorizontalAlignment="Left" Height="23" Margin="152,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name ="TextBoxLength" HorizontalAlignment="Left" Height="23" Margin="152,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Left" Margin="19,17,0,0" VerticalAlignment="Top"/>
         <Button x:Name="ButtonColor" Content="Color" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="19,107,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
         <WindowsFormsHost x:Name="HostColor" HorizontalAlignment="Left" Height="22" Margin="152,107,0,0" VerticalAlignment="Top" Width="120"/>

@@ -48,9 +48,9 @@ namespace OsEngine.Robots.MarketMaker
             Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
             RsiLength = CreateParameter("RsiLength", 10, 5, 150, 2);
 
-            _rsi = new Rsi(name + "RSI", false) { Lenght = 20, ColorBase = Color.Gold, };
+            _rsi = new Rsi(name + "RSI", false) { Length = 20, ColorBase = Color.Gold, };
             _rsi = (Rsi)_tabIndex.CreateCandleIndicator(_rsi, "RsiArea");
-            _rsi.Lenght = RsiLength.ValueInt;
+            _rsi.Length = RsiLength.ValueInt;
             _rsi.Save();
 
             ParametrsChangeByUser += TwoLegArbitrage_ParametrsChangeByUser;
@@ -67,9 +67,9 @@ namespace OsEngine.Robots.MarketMaker
         /// </summary>
         void TwoLegArbitrage_ParametrsChangeByUser()
         {
-            if (_rsi.Lenght != RsiLength.ValueInt)
+            if (_rsi.Length != RsiLength.ValueInt)
             {
-                _rsi.Lenght = RsiLength.ValueInt;
+                _rsi.Length = RsiLength.ValueInt;
                 _rsi.Reload();
             }
         }
@@ -250,7 +250,7 @@ namespace OsEngine.Robots.MarketMaker
 
             _lastRsi = _rsi.Values[_rsi.Values.Count - 1];
 
-            if (_rsi.Values == null || _rsi.Values.Count < _rsi.Lenght + 5)
+            if (_rsi.Values == null || _rsi.Values.Count < _rsi.Length + 5)
             {
                 return;
 
