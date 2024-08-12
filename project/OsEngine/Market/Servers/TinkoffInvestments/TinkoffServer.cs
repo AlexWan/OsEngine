@@ -33,10 +33,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             CreateParameterString(OsLocalization.Market.ServerParamToken, "");
             CreateParameterBoolean(OsLocalization.Market.UseStock, true);
             CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
-            CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
+            CreateParameterBoolean(OsLocalization.Market.UseOptions, false); // с некоторого времени торговля опционами не доступна по API Т-Инвестиций
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterString("Custom unique terminal id (order prefix <= 3 symbols)", "000");
             CreateParameterBoolean("Filter out non-market data (holiday trading)", true);
+            CreateParameterBoolean("Filter out dealer trades", false);
         }
     }
 
@@ -83,6 +84,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 _accessToken = ((ServerParameterString)ServerParameters[0]).Value;
                 _customTerminalId = ((ServerParameterString)ServerParameters[5]).Value;
                 _filterOutNonMarketData = ((ServerParameterBool)ServerParameters[6]).Value;
+                _filterOutDealerTrades = ((ServerParameterBool)ServerParameters[7]).Value;
 
                 if (string.IsNullOrEmpty(_accessToken))
                 {
@@ -267,6 +269,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         private string _customTerminalId; // id to avoid duplicate order error
         private bool _filterOutNonMarketData; // отфльтровать кухню выходного дня
+        private bool _filterOutDealerTrades; // отфльтровать кухонные сделки (дилерские, внутренние)
         private string _accessToken;
 
         private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
@@ -346,24 +349,28 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
             if (_useOptions)
             {
-                _rateGateInstruments.WaitToProceed();
+                // https://russianinvestments.github.io/investAPI/faq_instruments/ v1.23
+                // Сейчас торговля опционами через API недоступна. 
+                SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.Error);
 
-                OptionsResponse result = null;
-                try
-                {
-                    result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata);
-                }
-                catch (RpcException ex)
-                {
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error getting options data. Info: {message}", LogMessageType.Error);
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage("Error loading securities", LogMessageType.Error);
-                }
+                //_rateGateInstruments.WaitToProceed();
 
-                UpdateOptionsFromServer(result);
+                //OptionsResponse result = null;
+                //try
+                //{
+                //    result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata);
+                //}
+                //catch (RpcException ex)
+                //{
+                //    string message = GetGRPCErrorMessage(ex);
+                //    SendLogMessage($"Error getting options data. Info: {message}", LogMessageType.Error);
+                //}
+                //catch (Exception ex)
+                //{
+                //    SendLogMessage("Error loading securities", LogMessageType.Error);
+                //}
+
+                //UpdateOptionsFromServer(result);
             }
 
             if (_useOther)
@@ -1516,7 +1523,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 TradeInstrument tradeInstrument = new TradeInstrument();
                 tradeInstrument.InstrumentId = security.NameId;
 
-                SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest{ SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { tradeInstrument }, TradeType = TradeSourceType.TradeSourceAll };
+                SubscribeTradesRequest subscribeTradesRequest = new SubscribeTradesRequest
+                {
+                    SubscriptionAction = SubscriptionAction.Subscribe, 
+                    Instruments = { tradeInstrument }, 
+                    TradeType = _filterOutDealerTrades ? TradeSourceType.TradeSourceExchange : TradeSourceType.TradeSourceAll
+                };
                 marketDataRequestTrades.SubscribeTradesRequest = subscribeTradesRequest;
                 
                 _marketDataStream.RequestStream.WriteAsync(marketDataRequestTrades).Wait();
