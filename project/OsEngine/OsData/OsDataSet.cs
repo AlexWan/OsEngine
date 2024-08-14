@@ -2429,7 +2429,7 @@ namespace OsEngine.OsData
 
         public List<Candle> LoadCandleDataPieInTempFile()
         {
-            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+            string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + TempFileName;
 
             if (File.Exists(pathToTempFile) == false)
             {
