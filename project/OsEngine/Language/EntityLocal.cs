@@ -249,7 +249,7 @@ namespace OsEngine.Language
 
         public string SecuritiesColumn1 => OsLocalization.ConvertToLocString(
             "Eng:Name_" +
-            "Ru:Название_");
+            "Ru:Имя_");
 
         public string SecuritiesColumn2 => OsLocalization.ConvertToLocString(
             "Eng:Type_" +
@@ -274,6 +274,50 @@ namespace OsEngine.Language
         public string SecuritiesColumn7 => OsLocalization.ConvertToLocString(
             "Eng:Volume decimals_" +
             "Ru:Точность объёма_");
+
+        public string SecuritiesColumn8 => OsLocalization.ConvertToLocString(
+            "Eng:Price decimals_" +
+            "Ru:Точность цены_");
+
+        public string SecuritiesColumn9 => OsLocalization.ConvertToLocString(
+            "Eng:Name full_" +
+            "Ru:Имя полное_");
+
+        public string SecuritiesColumn10 => OsLocalization.ConvertToLocString(
+           "Eng:Name ID_" +
+           "Ru:Уник. номер_");
+
+        public string SecuritiesColumn11 => OsLocalization.ConvertToLocString(
+           "Eng:Class_" +
+           "Ru:Класс_");
+
+        public string SecuritiesColumn12 => OsLocalization.ConvertToLocString(
+           "Eng:Min volume_" +
+           "Ru:Мин объём_");
+
+        public string SecuritiesColumn13 => OsLocalization.ConvertToLocString(
+          "Eng:Price limit high_" +
+          "Ru:Лимит цены сверху_");
+
+        public string SecuritiesColumn14 => OsLocalization.ConvertToLocString(
+          "Eng:Price limit low_" +
+          "Ru:Лимит цены снизу_");
+
+        public string SecuritiesColumn15 => OsLocalization.ConvertToLocString(
+          "Eng:Collateral_" +
+          "Ru:Обеспечение(ГО)_");
+
+        public string SecuritiesColumn16 => OsLocalization.ConvertToLocString(
+          "Eng:Option type_" +
+          "Ru:Тип опциона_");
+
+        public string SecuritiesColumn17 => OsLocalization.ConvertToLocString(
+          "Eng:Strike_" +
+          "Ru:Страйк_");
+
+        public string SecuritiesColumn18 => OsLocalization.ConvertToLocString(
+          "Eng:Expiration_" +
+          "Ru:Экспирация_");
 
         public string TitleSecurityUi => OsLocalization.ConvertToLocString(
             "Eng:Security settings_" +

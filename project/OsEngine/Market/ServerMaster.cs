@@ -1285,7 +1285,7 @@ namespace OsEngine.Market
         /// <summary>
         /// send new message to up
         /// </summary>
-        private static void SendNewLogMessage(string message, LogMessageType type)
+        public static void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {

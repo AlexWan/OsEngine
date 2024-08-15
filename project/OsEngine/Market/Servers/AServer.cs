@@ -10,6 +10,7 @@ using System.IO;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Ink;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -1264,6 +1265,8 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
+                TryUpdateSecuritiesUserSettings(securities);
+
                 if (_securities == null
                     && securities.Count > 5000)
                 {
@@ -1352,6 +1355,92 @@ namespace OsEngine.Market.Servers
         {
             _securitiesUi.Closed -= _securitiesUi_Closed;
             _securitiesUi = null;
+        }
+
+        private List<Security> _savedSecurities;
+
+        private void TryUpdateSecuritiesUserSettings(List<Security> securities)
+        {
+            try
+            {
+                if (_savedSecurities == null)
+                {
+                    _savedSecurities = LoadSavedSecurities();
+                }
+
+                for (int i = 0; i < _savedSecurities.Count; i++)
+                {
+                    Security curSaveSec = _savedSecurities[i];
+
+                    for (int j = 0; j < securities.Count; j++)
+                    {
+                        if (securities[j].Name == curSaveSec.Name
+                            && securities[j].NameId == curSaveSec.NameId
+                            && securities[j].SecurityType == curSaveSec.SecurityType
+                            && securities[j].NameClass == curSaveSec.NameClass)
+                        {
+                            securities[j].Lot = curSaveSec.Lot;
+                            securities[j].PriceStep = curSaveSec.PriceStep;
+                            securities[j].PriceStepCost = curSaveSec.PriceStepCost;
+                            securities[j].Decimals = curSaveSec.Decimals;
+                            securities[j].DecimalsVolume = curSaveSec.DecimalsVolume;
+                            securities[j].MinTradeAmount = curSaveSec.MinTradeAmount;
+                            //securities[j].PriceLimitHigh = curSaveSec.PriceLimitHigh;
+                            //securities[j].PriceLimitLow = curSaveSec.PriceLimitLow;
+                            //securities[j].Go = curSaveSec.Go;
+                            securities[j].Strike = curSaveSec.Strike;
+
+
+                            break;
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
+        private List<Security> LoadSavedSecurities()
+        {
+            List<Security> securities = new List<Security>();
+
+            try
+            {
+                if (Directory.Exists(@"Engine\ServerDopSettings") == false)
+                {
+                    return securities;
+                }
+
+                if (Directory.Exists(@"Engine\ServerDopSettings\" + ServerType) == false)
+                {
+                    return securities;
+                }
+
+                string[] paths = Directory.GetFiles(@"Engine\ServerDopSettings\" + ServerType);
+
+                for (int i = 0; paths != null && i < paths.Length; i++)
+                {
+                    string curPath = paths[i];
+
+                    using (StreamReader reader = new StreamReader(curPath))
+                    {
+                        string secInStr = reader.ReadToEnd();
+
+                        Security newSecurity = new Security();
+                        newSecurity.LoadFromString(secInStr);
+                        securities.Add(newSecurity);
+                    }
+                }
+
+                return securities;
+            }
+            catch(Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                return securities;
+            }
         }
 
         #endregion

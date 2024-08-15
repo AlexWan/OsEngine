@@ -5,8 +5,8 @@
     <Grid>
         <Rectangle Margin="5"/>
         <WindowsFormsHost Name="HostSecurities" Margin="5,50,5,5"/>
-        <ComboBox HorizontalAlignment="Left" Margin="143,20,0,0" VerticalAlignment="Top" Width="220"/>
-        <Label Content="Selected class" HorizontalAlignment="Left" Margin="29,20,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxClass" HorizontalAlignment="Left" Margin="130,20,0,0" VerticalAlignment="Top" Width="179"/>
+        <Label Name="LabelClass" Content="Class" HorizontalAlignment="Left" Margin="26,20,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

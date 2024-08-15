@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using OsEngine.Language;
 using OsEngine.Market.Servers;
+using System.IO;
+using OsEngine.Market;
 
 namespace OsEngine.Entity
 {
@@ -27,13 +29,18 @@ namespace OsEngine.Entity
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
+            UpdateClassComboBox(server.Securities);
+
             CreateTable();
+          
+            ComboBoxClass.SelectionChanged += ComboBoxClass_SelectionChanged;
             PaintSecurities(server.Securities);
 
             _server = server;
             _server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
 
             Title = OsLocalization.Entity.TitleSecuritiesUi + " " + _server.ServerType;
+            LabelClass.Content = OsLocalization.Entity.SecuritiesColumn11;
 
             this.Activate();
             this.Focus();
@@ -47,7 +54,7 @@ namespace OsEngine.Entity
             {
                 _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
                 _server = null;
-             
+
                 _grid.CellValueChanged -= _grid_CellValueChanged;
                 DataGridFactory.ClearLinks(_grid);
                 _grid = null;
@@ -56,6 +63,88 @@ namespace OsEngine.Entity
             catch
             {
 
+            }
+        }
+
+        private void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            PaintSecurities(_server.Securities);
+        }
+
+        private void UpdateClassComboBox(List<Security> securities)
+        {
+            try
+            {
+                if (ComboBoxClass.Dispatcher.CheckAccess() == false)
+                {
+                    ComboBoxClass.Dispatcher.Invoke(new Action<List<Security>>(UpdateClassComboBox), securities);
+                    return;
+                }
+
+                string startClass = null;
+
+                if (ComboBoxClass.SelectedItem != null)
+                {
+                    startClass = ComboBoxClass.SelectedItem.ToString();
+                }
+
+                List<string> classes = new List<string>();
+
+                classes.Add("All");
+
+                for (int i = 0; securities != null && i < securities.Count; i++)
+                {
+                    string curClass = securities[i].NameClass;
+
+                    if (string.IsNullOrEmpty(curClass))
+                    {
+                        continue;
+                    }
+
+                    bool isInArray = false;
+
+                    for (int i2 = 0; i2 < classes.Count; i2++)
+                    {
+                        if (classes[i2] == curClass)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        classes.Add(curClass);
+                    }
+                }
+
+                ComboBoxClass.Items.Clear();
+
+                for (int i = 0; i < classes.Count; i++)
+                {
+                    ComboBoxClass.Items.Add(classes[i]);
+                }
+
+                if (ComboBoxClass.SelectedItem == null)
+                {
+                    ComboBoxClass.SelectedItem = classes[0];
+                }
+
+                if (startClass != null)
+                {
+                    ComboBoxClass.SelectedItem = startClass;
+                }
+
+                if (ComboBoxClass.SelectedItem.ToString() == "All"
+                    && securities.Count > 10000
+                    && classes.Count > 1)
+                {
+                    ComboBoxClass.SelectedItem = classes[1];
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -78,66 +167,129 @@ namespace OsEngine.Entity
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = "#";
+            column0.HeaderText = "#"; // num
             column0.ReadOnly = true;
             column0.Width = 70;
             _grid.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = OsLocalization.Entity.SecuritiesColumn1;
+            column1.HeaderText = OsLocalization.Entity.SecuritiesColumn1; // Name
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column1);
 
-            DataGridViewColumn column11 = new DataGridViewColumn();
-            column11.CellTemplate = cell0;
-            column11.HeaderText = "Full name";
-            column11.ReadOnly = true;
-            column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column11);
-
-            DataGridViewColumn column12 = new DataGridViewColumn();
-            column12.CellTemplate = cell0;
-            column12.HeaderText = "Name ID";
-            column12.ReadOnly = true;
-            column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column12);
-
-            DataGridViewColumn column13 = new DataGridViewColumn();
-            column13.CellTemplate = cell0;
-            column13.HeaderText = "Class";
-            column13.ReadOnly = true;
-            column13.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column13);
-
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = OsLocalization.Entity.SecuritiesColumn2;
+            column2.HeaderText = OsLocalization.Entity.SecuritiesColumn9; // Name Full
             column2.ReadOnly = true;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column2);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = OsLocalization.Entity.SecuritiesColumn3;
-            column3.ReadOnly = false;
+            column3.HeaderText = OsLocalization.Entity.SecuritiesColumn10; // Name ID
+            column3.ReadOnly = true;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column3);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
-            column4.HeaderText = OsLocalization.Entity.SecuritiesColumn4;
-            column4.ReadOnly = false;
+            column4.HeaderText = OsLocalization.Entity.SecuritiesColumn11; // Class
+            column4.ReadOnly = true;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column4);
 
             DataGridViewColumn column5 = new DataGridViewColumn();
             column5.CellTemplate = cell0;
-            column5.HeaderText = OsLocalization.Entity.SecuritiesColumn5;
-            column5.ReadOnly = false;
+            column5.HeaderText = OsLocalization.Entity.SecuritiesColumn2; // Type
+            column5.ReadOnly = true;
             column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column5);
+
+            DataGridViewColumn column6 = new DataGridViewColumn();
+            column6.CellTemplate = cell0;
+            column6.HeaderText = OsLocalization.Entity.SecuritiesColumn3; // Lot
+            column6.ReadOnly = false;
+            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column6);
+
+            DataGridViewColumn column7 = new DataGridViewColumn();
+            column7.CellTemplate = cell0;
+            column7.HeaderText = OsLocalization.Entity.SecuritiesColumn4; // Price step
+            column7.ReadOnly = false;
+            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column7);
+
+            DataGridViewColumn column8 = new DataGridViewColumn();
+            column8.CellTemplate = cell0;
+            column8.HeaderText = OsLocalization.Entity.SecuritiesColumn5; // Price step cost
+            column8.ReadOnly = false;
+            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column8);
+
+            DataGridViewColumn column9 = new DataGridViewColumn();
+            column9.CellTemplate = cell0;
+            column9.HeaderText = OsLocalization.Entity.SecuritiesColumn8; // Price decimals
+            column9.ReadOnly = false;
+            column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column9);
+
+            DataGridViewColumn column10 = new DataGridViewColumn();
+            column10.CellTemplate = cell0;
+            column10.HeaderText = OsLocalization.Entity.SecuritiesColumn7; // Volume decimals
+            column10.ReadOnly = false;
+            column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column10);
+
+            DataGridViewColumn column11 = new DataGridViewColumn();
+            column11.CellTemplate = cell0;
+            column11.HeaderText = OsLocalization.Entity.SecuritiesColumn12; // Min volume
+            column11.ReadOnly = false;
+            column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column11);
+
+            DataGridViewColumn column12 = new DataGridViewColumn();
+            column12.CellTemplate = cell0;
+            column12.HeaderText = OsLocalization.Entity.SecuritiesColumn13; // Price limit High
+            column12.ReadOnly = false;
+            column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column12);
+
+            DataGridViewColumn column13 = new DataGridViewColumn();
+            column13.CellTemplate = cell0;
+            column13.HeaderText = OsLocalization.Entity.SecuritiesColumn14; // Price limit Low
+            column13.ReadOnly = false;
+            column13.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column13);
+
+            DataGridViewColumn column14 = new DataGridViewColumn();
+            column14.CellTemplate = cell0;
+            column14.HeaderText = OsLocalization.Entity.SecuritiesColumn15; // Collateral / ру: ГО
+            column14.ReadOnly = false;
+            column14.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column14);
+
+            DataGridViewColumn column15 = new DataGridViewColumn();
+            column15.CellTemplate = cell0;
+            column15.HeaderText = OsLocalization.Entity.SecuritiesColumn16; // Option type
+            column15.ReadOnly = true;
+            column15.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column15);
+
+            DataGridViewColumn column16 = new DataGridViewColumn();
+            column16.CellTemplate = cell0;
+            column16.HeaderText = OsLocalization.Entity.SecuritiesColumn17; // Strike
+            column16.ReadOnly = false;
+            column16.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column16);
+
+            DataGridViewColumn column17 = new DataGridViewColumn();
+            column17.CellTemplate = cell0;
+            column17.HeaderText = OsLocalization.Entity.SecuritiesColumn18; // Expiration
+            column17.ReadOnly = true;
+            column17.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column17);
 
             HostSecurities.Child = _grid;
             HostSecurities.Child.Show();
@@ -151,7 +303,14 @@ namespace OsEngine.Entity
         /// </summary>
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            SaveFromTable();
+            try
+            {
+                SaveFromTable(e.RowIndex);
+            }
+            catch(Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -159,7 +318,15 @@ namespace OsEngine.Entity
         /// </summary>
         private void _server_SecuritiesChangeEvent(List<Security> securities)
         {
-            PaintSecurities(securities);
+            try
+            {
+                UpdateClassComboBox(securities);
+                PaintSecurities(securities);
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         /// <summary>
@@ -167,85 +334,274 @@ namespace OsEngine.Entity
         /// </summary>
         private void PaintSecurities(List<Security> securities)
         {
-            if(securities == null)
-            {
-                return;
-            }
+            // 0 num
+            // 1 Name
+            // 2 Name Full
+            // 3 Name ID
+            // 4 Class
+            // 5 Type
+            // 6 Lot
+            // 7 Price step
+            // 8 Price step cost
+            // 9 Price decimals
+            // 10 Volume decimals
+            // 11 Min volume
+            // 12 Price limit High
+            // 13 Price limit Low
+            // 14 Collateral
+            // 15 Option type
+            // 16 Strike
+            // 17 Expiration
 
-            if(_grid == null)
+            try
             {
-                return;
-            }
-
-            if (_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action<List<Security>>(PaintSecurities), securities);
-                return;
-            }
-
-            bool isInArray;
-            for (int indexSecurity = 0; indexSecurity < securities.Count; indexSecurity++)
-            {
-                isInArray = false;
-
-                for (int i = 0; i < _grid.Rows.Count; i++)
+                if (securities == null)
                 {
-                    if (_grid.Rows[i].Cells[0].Value.ToString() == securities[indexSecurity].Name)
+                    return;
+                }
+
+                if (_grid == null)
+                {
+                    return;
+                }
+
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action<List<Security>>(PaintSecurities), securities);
+                    return;
+                }
+
+                if (ComboBoxClass.SelectedItem == null)
+                {
+                    return;
+                }
+
+                _grid.Rows.Clear();
+
+                int num = 1;
+
+                string selectedClass = ComboBoxClass.SelectedItem.ToString();
+
+                for (int i = 0; i < securities.Count; i++)
+                {
+                    Security curSec = securities[i];
+
+                    if (selectedClass != "All"
+                        && curSec.NameClass != selectedClass)
                     {
-                        isInArray = true;
-                        break;
+                        continue;
                     }
+
+                    DataGridViewRow nRow = new DataGridViewRow();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[0].Value = num; num++;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[1].Value = curSec.Name;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[2].Value = curSec.NameFull;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[3].Value = curSec.NameId;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[4].Value = curSec.NameClass;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[5].Value = curSec.SecurityType;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[6].Value = curSec.Lot;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[7].Value = curSec.PriceStep.ToStringWithNoEndZero();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[8].Value = curSec.PriceStepCost.ToStringWithNoEndZero();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[9].Value = curSec.Decimals;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[10].Value = curSec.DecimalsVolume;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[11].Value = curSec.MinTradeAmount.ToStringWithNoEndZero();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[12].Value = curSec.PriceLimitHigh.ToStringWithNoEndZero();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[13].Value = curSec.PriceLimitLow.ToStringWithNoEndZero();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[14].Value = curSec.Go.ToStringWithNoEndZero();
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells[15].Value = curSec.OptionType;
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    if (curSec.OptionType != OptionType.None)
+                    {
+                        nRow.Cells[16].Value = curSec.Strike.ToStringWithNoEndZero();
+                    }
+                    else
+                    {
+                        nRow.Cells[16].ReadOnly = true;
+                    }
+
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    if (curSec.OptionType != OptionType.None)
+                    {
+                        nRow.Cells[17].Value = curSec.Expiration;
+                    }
+                    else
+                    {
+                        nRow.Cells[17].ReadOnly = true;
+                    }
+
+                    _grid.Rows.Add(nRow);
+
+
                 }
-
-                if (isInArray)
-                {
-                    continue;
-                }
-
-                DataGridViewRow nRow = new DataGridViewRow();
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[0].Value = indexSecurity;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = securities[indexSecurity].Name;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = securities[indexSecurity].NameFull;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[3].Value = securities[indexSecurity].NameId;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[4].Value = securities[indexSecurity].NameClass;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[5].Value = securities[indexSecurity].SecurityType;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[6].Value = securities[indexSecurity].Lot;
-
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[7].Value = securities[indexSecurity].PriceStep;
-
-                _grid.Rows.Add(nRow);
-
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
         /// <summary>
         /// save securities from table
         /// </summary>
-        private void SaveFromTable()
+        private void SaveFromTable(int rowIndex)
         {
+            // 0 num
+            // 1 Name
+            // 2 Name Full
+            // 3 Name ID
+            // 4 Class
+            // 5 Type
+            // 6 Lot
+            // 7 Price step
+            // 8 Price step cost
+            // 9 Price decimals
+            // 10 Volume decimals
+            // 11 Min volume
+            // 12 Price limit High
+            // 13 Price limit Low
+            // 14 Collateral
+            // 15 Option type
+            // 16 Strike
+            // 17 Expiration
+
             List<Security> securities = _server.Securities;
 
             if (securities == null)
             {
-
+                return;
             }
-            // not implemented
-            // не реализовано
+
+            DataGridViewRow row = _grid.Rows[rowIndex];
+
+            string secName = row.Cells[1].Value.ToString();
+            string secFullName = row.Cells[2].Value.ToString();
+            string secId = row.Cells[3].Value.ToString();
+            string secClass = row.Cells[4].Value.ToString();
+            string secType = row.Cells[5].Value.ToString();
+            int lot = Convert.ToInt32(row.Cells[6].Value);
+            decimal priceStep = row.Cells[7].Value.ToString().ToDecimal();
+            decimal priceStepCost = row.Cells[8].Value.ToString().ToDecimal();
+            int priceDecimals = Convert.ToInt32(row.Cells[9].Value);
+            int volumeDecimals = Convert.ToInt32(row.Cells[10].Value);
+            decimal minVolume = row.Cells[11].Value.ToString().ToDecimal();
+            decimal priceLimitHigh = row.Cells[12].Value.ToString().ToDecimal();
+            decimal priceLimitLow = row.Cells[13].Value.ToString().ToDecimal();
+            decimal collateral = row.Cells[14].Value.ToString().ToDecimal();
+            // 15 Option type
+
+            decimal strike = 0;
+
+            if (row.Cells[16].Value != null)
+            {
+                strike = row.Cells[16].Value.ToString().ToDecimal();
+            }
+            // 17 Expiration
+
+            Security mySecurity = null;
+
+            for(int i = 0;i < securities.Count;i++)
+            {
+                if (securities[i].Name == secName
+                    && securities[i].NameFull == secFullName 
+                    && securities[i].NameId == secId 
+                    && securities[i].NameClass == secClass
+                    && securities[i].SecurityType.ToString() == secType)
+                {
+                    mySecurity = securities[i];
+                    break;
+                }
+            }
+
+            if(mySecurity == null)
+            {
+                return;
+            }
+
+            mySecurity.Lot = lot;
+            mySecurity.PriceStep = priceStep;
+            mySecurity.PriceStepCost = priceStepCost;
+            mySecurity.Decimals = priceDecimals;
+            mySecurity.DecimalsVolume = volumeDecimals;
+            mySecurity.MinTradeAmount = minVolume;
+            mySecurity.PriceLimitHigh = priceLimitHigh;
+            mySecurity.PriceLimitLow = priceLimitLow;
+            mySecurity.Go = collateral;
+            mySecurity.Strike = strike;
+
+            if(Directory.Exists(@"Engine\ServerDopSettings") == false)
+            {
+                Directory.CreateDirectory(@"Engine\ServerDopSettings");
+            }
+
+            if (Directory.Exists(@"Engine\ServerDopSettings\" + _server.ServerType) == false)
+            {
+                Directory.CreateDirectory(@"Engine\ServerDopSettings\" + _server.ServerType);
+            }
+
+            string fileName = mySecurity.Name.RemoveExcessFromSecurityName();
+
+            if(string.IsNullOrEmpty(mySecurity.NameId) == false)
+            {
+                fileName += "_" + mySecurity.NameId.RemoveExcessFromSecurityName();
+            }
+
+            if (string.IsNullOrEmpty(mySecurity.NameClass) == false)
+            {
+                fileName += "_" + mySecurity.NameClass.RemoveExcessFromSecurityName();
+            }
+
+            fileName += "_" + mySecurity.SecurityType.ToString().RemoveExcessFromSecurityName();
+            
+
+            string filePath = @"Engine\ServerDopSettings\" + _server.ServerType +"\\" + fileName + ".txt";
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(filePath, false)
+                    )
+                {
+                    writer.WriteLine(mySecurity.GetSaveStr());
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                
+            }
         }
     }
 }
