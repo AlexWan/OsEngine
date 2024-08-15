@@ -26,15 +26,37 @@ namespace OsEngine.Entity
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+
             CreateTable();
             PaintSecurities(server.Securities);
-            server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
-            _server = server;
 
-            Title = OsLocalization.Entity.TitleSecuritiesUi;
+            _server = server;
+            _server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
+
+            Title = OsLocalization.Entity.TitleSecuritiesUi + " " + _server.ServerType;
 
             this.Activate();
             this.Focus();
+
+            this.Closed += SecuritiesUi_Closed;
+        }
+
+        private void SecuritiesUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
+                _server = null;
+             
+                _grid.CellValueChanged -= _grid_CellValueChanged;
+                DataGridFactory.ClearLinks(_grid);
+                _grid = null;
+                HostSecurities.Child = null;
+            }
+            catch
+            {
+
+            }
         }
 
         /// <summary>
@@ -47,7 +69,75 @@ namespace OsEngine.Entity
         /// </summary>
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridSecurities();
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+    DataGridViewAutoSizeRowsMode.AllCells);
+            _grid.ScrollBars = ScrollBars.Vertical;
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = _grid.DefaultCellStyle;
+
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = "#";
+            column0.ReadOnly = true;
+            column0.Width = 70;
+            _grid.Columns.Add(column0);
+
+            DataGridViewColumn column1 = new DataGridViewColumn();
+            column1.CellTemplate = cell0;
+            column1.HeaderText = OsLocalization.Entity.SecuritiesColumn1;
+            column1.ReadOnly = true;
+            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column1);
+
+            DataGridViewColumn column11 = new DataGridViewColumn();
+            column11.CellTemplate = cell0;
+            column11.HeaderText = "Full name";
+            column11.ReadOnly = true;
+            column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column11);
+
+            DataGridViewColumn column12 = new DataGridViewColumn();
+            column12.CellTemplate = cell0;
+            column12.HeaderText = "Name ID";
+            column12.ReadOnly = true;
+            column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column12);
+
+            DataGridViewColumn column13 = new DataGridViewColumn();
+            column13.CellTemplate = cell0;
+            column13.HeaderText = "Class";
+            column13.ReadOnly = true;
+            column13.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column13);
+
+            DataGridViewColumn column2 = new DataGridViewColumn();
+            column2.CellTemplate = cell0;
+            column2.HeaderText = OsLocalization.Entity.SecuritiesColumn2;
+            column2.ReadOnly = true;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column2);
+
+            DataGridViewColumn column3 = new DataGridViewColumn();
+            column3.CellTemplate = cell0;
+            column3.HeaderText = OsLocalization.Entity.SecuritiesColumn3;
+            column3.ReadOnly = false;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column3);
+
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            column4.HeaderText = OsLocalization.Entity.SecuritiesColumn4;
+            column4.ReadOnly = false;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column4);
+
+            DataGridViewColumn column5 = new DataGridViewColumn();
+            column5.CellTemplate = cell0;
+            column5.HeaderText = OsLocalization.Entity.SecuritiesColumn5;
+            column5.ReadOnly = false;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column5);
 
             HostSecurities.Child = _grid;
             HostSecurities.Child.Show();
@@ -82,6 +172,11 @@ namespace OsEngine.Entity
                 return;
             }
 
+            if(_grid == null)
+            {
+                return;
+            }
+
             if (_grid.InvokeRequired)
             {
                 _grid.Invoke(new Action<List<Security>>(PaintSecurities), securities);
@@ -89,13 +184,13 @@ namespace OsEngine.Entity
             }
 
             bool isInArray;
-            for (int indexSecuriti = 0; indexSecuriti < securities.Count; indexSecuriti++)
+            for (int indexSecurity = 0; indexSecurity < securities.Count; indexSecurity++)
             {
                 isInArray = false;
 
                 for (int i = 0; i < _grid.Rows.Count; i++)
                 {
-                    if (_grid.Rows[i].Cells[0].Value.ToString() == securities[indexSecuriti].Name)
+                    if (_grid.Rows[i].Cells[0].Value.ToString() == securities[indexSecurity].Name)
                     {
                         isInArray = true;
                         break;
@@ -110,19 +205,28 @@ namespace OsEngine.Entity
                 DataGridViewRow nRow = new DataGridViewRow();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[0].Value = securities[indexSecuriti].Name;
+                nRow.Cells[0].Value = indexSecurity;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[1].Value = securities[indexSecuriti].SecurityType;
+                nRow.Cells[1].Value = securities[indexSecurity].Name;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = securities[indexSecuriti].Lot;
+                nRow.Cells[2].Value = securities[indexSecurity].NameFull;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[3].Value = securities[indexSecuriti].PriceStep;
+                nRow.Cells[3].Value = securities[indexSecurity].NameId;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[3].Value = securities[indexSecuriti].PriceStepCost;
+                nRow.Cells[4].Value = securities[indexSecurity].NameClass;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[5].Value = securities[indexSecurity].SecurityType;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[6].Value = securities[indexSecurity].Lot;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[7].Value = securities[indexSecurity].PriceStep;
 
                 _grid.Rows.Add(nRow);
 

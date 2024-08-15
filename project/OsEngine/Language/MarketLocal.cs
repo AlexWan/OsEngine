@@ -556,6 +556,10 @@ namespace OsEngine.Language
            "Eng:Remove trades from memory_" +
            "Ru:Удалять трейды из памяти_");
 
+        public string Label131 => OsLocalization.ConvertToLocString(
+           "Eng:The button opens the window of securities settings that the connector has. Here you can configure price accuracy, volume accuracy, etc._" +
+           "Ru:Кнопка открывает окно настроек бумаг, которые есть у коннектора. Здесь можно настроить точность цены, точность объёма и т.д._");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
@@ -1079,6 +1083,10 @@ namespace OsEngine.Language
         public string ServerParam11 => OsLocalization.ConvertToLocString(
           "Eng:Skip trades with the same price_" +
           "Ru:Пропускать сделки с одинаковой ценой_");
+
+        public string ServerParam12 => OsLocalization.ConvertToLocString(
+          "Eng:View securities_" +
+          "Ru:Просмотр бумаг_");
 
         public string UseStock => OsLocalization.ConvertToLocString(
             "Eng:Stock_" +

@@ -80,6 +80,10 @@ namespace OsEngine.Market.Servers
                 _needToUpdateOnlyTradesWithNewPrice = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 ServerParameters[8].Comment = OsLocalization.Market.Label95;
 
+                CreateParameterButton(OsLocalization.Market.ServerParam12);
+                ServerParameters[9].Comment = OsLocalization.Market.Label131;
+                ((ServerParameterButton)ServerParameters[9]).UserClickButton += AServer_UserClickButton;
+
                 _serverRealization.ServerParameters = ServerParameters;
 
                 _tickStorage = new ServerTickStorage(this);
@@ -237,7 +241,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterString)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
             }
             else
             {
@@ -259,7 +263,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterInt)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
             }
             else
             {
@@ -282,7 +286,7 @@ namespace OsEngine.Market.Servers
 
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
             }
             else
             {
@@ -304,7 +308,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterDecimal)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
             }
             else
             {
@@ -326,7 +330,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterBool)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
             }
             else
             {
@@ -349,7 +353,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPassword)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
             }
             else
             {
@@ -370,7 +374,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPath)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
             }
             else
             {
@@ -391,7 +395,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterButton)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 9, newParam);
+                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
             }
             else
             {
@@ -1327,6 +1331,28 @@ namespace OsEngine.Market.Servers
         /// instruments changed
         /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
+
+        SecuritiesUi _securitiesUi;
+
+        private void AServer_UserClickButton()
+        {
+            if(_securitiesUi == null)
+            {
+                _securitiesUi = new SecuritiesUi(this);
+                _securitiesUi.Show();
+                _securitiesUi.Closed += _securitiesUi_Closed;
+            }
+            else
+            {
+                _securitiesUi.Activate();
+            }
+        }
+
+        private void _securitiesUi_Closed(object sender, EventArgs e)
+        {
+            _securitiesUi.Closed -= _securitiesUi_Closed;
+            _securitiesUi = null;
+        }
 
         #endregion
 

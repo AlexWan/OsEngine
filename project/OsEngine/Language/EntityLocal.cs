@@ -244,8 +244,8 @@ namespace OsEngine.Language
             "Ru:Напр._");
 
         public string TitleSecuritiesUi => OsLocalization.ConvertToLocString(
-            "Eng:Securities_" +
-            "Ru:Доступные в системе инструменты_");
+            "Eng:Securities in connector _" +
+            "Ru:Инструменты в подключении_");
 
         public string SecuritiesColumn1 => OsLocalization.ConvertToLocString(
             "Eng:Name_" +
