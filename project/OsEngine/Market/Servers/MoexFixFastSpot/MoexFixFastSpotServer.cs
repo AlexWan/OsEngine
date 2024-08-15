@@ -22,9 +22,6 @@ using System.Xml;
 using System.Net;
 using LiteDB;
 using System.Linq;
-using OsEngine.Market.Servers.FixProtocolEntities;
-using System.Runtime.Remoting.Contexts;
-using System.Collections;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot
 {
@@ -1125,11 +1122,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         continue;
                     }
 
-                    if (_allSecuritiesLoaded)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                    //if (_allSecuritiesLoaded)
+                    //{
+                    //    Thread.Sleep(1);
+                    //    continue;
+                    //}
 
                     if (context == null)
                     {
@@ -1181,7 +1178,19 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             if (msgType == "d") /// security definition
                             {
                                 _lastInstrumentDefinitionsTime = DateTime.UtcNow;
-                                _totNumReports = msg.GetLong("TotNumReports"); // общее число "бумаг" (возможны дубли)
+                                long newTotNumReports =  msg.GetLong("TotNumReports"); // общее число "бумаг" (возможны дубли)
+                                if (newTotNumReports != _totNumReports)
+                                {
+                                    _totNumReports = newTotNumReports;
+                                    WriteLog($"Setting TotNumReports={_totNumReports}.", "InstrumentDefinitionsReader");
+                                    SendLogMessage($"Setting TotNumReports={_totNumReports}", LogMessageType.System);
+                                }
+
+                                if (_allSecuritiesLoaded)
+                                {
+                                   Thread.Sleep(1);
+                                   continue;
+                                }
 
                                 if (snapshotIds.FindIndex(nmb => nmb == msgSeqNum) != -1)
                                 {
@@ -1582,7 +1591,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                                 if (tradesSnapshot.Count % 1000 == 0)
                                 {
-                                    WriteLog($"TradesSnapshot +1 msgSeqNum={msgSeqNum}. Total: " + tradesSnapshot.Count, "TradesSnapshotsReader");
+                                    //WriteLog($"TradesSnapshot +1 msgSeqNum={msgSeqNum}. Total: " + tradesSnapshot.Count, "TradesSnapshotsReader");
                                 }
                             }
 
@@ -1930,10 +1939,10 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             {
                                 orderSnapshots.Add(msgSeqNum, msg);
 
-                                if (orderSnapshots.Count % 1000 == 0)
+                                if (orderSnapshots.Count % 5000 == 0)
                                 {
                                     SendLogMessage($"OrderSnapshots MsgSeqNum={msgSeqNum}/{_totNumReports}. Total: {orderSnapshots.Count}.", LogMessageType.System);
-                                    WriteLog($"OrderSnapshots +1000 msgSeqNum={msgSeqNum}. Total: {orderSnapshots.Count}/{_totNumReports}", "OrderSnapshotsReader");
+                                    //WriteLog($"OrderSnapshots +1000 msgSeqNum={msgSeqNum}. Total: {orderSnapshots.Count}/{_totNumReports}", "OrderSnapshotsReader");
                                 }
                             }
 
@@ -2111,9 +2120,10 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         long ApplBegSeqNum = currentFeed == "OLR" ? _missingOLRBeginSeqNo : _missingTLRBeginSeqNo;
                         long ApplEndSeqNum = currentFeed == "OLR" ? _missingOLREndSeqNo : _missingTLREndSeqNo;
 
-                        if (ApplEndSeqNum - ApplBegSeqNum >= 2000) // tcp replay limit
+                        const long TCPReplayLimitNumberOfMessages = 500;
+                        if (ApplEndSeqNum - ApplBegSeqNum >= TCPReplayLimitNumberOfMessages) // tcp replay limit
                         {
-                            ApplEndSeqNum = ApplBegSeqNum + 2000 - 1;
+                            ApplEndSeqNum = ApplBegSeqNum + TCPReplayLimitNumberOfMessages - 1;
                         }
 
                         MarketDataRequestMessage marketDataRequest = new MarketDataRequestMessage();
@@ -2334,7 +2344,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                                 string TradingSessionID = groupVal.GetString("TradingSessionID");
                                 
-                                WriteLog($"msgType=X " + TradeToString(groupVal), "TradeMessagesReader");
+                                //WriteLog($"msgType=X " + TradeToString(groupVal), "TradeMessagesReader");
 
                                 if (!_TradingSessionIDs.Contains(TradingSessionID))
                                     continue;
@@ -2454,7 +2464,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         if (msg.IsDefined("GroupMDEntries"))
                         {
                             SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
-                            WriteLog($"W-Trade {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total trade entries: {tradeSnapshots[name].Trades.Count}", "TradeMessagesReader");
+                            //WriteLog($"W-Trade {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total trade entries: {tradeSnapshots[name].Trades.Count}", "TradeMessagesReader");
 
                             for (int i = 0; i < secVal.Length; i++)
                             {
@@ -2769,7 +2779,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 string MDEntryType = groupVal.GetString("MDEntryType");
                                 int RptSeq = groupVal.GetInt("RptSeq");
 
-                                _logFileXOrders.WriteLine($"{DateTime.Now} [{MsgSeqNum}] {msgType}: {name} rptseq={RptSeq}, MDEntryType={MDEntryType} ");
+                                //_logFileXOrders.WriteLine($"{DateTime.Now} [{MsgSeqNum}] {msgType}: {name} rptseq={RptSeq}, MDEntryType={MDEntryType} ");
 
                                 if (!ordersFromIncremental.ContainsKey(name))
                                 {
@@ -2880,7 +2890,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         if (msg.IsDefined("GroupMDEntries"))
                         {
                             SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
-                            SendLogMessage($"W-Orders {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total entries: {orderSnapshots[name].Data.Count}", LogMessageType.System);
+                            //SendLogMessage($"W-Orders {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total entries: {orderSnapshots[name].Data.Count}", LogMessageType.System);
 
                             for (int i = 0; i < secVal.Length; i++)
                             {
