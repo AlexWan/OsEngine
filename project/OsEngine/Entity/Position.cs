@@ -515,11 +515,11 @@ namespace OsEngine.Entity
                 }
                 
                 openOrder.TimeCancel = newOrder.TimeCancel;
-
-                if(openOrder.MyTrades == null ||
+  
+                if (openOrder.MyTrades == null ||
                     openOrder.MyTrades.Count == 0)
                 { // если трейдов ещё нет, допускается установка значение исполненного объёма по записи в ордере
-                    openOrder.VolumeExecute = newOrder.VolumeExecute;
+                    //openOrder.VolumeExecute = newOrder.VolumeExecute;
                 }
 
                 if (openOrder.State == OrderStateType.Done 
