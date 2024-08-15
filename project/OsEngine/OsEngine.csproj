@@ -786,6 +786,16 @@
     <Compile Include="Market\Servers\MoexAlgopack\Entity\ResponseTrades.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServer.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\MoexAlgopackServerPermission.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\FastConnection.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\IDsModifiedOrder.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\MessageConstructor.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\NumbersData.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\OrderChange.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\RejectMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\Snapshot.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\Entity\WaitingTrade.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\MoexFixFastCurrencyServer.cs" />
+    <Compile Include="Market\Servers\MoexFixFastCurrency\MoexFixFastCurrencyServerPermission.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\FIX\AFIXHeader.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\FIX\AFIXMessageBody.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\FIX\FASTHeader.cs" />
@@ -1943,6 +1953,7 @@
     <Resource Include="Images\MainWIndow\alor1.png" />
     <Resource Include="Images\MainWIndow\alor2.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets" Condition="Exists('..\packages\Grpc.Core.2.46.6\build\net45\Grpc.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
