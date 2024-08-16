@@ -10,7 +10,6 @@ using System.IO;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Ink;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;

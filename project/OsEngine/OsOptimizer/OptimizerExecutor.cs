@@ -665,33 +665,39 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private void EndOfFazeFiltration(OptimazerFazeReport bots, OptimazerFazeReport botsToOutOfSample)
         {
-            if(bots.Reports == null ||
-                bots.Reports.Count == 0)
+            try
             {
-                return;
-            }
-
-            int startCount = bots.Reports.Count;
-
-            for (int i = 0; i < bots.Reports.Count; i++)
-            {
-                if (_master.IsAcceptedByFilter(bots.Reports[i]))
+                if (bots.Reports == null ||
+                    bots.Reports.Count == 0)
                 {
-                    botsToOutOfSample.Reports.Add(bots.Reports[i]);
+                    return;
+                }
+
+                int startCount = bots.Reports.Count;
+
+                for (int i = 0; i < bots.Reports.Count; i++)
+                {
+                    if (_master.IsAcceptedByFilter(bots.Reports[i]))
+                    {
+                        botsToOutOfSample.Reports.Add(bots.Reports[i]);
+                    }
+                }
+
+                if (botsToOutOfSample.Reports.Count == 0)
+                {
+                    /* SendLogMessage(OsLocalization.Optimizer.Message8, LogMessageType.System);
+                     MessageBox.Show(OsLocalization.Optimizer.Message8);
+                     NeadToMoveUiToEvent(NeadToMoveUiTo.TabsAndTimeFrames);*/
+                }
+                else if (startCount != botsToOutOfSample.Reports.Count)
+                {
+                    SendLogMessage(OsLocalization.Optimizer.Message9 + (startCount - botsToOutOfSample.Reports.Count), LogMessageType.System);
                 }
             }
-
-            if (botsToOutOfSample.Reports.Count == 0)
+            catch(Exception ex)
             {
-                /* SendLogMessage(OsLocalization.Optimizer.Message8, LogMessageType.System);
-                 MessageBox.Show(OsLocalization.Optimizer.Message8);
-                 NeadToMoveUiToEvent(NeadToMoveUiTo.TabsAndTimeFrames);*/
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
-            else if (startCount != botsToOutOfSample.Reports.Count)
-            {
-                SendLogMessage(OsLocalization.Optimizer.Message9 + (startCount - botsToOutOfSample.Reports.Count), LogMessageType.System);
-            }
-
         }
 
         /// <summary>
