@@ -376,11 +376,11 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                _grid.Rows.Clear();
-
                 int num = 1;
 
                 string selectedClass = ComboBoxClass.SelectedItem.ToString();
+
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
                 for (int i = 0; i < securities.Count; i++)
                 {
@@ -453,19 +453,26 @@ namespace OsEngine.Entity
                     }
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    if (curSec.OptionType != OptionType.None)
+
+                    if (curSec.Expiration != DateTime.MinValue)
                     {
-                        nRow.Cells[17].Value = curSec.Expiration;
-                    }
-                    else
-                    {
-                        nRow.Cells[17].ReadOnly = true;
+                        nRow.Cells[17].Value = curSec.Expiration.ToString(OsLocalization.CurCulture);
                     }
 
-                    _grid.Rows.Add(nRow);
-
-
+                    rows.Add(nRow);
                 }
+
+                HostSecurities.Child = null;
+
+                _grid.Rows.Clear();
+
+                if(rows.Count > 0)
+                {
+                    _grid.Rows.AddRange(rows.ToArray());
+                }
+
+                HostSecurities.Child = _grid;
+
             }
             catch (Exception ex)
             {
