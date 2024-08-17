@@ -232,7 +232,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public bool _changeClassUse = false;
 
-        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(500));
+        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         private RateGate _gateToGetCandles = new RateGate(1, TimeSpan.FromMilliseconds(500));
 
