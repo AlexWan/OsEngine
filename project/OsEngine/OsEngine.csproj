@@ -1144,6 +1144,7 @@
     <Compile Include="Robots\Patterns\CustomCandlesImpulseTrader.cs" />
     <Compile Include="Robots\Patterns\VolatilityAdaptiveCandlesTrader.cs" />
     <Compile Include="Robots\Patterns\ThreeSoldierVolatilityAdaptive.cs" />
+    <Compile Include="Robots\Screeners\BollingerMomentumScreener.cs" />
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
