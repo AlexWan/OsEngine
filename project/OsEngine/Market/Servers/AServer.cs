@@ -873,13 +873,33 @@ namespace OsEngine.Market.Servers
                         {
                             if (TestValue_CanSendOrdersUp)
                             {
-                                _myTrades.Add(myTrade);
-                                _neadToBeepOnTrade = true;
-
                                 if (NewMyTradeEvent != null)
                                 {
                                     NewMyTradeEvent(myTrade);
                                 }
+
+                                bool isInArray = false;
+
+                                for(int i = 0;i < _myTrades.Count;i++)
+                                {
+                                    if (_myTrades[i].NumberTrade == myTrade.NumberTrade)
+                                    {
+                                        isInArray = true;
+                                        break;
+                                    }
+                                }
+
+                                if(isInArray == false)
+                                {
+                                    _myTrades.Add(myTrade);
+                                }
+                                
+                                while(_myTrades.Count > 1000)
+                                {
+                                    _myTrades.RemoveAt(0);
+                                }
+
+                                _neadToBeepOnTrade = true;
                             }
                         }
                     }

@@ -22,6 +22,8 @@ namespace OsEngine.Robots.Screeners
 
         public StrategyParameterString Regime;
         public StrategyParameterInt MaxPositions;
+        public StrategyParameterInt BollingerLen;
+        public StrategyParameterInt MomentumLen;
         public StrategyParameterDecimal Slippage;
         public StrategyParameterString VolumeType;
         public StrategyParameterDecimal Volume;
@@ -43,7 +45,7 @@ namespace OsEngine.Robots.Screeners
             
             MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
 
-            MinMomentumValue = CreateParameter("MinMomentumValue", 105m, 0, 20, 1m);
+            MinMomentumValue = CreateParameter("Min momentum value", 105m, 0, 20, 1m);
 
             TrailStop = CreateParameter("Trail stop %", 2.9m, 0, 20, 1m);
 
@@ -54,6 +56,8 @@ namespace OsEngine.Robots.Screeners
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
             
             Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
+
+
 
         }
 
