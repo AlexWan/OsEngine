@@ -23,6 +23,7 @@ namespace OsEngine.Robots.Screeners
         public StrategyParameterString Regime;
         public StrategyParameterInt MaxPositions;
         public StrategyParameterInt BollingerLen;
+        public StrategyParameterDecimal BollingerDev;
         public StrategyParameterInt MomentumLen;
         public StrategyParameterDecimal Slippage;
         public StrategyParameterString VolumeType;
@@ -47,6 +48,12 @@ namespace OsEngine.Robots.Screeners
 
             MinMomentumValue = CreateParameter("Min momentum value", 105m, 0, 20, 1m);
 
+            BollingerLen = CreateParameter("Bollinger length", 50, 0, 20, 1);
+
+            BollingerDev = CreateParameter("Bollinger deviation", 2m, 0, 20, 1m);
+
+            MomentumLen = CreateParameter("Momentum length", 50, 0, 20, 1);
+
             TrailStop = CreateParameter("Trail stop %", 2.9m, 0, 20, 1m);
 
             VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
@@ -56,9 +63,6 @@ namespace OsEngine.Robots.Screeners
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
             
             Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
-
-
-
         }
 
         public override string GetNameStrategyType()
@@ -116,7 +120,16 @@ namespace OsEngine.Robots.Screeners
             decimal lastCandleClose = candles[candles.Count - 1].Close;
 
             Aindicator bollinger = (Aindicator)tab.Indicators[0];
-            
+
+            if (bollinger.ParametersDigit[0].Value != BollingerLen.ValueInt
+                || bollinger.ParametersDigit[1].Value != BollingerDev.ValueDecimal)
+            {
+                bollinger.ParametersDigit[0].Value = BollingerLen.ValueInt;
+                bollinger.ParametersDigit[1].Value = BollingerDev.ValueDecimal;
+                bollinger.Save();
+                bollinger.Reload();
+            }
+
             if (bollinger.DataSeries[0].Values.Count == 0 ||
                 bollinger.DataSeries[0].Last == 0)
             {
@@ -126,6 +139,13 @@ namespace OsEngine.Robots.Screeners
             decimal lastUpBollingerLine = bollinger.DataSeries[0].Last;
 
             Aindicator momentum = (Aindicator)tab.Indicators[1];
+
+            if (momentum.ParametersDigit[0].Value != MomentumLen.ValueInt)
+            {
+                momentum.ParametersDigit[0].Value = MomentumLen.ValueInt;
+                momentum.Save();
+                momentum.Reload();
+            }
 
             if (momentum.DataSeries[0].Values.Count == 0 ||
                 momentum.DataSeries[0].Last == 0)
