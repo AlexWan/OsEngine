@@ -35,6 +35,7 @@ namespace OsEngine.Robots.Screeners
         public BollingerMomentumScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
+           
             _tabScreener = TabsScreener[0];
 
             _tabScreener.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
@@ -78,11 +79,6 @@ namespace OsEngine.Robots.Screeners
         // logic
 
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
-        {
-            Logic(candles, tab);
-        }
-
-        private void Logic(List<Candle> candles, BotTabSimple tab)
         {
             if (Regime.ValueString == "Off")
             {
