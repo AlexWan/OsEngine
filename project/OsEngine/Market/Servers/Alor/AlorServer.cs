@@ -322,7 +322,7 @@ namespace OsEngine.Market.Servers.Alor
                     {
                         continue;
                     }
-
+                   
                     Security newSecurity = new Security();
                     newSecurity.SecurityType = instrumentType;
                     newSecurity.Exchange = item.exchange;
@@ -333,7 +333,86 @@ namespace OsEngine.Market.Servers.Alor
 
                     if (newSecurity.SecurityType == SecurityType.Option)
                     {
-                        newSecurity.NameClass = "Option";
+                        
+                        newSecurity.Go = item.marginbuy.ToDecimal();
+
+                        if(item.type != null &&
+                            item.type.Contains("Прем. европ. Call "))
+                        {
+                            newSecurity.NameClass = "Option_Eur";
+                            newSecurity.OptionType = OptionType.Call;
+                            string strike = item.type.Replace("Прем. европ. Call ", "");
+                            strike = strike.Split(' ')[0];
+                            newSecurity.Strike = strike.ToDecimal();
+                        }
+                        else if (item.type != null &&
+                            item.type.Contains("Нед. прем. европ. Call "))
+                        {
+                            newSecurity.NameClass = "Option_Eur";
+                            newSecurity.OptionType = OptionType.Call;
+                            string strike = item.type.Replace("Нед. прем. европ. Call ", "");
+                            strike = strike.Split(' ')[0];
+                            newSecurity.Strike = strike.ToDecimal();
+                        }
+                        else if (item.type != null &&
+                            item.type.Contains("Прем. европ. Put "))
+                        {
+                            newSecurity.NameClass = "Option_Eur";
+                            newSecurity.OptionType = OptionType.Put;
+                            string strike = item.type.Replace("Прем. европ. Put ", "");
+                            strike = strike.Split(' ')[0];
+                            newSecurity.Strike = strike.ToDecimal();
+                        }
+                        else if (item.type != null &&
+                            item.type.Contains("Нед. прем. европ. Put "))
+                        {
+                            newSecurity.NameClass = "Option_Eur";
+                            newSecurity.OptionType = OptionType.Put;
+                            string strike = item.type.Replace("Нед. прем. европ. Put ", "");
+                            strike = strike.Split(' ')[0];
+                            newSecurity.Strike = strike.ToDecimal();
+                        }
+                        else if (item.type != null &&
+                            item.type.Contains("Нед. марж. амер. Call "))
+                        {
+                            newSecurity.NameClass = "Option_Us";
+                            newSecurity.OptionType = OptionType.Call;
+                            string strike = item.type.Replace("Нед. марж. амер. Call ", "");
+                            strike = strike.Split(' ')[0];
+                            newSecurity.Strike = strike.ToDecimal();
+                        }
+                        else if (item.type != null &&
+                            item.type.Contains("Марж. амер. Call "))
+                        {
+                            newSecurity.NameClass = "Option_Us";
+                            newSecurity.OptionType = OptionType.Call;
+                            string strike = item.type.Replace("Марж. амер. Call ", "");
+                            strike = strike.Split(' ')[0];
+                            newSecurity.Strike = strike.ToDecimal();
+                        }
+                        else if (item.type != null &&
+                            item.type.Contains("Марж. амер. Put "))
+                        {
+                            newSecurity.NameClass = "Option_Us";
+                            newSecurity.OptionType = OptionType.Put;
+                            string strike = item.type.Replace("Марж. амер. Put ", "");
+                            strike = strike.Split(' ')[0];
+                            newSecurity.Strike = strike.ToDecimal();
+                        }
+                        else if (item.type != null &&
+                            item.type.Contains("Нед. марж. амер. Put "))
+                        {
+                            newSecurity.NameClass = "Option_Us";
+                            newSecurity.OptionType = OptionType.Put;
+                            string strike = item.type.Replace("Нед. марж. амер. Put ", "");
+                            strike = strike.Split(' ')[0];
+                            newSecurity.Strike = strike.ToDecimal();
+                        }
+                        else
+                        {
+
+                        }
+
                     }
                     else if (item.type == null)
                     {
@@ -355,8 +434,7 @@ namespace OsEngine.Market.Servers.Alor
                     else if (newSecurity.SecurityType == SecurityType.Futures)
                     {
                         newSecurity.NameClass = "Futures";
-                        decimal go = item.marginbuy.ToDecimal();
-                        newSecurity.Go = go;
+                        newSecurity.Go = item.marginbuy.ToDecimal();
                     }
                     else if (newSecurity.SecurityType == SecurityType.CurrencyPair)
                     {
@@ -392,6 +470,18 @@ namespace OsEngine.Market.Servers.Alor
                     else
                     {
                         newSecurity.NameClass = item.type;
+                    }
+
+                    if (string.IsNullOrEmpty(item.cancellation) == false 
+                        && (newSecurity.SecurityType == SecurityType.Futures ||
+                        newSecurity.SecurityType == SecurityType.Option ||
+                        newSecurity.NameClass == "Futures spread"))
+                    {
+                        int year = Convert.ToInt32(item.cancellation.Substring(0, 4));
+                        int month = Convert.ToInt32(item.cancellation.Substring(5, 2));
+                        int day = Convert.ToInt32(item.cancellation.Substring(8, 2));
+
+                        newSecurity.Expiration = new DateTime(year, month, day);
                     }
 
                     newSecurity.NameId = item.shortname;

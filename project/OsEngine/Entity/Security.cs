@@ -225,26 +225,26 @@ namespace OsEngine.Entity
         /// </summary>
         public void LoadFromString(string save)
         {
-            string[] array = save.Split('!');
+            string[] array = save.Split('\n');
 
             Name = array[0];
             NameClass = array[1];
             NameFull = array[2];
             NameId = array[3];
-            NameFull = array[4];
-            Enum.TryParse(array[5],out State);
-            PriceStep = array[6].ToDecimal();
-            Lot = array[7].ToDecimal();
-            PriceStepCost = array[8].ToDecimal();
-            Go = array[9].ToDecimal();
-            Enum.TryParse(array[10],out SecurityType);
-            _decimals = Convert.ToInt32(array[11]);
-            PriceLimitLow = array[12].ToDecimal();
-            PriceLimitHigh = array[13].ToDecimal();
-            Enum.TryParse(array[14], out OptionType);
-            Strike = array[15].ToDecimal();
-            Expiration = Convert.ToDateTime(array[16]);
-
+            Enum.TryParse(array[4],out State);
+            PriceStep = array[5].ToDecimal();
+            Lot = array[6].ToDecimal();
+            PriceStepCost = array[7].ToDecimal();
+            Go = array[8].ToDecimal();
+            Enum.TryParse(array[9],out SecurityType);
+            _decimals = Convert.ToInt32(array[10]);
+            PriceLimitLow = array[11].ToDecimal();
+            PriceLimitHigh = array[12].ToDecimal();
+            Enum.TryParse(array[13], out OptionType);
+            Strike = array[14].ToDecimal();
+            Expiration = Convert.ToDateTime(array[15]);
+            DecimalsVolume = Convert.ToInt32(array[16]);
+            MinTradeAmount = array[17].ToDecimal();
         }
 
         /// <summary>
@@ -253,24 +253,24 @@ namespace OsEngine.Entity
         /// </summary>
         public string GetSaveStr()
         {
-            string result = Name + "!";
-            result += NameClass + "!";
-            result += NameFull + "!";
-            result += NameId + "!";
-            result += NameFull + "!";
-            result += State + "!";
-            result += PriceStep + "!";
-            result += Lot + "!";
-            result += PriceStepCost + "!";
-            result += Go + "!";
-            result += SecurityType + "!";
-            result += _decimals + "!";
-            result += PriceLimitLow + "!";
-            result += PriceLimitHigh + "!";
-            result += OptionType + "!";
-            result += Strike + "!";
-            result += Expiration + "!";
-
+            string result = Name + "\n";
+            result += NameClass + "\n";
+            result += NameFull + "\n";
+            result += NameId + "\n";
+            result += State + "\n";
+            result += PriceStep + "\n";
+            result += Lot + "\n";
+            result += PriceStepCost + "\n";
+            result += Go + "\n";
+            result += SecurityType + "\n";
+            result += _decimals + "\n";
+            result += PriceLimitLow + "\n";
+            result += PriceLimitHigh + "\n";
+            result += OptionType + "\n";
+            result += Strike + "\n";
+            result += Expiration + "\n";
+            result += DecimalsVolume + "\n";
+            result += MinTradeAmount;
             return result;
         }
 

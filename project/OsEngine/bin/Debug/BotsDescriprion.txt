@@ -6,6 +6,7 @@ BlockIndicatorsSample&Example showing the blocking of indicators for calculation
 ClusterEngine&blank strategy for manual trading&Include&&Cluster 1*&&
 CciTrade&Counter Trend Strategy Based on CCI Indicator. Max - 3 poses Buy: 1. CCI is less than DownLine. Sell: 1. CCI more UpLine. Exit: on the return signal.&Include&&Simple 1*&CCI*&
 ChangePriceBotExtStopMarket&&Include&&Simple 1*&&
+CustomChartInParamWindowSample&Sample “Chart in the parameters window” for osengine. It shows: • Dynamic graph: The graph updates in real time as new data becomes available. • User interaction: The user can change the scale of the graph and get values ​​at specific points. • Customizable parameters: Ability to select the spread calculation method and the maximum number of points on the chart.&Include&&Simple 2*&&
 CustomParamsUseBotSample&&Include&&Simple 1*&Sma*Sma*ATR*&
 CustomCandlesImpulseTrader&Trading robot for adaptive by volatility candle series. if he sees a movement to one side in a short period of time, it enters the position&Include&&Simple 1*&&
 CurrencyArbitrageClassic&A robot for classic currency arbitrage&Include&&Polygon 1*&&
@@ -53,6 +54,7 @@ StrategyBillWilliams&&Include&&Simple 1*&Alligator*Fractal*AwesomeOscillator*&
 SmaScreener&If there is a position, exit by trailing stop. If there is no position. Open long if the last N candles we were above the moving average&Include&&Screener 1*&Sma*&
 SmaTrendSample&Trend robot SmaTrendSample Buy: lastCandlePrice > smaValue and lastCandlePrice > upChannel.Sell: lastCandlePrice < smaValue and lastCandlePrice < downChannel.Exit: By TralingStop&Include&&Simple 1*&Sma*Envelops*&
 StrategyBollinger&The Countertrend robot Buy: 1. Price below BollingerDownLine. Sell: 1. The price is more than BollingerUpLine. Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*MovingAverage*&
+TwoTimeFramesBot&&Include&&Simple 2*&PriceChannel*Sma*&
 TradeLineExample&Example of trading on sloping levels&Include&&Simple 1*&ZigZag*&
 ThreeSoldierVolatilityAdaptive&Trading robot Three Soldiers adaptive by volatility. When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop&Include&&Simple 1*&&
 ThreeSoldier&Trading robot Three Soldiers. When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop&Include&&Simple 1*&&
