@@ -1251,6 +1251,10 @@
     <Compile Include="Robots\MarketMaker\TwoLegArbitrage.cs" />
     <Compile Include="Robots\CounterTrend\WilliamsRangeTrade.cs" />
     <Compile Include="Robots\Trend\TwoTimeFramesBot.cs" />
+    <Compile Include="Robots\VolatilityStageRotationSamples\BollingerTrendVolatilityStagesFilter.cs" />
+    <Compile Include="Robots\VolatilityStageRotationSamples\EnvelopsTrendScreenerVolatilityStagesIndexFilter.cs" />
+    <Compile Include="Robots\VolatilityStageRotationSamples\PriceChannelTrendAtrFilter.cs" />
+    <Compile Include="Robots\VolatilityStageRotationSamples\ZigZagChannelScreenerRsiFilter.cs" />
     <Page Include="Alerts\AlertMessageFullUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
