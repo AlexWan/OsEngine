@@ -216,9 +216,7 @@ namespace OsEngine.Robots.CounterTrend
                 return;
             }
 
-            if (openPosition == null || openPosition.Count == 0
-                && candles[candles.Count - 1].TimeStart.Hour >= 11
-                && candles[candles.Count - 1].TimeStart.Hour <= 18)
+            if (openPosition == null || openPosition.Count == 0)
             {
                 LogicOpenPosition(candles);
             }
