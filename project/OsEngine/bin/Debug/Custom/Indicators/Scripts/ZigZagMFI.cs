@@ -12,7 +12,7 @@ namespace OsEngine.Indicators.ind
 
         private IndicatorDataSeries _seriesMFI;
 
-        private IndicatorParameterInt _lenghtMFI;
+        private IndicatorParameterInt _lengthMFI;
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
@@ -27,7 +27,7 @@ namespace OsEngine.Indicators.ind
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtMFI = CreateParameterInt("Length", 3);
+                _lengthMFI = CreateParameterInt("Length", 3);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesMFI = CreateSeries("MFI", Color.Aqua, IndicatorChartPaintType.Line, true);
@@ -51,7 +51,7 @@ namespace OsEngine.Indicators.ind
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _MFI = IndicatorsFactory.CreateIndicatorByName("MFI", Name + "MFI", false);
-                ((IndicatorParameterInt)_MFI.Parameters[0]).Bind(_lenghtMFI);
+                ((IndicatorParameterInt)_MFI.Parameters[0]).Bind(_lengthMFI);
                 ProcessIndicator("MFI", _MFI);
 
             }

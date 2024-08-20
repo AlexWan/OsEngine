@@ -9,7 +9,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
     //[IndicatorAttribute("Mass_Index_MI")]
     internal class Mass_Index_MI : Aindicator
     {
-        private IndicatorParameterInt _lenghtEma;
+        private IndicatorParameterInt _lengthEma;
         private IndicatorParameterInt _periodSum;
 
         private IndicatorParameterDecimal _paramSeries27;
@@ -25,7 +25,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtEma = CreateParameterInt("Length EMA", 9);
+                _lengthEma = CreateParameterInt("Length EMA", 9);
                 _periodSum = CreateParameterInt("Summing period EMA", 25);
 
                 _paramSeries27 = CreateParameterDecimal("Parameter line up", 27);
@@ -48,7 +48,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
             _series27.Values[index] = _paramSeries27.ValueDecimal;
             _series26_5.Values[index] = _paramSeries26_5.ValueDecimal;
 
-            if (index < _lenghtEma.ValueInt || index < _periodSum.ValueInt)
+            if (index < _lengthEma.ValueInt || index < _periodSum.ValueInt)
                 return;
 
             CalcFirstEMA(candles, index);
@@ -69,21 +69,21 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             decimal result = 0;
 
-            if (index == _lenghtEma.ValueInt)
+            if (index == _lengthEma.ValueInt)
             {
                 decimal lastMoving = 0;
 
-                for (int i = index - _lenghtEma.ValueInt + 1; i < index + 1; i++)
+                for (int i = index - _lengthEma.ValueInt + 1; i < index + 1; i++)
                 {
                     lastMoving += candles[i].High - candles[i].Low;
                 }
-                lastMoving = lastMoving / _lenghtEma.ValueInt;
+                lastMoving = lastMoving / _lengthEma.ValueInt;
                 result = lastMoving;
                 _series1.Values[index] = lastMoving;
             }
-            else if (index > _lenghtEma.ValueInt)
+            else if (index > _lengthEma.ValueInt)
             {
-                decimal a = Math.Round(2.0m / (_lenghtEma.ValueInt + 1), 8);
+                decimal a = Math.Round(2.0m / (_lengthEma.ValueInt + 1), 8);
                 decimal emaLast = _series1.Values[index - 1];
                 decimal p = candles[index].High - candles[index].Low;
                 result = emaLast + (a * (p - emaLast));
@@ -98,21 +98,21 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             decimal result = 0;
 
-            if (index == _lenghtEma.ValueInt)
+            if (index == _lengthEma.ValueInt)
             {
                 decimal lastMoving = 0;
 
-                for (int i = index - _lenghtEma.ValueInt + 1; i < index + 1; i++)
+                for (int i = index - _lengthEma.ValueInt + 1; i < index + 1; i++)
                 {
                     lastMoving += values[i];
                 }
-                lastMoving = lastMoving / _lenghtEma.ValueInt;
+                lastMoving = lastMoving / _lengthEma.ValueInt;
                 result = lastMoving;
                 _series2.Values[index] = lastMoving;
             }
-            else if (index > _lenghtEma.ValueInt)
+            else if (index > _lengthEma.ValueInt)
             {
-                decimal a = Math.Round(2.0m / (_lenghtEma.ValueInt + 1), 8);
+                decimal a = Math.Round(2.0m / (_lengthEma.ValueInt + 1), 8);
                 decimal emaLast = _series2.Values[index - 1];
                 decimal p = values[index];
                 result = emaLast + (a * (p - emaLast));

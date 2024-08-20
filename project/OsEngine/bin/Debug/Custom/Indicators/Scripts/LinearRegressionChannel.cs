@@ -22,7 +22,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _period = CreateParameterInt("Lenght", 100);
+                _period = CreateParameterInt("Length", 100);
                 _candlePoint = CreateParameterStringCollection("Candle Point", "Close", OsEngine.Indicators.Entity.CandlePointsArray);
 
                 _upDeviation = CreateParameterDecimal("Up channel deviation", 2);

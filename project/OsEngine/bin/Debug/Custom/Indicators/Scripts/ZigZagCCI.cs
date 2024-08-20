@@ -12,7 +12,7 @@ namespace OsEngine.Indicators.Indicator
 
         private IndicatorDataSeries _seriesCCI;
 
-        private IndicatorParameterInt _lenghtCCI;
+        private IndicatorParameterInt _lengthCCI;
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
@@ -27,7 +27,7 @@ namespace OsEngine.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtCCI = CreateParameterInt("Length", 21);
+                _lengthCCI = CreateParameterInt("Length", 21);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesCCI = CreateSeries("CCI", Color.Aqua, IndicatorChartPaintType.Line, true);
@@ -51,7 +51,7 @@ namespace OsEngine.Indicators.Indicator
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _CCI = IndicatorsFactory.CreateIndicatorByName("CCI", Name + "CCI", false);
-                ((IndicatorParameterInt)_CCI.Parameters[0]).Bind(_lenghtCCI);
+                ((IndicatorParameterInt)_CCI.Parameters[0]).Bind(_lengthCCI);
                 ProcessIndicator("CCI", _CCI);
 
             }

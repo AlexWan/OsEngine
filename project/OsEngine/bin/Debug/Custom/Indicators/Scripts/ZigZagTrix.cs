@@ -12,7 +12,7 @@ namespace OsEngine.Indicators.ind
 
         private IndicatorDataSeries _seriesTrix;
 
-        private IndicatorParameterInt _lenghtTrix;
+        private IndicatorParameterInt _lengthTrix;
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
@@ -27,7 +27,7 @@ namespace OsEngine.Indicators.ind
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtTrix = CreateParameterInt("Length", 9);
+                _lengthTrix = CreateParameterInt("Length", 9);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesTrix = CreateSeries("Trix", Color.Aqua, IndicatorChartPaintType.Line, true);
@@ -51,7 +51,7 @@ namespace OsEngine.Indicators.ind
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _Trix = IndicatorsFactory.CreateIndicatorByName("Trix", Name + "Trix", false);
-                ((IndicatorParameterInt)_Trix.Parameters[0]).Bind(_lenghtTrix);
+                ((IndicatorParameterInt)_Trix.Parameters[0]).Bind(_lengthTrix);
                 ProcessIndicator("Trix", _Trix);
 
             }

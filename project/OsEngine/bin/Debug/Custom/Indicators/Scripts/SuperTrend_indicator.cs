@@ -21,7 +21,7 @@ namespace OsEngine.Indicators.indicator
         int direction;
         public override void OnStateChange(IndicatorState state)
         {
-            _period = CreateParameterInt("Lenght Atr", 15);
+            _period = CreateParameterInt("Length", 15);
             _deviation = CreateParameterDecimal("Deviation factor", 1.0m);
             _candlePoint = CreateParameterStringCollection("Candle Point", "Median", new List<string>() { "Median", "Typical" });
             _wicks = CreateParameterBool("Use candle shadow", true);

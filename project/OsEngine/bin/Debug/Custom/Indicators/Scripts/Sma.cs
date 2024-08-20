@@ -7,7 +7,7 @@ namespace CustomIndicators.Scripts
 {
     public class Sma : Aindicator
     {
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;
 
@@ -17,7 +17,7 @@ namespace CustomIndicators.Scripts
         {
             if (state == IndicatorState.Configure)
             {
-                _lenght = CreateParameterInt("Length", 14);
+                _length = CreateParameterInt("Length", 14);
                 _candlePoint = CreateParameterStringCollection("Candle Point", "Close", Entity.CandlePointsArray);
                 _series = CreateSeries("Ma", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
             }
@@ -25,13 +25,13 @@ namespace CustomIndicators.Scripts
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (_lenght.ValueInt > index)
+            if (_length.ValueInt > index)
             {
                 _series.Values[index] = 0;
                 return;
             }
 
-            _series.Values[index] = candles.Summ(index - _lenght.ValueInt, index, _candlePoint.ValueString) / _lenght.ValueInt;
+            _series.Values[index] = candles.Summ(index - _length.ValueInt, index, _candlePoint.ValueString) / _length.ValueInt;
         }
     }
 }

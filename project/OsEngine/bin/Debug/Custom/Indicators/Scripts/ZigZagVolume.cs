@@ -8,12 +8,12 @@ namespace OsEngine.Indicators.Indicator
 {
     internal class ZigZagVolume : Aindicator
     {
-        private Aindicator _VolumeOscilator;
+        private Aindicator _VolumeOscillator;
 
         private IndicatorDataSeries _seriesVolume;
 
-        private IndicatorParameterInt _LenghtVolOsSlow;
-        private IndicatorParameterInt _LenghtVolOsFast;
+        private IndicatorParameterInt _LengthVolOsSlow;
+        private IndicatorParameterInt _LengthVolOsFast;
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
@@ -28,8 +28,8 @@ namespace OsEngine.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _LenghtVolOsSlow = CreateParameterInt("LenghtVolOsSlow", 20);
-                _LenghtVolOsFast = CreateParameterInt("LenghtVolOsFast", 10);
+                _LengthVolOsSlow = CreateParameterInt("Length Slow", 20);
+                _LengthVolOsFast = CreateParameterInt("Length Fast", 10);
 
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
@@ -53,19 +53,19 @@ namespace OsEngine.Indicators.Indicator
                 _seriesZigZagDownChannel = CreateSeries("_seriesZigZagDownChannel", Color.DarkGreen, IndicatorChartPaintType.Point, true);
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
-                _VolumeOscilator = IndicatorsFactory.CreateIndicatorByName("VolumeOscilator", Name + "VolumeOscilator", false);
-                ((IndicatorParameterInt)_VolumeOscilator.Parameters[0]).Bind(_LenghtVolOsSlow);
-                ((IndicatorParameterInt)_VolumeOscilator.Parameters[1]).Bind(_LenghtVolOsFast);
-                ProcessIndicator("VolumeOscilator", _VolumeOscilator);
+                _VolumeOscillator = IndicatorsFactory.CreateIndicatorByName("VolumeOscilator", Name + "VolumeOscilator", false);
+                ((IndicatorParameterInt)_VolumeOscillator.Parameters[0]).Bind(_LengthVolOsSlow);
+                ((IndicatorParameterInt)_VolumeOscillator.Parameters[1]).Bind(_LengthVolOsFast);
+                ProcessIndicator("VolumeOscilator", _VolumeOscillator);
 
             }
         }
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            _seriesVolume.Values[index] = _VolumeOscilator.DataSeries[0].Values[index];
+            _seriesVolume.Values[index] = _VolumeOscillator.DataSeries[0].Values[index];
 
-            List<decimal> values = _VolumeOscilator.DataSeries[0].Values;
+            List<decimal> values = _VolumeOscillator.DataSeries[0].Values;
 
             if (index < _lengthZigZag.ValueInt * 2)
             {

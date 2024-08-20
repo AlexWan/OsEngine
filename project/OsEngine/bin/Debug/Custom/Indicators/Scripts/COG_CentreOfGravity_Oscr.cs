@@ -11,7 +11,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
     {
         ///period for which the indicator is calculated
         /// </summary>
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
         /// <summary>
         /// indicator data series
         /// </summary>
@@ -29,7 +29,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _lenght = CreateParameterInt("Length", 14);
+                _length = CreateParameterInt("Length", 14);
                 _candlePoint = CreateParameterStringCollection("Candle Point", "Close", OsEngine.Indicators.Entity.CandlePointsArray);
 
                 _LastCOG_series = CreateSeries("COG series", Color.Red, IndicatorChartPaintType.Line, true);
@@ -43,7 +43,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         /// <param name="index">index to use in the collection of candles</param>
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (index < _lenght.ValueInt)
+            if (index < _length.ValueInt)
                 return;
 
             decimal COG = cacl(candles, index); ;
@@ -63,13 +63,13 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
             decimal temp = 0;
             decimal temp2 = 0;
 
-            for (int i = index - _lenght.ValueInt, j = 0; i < index; i++, j++)
+            for (int i = index - _length.ValueInt, j = 0; i < index; i++, j++)
             {
                 temp += candles[i].GetPoint(_candlePoint.ValueString) * (j + 1);
                 temp2 += candles[i].GetPoint(_candlePoint.ValueString);
             }
 
-            result = temp / temp2 - (_lenght.ValueInt + 1) / 2;
+            result = temp / temp2 - (_length.ValueInt + 1) / 2;
 
             return result;
         }

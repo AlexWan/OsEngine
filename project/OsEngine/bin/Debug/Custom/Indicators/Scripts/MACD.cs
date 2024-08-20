@@ -8,9 +8,9 @@ namespace CustomIndicators.Scripts
 {
     public class MACD : Aindicator
     {
-        private IndicatorParameterInt _lenghtFastLine;
-        private IndicatorParameterInt _lenghtSlowLine;
-        private IndicatorParameterInt _lenghtSignalLine;
+        private IndicatorParameterInt _lengthFastLine;
+        private IndicatorParameterInt _lengthSlowLine;
+        private IndicatorParameterInt _lengthSignalLine;
 
         private IndicatorDataSeries _seriesMacd;
         private IndicatorDataSeries _seriesSignalLine;
@@ -23,28 +23,28 @@ namespace CustomIndicators.Scripts
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtFastLine = CreateParameterInt("Fast line length", 12);
-                _lenghtSlowLine = CreateParameterInt("Slow line length", 26);
-                _lenghtSignalLine = CreateParameterInt("Signal line length", 9);
+                _lengthFastLine = CreateParameterInt("Fast line length", 12);
+                _lengthSlowLine = CreateParameterInt("Slow line length", 26);
+                _lengthSignalLine = CreateParameterInt("Signal line length", 9);
 
                 _seriesMacdHistogramm = CreateSeries("MACD Histogramm", Color.DodgerBlue, IndicatorChartPaintType.Column, true);
                 _seriesMacd = CreateSeries("MACD", Color.DarkGreen, IndicatorChartPaintType.Line, false);
                 _seriesSignalLine = CreateSeries("Signal line", Color.DarkRed, IndicatorChartPaintType.Line, true);
 
                 _emaFast = IndicatorsFactory.CreateIndicatorByName("Ema", Name + "Ema fast", false);
-                _emaFast.Parameters[0].Bind(_lenghtFastLine);
+                _emaFast.Parameters[0].Bind(_lengthFastLine);
                 ProcessIndicator("Ema fast", _emaFast);
 
                 _emaSlow = IndicatorsFactory.CreateIndicatorByName("Ema", Name + "Ema slow", false);
-                _emaSlow.Parameters[0].Bind(_lenghtSlowLine);
+                _emaSlow.Parameters[0].Bind(_lengthSlowLine);
                 ProcessIndicator("Ema slow", _emaSlow);
             }
         }
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (index < _lenghtFastLine.ValueInt ||
-                index < _lenghtSlowLine.ValueInt)
+            if (index < _lengthFastLine.ValueInt ||
+                index < _lengthSlowLine.ValueInt)
             {
                 return;
             }
@@ -60,21 +60,21 @@ namespace CustomIndicators.Scripts
         {
             decimal result = 0;
 
-            if (index == _lenghtSignalLine.ValueInt)
+            if (index == _lengthSignalLine.ValueInt)
             {
                 decimal lastMoving = 0;
 
-                for (int i = index - _lenghtSignalLine.ValueInt + 1; i < index + 1; i++)
+                for (int i = index - _lengthSignalLine.ValueInt + 1; i < index + 1; i++)
                 {
                     lastMoving += values[i];
                 }
 
-                lastMoving = lastMoving / _lenghtSignalLine.ValueInt;
+                lastMoving = lastMoving / _lengthSignalLine.ValueInt;
                 result = lastMoving;
             }
-            else if (index > _lenghtSignalLine.ValueInt)
+            else if (index > _lengthSignalLine.ValueInt)
             {
-                decimal a = Math.Round(2.0m / (_lenghtSignalLine.ValueInt + 1), 8);
+                decimal a = Math.Round(2.0m / (_lengthSignalLine.ValueInt + 1), 8);
                 decimal emaLast = _seriesSignalLine.Values[index - 1];
                 decimal p = values[index];
                 result = emaLast + (a * (p - emaLast));

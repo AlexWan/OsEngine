@@ -9,9 +9,9 @@ namespace OsEngine.Indicators.My_ind
     internal class ZigZagMACD : Aindicator
     {
         private Aindicator _MACD;
-        private IndicatorParameterInt _lenghtFastLine;
-        private IndicatorParameterInt _lenghtSlowLine;
-        private IndicatorParameterInt _lenghtSignalLine;
+        private IndicatorParameterInt _lengthFastLine;
+        private IndicatorParameterInt _lengthSlowLine;
+        private IndicatorParameterInt _lengthSignalLine;
         private IndicatorDataSeries _seriesMACD;
 
         private IndicatorParameterInt _lengthZigZag;
@@ -29,9 +29,9 @@ namespace OsEngine.Indicators.My_ind
             if (state == IndicatorState.Configure)
             {
 
-                _lenghtFastLine = CreateParameterInt("Fast line length", 12);
-                _lenghtSlowLine = CreateParameterInt("Slow line length", 26);
-                _lenghtSignalLine = CreateParameterInt("Signal line length", 9);
+                _lengthFastLine = CreateParameterInt("Fast line length", 12);
+                _lengthSlowLine = CreateParameterInt("Slow line length", 26);
+                _lengthSignalLine = CreateParameterInt("Signal line length", 9);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesMACD = CreateSeries("MACD", Color.Blue, IndicatorChartPaintType.Column, true);
@@ -55,9 +55,9 @@ namespace OsEngine.Indicators.My_ind
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _MACD = IndicatorsFactory.CreateIndicatorByName("MACD", Name + "MACD", false);
-                ((IndicatorParameterInt)_MACD.Parameters[0]).Bind(_lenghtFastLine);
-                ((IndicatorParameterInt)_MACD.Parameters[1]).Bind(_lenghtSlowLine);
-                ((IndicatorParameterInt)_MACD.Parameters[2]).Bind(_lenghtSignalLine);
+                ((IndicatorParameterInt)_MACD.Parameters[0]).Bind(_lengthFastLine);
+                ((IndicatorParameterInt)_MACD.Parameters[1]).Bind(_lengthSlowLine);
+                ((IndicatorParameterInt)_MACD.Parameters[2]).Bind(_lengthSignalLine);
                 ProcessIndicator("MACD", _MACD);
 
             }
@@ -79,7 +79,7 @@ namespace OsEngine.Indicators.My_ind
                 return;
             }
 
-            if (index < _lenghtFastLine.ValueInt)
+            if (index < _lengthFastLine.ValueInt)
             {
                 return;
             }

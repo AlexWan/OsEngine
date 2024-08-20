@@ -83,19 +83,19 @@ namespace CustomIndicators.Scripts
             return _seriesAccDistr.Values[index - 1] + vi[index];
         }
 
-        private decimal GetSma(List<decimal> values, int lenght, int index)
+        private decimal GetSma(List<decimal> values, int length, int index)
         {
             decimal result = 0;
 
-            int lenghtReal = 0;
+            int lengthReal = 0;
 
-            for (int i = index; i > 0 && i > index - lenght; i--)
+            for (int i = index; i > 0 && i > index - length; i--)
             {
                 result += values[i];
-                lenghtReal++;
+                lengthReal++;
             }
 
-            return result / lenghtReal; ;
+            return result / lengthReal; ;
         }
     }
 }

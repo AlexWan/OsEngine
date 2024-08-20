@@ -7,8 +7,8 @@ namespace CustomIndicators.Scripts
 {
     public class PriceChannel : Aindicator
     {
-        private IndicatorParameterInt _lenghtUp;
-        private IndicatorParameterInt _lenghtDown;
+        private IndicatorParameterInt _lengthUp;
+        private IndicatorParameterInt _lengthDown;
 
         private IndicatorDataSeries _seriesUp;
         private IndicatorDataSeries _seriesDown;
@@ -17,8 +17,8 @@ namespace CustomIndicators.Scripts
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtUp = CreateParameterInt("Length up", 21);
-                _lenghtDown = CreateParameterInt("Lenght down", 21);
+                _lengthUp = CreateParameterInt("Length up", 21);
+                _lengthDown = CreateParameterInt("Length down", 21);
 
                 _seriesUp = CreateSeries("Up line", Color.Aqua, IndicatorChartPaintType.Line, true);
                 _seriesDown = CreateSeries("Down line", Color.BlueViolet, IndicatorChartPaintType.Line, true);
@@ -29,9 +29,9 @@ namespace CustomIndicators.Scripts
         {
             decimal upLine = 0;
 
-            if (index - _lenghtUp.ValueInt > 0)
+            if (index - _lengthUp.ValueInt > 0)
             {
-                for (int i = index; i > -1 && i > index - _lenghtUp.ValueInt; i--)
+                for (int i = index; i > -1 && i > index - _lengthUp.ValueInt; i--)
                 {
                     if (upLine < candles[i].High)
                     {
@@ -42,11 +42,11 @@ namespace CustomIndicators.Scripts
 
             decimal downLine = 0;
 
-            if (index - _lenghtDown.ValueInt > 0)
+            if (index - _lengthDown.ValueInt > 0)
             {
                 downLine = decimal.MaxValue;
 
-                for (int i = index; i > -1 && i > index - _lenghtDown.ValueInt; i--)
+                for (int i = index; i > -1 && i > index - _lengthDown.ValueInt; i--)
                 {
                     if (downLine > candles[i].Low)
                     {

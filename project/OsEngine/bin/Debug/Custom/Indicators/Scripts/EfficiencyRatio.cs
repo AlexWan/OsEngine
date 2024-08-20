@@ -10,13 +10,13 @@ namespace CustomIndicators.Scripts
     public class EfficiencyRatio:Aindicator
     {
         private IndicatorDataSeries _series;
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
 
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
             {
-                _lenght = CreateParameterInt("Length", 14);
+                _length = CreateParameterInt("Length", 14);
                 _series = CreateSeries("ER", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
             }
         }
@@ -30,15 +30,15 @@ namespace CustomIndicators.Scripts
         {
             decimal eR1 = 0;
             decimal eR2 = 0;
-            int Lenght = _lenght.ValueInt;
+            int Length = _length.ValueInt;
 
-            if (index - Lenght > 0)
+            if (index - Length > 0)
             {
-                eR1 = Math.Abs(candles[index].Close - candles[index - Lenght].Close);
+                eR1 = Math.Abs(candles[index].Close - candles[index - Length].Close);
 
                 eR2 = 0;
 
-                for (int i = 0; i <= Lenght; i++)
+                for (int i = 0; i <= Length; i++)
                 {
                     eR2 += Math.Abs(candles[index - i].Close - candles[index - i - 1].Close);
                 }

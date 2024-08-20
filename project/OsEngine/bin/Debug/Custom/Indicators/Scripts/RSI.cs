@@ -8,20 +8,20 @@ namespace CustomIndicators.Scripts
 {
     public class RSI : Aindicator
     {
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
 
         private IndicatorDataSeries _series;
 
         public override void OnStateChange(IndicatorState state)
         {
-            _lenght = CreateParameterInt("Lenght", 14);
+            _length = CreateParameterInt("Length", 14);
 
             _series = CreateSeries("Ma", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
         }
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (index - _lenght.ValueInt - 1 <= 0)
+            if (index - _length.ValueInt - 1 <= 0)
             {
                 return;
             }
@@ -52,8 +52,8 @@ namespace CustomIndicators.Scripts
                     priceChangeHigh[i] = 0;
                 }
 
-                MovingAverageHard(priceChangeHigh, priceChangeHighAverage, _lenght.ValueInt, i);
-                MovingAverageHard(priceChangeLow, priceChangeLowAverage, _lenght.ValueInt, i);
+                MovingAverageHard(priceChangeHigh, priceChangeHighAverage, _length.ValueInt, i);
+                MovingAverageHard(priceChangeLow, priceChangeLowAverage, _length.ValueInt, i);
             }
 
             decimal averageHigh = priceChangeHighAverage[index];

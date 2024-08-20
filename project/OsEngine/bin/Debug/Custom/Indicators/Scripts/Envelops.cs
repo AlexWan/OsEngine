@@ -8,7 +8,7 @@ namespace CustomIndicators.Scripts
 {
     public class Envelops : Aindicator
     {
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
         private IndicatorParameterDecimal _deviation;
 
         private IndicatorDataSeries _seriesUp;
@@ -21,7 +21,7 @@ namespace CustomIndicators.Scripts
         {
             if (state == IndicatorState.Configure)
             {
-                _lenght = CreateParameterInt("Length", 21);
+                _length = CreateParameterInt("Length", 21);
                 _deviation = CreateParameterDecimal("Deviation", 2);
 
                 _seriesUp = CreateSeries("Up line", Color.Green, IndicatorChartPaintType.Line, true);
@@ -29,14 +29,14 @@ namespace CustomIndicators.Scripts
                 _seriesDown = CreateSeries("Down line", Color.Green, IndicatorChartPaintType.Line, true);
 
                 _sma = IndicatorsFactory.CreateIndicatorByName("Sma", Name + "Sma", false);
-                _sma.Parameters[0].Bind(_lenght);
+                _sma.Parameters[0].Bind(_length);
                 ProcessIndicator("Central SMA", _sma);
             }
         }
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (index <= _lenght.ValueInt)
+            if (index <= _length.ValueInt)
             {
                 return;
             }

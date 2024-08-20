@@ -104,8 +104,8 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
 
             SdijReload(index);
 
-            //_mdiPlus = MovingAverageWild(_sDIjPlus, _mdiPlus, Lenght, index);
-            //_mdiMinus = MovingAverageWild(_sDIjMinus, _mdiMinus, Lenght, index);
+            //_mdiPlus = MovingAverageWild(_sDIjPlus, _mdiPlus, Length, index);
+            //_mdiMinus = MovingAverageWild(_sDIjMinus, _mdiMinus, Length, index);
 
             // 5 making an array DX
             // 5 делаем массив DX

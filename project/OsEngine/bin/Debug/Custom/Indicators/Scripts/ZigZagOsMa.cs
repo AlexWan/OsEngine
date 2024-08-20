@@ -10,9 +10,9 @@ namespace OsEngine.Indicators.indicator
     internal class ZigZagOsMa : Aindicator
     {
         private Aindicator _OsMa;
-        private IndicatorParameterInt _lenghtFastLine;
-        private IndicatorParameterInt _lenghtSlowLine;
-        private IndicatorParameterInt _lenghtSignalLine;
+        private IndicatorParameterInt _lengthFastLine;
+        private IndicatorParameterInt _lengthSlowLine;
+        private IndicatorParameterInt _lengthSignalLine;
         private IndicatorDataSeries _seriesOsMa;
 
         private IndicatorParameterInt _lengthZigZag;
@@ -29,9 +29,9 @@ namespace OsEngine.Indicators.indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtFastLine = CreateParameterInt("Fast line length", 12);
-                _lenghtSlowLine = CreateParameterInt("Slow line length", 26);
-                _lenghtSignalLine = CreateParameterInt("Signal line length", 9);
+                _lengthFastLine = CreateParameterInt("Fast line length", 12);
+                _lengthSlowLine = CreateParameterInt("Slow line length", 26);
+                _lengthSignalLine = CreateParameterInt("Signal line length", 9);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesOsMa = CreateSeries("OsMa", Color.Blue, IndicatorChartPaintType.Column, true);
@@ -55,9 +55,9 @@ namespace OsEngine.Indicators.indicator
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _OsMa = IndicatorsFactory.CreateIndicatorByName("OsMa", Name + "OsMa", false);
-                ((IndicatorParameterInt)_OsMa.Parameters[0]).Bind(_lenghtFastLine);
-                ((IndicatorParameterInt)_OsMa.Parameters[1]).Bind(_lenghtSlowLine);
-                ((IndicatorParameterInt)_OsMa.Parameters[2]).Bind(_lenghtSignalLine);
+                ((IndicatorParameterInt)_OsMa.Parameters[0]).Bind(_lengthFastLine);
+                ((IndicatorParameterInt)_OsMa.Parameters[1]).Bind(_lengthSlowLine);
+                ((IndicatorParameterInt)_OsMa.Parameters[2]).Bind(_lengthSignalLine);
                 ProcessIndicator("OsMa", _OsMa);
             }
         }
@@ -78,7 +78,7 @@ namespace OsEngine.Indicators.indicator
                 return;
             }
 
-            if (index < _lenghtFastLine.ValueInt)
+            if (index < _lengthFastLine.ValueInt)
             {
                 return;
             }

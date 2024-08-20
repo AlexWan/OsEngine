@@ -10,7 +10,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
    // [IndicatorAttribute("QStick")]
     internal class QStick : Aindicator
     {
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
 
         private IndicatorParameterString _typeMA;
 
@@ -20,7 +20,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             List<string> typeMA = new List<string> { "SMA", "EMA" };
 
-            _lenght = CreateParameterInt("Length", 14);
+            _length = CreateParameterInt("Length", 14);
             _typeMA = CreateParameterStringCollection("Type MA", "SMA", typeMA);
             _series = CreateSeries("QStick", Color.Red, IndicatorChartPaintType.Line, true);
         }
@@ -45,20 +45,20 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             decimal result = 0;
 
-            if (index == _lenght.ValueInt)
+            if (index == _length.ValueInt)
             {
                 decimal lastMoving = 0;
 
-                for (int i = index - _lenght.ValueInt + 1; i < index + 1; i++)
+                for (int i = index - _length.ValueInt + 1; i < index + 1; i++)
                 {
                     lastMoving += candles[i].Close - candles[i].Open;
                 }
-                lastMoving = lastMoving / _lenght.ValueInt;
+                lastMoving = lastMoving / _length.ValueInt;
                 result = lastMoving;
             }
-            else if (index > _lenght.ValueInt)
+            else if (index > _length.ValueInt)
             {
-                decimal a = Math.Round(2.0m / (_lenght.ValueInt + 1), 8);
+                decimal a = Math.Round(2.0m / (_length.ValueInt + 1), 8);
                 decimal emaLast = _series.Values[index - 1];
                 decimal p = candles[index].Close - candles[index].Open;
                 result = emaLast + (a * (p - emaLast));
@@ -72,7 +72,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         /// <param name="index">index to use in the collection of candles</param>
         public void CaclQstickForSMA(List<Candle> candles, int index)
         {
-            if (_lenght.ValueInt > index)
+            if (_length.ValueInt > index)
             {
                 _series.Values[index] = 0;
                 return;
@@ -80,9 +80,9 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
             string typeClose = "Close";
             string typeOpen = "Open";
 
-            decimal temp = candles.Summ(index - _lenght.ValueInt, index, typeClose) - candles.Summ(index - _lenght.ValueInt, index, typeOpen);
+            decimal temp = candles.Summ(index - _length.ValueInt, index, typeClose) - candles.Summ(index - _length.ValueInt, index, typeOpen);
 
-            _series.Values[index] = temp / _lenght.ValueInt;
+            _series.Values[index] = temp / _length.ValueInt;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace CustomIndicators.Scripts
 {
     public class Ssma : Aindicator
     {
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;
 
@@ -15,7 +15,7 @@ namespace CustomIndicators.Scripts
 
         public override void OnStateChange(IndicatorState state)
         {
-            _lenght = CreateParameterInt("Length", 14);
+            _length = CreateParameterInt("Length", 14);
             _candlePoint = CreateParameterStringCollection("Candle Point", "Close", Entity.CandlePointsArray);
             _series = CreateSeries("Ma", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
         }
@@ -24,26 +24,26 @@ namespace CustomIndicators.Scripts
         {
             decimal result = 0;
 
-            if (index == _lenght.ValueInt)
+            if (index == _length.ValueInt)
             {
                 decimal lastMoving = 0;
 
-                for (int i = index - _lenght.ValueInt + 1; i < index + 1; i++)
+                for (int i = index - _length.ValueInt + 1; i < index + 1; i++)
                 {
                     lastMoving += candles[i].GetPoint(_candlePoint.ValueString);
                 }
 
-                lastMoving = lastMoving / _lenght.ValueInt;
+                lastMoving = lastMoving / _length.ValueInt;
 
                 result = lastMoving;
             }
-            else if (index > _lenght.ValueInt)
+            else if (index > _length.ValueInt)
             {
                 decimal ssmaLast = _series.Values[index - 1];
 
                 decimal p = candles[index].GetPoint(_candlePoint.ValueString);
 
-                result = (ssmaLast * (_lenght.ValueInt - 1) + p) / _lenght.ValueInt;
+                result = (ssmaLast * (_length.ValueInt - 1) + p) / _length.ValueInt;
             }
 
             _series.Values[index] = result;

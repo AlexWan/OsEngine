@@ -12,7 +12,7 @@ namespace OsEngine.Indicators.ind
 
         private IndicatorDataSeries _seriesROC;
 
-        private IndicatorParameterInt _lenghtROC;
+        private IndicatorParameterInt _lengthROC;
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
@@ -27,7 +27,7 @@ namespace OsEngine.Indicators.ind
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtROC = CreateParameterInt("Length", 13);
+                _lengthROC = CreateParameterInt("Length", 13);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesROC = CreateSeries("ROC", Color.Pink, IndicatorChartPaintType.Line, true);
@@ -51,7 +51,7 @@ namespace OsEngine.Indicators.ind
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _ROC = IndicatorsFactory.CreateIndicatorByName("ROC", Name + "ROC", false);
-                ((IndicatorParameterInt)_ROC.Parameters[0]).Bind(_lenghtROC);
+                ((IndicatorParameterInt)_ROC.Parameters[0]).Bind(_lengthROC);
                 ProcessIndicator("ROC", _ROC);
 
             }
