@@ -78,13 +78,15 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             {
                 _pc.ParametersDigit[0].Value = PriceChannelLength.ValueInt;
                 _pc.ParametersDigit[1].Value = PriceChannelLength.ValueInt;
-
                 _pc.Reload();
+                _pc.Save();
             }
 
             if(_atr.ParametersDigit[0].Value != AtrLength.ValueInt)
             {
                 _atr.ParametersDigit[0].Value = AtrLength.ValueInt;
+                _atr.Reload();
+                _atr.Save();
             }
         }
 

@@ -55,7 +55,7 @@ namespace CustomIndicators.Scripts
                 _lenSmaFast = CreateParameterInt("Fast sma len", 7);
                 _channelDeviation = CreateParameterDecimal("Channel Deviation", 0.25m);
 
-                _seriesVolatilityStages = CreateSeries("Stages volatility", Color.WhiteSmoke, IndicatorChartPaintType.Line, true);
+                _seriesVolatilityStages = CreateSeries("Stages volatility", Color.Green, IndicatorChartPaintType.Line, true);
                 _seriesVolatilityStages.CanReBuildHistoricalValues = true;
 
                 _seriesUpChannel = CreateSeries("Up channel", Color.WhiteSmoke, IndicatorChartPaintType.Line, true);

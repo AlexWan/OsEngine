@@ -8,7 +8,7 @@ namespace CustomIndicators.Scripts
 {
     public class Bollinger : Aindicator
     {
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
         private IndicatorParameterDecimal _deviation;
 
         private IndicatorDataSeries _seriesUp;
@@ -21,7 +21,7 @@ namespace CustomIndicators.Scripts
         {
             if (state == IndicatorState.Configure)
             {
-                _lenght = CreateParameterInt("Length", 21);
+                _length = CreateParameterInt("Length", 21);
                 _deviation = CreateParameterDecimal("Deviation", 2);
 
                 _seriesUp = CreateSeries("Up line", Color.Green, IndicatorChartPaintType.Line, true);
@@ -30,14 +30,14 @@ namespace CustomIndicators.Scripts
                 _seriesCenter = CreateSeries("Centre line", Color.Green, IndicatorChartPaintType.Line, true);
 
                 _sma = IndicatorsFactory.CreateIndicatorByName("Sma", Name + "Sma", false);
-                _sma.Parameters[0].Bind(_lenght);
+                _sma.Parameters[0].Bind(_length);
                 ProcessIndicator("Central SMA", _sma);
             }
         }
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (index <= _lenght.ValueInt)
+            if (index <= _length.ValueInt)
             {
                 return;
             }
@@ -46,9 +46,9 @@ namespace CustomIndicators.Scripts
 
             _seriesCenter.Values[index] = _sma.DataSeries[0].Values[index];
 
-            decimal[] valueDev = new decimal[_lenght.ValueInt];
+            decimal[] valueDev = new decimal[_length.ValueInt];
 
-            for (int i = index - _lenght.ValueInt + 1, i2 = 0; i < index + 1; i++, i2++)
+            for (int i = index - _length.ValueInt + 1, i2 = 0; i < index + 1; i++, i2++)
             {
                 valueDev[i2] = candles[i].Close - valueSma;
             }
@@ -65,13 +65,13 @@ namespace CustomIndicators.Scripts
                 summ += Convert.ToDouble(valueDev[i]);
             }
 
-            if (_lenght.ValueInt > 30)
+            if (_length.ValueInt > 30)
             {
-                summ = summ / (_lenght.ValueInt - 1);
+                summ = summ / (_length.ValueInt - 1);
             }
             else
             {
-                summ = summ / _lenght.ValueInt;
+                summ = summ / _length.ValueInt;
             }
 
             summ = Math.Sqrt(summ);
