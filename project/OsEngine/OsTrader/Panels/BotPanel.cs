@@ -1008,7 +1008,16 @@ position => position.State != PositionStateType.OpeningFail
                 throw new Exception(OsLocalization.Trader.Label52);
             }
 
-            return (StrategyParameterString)LoadParameterValues(newParameter);
+            StrategyParameterString paramFromFileSys = (StrategyParameterString)LoadParameterValues(newParameter);
+
+            if(paramFromFileSys.ValuesString != null &&
+                collection != null &&
+                paramFromFileSys.ValuesString.Count != collection.Length)
+            {
+                paramFromFileSys.ValuesString = collection.ToList();
+            }
+
+            return paramFromFileSys;
         }
 
         /// <summary>
