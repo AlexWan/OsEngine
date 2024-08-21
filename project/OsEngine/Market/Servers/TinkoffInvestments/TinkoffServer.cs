@@ -47,6 +47,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         public TinkoffInvestmentsServerRealization()
         {
+            ServerTime = DateTime.UtcNow;
+            
             Thread worker = new Thread(ConnectionCheckThread);
             worker.Name = "CheckAliveTinkoff";
             worker.Start();
@@ -116,17 +118,17 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
                     bool shitHappenedWithStreams = false;
 
-                    if (_marketDataStream != null && _lastMarketDataTime.AddMinutes(3) < DateTime.Now)
+                    if (_marketDataStream != null && _lastMarketDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
                         shitHappenedWithStreams = true;
                     }
 
-                    if (_portfolioDataStream != null && _lastPortfolioDataTime.AddMinutes(3) < DateTime.Now)
+                    if (_portfolioDataStream != null && _lastPortfolioDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
                         shitHappenedWithStreams = true;
                     }
 
-                    if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.Now)
+                    if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
                         shitHappenedWithStreams = true;
                     }
@@ -234,10 +236,10 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
             _subscribedSecurities.Clear();
             _myPortfolios.Clear();
-            _lastMarketDataTime = DateTime.Now;
-            _lastMdTime = DateTime.Now;
-            _lastMyTradesDataTime = DateTime.Now;
-            _lastPortfolioDataTime = DateTime.Now;
+            _lastMarketDataTime = DateTime.UtcNow;
+            _lastMdTime = DateTime.UtcNow;
+            _lastMyTradesDataTime = DateTime.UtcNow;
+            _lastPortfolioDataTime = DateTime.UtcNow;
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
@@ -1455,8 +1457,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
                     _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
-            _lastMyTradesDataTime = DateTime.Now;
-            _lastPortfolioDataTime = DateTime.Now;
+            _lastMyTradesDataTime = DateTime.UtcNow;
+            _lastPortfolioDataTime = DateTime.UtcNow;
         }
         
         private void ActivateCurrentPortfolioListening()
@@ -1590,7 +1592,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
-                    _lastMarketDataTime  = DateTime.Now;
+                    _lastMarketDataTime  = DateTime.UtcNow;
 
                     if (marketDataResponse.Ping != null)
                     {
@@ -1720,7 +1722,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     bool isWeekend = DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday;
 
                     // по выходным маркетдата с внебиржевого рынока не транслируется (сделок нет, а "дилерский" стакан только для некоторых инструментов) и тогда включаем опрос и стакан L1 принудительно
-                    if (!_filterOutNonMarketData && isWeekend && _lastMarketDataTime.AddMilliseconds(1000) < DateTime.Now)
+                    if (!_filterOutNonMarketData && isWeekend && _lastMarketDataTime.AddMilliseconds(1000) < DateTime.UtcNow)
                     {
                         usePollingForMarketData = true;
                     }
@@ -1909,7 +1911,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
-                    _lastPortfolioDataTime = DateTime.Now;
+                    _lastPortfolioDataTime = DateTime.UtcNow;
 
                     if (portfolioResponse.Ping != null)
                     {
@@ -2007,7 +2009,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
-                    _lastPortfolioDataTime = DateTime.Now;
+                    _lastPortfolioDataTime = DateTime.UtcNow;
 
                     if (positionsResponse.Ping != null)
                     {
@@ -2208,7 +2210,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
-                    _lastMyTradesDataTime = DateTime.Now;
+                    _lastMyTradesDataTime = DateTime.UtcNow;
 
                     if (tradesResponse.Ping != null)
                     {
