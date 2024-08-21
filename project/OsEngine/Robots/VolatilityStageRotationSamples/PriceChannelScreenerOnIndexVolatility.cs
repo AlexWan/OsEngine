@@ -19,60 +19,66 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
     public class PriceChannelScreenerOnIndexVolatility : BotPanel
     {
         BotTabScreener _tabScreener;
+        BotTabIndex _tabIndex;
 
         public StrategyParameterString Regime;
         public StrategyParameterInt MaxPositions;
-        public StrategyParameterInt ZigZagChannelLen;
-        public StrategyParameterInt RsiLen;
 
-        public StrategyParameterDecimal Slippage;
+        public StrategyParameterInt PriceChannelLength;
+        public StrategyParameterInt AtrLength;
+        public StrategyParameterBool AtrFilterIsOn;
+        public StrategyParameterDecimal AtrGrowPercent;
+        public StrategyParameterInt AtrGrowLookBack;
+
         public StrategyParameterString VolumeType;
         public StrategyParameterDecimal Volume;
         public StrategyParameterString TradeAssetInPortfolio;
-        public StrategyParameterDecimal TrailStop;
 
-        public StrategyParameterInt MaxSecuritiesToTrade;
         public StrategyParameterInt TopVolumeSecurities;
-        public StrategyParameterInt TopVolumeDaysLookBack;
+        public StrategyParameterInt TopCandlesLookBack;
+        public StrategyParameterDecimal MaxVolatilityDifference;
+        public StrategyParameterDecimal MinVolatilityDifference;
         public StrategyParameterString SecuritiesToTrade;
+        public StrategyParameterBool MessageOnRebuild;
 
         public PriceChannelScreenerOnIndexVolatility(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            TabCreate(BotTabType.Index);
+            _tabIndex = TabsIndex[0];
+            _tabIndex.SpreadChangeEvent += _tabIndex_SpreadChangeEvent;
+
             TabCreate(BotTabType.Screener);
-
             _tabScreener = TabsScreener[0];
-
             _tabScreener.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
-
+            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
             MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
-
-            TopVolumeSecurities = CreateParameter("Top volume securities", 15, 0, 20, 1);
-            TopVolumeDaysLookBack = CreateParameter("Top volume days look back", 3, 0, 20, 1);
-
-            MaxSecuritiesToTrade = CreateParameter("Max securities to trade", 5, 0, 20, 1);
-            SecuritiesToTrade = CreateParameter("Securities to trade", "");
-            StrategyParameterButton button = CreateParameterButton("Check securities rating");
-            button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
-
-            ZigZagChannelLen = CreateParameter("ZigZag channel length", 50, 0, 20, 1);
-
-            RsiLen = CreateParameter("Rsi length", 25, 0, 20, 1);
-
-            TrailStop = CreateParameter("Trail stop %", 2.9m, 0, 20, 1m);
-
             VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-
             Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
+            PriceChannelLength = CreateParameter("Price channel length", 50, 10, 80, 3);
+            AtrLength = CreateParameter("Atr length", 25, 10, 80, 3);
+            AtrFilterIsOn = CreateParameter("Atr filter is on", false);
+            AtrGrowPercent = CreateParameter("Atr grow percent", 3, 1.0m, 50, 4);
+            AtrGrowLookBack = CreateParameter("Atr grow look back", 20, 1, 50, 4);
 
-            _tabScreener.CreateCandleIndicator(1, "ZigZagChannel_indicator", new List<string>() { ZigZagChannelLen.ValueInt.ToString() }, "Prime");
+            TopVolumeSecurities = CreateParameter("Top volume securities", 15, 0, 20, 1, "Volatility stage");
+            TopCandlesLookBack = CreateParameter("Top days look back", 5, 0, 20, 1, "Volatility stage");
+            MaxVolatilityDifference = CreateParameter("Vol Diff Max", 1.4m, 1.0m, 50, 4, "Volatility stage");
+            MinVolatilityDifference = CreateParameter("Vol Diff Min", 1.0m, 1.0m, 50, 4, "Volatility stage");
+            SecuritiesToTrade = CreateParameter("Securities to trade", "", "Volatility stage");
+            MessageOnRebuild = CreateParameter("Message on rebuild", true, "Volatility stage");
+            StrategyParameterButton button = CreateParameterButton("Check securities rating", "Volatility stage");
+            button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
 
-            _tabScreener.CreateCandleIndicator(2, "RSI", new List<string>() { RsiLen.ValueInt.ToString() }, "Second");
+            _tabScreener.CreateCandleIndicator(1, "PriceChannel", new List<string>() { PriceChannelLength.ValueInt.ToString() }, "Prime");
+            _tabScreener.CreateCandleIndicator(2, "ATR", new List<string>() { AtrLength.ValueInt.ToString() }, "Second");
+        }
+
+        private void _tabIndex_SpreadChangeEvent(List<Candle> candles)
+        {
+            CheckSecuritiesRating(candles);
         }
 
         public override string GetNameStrategyType()
@@ -85,12 +91,18 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
         }
 
-        // securities rating
+        // securities selection
 
         DateTime _lastTimeRating = DateTime.MinValue;
 
-        private void CheckSecuritiesRating()
+        private void CheckSecuritiesRating(List<Candle> candlesIndex)
         {
+            if(candlesIndex == null 
+                || candlesIndex.Count == 0)
+            {
+                return;
+            }
+
             if (_tabScreener.Tabs == null
                 || _tabScreener.Tabs.Count == 0
                 || _tabScreener.Tabs[0].IsConnected == false)
@@ -98,27 +110,30 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 return;
             }
 
-            DateTime currentTime = _tabScreener.Tabs[0].TimeServerCurrent;
+            DateTime currentTime = candlesIndex[candlesIndex.Count-1].TimeStart;
 
             if (currentTime.Date == _lastTimeRating.Date)
             {
                 return;
             }
-            _lastTimeRating = _tabScreener.Tabs[0].TimeServerCurrent;
 
-            List<SecurityRatingData> securityRatingData = new List<SecurityRatingData>();
+            _lastTimeRating = currentTime;
+
+            // 1 calculate variables
+
+            List<SecurityRatingDataPc> securityRatingData = new List<SecurityRatingDataPc>();
 
             List<BotTabSimple> tabs = _tabScreener.Tabs;
 
             for (int i = 0; i < tabs.Count; i++)
             {
-                SecurityRatingData newData = new SecurityRatingData();
+                SecurityRatingDataPc newData = new SecurityRatingDataPc();
                 newData.SecurityName = tabs[i].Securiti.Name;
-                newData.Volume = CalculateVolume(TopVolumeDaysLookBack.ValueInt, tabs[i]);
-                newData.Rsi = GetRsi(tabs[i]);
+                newData.Volume = CalculateVolume(TopCandlesLookBack.ValueInt, tabs[i]);
+                newData.Volatility = GetVolatilityDiff(tabs[i].CandlesAll, candlesIndex, TopCandlesLookBack.ValueInt);
 
                 if (newData.Volume == 0
-                    || newData.Rsi == 0)
+                    || newData.Volatility == 0)
                 {
                     continue;
                 }
@@ -131,13 +146,15 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 return;
             }
 
+            // 2 sort by volume
+
             for (int i = 0; i < securityRatingData.Count; i++)
             {
                 for (int j = 1; j < securityRatingData.Count; j++)
                 {
                     if (securityRatingData[j - 1].Volume < securityRatingData[j].Volume)
                     {
-                        SecurityRatingData d = securityRatingData[j - 1];
+                        SecurityRatingDataPc d = securityRatingData[j - 1];
                         securityRatingData[j - 1] = securityRatingData[j];
                         securityRatingData[j] = d;
                     }
@@ -146,29 +163,32 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             securityRatingData = securityRatingData.GetRange(0, TopVolumeSecurities.ValueInt);
 
+            // 3 sort by volatility difference to index
+
+            List<SecurityRatingDataPc> securityExitValues = new List<SecurityRatingDataPc>();
+
             for (int i = 0; i < securityRatingData.Count; i++)
             {
-                for (int j = 1; j < securityRatingData.Count; j++)
+                if (securityRatingData[i].Volatility > MinVolatilityDifference.ValueDecimal
+                    && securityRatingData[i].Volatility < MaxVolatilityDifference.ValueDecimal)
                 {
-                    if (securityRatingData[j - 1].Rsi < securityRatingData[j].Rsi)
-                    {
-                        SecurityRatingData d = securityRatingData[j - 1];
-                        securityRatingData[j - 1] = securityRatingData[j];
-                        securityRatingData[j] = d;
-                    }
+                    securityExitValues.Add(securityRatingData[i]);
                 }
             }
 
-            securityRatingData = securityRatingData.GetRange(0, MaxSecuritiesToTrade.ValueInt);
-
             string securitiesInTrade = "";
 
-            for (int i = 0; i < securityRatingData.Count; i++)
+            for (int i = 0; i < securityExitValues.Count; i++)
             {
-                securitiesInTrade += securityRatingData[i].SecurityName + " ";
+                securitiesInTrade += securityExitValues[i].SecurityName + " ";
             }
 
             SecuritiesToTrade.ValueString = securitiesInTrade;
+
+            if(MessageOnRebuild.ValueBool == true)
+            {
+                this.SendNewLogMessage("New securities in trade: \n" + securitiesInTrade, Logging.LogMessageType.Error);
+            }
         }
 
         public decimal CalculateVolume(int daysCount, BotTabSimple tab)
@@ -210,32 +230,89 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             return volume;
         }
 
-        private decimal GetRsi(BotTabSimple tab)
+        private decimal GetVolatilityDiff(List<Candle> sec, List<Candle> index, int len)
         {
-            Aindicator rsi = (Aindicator)tab.Indicators[1];
+            // волатильность. Берём внутридневную волу за N дней в % по бумаге(V1) и по индексу(V2)
+            // делим V1 / V2 - получаем отношение волатильности бумаги к индексу. 
 
-            if (rsi.ParametersDigit[0].Value != RsiLen.ValueInt)
-            {
-                rsi.ParametersDigit[0].Value = RsiLen.ValueInt;
-                rsi.Save();
-                rsi.Reload();
-            }
+            decimal volSec = GetVolatility(sec, len);
+            decimal volIndex = GetVolatility(index, len);
 
-            if (rsi.DataSeries[0].Values.Count == 0 ||
-                rsi.DataSeries[0].Last == 0)
+            if (volIndex == 0)
             {
                 return 0;
             }
 
-            decimal rsiValue = rsi.DataSeries[0].Last;
+            decimal result = volSec / volIndex;
 
-            return rsiValue;
+            return result;
+        }
+
+        private decimal GetVolatility(List<Candle> candles, int len)
+        {
+            List<decimal> curDaysVola = new List<decimal>();
+
+            decimal curMinInDay = decimal.MaxValue;
+            decimal curMaxInDay = 0;
+            int curDay = candles[candles.Count - 1].TimeStart.Day;
+            int daysCount = 1;
+
+
+            for (int i = candles.Count - 1; i > 0; i--)
+            {
+                Candle curCandle = candles[i];
+
+                if (curDay != curCandle.TimeStart.Day)
+                {
+                    if (curMaxInDay != 0 &&
+                        curMinInDay != decimal.MaxValue)
+                    {
+                        decimal moveInDay = curMaxInDay - curMinInDay;
+                        decimal percentMove = moveInDay / (curMinInDay / 100);
+                        curDaysVola.Add(percentMove);
+                    }
+
+                    curMinInDay = decimal.MaxValue;
+                    curMaxInDay = 0;
+                    curDay = candles[i].TimeStart.Day;
+
+                    daysCount++;
+
+                    if (len == daysCount)
+                    {
+                        break;
+                    }
+                }
+
+                if (curCandle.High > curMaxInDay)
+                {
+                    curMaxInDay = curCandle.High;
+                }
+                if (curCandle.Low < curMinInDay)
+                {
+                    curMinInDay = curCandle.Low;
+                }
+            }
+
+            if (curDaysVola.Count == 0)
+            {
+                return 0;
+            }
+
+            decimal result = 0;
+
+            for (int i = 0; i < curDaysVola.Count; i++)
+            {
+                result += curDaysVola[i];
+            }
+
+            return result / curDaysVola.Count;
         }
 
         private void Button_UserClickOnButtonEvent()
         {
             _lastTimeRating = DateTime.MinValue;
-            CheckSecuritiesRating();
+            CheckSecuritiesRating(_tabIndex.Candles);
         }
 
         // logic
@@ -251,8 +328,6 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             {
                 return;
             }
-
-            CheckSecuritiesRating();
 
             List<Position> openPositions = tab.PositionsOpenAll;
 
@@ -282,33 +357,102 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 return;
             }
 
-            Aindicator zigZag = (Aindicator)tab.Indicators[0];
+            Aindicator priceChannel = (Aindicator)tab.Indicators[0];
 
-            if (zigZag.ParametersDigit[0].Value != ZigZagChannelLen.ValueInt)
+            if (priceChannel.ParametersDigit[0].Value != PriceChannelLength.ValueInt)
             {
-                zigZag.ParametersDigit[0].Value = ZigZagChannelLen.ValueInt;
-                zigZag.Save();
-                zigZag.Reload();
+                priceChannel.ParametersDigit[0].Value = PriceChannelLength.ValueInt;
+                priceChannel.Save();
+                priceChannel.Reload();
             }
 
-            if (zigZag.DataSeries[4].Values.Count == 0 ||
-                zigZag.DataSeries[4].Last == 0)
+            if (priceChannel.DataSeries[0].Values.Count == 0 ||
+                priceChannel.DataSeries[0].Last == 0)
             {
                 return;
             }
 
-            decimal zigZagUpLine = zigZag.DataSeries[4].Last;
-            decimal lastCandleClose = candles[candles.Count - 1].Close;
+            decimal lastPrice = candles[candles.Count - 1].Close;
+            decimal lastPcUp = priceChannel.DataSeries[0].Values[priceChannel.DataSeries[0].Values.Count - 2];
+            decimal lastPcDown = priceChannel.DataSeries[1].Values[priceChannel.DataSeries[1].Values.Count - 2];
 
-            if (lastCandleClose > zigZagUpLine)
+            if (lastPcUp == 0
+                || lastPcDown == 0)
             {
-                decimal smaValue = Sma(candles, 150, candles.Count - 1);
-                decimal smaPrev = Sma(candles, 150, candles.Count - 2);
+                return;
+            }
 
-                if (smaValue > smaPrev)
+            Aindicator atr = (Aindicator)tab.Indicators[1];
+
+            if (atr.ParametersDigit[0].Value != AtrLength.ValueInt)
+            {
+                atr.ParametersDigit[0].Value = AtrLength.ValueInt;
+                atr.Save();
+                atr.Reload();
+            }
+
+            if (atr.DataSeries[0].Values.Count == 0 ||
+                atr.DataSeries[0].Last == 0)
+            {
+                return;
+            }
+
+            if (lastPrice > lastPcUp
+                && Regime.ValueString != "OnlyShort")
+            {
+                if (AtrFilterIsOn.ValueBool == true)
                 {
-                    tab.BuyAtMarket(GetVolume(tab));
+                    if (atr.DataSeries[0].Values.Count - 1 - AtrGrowLookBack.ValueInt <= 0)
+                    {
+                        return;
+                    }
+                    decimal atrLast = atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1];
+                    decimal atrLookBack =
+                    atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1 - AtrGrowLookBack.ValueInt];
+                    if (atrLast == 0
+                        || atrLookBack == 0)
+                    {
+                        return;
+                    }
+
+                    decimal atrGrowPercent = atrLast / (atrLookBack / 100) - 100;
+
+                    if (atrGrowPercent < AtrGrowPercent.ValueDecimal)
+                    {
+                        return;
+                    }
                 }
+
+                tab.BuyAtMarket(GetVolume(tab));
+            }
+
+            if (lastPrice < lastPcDown
+                && Regime.ValueString != "OnlyLong")
+            {
+                if (AtrFilterIsOn.ValueBool == true)
+                {
+                    if (atr.DataSeries[0].Values.Count - 1 - AtrGrowLookBack.ValueInt <= 0)
+                    {
+                        return;
+                    }
+                    decimal atrLast = atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1];
+                    decimal atrLookBack =
+                    atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1 - AtrGrowLookBack.ValueInt];
+                    if (atrLast == 0
+                        || atrLookBack == 0)
+                    {
+                        return;
+                    }
+
+                    decimal atrGrowPercent = atrLast / (atrLookBack / 100) - 100;
+
+                    if (atrGrowPercent < AtrGrowPercent.ValueDecimal)
+                    {
+                        return;
+                    }
+                }
+
+                tab.SellAtMarket(GetVolume(tab));
             }
         }
 
@@ -323,37 +467,18 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 return;
             }
 
-            decimal lastClose = candles[candles.Count - 1].Close;
+            Aindicator _pc = (Aindicator)tab.Indicators[0];
 
-            decimal stop = 0;
-            decimal stopWithSlippage = 0;
+            decimal lastPcUp = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 1];
+            decimal lastPcDown = _pc.DataSeries[1].Values[_pc.DataSeries[1].Values.Count - 1];
 
-            stop = lastClose - lastClose * (TrailStop.ValueDecimal / 100);
-            stopWithSlippage = stop - stop * (Slippage.ValueDecimal / 100);
-
-            if (stop > lastClose)
+            if (position.Direction == Side.Buy)
             {
-                tab.CloseAtMarket(position, position.OpenVolume);
-                return;
+                tab.CloseAtTrailingStopMarket(position, lastPcDown);
             }
-
-            tab.CloseAtTrailingStop(position, stop, stopWithSlippage);
-
-            Aindicator zigZag = (Aindicator)tab.Indicators[0];
-
-            if (zigZag.DataSeries[4].Values.Count == 0 ||
-                zigZag.DataSeries[4].Last == 0)
+            if (position.Direction == Side.Sell)
             {
-                return;
-            }
-
-            decimal zigZagUpLine = zigZag.DataSeries[4].Last;
-            decimal lastCandleClose = candles[candles.Count - 1].Close;
-
-            if (zigZagUpLine != 0 &&
-                lastCandleClose > zigZagUpLine)
-            {
-                position.StopOrderIsActiv = false;
+                tab.CloseAtTrailingStopMarket(position, lastPcUp);
             }
         }
 
@@ -448,35 +573,9 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             return volume;
         }
 
-        private decimal Sma(List<Candle> candles, int len, int index)
-        {
-            if (candles.Count == 0
-                || index >= candles.Count
-                || index <= 0)
-            {
-                return 0;
-            }
-
-            decimal summ = 0;
-
-            int countPoints = 0;
-
-            for (int i = index; i >= 0 && i > index - len; i--)
-            {
-                countPoints++;
-                summ += candles[i].Close;
-            }
-
-            if (countPoints == 0)
-            {
-                return 0;
-            }
-
-            return summ / countPoints;
-        }
     }
 
-    public class SecurityRatingDataIvashov
+    public class SecurityRatingDataPc
     {
         public string SecurityName;
 
