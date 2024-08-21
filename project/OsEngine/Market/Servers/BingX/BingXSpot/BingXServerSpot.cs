@@ -130,7 +130,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _rateGate = new RateGate(280, TimeSpan.FromSeconds(60));
+        private RateGate _rateGate = new RateGate(3, TimeSpan.FromMilliseconds(700));
 
         private string _publicKey;
 
