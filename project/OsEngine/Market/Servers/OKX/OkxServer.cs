@@ -1903,6 +1903,7 @@ namespace OsEngine.Market.Servers.OKX
                     if (newOrder.State == OrderStateType.Patrial ||
                         newOrder.State == OrderStateType.Done)
                     {
+                        Thread.Sleep(500);
                         List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
 
                         for (int i2 = 0; tradesInOrder != null && i2 < tradesInOrder.Count; i2++)
@@ -2311,7 +2312,7 @@ namespace OsEngine.Market.Servers.OKX
 
             List<MyTrade> myTrades = new List<MyTrade>();
 
-            if (SeriasCalls >= 4)
+            if (SeriasCalls >= 8)
             {
                 SendLogMessage($"Trade is not found to order: {order.NumberUser}", LogMessageType.Error);
                 return myTrades;
@@ -2336,7 +2337,7 @@ namespace OsEngine.Market.Servers.OKX
                 quotes.data == null ||
                 quotes.data.Count == 0)
             {
-                Thread.Sleep(200 * SeriasCalls);
+                Thread.Sleep(500 * SeriasCalls);
 
                 SeriasCalls++;
 
