@@ -61,29 +61,6 @@ namespace OsEngine.Market.Servers.QuikLua
             ((QuikLuaServerRealization)ServerRealization)._changeClassUse = true;
             Securities?.Clear();    // AVP  изменили список классов для работы, старый удалим и в коннекторе заново перечитаем
         }
-
-        /// <summary>
-        /// tame candles by instrument
-        /// взять свечи по инструменту
-        /// </summary>
-        /// <param name="security"> short security name/короткое название бумаги</param>
-        /// <param name="timeSpan">timeframe/таймФрейм</param>
-        /// <returns>failure will return null/в случае неудачи вернётся null</returns>
-        public List<Candle> GetQuikLuaCandleHistory(Security security, TimeSpan timeSpan)
-        {
-            return ((QuikLuaServerRealization)ServerRealization).GetQuikLuaCandleHistory(security, timeSpan);
-        }
-
-        /// <summary>
-        /// get tick data by instrument
-        /// взять тиковые данные по инструменту
-        /// </summary>
-        /// <param name="security"> short security name/короткое название бумаги</param>
-        /// <returns>failure will return null/в случае неудачи вернётся null</returns>
-        public List<Trade> GetQuikLuaTickHistory(Security security)
-        {
-            return ((QuikLuaServerRealization)ServerRealization).GetQuikLuaTickHistory(security);
-        }
     }
 
     public class QuikLuaServerRealization : IServerRealization
@@ -771,141 +748,6 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         /// <summary>
-        /// candles downloadin with using method GetQuikLuaCandleHistory
-        /// свечи скаченные из метода GetQuikLuaCandleHistory
-        /// </summary>
-        private List<Candle> _candles;
-
-        private object _getCandlesLocker = new object();
-
-        /// <summary>
-        /// take candles by instrument
-        /// взять свечи по инструменту
-        /// </summary>
-        /// <param name="security"> short security name/короткое название бумаги</param>
-        /// <param name="timeSpan">timeframe/таймФрейм</param>
-        /// <returns>failure will return null/в случае неудачи вернётся null</returns>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public List<Candle> GetQuikLuaCandleHistory(Security security, TimeSpan timeSpan)
-        {
-            try
-            {
-                lock (_getCandlesLocker)
-                {
-                    _gateToGetCandles.WaitToProceed();
-
-                    if (timeSpan.TotalMinutes > 1440 ||
-                        timeSpan.TotalMinutes < 1)
-                    {
-                        return null;
-                    }
-
-                    CandleInterval tf = CandleInterval.M5;
-
-                    if (Convert.ToInt32(timeSpan.TotalMinutes) == 1)
-                    {
-                        tf = CandleInterval.M1;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 2)
-                    {
-                        tf = CandleInterval.M2;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 5)
-                    {
-                        tf = CandleInterval.M5;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 10)
-                    {
-                        tf = CandleInterval.M10;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 15)
-                    {
-                        tf = CandleInterval.M15;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 20)
-                    {
-                        tf = CandleInterval.M20;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 30)
-                    {
-                        tf = CandleInterval.M30;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 60)
-                    {
-                        tf = CandleInterval.H1;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 120)
-                    {
-                        tf = CandleInterval.H2;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 240)
-                    {
-                        tf = CandleInterval.H4;
-                    }
-                    else if (Convert.ToInt32(timeSpan.TotalMinutes) == 1440)
-                    {
-                        tf = CandleInterval.D1;
-                    }
-
-                    #region MyRegion
-
-                    _candles = null;
-
-                    var needSec = security;
-
-                    if (needSec != null)
-                    {
-                        _candles = new List<Candle>();
-                        string classCode = needSec.NameClass;
-
-                        var allCandlesForSec = QuikLua.Candles.GetAllCandles(classCode, needSec.Name.Split('+')[0], tf).Result;
-
-                        for (int i = 0; i < allCandlesForSec.Count; i++)
-                        {
-                            if (allCandlesForSec[i] != null)
-                            {
-                                Candle newCandle = new Candle();
-
-                                newCandle.Close = allCandlesForSec[i].Close;
-                                newCandle.High = allCandlesForSec[i].High;
-                                newCandle.Low = allCandlesForSec[i].Low;
-                                newCandle.Open = allCandlesForSec[i].Open;
-                                newCandle.Volume = allCandlesForSec[i].Volume;
-
-                                if (i == allCandlesForSec.Count - 1)
-                                {
-                                    newCandle.State = CandleState.None;
-                                }
-                                else
-                                {
-                                    newCandle.State = CandleState.Finished;
-                                }
-
-                                newCandle.TimeStart = new DateTime(allCandlesForSec[i].Datetime.year,
-                                    allCandlesForSec[i].Datetime.month,
-                                    allCandlesForSec[i].Datetime.day,
-                                    allCandlesForSec[i].Datetime.hour,
-                                    allCandlesForSec[i].Datetime.min,
-                                    allCandlesForSec[i].Datetime.sec);
-
-                                _candles.Add(newCandle);
-                            }
-                        }
-                    }
-
-                    #endregion
-
-                    return _candles;
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
-            }
-        }
-
-        /// <summary>
         /// ticks downloaded using method GetQuikLuaTickHistory
         /// тиковые данные скаченные из метода GetQuikLuaTickHistory
         /// </summary>
@@ -957,9 +799,82 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        /// <summary>
+        /// candles downloadin with using method GetLastCandleHistory
+        /// свечи скаченные из метода GetLastCandleHistory
+        /// </summary>
+        private List<Candle> _candles;
+
+        private object _getCandlesLocker = new object();
+
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return null;
+            try
+            {
+                lock (_getCandlesLocker)
+                {
+                    _gateToGetCandles.WaitToProceed();
+
+                    if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes > 1440 ||
+                        timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes < 1)
+                    {
+                        return null;
+                    }
+
+                    CandleInterval candleInterval = SelectTimeFrame(timeFrameBuilder.TimeFrame);
+
+                    _candles = null;
+
+                    var needSec = security;
+
+                    if (needSec != null)
+                    {
+                        _candles = new List<Candle>();
+                        string classCode = needSec.NameClass;
+
+                        var allCandlesForSec = QuikLua.Candles.GetLastCandles(classCode, needSec.Name.Split('+')[0], candleInterval, candleCount).Result;
+
+                        for (int i = 0; i < allCandlesForSec.Count; i++)
+                        {
+                            if (allCandlesForSec[i] != null)
+                            {
+                                Candle newCandle = new Candle();
+
+                                newCandle.Close = allCandlesForSec[i].Close;
+                                newCandle.High = allCandlesForSec[i].High;
+                                newCandle.Low = allCandlesForSec[i].Low;
+                                newCandle.Open = allCandlesForSec[i].Open;
+                                newCandle.Volume = allCandlesForSec[i].Volume;
+
+                                if (i == allCandlesForSec.Count - 1)
+                                {
+                                    newCandle.State = CandleState.None;
+                                }
+                                else
+                                {
+                                    newCandle.State = CandleState.Finished;
+                                }
+
+                                newCandle.TimeStart = new DateTime(allCandlesForSec[i].Datetime.year,
+                                    allCandlesForSec[i].Datetime.month,
+                                    allCandlesForSec[i].Datetime.day,
+                                    allCandlesForSec[i].Datetime.hour,
+                                    allCandlesForSec[i].Datetime.min,
+                                    allCandlesForSec[i].Datetime.sec);
+
+                                _candles.Add(newCandle);
+                            }
+                        }
+                    }
+
+                    return _candles;
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
         }
 
         #endregion
@@ -1714,6 +1629,58 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 return false;
             }
+        }
+
+        private CandleInterval SelectTimeFrame(TimeFrame timeFrame)
+        {
+            CandleInterval candleInterval = CandleInterval.M5;
+
+            if (timeFrame == TimeFrame.Min1)
+            {
+                candleInterval = CandleInterval.M1;
+            }
+            else if (timeFrame == TimeFrame.Min2)
+            {
+                candleInterval = CandleInterval.M2;
+            }
+            else if (timeFrame == TimeFrame.Min5)
+            {
+                candleInterval = CandleInterval.M5;
+            }
+            else if (timeFrame == TimeFrame.Min10)
+            {
+                candleInterval = CandleInterval.M10;
+            }
+            else if (timeFrame == TimeFrame.Min15)
+            {
+                candleInterval = CandleInterval.M15;
+            }
+            else if (timeFrame == TimeFrame.Min20)
+            {
+                candleInterval = CandleInterval.M20;
+            }
+            else if (timeFrame == TimeFrame.Min30)
+            {
+                candleInterval = CandleInterval.M30;
+            }
+            else if (timeFrame == TimeFrame.Hour1)
+            {
+                candleInterval = CandleInterval.H1;
+            }
+            else if (timeFrame == TimeFrame.Hour2)
+            {
+                candleInterval = CandleInterval.H2;
+            }
+            else if (timeFrame == TimeFrame.Hour4)
+            {
+                candleInterval = CandleInterval.H4;
+            }
+            else if (timeFrame == TimeFrame.Day)
+            {
+                candleInterval = CandleInterval.D1;
+            }
+
+            return candleInterval;
         }
 
         private bool IsLoadSecuritiesFromCache()
