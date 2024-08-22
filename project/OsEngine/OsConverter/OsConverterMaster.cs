@@ -32,7 +32,8 @@ namespace OsEngine.OsConverter
         /// <param name="textBoxExitFile">control for outgoing file/контрол для исходящего файла</param>
         /// <param name="comboBoxTimeFrame">control for timeframe created candles /контрол для таймФрейма создаваемых свечек</param>
         /// <param name="logFormsHost">log host/хост для лога</param>
-        public OsConverterMaster(TextBox textBoxSourceFile, TextBox textBoxExitFile, ComboBox comboBoxTimeFrame, WindowsFormsHost logFormsHost)
+        public OsConverterMaster(TextBox textBoxSourceFile, TextBox textBoxExitFile, ComboBox comboBoxTimeFrame,
+            WindowsFormsHost logFormsHost)
         {
             _textBoxSourceFile = textBoxSourceFile;
             _textBoxExitFile = textBoxExitFile;
@@ -176,6 +177,7 @@ namespace OsEngine.OsConverter
                 _sourceFile = myDialog.FileName;
                 Save();
             }
+
             _textBoxSourceFile.Text = _sourceFile;
         }
 
@@ -195,9 +197,15 @@ namespace OsEngine.OsConverter
 
             if (myDialog.FileName != "") //  if anything is selected/если хоть что-то выбрано
             {
+                if (!myDialog.FileName.Contains(".txt"))
+                {
+                    myDialog.FileName += ".txt";
+                }
+
                 _exitFile = myDialog.FileName;
                 Save();
             }
+
             _textBoxExitFile.Text = _exitFile;
         }
 
@@ -213,145 +221,90 @@ namespace OsEngine.OsConverter
                 return;
             }
 
-            _worker = new Task(WorkerSpace);
+            _worker = new Task(WorkerSpaceStreaming); // Use the streaming worker
             _worker.Start();
         }
 
-        /// <summary>
-        /// stream creating new file/поток занимающийся созданием нового файла
-        /// </summary>
-        private Task _worker;
 
-        /// <summary>
-        /// place of work of the stream creating a new file/место работы потока создающего новый файл
-        /// </summary>
-        private void WorkerSpace()
+        private void WorkerSpaceStreaming()
         {
-            if (string.IsNullOrWhiteSpace(_sourceFile))
+            using (StreamReader reader = new StreamReader(_sourceFile))
+            using (StreamWriter writer = new StreamWriter(_exitFile, false))
             {
-                SendNewLogMessage(OsLocalization.Converter.Message2, LogMessageType.System);
-                return;
-            }
-            else if (string.IsNullOrWhiteSpace(_exitFile))
-            {
-                SendNewLogMessage(OsLocalization.Converter.Message3, LogMessageType.System);
-                return;
-            }
+                SendNewLogMessage(OsLocalization.Converter.Message4, LogMessageType.System);
+                SendNewLogMessage(OsLocalization.Converter.Message5, LogMessageType.System);
 
-            if (!File.Exists(_exitFile))
-            {
-                File.Create(_exitFile);
-            }
+                List<Trade> trades = new List<Trade>();
+                DateTime currentDay = DateTime.MinValue;
 
-            StreamReader reader = new StreamReader(_sourceFile);
-
-            SendNewLogMessage(OsLocalization.Converter.Message4, LogMessageType.System);
-
-            SendNewLogMessage(OsLocalization.Converter.Message5, LogMessageType.System);
-
-            List<Trade> trades = new List<Trade>();
-
-            int currentWeek = 0;
-
-            bool isNotFirstTime = false;
-
-            try
-            {
                 while (!reader.EndOfStream)
                 {
                     Trade trade = new Trade();
                     trade.SetTradeFromString(reader.ReadLine());
 
-                    int partMonth = 1;
-
-                    if (trade.Time.Day <= 10)
+                    if (currentDay == DateTime.MinValue)
                     {
-                        partMonth = 1;
-                    }
-                    else if (trade.Time.Day > 10 &&
-                        trade.Time.Day < 20)
-                    {
-                        partMonth = 2;
+                        currentDay = trade.Time.Date;
                     }
 
-                    else if (trade.Time.Day >= 20)
+                    if (trade.Time.Date != currentDay || reader.EndOfStream)
                     {
-                        partMonth = 3;
+                        ProcessTradesAndWriteCandles(trades, writer);
+                        trades = new List<Trade>(); // Clear trades for the next day
+                        currentDay = trade.Time.Date;
                     }
 
-                    if (currentWeek == 0)
-                    {
+                    trades.Add(trade);
+                }
 
-                        SendNewLogMessage(
-                            OsLocalization.Converter.Message6 + partMonth +
-                            OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
-                        currentWeek = partMonth;
-                    }
+                // Process any remaining trades
+                if (trades.Count > 0)
+                {
+                    ProcessTradesAndWriteCandles(trades, writer);
+                }
 
+                SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
 
-                    if (partMonth != currentWeek || reader.EndOfStream)
-                    {
-                        SendNewLogMessage(OsLocalization.Converter.Message6 + currentWeek +
-                                          OsLocalization.Converter.Message7 + trade.Time.Month +
-                                          OsLocalization.Converter.Message8, LogMessageType.System);
+                MessageBox.Show("Conversion completed!", "Notification", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
 
-                        TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
-                        timeFrameBuilder.TimeFrame = TimeFrame;
+        /// <summary>
+        /// Helper function to process trades and write candles to the output file
+        /// </summary>
+        private void ProcessTradesAndWriteCandles(List<Trade> trades, StreamWriter writer)
+        {
+            SendNewLogMessage(OsLocalization.Converter.Message8, LogMessageType.System);
 
-                        CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" }, StartProgram.IsOsConverter);
+            TimeFrameBuilder timeFrameBuilder = new TimeFrameBuilder(StartProgram.IsOsData);
+            timeFrameBuilder.TimeFrame = TimeFrame;
 
-                        series.IsStarted = true;
+            CandleSeries series = new CandleSeries(timeFrameBuilder, new Security() { Name = "Unknown" },
+                StartProgram.IsOsConverter);
+            series.IsStarted = true;
 
-                        series.SetNewTicks(trades);
+            series.SetNewTicks(trades);
 
-                        List<Candle> candles = series.CandlesAll;
+            List<Candle> candles = series.CandlesAll;
 
-                        if (candles == null)
-                        {
-                            continue;
-                        }
-
-                        StreamWriter writer = new StreamWriter(_exitFile, isNotFirstTime);
-
-                        for (int i = 0; i < candles.Count; i++)
-                        {
-                            writer.WriteLine(candles[i].StringToSave);
-                        }
-
-                        writer.Close();
-
-                        SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
-
-                        isNotFirstTime = true;
-
-                        trades = new List<Trade>();
-                        series.Clear();
-
-                        currentWeek = partMonth;
-
-                        SendNewLogMessage(OsLocalization.Converter.Message6 + partMonth +
-                                          OsLocalization.Converter.Message7 + trade.Time.Month, LogMessageType.System);
-                    }
-                    else
-                    {
-                        trades.Add(trade);
-                    }
+            if (candles != null)
+            {
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    writer.WriteLine(candles[i].StringToSave);
                 }
             }
-            catch (Exception error)
-            {
-                SendNewLogMessage(OsLocalization.Converter.Message10, LogMessageType.System);
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-                reader.Close();
-                return;
-            }
-
-            reader.Close();
-
-
 
             SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
+
+            series.Clear(); // Clear the candle series
         }
+
+
+        /// <summary>
+        /// stream creating new file/поток занимающийся созданием нового файла
+        /// </summary>
+        private Task _worker;
 
         // logging/логирование
 
