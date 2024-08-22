@@ -852,6 +852,7 @@
     <Compile Include="Market\Servers\Plaza\PlazaServerPermission.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
+    <Compile Include="Market\Servers\QuikLua\QuikLuaServerPermission.cs" />
     <Compile Include="Market\Servers\ServerCandleStorage.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
     <Compile Include="Market\Servers\Entity\MarshalUTF8.cs" />
