@@ -47,7 +47,7 @@ namespace CustomIndicators.Scripts
             _seriesTrade.Values[index] = candles[index].Trades.Count;
             _seriesBuy.Values[index] = GetTradesInfo(candles, index, Side.Buy);
             _seriesSell.Values[index] = GetTradesInfo(candles, index, Side.Sell);
-            _seriesDelta.Values[index] = GetTradesInfo(candles, index, Side.Buy) - GetTradesInfo(candles, index, Side.Sell);
+            _seriesDelta.Values[index] = _seriesBuy.Values[index] - _seriesSell.Values[index];
             _seriesSmaDelta.Values[index] = Sma(_seriesDelta.Values, index);
         }
 
