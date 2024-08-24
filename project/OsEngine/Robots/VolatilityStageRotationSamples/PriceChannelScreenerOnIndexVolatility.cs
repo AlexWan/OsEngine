@@ -12,6 +12,8 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
+using System.Reflection;
+using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Robots.VolatilityStageRotationSamples
 {
@@ -21,14 +23,28 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
         BotTabScreener _tabScreener;
         BotTabIndex _tabIndex;
 
+        private Aindicator _volatilityStagesOnIndex;
+
         public StrategyParameterString Regime;
         public StrategyParameterInt MaxPositions;
-
         public StrategyParameterInt PriceChannelLength;
-        public StrategyParameterInt AtrLength;
+        private StrategyParameterTimeOfDay TimeStart;
+        private StrategyParameterTimeOfDay TimeEnd;
+
         public StrategyParameterBool AtrFilterIsOn;
+        public StrategyParameterInt AtrLength;
         public StrategyParameterDecimal AtrGrowPercent;
         public StrategyParameterInt AtrGrowLookBack;
+
+        public StrategyParameterBool VolatilityFilterIsOn;
+
+        public StrategyParameterBool VolatilityStageOneIsOn;
+        public StrategyParameterBool VolatilityStageTwoIsOn;
+        public StrategyParameterBool VolatilityStageThreeIsOn;
+
+        public StrategyParameterInt VolatilitySlowSmaLength;
+        public StrategyParameterInt VolatilityFastSmaLength;
+        public StrategyParameterDecimal VolatilityChannelDeviation;
 
         public StrategyParameterString VolumeType;
         public StrategyParameterDecimal Volume;
@@ -53,6 +69,8 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
             MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
+            TimeStart = CreateParameterTimeOfDay("Start Trade Time", 10, 32, 0, 0);
+            TimeEnd = CreateParameterTimeOfDay("End Trade Time", 18, 25, 0, 0);
             VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
@@ -72,8 +90,55 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             StrategyParameterButton button = CreateParameterButton("Check securities rating", "Volatility stage");
             button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
 
+            VolatilityFilterIsOn = CreateParameter("Volatility filter is on", false, "Volatility stage");
+            VolatilityStageOneIsOn = CreateParameter("Volatility stage one is on", true, "Volatility stage");
+            VolatilityStageTwoIsOn = CreateParameter("Volatility stage two is on", true, "Volatility stage");
+            VolatilityStageThreeIsOn = CreateParameter("Volatility stage three is on", true, "Volatility stage");
+
+            VolatilitySlowSmaLength = CreateParameter("Volatility slow sma length", 25, 10, 80, 3, "Volatility stage");
+            VolatilityFastSmaLength = CreateParameter("Volatility fast sma length", 7, 10, 80, 3, "Volatility stage");
+            VolatilityChannelDeviation = CreateParameter("Volatility channel deviation", 0.5m, 1.0m, 50, 4, "Volatility stage");
+
+            _volatilityStagesOnIndex
+    = IndicatorsFactory.CreateIndicatorByName("VolatilityStagesAW", name + "VolatilityStagesAW", false);
+            _volatilityStagesOnIndex = (Aindicator)_tabIndex.CreateCandleIndicator(_volatilityStagesOnIndex, "VolaStagesArea");
+            _volatilityStagesOnIndex.ParametersDigit[0].Value = VolatilitySlowSmaLength.ValueInt;
+            _volatilityStagesOnIndex.ParametersDigit[1].Value = VolatilityFastSmaLength.ValueInt;
+            _volatilityStagesOnIndex.ParametersDigit[2].Value = VolatilityChannelDeviation.ValueDecimal;
+
+            _volatilityStagesOnIndex.Save();
+
             _tabScreener.CreateCandleIndicator(1, "PriceChannel", new List<string>() { PriceChannelLength.ValueInt.ToString() }, "Prime");
             _tabScreener.CreateCandleIndicator(2, "ATR", new List<string>() { AtrLength.ValueInt.ToString() }, "Second");
+
+            ParametrsChangeByUser += PriceChannelScreenerOnIndexVolatility_ParametrsChangeByUser;
+
+            if (StartProgram == StartProgram.IsTester)
+            {
+                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
+
+                server.TestingStartEvent += Server_TestingStartEvent;
+            }
+        }
+
+        private void Server_TestingStartEvent()
+        {
+            SecuritiesToTrade.ValueString = "";
+            _lastTimeRating = DateTime.MinValue;
+        }
+
+        private void PriceChannelScreenerOnIndexVolatility_ParametrsChangeByUser()
+        {
+            if (_volatilityStagesOnIndex.ParametersDigit[0].Value != VolatilitySlowSmaLength.ValueInt
+                || _volatilityStagesOnIndex.ParametersDigit[1].Value != VolatilityFastSmaLength.ValueInt
+                || _volatilityStagesOnIndex.ParametersDigit[2].Value != VolatilityChannelDeviation.ValueDecimal)
+            {
+                _volatilityStagesOnIndex.ParametersDigit[0].Value = VolatilitySlowSmaLength.ValueInt;
+                _volatilityStagesOnIndex.ParametersDigit[1].Value = VolatilityFastSmaLength.ValueInt;
+                _volatilityStagesOnIndex.ParametersDigit[2].Value = VolatilityChannelDeviation.ValueDecimal;
+                _volatilityStagesOnIndex.Reload();
+                _volatilityStagesOnIndex.Save();
+            }
         }
 
         private void _tabIndex_SpreadChangeEvent(List<Candle> candles)
@@ -118,6 +183,28 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
 
             _lastTimeRating = currentTime;
+
+            // 0 check volatility stage on index
+
+            if(VolatilityFilterIsOn.ValueBool == true)
+            {
+                decimal currentStage = _volatilityStagesOnIndex.DataSeries[0].Last;
+
+                if (currentStage == 0
+                    || (currentStage == 1 && VolatilityStageOneIsOn.ValueBool == false)
+                    || (currentStage == 2 && VolatilityStageTwoIsOn.ValueBool == false)
+                    || (currentStage == 3 && VolatilityStageThreeIsOn.ValueBool == false))
+                {
+                    SecuritiesToTrade.ValueString = "";
+
+                    if (MessageOnRebuild.ValueBool == true)
+                    {
+                        this.SendNewLogMessage("No trading. Current volatility stage on index: " + currentStage, Logging.LogMessageType.Error);
+                    }
+
+                    return;
+                }
+            }
 
             // 1 calculate variables
 
@@ -353,6 +440,12 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
 
             if (SecuritiesToTrade.ValueString.Contains(tab.Securiti.Name) == false)
+            {
+                return;
+            }
+
+            if (TimeStart.Value > tab.TimeServerCurrent ||
+                TimeEnd.Value < tab.TimeServerCurrent)
             {
                 return;
             }

@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
+using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Robots.VolatilityStageRotationSamples
 {
@@ -35,7 +36,6 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
         public StrategyParameterInt TopVolumeSecurities;
         public StrategyParameterInt TopVolumeDaysLookBack;
         public StrategyParameterString SecuritiesToTrade;
-
 
         public ZigZagChannelScreenerRsiFilter(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -74,6 +74,19 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             _tabScreener.CreateCandleIndicator(1, "ZigZagChannel_indicator", new List<string>() { ZigZagChannelLen.ValueInt.ToString() }, "Prime");
 
             _tabScreener.CreateCandleIndicator(2, "RSI", new List<string>() { RsiLen.ValueInt.ToString() }, "Second");
+
+            if (StartProgram == StartProgram.IsTester)
+            {
+                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
+
+                server.TestingStartEvent += Server_TestingStartEvent;
+            }
+        }
+
+        private void Server_TestingStartEvent()
+        {
+            SecuritiesToTrade.ValueString = "";
+            _lastTimeRating = DateTime.MinValue;
         }
 
         public override string GetNameStrategyType()
