@@ -58,9 +58,16 @@ namespace CustomIndicators.Scripts
 
             _velocity[index] = _velocity[index - 1] + distans * Convert.ToDouble(K.ValueDecimal) / 100;
 
-            double error = Convert.ToDouble(_series.Values[index - 1]) + distans * shk;
+            try
+            {
+                double error = Convert.ToDouble(_series.Values[index - 1]) + distans * shk;
 
-            return Convert.ToDecimal(error + _velocity[index]);
+                return Convert.ToDecimal(error + _velocity[index]);
+            }
+            catch
+            {
+                return _series.Values[index - 1];
+            }
         }
     }
 }
