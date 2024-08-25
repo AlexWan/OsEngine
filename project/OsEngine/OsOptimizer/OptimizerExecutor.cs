@@ -1171,6 +1171,11 @@ namespace OsEngine.OsOptimizer
                     }
                 }
 
+                if (bot != null)
+                {
+                    ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
+                }
+
                 for (int i = 0; i < _servers.Count; i++)
                 {
                     if (_servers[i].NumberServer == serverNum)
@@ -1186,7 +1191,6 @@ namespace OsEngine.OsOptimizer
 
             if (bot != null)
             {
-                ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
                 // уничтожаем робота
                 bot.Clear();
                 bot.Delete();
