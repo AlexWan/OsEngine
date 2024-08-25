@@ -17,7 +17,7 @@ using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms;
 using Line = OsEngine.Charts.CandleChart.Elements.Line;
 
-namespace OsEngine.Robots._MyRobots
+namespace OsEngine.Robots.TechSamples
 {
     [Bot("TradeLineExample")]
     public class TradeLineExample : BotPanel
