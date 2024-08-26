@@ -4984,6 +4984,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 PositionOpeningSuccesEvent(position);
                             }
+                            ManualReloadStopsAndProfitToPosition(position);
                         }
                         else
                         {// иначе, высылаем в очередь ожидания MyTrades
