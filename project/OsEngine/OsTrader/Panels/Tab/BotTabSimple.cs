@@ -737,24 +737,31 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if (StartProgram == StartProgram.IsOsOptimizer)
+                try
                 {
-                    return ServerConnectStatus.Connect;
-                }
+                    if (StartProgram == StartProgram.IsOsOptimizer)
+                    {
+                        return ServerConnectStatus.Connect;
+                    }
 
-                if(_connector == null)
+                    if (_connector == null)
+                    {
+                        return ServerConnectStatus.Disconnect;
+                    }
+
+                    IServer myServer = _connector.MyServer;
+
+                    if (myServer == null)
+                    {
+                        return ServerConnectStatus.Disconnect;
+                    }
+
+                    return myServer.ServerStatus;
+                }
+                catch
                 {
                     return ServerConnectStatus.Disconnect;
                 }
-
-                IServer myServer = _connector.MyServer;
-
-                if (myServer == null)
-                {
-                    return ServerConnectStatus.Disconnect;
-                }
-
-                return myServer.ServerStatus;
             }
         }
 
@@ -765,17 +772,25 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if (_connector == null)
+                try
+                {
+                    if (_connector == null)
+                    {
+                        return null;
+                    }
+                    if (_security == null ||
+                        _security.Name != _connector.SecurityName)
+                    {
+                        _security = _connector.Security;
+                    }
+                    return _security;
+                }
+                catch
                 {
                     return null;
                 }
-                if (_security == null ||
-                    _security.Name != _connector.SecurityName)
-                {
-                    _security = _connector.Security;
-                }
-                return _security;
             }
+
             set { _security = value; }
         }
         private Security _security;
