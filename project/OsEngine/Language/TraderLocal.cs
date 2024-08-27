@@ -1575,6 +1575,9 @@ namespace OsEngine.Language
         public string Label418 => OsLocalization.ConvertToLocString(
           "Eng:Contains_" +
           "Ru:Содержит_");
-	
+
+        public string Label419 => OsLocalization.ConvertToLocString(
+          "Eng:Revoke_" +
+          "Ru:Отозвать_");
     }
 }

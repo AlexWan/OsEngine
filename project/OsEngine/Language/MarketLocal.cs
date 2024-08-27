@@ -985,7 +985,6 @@ namespace OsEngine.Language
            "Eng:In incoming securities, missing Name_" +
            "Ru:Во входящих бумагах, отсутствуют Name_");
 
-
         public string Message99 => OsLocalization.ConvertToLocString(
             "Eng:Intercepted attempt to revoke an order when the connection is off!_" +
             "Ru:Перехвачена попытка отозвать ордер при выключенном соединении!_");

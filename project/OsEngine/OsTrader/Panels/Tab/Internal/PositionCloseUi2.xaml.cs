@@ -71,6 +71,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ButtonCloseAtProfit.Content = OsLocalization.Trader.Label220;
             ButtonCloseAtFake.Content = OsLocalization.Trader.Label221;
 
+            ButtonRevokeLimit.Content = OsLocalization.Trader.Label419;
+            ButtonRevokeProfit.Content = OsLocalization.Trader.Label419;
+            ButtonRevokeStop.Content = OsLocalization.Trader.Label419;
+
             GlobalGUILayout.Listen(this, "mD_ClosePos" + Tab.TabName + Position.Number);
 
             SetNowTimeInControlsFakeOpenPos();
