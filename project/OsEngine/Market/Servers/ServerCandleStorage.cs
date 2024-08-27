@@ -154,7 +154,12 @@ namespace OsEngine.Market.Servers
                 }
                 catch (Exception error)
                 {
-                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    string msg = error.Message;
+
+                    if(msg.Contains("ThrowArgumentOutOfRangeException") == false)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
                 }
             }
 
