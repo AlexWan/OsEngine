@@ -111,8 +111,12 @@ namespace OsEngine.Market.Servers.QuikLua
                     QuikLua.Events.OnTransReply += Events_OnTransReply;
 
                     QuikLua.Service.QuikService.Start();
-                    ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent?.Invoke();
+
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        ServerStatus = ServerConnectStatus.Connect;
+                        ConnectEvent();
+                    }
                 }
             }
             catch (Exception error)
@@ -152,10 +156,14 @@ namespace OsEngine.Market.Servers.QuikLua
                     QuikLua.Events.OnTransReply -= Events_OnTransReply;
                 }
 
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent?.Invoke();
                 subscribedBook = new List<string>();
                 QuikLua = null;
+
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
             catch (Exception error)
             {
@@ -435,6 +443,8 @@ namespace OsEngine.Market.Servers.QuikLua
                 newSec.Name = oneSec.SecCode + "+" + oneSec.ClassCode;
                 newSec.NameFull = oneSec.Name;
                 newSec.NameId = oneSec.Name;
+                newSec.State = SecurityStateType.Activ;
+                newSec.Exchange = "MOEX";
 
                 newSec.Decimals = Convert.ToInt32(oneSec.Scale);
 
@@ -1244,8 +1254,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent?.Invoke();
+                Dispose();
             }
             catch (Exception error)
             {
@@ -1258,8 +1267,11 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent?.Invoke();
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    ServerStatus = ServerConnectStatus.Connect;
+                    ConnectEvent();
+                }
             }
             catch (Exception error)
             {
@@ -1272,8 +1284,7 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent?.Invoke();
+                Dispose();
             }
             catch (Exception error)
             {
@@ -1285,8 +1296,11 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent?.Invoke();
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    ServerStatus = ServerConnectStatus.Connect;
+                    ConnectEvent();
+                }
             }
             catch (Exception error)
             {
