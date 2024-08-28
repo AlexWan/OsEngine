@@ -2230,23 +2230,18 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (security.DataType == SecurityTesterDataType.Tick)
                 { // test with using ticks / прогон на тиках
-                    List<Trade> trades = security.LastTradeSeries;
 
-                    if(order.Price == 0)
-                    {
-                        order.Price = trades[0].Price;
-                    }
+                    List<Trade> lastTrades = security.LastTradeSeries;
 
-                    for (int indexTrades = 0; trades != null && indexTrades < trades.Count; indexTrades++)
+                    if (lastTrades != null 
+                        && lastTrades.Count != 0
+                        && CheckOrdersInTickTest(order, lastTrades[lastTrades.Count-1], false))
                     {
-                        if (CheckOrdersInTickTest(order, trades[indexTrades],false))
-                        {
-                            i--;
-                            break;
-                        }
+                        i--;
+                        break;
                     }
                 }
-                else if(security.DataType == SecurityTesterDataType.Candle)
+                else if (security.DataType == SecurityTesterDataType.Candle)
                 { // test with using candles / прогон на свечках
                     Candle lastCandle = security.LastCandle;
 
@@ -4585,15 +4580,13 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            LastTradeSeries = lastTradesSeries;
-
             for (int i = 0; i < lastTradesSeries.Count; i++)
             {
                 List<Trade> trades = new List<Trade>() { lastTradesSeries[i] };
+                LastTradeSeries = trades;
                 NewTradesEvent(trades);
                 NeedToCheckOrders();
             }
-
         }
 
 // parsing candle files
