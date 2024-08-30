@@ -230,7 +230,7 @@ namespace OsEngine.Robots.TechSamples
 
                 DataGridViewColumn newColumn1 = new DataGridViewColumn();
                 newColumn1.CellTemplate = cellParam0;
-                newColumn1.HeaderText = "Count candel";
+                newColumn1.HeaderText = "Count candle";
                 _tableDataGrid.Columns.Add(newColumn1);
                 newColumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
