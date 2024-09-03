@@ -464,6 +464,10 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
+                if (_connectorBot == null)
+                {
+                    return;
+                }
 
                 if (!ComboBoxClass.CheckAccess())
                 {
@@ -479,6 +483,7 @@ namespace OsEngine.Market.Connectors
                 }
 
                 ComboBoxPortfolio.Items.Clear();
+
 
 
                 string portfolio = _connectorBot.PortfolioName;

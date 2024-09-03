@@ -40,12 +40,12 @@ namespace OsEngine.Candles.Series
                 Hours = CreateParameterInt("Hours", "Hours", 0);
                 Minutes = CreateParameterInt("Minutes", "Minutes", 59);
                 Seconds = CreateParameterInt("Seconds", "Seconds", 40);
+
+                _timeFrameSpan = new TimeSpan(Hours.ValueInt, Minutes.ValueInt, Seconds.ValueInt);
             }
             else if (state == CandleSeriesState.ParametersChange)
             {
-                TimeSpan timeFrameSpan = new TimeSpan(Hours.ValueInt,Minutes.ValueInt,Seconds.ValueInt);
-
-                _timeFrameSpan = timeFrameSpan;
+                _timeFrameSpan = new TimeSpan(Hours.ValueInt,Minutes.ValueInt,Seconds.ValueInt);
 
                 if (CandlesAll != null)
                 {
