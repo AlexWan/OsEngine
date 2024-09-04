@@ -1094,6 +1094,25 @@ namespace OsEngine.Charts.CandleChart
 
             Save();
             ReloadContext();
+
+            try
+            {
+                List<Candle> candles = _myCandles;
+
+                if (candles != null)
+                {
+                    indicator.Process(candles);
+                }
+
+                if (ChartCandle != null)
+                {
+                    ChartCandle.RePaintIndicator(indicator);
+                }
+            }
+            catch (Exception error)
+            {
+                SendErrorMessage(error);
+            }
         }
 
         /// <summary>
