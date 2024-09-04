@@ -540,6 +540,7 @@ namespace OsEngine.OsOptimizer
                 _gridStepsOfOptimization.Invoke(new Action(UpdateRobustnessChart));
                 return;
             }
+
             try
             {
                 _labelRobustnessMetricaValue.Content = "";
@@ -569,6 +570,8 @@ namespace OsEngine.OsOptimizer
                 int num = 0;
 
                 OptimizerReport inSampleReport = null;
+
+                decimal max = decimal.MinValue;
 
                 for (int i = 0; i < _reports.Count; i++)
                 {
@@ -600,22 +603,46 @@ namespace OsEngine.OsOptimizer
                                 if (botNum <= 20)
                                 {
                                     countBestTwenty += 1;
+
+                                    if(countBestTwenty > max)
+                                    {
+                                        max = countBestTwenty;
+                                    }
                                 }
                                 else if (botNum > 20 && botNum <= 40)
                                 {
                                     count20_40 += 1;
+                                    if (count20_40 > max)
+                                    {
+                                        max = count20_40;
+                                    }
                                 }
                                 else if (botNum > 40 && botNum <= 60)
                                 {
                                     count40_60 += 1;
+
+                                    if (count40_60 > max)
+                                    {
+                                        max = count40_60;
+                                    }
                                 }
                                 else if (botNum > 60 && botNum <= 80)
                                 {
                                     count60_80 += 1;
+
+                                    if (count60_80 > max)
+                                    {
+                                        max = count60_80;
+                                    }
                                 }
                                 else if (botNum > 80)
                                 {
                                     countWorst20 += 1;
+
+                                    if (countWorst20 > max)
+                                    {
+                                        max = countWorst20;
+                                    }
                                 }
 
                                 break;
@@ -673,6 +700,12 @@ namespace OsEngine.OsOptimizer
                 _chartRobustness.Series[0].Points.Add(point3);
                 _chartRobustness.Series[0].Points.Add(point4);
                 _chartRobustness.Series[0].Points.Add(point5);
+
+                if (max != decimal.MinValue)
+                {
+                    _chartRobustness.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(max);
+                    _chartRobustness.ChartAreas[0].AxisY.Minimum = 0;
+                }
             }
             catch (Exception ex)
             {
@@ -845,6 +878,8 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
+                decimal max = decimal.MinValue;
+                decimal min = decimal.MaxValue;
 
                 for (int i = 0; i < profitsSumm.Count; i++)
                 {
@@ -858,6 +893,15 @@ namespace OsEngine.OsOptimizer
                         open = profitsSumm[i - 1];
                     }
                     close = profitsSumm[i];
+
+                    if(close > max)
+                    {
+                        max = close;
+                    }
+                    if(close < min)
+                    {
+                        min = close;
+                    }
 
                     if (close > open)
                     {
@@ -900,6 +944,13 @@ namespace OsEngine.OsOptimizer
                         series.Points[series.Points.Count - 1].LabelForeColor = Color.AntiqueWhite;
                     }
 
+                }
+
+                if(max != decimal.MinValue &&
+                    min != decimal.MaxValue)
+                {
+                    _chartTotalProfit.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(Math.Round(max + max * 0.2m,2));
+                    _chartTotalProfit.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(Math.Round(min,2));
                 }
             }
             catch (Exception ex)
@@ -1048,9 +1099,22 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
+                decimal max = decimal.MinValue;
+                decimal min = decimal.MaxValue;
+
                 for (int i = 0; i < values.Count; i++)
                 {
                     seriesOosValues.Points.AddXY(i + 1, values[i]);
+
+                    if (values[i] > max)
+                    {
+                        max = values[i];
+                    }
+
+                    if (values[i] < min)
+                    {
+                        min = values[i];
+                    }
 
                     if (values[i] > 0)
                     {
@@ -1093,6 +1157,14 @@ namespace OsEngine.OsOptimizer
                     seriesAveragePoint.Points[0].Label = label;
                     seriesAveragePoint.Points[0].LabelForeColor = Color.AntiqueWhite;
                 }
+
+                if (max != decimal.MinValue &&
+                    min != decimal.MaxValue)
+                {
+                    _chartAverageProfit.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(Math.Round(max + max * 0.2m, 2));
+                    _chartAverageProfit.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(Math.Round(min, 2));
+                }
+
             }
             catch (Exception ex)
             {
@@ -1244,9 +1316,22 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
-                for (int i = 0; i < values.Count; i++)
+                decimal max = decimal.MinValue;
+                decimal min = decimal.MaxValue;
+
+                    for (int i = 0; i < values.Count; i++)
                 {
                     seriesOosValues.Points.AddXY(i + 1, values[i]);
+
+                    if (values[i] > max)
+                    {
+                        max = values[i];
+                    }
+
+                    if (values[i] < min)
+                    {
+                        min = values[i];
+                    }
 
                     if (values[i] > 0)
                     {
@@ -1288,6 +1373,13 @@ namespace OsEngine.OsOptimizer
 
                     seriesAveragePoint.Points[0].Label = label;
                     seriesAveragePoint.Points[0].LabelForeColor = Color.AntiqueWhite;
+                }
+
+                if (max != decimal.MinValue &&
+                    min != decimal.MaxValue)
+                {
+                    _chartProfitFactor.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(Math.Round(max + max * 0.2m, 2));
+                    _chartProfitFactor.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(Math.Round(min, 2));
                 }
             }
             catch (Exception ex)

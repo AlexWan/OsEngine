@@ -388,6 +388,7 @@ namespace OsEngine.Charts.CandleChart
                 _chart.MouseMove -= _chart_MouseMove2;
                 _chart.ClientSizeChanged -= _chart_ClientSizeChanged;
                 _chart.AxisViewChanging -= _chart_AxisViewChanging;
+                _chart.MouseUp -= _chart_MouseUp;
 
                 chartRoulette?.Dispose(); //AVP ChartRoulette 
                 chartRoulette = null;
