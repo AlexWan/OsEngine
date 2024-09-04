@@ -312,8 +312,29 @@ namespace OsEngine.Market.Servers.Transaq
                             {
                                 continue;
                             }
+                            if (data.StartsWith("<orders>"))
+                            {
+                                var orders = _deserializer.Deserialize<List<Order>>(new RestResponse() { Content = data });
 
-                            if (data.StartsWith("<sec_info_upd>"))
+                                MyOrderEvent?.Invoke(orders);
+                            }
+                            else if (data.StartsWith("<mc_portfolio"))
+                            {
+                                UpdatePortfolio?.Invoke(data);
+                            }
+                            else if (data.StartsWith("<positions"))
+                            {
+                                var positions = Deserialize<TransaqPositions>(data);
+
+                                UpdatePositions?.Invoke(positions);
+                            }
+                            else if (data.StartsWith("<trades>"))
+                            {
+                                var myTrades = _deserializer.Deserialize<List<Trade>>(new RestResponse() { Content = data });
+
+                                MyTradeEvent?.Invoke(myTrades);
+                            }
+                            else if (data.StartsWith("<sec_info_upd>"))
                             {
                                 SecurityInfo newInfo = DeserializeSpecification(data);
                                 UpdateSecurity?.Invoke(newInfo);
@@ -328,12 +349,6 @@ namespace OsEngine.Market.Servers.Transaq
 
                                 UpdateMarketDepth?.Invoke(quotes);
                             }
-                            else if (data.StartsWith("<trades>"))
-                            {
-                                var myTrades = _deserializer.Deserialize<List<Trade>>(new RestResponse() { Content = data });
-
-                                MyTradeEvent?.Invoke(myTrades);
-                            }
                             else if (data.StartsWith("<alltrades>"))
                             {
                                 var allTrades = _deserializer.Deserialize<List<Trade>>(new RestResponse() { Content = data });
@@ -346,16 +361,6 @@ namespace OsEngine.Market.Servers.Transaq
 
                                 NewTicks?.Invoke(newTicks);
                             }
-                            else if (data.StartsWith("<mc_portfolio"))
-                            {
-                                UpdatePortfolio?.Invoke(data);
-                            }
-                            else if (data.StartsWith("<positions"))
-                            {
-                                var positions = Deserialize<TransaqPositions>(data);
-
-                                UpdatePositions?.Invoke(positions);
-                            }
                             else if (data.StartsWith("<clientlimits"))
                             {
                                 var limits = Deserialize<ClientLimits>(data);
@@ -367,12 +372,6 @@ namespace OsEngine.Market.Servers.Transaq
                                 var clientInfo = _deserializer.Deserialize<Client>(new RestResponse() { Content = data });
 
                                 ClientsInfo?.Invoke(clientInfo);
-                            }
-                            else if (data.StartsWith("<orders>"))
-                            {
-                                var orders = _deserializer.Deserialize<List<Order>>(new RestResponse() { Content = data });
-
-                                MyOrderEvent?.Invoke(orders);
                             }
                             else if (data.StartsWith("<candles"))
                             {
