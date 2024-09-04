@@ -1203,8 +1203,11 @@ namespace OsEngine.OsOptimizer
                 return false;
             }
 
-            if (string.IsNullOrEmpty(Storage.ActiveSet) ||
-                Storage.SecuritiesTester == null ||
+            if ((string.IsNullOrEmpty(Storage.ActiveSet) 
+                && Storage.SourceDataType == TesterSourceDataType.Set)
+                ||
+                Storage.SecuritiesTester == null 
+                ||
                 Storage.SecuritiesTester.Count == 0)
             {
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message16);
