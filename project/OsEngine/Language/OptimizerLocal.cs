@@ -3,6 +3,8 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.OsOptimizer;
+
 namespace OsEngine.Language
 {
     public class OptimizerLocal
@@ -426,5 +428,9 @@ namespace OsEngine.Language
         public string Label61 => OsLocalization.ConvertToLocString(
            "Eng:When Walk-Forwards optimization, you need to turn off filters. But you have them turned on. This can cause errors. Are you sure? Do you want to continue?_" +
            "Ru:При Walk-Forwards оптимизации нужно отключать фильтры. Но у Вас они включены. Это может вызывать ошибки. Вы уверены? Хотите продолжить?_");
+       
+        public string Label62 => OsLocalization.ConvertToLocString(
+           "Eng:Optimizer data storage_" +
+           "Ru:Хранилище данных оптимизатора_");
     }
 }

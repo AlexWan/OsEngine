@@ -69,7 +69,8 @@ namespace OsEngine.Market.Servers.Optimizer
             ComboBoxDataSourseType.SelectedItem = _server.SourceDataType;
             ComboBoxDataSourseType.SelectionChanged += ComboBoxDataSourseType_SelectionChanged;
 
-            Title = OsLocalization.Market.TitleTester;
+            Title = OsLocalization.Optimizer.Label62;
+
             Label22.Header = OsLocalization.Market.Label22;
             Label23.Header = OsLocalization.Market.Label23;
             Label24.Content = OsLocalization.Market.Label24;

@@ -26,7 +26,7 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             Name = name;
 
-            _logMaster = new Log("OptimizerServer",StartProgram.IsOsOptimizer);
+            _logMaster = new Log("OptimizerServer",StartProgram.IsTester);
             _logMaster.Listen(this)
                 ;
             TypeTesterData = TesterDataType.Candle;
