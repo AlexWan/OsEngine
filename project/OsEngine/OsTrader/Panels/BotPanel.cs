@@ -11,6 +11,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
+using System.Windows.Input;
 using System.Windows.Shapes;
 using OsEngine.Alerts;
 using OsEngine.Entity;
@@ -1001,20 +1002,51 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="collection">values </param>
         public StrategyParameterString CreateParameter(string name, string value, string[] collection, string tabControlName = null)
         {
-            StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList(), tabControlName);
-
             if (_parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
 
+            bool isInArray = false;
+
+            for (int i = 0; i < collection.Length; i++)
+            {
+                if (collection[i] == value)
+                {
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if (isInArray == false)
+            {
+                List<string> col = collection.ToList();
+                col.Add(value);
+                collection = col.ToArray();
+            }
+
+            StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList(), tabControlName);
+
             StrategyParameterString paramFromFileSys = (StrategyParameterString)LoadParameterValues(newParameter);
 
             if(paramFromFileSys.ValuesString != null &&
-                collection != null &&
-                paramFromFileSys.ValuesString.Count != collection.Length)
-            {
-                paramFromFileSys.ValuesString = collection.ToList();
+                collection != null)
+            {// проверяем, чтобы программист не изменил названия для коллекции
+                if(paramFromFileSys.ValuesString.Count != collection.Length)
+                {
+                    paramFromFileSys.ValuesString = collection.ToList();
+                }
+                else
+                {
+                    for (int i = 0; i < collection.Length; i++)
+                    {
+                        if (collection[i] != paramFromFileSys.ValuesString[i])
+                        {
+                            paramFromFileSys.ValuesString = collection.ToList();
+                            break;
+                        }
+                    }
+                }
             }
 
             return paramFromFileSys;
