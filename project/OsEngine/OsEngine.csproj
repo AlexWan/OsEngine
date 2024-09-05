@@ -1149,6 +1149,7 @@
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
+    <Compile Include="Robots\TechSamples\CandlesLoggingSample.cs" />
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
     <Compile Include="Robots\TechSamples\CustomChartInParamWindowSample.cs" />
     <Compile Include="Robots\TechSamples\CustomParamsUseBotSample.cs" />

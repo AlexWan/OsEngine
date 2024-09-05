@@ -11,7 +11,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
-using System.Windows.Input;
 using System.Windows.Shapes;
 using OsEngine.Alerts;
 using OsEngine.Entity;

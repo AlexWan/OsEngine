@@ -11,7 +11,6 @@ using System.Windows.Forms.Integration;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Layout;
-using System.Reflection;
 
 namespace OsEngine.Entity
 {

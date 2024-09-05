@@ -113,7 +113,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             ParametrsChangeByUser += PriceChannelScreenerOnIndexVolatility_ParametrsChangeByUser;
 
-            if (StartProgram == StartProgram.IsTester)
+            if (StartProgram == StartProgram.IsTester && ServerMaster.GetServers() != null)
             {
                 TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
 

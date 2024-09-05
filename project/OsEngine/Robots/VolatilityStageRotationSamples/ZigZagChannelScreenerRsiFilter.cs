@@ -75,7 +75,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             _tabScreener.CreateCandleIndicator(2, "RSI", new List<string>() { RsiLen.ValueInt.ToString() }, "Second");
 
-            if (StartProgram == StartProgram.IsTester)
+            if (StartProgram == StartProgram.IsTester && ServerMaster.GetServers() != null)
             {
                 TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
 
