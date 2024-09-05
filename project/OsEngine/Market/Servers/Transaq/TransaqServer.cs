@@ -83,6 +83,14 @@ namespace OsEngine.Market.Servers.Transaq
             Thread worker2 = new Thread(ThreadDataParsingWorkPlace);
             worker2.Name = "ThreadTransaqDataParsing";
             worker2.Start();
+
+            Thread worker3 = new Thread(ThreadTradesParsingWorkPlace);
+            worker3.Name = "TransaqThreadTradesParsing";
+            worker3.Start();
+
+            Thread worker4 = new Thread(ThreadMarketDepthsParsingWorkPlace);
+            worker4.Name = "TransaqThreadTradesParsing";
+            worker4.Start();
         }
 
         public ServerType ServerType
@@ -1793,7 +1801,32 @@ namespace OsEngine.Market.Servers.Transaq
                             UpdateMyTrades(trades);
                         }
                     }
-                    else if (_tradesQueue.IsEmpty == false)
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadTradesParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_tradesQueue.IsEmpty == false)
                     {
                         List<TransaqEntity.Trade> trades = null;
 
@@ -1802,7 +1835,32 @@ namespace OsEngine.Market.Servers.Transaq
                             UpdateTrades(trades);
                         }
                     }
-                    else if (_mdQueue.IsEmpty == false)
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadMarketDepthsParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_mdQueue.IsEmpty == false)
                     {
                         List<Quote> quotes = null;
 

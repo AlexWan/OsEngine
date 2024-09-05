@@ -55,6 +55,11 @@ namespace OsEngine.Market.Servers.Transaq
             converter.CurrentCulture = new CultureInfo("ru-RU");
             converter.IsBackground = true;
             converter.Start();
+
+            Thread converter2 = new Thread(ConverterTradesAndDepths);
+            converter2.CurrentCulture = new CultureInfo("ru-RU");
+            converter2.IsBackground = true;
+            converter2.Start();
         }
 
         /// <summary>
@@ -222,6 +227,8 @@ namespace OsEngine.Market.Servers.Transaq
         /// </summary>
         private readonly ConcurrentQueue<string> _newMessage = new ConcurrentQueue<string>();
 
+        private readonly ConcurrentQueue<string> _newPublicMessage = new ConcurrentQueue<string>();
+
         /// <summary>
         /// processor of data from callbacks 
         /// обработчик данных пришедших через каллбек
@@ -232,11 +239,12 @@ namespace OsEngine.Market.Servers.Transaq
         {
             try
             {
-                string data = MarshalUtf8.PtrToStringUtf8(pData);
-
-                _newMessage.Enqueue(data);
-
-                FreeMemory(pData);
+                if (_isDisposed == false)
+                {
+                    string data = MarshalUtf8.PtrToStringUtf8(pData);
+                    _newMessage.Enqueue(data);
+                    FreeMemory(pData);
+                }
 
                 return true;
             }
@@ -308,7 +316,20 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_newMessage.TryDequeue(out data))
                         {
-                            if (data.StartsWith("<pits>"))
+                            // тяжёлые данные переносим в другую очередь разбирающуюся другим потоком
+                            if (data.StartsWith("<quotes>"))
+                            {
+                                _newPublicMessage.Enqueue(data);
+                            }
+                            else if (data.StartsWith("<alltrades>"))
+                            {
+                                _newPublicMessage.Enqueue(data);
+                            }
+                            else if (data.StartsWith("<ticks>"))
+                            {
+                                _newPublicMessage.Enqueue(data);
+                            }
+                            else if (data.StartsWith("<pits>"))
                             {
                                 continue;
                             }
@@ -342,24 +363,6 @@ namespace OsEngine.Market.Servers.Transaq
                             else if (data.StartsWith("<securities>"))
                             {
                                 UpdatePairs?.Invoke(data);
-                            }
-                            else if (data.StartsWith("<quotes>"))
-                            {
-                                var quotes = _deserializer.Deserialize<List<Quote>>(new RestResponse() { Content = data });
-
-                                UpdateMarketDepth?.Invoke(quotes);
-                            }
-                            else if (data.StartsWith("<alltrades>"))
-                            {
-                                var allTrades = _deserializer.Deserialize<List<Trade>>(new RestResponse() { Content = data });
-
-                                NewTradesEvent?.Invoke(allTrades);
-                            }
-                            else if (data.StartsWith("<ticks>"))
-                            {
-                                var newTicks = _deserializer.Deserialize<List<Tick>>(new RestResponse() { Content = data });
-
-                                NewTicks?.Invoke(newTicks);
                             }
                             else if (data.StartsWith("<clientlimits"))
                             {
@@ -499,6 +502,56 @@ namespace OsEngine.Market.Servers.Transaq
         public SecurityInfo DeserializeSpecification(string data)
         {
             return _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data }); ;
+        }
+
+        private void ConverterTradesAndDepths()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (_isDisposed)
+                    {
+                        return;
+                    }
+
+                    if (!_newPublicMessage.IsEmpty)
+                    {
+                        string data;
+
+                        if (_newPublicMessage.TryDequeue(out data))
+                        {
+                            if (data.StartsWith("<quotes>"))
+                            {
+                                var quotes = _deserializer.Deserialize<List<Quote>>(new RestResponse() { Content = data });
+
+                                UpdateMarketDepth?.Invoke(quotes);
+                            }
+                            else if (data.StartsWith("<alltrades>"))
+                            {
+                                var allTrades = _deserializer.Deserialize<List<Trade>>(new RestResponse() { Content = data });
+
+                                NewTradesEvent?.Invoke(allTrades);
+                            }
+                            else if (data.StartsWith("<ticks>"))
+                            {
+                                var newTicks = _deserializer.Deserialize<List<Tick>>(new RestResponse() { Content = data });
+
+                                NewTicks?.Invoke(newTicks);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
+
+            }
         }
 
         #region outgoing events / Исходящие события
