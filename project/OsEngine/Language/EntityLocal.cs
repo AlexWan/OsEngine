@@ -496,8 +496,8 @@ namespace OsEngine.Language
              "Ru:Тип жизни заявки_");
 
         public string PositionStartDepoLabel => OsLocalization.ConvertToLocString(
-             "Eng:Starting deposit on opening position_" +
-             "Ru:Стартовый депозит на открытии позицию_");
+             "Eng:Deposit on opening position_" +
+             "Ru:Депозит на открытии позицию_");
 
         public string CustomColorDialogUiTitle => OsLocalization.ConvertToLocString(
              "Eng:Color dialog_" +

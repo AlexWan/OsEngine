@@ -1489,6 +1489,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void GetAllActivOrders()
         {
             List<QuikSharp.DataStructures.Transaction.Order> foundOrder =
@@ -1503,6 +1504,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void GetOrderStatus(Order order)
         {
             try
