@@ -572,15 +572,8 @@ namespace OsEngine.Market.Servers.Transaq
                         security.SecurityType = SecurityType.Bond;
                     }
 
-                    if(securityData.Sectype == "FUT")
-                    {
-                        security.Lot = securityData.Point_cost.ToDecimal();
-                    }
-                    else
-                    {
-                        security.Lot = securityData.Lotsize.ToDecimal();
-                    }
-                    
+                    security.Lot = securityData.Lotsize.ToDecimal();
+
                     if (security.Lot == 0)
                     {
                         security.Lot = 1;
