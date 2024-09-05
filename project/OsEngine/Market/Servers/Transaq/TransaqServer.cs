@@ -1228,6 +1228,18 @@ namespace OsEngine.Market.Servers.Transaq
                         }
                     }
 
+                    for (int i = 0; series.CandlesAll != null && i < series.CandlesAll.Count; i++)
+                    {
+                        if (series.CandlesAll[i].Open == 0
+                            || series.CandlesAll[i].High == 0
+                            || series.CandlesAll[i].Low == 0 
+                            || series.CandlesAll[i].Close == 0)
+                        {
+                            series.CandlesAll.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
                     series.UpdateAllCandles();
                     series.IsStarted = true;
                     return;
@@ -1282,6 +1294,12 @@ namespace OsEngine.Market.Servers.Transaq
         {
             List<Candle> newCandles = new List<Candle>();
 
+            if(oldCandles == null ||
+                oldCandles.Count == 0)
+            {
+                return newCandles;
+            }
+
             int index;
 
             if (needTf == 120)
@@ -1335,6 +1353,11 @@ namespace OsEngine.Market.Servers.Transaq
             else
             {
                 index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);
+            }
+
+            if(index < 0)
+            {
+                index = 0;
             }
 
             int count = needTf / oldTf;
