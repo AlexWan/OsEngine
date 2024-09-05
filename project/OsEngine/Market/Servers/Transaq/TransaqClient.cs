@@ -333,7 +333,7 @@ namespace OsEngine.Market.Servers.Transaq
                             {
                                 continue;
                             }
-                            if (data.StartsWith("<orders>"))
+                            else if (data.StartsWith("<orders>"))
                             {
                                 var orders = _deserializer.Deserialize<List<Order>>(new RestResponse() { Content = data });
 
