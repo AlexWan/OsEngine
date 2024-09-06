@@ -4,9 +4,15 @@
         Title="Securities" Height="700" Width="1200" MinWidth="800" MinHeight="400" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5"/>
-        <WindowsFormsHost Name="HostSecurities" Margin="5,50,5,5"/>
-        <ComboBox Name="ComboBoxClass" HorizontalAlignment="Left" Margin="130,20,0,0" VerticalAlignment="Top" Width="179"/>
-        <Label Name="LabelClass" Content="Class" HorizontalAlignment="Left" Margin="26,20,0,0" VerticalAlignment="Top"/>
+        <WindowsFormsHost Name="HostSecurities" Margin="5,49,5,5"/>
+        <ComboBox Name="ComboBoxClass" HorizontalAlignment="Left" Margin="132,25,0,0" VerticalAlignment="Top" Width="179"/>
+        <Label Name="LabelClass" Content="Class" HorizontalAlignment="Left" Margin="21,25,0,0" VerticalAlignment="Top" Width="81"/>
+        <TextBox x:Name="TextBoxSearchSecurity" HorizontalAlignment="Left" Margin="355,25,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="164"/>
+        <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="496,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Button x:Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="355,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="415,5,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="430,5,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="449,5,0,0" VerticalAlignment="Top" Height="20"/>
 
     </Grid>
 </Window>

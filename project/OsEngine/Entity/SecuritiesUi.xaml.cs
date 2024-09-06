@@ -10,6 +10,9 @@ using OsEngine.Language;
 using OsEngine.Market.Servers;
 using System.IO;
 using OsEngine.Market;
+using OsEngine.Logging;
+using System.Windows.Input;
+using System.Windows;
 
 namespace OsEngine.Entity
 {
@@ -46,6 +49,12 @@ namespace OsEngine.Entity
             this.Focus();
 
             this.Closed += SecuritiesUi_Closed;
+
+            TextBoxSearchSecurity.MouseEnter += TextBoxSearchSecurity_MouseEnter;
+            TextBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
+            TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
+            TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
+            TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;
         }
 
         private void SecuritiesUi_Closed(object sender, EventArgs e)
@@ -55,10 +64,16 @@ namespace OsEngine.Entity
                 _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
                 _server = null;
 
-                _grid.CellValueChanged -= _grid_CellValueChanged;
-                DataGridFactory.ClearLinks(_grid);
-                _grid = null;
+                _gridSecurities.CellValueChanged -= _grid_CellValueChanged;
+                DataGridFactory.ClearLinks(_gridSecurities);
+                _gridSecurities = null;
                 HostSecurities.Child = null;
+
+                TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
             }
             catch
             {
@@ -148,159 +163,150 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// spreadsheet for drawing securities
-        /// </summary>
-        private DataGridView _grid;
+        private DataGridView _gridSecurities;
 
-        /// <summary>
-        /// create a table of securities
-        /// </summary>
         private void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+            _gridSecurities = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
     DataGridViewAutoSizeRowsMode.AllCells);
-            _grid.ScrollBars = ScrollBars.Vertical;
+            _gridSecurities.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _grid.DefaultCellStyle;
+            cell0.Style = _gridSecurities.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
             column0.HeaderText = "#"; // num
             column0.ReadOnly = true;
             column0.Width = 70;
-            _grid.Columns.Add(column0);
+            _gridSecurities.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
             column1.HeaderText = OsLocalization.Entity.SecuritiesColumn1; // Name
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column1);
+            _gridSecurities.Columns.Add(column1);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
             column2.HeaderText = OsLocalization.Entity.SecuritiesColumn9; // Name Full
             column2.ReadOnly = true;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column2);
+            _gridSecurities.Columns.Add(column2);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
             column3.HeaderText = OsLocalization.Entity.SecuritiesColumn10; // Name ID
             column3.ReadOnly = true;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column3);
+            _gridSecurities.Columns.Add(column3);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
             column4.HeaderText = OsLocalization.Entity.SecuritiesColumn11; // Class
             column4.ReadOnly = true;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column4);
+            _gridSecurities.Columns.Add(column4);
 
             DataGridViewColumn column5 = new DataGridViewColumn();
             column5.CellTemplate = cell0;
             column5.HeaderText = OsLocalization.Entity.SecuritiesColumn2; // Type
             column5.ReadOnly = true;
             column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column5);
+            _gridSecurities.Columns.Add(column5);
 
             DataGridViewColumn column6 = new DataGridViewColumn();
             column6.CellTemplate = cell0;
             column6.HeaderText = OsLocalization.Entity.SecuritiesColumn3; // Lot
             column6.ReadOnly = false;
             column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column6);
+            _gridSecurities.Columns.Add(column6);
 
             DataGridViewColumn column7 = new DataGridViewColumn();
             column7.CellTemplate = cell0;
             column7.HeaderText = OsLocalization.Entity.SecuritiesColumn4; // Price step
             column7.ReadOnly = false;
             column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column7);
+            _gridSecurities.Columns.Add(column7);
 
             DataGridViewColumn column8 = new DataGridViewColumn();
             column8.CellTemplate = cell0;
             column8.HeaderText = OsLocalization.Entity.SecuritiesColumn5; // Price step cost
             column8.ReadOnly = false;
             column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column8);
+            _gridSecurities.Columns.Add(column8);
 
             DataGridViewColumn column9 = new DataGridViewColumn();
             column9.CellTemplate = cell0;
             column9.HeaderText = OsLocalization.Entity.SecuritiesColumn8; // Price decimals
             column9.ReadOnly = false;
             column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column9);
+            _gridSecurities.Columns.Add(column9);
 
             DataGridViewColumn column10 = new DataGridViewColumn();
             column10.CellTemplate = cell0;
             column10.HeaderText = OsLocalization.Entity.SecuritiesColumn7; // Volume decimals
             column10.ReadOnly = false;
             column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column10);
+            _gridSecurities.Columns.Add(column10);
 
             DataGridViewColumn column11 = new DataGridViewColumn();
             column11.CellTemplate = cell0;
             column11.HeaderText = OsLocalization.Entity.SecuritiesColumn12; // Min volume
             column11.ReadOnly = false;
             column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column11);
+            _gridSecurities.Columns.Add(column11);
 
             DataGridViewColumn column12 = new DataGridViewColumn();
             column12.CellTemplate = cell0;
             column12.HeaderText = OsLocalization.Entity.SecuritiesColumn13; // Price limit High
             column12.ReadOnly = false;
             column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column12);
+            _gridSecurities.Columns.Add(column12);
 
             DataGridViewColumn column13 = new DataGridViewColumn();
             column13.CellTemplate = cell0;
             column13.HeaderText = OsLocalization.Entity.SecuritiesColumn14; // Price limit Low
             column13.ReadOnly = false;
             column13.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column13);
+            _gridSecurities.Columns.Add(column13);
 
             DataGridViewColumn column14 = new DataGridViewColumn();
             column14.CellTemplate = cell0;
             column14.HeaderText = OsLocalization.Entity.SecuritiesColumn15; // Collateral / ру: ГО
             column14.ReadOnly = false;
             column14.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column14);
+            _gridSecurities.Columns.Add(column14);
 
             DataGridViewColumn column15 = new DataGridViewColumn();
             column15.CellTemplate = cell0;
             column15.HeaderText = OsLocalization.Entity.SecuritiesColumn16; // Option type
             column15.ReadOnly = true;
             column15.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column15);
+            _gridSecurities.Columns.Add(column15);
 
             DataGridViewColumn column16 = new DataGridViewColumn();
             column16.CellTemplate = cell0;
             column16.HeaderText = OsLocalization.Entity.SecuritiesColumn17; // Strike
             column16.ReadOnly = false;
             column16.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column16);
+            _gridSecurities.Columns.Add(column16);
 
             DataGridViewColumn column17 = new DataGridViewColumn();
             column17.CellTemplate = cell0;
             column17.HeaderText = OsLocalization.Entity.SecuritiesColumn18; // Expiration
             column17.ReadOnly = true;
             column17.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column17);
+            _gridSecurities.Columns.Add(column17);
 
-            HostSecurities.Child = _grid;
+            HostSecurities.Child = _gridSecurities;
             HostSecurities.Child.Show();
             HostSecurities.Child.Refresh();
-            _grid.CellValueChanged += _grid_CellValueChanged;
+            _gridSecurities.CellValueChanged += _grid_CellValueChanged;
 
         }
 
-        /// <summary>
-        /// changed value in the table
-        /// </summary>
         void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             try
@@ -313,9 +319,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// securities has changed in the server
-        /// </summary>
         private void _server_SecuritiesChangeEvent(List<Security> securities)
         {
             try
@@ -329,9 +332,6 @@ namespace OsEngine.Entity
             }
         }
 
-        /// <summary>
-        /// draw securities on the chart
-        /// </summary>
         private void PaintSecurities(List<Security> securities)
         {
             // 0 num
@@ -360,14 +360,14 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (_grid == null)
+                if (_gridSecurities == null)
                 {
                     return;
                 }
 
-                if (_grid.InvokeRequired)
+                if (_gridSecurities.InvokeRequired)
                 {
-                    _grid.Invoke(new Action<List<Security>>(PaintSecurities), securities);
+                    _gridSecurities.Invoke(new Action<List<Security>>(PaintSecurities), securities);
                     return;
                 }
 
@@ -464,25 +464,25 @@ namespace OsEngine.Entity
 
                 HostSecurities.Child = null;
 
-                _grid.Rows.Clear();
+                _gridSecurities.Rows.Clear();
 
                 if(rows.Count > 0)
                 {
-                    _grid.Rows.AddRange(rows.ToArray());
+                    _gridSecurities.Rows.AddRange(rows.ToArray());
                 }
 
-                HostSecurities.Child = _grid;
+                HostSecurities.Child = _gridSecurities;
 
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
+
+            UpdateSearchResults();
+            UpdateSearchPanel();
         }
 
-        /// <summary>
-        /// save securities from table
-        /// </summary>
         private void SaveFromTable(int rowIndex)
         {
             // 0 num
@@ -511,7 +511,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            DataGridViewRow row = _grid.Rows[rowIndex];
+            DataGridViewRow row = _gridSecurities.Rows[rowIndex];
 
             string secName = row.Cells[1].Value.ToString();
             string secFullName = row.Cells[2].Value.ToString();
@@ -610,5 +610,276 @@ namespace OsEngine.Entity
                 
             }
         }
+
+        #region Search in securities grid
+
+        private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            try
+            {
+                if (TextBoxSearchSecurity.Text == ""
+                    && TextBoxSearchSecurity.IsKeyboardFocused == false)
+                {
+                    TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxSearchSecurity_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            try
+            {
+                if (TextBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+                {
+                    TextBoxSearchSecurity.Text = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxSearchSecurity_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            try
+            {
+                if (TextBoxSearchSecurity.Text == "")
+                {
+                    TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<int> _searchResults = new List<int>();
+
+        private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            UpdateSearchResults();
+            UpdateSearchPanel();
+        }
+
+        private void UpdateSearchResults()
+        {
+            try
+            {
+                _searchResults.Clear();
+
+                string key = TextBoxSearchSecurity.Text;
+
+                if (key == "")
+                {
+                    UpdateSearchPanel();
+                    return;
+                }
+
+                key = key.ToLower();
+
+                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                {
+                    string security = "";
+                    string securityFullName = "";
+                    string securityId = "";
+
+                    if (_gridSecurities.Rows[i].Cells[1].Value != null)
+                    {
+                        security = _gridSecurities.Rows[i].Cells[1].Value.ToString();
+                    }
+                    if (_gridSecurities.Rows[i].Cells[2].Value != null)
+                    {
+                        securityFullName = _gridSecurities.Rows[i].Cells[2].Value.ToString();
+                    }
+                    if (_gridSecurities.Rows[i].Cells[3].Value != null)
+                    {
+                        securityId = _gridSecurities.Rows[i].Cells[3].Value.ToString();
+                    }
+
+                    security = security.ToLower();
+
+                    if (security.Contains(key)
+                        || securityFullName.Contains(key)
+                        || securityId.Contains(key))
+                    {
+                        _searchResults.Add(i);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdateSearchPanel()
+        {
+            try
+            {
+                if (_searchResults.Count == 0)
+                {
+                    ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                    ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                    LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                    LabelCommasResultShow.Visibility = Visibility.Hidden;
+                    LabelCountResultsShow.Visibility = Visibility.Hidden;
+                    return;
+                }
+
+                int firstRow = _searchResults[0];
+
+                _gridSecurities.Rows[firstRow].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = firstRow;
+
+                if (_searchResults.Count < 2)
+                {
+                    ButtonRightInSearchResults.Visibility = Visibility.Hidden;
+                    ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
+                    LabelCurrentResultShow.Visibility = Visibility.Hidden;
+                    LabelCommasResultShow.Visibility = Visibility.Hidden;
+                    LabelCountResultsShow.Visibility = Visibility.Hidden;
+                    return;
+                }
+
+                LabelCurrentResultShow.Content = 1.ToString();
+                LabelCountResultsShow.Content = (_searchResults.Count).ToString();
+
+                ButtonRightInSearchResults.Visibility = Visibility.Visible;
+                ButtonLeftInSearchResults.Visibility = Visibility.Visible;
+                LabelCurrentResultShow.Visibility = Visibility.Visible;
+                LabelCommasResultShow.Visibility = Visibility.Visible;
+                LabelCountResultsShow.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonLeftInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
+
+                int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+                if (indexRow <= 0)
+                {
+                    indexRow = maxRowIndex;
+                    LabelCurrentResultShow.Content = maxRowIndex.ToString();
+                }
+                else
+                {
+                    LabelCurrentResultShow.Content = (indexRow).ToString();
+                }
+
+                int realInd = _searchResults[indexRow - 1];
+
+                _gridSecurities.Rows[realInd].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
+
+                int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+                if (indexRow >= maxRowIndex)
+                {
+                    indexRow = 0;
+                    LabelCurrentResultShow.Content = 1.ToString();
+                }
+                else
+                {
+                    LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+                }
+
+                int realInd = _searchResults[indexRow];
+
+                _gridSecurities.Rows[realInd].Selected = true;
+                _gridSecurities.FirstDisplayedScrollingRowIndex = realInd;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxSearchSecurity_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            try
+            {
+                if (e.Key == Key.Enter)
+                {
+                    int rowIndex = 0;
+                    for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                    {
+                        if (_gridSecurities.Rows[i].Selected == true)
+                        {
+                            rowIndex = i;
+                            break;
+                        }
+                        if (i == _gridSecurities.Rows.Count - 1)
+                        {
+                            return;
+                        }
+                    }
+
+                    DataGridViewCheckBoxCell checkBox;
+                    for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                    {
+                        checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[4];
+
+                        if (checkBox.Value == null)
+                        {
+                            continue;
+                        }
+                        if (i == rowIndex)
+                        {
+                            continue;
+                        }
+                        if (Convert.ToBoolean(checkBox.Value) == true)
+                        {
+                            checkBox.Value = false;
+                            break;
+                        }
+                    }
+
+                    checkBox = (DataGridViewCheckBoxCell)_gridSecurities.Rows[rowIndex].Cells[4];
+                    if (Convert.ToBoolean(checkBox.Value) == false)
+                    {
+                        checkBox.Value = true;
+                        TextBoxSearchSecurity.Text = "";
+                    }
+                    else
+                    {
+                        checkBox.Value = false;
+                        TextBoxSearchSecurity.Text = "";
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
     }
 }
