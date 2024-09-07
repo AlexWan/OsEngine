@@ -392,7 +392,7 @@ namespace OsEngine.Journal
                     }
                     else if (TabControlPrime.SelectedIndex == 5)
                     {
-                        PaintClosePositionGrid(allSortPoses);
+                        PaintClosePositionGrid();
                     }
                 }
             }
@@ -2259,15 +2259,32 @@ namespace OsEngine.Journal
             }
         }
 
-        private void PaintClosePositionGrid(List<Position> positionsAll)
+        private void PaintClosePositionGrid()
         {
             try
             {
+
                 if (_closePositionGrid == null)
                 {
                     CreateClosePositionTable();
                 }
+
                 _closePositionGrid.Rows.Clear();
+
+                List<Journal> myJournals = GetActiveJournals();
+
+                if (myJournals == null
+                    || myJournals.Count == 0)
+                {
+                    return;
+                }
+
+                List<Position> positionsAll = new List<Position>();
+
+                for (int i = 0; i < myJournals.Count; i++)
+                {
+                    if (myJournals[i].AllPosition != null) positionsAll.AddRange(myJournals[i].AllPosition);
+                }
 
                 if (positionsAll == null
                     || positionsAll.Count == 0)
