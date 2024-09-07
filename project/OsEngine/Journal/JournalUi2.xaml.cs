@@ -2323,6 +2323,12 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < closePositions.Count; i++)
                 {
+                    if (closePositions[i].TimeCreate < _startTime
+                       || closePositions[i].TimeCreate > _endTime)
+                    {
+                        continue;
+                    }
+
                     _closePositionGrid.Rows.Insert(0, GetRow(closePositions[i]));
                 }
             }
