@@ -55,6 +55,8 @@ namespace OsEngine.Entity
             TextBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
             TextBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
             TextBoxSearchSecurity.KeyDown += TextBoxSearchSecurity_KeyDown;
+            ButtonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
+            ButtonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
         }
 
         private void SecuritiesUi_Closed(object sender, EventArgs e)
@@ -74,6 +76,8 @@ namespace OsEngine.Entity
                 TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
                 TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
                 TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+                ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
             }
             catch
             {
@@ -703,6 +707,8 @@ namespace OsEngine.Entity
                     }
 
                     security = security.ToLower();
+                    securityFullName = securityFullName.ToLower();
+                    securityId = securityId.ToLower();
 
                     if (security.Contains(key)
                         || securityFullName.Contains(key)

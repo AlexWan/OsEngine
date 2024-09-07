@@ -872,7 +872,24 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         continue;
                     }
-                    pos.AddRange(journals[i].AllPosition);
+
+                    List<Position> allPositionOpen = new List<Position>();
+
+                    for(int i2 = 0;i2 < journals[i].AllPosition.Count;i2++)
+                    {
+                        if (journals[i].AllPosition[i2].State == PositionStateType.OpeningFail)
+                        {
+                            continue;
+                        }
+                        allPositionOpen.Add(journals[i].AllPosition[i2]);
+                    }
+
+                    if (allPositionOpen == null || allPositionOpen.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    pos.AddRange(allPositionOpen);
                 }
                 return pos.Count;
             }
