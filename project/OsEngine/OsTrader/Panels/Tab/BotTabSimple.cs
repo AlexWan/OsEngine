@@ -1737,7 +1737,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.OrderCreateBarNumber = CandlesFinishedOnly.Count;
                 positionOpener.TabName = TabName;
                 positionOpener.LifeTimeType = lifeTimeType;
-                positionOpener.PriceOrder = priceLimit;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    positionOpener.PriceOrder = priceLimit;
+                }
+                else
+                {
+                    positionOpener.PriceOrder = priceRedLine;
+                }
+
                 positionOpener.PriceRedLine = priceRedLine;
                 positionOpener.ActivateType = activateType;
                 positionOpener.Side = Side.Buy;
@@ -1837,7 +1846,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.OrderCreateBarNumber = CandlesFinishedOnly.Count;
                 positionOpener.TabName = TabName;
                 positionOpener.LifeTimeType = lifeTimeType;
-                positionOpener.PriceOrder = priceLimit;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    positionOpener.PriceOrder = priceLimit;
+                }
+                else
+                {
+                    positionOpener.PriceOrder = priceRedLine;
+                }
+
                 positionOpener.PriceRedLine = priceRedLine;
                 positionOpener.ActivateType = activateType;
                 positionOpener.Side = Side.Buy;
@@ -2473,7 +2491,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.TimeCreate = TimeServerCurrent;
                 positionOpener.OrderCreateBarNumber = CandlesFinishedOnly.Count;
                 positionOpener.LifeTimeType = lifeTimeType;
-                positionOpener.PriceOrder = priceLimit;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    positionOpener.PriceOrder = priceLimit;
+                }
+                else
+                {
+                    positionOpener.PriceOrder = priceRedLine;
+                }
+
                 positionOpener.PriceRedLine = priceRedLine;
                 positionOpener.ActivateType = activateType;
                 positionOpener.Side = Side.Sell;
@@ -2574,8 +2601,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.TimeCreate = TimeServerCurrent;
                 positionOpener.OrderCreateBarNumber = CandlesFinishedOnly.Count;
                 positionOpener.LifeTimeType = lifeTimeType;
-                positionOpener.PriceOrder = priceLimit;
                 positionOpener.PriceRedLine = priceRedLine;
+
+                if(StartProgram == StartProgram.IsOsTrader)
+                {
+                    positionOpener.PriceOrder = priceLimit;
+                }
+                else
+                {
+                    positionOpener.PriceOrder = priceRedLine;
+                }
+
                 positionOpener.ActivateType = activateType;
                 positionOpener.Side = Side.Sell;
                 positionOpener.SignalType = signalType;
