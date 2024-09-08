@@ -121,17 +121,17 @@ namespace OsEngine.Robots.OnScriptIndicators
 
             if (position.Direction == Side.Buy)
             {
-                stopPrice = position.EntryPrice - position.EntryPrice * (Stop.ValueDecimal / 100);
-                stopActivationPrice = stopPrice - stopPrice * (Slippage.ValueDecimal / 100);
-                profitPrice = position.EntryPrice + position.EntryPrice * (Profit.ValueDecimal / 100);
-                profitActivationPrice = profitPrice - stopPrice * (Slippage.ValueDecimal / 100);
+                stopActivationPrice  = position.EntryPrice - position.EntryPrice * (Stop.ValueDecimal / 100);
+                stopPrice = stopPrice - stopPrice * (Slippage.ValueDecimal / 100);
+                profitActivationPrice = position.EntryPrice + position.EntryPrice * (Profit.ValueDecimal / 100);
+                profitPrice = profitPrice - stopPrice * (Slippage.ValueDecimal / 100);
             }
             if (position.Direction == Side.Sell)
             {
-                stopPrice = position.EntryPrice + position.EntryPrice * (Stop.ValueDecimal / 100);
-                stopActivationPrice = stopPrice + stopPrice * (Slippage.ValueDecimal / 100);
-                profitPrice = position.EntryPrice - position.EntryPrice * (Profit.ValueDecimal / 100);
-                profitActivationPrice = profitPrice + stopPrice * (Slippage.ValueDecimal / 100);
+                stopActivationPrice  = position.EntryPrice + position.EntryPrice * (Stop.ValueDecimal / 100);
+                stopPrice = stopPrice + stopPrice * (Slippage.ValueDecimal / 100);
+                profitActivationPrice  = position.EntryPrice - position.EntryPrice * (Profit.ValueDecimal / 100);
+                profitPrice = profitPrice + stopPrice * (Slippage.ValueDecimal / 100);
             }
 
             _tab.CloseAtStop(position, stopActivationPrice, stopPrice);
