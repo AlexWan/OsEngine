@@ -198,7 +198,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     Security security = new Security();
 
-                    security.Lot = current.size.ToDecimal();
+                    security.Lot = 1;
+                    security.MinTradeAmount = current.size.ToDecimal();
                     security.Name = current.symbol;
                     security.NameFull = current.symbol;
                     security.NameClass = current.currency;

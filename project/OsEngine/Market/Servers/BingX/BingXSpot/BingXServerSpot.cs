@@ -197,8 +197,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 if (current.status == "1")
                 {
                     Security security = new Security();
-
-                    security.Lot = current.tickSize.ToDecimal();
+                    security.Lot = 1;
+                    security.MinTradeAmount = current.stepSize.ToDecimal();
                     security.Name = current.symbol;
                     security.NameFull = current.symbol;
                     security.NameClass = NameClass(current.symbol);
