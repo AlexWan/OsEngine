@@ -1121,6 +1121,7 @@
     <Compile Include="Robots\CurrencyArbitrage\CurrencyMoveExplorer.cs" />
     <Compile Include="Robots\Engines\EnginePair.cs" />
     <Compile Include="Robots\Engines\PolygonalEngine.cs" />
+    <Compile Include="Robots\High Frequency\MarketDepthScreener.cs" />
     <Compile Include="Robots\IndexArbitrage\IndexArbitrageClassic.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiExchangePairArbitrageOnTheIndex.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiOneLegArbitrageInTrend.cs" />

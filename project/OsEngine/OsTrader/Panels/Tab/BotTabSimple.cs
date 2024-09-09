@@ -28,7 +28,6 @@ using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 
-
 namespace OsEngine.OsTrader.Panels.Tab
 {
     /// <summary>
@@ -2625,7 +2624,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-
 
         /// <summary>
         /// Add new order to Short position at limit
