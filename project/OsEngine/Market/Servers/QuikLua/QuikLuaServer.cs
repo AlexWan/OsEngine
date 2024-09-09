@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -71,13 +72,25 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            Thread updateSpotPos = new Thread(UpdateSpotPosition);
-            updateSpotPos.CurrentCulture = new CultureInfo("ru-RU");
-            updateSpotPos.Start();
+            Thread worker1 = new Thread(UpdateSpotPosition);
+            worker1.CurrentCulture = new CultureInfo("ru-RU");
+            worker1.Start();
 
-            Thread getPos = new Thread(GetPortfoliosArea);
-            getPos.CurrentCulture = new CultureInfo("ru-RU");
-            getPos.Start();
+            Thread worker2 = new Thread(GetPortfoliosArea);
+            worker2.CurrentCulture = new CultureInfo("ru-RU");
+            worker2.Start();
+
+            Thread worker3 = new Thread(ThreadTradesParsingWorkPlace);
+            worker3.CurrentCulture = new CultureInfo("ru-RU");
+            worker3.Start();
+
+            Thread worker4 = new Thread(ThreadMarketDepthsParsingWorkPlace);
+            worker4.CurrentCulture = new CultureInfo("ru-RU");
+            worker4.Start();
+
+            Thread worker5 = new Thread(ThreadDataParsingWorkPlace);
+            worker5.CurrentCulture = new CultureInfo("ru-RU");
+            worker5.Start();
 
         }
 
@@ -926,10 +939,132 @@ namespace OsEngine.Market.Servers.QuikLua
 
         #region 7 Parsing incoming data
 
+        private ConcurrentQueue<AllTrade> _tradesQueue = new ConcurrentQueue<AllTrade>();
+
+        private ConcurrentQueue<QuikSharp.DataStructures.Transaction.Order> _ordersQueue = new ConcurrentQueue<QuikSharp.DataStructures.Transaction.Order>();
+
+        private ConcurrentQueue<QuikSharp.DataStructures.Transaction.Trade> _myTradesQueue = new ConcurrentQueue<QuikSharp.DataStructures.Transaction.Trade>();
+
+        private ConcurrentQueue<OrderBook> _mdQueue = new ConcurrentQueue<OrderBook>();
+
+
+        private void ThreadTradesParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(5000);
+                        continue;
+                    }
+
+                    if (_tradesQueue.IsEmpty == false)
+                    {
+                        AllTrade trades = null;
+
+                        if (_tradesQueue.TryDequeue(out trades))
+                        {
+                            UpdateTrades(trades);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadMarketDepthsParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_mdQueue.IsEmpty == false)
+                    {
+                        OrderBook quotes = null;
+
+                        if (_mdQueue.TryDequeue(out quotes))
+                        {
+                            UpdateMarketDepths(quotes);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadDataParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_ordersQueue.IsEmpty == false)
+                    {
+                        QuikSharp.DataStructures.Transaction.Order orders = null;
+
+                        if (_ordersQueue.TryDequeue(out orders))
+                        {
+                            UpdateMyOrders(orders);
+                        }
+
+                    }
+                    else if (_myTradesQueue.IsEmpty == false)
+                    {
+                        QuikSharp.DataStructures.Transaction.Trade trades = null;
+
+                        if (_myTradesQueue.TryDequeue(out trades))
+                        {
+                            UpdateMyTrades(trades);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
         private object _newTradesLoker = new object();
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        private void EventsOnOnAllTrade(AllTrade allTrade)
+        private void UpdateTrades(AllTrade allTrade)
         {
             try
             {
@@ -956,7 +1091,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     {
                         trade.Side = Side.Buy;
                     }
-
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
                         allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
                     trade.MicroSeconds = allTrade.Datetime.mcs;
@@ -1061,7 +1195,7 @@ namespace OsEngine.Market.Servers.QuikLua
         private object quoteLock = new object();
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        private void EventsOnOnQuote(OrderBook orderBook)
+        private void UpdateMarketDepths(OrderBook orderBook)
         {
             try
             {
@@ -1120,10 +1254,62 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
+        private object myTradeLocker = new object();
+
+        private List<QuikSharp.DataStructures.Transaction.Trade> _myTradesFromQuik =
+            new List<QuikSharp.DataStructures.Transaction.Trade>();
+
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        private void UpdateMyTrades(QuikSharp.DataStructures.Transaction.Trade qTrade)
+        {
+            lock (myTradeLocker)
+            {
+                try
+                {
+                    if (_myTradesFromQuik.Find(t => t.TradeNum == qTrade.TradeNum) != null)
+                    {
+                        return;
+                    }
+
+                    _myTradesFromQuik.Add(qTrade);
+
+                    MyTrade trade = new MyTrade();
+                    trade.NumberTrade = qTrade.TradeNum.ToString();
+                    trade.SecurityNameCode = qTrade.SecCode + "+" + qTrade.ClassCode;
+                    trade.NumberOrderParent = qTrade.OrderNum.ToString();
+                    trade.Price = Convert.ToDecimal(qTrade.Price);
+                    trade.Volume = qTrade.Quantity;
+                    trade.Time = new DateTime(qTrade.QuikDateTime.year, qTrade.QuikDateTime.month,
+                        qTrade.QuikDateTime.day, qTrade.QuikDateTime.hour,
+                        qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec, qTrade.QuikDateTime.ms);
+
+                    if (qTrade.Flags.ToString().Contains("IsSell"))
+                    {
+                        trade.Side = Side.Sell;
+                    }
+                    else
+                    {
+                        trade.Side = Side.Buy;
+                    }
+
+                    trade.MicroSeconds = qTrade.QuikDateTime.mcs;
+
+                    if (MyTradeEvent != null)
+                    {
+                        MyTradeEvent(trade);
+                    }
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
         private object orderLocker = new object();
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        private void EventsOnOnOrder(QuikSharp.DataStructures.Transaction.Order qOrder)
+        private void UpdateMyOrders(QuikSharp.DataStructures.Transaction.Order qOrder)
         {
             lock (orderLocker)
             {
@@ -1203,56 +1389,24 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        private object myTradeLocker = new object();
+        private void EventsOnOnAllTrade(AllTrade allTrade)
+        {
+            _tradesQueue.Enqueue(allTrade);
+        }
 
-        private List<QuikSharp.DataStructures.Transaction.Trade> _myTradesFromQuik =
-            new List<QuikSharp.DataStructures.Transaction.Trade>();
+        private void EventsOnOnQuote(OrderBook orderBook)
+        {
+            _mdQueue.Enqueue(orderBook);
+        }
 
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
+        private void EventsOnOnOrder(QuikSharp.DataStructures.Transaction.Order qOrder)
+        {
+            _ordersQueue.Enqueue(qOrder);
+        }
+
         private void EventsOnOnTrade(QuikSharp.DataStructures.Transaction.Trade qTrade)
         {
-            lock (myTradeLocker)
-            {
-                try
-                {
-                    if (_myTradesFromQuik.Find(t => t.TradeNum == qTrade.TradeNum) != null)
-                    {
-                        return;
-                    }
-
-                    _myTradesFromQuik.Add(qTrade);
-
-                    MyTrade trade = new MyTrade();
-                    trade.NumberTrade = qTrade.TradeNum.ToString();
-                    trade.SecurityNameCode = qTrade.SecCode + "+" + qTrade.ClassCode;
-                    trade.NumberOrderParent = qTrade.OrderNum.ToString();
-                    trade.Price = Convert.ToDecimal(qTrade.Price);
-                    trade.Volume = qTrade.Quantity;
-                    trade.Time = new DateTime(qTrade.QuikDateTime.year, qTrade.QuikDateTime.month,
-                        qTrade.QuikDateTime.day, qTrade.QuikDateTime.hour,
-                        qTrade.QuikDateTime.min, qTrade.QuikDateTime.sec, qTrade.QuikDateTime.ms);
-
-                    if (qTrade.Flags.ToString().Contains("IsSell"))
-                    {
-                        trade.Side = Side.Sell;
-                    }
-                    else
-                    {
-                        trade.Side = Side.Buy;
-                    }
-
-                    trade.MicroSeconds = qTrade.QuikDateTime.mcs;
-
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(trade);
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                }
-            }
+            _myTradesQueue.Enqueue(qTrade);
         }
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
@@ -1492,16 +1646,24 @@ namespace OsEngine.Market.Servers.QuikLua
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public void GetAllActivOrders()
         {
-            List<QuikSharp.DataStructures.Transaction.Order> foundOrder =
+            try
+            {
+                List<QuikSharp.DataStructures.Transaction.Order> foundOrder =
                 QuikLua.Orders.GetOrders().Result;
 
-            if (foundOrder != null && foundOrder.Count > 0)
-            {
-                for (int i = 0; i < foundOrder.Count; i++)
+                if (foundOrder != null && foundOrder.Count > 0)
                 {
-                    EventsOnOnOrder(foundOrder[i]);
+                    for (int i = 0; i < foundOrder.Count; i++)
+                    {
+                        EventsOnOnOrder(foundOrder[i]);
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+
         }
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
