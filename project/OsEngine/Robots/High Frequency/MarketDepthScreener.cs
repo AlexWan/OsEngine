@@ -11,10 +11,12 @@ using OsEngine.Indicators;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.High_Frequency
 {
+    [Bot("MarketDepthScreener")]
     public class MarketDepthScreener : BotPanel
     {
         BotTabScreener _tabScreener;
@@ -58,12 +60,14 @@ namespace OsEngine.Robots.High_Frequency
             OrderLifeTime = CreateParameter("Order life time milliseconds", 2000, 0, 20, 1);
 
             DeleteEvent += MarketDepthScreener_DeleteEvent;
-            
+
+            Thread worker = new Thread(WorkerPlace);
+            worker.Start();
         }
 
         public override string GetNameStrategyType()
         {
-            return "BollingerMomentumScreener";
+            return "MarketDepthScreener";
         }
 
         public override void ShowIndividualSettingsDialog()
@@ -97,6 +101,8 @@ namespace OsEngine.Robots.High_Frequency
                         continue;
                     }
 
+                    
+
                     List<BotTabSimple> tabsToTrade = _tabScreener.Tabs;
 
                     for(int i = 0;tabsToTrade != null && i < tabsToTrade.Count;i++)
@@ -122,6 +128,12 @@ namespace OsEngine.Robots.High_Frequency
                 return;
             }
 
+            if(tab.IsConnected == false
+                || tab.IsReadyToTrade == false)
+            {
+                return;
+            }
+
             List<Position> openPositions = tab.PositionsOpenAll;
 
             if (openPositions == null || openPositions.Count == 0)
@@ -134,7 +146,10 @@ namespace OsEngine.Robots.High_Frequency
             }
             else
             {
-                LogicClosePosition( tab, openPositions[0]);
+                for(int i = 0;i < openPositions.Count;i++)
+                {
+                    LogicClosePosition(tab, openPositions[i]);
+                }
             }
         }
 
@@ -145,7 +160,7 @@ namespace OsEngine.Robots.High_Frequency
                 return;
             }
 
-            Aindicator momentum = (Aindicator)tab.Indicators[1];
+            Aindicator momentum = (Aindicator)tab.Indicators[0];
 
             if (momentum.ParametersDigit[0].Value != MomentumLen.ValueInt)
             {
@@ -193,7 +208,7 @@ namespace OsEngine.Robots.High_Frequency
                 // нам нужна плита
 
                 decimal curVolume = md.Bids[i].Bid;
-                decimal ratio = curVolume / bestBidVolume;
+                decimal ratio = bestBidVolume / curVolume;
 
                 if(ratio < BestBidMinRatioToAll.ValueDecimal)
                 {
@@ -221,7 +236,7 @@ namespace OsEngine.Robots.High_Frequency
                     return;
                 }
 
-                if(order.TimeCreate.AddMilliseconds(OrderLifeTime.ValueInt) > tab.TimeServerCurrent)
+                if(order.TimeCreate.AddMilliseconds(OrderLifeTime.ValueInt) < tab.TimeServerCurrent)
                 {
                     position.SignalTypeOpen = "Canceled";
                     tab.CloseAllOrderToPosition(position);

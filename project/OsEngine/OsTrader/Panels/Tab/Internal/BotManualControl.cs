@@ -280,14 +280,54 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public void DisableManualSupport()
         {
-            this.DoubleExitIsOn = false;
-            this.ProfitIsOn = false;
-            this.SecondToCloseIsOn = false;
-            this.SecondToOpenIsOn = false;
-            this.SetbackToCloseIsOn = false;
-            this.SetbackToOpenIsOn = false;
-            this.StopIsOn = false;
-            Save();
+            bool valueIsChanged = false;
+
+            if(DoubleExitIsOn == true)
+            {
+                DoubleExitIsOn = false;
+                valueIsChanged = true;
+            }
+          
+            if(ProfitIsOn == true)
+            {
+                ProfitIsOn = false;
+                valueIsChanged = true;
+            }
+            
+            if(SecondToCloseIsOn == true)
+            {
+                SecondToCloseIsOn = false;
+                valueIsChanged = true;
+            }
+            
+            if (SecondToOpenIsOn == true)
+            {
+                SecondToOpenIsOn = false;
+                valueIsChanged = true;
+            }
+            
+            if(SetbackToCloseIsOn == true)
+            {
+                SetbackToCloseIsOn = false;
+                valueIsChanged = true;
+            }
+            
+            if(SetbackToOpenIsOn == true)
+            {
+                SetbackToOpenIsOn = false;
+                valueIsChanged = true;
+            }
+            
+            if(StopIsOn == true)
+            {
+                StopIsOn = false;
+                valueIsChanged = true;
+            }
+            
+            if(valueIsChanged == true)
+            {
+                Save();
+            }
         }
 
         /// <summary>
