@@ -457,6 +457,8 @@ namespace OsEngine.Market.Servers.Tester
 
                 _dataIsActive = false;
 
+                NumberGen.ResetToZeroInTester();
+
                 OrdersActiv.Clear();
 
                 Thread.Sleep(2000);
