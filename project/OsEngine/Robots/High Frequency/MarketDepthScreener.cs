@@ -24,19 +24,14 @@ namespace OsEngine.Robots.High_Frequency
         public StrategyParameterString Regime;
         public StrategyParameterInt MaxPositions;
         public StrategyParameterInt MomentumLen;
-        public StrategyParameterDecimal Slippage;
         public StrategyParameterString VolumeType;
         public StrategyParameterDecimal Volume;
         public StrategyParameterString TradeAssetInPortfolio;
         public StrategyParameterDecimal MinMomentumValue;
-
         public StrategyParameterDecimal BestBidMinRatioToAll;
         public StrategyParameterDecimal ProfitPercent;
         public StrategyParameterDecimal StopPercent;
         public StrategyParameterInt OrderLifeTime;
-
-        // 1 Смотрим ускорение по моментуму вниз на 15 минутках. Если у бумаги он меньше 95
-        // 2 Смотрим плиту в стакане. 
 
         public MarketDepthScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -52,7 +47,6 @@ namespace OsEngine.Robots.High_Frequency
             VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-            Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
 
             BestBidMinRatioToAll = CreateParameter("Best bid min ratio", 5m, 0, 20, 1m);
             ProfitPercent = CreateParameter("Profit percent", 0.05m, 0, 20, 1m);
@@ -100,8 +94,6 @@ namespace OsEngine.Robots.High_Frequency
                         Thread.Sleep(1000);
                         continue;
                     }
-
-                    
 
                     List<BotTabSimple> tabsToTrade = _tabScreener.Tabs;
 
@@ -287,7 +279,10 @@ namespace OsEngine.Robots.High_Frequency
                         return;
                     }
 
-                    tab.CloseAtMarket(position, position.OpenVolume);
+                    if(position.CloseOrders.Count == 1)
+                    {
+                        tab.CloseAtMarket(position, position.OpenVolume);
+                    }
                 }
             }
         }
