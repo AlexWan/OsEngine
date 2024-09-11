@@ -1556,7 +1556,16 @@ namespace OsEngine.Market.Servers.Alor
             trade.Price = baseMessage.price.ToDecimal();
             trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseMessage.timestamp);
             trade.Id = baseMessage.id;
-            trade.Side = Side.Buy;
+
+            if(baseMessage.side == "sell")
+            {
+                trade.Side = Side.Sell;
+            }
+            else
+            {
+                trade.Side = Side.Buy;
+            }
+            
             trade.Volume = baseMessage.qty.ToDecimal();
 
             if (NewTradesEvent != null)

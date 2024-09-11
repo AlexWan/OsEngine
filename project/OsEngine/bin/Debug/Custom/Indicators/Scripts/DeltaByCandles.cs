@@ -1,4 +1,4 @@
-﻿using OsEngine.Entity;
+using OsEngine.Entity;
 using OsEngine.Indicators;
 using System.Collections.Generic;
 using System.Drawing;
@@ -22,10 +22,10 @@ namespace CustomIndicators.Scripts
                 _lengthSmaDelta = CreateParameterInt("Length Sma Delta", 10);
 
                 _seriesSmaDelta = CreateSeries("Sma Delta", Color.White, IndicatorChartPaintType.Column, true);
-                _seriesTrade = CreateSeries("Trade", Color.Black, IndicatorChartPaintType.Line, true);
-                _seriesBuy = CreateSeries("Trade Buy", Color.Green, IndicatorChartPaintType.Line, true);
-                _seriesSell = CreateSeries("Trade Sell", Color.Red, IndicatorChartPaintType.Line, true);
-                _seriesDelta = CreateSeries("Trade Delta", Color.Blue, IndicatorChartPaintType.Line, true);
+                _seriesDelta = CreateSeries("Delta", Color.Blue, IndicatorChartPaintType.Line, true);
+                _seriesTrade = CreateSeries("Sum volume", Color.Black, IndicatorChartPaintType.Line, true);
+                _seriesBuy = CreateSeries("Buy volume", Color.Green, IndicatorChartPaintType.Line, true);
+                _seriesSell = CreateSeries("Sell volume", Color.Red, IndicatorChartPaintType.Line, true);
             }
             else if (state == IndicatorState.Dispose)
             {
@@ -44,25 +44,25 @@ namespace CustomIndicators.Scripts
                 return;
             }
 
-            _seriesTrade.Values[index] = candles[index].Trades.Count;
             _seriesBuy.Values[index] = GetTradesInfo(candles, index, Side.Buy);
             _seriesSell.Values[index] = GetTradesInfo(candles, index, Side.Sell);
             _seriesDelta.Values[index] = _seriesBuy.Values[index] - _seriesSell.Values[index];
+            _seriesTrade.Values[index] = _seriesBuy.Values[index] + _seriesSell.Values[index];
             _seriesSmaDelta.Values[index] = Sma(_seriesDelta.Values, index);
         }
 
         private decimal GetTradesInfo(List<Candle> candles, int index, Side side)
         {
             decimal value = 0;
-            
+
             if (side == Side.Buy)
             {
-                for(int i = 0; i < candles[index].Trades.Count; i++)
+                for (int i = 0; i < candles[index].Trades.Count; i++)
                 {
-                    if(candles[index].Trades[i].Side == Side.Buy)
+                    if (candles[index].Trades[i].Side == Side.Buy)
                     {
                         value += candles[index].Trades[i].Volume;
-                    } 
+                    }
                 }
 
                 return value;
@@ -90,11 +90,11 @@ namespace CustomIndicators.Scripts
 
             decimal values = 0;
 
-            for(int i = 0; i < _lengthSmaDelta.ValueInt - 1; i++)
+            for (int i = 0; i < _lengthSmaDelta.ValueInt - 1; i++)
             {
                 values += value[index - i];
             }
-            
+
             return values / _lengthSmaDelta.ValueInt;
         }
     }
