@@ -61,7 +61,7 @@ namespace CustomIndicators.Scripts
                 {
                     if(candles[index].Trades[i].Side == Side.Buy)
                     {
-                        value++;
+                        value += candles[index].Trades[i].Volume;
                     } 
                 }
 
@@ -73,7 +73,7 @@ namespace CustomIndicators.Scripts
                 {
                     if (candles[index].Trades[i].Side == Side.Sell)
                     {
-                        value++;
+                        value += candles[index].Trades[i].Volume;
                     }
                 }
 
