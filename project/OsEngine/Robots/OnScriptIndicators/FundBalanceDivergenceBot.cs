@@ -151,7 +151,8 @@ namespace OsEngine.Robots.OnScriptIndicators
 
             System.DateTime timeExit = Convert.ToDateTime(position.SignalTypeOpen);
 
-            if(timeExit < candles[candles.Count-1].TimeStart)
+            if(timeExit < candles[candles.Count-1].TimeStart 
+                && position.State == PositionStateType.Open)
             {
                 _tab.CloseAtMarket(position, position.OpenVolume);
             }
