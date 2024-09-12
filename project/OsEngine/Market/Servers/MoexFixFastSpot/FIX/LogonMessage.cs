@@ -1,4 +1,6 @@
 ﻿
+using System.Text;
+
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
     class LogonMessage: AFIXMessageBody
@@ -13,8 +15,19 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
         public override string ToString()
         {
             string reset = ResetSeqNumFlag ? "Y" : "N";
-            string newpassword = NewPassword == "" ? "" : $"925={NewPassword}\u0001";
-            return $"98={EncryptMethod}\u0001108={HeartBtInt}\u0001141={reset}\u0001554={Password}\u0001{newpassword}6936={LanguageID}\u0001";
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("98=").Append(EncryptMethod).Append('\u0001');
+            sb.Append("108=").Append(HeartBtInt).Append('\u0001');
+            sb.Append("141=").Append(reset).Append('\u0001');
+            sb.Append("554=").Append(Password).Append('\u0001');
+            if (NewPassword != "")
+            {
+                sb.Append("925=").Append(NewPassword).Append('\u0001');
+            }
+            sb.Append("6936=").Append(LanguageID).Append('\u0001');
+
+            return sb.ToString();
         }        
     }
 }
