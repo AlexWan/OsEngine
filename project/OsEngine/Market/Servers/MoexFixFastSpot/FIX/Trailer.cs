@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
@@ -21,7 +22,12 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
             }
 
             string checksum = Convert.ToString(sumChar % 256).PadLeft(3, '0');
-            return $"10={checksum}\u0001";
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("10=").Append(checksum).Append('\u0001');
+
+            return sb.ToString();
         }
     }
 }

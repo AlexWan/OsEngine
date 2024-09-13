@@ -1,4 +1,5 @@
-﻿
+﻿using System.Text;
+
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
     class OrderCancelReplaceRequestMessage: AFIXMessageBody
@@ -29,7 +30,27 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
         
         public override string ToString()
         {
-            return $"11={ClOrdID}\u000141={OrigClOrdID}\u000137={OrderID}\u00011={Account}\u0001453={NoPartyID}\u0001448={PartyID}\u0001447={PartyIDSource}\u0001452={PartyRole}\u000155={Symbol}\u000144={Price}\u000138={OrderQty}\u00019619={CancelOrigOnReject}\u0001386={NoTradingSessions}\u0001336={TradingSessionID}\u000140={OrdType}\u000154={Side}\u000160={TransactTime}\u0001";
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("11=").Append(ClOrdID).Append('\u0001');
+            sb.Append("41=").Append(OrigClOrdID).Append('\u0001');
+            sb.Append("37=").Append(OrderID).Append('\u0001');
+            sb.Append("1=").Append(Account).Append('\u0001');
+            sb.Append("453=").Append(NoPartyID).Append('\u0001');
+            sb.Append("448=").Append(PartyID).Append('\u0001');
+            sb.Append("447=").Append(PartyIDSource).Append('\u0001');
+            sb.Append("452=").Append(PartyRole).Append('\u0001');
+            sb.Append("55=").Append(Symbol).Append('\u0001');
+            sb.Append("44=").Append(Price).Append('\u0001');
+            sb.Append("38=").Append(OrderQty).Append('\u0001');
+            sb.Append("9619=").Append(CancelOrigOnReject).Append('\u0001');
+            sb.Append("386=").Append(NoTradingSessions).Append('\u0001');
+            sb.Append("336=").Append(TradingSessionID).Append('\u0001');
+            sb.Append("40=").Append(OrdType).Append('\u0001');
+            sb.Append("54=").Append(Side).Append('\u0001');
+            sb.Append("60=").Append(TransactTime).Append('\u0001');
+
+            return sb.ToString();
         }
     }
 }
