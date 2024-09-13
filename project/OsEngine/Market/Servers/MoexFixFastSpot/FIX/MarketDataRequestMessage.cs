@@ -1,4 +1,5 @@
-﻿
+﻿using System.Text;
+
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
     class MarketDataRequestMessage: AFIXMessageBody
@@ -9,7 +10,13 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
         
         public override string ToString()
         {
-            return $"1180={ApplID}\u00011182={ApplBegSeqNum}\u00011183={ApplEndSeqNum}\u0001";
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("1180=").Append(ApplID).Append('\u0001');
+            sb.Append("1182=").Append(ApplBegSeqNum).Append('\u0001');
+            sb.Append("1183=").Append(ApplEndSeqNum).Append('\u0001');
+
+            return sb.ToString();
         }
     }
 }

@@ -17,6 +17,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
             string reset = ResetSeqNumFlag ? "Y" : "N";
 
             StringBuilder sb = new StringBuilder();
+
             sb.Append("98=").Append(EncryptMethod).Append('\u0001');
             sb.Append("108=").Append(HeartBtInt).Append('\u0001');
             sb.Append("141=").Append(reset).Append('\u0001');

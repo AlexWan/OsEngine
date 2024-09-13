@@ -1,4 +1,4 @@
-﻿
+﻿using System.Text;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
@@ -8,7 +8,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 
         public override string ToString()
         {
-            return $"112={TestReqID}\u0001";
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("112=").Append(TestReqID).Append('\u0001');
+
+            return sb.ToString();
         }        
     }
 }
