@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿using System.Text;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
@@ -30,8 +29,17 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
         public override string GetHalfMessage()
         {
             string sendingTime = SendingTime.ToString("yyMMddHHmmssffffff"); // yyMMDDHHmmSSuuuuuu
-            
-            return $"35={MsgType}\u00011128={AppVerID}\u000149={SenderCompID}\u000156={TargetCompID}\u000134={MsgSeqNum}\u000152={sendingTime}\u0001";
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("35=").Append(MsgType).Append('\u0001');
+            sb.Append("1128=").Append(AppVerID).Append('\u0001');
+            sb.Append("49=").Append(SenderCompID).Append('\u0001');
+            sb.Append("56=").Append(TargetCompID).Append('\u0001');
+            sb.Append("34=").Append(MsgSeqNum).Append('\u0001');
+            sb.Append("52=").Append(sendingTime).Append('\u0001');
+
+            return sb.ToString();
         }
     }
 }

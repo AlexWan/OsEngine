@@ -22,9 +22,6 @@ using System.Xml;
 using System.Net;
 using LiteDB;
 using System.Linq;
-using OsEngine.Market.Servers.FixProtocolEntities;
-using System.Runtime.Remoting.Contexts;
-using System.Collections;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot
 {
@@ -36,9 +33,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             ServerRealization = realization;
 
             // MFIX
-            CreateParameterString("MFIX Trade Sever Address", "");
-            CreateParameterString("MFIX Trade Sever Port", "");
-            CreateParameterString("MFIX Trade Sever TargetCompId", "");
+            CreateParameterString("MFIX Trade Server Address", "");
+            CreateParameterString("MFIX Trade Server Port", "");
+            CreateParameterString("MFIX Trade Server TargetCompId", "");
             CreateParameterString("MFIX Trade Server Login", "");
             CreateParameterPassword("MFIX Trade Server Password", "");
             CreateParameterString("MFIX Trade Account", "");
@@ -1125,11 +1122,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         continue;
                     }
 
-                    if (_allSecuritiesLoaded)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
+                    //if (_allSecuritiesLoaded)
+                    //{
+                    //    Thread.Sleep(1);
+                    //    continue;
+                    //}
 
                     if (context == null)
                     {
@@ -1181,7 +1178,19 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             if (msgType == "d") /// security definition
                             {
                                 _lastInstrumentDefinitionsTime = DateTime.UtcNow;
-                                _totNumReports = msg.GetLong("TotNumReports"); // общее число "бумаг" (возможны дубли)
+                                long newTotNumReports =  msg.GetLong("TotNumReports"); // общее число "бумаг" (возможны дубли)
+                                if (newTotNumReports != _totNumReports)
+                                {
+                                    _totNumReports = newTotNumReports;
+                                    WriteLog($"Setting TotNumReports={_totNumReports}.", "InstrumentDefinitionsReader");
+                                    SendLogMessage($"Setting TotNumReports={_totNumReports}", LogMessageType.System);
+                                }
+
+                                if (_allSecuritiesLoaded)
+                                {
+                                   Thread.Sleep(1);
+                                   continue;
+                                }
 
                                 if (snapshotIds.FindIndex(nmb => nmb == msgSeqNum) != -1)
                                 {
@@ -1582,7 +1591,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                                 if (tradesSnapshot.Count % 1000 == 0)
                                 {
-                                    WriteLog($"TradesSnapshot +1 msgSeqNum={msgSeqNum}. Total: " + tradesSnapshot.Count, "TradesSnapshotsReader");
+                                    //WriteLog($"TradesSnapshot +1 msgSeqNum={msgSeqNum}. Total: " + tradesSnapshot.Count, "TradesSnapshotsReader");
                                 }
                             }
 
@@ -1930,10 +1939,10 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             {
                                 orderSnapshots.Add(msgSeqNum, msg);
 
-                                if (orderSnapshots.Count % 1000 == 0)
+                                if (orderSnapshots.Count % 5000 == 0)
                                 {
                                     SendLogMessage($"OrderSnapshots MsgSeqNum={msgSeqNum}/{_totNumReports}. Total: {orderSnapshots.Count}.", LogMessageType.System);
-                                    WriteLog($"OrderSnapshots +1000 msgSeqNum={msgSeqNum}. Total: {orderSnapshots.Count}/{_totNumReports}", "OrderSnapshotsReader");
+                                    //WriteLog($"OrderSnapshots +1000 msgSeqNum={msgSeqNum}. Total: {orderSnapshots.Count}/{_totNumReports}", "OrderSnapshotsReader");
                                 }
                             }
 
@@ -2111,9 +2120,10 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         long ApplBegSeqNum = currentFeed == "OLR" ? _missingOLRBeginSeqNo : _missingTLRBeginSeqNo;
                         long ApplEndSeqNum = currentFeed == "OLR" ? _missingOLREndSeqNo : _missingTLREndSeqNo;
 
-                        if (ApplEndSeqNum - ApplBegSeqNum >= 2000) // tcp replay limit
+                        const long TCPReplayLimitNumberOfMessages = 500;
+                        if (ApplEndSeqNum - ApplBegSeqNum >= TCPReplayLimitNumberOfMessages) // tcp replay limit
                         {
-                            ApplEndSeqNum = ApplBegSeqNum + 2000 - 1;
+                            ApplEndSeqNum = ApplBegSeqNum + TCPReplayLimitNumberOfMessages - 1;
                         }
 
                         MarketDataRequestMessage marketDataRequest = new MarketDataRequestMessage();
@@ -2334,7 +2344,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                                 string TradingSessionID = groupVal.GetString("TradingSessionID");
                                 
-                                WriteLog($"msgType=X " + TradeToString(groupVal), "TradeMessagesReader");
+                                //WriteLog($"msgType=X " + TradeToString(groupVal), "TradeMessagesReader");
 
                                 if (!_TradingSessionIDs.Contains(TradingSessionID))
                                     continue;
@@ -2454,7 +2464,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         if (msg.IsDefined("GroupMDEntries"))
                         {
                             SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
-                            WriteLog($"W-Trade {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total trade entries: {tradeSnapshots[name].Trades.Count}", "TradeMessagesReader");
+                            //WriteLog($"W-Trade {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total trade entries: {tradeSnapshots[name].Trades.Count}", "TradeMessagesReader");
 
                             for (int i = 0; i < secVal.Length; i++)
                             {
@@ -2769,7 +2779,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 string MDEntryType = groupVal.GetString("MDEntryType");
                                 int RptSeq = groupVal.GetInt("RptSeq");
 
-                                _logFileXOrders.WriteLine($"{DateTime.Now} [{MsgSeqNum}] {msgType}: {name} rptseq={RptSeq}, MDEntryType={MDEntryType} ");
+                                //_logFileXOrders.WriteLine($"{DateTime.Now} [{MsgSeqNum}] {msgType}: {name} rptseq={RptSeq}, MDEntryType={MDEntryType} ");
 
                                 if (!ordersFromIncremental.ContainsKey(name))
                                 {
@@ -2880,7 +2890,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         if (msg.IsDefined("GroupMDEntries"))
                         {
                             SequenceValue secVal = msg.GetValue("GroupMDEntries") as SequenceValue;
-                            SendLogMessage($"W-Orders {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total entries: {orderSnapshots[name].Data.Count}", LogMessageType.System);
+                            //SendLogMessage($"W-Orders {name} (RptSeq={RptSeq}): with {secVal.Length} entries. Total entries: {orderSnapshots[name].Data.Count}", LogMessageType.System);
 
                             for (int i = 0; i < secVal.Length; i++)
                             {
@@ -3352,7 +3362,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         try
                         {
-                            order.NumberUser = Convert.ToInt32(fixMessage.Fields["ClOrdID"]);
+                            order.NumberUser = ExtractNumberUserFromServerString(fixMessage.Fields["ClOrdID"]);
                         }
                         catch
                         {
@@ -3363,7 +3373,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         {
                             try
                             {
-                                order.NumberUser = Convert.ToInt32(fixMessage.Fields["OrigClOrdID"]);
+                                order.NumberUser = ExtractNumberUserFromServerString(fixMessage.Fields["OrigClOrdID"]);
                             }
                             catch
                             {
@@ -3549,7 +3559,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 NewOrderSingleMessage msg = new NewOrderSingleMessage();
-                msg.ClOrdID = order.NumberUser.ToString();
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
                 msg.NoPartyID = "1";
                 msg.PartyID = _MFIXTradeClientCode;
                 msg.Account = _MFIXTradeAccount;
@@ -3614,8 +3624,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderCancelReplaceRequestMessage msg = new OrderCancelReplaceRequestMessage();
-                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие/изменение
-                msg.OrigClOrdID = order.NumberUser.ToString();
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие/изменение
+                msg.OrigClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
                 msg.OrderID = order.NumberMarket;
                 msg.PartyID = _MFIXTradeClientCode;
                 msg.Account = _MFIXTradeAccount;
@@ -3649,9 +3659,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderCancelRequestMessage msg = new OrderCancelRequestMessage();
-                msg.OrigClOrdID = order.NumberUser.ToString();
-                msg.OrderID = _changedOrderIds.ContainsKey(order.NumberUser) ? _changedOrderIds[order.NumberUser] : order.NumberMarket.ToString(); // по-умолчанию снимаем ордер по пользовательскому номеру
-                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.OrigClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
+                msg.OrderID = _MFIXTradeClientCode + "//" + (_changedOrderIds.ContainsKey(order.NumberUser) ? _changedOrderIds[order.NumberUser] : order.NumberMarket.ToString()); // по-умолчанию снимаем ордер по пользовательскому номеру
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
                 msg.Side = order.Side == Side.Buy ? "1" : "2";
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
 
@@ -3677,7 +3687,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;                
 
                 OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
-                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
                 msg.Account = _MFIXTradeAccount;
                 msg.PartyID = _MFIXTradeClientCode;
@@ -3704,7 +3714,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
-                msg.ClOrdID = DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
                 msg.MassCancelRequestType = "1";
                 msg.TradingSessionID = security.NameClass;
                 msg.Symbol = security.NameId;
@@ -3767,6 +3777,22 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
 
             return context;
+        }
+
+        int ExtractNumberUserFromServerString(string serverString)
+        {
+            // Split the string using double slash as the delimiter
+            string[] parts = serverString.Split(new string[] { "//" }, StringSplitOptions.None);
+
+            // Check if the split resulted in enough parts
+            if (parts.Length > 1)
+            {
+                return int.Parse(parts[1]); 
+            }
+            else
+            {
+                return -1;
+            }
         }
 
         #endregion
