@@ -245,7 +245,7 @@ namespace OsEngine.Market.Servers
                     orderIsDelete = true;
                 }
 
-                if (order.TimeCallBack != DateTime.MinValue
+                else if (order.TimeCallBack != DateTime.MinValue
                     && order.TimeCallBack.AddDays(1) < DateTime.Now)
                 {
                     SendLogMessage("Order remove BY TIME 2. NumUser: " + order.NumberUser
