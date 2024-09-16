@@ -19,7 +19,7 @@ namespace OsEngine.Indicators.indicator
         int direction;
         public override void OnStateChange(IndicatorState state)
         {
-            _period = CreateParameterInt("Lenght Atr", 15);
+            _period = CreateParameterInt("Length", 15);
             _deviation = CreateParameterDecimal("Deviation %", 1.0m);
 
             _seriesUp = CreateSeries("Up line", Color.Aqua, IndicatorChartPaintType.Line, false);

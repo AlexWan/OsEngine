@@ -12,7 +12,7 @@ namespace OsEngine.Indicators.Indicator
 
         private IndicatorDataSeries _seriesCMO;
 
-        private IndicatorParameterInt _lenghtCMO;
+        private IndicatorParameterInt _lengthCMO;
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
@@ -27,7 +27,7 @@ namespace OsEngine.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtCMO = CreateParameterInt("Length", 14);
+                _lengthCMO = CreateParameterInt("Length", 14);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesCMO = CreateSeries("CMO", Color.Aqua, IndicatorChartPaintType.Line, true);
@@ -51,7 +51,7 @@ namespace OsEngine.Indicators.Indicator
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _CMO = IndicatorsFactory.CreateIndicatorByName("CMO", Name + "CMO", false);
-                ((IndicatorParameterInt)_CMO.Parameters[0]).Bind(_lenghtCMO);
+                ((IndicatorParameterInt)_CMO.Parameters[0]).Bind(_lengthCMO);
                 ProcessIndicator("CMO", _CMO);
 
             }

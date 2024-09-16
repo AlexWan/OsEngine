@@ -392,7 +392,7 @@ namespace OsEngine.Journal
                     }
                     else if (TabControlPrime.SelectedIndex == 5)
                     {
-                        PaintClosePositionGrid(allSortPoses);
+                        PaintClosePositionGrid();
                     }
                 }
             }
@@ -2259,15 +2259,32 @@ namespace OsEngine.Journal
             }
         }
 
-        private void PaintClosePositionGrid(List<Position> positionsAll)
+        private void PaintClosePositionGrid()
         {
             try
             {
+
                 if (_closePositionGrid == null)
                 {
                     CreateClosePositionTable();
                 }
+
                 _closePositionGrid.Rows.Clear();
+
+                List<Journal> myJournals = GetActiveJournals();
+
+                if (myJournals == null
+                    || myJournals.Count == 0)
+                {
+                    return;
+                }
+
+                List<Position> positionsAll = new List<Position>();
+
+                for (int i = 0; i < myJournals.Count; i++)
+                {
+                    if (myJournals[i].AllPosition != null) positionsAll.AddRange(myJournals[i].AllPosition);
+                }
 
                 if (positionsAll == null
                     || positionsAll.Count == 0)
@@ -2306,6 +2323,12 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < closePositions.Count; i++)
                 {
+                    if (closePositions[i].TimeCreate < _startTime
+                       || closePositions[i].TimeCreate > _endTime)
+                    {
+                        continue;
+                    }
+
                     _closePositionGrid.Rows.Insert(0, GetRow(closePositions[i]));
                 }
             }
@@ -2393,24 +2416,24 @@ namespace OsEngine.Journal
                 }
 
                 StringBuilder workSheet = new StringBuilder();
-                workSheet.Append(OsLocalization.Entity.PositionColumn1);
-                workSheet.Append(OsLocalization.Entity.PositionColumn2);
-                workSheet.Append(OsLocalization.Entity.PositionColumn3);
-                workSheet.Append(OsLocalization.Entity.PositionColumn4);
-                workSheet.Append(OsLocalization.Entity.PositionColumn5);
-                workSheet.Append(OsLocalization.Entity.PositionColumn6);
-                workSheet.Append(OsLocalization.Entity.PositionColumn7);
-                workSheet.Append(OsLocalization.Entity.PositionColumn8);
-                workSheet.Append(OsLocalization.Entity.PositionColumn9);
-                workSheet.Append(OsLocalization.Entity.PositionColumn10);
-                workSheet.Append(OsLocalization.Entity.PositionColumn11);
-                workSheet.Append(OsLocalization.Entity.PositionColumn12);
-                workSheet.Append(OsLocalization.Entity.PositionColumn13);
-                workSheet.Append(OsLocalization.Entity.PositionColumn14);
-                workSheet.Append(OsLocalization.Entity.PositionColumn15);
-                workSheet.Append(OsLocalization.Entity.PositionColumn16);
-                workSheet.Append(OsLocalization.Entity.PositionColumn17);
-                workSheet.Append(OsLocalization.Entity.PositionColumn18);
+                workSheet.Append(OsLocalization.Entity.PositionColumn1 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn2 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn3 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn4 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn5 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn6 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn7 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn8 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn9 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn10 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn11 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn12 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn13 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn14 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn15 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn16 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn17 + ";");
+                workSheet.Append(OsLocalization.Entity.PositionColumn18 + ";");
                 workSheet.Append(OsLocalization.Entity.PositionColumn19 + "\r\n");
 
                 for (int i = 0; i < _closePositionGrid.Rows.Count; i++)

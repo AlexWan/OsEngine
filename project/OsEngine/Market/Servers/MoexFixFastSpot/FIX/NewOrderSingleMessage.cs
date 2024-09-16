@@ -1,4 +1,5 @@
-﻿
+﻿using System.Text;
+
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
     class NewOrderSingleMessage: AFIXMessageBody
@@ -21,7 +22,24 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 
         public override string ToString()
         {
-            return $"11={ClOrdID}\u0001453={NoPartyID}\u0001448={PartyID}\u0001447={PartyIDSource}\u0001452={PartyRole}\u00011={Account}\u0001386={NoTradingSessions}\u0001336={TradingSessionID}\u000155={Symbol}\u000154={Side}\u000160={TransactTime}\u000138={OrderQty}\u000140={OrdType}\u000144={Price}\u0001";
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("11=").Append(ClOrdID).Append('\u0001');
+            sb.Append("453=").Append(NoPartyID).Append('\u0001');
+            sb.Append("448=").Append(PartyID).Append('\u0001');
+            sb.Append("447=").Append(PartyIDSource).Append('\u0001');
+            sb.Append("452=").Append(PartyRole).Append('\u0001');
+            sb.Append("1=").Append(Account).Append('\u0001');
+            sb.Append("386=").Append(NoTradingSessions).Append('\u0001');
+            sb.Append("336=").Append(TradingSessionID).Append('\u0001');
+            sb.Append("55=").Append(Symbol).Append('\u0001');
+            sb.Append("54=").Append(Side).Append('\u0001');
+            sb.Append("60=").Append(TransactTime).Append('\u0001');
+            sb.Append("38=").Append(OrderQty).Append('\u0001');
+            sb.Append("40=").Append(OrdType).Append('\u0001');
+            sb.Append("44=").Append(Price).Append('\u0001');
+
+            return sb.ToString();
         }
     }
 }

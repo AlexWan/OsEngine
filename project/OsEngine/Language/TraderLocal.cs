@@ -1575,6 +1575,17 @@ namespace OsEngine.Language
         public string Label418 => OsLocalization.ConvertToLocString(
           "Eng:Contains_" +
           "Ru:Содержит_");
-	
+
+        public string Label419 => OsLocalization.ConvertToLocString(
+          "Eng:Revoke_" +
+          "Ru:Отозвать_");
+
+        public string Label420 => OsLocalization.ConvertToLocString(
+         "Eng:Close time_" +
+         "Ru:Время выхода_");
+
+        public string Label421 => OsLocalization.ConvertToLocString(
+         "Eng:Entry time_" +
+          "Ru:Время входа_");
     }
 }

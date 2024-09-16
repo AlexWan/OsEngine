@@ -8,7 +8,7 @@ namespace CustomIndicators.Scripts
 {
     public class Ema : Aindicator
     {
-        private IndicatorParameterInt _lenght;
+        private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;
 
@@ -16,7 +16,7 @@ namespace CustomIndicators.Scripts
 
         public override void OnStateChange(IndicatorState state)
         {
-            _lenght = CreateParameterInt("Length", 14);
+            _length = CreateParameterInt("Length", 14);
             _candlePoint = CreateParameterStringCollection("Candle Point", "Close", Entity.CandlePointsArray);
             _series = CreateSeries("Ema", Color.DarkRed, IndicatorChartPaintType.Line, true);
         }
@@ -25,21 +25,21 @@ namespace CustomIndicators.Scripts
         {
             decimal result = 0;
 
-            if (index == _lenght.ValueInt)
+            if (index == _length.ValueInt)
             {
                 decimal lastMoving = 0;
 
-                for (int i = index - _lenght.ValueInt + 1; i < index + 1; i++)
+                for (int i = index - _length.ValueInt + 1; i < index + 1; i++)
                 {
                     lastMoving += candles[i].GetPoint(_candlePoint.ValueString);
                 }
 
-                lastMoving = lastMoving / _lenght.ValueInt;
+                lastMoving = lastMoving / _length.ValueInt;
                 result = lastMoving;
             }
-            else if (index > _lenght.ValueInt)
+            else if (index > _length.ValueInt)
             {
-                decimal a = Math.Round(2.0m / (_lenght.ValueInt + 1), 8);
+                decimal a = Math.Round(2.0m / (_length.ValueInt + 1), 8);
                 decimal emaLast = _series.Values[index - 1];
                 decimal p = candles[index].GetPoint(_candlePoint.ValueString);
                 result = emaLast + (a * (p - emaLast));

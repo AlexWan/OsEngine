@@ -167,6 +167,8 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 }
             };
 
+            TabControlIndicatorsNames.SelectedIndex = 1;
+
             this.Activate();
             this.Focus();
         }

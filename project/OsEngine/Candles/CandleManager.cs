@@ -249,31 +249,6 @@ namespace OsEngine.Entity
                         {
                             series.IsStarted = true;
                         }
-                        else if (serverType == ServerType.QuikLua)
-                        {
-                            QuikLuaServer luaServ = (QuikLuaServer)_server;
-                            if (series.CandleCreateMethodType != "Simple" ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = luaServ.GetQuikLuaTickHistory(series.Security);
-                                if (allTrades != null && allTrades.Count != 0)
-                                {
-                                    series.PreLoad(allTrades);
-                                }
-                            }
-                            else
-                            {
-                                List<Candle> candles = luaServ.GetQuikLuaCandleHistory(series.Security,
-                                    series.TimeFrameSpan);
-                                if (candles != null)
-                                {
-                                    //candles.Reverse();
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
                         else if (serverType == ServerType.BitMex)
                         {
                             BitMexServer bitMex = (BitMexServer)_server;

@@ -9,8 +9,8 @@ namespace OsEngine.Indicators.Indicator
     internal class ZigZagAO : Aindicator
     {
         private Aindicator _aO;
-        private IndicatorParameterInt _lenghtFastLine;
-        private IndicatorParameterInt _lenghtSlowLine;
+        private IndicatorParameterInt _lengthFastLine;
+        private IndicatorParameterInt _lengthSlowLine;
         public IndicatorParameterString _candlePoint;
 
         private IndicatorDataSeries _seriesAO;
@@ -29,8 +29,8 @@ namespace OsEngine.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtFastLine = CreateParameterInt("Fast line length", 5);
-                _lenghtSlowLine = CreateParameterInt("Slow line length", 32);
+                _lengthFastLine = CreateParameterInt("Fast line length", 5);
+                _lengthSlowLine = CreateParameterInt("Slow line length", 32);
                 _candlePoint = CreateParameterStringCollection("Candle point", "Typical", Entity.CandlePointsArray);
 
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
@@ -56,8 +56,8 @@ namespace OsEngine.Indicators.Indicator
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _aO = IndicatorsFactory.CreateIndicatorByName("AO", Name + "AO", false);
-                ((IndicatorParameterInt)_aO.Parameters[0]).Bind(_lenghtFastLine);
-                ((IndicatorParameterInt)_aO.Parameters[1]).Bind(_lenghtSlowLine);
+                ((IndicatorParameterInt)_aO.Parameters[0]).Bind(_lengthFastLine);
+                ((IndicatorParameterInt)_aO.Parameters[1]).Bind(_lengthSlowLine);
                 ((IndicatorParameterString)_aO.Parameters[2]).ValueString = _candlePoint.ValueString;
                 ProcessIndicator("AO", _aO);
 
@@ -80,7 +80,7 @@ namespace OsEngine.Indicators.Indicator
                 return;
             }
 
-            if (index < _lenghtFastLine.ValueInt || index < _lenghtSlowLine.ValueInt)
+            if (index < _lengthFastLine.ValueInt || index < _lengthSlowLine.ValueInt)
             {
                 return;
             }

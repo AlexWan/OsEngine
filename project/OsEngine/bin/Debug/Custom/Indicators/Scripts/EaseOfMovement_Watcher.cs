@@ -157,19 +157,19 @@ namespace OsEngine.Indicators.indicator
         /// <summary>
         /// Simple Moving Avg. of EaseOfMovement_Oscillator Values.
         /// </summary>
-        private decimal GetSma(List<decimal> values, int lenght, int index)
+        private decimal GetSma(List<decimal> values, int length, int index)
         {
             decimal result = 0;
 
-            int lenghtReal = 0;
+            int lengthReal = 0;
 
-            for (int i = index; i > 0 && i > index - lenght; i--)
+            for (int i = index; i > 0 && i > index - length; i--)
             {
                 result += values[i];
-                lenghtReal++;
+                lengthReal++;
             }
 
-            return result / lenghtReal; ;
+            return result / lengthReal; ;
         }
 
         /// <summary>
@@ -179,35 +179,35 @@ namespace OsEngine.Indicators.indicator
         public void CalcStandardDeviation(List<decimal> standardDeviationList)
         {
             decimal sd = 0;
-            int lenght2;
+            int length2;
             if (standardDeviationList.Count <= _periodMA.ValueInt)
             {
 
-                lenght2 = standardDeviationList.Count;
+                length2 = standardDeviationList.Count;
             }
             else
             {
-                lenght2 = _periodMA.ValueInt;
+                length2 = _periodMA.ValueInt;
             }
 
             if (standardDeviationList.Count > 1)
             {
                 decimal average = 0;
-                for (int i = standardDeviationList.Count - lenght2; i < standardDeviationList.Count; i++)
+                for (int i = standardDeviationList.Count - length2; i < standardDeviationList.Count; i++)
                 {
                     average += standardDeviationList[i];
                 }
 
-                average = average / lenght2;
+                average = average / length2;
 
-                for (int i = standardDeviationList.Count - lenght2; i < standardDeviationList.Count; i++)
+                for (int i = standardDeviationList.Count - length2; i < standardDeviationList.Count; i++)
                 {
                     decimal x = standardDeviationList[i] - average;
                     double g = Math.Pow((double)x, 2.0);
                     sd += (decimal)g;
                 }
 
-                emvStDev = (decimal)Math.Sqrt((double)sd / (lenght2 - 1)) * 2.5m;
+                emvStDev = (decimal)Math.Sqrt((double)sd / (length2 - 1)) * 2.5m;
             }
         }
         /// <summary>

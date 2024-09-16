@@ -1,4 +1,5 @@
-﻿
+﻿using System.Text;
+
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
     class OrderCancelRequestMessage: AFIXMessageBody
@@ -11,8 +12,18 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 
         public override string ToString()
         {
-            string OrderIdString = OrderID == "" ? "" : $"37={OrderID}\u0001";
-            return $"41={OrigClOrdID}\u0001{OrderIdString}11={ClOrdID}\u000154={Side}\u000160={TransactTime}\u0001";
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("41=").Append(OrigClOrdID).Append('\u0001');
+            if (OrderID != "")
+            {
+                sb.Append("37=").Append(OrderID).Append('\u0001');
+            }
+            sb.Append("11=").Append(ClOrdID).Append('\u0001');
+            sb.Append("54=").Append(Side).Append('\u0001');
+            sb.Append("60=").Append(TransactTime).Append('\u0001');
+
+            return sb.ToString();
         }
     }
 }

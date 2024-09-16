@@ -12,7 +12,7 @@ namespace OsEngine.Indicators.ind
 
         private IndicatorDataSeries _seriesRVI;
 
-        private IndicatorParameterInt _lenghtRVI;
+        private IndicatorParameterInt _lengthRVI;
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
@@ -27,7 +27,7 @@ namespace OsEngine.Indicators.ind
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtRVI = CreateParameterInt("Length", 5);
+                _lengthRVI = CreateParameterInt("Length", 5);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesRVI = CreateSeries("RVI", Color.Aqua, IndicatorChartPaintType.Line, true);
@@ -51,7 +51,7 @@ namespace OsEngine.Indicators.ind
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _RVI = IndicatorsFactory.CreateIndicatorByName("RVI", Name + "RVI", false);
-                ((IndicatorParameterInt)_RVI.Parameters[0]).Bind(_lenghtRVI);
+                ((IndicatorParameterInt)_RVI.Parameters[0]).Bind(_lengthRVI);
                 ProcessIndicator("RVI", _RVI);
 
             }

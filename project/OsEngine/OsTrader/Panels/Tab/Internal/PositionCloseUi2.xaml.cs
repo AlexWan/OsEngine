@@ -71,6 +71,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ButtonCloseAtProfit.Content = OsLocalization.Trader.Label220;
             ButtonCloseAtFake.Content = OsLocalization.Trader.Label221;
 
+            ButtonRevokeLimit.Content = OsLocalization.Trader.Label419;
+            ButtonRevokeProfit.Content = OsLocalization.Trader.Label419;
+            ButtonRevokeStop.Content = OsLocalization.Trader.Label419;
+
             GlobalGUILayout.Listen(this, "mD_ClosePos" + Tab.TabName + Position.Number);
 
             SetNowTimeInControlsFakeOpenPos();
@@ -606,6 +610,56 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 // ignore
             }
 
+        }
+
+        // отзыв ордеров по позиции
+
+        private void ButtonRevokeProfit_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Position.ProfitOrderIsActiv = false;
+                Position.ProfitOrderPrice = 0;
+                Position.ProfitOrderRedLine = 0;
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ButtonRevokeStop_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Position.StopOrderIsActiv = false;
+                Position.StopOrderPrice = 0;
+                Position.StopOrderRedLine = 0;
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ButtonRevokeLimit_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                for(int i = 0; Position.CloseOrders != null && i < Position.CloseOrders.Count;i++)
+                {
+                    Order order = Position.CloseOrders[i];
+
+                    if(order.State == OrderStateType.Activ)
+                    {
+                        Tab.CloseOrder(order);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+            }
         }
     }
 

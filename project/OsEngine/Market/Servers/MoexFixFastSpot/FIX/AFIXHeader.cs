@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
@@ -25,7 +22,13 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 
         public override string ToString()
         {
-            return $"8={BeginString}\u00019={BodyLength}\u0001" + GetHalfMessage();
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("8=").Append(BeginString).Append('\u0001');
+            sb.Append("9=").Append(BodyLength).Append('\u0001');
+            sb.Append(GetHalfMessage());
+
+            return sb.ToString();
         }
         public int GetHeaderSize()
         {

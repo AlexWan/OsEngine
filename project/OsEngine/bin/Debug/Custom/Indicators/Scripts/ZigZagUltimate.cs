@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
-using System.Security.Cryptography;
 
 namespace OsEngine.Indicators.ind
 {

@@ -12,7 +12,7 @@ namespace OsEngine.Indicators.ind
 
         private IndicatorDataSeries _seriesMomentum;
 
-        private IndicatorParameterInt _lenghtMomentum;
+        private IndicatorParameterInt _lengthMomentum;
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
@@ -27,7 +27,7 @@ namespace OsEngine.Indicators.ind
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtMomentum = CreateParameterInt("Length", 5);
+                _lengthMomentum = CreateParameterInt("Length", 5);
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
                 _seriesMomentum = CreateSeries("Momentum", Color.Aqua, IndicatorChartPaintType.Line, true);
@@ -51,7 +51,7 @@ namespace OsEngine.Indicators.ind
                 _seriesZigZagDownChannel.CanReBuildHistoricalValues = true;
 
                 _Momentum = IndicatorsFactory.CreateIndicatorByName("Momentum", Name + "Momentum", false);
-                ((IndicatorParameterInt)_Momentum.Parameters[0]).Bind(_lenghtMomentum);
+                ((IndicatorParameterInt)_Momentum.Parameters[0]).Bind(_lengthMomentum);
                 ProcessIndicator("Momentum", _Momentum);
 
             }

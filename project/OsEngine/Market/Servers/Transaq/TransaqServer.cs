@@ -83,6 +83,14 @@ namespace OsEngine.Market.Servers.Transaq
             Thread worker2 = new Thread(ThreadDataParsingWorkPlace);
             worker2.Name = "ThreadTransaqDataParsing";
             worker2.Start();
+
+            Thread worker3 = new Thread(ThreadTradesParsingWorkPlace);
+            worker3.Name = "TransaqThreadTradesParsing";
+            worker3.Start();
+
+            Thread worker4 = new Thread(ThreadMarketDepthsParsingWorkPlace);
+            worker4.Name = "TransaqThreadTradesParsing";
+            worker4.Start();
         }
 
         public ServerType ServerType
@@ -564,15 +572,8 @@ namespace OsEngine.Market.Servers.Transaq
                         security.SecurityType = SecurityType.Bond;
                     }
 
-                    if(securityData.Sectype == "FUT")
-                    {
-                        security.Lot = securityData.Point_cost.ToDecimal();
-                    }
-                    else
-                    {
-                        security.Lot = securityData.Lotsize.ToDecimal();
-                    }
-                    
+                    security.Lot = securityData.Lotsize.ToDecimal();
+
                     if (security.Lot == 0)
                     {
                         security.Lot = 1;
@@ -1220,6 +1221,18 @@ namespace OsEngine.Market.Servers.Transaq
                         }
                     }
 
+                    for (int i = 0; series.CandlesAll != null && i < series.CandlesAll.Count; i++)
+                    {
+                        if (series.CandlesAll[i].Open == 0
+                            || series.CandlesAll[i].High == 0
+                            || series.CandlesAll[i].Low == 0 
+                            || series.CandlesAll[i].Close == 0)
+                        {
+                            series.CandlesAll.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
                     series.UpdateAllCandles();
                     series.IsStarted = true;
                     return;
@@ -1274,6 +1287,12 @@ namespace OsEngine.Market.Servers.Transaq
         {
             List<Candle> newCandles = new List<Candle>();
 
+            if(oldCandles == null ||
+                oldCandles.Count == 0)
+            {
+                return newCandles;
+            }
+
             int index;
 
             if (needTf == 120)
@@ -1327,6 +1346,11 @@ namespace OsEngine.Market.Servers.Transaq
             else
             {
                 index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);
+            }
+
+            if(index < 0)
+            {
+                index = 0;
             }
 
             int count = needTf / oldTf;
@@ -1793,7 +1817,32 @@ namespace OsEngine.Market.Servers.Transaq
                             UpdateMyTrades(trades);
                         }
                     }
-                    else if (_tradesQueue.IsEmpty == false)
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadTradesParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_tradesQueue.IsEmpty == false)
                     {
                         List<TransaqEntity.Trade> trades = null;
 
@@ -1802,7 +1851,32 @@ namespace OsEngine.Market.Servers.Transaq
                             UpdateTrades(trades);
                         }
                     }
-                    else if (_mdQueue.IsEmpty == false)
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadMarketDepthsParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_mdQueue.IsEmpty == false)
                     {
                         List<Quote> quotes = null;
 

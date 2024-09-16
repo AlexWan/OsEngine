@@ -12,7 +12,7 @@ namespace OsEngine.Indicators.Indicator
 
         private IndicatorDataSeries _seriesChaikin;
 
-        private IndicatorParameterInt _lenghtChaikinLong;
+        private IndicatorParameterInt _lengthChaikinLong;
         private IndicatorParameterInt _lengthChaikinShort;
         private IndicatorParameterInt _lengthZigZag;
 
@@ -29,7 +29,7 @@ namespace OsEngine.Indicators.Indicator
             if (state == IndicatorState.Configure)
             {
                 _lengthChaikinShort = CreateParameterInt("Length Short", 3);
-                _lenghtChaikinLong = CreateParameterInt("Length Long", 10);
+                _lengthChaikinLong = CreateParameterInt("Length Long", 10);
                 
                 _lengthZigZag = CreateParameterInt("Length ZigZag", 14);
 
@@ -55,7 +55,7 @@ namespace OsEngine.Indicators.Indicator
 
                 _ChaikinOsc = IndicatorsFactory.CreateIndicatorByName("ChaikinOsc", Name + "ChaikinOsc", false);
                 ((IndicatorParameterInt)_ChaikinOsc.Parameters[0]).Bind(_lengthChaikinShort);
-                ((IndicatorParameterInt)_ChaikinOsc.Parameters[1]).Bind(_lenghtChaikinLong);
+                ((IndicatorParameterInt)_ChaikinOsc.Parameters[1]).Bind(_lengthChaikinLong);
                 ProcessIndicator("ChaikinOsc", _ChaikinOsc);
 
             }

@@ -1036,6 +1036,17 @@ namespace OsEngine.Entity
                     }
 
                     result += "\n";
+
+                    result += OsLocalization.Trader.Label421 + ": " + TimeOpen.ToString(OsLocalization.CurCulture);
+
+                    if (State == PositionStateType.Done)
+                    {
+                        result += ", " + OsLocalization.Trader.Label420 + ": " + TimeClose.ToString(OsLocalization.CurCulture) + " ";
+                    }
+
+                    result += "\n";
+
+
                 }
 
                 if (OpenVolume == 0)

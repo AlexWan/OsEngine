@@ -1,4 +1,4 @@
-﻿
+﻿using System.Text;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
@@ -9,7 +9,13 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 
         public override string ToString()
         {
-            return $"7={BeginSeqNo}\u000116={EndSeqNo}\u0001";
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("7=").Append(BeginSeqNo).Append('\u0001');
+            sb.Append("16=").Append(EndSeqNo).Append('\u0001');
+
+            return sb.ToString();
+
         }        
     }
 }

@@ -1022,6 +1022,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new KuCoinSpotServerPermission();
                 }
+                else if (type == ServerType.QuikLua)
+                {
+                    serverPermission = new QuikLuaServerPermission();
+                }
                 else if (type == ServerType.KuCoinFutures)
                 {
                     serverPermission = new KuCoinFuturesServerPermission();

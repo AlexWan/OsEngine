@@ -10,7 +10,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
     {
         ///period for which the indicator is calculated
         /// </summary>
-        private IndicatorParameterInt _lenghtSma;
+        private IndicatorParameterInt _lengthSma;
         /// <summary>
         /// Type close price
         /// </summary>
@@ -23,17 +23,17 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtSma = CreateParameterInt("Length Sma", 14);
+                _lengthSma = CreateParameterInt("Length Sma", 14);
                 _candlePoint = CreateParameterStringCollection("Candle Point", "Close", OsEngine.Indicators.Entity.CandlePointsArray);
                 _series = CreateSeries("Ma", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
             }
         }
         public override void OnProcess(List<Candle> candles, int index)
         {
-            if (index < _lenghtSma.ValueInt)
+            if (index < _lengthSma.ValueInt)
                 return;
 
-            decimal X_PrevPeriod = candles[index - (_lenghtSma.ValueInt / 2) + 1].GetPoint(_candlePoint.ValueString);
+            decimal X_PrevPeriod = candles[index - (_lengthSma.ValueInt / 2) + 1].GetPoint(_candlePoint.ValueString);
             decimal sma = CalcSMA(candles, index);
             decimal DPO = X_PrevPeriod - sma;
 
@@ -44,12 +44,12 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             decimal SMA = 0;
 
-            if (_lenghtSma.ValueInt > index)
+            if (_lengthSma.ValueInt > index)
             {
                 SMA = 0;
             }
             else
-                SMA = candles.Summ(index - _lenghtSma.ValueInt, index, _candlePoint.ValueString) / _lenghtSma.ValueInt;
+                SMA = candles.Summ(index - _lengthSma.ValueInt, index, _candlePoint.ValueString) / _lengthSma.ValueInt;
 
             return SMA;
         }

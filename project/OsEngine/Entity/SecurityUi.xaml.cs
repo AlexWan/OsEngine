@@ -83,13 +83,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            if (go < 1 || go > 100)
-            {
-                MessageBox.Show(OsLocalization.Entity.ErrorSave);
-                return;
-            }
-
-            _security.Go = go/100;
+            _security.Go = go;
             _security.Lot = lot;
             _security.PriceStep = step;
             _security.PriceStepCost = stepCost;

@@ -178,5 +178,13 @@ namespace OsEngine.Entity
                 // отправить в лог
             }
         }
+
+        public static void ResetToZeroInTester()
+        {
+            _numberDealForRealTrading = 0;
+            _numberOrderForRealTrading = 0;
+            _numberDealForTesting = 0;
+            _numberOrderForTesting = 0;
+        }
     }
 }

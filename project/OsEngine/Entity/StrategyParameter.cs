@@ -859,6 +859,7 @@ namespace OsEngine.Entity
                 }
                 return _setStringValues;
             }
+            set { _setStringValues = value; }
         }
 
         private List<string> _setStringValues;

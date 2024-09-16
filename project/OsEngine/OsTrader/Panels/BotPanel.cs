@@ -872,7 +872,24 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         continue;
                     }
-                    pos.AddRange(journals[i].AllPosition);
+
+                    List<Position> allPositionOpen = new List<Position>();
+
+                    for(int i2 = 0;i2 < journals[i].AllPosition.Count;i2++)
+                    {
+                        if (journals[i].AllPosition[i2].State == PositionStateType.OpeningFail)
+                        {
+                            continue;
+                        }
+                        allPositionOpen.Add(journals[i].AllPosition[i2]);
+                    }
+
+                    if (allPositionOpen == null || allPositionOpen.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    pos.AddRange(allPositionOpen);
                 }
                 return pos.Count;
             }
@@ -1001,14 +1018,54 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="collection">values </param>
         public StrategyParameterString CreateParameter(string name, string value, string[] collection, string tabControlName = null)
         {
-            StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList(), tabControlName);
-
             if (_parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
 
-            return (StrategyParameterString)LoadParameterValues(newParameter);
+            bool isInArray = false;
+
+            for (int i = 0; i < collection.Length; i++)
+            {
+                if (collection[i] == value)
+                {
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if (isInArray == false)
+            {
+                List<string> col = collection.ToList();
+                col.Add(value);
+                collection = col.ToArray();
+            }
+
+            StrategyParameterString newParameter = new StrategyParameterString(name, value, collection.ToList(), tabControlName);
+
+            StrategyParameterString paramFromFileSys = (StrategyParameterString)LoadParameterValues(newParameter);
+
+            if(paramFromFileSys.ValuesString != null &&
+                collection != null)
+            {// проверяем, чтобы программист не изменил названия для коллекции
+                if(paramFromFileSys.ValuesString.Count != collection.Length)
+                {
+                    paramFromFileSys.ValuesString = collection.ToList();
+                }
+                else
+                {
+                    for (int i = 0; i < collection.Length; i++)
+                    {
+                        if (collection[i] != paramFromFileSys.ValuesString[i])
+                        {
+                            paramFromFileSys.ValuesString = collection.ToList();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return paramFromFileSys;
         }
 
         /// <summary>

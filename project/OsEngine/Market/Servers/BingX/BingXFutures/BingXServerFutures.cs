@@ -124,9 +124,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _generalRateGate1 = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // 100 запросов в 10 секунд
-        private RateGate _generalRateGate2 = new RateGate(1, TimeSpan.FromSeconds(1 / 1000)); // 1000 запросов в 10 секунд
-        private RateGate _generalRateGate3 = new RateGate(1, TimeSpan.FromSeconds(1 / 1000)); // 1000 запросов в 10 секунд
+        private RateGate _generalRateGate1 = new RateGate(10, TimeSpan.FromSeconds(1)); // 100 запросов в 10 секунд
+        private RateGate _generalRateGate2 = new RateGate(100, TimeSpan.FromSeconds(1)); // 1000 запросов в 10 секунд
+        private RateGate _generalRateGate3 = new RateGate(100, TimeSpan.FromSeconds(1)); // 1000 запросов в 10 секунд
 
         public string _publicKey;
 
@@ -198,7 +198,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     Security security = new Security();
 
-                    security.Lot = current.size.ToDecimal();
+                    security.Lot = 1;
+                    security.MinTradeAmount = current.size.ToDecimal();
                     security.Name = current.symbol;
                     security.NameFull = current.symbol;
                     security.NameClass = current.currency;
@@ -232,7 +233,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             CreateQueryPositions();
         }
 
-        private RateGate _positionsRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд 
+        private RateGate _positionsRateGate = new RateGate(20, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд 
 
         private void CreateQueryPositions()
         {
@@ -279,7 +280,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         }
 
 
-        private RateGate _portfolioRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
+        private RateGate _portfolioRateGate = new RateGate(20, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
         private void CreateQueryPortfolio()
         {
             _generalRateGate3.WaitToProceed();
@@ -1104,6 +1105,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 MyTradeEvent(newTrade);
 
                 _myTrades.Add(newTrade);
+
+                while(_myTrades.Count > 1000)
+                {
+                    _myTrades.RemoveAt(0);
+                }
             }
             catch (Exception exception)
             {
@@ -1179,7 +1185,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         #region 10 Trade
 
-        private RateGate _sendOrderRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
+        private RateGate _sendOrderRateGate = new RateGate(20, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
 
         public void SendOrder(Order order)
         {
@@ -1309,7 +1315,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         }
 
-        private RateGate _cancelOrderRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
+        private RateGate _cancelOrderRateGate = new RateGate(20, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
 
         public void CancelOrder(Order order)
         {
@@ -1365,7 +1371,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        private RateGate _getOpenOrdersRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 20)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
+        private RateGate _getOpenOrdersRateGate = new RateGate(20, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 200 запросов в 10 секунд
 
         public void GetAllActivOrders()
         {
@@ -1468,7 +1474,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             GetMyTradesBySecurity(order);
         }
 
-        private RateGate _getMyTradesRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
+        private RateGate _getMyTradesRateGate = new RateGate(10, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
 
         private void GetMyTradesBySecurity(Order order)
         {
@@ -1534,7 +1540,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        private RateGate _getOrderStatusRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
+        private RateGate _getOrderStatusRateGate = new RateGate(10, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
 
         private void GetOrderStatusBySecurity(Order order)
         {
@@ -1638,7 +1644,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         private readonly HttpClient _httpPublicClient = new HttpClient();
 
 
-        private RateGate _createListenKeyRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
+        private RateGate _createListenKeyRateGate = new RateGate(10, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
 
         private string CreateListenKey()
         {
@@ -1668,7 +1674,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private DateTime _timeLastUpdateListenKey = DateTime.MinValue;
 
-        private RateGate _requestListenKeyRateGate = new RateGate(1, TimeSpan.FromSeconds(1 / 10)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
+        private RateGate _requestListenKeyRateGate = new RateGate(10, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
 
         private void RequestListenKey()
         {

@@ -12,11 +12,11 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         /// <summary>
         ///Slow sma period
         /// </summary>
-        private IndicatorParameterInt _lenghtSlow;
+        private IndicatorParameterInt _lengthSlow;
         /// <summary>
         /// fast sma period
         /// </summary>
-        private IndicatorParameterInt _lenghtFast;
+        private IndicatorParameterInt _lengthFast;
         /// <summary>
         /// candlestick closing price type
         /// </summary>
@@ -46,8 +46,8 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         {
             if (state == IndicatorState.Configure)
             {
-                _lenghtSlow = CreateParameterInt("Slow line length", 65);
-                _lenghtFast = CreateParameterInt("Fast line length", 7);
+                _lengthSlow = CreateParameterInt("Slow line length", 65);
+                _lengthFast = CreateParameterInt("Fast line length", 7);
 
                 _UpLineParam = CreateParameterDecimal("Up line", 3m);
                 _DownLineParam = CreateParameterDecimal("Down line", -3m);
@@ -71,15 +71,15 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
             _seriesUp.Values[index] = _UpLineParam.ValueDecimal;
             _seriesDown.Values[index] = _DownLineParam.ValueDecimal;
 
-            if (_lenghtFast.ValueInt + 3 > index || _lenghtSlow.ValueInt + 3 > index)
+            if (_lengthFast.ValueInt + 3 > index || _lengthSlow.ValueInt + 3 > index)
             {
                 _seriesSma.Values[index] = 0;
 
                 return;
             }
 
-            decimal smaSlow = CalcSma(candles, index, _lenghtSlow.ValueInt);
-            decimal smaFast = CalcSma(candles, index, _lenghtFast.ValueInt);
+            decimal smaSlow = CalcSma(candles, index, _lengthSlow.ValueInt);
+            decimal smaFast = CalcSma(candles, index, _lengthFast.ValueInt);
 
             _seriesSma.Values[index] = Math.Round((smaFast - smaSlow) / smaSlow * 100, 5);
 
@@ -90,17 +90,17 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         /// </summary>
         /// <param name="candles">candle collection</param>
         /// <param name="index">candlestick index</param>
-        /// <param name="_lenght">the period for which Sma is calculated</param>
+        /// <param name="length">the period for which Sma is calculated</param>
         /// <returns></returns>
-        public decimal CalcSma(List<Candle> candles, int index, int _lenght)
+        public decimal CalcSma(List<Candle> candles, int index, int length)
         {
             decimal sma = 0;
 
-            for (int i = index - _lenght; i < index; i++)
+            for (int i = index - length; i < index; i++)
             {
                 sma += candles[i].GetPoint(_candlePoint.ValueString);
             }
-            decimal result = sma / _lenght;
+            decimal result = sma / length;
 
             return result;
         }

@@ -1,4 +1,5 @@
-﻿
+﻿using System.Text;
+
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {
     class FASTLogonMessage: AFIXMessageBody
@@ -9,8 +10,13 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 
         public override string ToString()
         {            
-            return $"553={Username}\u0001554={Password}\u00011137={DefaultApplVerID}\u0001";
-           // return "98=0\u0001108=30\u0001553={Username}\u0001554={Password}\u00011137={DefaultApplVerID}\u0001";
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("553=").Append(Username).Append('\u0001');
+            sb.Append("554=").Append(Password).Append('\u0001');
+            sb.Append("1137=").Append(DefaultApplVerID).Append('\u0001');
+
+            return sb.ToString();
         }        
     }
 }

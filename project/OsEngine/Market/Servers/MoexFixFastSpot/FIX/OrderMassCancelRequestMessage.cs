@@ -1,4 +1,5 @@
-﻿
+﻿using System.Text;
+
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
     class OrderMassCancelRequestMessage: AFIXMessageBody
@@ -19,10 +20,23 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 
         public override string ToString()
         {
-            string TradingSessionIDString = MassCancelRequestType == "1" ? $"336={TradingSessionID}\u0001" : "";
-            string Instrument = MassCancelRequestType == "1" ? $"55={Symbol}\u0001" : "";
+            StringBuilder sb = new StringBuilder();
 
-            return $"11={ClOrdID}\u0001530={MassCancelRequestType}\u0001{TradingSessionIDString}{Instrument}60={TransactTime}\u00011={Account}\u0001453={NoPartyID}\u0001448={PartyID}\u0001447={PartyIDSource}\u0001452={PartyRole}\u0001";
+            sb.Append("11=").Append(ClOrdID).Append('\u0001');
+            sb.Append("530=").Append(MassCancelRequestType).Append('\u0001');
+            if (MassCancelRequestType == "1")
+            {
+                sb.Append("336=").Append(TradingSessionID).Append('\u0001');
+                sb.Append("55=").Append(Symbol).Append('\u0001');
+            }
+            sb.Append("60=").Append(TransactTime).Append('\u0001');
+            sb.Append("1=").Append(Account).Append('\u0001');
+            sb.Append("453=").Append(NoPartyID).Append('\u0001');
+            sb.Append("448=").Append(PartyID).Append('\u0001');
+            sb.Append("447=").Append(PartyIDSource).Append('\u0001');
+            sb.Append("452=").Append(PartyRole).Append('\u0001');
+
+            return sb.ToString();
         }
     }
 }

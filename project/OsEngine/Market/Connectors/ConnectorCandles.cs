@@ -1518,6 +1518,13 @@ namespace OsEngine.Market.Connectors
                     order.PortfolioNumber = PortfolioName;
                 }
 
+
+                if (_myServer.ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendNewLogMessage(OsLocalization.Market.Message99, LogMessageType.Error);
+                    return;
+                }
+
                 if (EmulatorIsOn
                     || _myServer.ServerType == ServerType.Finam
                     || order.SecurityNameCode == SecurityName + " TestPaper")

@@ -658,6 +658,7 @@ namespace OsEngine.Language
             "Eng: Cancel order - _" +
             "Ru: Отзываем ордер - _");
 
+
         public string TitleAServerParametrUi => OsLocalization.ConvertToLocString(
             "Eng:Connection settings _" +
             "Ru:Настройка подключения _");
@@ -983,6 +984,10 @@ namespace OsEngine.Language
         public string Message98 => OsLocalization.ConvertToLocString(
            "Eng:In incoming securities, missing Name_" +
            "Ru:Во входящих бумагах, отсутствуют Name_");
+
+        public string Message99 => OsLocalization.ConvertToLocString(
+            "Eng:Intercepted attempt to revoke an order when the connection is off!_" +
+            "Ru:Перехвачена попытка отозвать ордер при выключенном соединении!_");
 
         public string TitleTester => OsLocalization.ConvertToLocString(
             "Eng:Exchange emulator_" +

@@ -130,7 +130,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _rateGate = new RateGate(280, TimeSpan.FromSeconds(60));
+        private RateGate _rateGate = new RateGate(3, TimeSpan.FromMilliseconds(700));
 
         private string _publicKey;
 
@@ -197,8 +197,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 if (current.status == "1")
                 {
                     Security security = new Security();
-
-                    security.Lot = current.tickSize.ToDecimal();
+                    security.Lot = 1;
+                    security.MinTradeAmount = current.stepSize.ToDecimal();
                     security.Name = current.symbol;
                     security.NameFull = current.symbol;
                     security.NameClass = NameClass(current.symbol);
