@@ -21,8 +21,8 @@ EnvelopTrend&Trend strategy based on indicator Envelop. Entrance to Long: entry 
 ElementsOnChartSampleBot&&Include&&Simple 1*&MACD*&
 EnginePair&blank strategy for manual pair trading&Include&&Pair 1*&&
 FakeOutExample&An example of a robot going short after a false upside breakout.&Include&&Simple 1*&PriceChannel*&
-Fisher&Fisher based on multithreading Entering a position - we are waiting for a sharp price deviation  by the specified number of percent from the edge of the order book. Exit a position when the price rolls back by 50 percent or more of the entry price. Those. if the price has returned half or more of the original movement.&Include&&Simple 1*&Sma*&
 FundBalanceDivergenceBot&The countertrend bots Buy: 1. FBD more Indicator Divergence. Sell: 1. FBD is less than negative Indicator Divergence. Exit: after N number of days.&Include&&Simple 1*&FBD*&
+Fisher&Fisher based on multithreading Entering a position - we are waiting for a sharp price deviation  by the specified number of percent from the edge of the order book. Exit a position when the price rolls back by 50 percent or more of the entry price. Those. if the price has returned half or more of the original movement.&Include&&Simple 1*&Sma*&
 GridSample&Logic of the first Buy: if there are N candles falling down, we place the first order according to the close of the last candle. Next: buy if the price is greater than entryUpPrice or less than entryDownPrice. Exit: by stop&Include&&Simple 1*&&
 HighFrequencyTrader&robot analyzing the density of the market depth&Include&&Simple 1*&&
 IndexArbitrageClassic&Classic trading with two index&Include&&Index 2*Screener 2*&&
@@ -31,8 +31,9 @@ MacdTrail&Trend strategy based on the Macd indicator and trail stop Logic Enter:
 MomentumMacd&Trend strategy based on 2 indicators Momentum and Macd. if lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short. if lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.&Include&&Simple 1*&MacdLine*Momentum*&
 MarketMakerBot&&Include&&Simple 1*&&
 MultiExchangePairArbitrageOnTheIndex&&Include&&Simple 5*Index 1*&&
-MultiOneLegArbitrageInTrend&Securities that deviate from the broad market with momentum trade on a widening gap, in a certain stage of volatility.&Include&&Index 1*Screener 1*&VolatilityStagesAW*VolatilityAverage*&
-MultiOneLegArbitrageMeanReversion&Securities that deviate from the broad market without momentum are traded on a return to the index. &Include&&Index 1*Screener 1*&VolatilityAverage*&
+MultiOneLegArbitrageInTrend&Securities that deviate from the broad market with momentum trade on a widening gap, in a certain stage of volatility.&Include&&Index 1*Screener 1*&VolatilityStagesAW*VolatilityAverage*ATR*&
+MultiOneLegArbitrageMeanReversion&Securities that deviate from the broad market without momentum are traded on a return to the index. &Include&&Index 1*Screener 1*&VolatilityAverage*ATR*&
+MarketDepthScreener&&Include&&Screener 1*&Sma*Momentum*&
 OneLegArbitrage&Trading robot on the index. The intersection of MA on the index from the bottom up long, with the reverse intersection of shorts&Include&&Simple 1*Index 1*&Sma*&
 PairRsiTrade&Pair trading based on the RSI indicator Logic: if RsiOne > RsiTwo + RsiSpread - then we are Sell on the first instrument and Buy on the second one. Logic: if RsiTwo > RsiOne + RsiSpread - then we are Buy on the first instrument and Sell on the second one. Exit: on the return signal.&Include&&Simple 2*&RSI*RSI*&
 PriceChannelBreak&When the candle is closed outside the PriceChannel channel, we enter the position, the stop loss is at the extremum of the last candle from the entry candle, take profit by the channel size from the close of the candle at which the entry occurred&Include&&Simple 1*&PriceChannel*&
@@ -60,6 +61,7 @@ StrategyBillWilliams&&Include&&Simple 1*&Alligator*Fractal*AwesomeOscillator*&
 SmaScreener&If there is a position, exit by trailing stop. If there is no position. Open long if the last N candles we were above the moving average&Include&&Screener 1*&Sma*Momentum*&
 SmaTrendSample&Trend robot SmaTrendSample Buy: lastCandlePrice > smaValue and lastCandlePrice > upChannel.Sell: lastCandlePrice < smaValue and lastCandlePrice < downChannel.Exit: By TralingStop&Include&&Simple 1*&Sma*Envelops*&
 StrategyBollinger&The Countertrend robot Buy: 1. Price below BollingerDownLine. Sell: 1. The price is more than BollingerUpLine. Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*MovingAverage*&
+TwoEntrySample&&Include&&Simple 1*&PriceChannel*Envelops*&
 TwoTimeFramesBot&&Include&&Simple 2*&PriceChannel*Sma*&
 TradeLineExample&Example of trading on sloping levels&Include&&Simple 1*&ZigZag*&
 ThreeSoldierVolatilityAdaptive&Trading robot Three Soldiers adaptive by volatility. When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop&Include&&Simple 1*&&

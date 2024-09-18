@@ -34,8 +34,6 @@ namespace OsEngine.Robots.Trend
 
         public StrategyParameterInt PcLength;
 
-        public StrategyParameterDecimal TrailStop;
-
         // indicators
 
         private Aindicator _envelop;
@@ -62,7 +60,6 @@ namespace OsEngine.Robots.Trend
             EnvelopDeviation = CreateParameter("Envelop deviation", 0.3m, 0.3m, 4, 0.3m);
             EnvelopMovingLength = CreateParameter("Envelop moving length", 10, 10, 200, 5);
             PcLength = CreateParameter("Price channel length", 20, 5, 50, 1);
-            TrailStop = CreateParameter("Trail stop envelop", 0.7m, 0.1m, 5, 0.1m);
 
             _pc = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
             _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");

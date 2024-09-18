@@ -825,6 +825,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     _portfolio = _connector.Portfolio;
                 }
+                else if(StartProgram == StartProgram.IsOsTrader)
+                {
+                    _portfolio = _connector.Portfolio;
+                }
 
                 return _portfolio;
             }
