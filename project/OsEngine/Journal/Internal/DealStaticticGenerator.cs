@@ -282,7 +282,7 @@ namespace OsEngine.Journal.Internal
 
             if (Convert.ToInt32(someProfit) == someProfit)
             {
-                return Math.Round(profit / deals.Length, 2);
+                return Math.Round(profit / deals.Length, 6);
             }
 
             try
