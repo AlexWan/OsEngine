@@ -3188,7 +3188,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtStop(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
-            position.SignalTypeClose = signalType;
+            position.SignalTypeStop = signalType;
             CloseAtStop(position, priceActivation, priceOrder);
         }
 
@@ -3252,7 +3252,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtStopMarket(Position position, decimal priceActivation, string signalType)
         {
-            position.SignalTypeClose = signalType;
+            position.SignalTypeStop = signalType;
             CloseAtStopMarket(position, priceActivation);
         }
 
@@ -3290,7 +3290,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtTrailingStop(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
-            position.SignalTypeClose = signalType;
+            position.SignalTypeStop = signalType;
             CloseAtTrailingStop(position, priceActivation, priceOrder);
         }
 
@@ -3342,7 +3342,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtTrailingStopMarket(Position position, decimal priceActivation, string signalType)
         {
-            position.SignalTypeClose = signalType;
+            position.SignalTypeStop = signalType;
             CloseAtTrailingStopMarket(position, priceActivation);
         }
 
@@ -3366,7 +3366,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtProfit(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
-            position.SignalTypeClose = signalType;
+            position.SignalTypeProfit = signalType;
             CloseAtProfit(position, priceActivation, priceOrder);
         }
 
@@ -3433,7 +3433,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtProfitMarket(Position position, decimal priceActivation, string signalType)
         {
-            position.SignalTypeClose = signalType;
+            position.SignalTypeProfit = signalType;
             CloseAtProfitMarket(position, priceActivation);
         }
 
@@ -4312,6 +4312,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.ProfitOrderIsActiv = false;
                         position.StopOrderIsActiv = false;
 
+                        if(string.IsNullOrEmpty(position.SignalTypeStop) == false)
+                        {
+                            position.SignalTypeClose = position.SignalTypeStop;
+                        }
+ 
                         SetNewLogMessage(
                             "Close Position at Stop. StopPrice: " +
                             position.StopOrderRedLine
@@ -4338,6 +4343,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         position.StopOrderIsActiv = false;
                         position.ProfitOrderIsActiv = false;
+
+                        if (string.IsNullOrEmpty(position.SignalTypeStop) == false)
+                        {
+                            position.SignalTypeClose = position.SignalTypeStop;
+                        }
 
                         SetNewLogMessage(
                             "Close Position at Stop. StopPrice: " +
@@ -4369,6 +4379,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.StopOrderIsActiv = false;
                         position.ProfitOrderIsActiv = false;
 
+                        if (string.IsNullOrEmpty(position.SignalTypeProfit) == false)
+                        {
+                            position.SignalTypeClose = position.SignalTypeProfit;
+                        }
+
                         SetNewLogMessage(
                             "Close Position at Profit. ProfitPrice: " +
                             position.ProfitOrderRedLine
@@ -4395,6 +4410,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         position.StopOrderIsActiv = false;
                         position.ProfitOrderIsActiv = false;
+
+                        if (string.IsNullOrEmpty(position.SignalTypeProfit) == false)
+                        {
+                            position.SignalTypeClose = position.SignalTypeProfit;
+                        }
 
                         SetNewLogMessage(
                             "Close Position at Profit. ProfitPrice: " +

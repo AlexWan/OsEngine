@@ -319,6 +319,16 @@ namespace OsEngine.Entity
         public string SignalTypeClose;
 
         /// <summary>
+        /// Closing signal type if a stop order is triggered
+        /// </summary>
+        public string SignalTypeStop;
+
+        /// <summary>
+        /// Closing signal type if a profit order is triggered
+        /// </summary>
+        public string SignalTypeProfit;
+
+        /// <summary>
         /// Maximum volume by position
         /// </summary>
         public decimal MaxVolume
