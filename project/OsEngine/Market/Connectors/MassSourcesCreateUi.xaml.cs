@@ -754,9 +754,13 @@ namespace OsEngine.Market.Connectors
 
         private void UpdateGrid(List<Security> securities)
         {
+            SecuritiesHost.Child = null;
+
             _gridSecurities.Rows.Clear();
 
             // номер, класс, тип, сокращонное название бумаги, полное имя, дополнительное имя, влк/выкл
+
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
             for (int indexSecuriti = 0; indexSecuriti < securities.Count; indexSecuriti++)
             {
@@ -796,8 +800,15 @@ namespace OsEngine.Market.Connectors
 
                 }
 
-                _gridSecurities.Rows.Add(nRow);
+                rows.Add(nRow);
             }
+
+            if (rows.Count > 0)
+            {
+                _gridSecurities.Rows.AddRange(rows.ToArray());
+            }
+
+            SecuritiesHost.Child = _gridSecurities;
         }
 
         private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
