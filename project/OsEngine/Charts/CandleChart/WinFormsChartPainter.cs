@@ -5762,15 +5762,15 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            double persentMove = Math.Abs(myPosition.ValueYMouseOnClickStart - e.Y)/_host.Child.Height;
+            double percentMove = Math.Abs(myPosition.ValueYMouseOnClickStart - e.Y)/_host.Child.Height;
 
-            if (double.IsInfinity(persentMove) ||
-                persentMove == 0)
+            if (double.IsInfinity(percentMove) ||
+                percentMove == 0)
             {
                 return;
             }
 
-            double concateValue = 100*persentMove;
+            double concateValue = 100*percentMove;
 
             if (myPosition.ValueYMouseOnClickStart < e.Y)
             {
@@ -5918,15 +5918,15 @@ namespace OsEngine.Charts.CandleChart
             }
 
 
-            double persentMove = Math.Abs(myPosition.ValueXMouseOnClickStart - e.X) / _host.Child.Width;
+            double percentMove = Math.Abs(myPosition.ValueXMouseOnClickStart - e.X) / _host.Child.Width;
 
-            if (double.IsInfinity(persentMove) ||
-                persentMove == 0)
+            if (double.IsInfinity(percentMove) ||
+                percentMove == 0)
             {
                 return;
             }
 
-            //double concateValue = 100*persentMove*5;
+            //double concateValue = 100*percentMove*5;
 
 
                 int maxSize = 0;
@@ -5947,7 +5947,7 @@ namespace OsEngine.Charts.CandleChart
                 }
 
                 double newVal = myPosition.CountXValuesChartOnClickStart +
-                             myPosition.CountXValuesChartOnClickStart*persentMove*3;
+                             myPosition.CountXValuesChartOnClickStart*percentMove*3;
 
 
                 if (newVal > maxSize)
@@ -5974,7 +5974,7 @@ namespace OsEngine.Charts.CandleChart
             else if (myPosition.ValueXMouseOnClickStart > e.X)
             {
                 double newVal = myPosition.CountXValuesChartOnClickStart -
-               myPosition.CountXValuesChartOnClickStart * persentMove * 3;
+               myPosition.CountXValuesChartOnClickStart * percentMove * 3;
 
 
                 if (newVal < 5)
