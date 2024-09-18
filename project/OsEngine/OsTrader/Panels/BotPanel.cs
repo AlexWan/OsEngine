@@ -640,7 +640,7 @@ namespace OsEngine.OsTrader.Panels
 position => position.State != PositionStateType.OpeningFail
 && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStaticticGenerator.GetAllProfitPersent(positions.ToArray());
+                    result += PositionStatisticGenerator.GetAllProfitPersent(positions.ToArray());
                 }
                 return result;
             }
@@ -675,7 +675,7 @@ position => position.State != PositionStateType.OpeningFail
 position => position.State != PositionStateType.OpeningFail
 && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStaticticGenerator.GetAllProfitInPunkt(positions.ToArray());
+                    result += PositionStatisticGenerator.GetAllProfitInPunkt(positions.ToArray());
                 }
                 return result;
             }
@@ -710,7 +710,7 @@ position => position.State != PositionStateType.OpeningFail
                     position => position.State != PositionStateType.OpeningFail
                     && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStaticticGenerator.GetMidleProfitInPersentOneContract(positions.ToArray());
+                    result += PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(positions.ToArray());
                 }
                 return result;
             }
@@ -740,7 +740,7 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         continue;
                     }
-                    result += PositionStaticticGenerator.GetProfitFactor(journals[i].AllPosition.ToArray());
+                    result += PositionStatisticGenerator.GetProfitFactor(journals[i].AllPosition.ToArray());
                 }
                 return result;
             }
@@ -770,7 +770,7 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         continue;
                     }
-                    result += PositionStaticticGenerator.GetMaxDownPersent(journals[i].AllPosition.ToArray());
+                    result += PositionStatisticGenerator.GetMaxDownPercent(journals[i].AllPosition.ToArray());
                 }
                 return result;
             }

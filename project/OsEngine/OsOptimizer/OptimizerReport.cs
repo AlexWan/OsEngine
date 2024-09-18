@@ -221,18 +221,18 @@ namespace OsEngine.OsOptimizer
 
                 tab.SecurityName = bot.TabsSimple[i].Securiti.Name;
                 tab.PositionsCount = positions.Count;
-                tab.TotalProfit = PositionStaticticGenerator.GetAllProfitInPunkt(posesArray);
-                tab.TotalProfitPersent = PositionStaticticGenerator.GetAllProfitPersent(posesArray);
-                tab.MaxDrowDawn = PositionStaticticGenerator.GetMaxDownPersent(posesArray);
+                tab.TotalProfit = PositionStatisticGenerator.GetAllProfitInPunkt(posesArray);
+                tab.TotalProfitPersent = PositionStatisticGenerator.GetAllProfitPersent(posesArray);
+                tab.MaxDrowDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
 
                 tab.AverageProfit = tab.TotalProfit / (posesArray.Length+1);
                 
-                tab.AverageProfitPercentOneContract = PositionStaticticGenerator.GetMidleProfitInPersentOneContract(posesArray);
+                tab.AverageProfitPercentOneContract = PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(posesArray);
 
-                tab.ProfitFactor = PositionStaticticGenerator.GetProfitFactor(posesArray);
-                tab.Recovery = PositionStaticticGenerator.GetRecovery(posesArray);
-                tab.PayOffRatio = PositionStaticticGenerator.GetPayOffRatio(posesArray);
-                tab.SharpRatio = PositionStaticticGenerator.GetSharpRatio(posesArray,7);
+                tab.ProfitFactor = PositionStatisticGenerator.GetProfitFactor(posesArray);
+                tab.Recovery = PositionStatisticGenerator.GetRecovery(posesArray);
+                tab.PayOffRatio = PositionStatisticGenerator.GetPayOffRatio(posesArray);
+                tab.SharpRatio = PositionStatisticGenerator.GetSharpRatio(posesArray,7);
                 tab.TabType = bot.TabsSimple[i].GetType().Name;
             }
 
@@ -259,20 +259,20 @@ namespace OsEngine.OsOptimizer
             }
             else
             {
-                allPositionsForAllTabs = PositionStaticticGenerator.SortByTime(allPositionsForAllTabs);
+                allPositionsForAllTabs = PositionStatisticGenerator.SortByTime(allPositionsForAllTabs);
 
                 Position[] posesArray = allPositionsForAllTabs.ToArray();
 
                 PositionsCount = allPositionsForAllTabs.Count;
-                TotalProfit = PositionStaticticGenerator.GetAllProfitInPunkt(posesArray);
-                TotalProfitPersent = PositionStaticticGenerator.GetAllProfitPersent(posesArray);
-                MaxDrowDawn = PositionStaticticGenerator.GetMaxDownPersent(posesArray);
-                AverageProfit = PositionStaticticGenerator.GetMidleProfitInPunkt(posesArray);
-                AverageProfitPercentOneContract = PositionStaticticGenerator.GetMidleProfitInPersentOneContract(posesArray);
-                ProfitFactor = PositionStaticticGenerator.GetProfitFactor(posesArray);
-                Recovery = PositionStaticticGenerator.GetRecovery(posesArray);
-                PayOffRatio = PositionStaticticGenerator.GetPayOffRatio(posesArray);
-                SharpRatio = PositionStaticticGenerator.GetSharpRatio(posesArray, 7);
+                TotalProfit = PositionStatisticGenerator.GetAllProfitInPunkt(posesArray);
+                TotalProfitPersent = PositionStatisticGenerator.GetAllProfitPersent(posesArray);
+                MaxDrowDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
+                AverageProfit = PositionStatisticGenerator.GetMiddleProfitInPunkt(posesArray);
+                AverageProfitPercentOneContract = PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(posesArray);
+                ProfitFactor = PositionStatisticGenerator.GetProfitFactor(posesArray);
+                Recovery = PositionStatisticGenerator.GetRecovery(posesArray);
+                PayOffRatio = PositionStatisticGenerator.GetPayOffRatio(posesArray);
+                SharpRatio = PositionStatisticGenerator.GetSharpRatio(posesArray, 7);
             }
         }
 

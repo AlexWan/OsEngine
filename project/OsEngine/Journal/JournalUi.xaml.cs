@@ -757,9 +757,9 @@ namespace OsEngine.Journal
                     CreateTableToStatistic();
                 }
 
-                List<string> positionsAllState = PositionStaticticGenerator.GetStatisticNew(positionsAll);
-                List<string> positionsLongState = PositionStaticticGenerator.GetStatisticNew(positionsLong);
-                List<string> positionsShortState = PositionStaticticGenerator.GetStatisticNew(positionsShort);
+                List<string> positionsAllState = PositionStatisticGenerator.GetStatisticNew(positionsAll);
+                List<string> positionsLongState = PositionStatisticGenerator.GetStatisticNew(positionsLong);
+                List<string> positionsShortState = PositionStatisticGenerator.GetStatisticNew(positionsShort);
 
                 if (positionsAllState == null)
                 {

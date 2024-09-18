@@ -14,7 +14,7 @@ namespace OsEngine.Journal.Internal
     /// class that calculates transaction statistics
     /// класс, рассчитывающий статистику по сделкам
     /// </summary>
-    public class PositionStaticticGenerator
+    public class PositionStatisticGenerator
     {
         /// <summary>
         /// 
@@ -82,32 +82,32 @@ namespace OsEngine.Journal.Internal
             report.Add(Math.Round(GetRecovery(deals), 6).ToString(new CultureInfo("ru-RU")));   // Recovery
             report.Add("");
 
-            report.Add(Convert.ToDouble(GetMidleProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //average profit in 1 contract
-            report.Add(Math.Round(GetMidleProfitInPersentOneContract(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in % 1 contract
-            report.Add(Convert.ToDouble(GetMidleProfitInPunktToDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //average profit
-            report.Add(Math.Round(GetMidleProfitInPersentToDepozit(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in %
+            report.Add(Convert.ToDouble(GetMiddleProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //average profit in 1 contract
+            report.Add(Math.Round(GetMiddleProfitInPercentOneContract(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in % 1 contract
+            report.Add(Convert.ToDouble(GetMiddleProfitInPunktToDeposit(deals)).ToString(new CultureInfo("ru-RU"))); //average profit
+            report.Add(Math.Round(GetMiddleProfitInPercentToDeposit(deals), 6).ToString(new CultureInfo("ru-RU"))); //average profit in %
 
             report.Add(""); // 11
             report.Add(GetProfitDial(deals).ToString(new CultureInfo("ru-RU"))); //wining trades/выигрышных сделок
-            report.Add(Math.Round(GetProfitDialPersent(deals), 6).ToString(new CultureInfo("ru-RU")));//wining trade in %/выигрышных сделок в %
+            report.Add(Math.Round(GetProfitDialPercent(deals), 6).ToString(new CultureInfo("ru-RU")));//wining trade in %/выигрышных сделок в %
             //report += Convert.ToDouble(GetAllProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //total profit margins/общий профит выигрышных сделок
-            report.Add(Convert.ToDouble(GetAllMidleProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
-            report.Add(Math.Round(GetAllMidleProfitInProfitInPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
-            report.Add(Convert.ToDouble(GetAllMidleProfitInProfitInPunktOnDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
-            report.Add(Math.Round(GetAllMidleProfitInProfitInPersentOnDepozit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
+            report.Add(Convert.ToDouble(GetAllMiddleProfitInProfitInPunkt(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
+            report.Add(Math.Round(GetAllMiddleProfitInProfitInPercent(deals), 6).ToString(new CultureInfo("ru-RU"))); //Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
+            report.Add(Convert.ToDouble(GetAllMiddleProfitInProfitInPunktOnDeposit(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
+            report.Add(Math.Round(GetAllMiddleProfitInProfitInPercentOnDeposit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
             report.Add(GetMaxProfitSeries(deals).ToString(new CultureInfo("ru-RU"))); //maximum series of winning trades/максимальная серия выигрышных сделок
 
             report.Add("");
             report.Add(GetLossDial(deals).ToString(new CultureInfo("ru-RU"))); //losing trades/проигрышных сделок
-            report.Add(Math.Round(GetLossDialPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //losing deals in/проигрышных сделок в %
+            report.Add(Math.Round(GetLossDialPercent(deals), 6).ToString(new CultureInfo("ru-RU"))); //losing deals in/проигрышных сделок в %
             //report += Convert.ToDouble(GetAllLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")) + "\r\n"; //loss-making total profit/общий профит проигрышных сделок
-            report.Add(Convert.ToDouble(GetAllMidleLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")));//average profit in losing trades/средний профит в проигрышных сделках
-            report.Add(Math.Round(GetAllMidleLossInLossInPersent(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage in losing trades/средний профит в процентах в проигрышных сделках
-            report.Add(Convert.ToDouble(GetAllMidleLossInLossInPunktOnDepozit(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
-            report.Add(Math.Round(GetAllMidleLossInLossInPersentOnDepozit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
+            report.Add(Convert.ToDouble(GetAllMiddleLossInLossInPunkt(deals)).ToString(new CultureInfo("ru-RU")));//average profit in losing trades/средний профит в проигрышных сделках
+            report.Add(Math.Round(GetAllMiddleLossInLossInPercent(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage in losing trades/средний профит в процентах в проигрышных сделках
+            report.Add(Convert.ToDouble(GetAllMiddleLossInLossInPunktOnDeposit(deals)).ToString(new CultureInfo("ru-RU"))); //Average profit in winning trades/средний профит в выигрышных сделках
+            report.Add(Math.Round(GetAllMiddleLossInLossInPercentOnDeposit(deals), 6).ToString(new CultureInfo("ru-RU")));//Average profit as a percentage of winning trades/средний профит в процентах в выигрышных сделках
             report.Add(GetMaxLossSeries(deals).ToString(new CultureInfo("ru-RU")));//maximum series of winning trades/максимальная серия выигрышных сделок
             report.Add("");
-            report.Add(Math.Round(GetMaxDownPersent(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
+            report.Add(Math.Round(GetMaxDownPercent(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
             report.Add(Math.Round(GetCommissionAmount(deals), 6).ToString(new CultureInfo("ru-RU"))); //maximum drawdown in percent/максимальная просадка в процентах
 
             /*report += Math.Round(GetSharp(), 2).ToString(new CultureInfo("ru-RU"));
@@ -211,7 +211,7 @@ namespace OsEngine.Journal.Internal
         /// to take the average profit from the deal as a percentage
         /// взять средний профит со сделки в процентах
         /// </summary>
-        public static decimal GetMidleProfitInPersentOneContract(Position[] deals) 
+        public static decimal GetMiddleProfitInPercentOneContract(Position[] deals) 
         {
             if (deals.Length == 0)
             {
@@ -259,7 +259,7 @@ namespace OsEngine.Journal.Internal
         /// take the average profit from the transaction in points
         /// взять средний профит со сделки в пунктах
         /// </summary>
-        public static decimal GetMidleProfitInPunkt(Position[] deals)
+        public static decimal GetMiddleProfitInPunkt(Position[] deals)
         {
             if(deals.Length == 0)
             {
@@ -299,7 +299,7 @@ namespace OsEngine.Journal.Internal
         /// to take the average profit from the deal to the deposit
         /// взять средний профит со сделки к депозиту
         /// </summary>
-        private static decimal GetMidleProfitInPunktToDepozit(Position[] deals)
+        private static decimal GetMiddleProfitInPunktToDeposit(Position[] deals)
         {
             if (deals.Length == 0)
             {
@@ -319,7 +319,7 @@ namespace OsEngine.Journal.Internal
         /// Take the average profit from the transaction as a percentage of the deposit
         /// взять средний профит со сделки в процентах к депозиту
         /// </summary>
-        private static decimal GetMidleProfitInPersentToDepozit(Position[] deals)
+        private static decimal GetMiddleProfitInPercentToDeposit(Position[] deals)
         {
             if (deals.Length == 0)
             {
@@ -477,7 +477,7 @@ namespace OsEngine.Journal.Internal
         /// take% of profitable trades
         /// взять % прибыльных сделок
         /// </summary>
-        private static decimal GetProfitDialPersent(Position[] deals)
+        private static decimal GetProfitDialPercent(Position[] deals)
         {
             decimal profitDeal = GetProfitDial(deals);
 
@@ -494,7 +494,7 @@ namespace OsEngine.Journal.Internal
         /// take the average profit in points from profitable transactions
         /// взять средний профит в пунктах у прибыльных сделок
         /// </summary>
-        private static decimal GetAllMidleProfitInProfitInPunkt(Position[] deals)
+        private static decimal GetAllMiddleProfitInProfitInPunkt(Position[] deals)
         {
             decimal profit = 0;
 
@@ -523,7 +523,7 @@ namespace OsEngine.Journal.Internal
         /// take the average profit in% from profitable transactions
         /// взять средний профит в % у прибыльных сделок
         /// </summary>
-        private static decimal GetAllMidleProfitInProfitInPersent(Position[] deals)
+        private static decimal GetAllMiddleProfitInProfitInPercent(Position[] deals)
         {
             decimal profit = 0;
 
@@ -551,7 +551,7 @@ namespace OsEngine.Journal.Internal
         /// take the average profit in points from profitable transactions
         /// взять средний профит в пунктах у прибыльных сделок
         /// </summary>
-        private static decimal GetAllMidleProfitInProfitInPunktOnDepozit(Position[] deals)
+        private static decimal GetAllMiddleProfitInProfitInPunktOnDeposit(Position[] deals)
         {
             decimal profit = 0;
 
@@ -580,7 +580,7 @@ namespace OsEngine.Journal.Internal
         /// take the average profit in% from profitable transactions
         /// взять средний профит в % у прибыльных сделок
         /// </summary>
-        private static decimal GetAllMidleProfitInProfitInPersentOnDepozit(Position[] deals)
+        private static decimal GetAllMiddleProfitInProfitInPercentOnDeposit(Position[] deals)
         {
             decimal profit = 0;
 
@@ -659,7 +659,7 @@ namespace OsEngine.Journal.Internal
         /// take the percentage of losing trades
         /// взять процент убыточных сделок
         /// </summary>
-        private static decimal GetLossDialPersent(Position[] deals)
+        private static decimal GetLossDialPercent(Position[] deals)
         {
             decimal lossDeal = GetLossDial(deals);
 
@@ -676,7 +676,7 @@ namespace OsEngine.Journal.Internal
         /// take the average loss in points
         /// взять средний убыток в пунктах
         /// </summary>
-        private static decimal GetAllMidleLossInLossInPunkt(Position[] deals)
+        private static decimal GetAllMiddleLossInLossInPunkt(Position[] deals)
         {
             decimal loss = 0;
 
@@ -698,7 +698,7 @@ namespace OsEngine.Journal.Internal
         /// take an average loss in%
         /// взять средний убыток в %
         /// </summary>
-        private static decimal GetAllMidleLossInLossInPersent(Position[] deals)
+        private static decimal GetAllMiddleLossInLossInPercent(Position[] deals)
         {
             decimal loss = 0;
 
@@ -720,7 +720,7 @@ namespace OsEngine.Journal.Internal
         /// take the average loss in points
         /// взять средний убыток в пунктах
         /// </summary>
-        private static decimal GetAllMidleLossInLossInPunktOnDepozit(Position[] deals)
+        private static decimal GetAllMiddleLossInLossInPunktOnDeposit(Position[] deals)
         {
             decimal loss = 0;
 
@@ -749,7 +749,7 @@ namespace OsEngine.Journal.Internal
         /// take an average loss in%
         /// взять средний убыток в %
         /// </summary>
-        private static decimal GetAllMidleLossInLossInPersentOnDepozit(Position[] deals)
+        private static decimal GetAllMiddleLossInLossInPercentOnDeposit(Position[] deals)
         {
             decimal loss = 0;
 
@@ -809,10 +809,10 @@ namespace OsEngine.Journal.Internal
         /// take maximum drawdown
         /// взять максимальную просадку
         /// </summary>
-        public static decimal GetMaxDownPersent(Position[] deals) 
+        public static decimal GetMaxDownPercent(Position[] deals) 
         {
             decimal maxDownAbs = decimal.MaxValue;
-            decimal maxDownPersent = decimal.MaxValue;
+            decimal maxDownPercent = decimal.MaxValue;
 
             if (GetProfitDial(deals) == 0)
             {
@@ -834,51 +834,51 @@ namespace OsEngine.Journal.Internal
                 firsValue = 1;
             }
 
-            decimal thisSumm = firsValue;
+            decimal thisSum = firsValue;
             decimal thisPik = firsValue;
 
             for (int i = 0; i < deals.Length; i++)
             {
-                thisSumm += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
+                thisSum += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
 
                 decimal thisDown;
 
-                if (thisSumm > thisPik)
+                if (thisSum > thisPik)
                 {
-                    thisPik = thisSumm;
+                    thisPik = thisSum;
                 }
                 else
                 {
-                    if (thisSumm < 0)
+                    if (thisSum < 0)
                     {
                         // уже ушли ниже нулевой отметки по счёту
 
-                        thisDown = -thisPik + thisSumm;
+                        thisDown = -thisPik + thisSum;
 
                         if (maxDownAbs > thisDown)
                         {
                             maxDownAbs = thisDown;
                             decimal curDownPersent = maxDownAbs / (thisPik / 100);
 
-                            if (maxDownPersent > curDownPersent)
+                            if (maxDownPercent > curDownPersent)
                             {
-                                maxDownPersent = curDownPersent;
+                                maxDownPercent = curDownPersent;
                             }
                         }
                     }
-                    else if (thisSumm > 0)
+                    else if (thisSum > 0)
                     {
                         // выше нулевой отметки по счёту
-                        thisDown = -(thisPik - thisSumm);
+                        thisDown = -(thisPik - thisSum);
 
                         if (maxDownAbs > thisDown)
                         {
                             maxDownAbs = thisDown;
                             decimal curDownPersent = maxDownAbs / (thisPik / 100);
 
-                            if(maxDownPersent > curDownPersent)
+                            if(maxDownPercent > curDownPersent)
                             {
-                                maxDownPersent = curDownPersent;
+                                maxDownPercent = curDownPersent;
                             }
                         }
 
@@ -886,12 +886,12 @@ namespace OsEngine.Journal.Internal
                 }
             }
 
-            if (maxDownPersent == decimal.MaxValue)
+            if (maxDownPercent == decimal.MaxValue)
             {
                 return 0;
             }
 
-            return Round(maxDownPersent);
+            return Round(maxDownPercent);
         }
 
         /// <summary>
@@ -990,7 +990,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPunkt <= maxLossPunkt)   // ProfitOperationPersent
+                if (deals[i].ProfitOperationPunkt <= maxLossPunkt)   // ProfitOperationPercent
                 {
                     maxLossPunkt = deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
                 }

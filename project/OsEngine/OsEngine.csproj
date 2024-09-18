@@ -909,7 +909,7 @@
     <Compile Include="Entity\PositionUi.xaml.cs">
       <DependentUpon>PositionUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
+    <Compile Include="Journal\Internal\DealStatisticGenerator.cs" />
     <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServer.cs" />
