@@ -13,7 +13,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
-namespace OsEngine.Robots.Trend
+namespace OsEngine.Robots.PositionsMicromanagement
 {
     [Bot("TwoEntrySample")]
     public class TwoEntrySample : BotPanel

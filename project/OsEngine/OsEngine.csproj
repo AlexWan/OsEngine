@@ -1117,8 +1117,8 @@
     </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
-    <Compile Include="Robots\CounterTrend\EnvelopsCountertrend.cs" />
-    <Compile Include="Robots\CounterTrend\PriceChannelCounterTrend.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\EnvelopsCountertrend.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\PriceChannelCounterTrend.cs" />
     <Compile Include="Robots\CurrencyArbitrage\CurrencyArbitrageClassic.cs" />
     <Compile Include="Robots\CurrencyArbitrage\CurrencyMoveExplorer.cs" />
     <Compile Include="Robots\Engines\EnginePair.cs" />
@@ -1256,7 +1256,7 @@
     <Compile Include="Robots\Patterns\ThreeSoldier.cs" />
     <Compile Include="Robots\MarketMaker\TwoLegArbitrage.cs" />
     <Compile Include="Robots\CounterTrend\WilliamsRangeTrade.cs" />
-    <Compile Include="Robots\Trend\TwoEntrySample.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\TwoEntrySample.cs" />
     <Compile Include="Robots\Trend\TwoTimeFramesBot.cs" />
     <Compile Include="Robots\VolatilityStageRotationSamples\BollingerTrendVolatilityStagesFilter.cs" />
     <Compile Include="Robots\VolatilityStageRotationSamples\PriceChannelScreenerOnIndexVolatility.cs" />

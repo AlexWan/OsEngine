@@ -13,7 +13,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 
-namespace OsEngine.Robots.CounterTrend
+namespace OsEngine.Robots.PositionsMicromanagement
 {
     [Bot("EnvelopsCountertrend")]
     public class EnvelopsCountertrend : BotPanel
