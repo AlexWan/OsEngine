@@ -3004,6 +3004,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                position.ProfitOrderIsActiv = false;
+                position.StopOrderIsActiv = false;
+
                 if (volume <= 0 || position.OpenVolume <= 0)
                 {
                     return;
@@ -3837,9 +3840,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-
-                position.ProfitOrderIsActiv = false;
-                position.StopOrderIsActiv = false;
 
                 for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
                 {

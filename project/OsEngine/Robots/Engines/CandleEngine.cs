@@ -26,8 +26,8 @@ namespace OsEngine.Robots.Engines
         }
 
         /// <summary>
-        /// uniq name
-        /// униальное имя стратегии
+        /// unique name
+        /// уникальное имя стратегии
         /// </summary>
         public override string GetNameStrategyType()
         {
