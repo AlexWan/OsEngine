@@ -15,16 +15,18 @@ using System.Collections.Generic;
 
 namespace OsEngine.Robots.CounterTrend
 {
-    [Bot("PriceChannelCounterTrend")]
-    public class PriceChannelCounterTrend : BotPanel
+    [Bot("EnvelopsCountertrend")]
+    public class EnvelopsCountertrend : BotPanel
     {
         private BotTabSimple _tab;
 
-        private Aindicator _pc;
+        private Aindicator _envelop;
 
         public StrategyParameterString Regime;
 
-        public StrategyParameterInt PriceChannelLength;
+        public StrategyParameterInt EnvelopsLength;
+
+        public StrategyParameterDecimal EnvelopsDeviation;
 
         public StrategyParameterString VolumeType;
 
@@ -32,13 +34,15 @@ namespace OsEngine.Robots.CounterTrend
 
         public StrategyParameterString TradeAssetInPortfolio;
 
+        public StrategyParameterDecimal ProfitPercent;
+
         public StrategyParameterDecimal StopPercent;
 
-        public StrategyParameterDecimal ProfitOrderOnePercent;
+        public StrategyParameterDecimal AveragingOnePercent;
 
-        public StrategyParameterDecimal ProfitOrderTwoPercent;
+        public StrategyParameterDecimal AveragingTwoPercent;
 
-        public PriceChannelCounterTrend(string name, StartProgram startProgram)
+        public EnvelopsCountertrend(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
@@ -50,17 +54,19 @@ namespace OsEngine.Robots.CounterTrend
             Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            PriceChannelLength = CreateParameter("Price channel length", 50, 10, 80, 3);
+            EnvelopsLength = CreateParameter("Envelops length", 50, 10, 80, 3);
+            EnvelopsDeviation = CreateParameter("Envelops deviation", 0.1m, 0.5m, 5, 0.1m);
 
-            StopPercent = CreateParameter("Stop percent", 0.7m, 1.0m, 50, 4);
-            ProfitOrderOnePercent = CreateParameter("Profit order one percent", 0.3m, 1.0m, 50, 4);
-            ProfitOrderTwoPercent = CreateParameter("Profit order two percent", 0.7m, 1.0m, 50, 4);
+            ProfitPercent = CreateParameter("Profit percent", 0.3m, 1.0m, 50, 4);
+            StopPercent = CreateParameter("Stop percent", 0.5m, 1.0m, 50, 4);
+            AveragingOnePercent = CreateParameter("Averaging one percent", 0.1m, 1.0m, 50, 4);
+            AveragingTwoPercent = CreateParameter("Averaging two percent", 0.2m, 1.0m, 50, 4);
 
-            _pc = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
-            _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");
-            _pc.ParametersDigit[0].Value = PriceChannelLength.ValueInt;
-            _pc.ParametersDigit[1].Value = PriceChannelLength.ValueInt;
-            _pc.Save();
+            _envelop = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "Envelops", false);
+            _envelop = (Aindicator)_tab.CreateCandleIndicator(_envelop, "Prime");
+            _envelop.ParametersDigit[0].Value = EnvelopsLength.ValueInt;
+            _envelop.ParametersDigit[1].Value = EnvelopsDeviation.ValueDecimal;
+            _envelop.Save();
 
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
@@ -71,19 +77,19 @@ namespace OsEngine.Robots.CounterTrend
 
         void Event_ParametrsChangeByUser()
         {
-            if (PriceChannelLength.ValueInt != _pc.ParametersDigit[0].Value ||
-                PriceChannelLength.ValueInt != _pc.ParametersDigit[1].Value)
+            if (EnvelopsLength.ValueInt != _envelop.ParametersDigit[0].Value ||
+               _envelop.ParametersDigit[1].Value != EnvelopsDeviation.ValueDecimal)
             {
-                _pc.ParametersDigit[0].Value = PriceChannelLength.ValueInt;
-                _pc.ParametersDigit[1].Value = PriceChannelLength.ValueInt;
-                _pc.Reload();
-                _pc.Save();
+                _envelop.ParametersDigit[0].Value = EnvelopsLength.ValueInt;
+                _envelop.ParametersDigit[1].Value = EnvelopsDeviation.ValueDecimal;
+                _envelop.Reload();
+                _envelop.Save();
             }
         }
 
         public override string GetNameStrategyType()
         {
-            return "PriceChannelCounterTrend";
+            return "EnvelopsCountertrend";
         }
 
         public override void ShowIndividualSettingsDialog()
@@ -100,14 +106,14 @@ namespace OsEngine.Robots.CounterTrend
                 return;
             }
 
-            if (_pc.DataSeries[0].Values == null
-                || _pc.DataSeries[1].Values == null)
+            if (_envelop.DataSeries[0].Values == null
+                || _envelop.DataSeries[1].Values == null)
             {
                 return;
             }
 
-            if (_pc.DataSeries[0].Values.Count < _pc.ParametersDigit[0].Value + 2
-                || _pc.DataSeries[1].Values.Count < _pc.ParametersDigit[1].Value + 2)
+            if (_envelop.DataSeries[0].Values.Count < _envelop.ParametersDigit[0].Value + 2
+                || _envelop.DataSeries[1].Values.Count < _envelop.ParametersDigit[1].Value + 2)
             {
                 return;
             }
@@ -124,18 +130,15 @@ namespace OsEngine.Robots.CounterTrend
             }
             else
             {
-                for (int i = 0; i < openPositions.Count;i++)
-                {
-                    LogicClosePosition(candles, openPositions[i]);
-                }
+                LogicClosePosition(candles, openPositions);
             }
         }
 
         private void LogicOpenPosition(List<Candle> candles)
         {
             decimal lastPrice = candles[candles.Count - 1].Close;
-            decimal lastPcUp = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 2];
-            decimal lastPcDown = _pc.DataSeries[1].Values[_pc.DataSeries[1].Values.Count - 2];
+            decimal lastPcUp = _envelop.DataSeries[0].Values[_envelop.DataSeries[0].Values.Count - 1];
+            decimal lastPcDown = _envelop.DataSeries[2].Values[_envelop.DataSeries[1].Values.Count - 1];
 
             if (lastPcUp == 0
                 || lastPcDown == 0)
@@ -146,70 +149,119 @@ namespace OsEngine.Robots.CounterTrend
             if (lastPrice > lastPcUp
                 && Regime.ValueString != "OnlyLong")
             {
-                _tab.SellAtMarket(GetVolume(_tab), "First");
-                _tab.SellAtMarket(GetVolume(_tab), "Second");
+                _tab.SellAtMarket(GetVolume(_tab));
             }
             if (lastPrice < lastPcDown
                 && Regime.ValueString != "OnlyShort")
             {
-                _tab.BuyAtMarket(GetVolume(_tab), "First");
-                _tab.BuyAtMarket(GetVolume(_tab), "Second");
+                _tab.BuyAtMarket(GetVolume(_tab));
             }
         }
 
-        private void LogicClosePosition(List<Candle> candles, Position position)
+        private void LogicClosePosition(List<Candle> candles, List<Position> positions)
         {
-            if (position.StopOrderPrice == 0)
+            if (positions[0].SignalTypeClose == "StopActivate"
+                || positions[0].SignalTypeClose == "ProfitActivate")
             {
-                decimal price = 0;
-
-                if (position.Direction == Side.Buy)
-                {
-                    price = position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
-                }
-                else if (position.Direction == Side.Sell)
-                {
-                    price = position.EntryPrice + position.EntryPrice * (StopPercent.ValueDecimal / 100);
-                }
-
-                _tab.CloseAtStopMarket(position, price, "StopActivate");
+                return;
             }
 
-            if (position.SignalTypeOpen == "First"
-                && position.CloseActiv == false)
+            // первое усреднение
+
+            if (positions.Count == 1)
             {
-                decimal price = 0;
+                decimal nextEntryPrice = 0;
 
-                if (position.Direction == Side.Buy)
+                decimal firstPosEntryPrice = positions[0].EntryPrice;
+
+                if (positions[0].Direction == Side.Buy)
                 {
-                    price = position.EntryPrice + position.EntryPrice * (ProfitOrderOnePercent.ValueDecimal / 100);
+                    nextEntryPrice = firstPosEntryPrice - firstPosEntryPrice * (AveragingOnePercent.ValueDecimal / 100);
+                    _tab.BuyAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, StopActivateType.LowerOrEqyal, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
-                else if (position.Direction == Side.Sell)
+                else if (positions[0].Direction == Side.Sell)
                 {
-                    price = position.EntryPrice - position.EntryPrice * (ProfitOrderOnePercent.ValueDecimal / 100);
+                    nextEntryPrice = firstPosEntryPrice + firstPosEntryPrice * (AveragingOnePercent.ValueDecimal / 100);
+                    _tab.SellAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
-
-
-                _tab.CloseAtLimit(position, price, position.OpenVolume);
             }
 
-            if (position.SignalTypeOpen == "Second"
-                && position.CloseActiv == false)
+            // второе усреднение
+
+            if (positions.Count == 2)
             {
-                decimal price = 0;
+                decimal nextEntryPrice = 0;
 
-                if (position.Direction == Side.Buy)
+                decimal firstPosEntryPrice = positions[0].EntryPrice;
+
+                if (positions[0].Direction == Side.Buy)
                 {
-                    price = position.EntryPrice + position.EntryPrice * (ProfitOrderTwoPercent.ValueDecimal / 100);
+                    nextEntryPrice = firstPosEntryPrice - firstPosEntryPrice * (AveragingTwoPercent.ValueDecimal / 100);
+                    _tab.BuyAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, StopActivateType.LowerOrEqyal, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
-                else if (position.Direction == Side.Sell)
+                else if (positions[0].Direction == Side.Sell)
                 {
-                    price = position.EntryPrice - position.EntryPrice * (ProfitOrderTwoPercent.ValueDecimal / 100);
+                    nextEntryPrice = firstPosEntryPrice + firstPosEntryPrice * (AveragingTwoPercent.ValueDecimal / 100);
+                    _tab.SellAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
-
-
-                _tab.CloseAtLimit(position, price, position.OpenVolume);
             }
+
+            // считаем среднюю цену входа
+
+            decimal middleEntryPrice = 0;
+
+            decimal allVolume = 0;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                middleEntryPrice += positions[i].EntryPrice * positions[i].OpenVolume;
+                allVolume += positions[i].OpenVolume;
+            }
+
+            if(allVolume == 0)
+            {
+                return;
+            }
+
+            middleEntryPrice = middleEntryPrice / allVolume;
+
+            // профит
+
+            decimal profitPrice = 0;
+
+            if (positions[0].Direction == Side.Buy)
+            {
+                profitPrice = middleEntryPrice + middleEntryPrice * (ProfitPercent.ValueDecimal / 100);
+            }
+            else if (positions[0].Direction == Side.Sell)
+            {
+                profitPrice = middleEntryPrice - middleEntryPrice * (ProfitPercent.ValueDecimal / 100);
+            }
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                _tab.CloseAtProfitMarket(positions[i], profitPrice, "ProfitActivate");
+            }
+
+            // стоп
+
+            decimal stopPrice = 0;
+
+            if (positions[0].Direction == Side.Buy)
+            {
+                stopPrice = middleEntryPrice - middleEntryPrice * (StopPercent.ValueDecimal / 100);
+            }
+            else if (positions[0].Direction == Side.Sell)
+            {
+                stopPrice = middleEntryPrice + middleEntryPrice * (StopPercent.ValueDecimal / 100);
+            }
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                _tab.CloseAtStopMarket(positions[i], stopPrice, "StopActivate");
+            }
+
+
 
         }
 
