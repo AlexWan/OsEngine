@@ -137,21 +137,21 @@ namespace OsEngine.Robots.PositionsMicromanagement
         private void LogicOpenPosition(List<Candle> candles)
         {
             decimal lastPrice = candles[candles.Count - 1].Close;
-            decimal lastPcUp = _envelop.DataSeries[0].Values[_envelop.DataSeries[0].Values.Count - 1];
-            decimal lastPcDown = _envelop.DataSeries[2].Values[_envelop.DataSeries[1].Values.Count - 1];
+            decimal lastEnvelopsUp = _envelop.DataSeries[0].Values[_envelop.DataSeries[0].Values.Count - 1];
+            decimal lastEnvelopsDown = _envelop.DataSeries[2].Values[_envelop.DataSeries[1].Values.Count - 1];
 
-            if (lastPcUp == 0
-                || lastPcDown == 0)
+            if (lastEnvelopsUp == 0
+                || lastEnvelopsDown == 0)
             {
                 return;
             }
 
-            if (lastPrice > lastPcUp
+            if (lastPrice > lastEnvelopsUp
                 && Regime.ValueString != "OnlyLong")
             {
                 _tab.SellAtMarket(GetVolume(_tab));
             }
-            if (lastPrice < lastPcDown
+            if (lastPrice < lastEnvelopsDown
                 && Regime.ValueString != "OnlyShort")
             {
                 _tab.BuyAtMarket(GetVolume(_tab));
@@ -161,7 +161,8 @@ namespace OsEngine.Robots.PositionsMicromanagement
         private void LogicClosePosition(List<Candle> candles, List<Position> positions)
         {
             if (positions[0].SignalTypeClose == "StopActivate"
-                || positions[0].SignalTypeClose == "ProfitActivate")
+                || positions[0].SignalTypeClose == "ProfitActivate"
+                || positions[0].State == PositionStateType.Opening)
             {
                 return;
             }
@@ -177,12 +178,14 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 if (positions[0].Direction == Side.Buy)
                 {
                     nextEntryPrice = firstPosEntryPrice - firstPosEntryPrice * (AveragingOnePercent.ValueDecimal / 100);
-                    _tab.BuyAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, StopActivateType.LowerOrEqyal, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
+                    _tab.BuyAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, 
+                        StopActivateType.LowerOrEqyal, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
                 else if (positions[0].Direction == Side.Sell)
                 {
                     nextEntryPrice = firstPosEntryPrice + firstPosEntryPrice * (AveragingOnePercent.ValueDecimal / 100);
-                    _tab.SellAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
+                    _tab.SellAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, 
+                        StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
             }
 
@@ -197,12 +200,14 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 if (positions[0].Direction == Side.Buy)
                 {
                     nextEntryPrice = firstPosEntryPrice - firstPosEntryPrice * (AveragingTwoPercent.ValueDecimal / 100);
-                    _tab.BuyAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, StopActivateType.LowerOrEqyal, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
+                    _tab.BuyAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, 
+                        StopActivateType.LowerOrEqyal, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
                 else if (positions[0].Direction == Side.Sell)
                 {
                     nextEntryPrice = firstPosEntryPrice + firstPosEntryPrice * (AveragingTwoPercent.ValueDecimal / 100);
-                    _tab.SellAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
+                    _tab.SellAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, 
+                        StopActivateType.HigherOrEqual, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
             }
 

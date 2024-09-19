@@ -159,6 +159,11 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
+            if(position.State == PositionStateType.Opening)
+            {
+                return;
+            }
+
             if (position.StopOrderPrice == 0)
             {
                 decimal price = 0;
