@@ -271,6 +271,10 @@ namespace OsEngine.OsTrader
                     nRow.Cells[2].Value = "";
                 }
 
+                int decimalsPrice = position.PriceStep.ToStringWithNoEndZero().DecimalsCount();
+
+                decimalsPrice++;
+
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = position.NameBot;
 
@@ -305,7 +309,7 @@ namespace OsEngine.OsTrader
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[10].Value = openPrice.ToStringWithNoEndZero();
+                nRow.Cells[10].Value = Math.Round(openPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 decimal closePrice = position.ClosePrice;
 
@@ -320,22 +324,22 @@ namespace OsEngine.OsTrader
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[11].Value = closePrice.ToStringWithNoEndZero();
+                nRow.Cells[11].Value = Math.Round(closePrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
+                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[13].Value = Math.Round(position.StopOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[14].Value = Math.Round(position.StopOrderPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[15].Value = Math.Round(position.ProfitOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[16].Value = Math.Round(position.ProfitOrderPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[17].Value = position.SignalTypeOpen;
@@ -392,7 +396,11 @@ namespace OsEngine.OsTrader
                 nRow.Cells[9].Value = position.WaitVolume.ToStringWithNoEndZero();
             }
 
-            decimal openPrice = position.EntryPrice;
+            int decimalsPrice = position.PriceStep.ToStringWithNoEndZero().DecimalsCount();
+
+            decimalsPrice++;
+
+            decimal openPrice = Math.Round(position.EntryPrice, decimalsPrice);
 
             if (openPrice == 0)
             {
@@ -410,7 +418,7 @@ namespace OsEngine.OsTrader
                 nRow.Cells[10].Value = openPrice.ToStringWithNoEndZero();
             }
 
-            decimal closePrice = position.ClosePrice;
+            decimal closePrice = Math.Round(position.ClosePrice, decimalsPrice);
 
             if (closePrice == 0)
             {
@@ -428,31 +436,44 @@ namespace OsEngine.OsTrader
                 nRow.Cells[11].Value = closePrice.ToStringWithNoEndZero();
             }
 
+            decimal profit = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice);
+
             if (nRow.Cells[12].Value == null
-                || nRow.Cells[12].Value.ToString() != position.ProfitPortfolioPunkt.ToStringWithNoEndZero())
+                || nRow.Cells[12].Value.ToString() != profit.ToStringWithNoEndZero())
             {
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
-            }
-            if (nRow.Cells[13].Value == null ||
-                nRow.Cells[13].Value.ToString() != position.StopOrderRedLine.ToStringWithNoEndZero())
-            {
-                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[12].Value = profit.ToStringWithNoEndZero();
             }
 
+            decimal stopRedLine = Math.Round(position.StopOrderRedLine, decimalsPrice);
+
+            if (nRow.Cells[13].Value == null ||
+                nRow.Cells[13].Value.ToString() != stopRedLine.ToStringWithNoEndZero())
+            {
+                nRow.Cells[13].Value = stopRedLine.ToStringWithNoEndZero();
+            }
+
+            decimal stopPrice = Math.Round(position.StopOrderPrice, decimalsPrice);
+
             if (nRow.Cells[14].Value == null
-                || nRow.Cells[14].Value.ToString() != position.StopOrderPrice.ToStringWithNoEndZero())
+                || nRow.Cells[14].Value.ToString() != stopPrice.ToStringWithNoEndZero())
             {
-                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[14].Value = stopPrice.ToStringWithNoEndZero();
             }
+
+            decimal profitRedLine = Math.Round(position.ProfitOrderRedLine,decimalsPrice);
+
             if (nRow.Cells[15].Value == null ||
-                 nRow.Cells[15].Value.ToString() != position.ProfitOrderRedLine.ToStringWithNoEndZero())
+                 nRow.Cells[15].Value.ToString() != profitRedLine.ToStringWithNoEndZero())
             {
-                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[15].Value = profitRedLine.ToStringWithNoEndZero();
             }
+
+            decimal profitPrice = Math.Round(position.ProfitOrderPrice,decimalsPrice);
+
             if (nRow.Cells[16].Value != null ||
-                nRow.Cells[16].Value.ToString() != position.ProfitOrderPrice.ToStringWithNoEndZero())
+                nRow.Cells[16].Value.ToString() != profitPrice.ToStringWithNoEndZero())
             {
-                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[16].Value = profitPrice.ToStringWithNoEndZero();
             }
 
         }
