@@ -196,7 +196,7 @@ namespace OsEngine.Journal.Internal
                 {
                     for (int i2 = 0; i2 < _deals.Count; i2++)
                     {
-                        ProcesPosition(_deals[i2]);
+                        ProcessPosition(_deals[i2]);
                     }
                 }
             }
@@ -297,7 +297,7 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; deals != null && i < deals.Count; i++)
                 {
-                    ProcesPosition(deals[i]);
+                    ProcessPosition(deals[i]);
                 }
 
                 _openPositions = new List<Position>();
@@ -484,7 +484,7 @@ namespace OsEngine.Journal.Internal
 
             _openPositions.Add(newPosition);
 
-            ProcesPosition(newPosition);
+            ProcessPosition(newPosition);
             _lastPositionChange = true;
 
             if (newPosition.Direction == Side.Buy)
@@ -585,7 +585,7 @@ namespace OsEngine.Journal.Internal
             _closeShortChanged = true;
             _closeLongChanged = true;
 
-            ProcesPosition(position);
+            ProcessPosition(position);
 
             _neadToSave = true;
         }
@@ -665,7 +665,7 @@ namespace OsEngine.Journal.Internal
 
                     if (i < _deals.Count)
                     {
-                        ProcesPosition(_deals[i]);
+                        ProcessPosition(_deals[i]);
                     }
 
                     break;
@@ -750,7 +750,7 @@ namespace OsEngine.Journal.Internal
                         PositionNetVolumeChangeEvent(position);
                     }
 
-                    ProcesPosition(position);
+                    ProcessPosition(position);
                     break;
                 }
             }
@@ -790,7 +790,7 @@ namespace OsEngine.Journal.Internal
 
                         if (profitOld != positions[i].ProfitOperationPunkt)
                         {
-                            ProcesPosition(positions[i]);
+                            ProcessPosition(positions[i]);
                         }
                     }
                 }
@@ -1255,6 +1255,9 @@ namespace OsEngine.Journal.Internal
                         }
                         _positionsToPaint.RemoveAt(0);
                     }
+
+                    Sort(_gridOpenDeal);
+                    Sort(_gridCloseDeal);
                 }
                 catch
                 {
@@ -1329,6 +1332,85 @@ namespace OsEngine.Journal.Internal
             else if(_gridCloseDeal != null)
             {
                 _gridCloseDeal.Rows.Clear();
+            }
+        }
+
+        private void Sort(DataGridView grid)
+        {
+            try
+            {
+                if(grid == null)
+                {
+                    return;
+                }
+
+                if (grid.InvokeRequired)
+                {
+                    grid.Invoke(new Action<DataGridView>(Sort), grid);
+                    return;
+                }
+
+                bool needToSort = false;
+
+                for (int i = 1; i < grid.Rows.Count; i++)
+                {
+                    if (grid.Rows[i].Cells[0].Value == null
+                        || grid.Rows[i - 1].Cells[0].Value == null)
+                    {
+                        continue;
+                    }
+
+                    int numCur = Convert.ToInt32(grid.Rows[i].Cells[0].Value.ToString());
+                    int numPrev = Convert.ToInt32(grid.Rows[i - 1].Cells[0].Value.ToString());
+
+                    if (numCur > numPrev)
+                    {
+                        needToSort = true;
+                        break;
+                    }
+                }
+
+                if (needToSort == false)
+                {
+                    return;
+                }
+
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+                rows.Add(grid.Rows[0]);
+
+                for (int i = 1; i < grid.Rows.Count; i++)
+                {
+                    DataGridViewRow curRow = grid.Rows[i];
+
+                    int numCur = Convert.ToInt32(grid.Rows[i].Cells[0].Value.ToString());
+
+                    bool isInArray = false;
+
+                    for (int i2 = 0; i2 < rows.Count; i2++)
+                    {
+                        int numCurInRowsGrid = Convert.ToInt32(rows[i2].Cells[0].Value.ToString());
+
+                        if (numCur > numCurInRowsGrid)
+                        {
+                            rows.Insert(i2, curRow);
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        rows.Add(curRow);
+                    }
+                }
+
+                grid.Rows.Clear();
+                grid.Rows.AddRange(rows.ToArray());
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1596,7 +1678,7 @@ namespace OsEngine.Journal.Internal
         /// Update the position in the collection for the drawing
         /// добавить позицию в коллекцию на прорисовку
         /// </summary>
-        public void ProcesPosition(Position position)
+        public void ProcessPosition(Position position)
         {
             if (_startProgram == StartProgram.IsOsOptimizer)
             {
