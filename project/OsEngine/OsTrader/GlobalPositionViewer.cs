@@ -542,18 +542,97 @@ namespace OsEngine.OsTrader
                     if (_gridOpenPoses != null)
                     {
                         CheckPosition(_gridOpenPoses, openPositions);
+                        Sort(_gridOpenPoses);
                     }
 
                     if (_gridClosePoses != null)
                     {
                         CheckPosition(_gridClosePoses, closePositions);
+                        Sort(_gridClosePoses);
                     }
+
+                    
                 }
                 catch(Exception e)
                 {
                     SendNewLogMessage(e.ToString(),LogMessageType.Error);
                     await Task.Delay(5000);
                 }
+            }
+        }
+
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+        private void Sort(DataGridView grid)
+        {
+            try
+            {
+                if (grid.InvokeRequired)
+                {
+                    grid.Invoke(new Action<DataGridView>(Sort), grid);
+                    return;
+                }
+
+                bool needToSort = false;
+
+                for (int i = 1; i < grid.Rows.Count; i++)
+                {
+                    if (grid.Rows[i].Cells[0].Value == null
+                        || grid.Rows[i - 1].Cells[0].Value == null)
+                    {
+                        continue;
+                    }
+
+                    int numCur = Convert.ToInt32(grid.Rows[i].Cells[0].Value.ToString());
+                    int numPrev = Convert.ToInt32(grid.Rows[i - 1].Cells[0].Value.ToString());
+
+                    if (numCur > numPrev)
+                    {
+                        needToSort = true;
+                        break;
+                    }
+                }
+
+                if (needToSort == false)
+                {
+                    return;
+                }
+
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+                rows.Add(grid.Rows[0]);
+
+                for (int i = 1; i < grid.Rows.Count; i++)
+                {
+                    DataGridViewRow curRow = grid.Rows[i];
+
+                    int numCur = Convert.ToInt32(grid.Rows[i].Cells[0].Value.ToString());
+
+                    bool isInArray = false;
+
+                    for (int i2 = 0; i2 < rows.Count; i2++)
+                    {
+                        int numCurInRowsGrid = Convert.ToInt32(rows[i2].Cells[0].Value.ToString());
+
+                        if (numCur > numCurInRowsGrid)
+                        {
+                            rows.Insert(i2, curRow);
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        rows.Add(curRow);
+                    }
+                }
+
+                grid.Rows.Clear();
+                grid.Rows.AddRange(rows.ToArray());
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -616,20 +695,27 @@ namespace OsEngine.OsTrader
 
         private void _gridClosePoses_DoubleClick(object sender, EventArgs e)
         {
-            PaintPos(_gridClosePoses);
+            try
+            {
+                PaintPos(_gridClosePoses);
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void _gridClosePoses_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
             try
             {
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 MenuItem[] items = new MenuItem[1];
 
                 items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
@@ -644,7 +730,6 @@ namespace OsEngine.OsTrader
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         void ClosePositionClearDelete_Click(object sender, EventArgs e)
@@ -690,20 +775,27 @@ namespace OsEngine.OsTrader
 
         private void _gridOpenPoses_DoubleClick(object sender, EventArgs e)
         {
-            PaintPos(_gridOpenPoses);
+            try
+            {
+                PaintPos(_gridOpenPoses);
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void _gridAllPositions_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
             try
             {
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 MenuItem[] items = new MenuItem[5];
 
                 items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
@@ -946,13 +1038,14 @@ namespace OsEngine.OsTrader
 
         private void ColoredRow(Color color)
         {
-            if(_lastClickGrid.InvokeRequired)
-            {
-                _lastClickGrid.Invoke(new Action<Color>(ColoredRow),color);
-                return;
-            }
             try
             {
+                if (_lastClickGrid.InvokeRequired)
+                {
+                    _lastClickGrid.Invoke(new Action<Color>(ColoredRow), color);
+                    return;
+                }
+
                 _lastClickGrid.Rows[_rowToPaintInOpenPoses].DefaultCellStyle.SelectionBackColor = color;
             }
             catch
