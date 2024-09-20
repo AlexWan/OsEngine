@@ -470,12 +470,29 @@ namespace OsEngine.OsTrader
 
             decimal profitPrice = Math.Round(position.ProfitOrderPrice,decimalsPrice);
 
-            if (nRow.Cells[16].Value != null ||
+            if (nRow.Cells[16].Value == null ||
                 nRow.Cells[16].Value.ToString() != profitPrice.ToStringWithNoEndZero())
             {
                 nRow.Cells[16].Value = profitPrice.ToStringWithNoEndZero();
             }
 
+            if (string.IsNullOrEmpty(position.SignalTypeOpen) == false)
+            {
+                if (nRow.Cells[17].Value == null
+                ||
+                nRow.Cells[17].Value.ToString() != position.SignalTypeOpen.ToString())
+                {
+                    nRow.Cells[17].Value = position.SignalTypeOpen;
+                }
+            }
+            if (string.IsNullOrEmpty(position.SignalTypeClose) == false)
+            {
+                if (nRow.Cells[18].Value == null ||
+                nRow.Cells[18].Value.ToString() != position.SignalTypeClose)
+                {
+                    nRow.Cells[18].Value = position.SignalTypeClose;
+                }
+            }
         }
 
         private async void WatcherThreadWorkArea()
