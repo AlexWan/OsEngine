@@ -1674,7 +1674,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.Lots = Securiti.Lot;
                 newDeal.PriceStepCost = Securiti.PriceStepCost;
                 newDeal.PriceStep = Securiti.PriceStep;
-                newDeal.PortfolioValueOnOpenPosition = Portfolio.ValueCurrent;
+
+                if(StartProgram == StartProgram.IsOsTrader)
+                {
+                    newDeal.PortfolioValueOnOpenPosition = Portfolio.ValueCurrent;
+                }
+                else
+                { // Tester, Optimizer, etc
+                    newDeal.PortfolioValueOnOpenPosition = Math.Round(Portfolio.ValueCurrent,2);
+                }
 
                 _journal.SetNewDeal(newDeal);
 
@@ -2421,7 +2429,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.Lots = Securiti.Lot;
                 newDeal.PriceStepCost = Securiti.PriceStepCost;
                 newDeal.PriceStep = Securiti.PriceStep;
-                newDeal.PortfolioValueOnOpenPosition = Portfolio.ValueCurrent;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    newDeal.PortfolioValueOnOpenPosition = Portfolio.ValueCurrent;
+                }
+                else
+                { // Tester, Optimizer, etc
+                    newDeal.PortfolioValueOnOpenPosition = Math.Round(Portfolio.ValueCurrent, 2);
+                }
 
                 _journal.SetNewDeal(newDeal);
 

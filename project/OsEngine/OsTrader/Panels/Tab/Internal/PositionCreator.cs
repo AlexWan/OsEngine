@@ -33,7 +33,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.Lots = security.Lot;
             newDeal.PriceStepCost = security.PriceStepCost;
             newDeal.PriceStep = security.PriceStep;
-            newDeal.PortfolioValueOnOpenPosition = portfolio.ValueCurrent;
+
+            if(startProgram == StartProgram.IsOsTrader)
+            {
+                newDeal.PortfolioValueOnOpenPosition = portfolio.ValueCurrent;
+            }
+            else
+            {// Tester, Optimizer, etc
+                newDeal.PortfolioValueOnOpenPosition = Math.Round(portfolio.ValueCurrent,2);
+            }
 
             newDeal.OpenOrders[0].PortfolioNumber = portfolio.Number;
 
