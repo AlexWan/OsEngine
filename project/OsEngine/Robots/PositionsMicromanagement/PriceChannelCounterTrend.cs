@@ -67,6 +67,8 @@ namespace OsEngine.Robots.PositionsMicromanagement
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
             _tab.ManualPositionSupport.DisableManualSupport();
+
+            Description = "An example of a robot that shows closing a position via two close limit orders.";
         }
 
         void Event_ParametrsChangeByUser()

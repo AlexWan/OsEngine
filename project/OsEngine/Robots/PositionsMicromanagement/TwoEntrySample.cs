@@ -72,6 +72,8 @@ namespace OsEngine.Robots.PositionsMicromanagement
             _envelop.ParametersDigit[1].Value = EnvelopDeviation.ValueDecimal;
 
             ParametrsChangeByUser += EnvelopTrend_ParametrsChangeByUser;
+
+            Description = "Example of a robot that shows the logic of trading two patterns within one logic";
         }
 
         private void EnvelopTrend_ParametrsChangeByUser()

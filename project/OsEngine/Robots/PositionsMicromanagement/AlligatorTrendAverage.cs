@@ -15,7 +15,6 @@ using System.Collections.Generic;
 
 namespace OsEngine.Robots.PositionsMicromanagement
 {
-    // Последовательный вход в одну позицию двумя ордерами
 
     [Bot("AlligatorTrendAverage")]
     public class AlligatorTrendAverage : BotPanel
@@ -41,7 +40,6 @@ namespace OsEngine.Robots.PositionsMicromanagement
         public StrategyParameterInt ShiftJaw;
         public StrategyParameterInt ShiftTeeth;
         public StrategyParameterInt ShiftLips;
-
 
         public AlligatorTrendAverage(string name, StartProgram startProgram)
             : base(name, startProgram)
@@ -81,6 +79,8 @@ namespace OsEngine.Robots.PositionsMicromanagement
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
             _tab.ManualPositionSupport.DisableManualSupport();
+
+            Description = "An example of a robot that shows sequential averaging of a position and increase of a position on a trend";
         }
 
         void Event_ParametrsChangeByUser()
