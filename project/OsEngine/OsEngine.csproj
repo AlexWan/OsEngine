@@ -1118,6 +1118,7 @@
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
     <Compile Include="Robots\PositionsMicromanagement\AlligatorTrendAverage.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\CandlesTurnaroundPattern.cs" />
     <Compile Include="Robots\PositionsMicromanagement\EnvelopsCountertrend.cs" />
     <Compile Include="Robots\PositionsMicromanagement\PriceChannelCounterTrend.cs" />
     <Compile Include="Robots\CurrencyArbitrage\CurrencyArbitrageClassic.cs" />
