@@ -64,26 +64,32 @@ namespace OsEngine.Journal.Internal
 
             while (true)
             {
-                await Task.Delay(1000);
-
-                for (int i = 0; i < ControllersToCheck.Count; i++)
+                try
                 {
-                    PositionController controller = ControllersToCheck[i];
-
-                    if (controller == null)
+                    for (int i = 0; i < ControllersToCheck.Count; i++)
                     {
-                        continue;
+                        PositionController controller = ControllersToCheck[i];
+
+                        if (controller == null)
+                        {
+                            continue;
+                        }
+
+                        controller.SavePositions();
+                        controller.TryPaintPositions();
+                        controller.TrySaveStopLimits();
                     }
 
-                    controller.SavePositions();
-                    controller.TryPaintPositions();
-                    controller.TrySaveStopLimits();
+                    if (!MainWindow.ProccesIsWorked)
+                    {
+                        return;
+                    }
                 }
-
-                if (!MainWindow.ProccesIsWorked)
+                catch
                 {
-                    return;
+                    // ignore
                 }
+                await Task.Delay(1000);
             }
         }
         // service

@@ -16,6 +16,8 @@ CustomTableInParamWindowSample&Sample “Custom Table In The Param Window” for
 CustomCandlesImpulseTrader&Trading robot for adaptive by volatility candle series. if he sees a movement to one side in a short period of time, it enters the position&Include&&Simple 1*&&
 CurrencyArbitrageClassic&A robot for classic currency arbitrage&Include&&Polygon 1*&&
 CurrencyMoveExplorer&Robot for research. Saves slices of the situation on the bundle of instruments within 3 seconds after receiving a signal that there is profit on the sequence.&Include&&Polygon 1*&&
+CandlesTurnaroundPattern&Example of a robot that sequentially closes a position through 3 limit orders&Include&&Simple 1*&ATR*&
+CustomIcebergSample&Countertrend robot on bollinger indicator. Inside of which an example of entering a position by multiple orders through its own logic is implemented.&Include&&Simple 1*&Bollinger*&
 ClusterCountertrend&The Countertrend robot Buy: we buy if we are under the largest volume for sale in the last 10 candles. Sell: sell if we are above the largest purchase volume for the last 10 candles. Exit logic: By return signal.&Include&&Simple 1*Cluster 1*&&
 Engine&blank strategy for manual trading&Include&&Simple 1*&&
 EnvelopTrend&Trend strategy based on indicator Envelop. Entrance to Long: entry when the price crosses the upper border of the channel. Entrance to Short: entry when the price crosses the lower border of the channel. Exiting a Long position: by trailing stop. Exit from a Short position: by trailing stop.&Include&&Simple 1*&Envelops*&
