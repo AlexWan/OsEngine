@@ -1907,8 +1907,7 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
                 }
-                //  forming Profit and Stop lines
-                // формируем линии Профитов и Стопов
+
                 for (int i = 0; i < deals.Count; i++)
                 {
                     // going through open order limit
@@ -1916,43 +1915,51 @@ namespace OsEngine.Charts.CandleChart
 
                     if (deals[i].State == PositionStateType.Opening 
                         && deals[i].OpenOrders != null 
-                        && deals[i].OpenOrders.Count > 0 
-                        && deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].State == OrderStateType.Activ)
+                        && deals[i].OpenOrders.Count > 0)
                     {
-                        Series lineSeries = new Series("Open_" + deals[i].Number);
-                        lineSeries.ChartType = SeriesChartType.Line;
-                        lineSeries.YAxisType = AxisType.Secondary;
-                        lineSeries.XAxisType = AxisType.Secondary;
-                        lineSeries.ChartArea = "Prime";
-                        lineSeries.ShadowOffset = 1;
-                        lineSeries.YValuesPerPoint = 1;
-
-
-                        lineSeries.Points.AddXY(0, deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].Price);
-                        lineSeries.Points.AddXY(_myCandles.Count + 500, deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].Price);
-
-                        if (deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].Side == Side.Buy)
+                        for (int j = 0; j < deals[i].OpenOrders.Count; j++)
                         {
-                            lineSeries.Color = Color.Green;
-                        }
-                        else
-                        {
-                            lineSeries.Color = Color.Red;
-                        }
+                            Order curOrder = deals[i].OpenOrders[j];
 
-                        if (stopProfitOrderSeries == null)
-                        {
-                            stopProfitOrderSeries = new[] { lineSeries };
-                        }
-                        else
-                        {
-                            Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
-                            for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                            if (curOrder.State != OrderStateType.Activ)
                             {
-                                newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                continue;
                             }
-                            newLineSeries[newLineSeries.Length - 1] = lineSeries;
-                            stopProfitOrderSeries = newLineSeries;
+
+                            Series lineSeries = new Series("Open_" + deals[i].Number + j.ToString());
+                            lineSeries.ChartType = SeriesChartType.Line;
+                            lineSeries.YAxisType = AxisType.Secondary;
+                            lineSeries.XAxisType = AxisType.Secondary;
+                            lineSeries.ChartArea = "Prime";
+                            lineSeries.ShadowOffset = 1;
+                            lineSeries.YValuesPerPoint = 1;
+
+                            lineSeries.Points.AddXY(0, curOrder.Price);
+                            lineSeries.Points.AddXY(_myCandles.Count + 500, curOrder.Price);
+
+                            if (curOrder.Side == Side.Buy)
+                            {
+                                lineSeries.Color = Color.Green;
+                            }
+                            else
+                            {
+                                lineSeries.Color = Color.Red;
+                            }
+
+                            if (stopProfitOrderSeries == null)
+                            {
+                                stopProfitOrderSeries = new[] { lineSeries };
+                            }
+                            else
+                            {
+                                Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
+                                for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                                {
+                                    newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                }
+                                newLineSeries[newLineSeries.Length - 1] = lineSeries;
+                                stopProfitOrderSeries = newLineSeries;
+                            }
                         }
                     }
                 }
@@ -1962,43 +1969,52 @@ namespace OsEngine.Charts.CandleChart
                     // проходим Лимит ОРДЕРА НА ЗАКРЫТИИ
                     if (deals[i].State == PositionStateType.Closing &&
                         deals[i].CloseOrders != null &&
-                        deals[i].CloseOrders.Count > 0 &&
-                        deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].State == OrderStateType.Activ)
+                        deals[i].CloseOrders.Count > 0)
                     {
-                        Series lineSeries = new Series("Close_" + deals[i].Number);
-                        lineSeries.ChartType = SeriesChartType.Line;
-                        lineSeries.YAxisType = AxisType.Secondary;
-                        lineSeries.XAxisType = AxisType.Secondary;
-                        lineSeries.ChartArea = "Prime";
-                        lineSeries.ShadowOffset = 1;
-                        lineSeries.YValuesPerPoint = 1;
-
-
-                        lineSeries.Points.AddXY(0, deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].Price);
-                        lineSeries.Points.AddXY(_myCandles.Count + 500, deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].Price);
-
-                        if (deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].Side == Side.Buy)
+                        for(int j = 0;j < deals[i].CloseOrders.Count;j++)
                         {
-                            lineSeries.Color = Color.Green;
-                        }
-                        else
-                        {
-                            lineSeries.Color = Color.Red;
-                        }
+                            Order curOrder = deals[i].CloseOrders[j];
 
-                        if (stopProfitOrderSeries == null)
-                        {
-                            stopProfitOrderSeries = new[] { lineSeries };
-                        }
-                        else
-                        {
-                            Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
-                            for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                            if(curOrder.State != OrderStateType.Activ)
                             {
-                                newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                continue;
                             }
-                            newLineSeries[newLineSeries.Length - 1] = lineSeries;
-                            stopProfitOrderSeries = newLineSeries;
+
+                            Series lineSeries = new Series("Close_" + deals[i].Number + j.ToString());
+                            lineSeries.ChartType = SeriesChartType.Line;
+                            lineSeries.YAxisType = AxisType.Secondary;
+                            lineSeries.XAxisType = AxisType.Secondary;
+                            lineSeries.ChartArea = "Prime";
+                            lineSeries.ShadowOffset = 1;
+                            lineSeries.YValuesPerPoint = 1;
+
+
+                            lineSeries.Points.AddXY(0, curOrder.Price);
+                            lineSeries.Points.AddXY(_myCandles.Count + 500, curOrder.Price);
+
+                            if (curOrder.Side == Side.Buy)
+                            {
+                                lineSeries.Color = Color.Green;
+                            }
+                            else
+                            {
+                                lineSeries.Color = Color.Red;
+                            }
+
+                            if (stopProfitOrderSeries == null)
+                            {
+                                stopProfitOrderSeries = new[] { lineSeries };
+                            }
+                            else
+                            {
+                                Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
+                                for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                                {
+                                    newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                }
+                                newLineSeries[newLineSeries.Length - 1] = lineSeries;
+                                stopProfitOrderSeries = newLineSeries;
+                            }
                         }
                     }
                 }
@@ -2313,11 +2329,14 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private int MagicSearch(DateTime time, List<Candle> candles, int start, int end, decimal price)
         {
-            if(end - start < 5 ||
-                start > end)
-            {
-
+            if(_startProgram == StartProgram.IsTester
+                && candles[candles.Count-1].TimeStart <= time
+                && 
+                (price > candles[candles.Count-1].High || price < candles[candles.Count - 1].Low))
+            {// при прорисовке в тестере, пришла последняя сделка, по ещё не прорисованной свече
+                return candles.Count;
             }
+
             if (end - start < 50)
             {
                 for (int i = start; i < end; i++)
