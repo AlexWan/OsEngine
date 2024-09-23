@@ -143,7 +143,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
         {
             decimal lastPrice = candles[candles.Count - 1].Close;
             decimal bollingerUp = _bollinger.DataSeries[0].Values[_bollinger.DataSeries[0].Values.Count - 1];
-            decimal bollingerDown = _bollinger.DataSeries[2].Values[_bollinger.DataSeries[2].Values.Count - 1];
+            decimal bollingerDown = _bollinger.DataSeries[1].Values[_bollinger.DataSeries[1].Values.Count - 1];
 
             if (bollingerUp == 0
                 || bollingerDown == 0)

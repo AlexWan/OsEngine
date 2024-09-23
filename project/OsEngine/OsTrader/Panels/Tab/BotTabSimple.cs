@@ -1905,7 +1905,39 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                LongUpdate(position, priceLimit, volume, ManualPositionSupport.SecondToOpen, false);
+                LongUpdate(position, priceLimit, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Limit, true);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Add new order to Long position at limit
+        /// Active orders already on the exchange will not be withdrawn from the market. 
+        /// </summary>
+        /// <param name="position">position to which the order will be added</param>
+        /// <param name="priceLimit">order price</param>
+        /// <param name="volume">volume</param>
+        public void BuyAtLimitToPositionUnsafe(Position position, decimal priceLimit, decimal volume)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
+                if (position.Direction == Side.Sell)
+                {
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label65, LogMessageType.Error);
+                    return;
+                }
+
+                LongUpdate(position, priceLimit, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Limit, false);
             }
             catch (Exception error)
             {
@@ -1962,11 +1994,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_connector.MarketOrdersIsSupport)
                 {
-                    LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Market);
+                    LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Market, true);
                 }
                 else
                 {
-                    LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false);
+                    LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Limit, true);
                 }
 
             }
@@ -2010,12 +2042,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (position.Direction == Side.Sell)
                     {
-                        ClosePeaceOfDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, volume);
+                        ClosePeaceOfDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, volume, true);
 
                         return;
                     }
 
-                    LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false);
+                    LongUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Limit, true);
                     return;
                 }
 
@@ -2668,7 +2700,39 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                ShortUpdate(position, priceLimit, volume, ManualPositionSupport.SecondToOpen, false);
+                ShortUpdate(position, priceLimit, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Limit, true);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Add new order to Short position at limit
+        /// Active orders already on the exchange will not be withdrawn from the market. 
+        /// </summary>
+        /// <param name="position">position to which the order will be added</param>
+        /// <param name="priceLimit">order price</param>
+        /// <param name="volume">volume</param>
+        public void SellAtLimitToPositionUnsafe(Position position, decimal priceLimit, decimal volume)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+                if (position.Direction == Side.Buy)
+                {
+                    SetNewLogMessage(TabName + OsLocalization.Trader.Label66, LogMessageType.Error);
+
+                    return;
+                }
+
+                ShortUpdate(position, priceLimit, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Limit, false);
             }
             catch (Exception error)
             {
@@ -2725,11 +2789,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_connector.MarketOrdersIsSupport)
                 {
-                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Market);
+                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Market, true);
                 }
                 else
                 {
-                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false);
+                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Market, true);
                 }
 
             }
@@ -2773,11 +2837,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (position.Direction == Side.Buy)
                     {
-                        ClosePeaceOfDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, volume);
+                        ClosePeaceOfDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, volume, true);
                         return;
                     }
 
-                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false);
+                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Limit, true);
                     return;
                 }
 
@@ -3058,11 +3122,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (position.OpenVolume <= volume)
                     {
-                        CloseDeal(position, OrderPriceType.Market, price, ManualPositionSupport.SecondToClose, false);
+                        CloseDeal(position, OrderPriceType.Market, price, ManualPositionSupport.SecondToClose, false, true);
                     }
                     else if (position.OpenVolume > volume)
                     {
-                        ClosePeaceOfDeal(position, OrderPriceType.Market, price, ManualPositionSupport.SecondToClose, volume);
+                        ClosePeaceOfDeal(position, OrderPriceType.Market, price, ManualPositionSupport.SecondToClose, volume, true);
                     }
                 }
                 else
@@ -3104,11 +3168,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 if (position.OpenVolume <= volume)
                 {
-                    CloseDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, false);
+                    CloseDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, false, true);
                 }
                 else if (position.OpenVolume > volume)
                 {
-                    ClosePeaceOfDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, volume);
+                    ClosePeaceOfDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, volume, true);
                 }
             }
             catch (Exception error)
@@ -3131,6 +3195,37 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Close a position at a limit price in UnSafe regime. 
+        /// Active orders already on the exchange will not be withdrawn from the market. 
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceLimit">order price</param>
+        /// <param name="volume">volume required to close</param>
+        public void CloseAtLimitUnsafe(Position position, decimal priceLimit, decimal volume)
+        {
+            try
+            {
+                if (volume <= 0 || position.OpenVolume <= 0)
+                {
+                    return;
+                }
+
+                if (position.OpenVolume <= volume)
+                {
+                    CloseDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, false, false);
+                }
+                else if (position.OpenVolume > volume)
+                {
+                    ClosePeaceOfDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, volume, false);
+                }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// Close position at iceberg
         /// </summary>
         /// <param name="position">position to be closed</param>
@@ -3149,11 +3244,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (position.OpenVolume <= volume)
                     {
-                        CloseDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, false);
+                        CloseDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, false, true);
                     }
                     else if (position.OpenVolume > volume)
                     {
-                        ClosePeaceOfDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, volume);
+                        ClosePeaceOfDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, volume, true);
                     }
                     return;
                 }
@@ -3659,8 +3754,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">volume</param>
         /// <param name="timeLife">life time</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit</param>
+        /// <param name="orderType">whether the order is a result of a stop or a profit</param>
+        /// <param name="safeRegime">if True - active orders to close the position will be withdrawn.</param>
         private void ShortUpdate(Position position, decimal price, decimal volume, TimeSpan timeLife,
-            bool isStopOrProfit, OrderPriceType OrderType = OrderPriceType.Limit)
+            bool isStopOrProfit, OrderPriceType orderType, bool safeRegime)
         {
             try
             {
@@ -3684,19 +3781,22 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Securiti, Side.Sell);
 
-                if (position.OpenOrders != null &&
-                    position.OpenOrders.Count > 0)
+                if(safeRegime == true)
                 {
-                    for (int i = 0; i < position.OpenOrders.Count; i++)
+                    if (position.OpenOrders != null &&
+                        position.OpenOrders.Count > 0)
                     {
-                        if (position.OpenOrders[i].State == OrderStateType.Activ)
+                        for (int i = 0; i < position.OpenOrders.Count; i++)
                         {
-                            _connector.OrderCancel(position.OpenOrders[i]);
+                            if (position.OpenOrders[i].State == OrderStateType.Activ)
+                            {
+                                _connector.OrderCancel(position.OpenOrders[i]);
+                            }
                         }
                     }
                 }
 
-                Order newOrder = _dealCreator.CreateOrder(Securiti, Side.Sell, price, volume, OrderType,
+                Order newOrder = _dealCreator.CreateOrder(Securiti, Side.Sell, price, volume, orderType,
                     ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
@@ -3778,8 +3878,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">volume</param>
         /// <param name="timeLife">life time</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit</param>
+        /// <param name="orderType">whether the order is a result of a stop or a profit</param>
+        /// <param name="safeRegime">if True - active orders to close the position will be withdrawn.</param>
         private void LongUpdate(Position position, decimal price, decimal volume, TimeSpan timeLife,
-            bool isStopOrProfit, OrderPriceType OrderType = OrderPriceType.Limit)
+            bool isStopOrProfit, OrderPriceType orderType, bool safeRegime)
         {
             try
             {
@@ -3803,19 +3905,22 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Securiti, Side.Buy);
 
-                if (position.OpenOrders != null &&
-                    position.OpenOrders.Count > 0)
+                if(safeRegime == true)
                 {
-                    for (int i = 0; i < position.OpenOrders.Count; i++)
+                    if (position.OpenOrders != null &&
+                        position.OpenOrders.Count > 0)
                     {
-                        if (position.OpenOrders[i].State == OrderStateType.Activ)
+                        for (int i = 0; i < position.OpenOrders.Count; i++)
                         {
-                            _connector.OrderCancel(position.OpenOrders[i]);
+                            if (position.OpenOrders[i].State == OrderStateType.Activ)
+                            {
+                                _connector.OrderCancel(position.OpenOrders[i]);
+                            }
                         }
                     }
                 }
 
-                Order newOrder = _dealCreator.CreateOrder(Securiti, Side.Buy, price, volume, OrderType,
+                Order newOrder = _dealCreator.CreateOrder(Securiti, Side.Buy, price, volume, orderType,
                     ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
@@ -3847,8 +3952,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">price</param>
         /// <param name="lifeTime">life time order</param>
         /// <param name="isStopOrProfit">whether the order is a result of a stop or a profit</param>
+        /// <param name="safeRegime">if True - active orders to close the position will be withdrawn.</param>
         private void CloseDeal(Position position, OrderPriceType priceType, decimal price, TimeSpan lifeTime,
-            bool isStopOrProfit)
+            bool isStopOrProfit, bool safeRegime)
         {
             try
             {
@@ -3856,20 +3962,22 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-
-                for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
+                if(safeRegime)
                 {
-                    if (position.CloseOrders[i].State == OrderStateType.Activ)
+                    for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
                     {
-                        _connector.OrderCancel(position.CloseOrders[i]);
+                        if (position.CloseOrders[i].State == OrderStateType.Activ)
+                        {
+                            _connector.OrderCancel(position.CloseOrders[i]);
+                        }
                     }
-                }
 
-                for (int i = 0; position.OpenOrders != null && i < position.OpenOrders.Count; i++)
-                {
-                    if (position.OpenOrders[i].State == OrderStateType.Activ)
+                    for (int i = 0; position.OpenOrders != null && i < position.OpenOrders.Count; i++)
                     {
-                        _connector.OrderCancel(position.OpenOrders[i]);
+                        if (position.OpenOrders[i].State == OrderStateType.Activ)
+                        {
+                            _connector.OrderCancel(position.OpenOrders[i]);
+                        }
                     }
                 }
 
@@ -3937,8 +4045,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">price</param>
         /// <param name="lifeTime">life time</param>
         /// <param name="volume">volume</param>
+        /// <param name="safeRegime">if True - active orders to close the position will be withdrawn.</param>
         private void ClosePeaceOfDeal(Position position, OrderPriceType priceType, decimal price, TimeSpan lifeTime,
-            decimal volume)
+            decimal volume, bool safeRegime)
         {
             try
             {
@@ -3947,26 +4056,29 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (position.CloseOrders != null)
+                if(safeRegime == true)
                 {
-                    for (int i = 0; i < position.CloseOrders.Count; i++)
+                    if (position.CloseOrders != null)
                     {
-                        Order order = position.CloseOrders[i];
-                        if (order.State != OrderStateType.Done && order.State != OrderStateType.Cancel)
+                        for (int i = 0; i < position.CloseOrders.Count; i++)
                         {
-                            _connector.OrderCancel(order);
+                            Order order = position.CloseOrders[i];
+                            if (order.State != OrderStateType.Done && order.State != OrderStateType.Cancel)
+                            {
+                                _connector.OrderCancel(order);
+                            }
                         }
                     }
-                }
 
-                if (position.OpenOrders != null &&
-                    position.OpenOrders.Count > 0)
-                {
-                    for (int i = 0; i < position.OpenOrders.Count; i++)
+                    if (position.OpenOrders != null &&
+                        position.OpenOrders.Count > 0)
                     {
-                        if (position.OpenOrders[i].State == OrderStateType.Activ)
+                        for (int i = 0; i < position.OpenOrders.Count; i++)
                         {
-                            _connector.OrderCancel(position.OpenOrders[i]);
+                            if (position.OpenOrders[i].State == OrderStateType.Activ)
+                            {
+                                _connector.OrderCancel(position.OpenOrders[i]);
+                            }
                         }
                     }
                 }
@@ -3984,7 +4096,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 price = RoundPrice(price, Securiti, sideCloseOrder);
 
                 Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Securiti, position, price, priceType, lifeTime, StartProgram);
-
 
                 if (closeOrder == null)
                 {
@@ -4343,11 +4454,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                             || StartProgram == StartProgram.IsTester 
                             || StartProgram == StartProgram.IsOsOptimizer)
                         {
-                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
                         else
                         {
-                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
 
                         PositionStopActivateEvent?.Invoke(position);
@@ -4375,11 +4486,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                            || StartProgram == StartProgram.IsTester
                            || StartProgram == StartProgram.IsOsOptimizer)
                         {
-                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                            CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
                         else
                         {
-                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true);
+                            CloseDeal(position, OrderPriceType.Market, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
 
                         PositionStopActivateEvent?.Invoke(position);
@@ -4410,11 +4521,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                             || StartProgram == StartProgram.IsTester
                             || StartProgram == StartProgram.IsOsOptimizer)
                         {
-                            CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                            CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
                         else
                         {
-                            CloseDeal(position, OrderPriceType.Market, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                            CloseDeal(position, OrderPriceType.Market, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
 
                         PositionProfitActivateEvent?.Invoke(position);
@@ -4442,11 +4553,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                            || StartProgram == StartProgram.IsTester
                            || StartProgram == StartProgram.IsOsOptimizer)
                         {
-                            CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                            CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
                         else
                         {
-                            CloseDeal(position, OrderPriceType.Market, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true);
+                            CloseDeal(position, OrderPriceType.Market, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
 
                         PositionProfitActivateEvent?.Invoke(position);
@@ -4522,7 +4633,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             price = _connector.BestAsk + signal.Slipage;
                         }
 
-                        CloseDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, true);
+                        CloseDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, true, true);
                     }
                 }
 
@@ -4683,11 +4794,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Sell && position.OpenVolume < 0)
                 {
-                    ShortUpdate(position, PriceBestBid - Securiti.PriceStep * 30, Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false);
+                    ShortUpdate(position, PriceBestBid - Securiti.PriceStep * 30, 
+                        Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false, OrderPriceType.Limit, true);
                 }
                 if (position.Direction == Side.Buy && position.OpenVolume < 0)
                 {
-                    LongUpdate(position, PriceBestAsk + Securiti.PriceStep * 30, Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false);
+                    LongUpdate(position, PriceBestAsk + Securiti.PriceStep * 30, 
+                        Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false, OrderPriceType.Limit, true);
                 }
             }
         }
