@@ -1151,7 +1151,6 @@
     <Compile Include="Robots\Patterns\CustomCandlesImpulseTrader.cs" />
     <Compile Include="Robots\Patterns\VolatilityAdaptiveCandlesTrader.cs" />
     <Compile Include="Robots\Patterns\ThreeSoldierVolatilityAdaptive.cs" />
-    <Compile Include="Robots\PositionsMicromanagement\UnsafeLimitsAverageSample.cs" />
     <Compile Include="Robots\PositionsMicromanagement\UnsafeLimitsClosingSample.cs" />
     <Compile Include="Robots\Screeners\BollingerMomentumScreener.cs" />
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />

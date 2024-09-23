@@ -77,6 +77,7 @@ TestBotCandlesComparison&&Include&&&&
 TestBotConnection&Do not turn on - robot for connection testing&Include&&Screener 1*&Sma*Momentum*&
 TestBotOpenAndCanselOrders&&Include&&&&
 TestBotTradesInCandlesTest&Do not enable - a robot for testing the synchronism of the array of trades in the candle and the candles themselves&Include&&Screener 1*&Sma*Momentum*&
+UnsafeLimitsClosingSample&Example of using a non-safe method of closing positions with multiple limit orders at the same time&Include&&Simple 1*&Envelops*&
 VolatilityAdaptiveCandlesTrader&Trading robot for adaptive candles by volatility&Include&&Simple 1*&&
 WilliamsRangeTrade&Counter Trend Strategy Based on Willams% R Indicator Buy: 1. Williams Range is smaller than DownLine. sell: 1. Williams Range is larger than UpLine. exit: 1. On the return signal&Include&&Simple 1*&WilliamsRange*&
 WServerTester&&Include&&&&
