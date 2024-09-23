@@ -196,9 +196,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             decimal lastSlowAlligator = _alligator.DataSeries[0].Last;
-
             decimal lastMiddleAlligator = _alligator.DataSeries[1].Last;
-
             decimal lastFastAlligator = _alligator.DataSeries[2].Last;
 
             // 1 Standard Exit / стандартный выход
@@ -271,9 +269,9 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 (position.Comment.Contains("Pyramid") == false))
             {
                 decimal pyramidPrice =
-                    position.EntryPrice + position.EntryPrice * (PyramidPercent.ValueDecimal / 100);
+                    position.EntryPrice - position.EntryPrice * (PyramidPercent.ValueDecimal / 100);
 
-                if (lastPrice > pyramidPrice)
+                if (lastPrice < pyramidPrice)
                 {
                     position.Comment += "Pyramid";
                     _tab.SellAtMarketToPosition(position, GetVolume(_tab));
