@@ -372,6 +372,8 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
         public Position PositionToClose;
 
+        public Position OpeningPosition;
+
         public void Start()
         {
             if (PositionToClose == null)
@@ -418,24 +420,24 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 {
                     if (Side == Side.Buy)
                     {
-                        if (Tab.PositionsOpenAll.Count == 0)
+                        if (OpeningPosition == null)
                         {
-                            Tab.BuyAtMarket(volumes[i]);
+                            OpeningPosition = Tab.BuyAtMarket(volumes[i]);
                         }
                         else
                         {
-                            Tab.BuyAtMarketToPosition(Tab.PositionsOpenAll[0], volumes[i]);
+                            Tab.BuyAtMarketToPosition(OpeningPosition, volumes[i]);
                         }
                     }
                     if (Side == Side.Sell)
                     {
-                        if (Tab.PositionsOpenAll.Count == 0)
+                        if (OpeningPosition == null)
                         {
-                            Tab.SellAtMarket(volumes[i]);
+                            OpeningPosition = Tab.SellAtMarket(volumes[i]);
                         }
                         else
                         {
-                            Tab.SellAtMarketToPosition(Tab.PositionsOpenAll[0], volumes[i]);
+                            Tab.SellAtMarketToPosition(OpeningPosition, volumes[i]);
                         }
                     }
                     Thread.Sleep(SecondsBetweenOrders * 1000);
@@ -451,8 +453,6 @@ namespace OsEngine.Robots.PositionsMicromanagement
         {
             try
             {
-                int iterationCount = 0;
-
                 if (OrdersCount < 1)
                 {
                     OrdersCount = 1;
