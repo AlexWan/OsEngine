@@ -15,6 +15,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using System.Drawing;
 using OsEngine.Alerts;
 using System.Globalization;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader
 {
@@ -341,26 +342,32 @@ namespace OsEngine.OsTrader
 
             while(true)
             {
-                await Task.Delay(3000);
-
-                if (_isDeleted)
+                try
                 {
-                    return;
-                }
+                    await Task.Delay(3000);
 
-                List<PositionOpenerToStopLimit> stopLimits = new List<PositionOpenerToStopLimit>();
-
-                for(int i = 0;i < _tabsToWatch.Count;i++)
-                {
-                    if (_tabsToWatch[i].PositionOpenerToStop != null &&
-                        _tabsToWatch[i].PositionOpenerToStop.Count != 0)
+                    if (_isDeleted)
                     {
-                        stopLimits.AddRange(_tabsToWatch[i].PositionOpenerToStop);
+                        return;
                     }
+
+                    List<PositionOpenerToStopLimit> stopLimits = new List<PositionOpenerToStopLimit>();
+
+                    for (int i = 0; i < _tabsToWatch.Count; i++)
+                    {
+                        if (_tabsToWatch[i].PositionOpenerToStop != null &&
+                            _tabsToWatch[i].PositionOpenerToStop.Count != 0)
+                        {
+                            stopLimits.AddRange(_tabsToWatch[i].PositionOpenerToStop);
+                        }
+                    }
+
+                    CheckPosition(_grid, stopLimits);
                 }
-
-                CheckPosition(_grid, stopLimits);
-
+                catch (Exception error)
+                {
+                    ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
             }
         }
 
