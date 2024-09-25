@@ -80,7 +80,7 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < parameters.Count; i++)
             {
-                result += parameters[i].Name + " = ";
+                result += parameters[i].Name + " =; ";
 
                 if (parameters[i].Type == StrategyParameterType.Bool)
                 {

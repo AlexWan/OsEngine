@@ -150,7 +150,7 @@ namespace OsEngine.Entity
 
                     for (int i = 0; i < grid.Columns.Count; i++)
                     {
-                        saveStr += grid.Columns[i].HeaderText + ",";
+                        saveStr += grid.Columns[i].HeaderText + ";";
                     }
 
                     saveStr += "\r\n";

@@ -499,10 +499,10 @@ namespace OsEngine.Entity
             {
                 if(row.Cells[i].Value == null)
                 {
-                    result +=  ",";
+                    result +=  ";";
                     continue;
                 }
-                result += row.Cells[i].Value.ToString().Replace("\n"," ").Replace("\r"," ").Replace(",",".") + ",";
+                result += row.Cells[i].Value.ToString().Replace("\n"," ").Replace("\r"," ").Replace(",",".") + ";";
             }
 
             return result;
