@@ -160,7 +160,6 @@ namespace OsEngine.Robots.PositionsMicromanagement
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             if (position.SignalTypeClose == "StopActivate"
-                || position.SignalTypeClose == "ProfitActivate"
                 || position.State == PositionStateType.Opening)
             {
                 return;
@@ -184,8 +183,25 @@ namespace OsEngine.Robots.PositionsMicromanagement
                     secondOrderPrice = position.EntryPrice - position.EntryPrice * (ProfitLimitTwoPercent.ValueDecimal / 100);
                 }
 
-                _tab.CloseAtLimitUnsafe(position, firstOrderPrice, position.OpenVolume / 2);
-                _tab.CloseAtLimitUnsafe(position, secondOrderPrice, position.OpenVolume / 2);
+                int executeCloseOrdersCount = 0;
+
+                for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
+                {
+                    if (position.CloseOrders[i].State == OrderStateType.Done)
+                    {
+                        executeCloseOrdersCount++;
+                    }
+                }
+
+                if(executeCloseOrdersCount == 0)
+                {
+                    _tab.CloseAtLimitUnsafe(position, firstOrderPrice, position.OpenVolume / 2);
+                    _tab.CloseAtLimitUnsafe(position, secondOrderPrice, position.OpenVolume / 2);
+                }
+                else
+                {
+                    _tab.CloseAtLimitUnsafe(position, secondOrderPrice, position.OpenVolume);
+                }
             }
 
             // Stop
