@@ -111,6 +111,8 @@ namespace OsEngine.OsOptimizer
                     result += ((StrategyParameterDecimalCheckBox)parameters[i]).ValueDecimal + " (" + Convert.ToString(((StrategyParameterDecimalCheckBox)parameters[i]).CheckState) + ")";
                 }
 
+                result += ";";
+
                 result += "\n";
             }
 
