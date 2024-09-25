@@ -725,6 +725,12 @@ namespace OsEngine.OsOptimizer
 
             BotPanel bot = CreateNewBot(botName, parametrs, paramOptimized, server, StartProgram.IsOsOptimizer);
 
+            if(bot == null)
+            {
+                SendLogMessage("Critical Optimizer Error. Robot cannot be created", LogMessageType.Error);
+                return;
+            }
+
             // wait for the robot to connect to its data server
             // ждём пока робот подключиться к своему серверу данных
 

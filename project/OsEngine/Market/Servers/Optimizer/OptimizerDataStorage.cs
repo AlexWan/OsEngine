@@ -449,7 +449,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     for (int i = 0; i < directories.Length; i++)
                     {
-                        LoadSeciruty(directories[i]);
+                        LoadSecuruty(directories[i]);
                     }
 
                 }
@@ -500,7 +500,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// выгрузить один инструмент из папки
         /// </summary>
         /// <param name="path">instrument folder path/путь к папке с инструментом</param>
-        private void LoadSeciruty(string path)
+        private void LoadSecuruty(string path)
         {
             try
             {
