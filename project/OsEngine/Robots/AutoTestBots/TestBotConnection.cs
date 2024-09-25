@@ -271,21 +271,35 @@ namespace OsEngine.Robots.AutoTestBots
         {
             while (true)
             {
-                Thread.Sleep(200);
-                if (testBotConnectionParams != null)
+                try
                 {
-                    var servers = ServerMaster.GetServers();
-                    var server = servers.Find(ser => ser.ServerType.ToString().Equals(_server));
-
-                    if (server == null || server.Equals(String.Empty))
+                    Thread.Sleep(200);
+                    if (testBotConnectionParams != null)
                     {
-                        continue;
+                        var servers = ServerMaster.GetServers();
+
+                        if(servers == null ||
+                            servers.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        var server = servers.Find(ser => ser.ServerType.ToString().Equals(_server));
+
+                        if (server == null || server.Equals(String.Empty))
+                        {
+                            continue;
+                        }
+
+                        bool flag = server.ServerStatus == ServerConnectStatus.Connect;
+
+                        testBotConnectionParams.DrawingRectagle(flag);
                     }
-
-                    bool flag = server.ServerStatus == ServerConnectStatus.Connect;
-
-                    testBotConnectionParams.DrawingRectagle(flag);
-
+                }
+                catch (Exception e)
+                {
+                    SendNewLogMessage(e.ToString(),Logging.LogMessageType.Error);
+                    Thread.Sleep(1000);
                 }
             }
         }
