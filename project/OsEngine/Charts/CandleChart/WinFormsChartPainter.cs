@@ -1913,8 +1913,11 @@ namespace OsEngine.Charts.CandleChart
                     // going through open order limit
                     // проходим Лимит ОРДЕРА НА ОТКРЫТИИ
 
-                    if (deals[i].State == PositionStateType.Opening 
-                        && deals[i].OpenOrders != null 
+                    if ((deals[i].State == PositionStateType.Closing
+                        || deals[i].State == PositionStateType.Opening
+                        || deals[i].State == PositionStateType.Open)
+                        && 
+                        deals[i].OpenOrders != null 
                         && deals[i].OpenOrders.Count > 0)
                     {
                         for (int j = 0; j < deals[i].OpenOrders.Count; j++)
@@ -1967,7 +1970,10 @@ namespace OsEngine.Charts.CandleChart
                 {
                     // going through Order limit on close
                     // проходим Лимит ОРДЕРА НА ЗАКРЫТИИ
-                    if (deals[i].State == PositionStateType.Closing &&
+                    if ((deals[i].State == PositionStateType.Closing
+                        || deals[i].State == PositionStateType.Opening
+                        || deals[i].State == PositionStateType.Open)
+                        &&
                         deals[i].CloseOrders != null &&
                         deals[i].CloseOrders.Count > 0)
                     {
@@ -2023,11 +2029,14 @@ namespace OsEngine.Charts.CandleChart
                     // going through stop order
                     // проходим СТОП ОРДЕРА
                     if (
-                        (deals[i].State == PositionStateType.Open || deals[i].State == PositionStateType.Closing) &&
+                        (deals[i].State == PositionStateType.Closing
+                        || deals[i].State == PositionStateType.Opening
+                        || deals[i].State == PositionStateType.Open) 
+                        &&
                         deals[i].StopOrderIsActiv)
                     {
                         Series lineSeries = new Series("Stop_" + deals[i].Number);
-                        lineSeries.ChartType = SeriesChartType.Line;
+                        lineSeries.ChartType = SeriesChartType.StepLine;
                         lineSeries.YAxisType = AxisType.Secondary;
                         lineSeries.XAxisType = AxisType.Secondary;
                         lineSeries.ChartArea = "Prime";
@@ -2069,7 +2078,10 @@ namespace OsEngine.Charts.CandleChart
                     // going through order profit
                     // проходим ПРОФИТ ОРДЕРА
                     if (
-                       (deals[i].State == PositionStateType.Open || deals[i].State == PositionStateType.Closing) &&
+                       (deals[i].State == PositionStateType.Closing
+                        || deals[i].State == PositionStateType.Opening
+                        || deals[i].State == PositionStateType.Open) 
+                        &&
                         deals[i].ProfitOrderIsActiv)
                     {
                         Series lineSeries = new Series("Profit_" + deals[i].Number);

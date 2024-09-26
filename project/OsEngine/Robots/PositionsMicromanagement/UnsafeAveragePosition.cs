@@ -15,8 +15,8 @@ using System.Collections.Generic;
 
 namespace OsEngine.Robots.PositionsMicromanagement
 {
-    [Bot("UnsafeLimitsClosingSample")]
-    public class UnsafeLimitsClosingSample : BotPanel
+    [Bot("UnsafeAveragePosition")]
+    public class UnsafeAveragePosition : BotPanel
     {
         private BotTabSimple _tab;
 
@@ -36,11 +36,13 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
         public StrategyParameterDecimal StopPercent;
 
-        public StrategyParameterDecimal ProfitLimitOnePercent;
+        public StrategyParameterDecimal ProfitPercent;
 
-        public StrategyParameterDecimal ProfitLimitTwoPercent;
+        public StrategyParameterDecimal AverageOnePercent;
 
-        public UnsafeLimitsClosingSample(string name, StartProgram startProgram)
+        public StrategyParameterDecimal AverageTwoPercent;
+
+        public UnsafeAveragePosition(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
@@ -55,9 +57,10 @@ namespace OsEngine.Robots.PositionsMicromanagement
             EnvelopsLength = CreateParameter("Envelops length", 50, 10, 80, 3);
             EnvelopsDeviation = CreateParameter("Envelops deviation", 0.1m, 0.5m, 5, 0.1m);
 
-            StopPercent = CreateParameter("Stop percent", 0.5m, 1.0m, 50, 4);
-            ProfitLimitOnePercent = CreateParameter("Profit limit one percent", 0.4m, 1.0m, 50, 4);
-            ProfitLimitTwoPercent = CreateParameter("Profit limit two percent", 0.8m, 1.0m, 50, 4);
+            StopPercent = CreateParameter("Stop percent", 1.5m, 1.0m, 50, 4);
+            ProfitPercent = CreateParameter("Profit percent", 1.5m, 1.0m, 50, 4);
+            AverageOnePercent = CreateParameter("Average one percent", 0.4m, 1.0m, 50, 4);
+            AverageTwoPercent = CreateParameter("Average two percent", 0.8m, 1.0m, 50, 4);
 
             _envelop = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "Envelops", false);
             _envelop = (Aindicator)_tab.CreateCandleIndicator(_envelop, "Prime");
@@ -88,7 +91,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
         public override string GetNameStrategyType()
         {
-            return "UnsafeLimitsClosingSample";
+            return "UnsafeAveragePosition";
         }
 
         public override void ShowIndividualSettingsDialog()
@@ -163,67 +166,100 @@ namespace OsEngine.Robots.PositionsMicromanagement
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             if (position.SignalTypeClose == "StopActivate"
-                || position.State == PositionStateType.Opening)
+                || position.SignalTypeClose == "ProfitActivate"
+                || 
+                (position.State == PositionStateType.Opening && position.OpenOrders.Count == 1))
             {
                 return;
             }
 
-            // Profit by limit orders
+            // Average by limit orders
 
-            if(position.CloseActiv == false)
+            if (position.OpenActiv == false)
             {
                 decimal firstOrderPrice = 0;
                 decimal secondOrderPrice = 0;
 
                 if (position.Direction == Side.Buy)
                 {
-                    firstOrderPrice = position.EntryPrice + position.EntryPrice * (ProfitLimitOnePercent.ValueDecimal / 100);
-                    secondOrderPrice = position.EntryPrice + position.EntryPrice * (ProfitLimitTwoPercent.ValueDecimal / 100);
+                    firstOrderPrice = position.EntryPrice - position.EntryPrice * (AverageOnePercent.ValueDecimal / 100);
+                    secondOrderPrice = position.EntryPrice - position.EntryPrice * (AverageTwoPercent.ValueDecimal / 100);
                 }
                 else if (position.Direction == Side.Sell)
                 {
-                    firstOrderPrice = position.EntryPrice - position.EntryPrice * (ProfitLimitOnePercent.ValueDecimal / 100);
-                    secondOrderPrice = position.EntryPrice - position.EntryPrice * (ProfitLimitTwoPercent.ValueDecimal / 100);
+                    firstOrderPrice = position.EntryPrice + position.EntryPrice * (AverageOnePercent.ValueDecimal / 100);
+                    secondOrderPrice = position.EntryPrice + position.EntryPrice * (AverageTwoPercent.ValueDecimal / 100);
                 }
 
-                int executeCloseOrdersCount = 0;
+                int executeOpenOrdersCount = 0;
 
-                for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
+                for (int i = 0; position.OpenOrders != null && i < position.OpenOrders.Count; i++)
                 {
-                    if (position.CloseOrders[i].State == OrderStateType.Done)
+                    if (position.OpenOrders[i].State == OrderStateType.Done)
                     {
-                        executeCloseOrdersCount++;
+                        executeOpenOrdersCount++;
                     }
                 }
 
-                if(executeCloseOrdersCount == 0)
+                if (executeOpenOrdersCount == 1)
                 {
-                    _tab.CloseAtLimitUnsafe(position, firstOrderPrice, position.OpenVolume / 2);
-                    _tab.CloseAtLimitUnsafe(position, secondOrderPrice, position.OpenVolume / 2);
+                    if (position.Direction == Side.Buy)
+                    {
+                        _tab.BuyAtLimitToPositionUnsafe(position, firstOrderPrice, GetVolume(_tab));
+                        _tab.BuyAtLimitToPositionUnsafe(position, secondOrderPrice, GetVolume(_tab));
+                    }
+                    else if (position.Direction == Side.Sell)
+                    {
+                        _tab.SellAtLimitToPositionUnsafe(position, firstOrderPrice, GetVolume(_tab));
+                        _tab.SellAtLimitToPositionUnsafe(position, secondOrderPrice, GetVolume(_tab));
+                    }
                 }
-                else
+                else if(executeOpenOrdersCount == 2)
                 {
-                    _tab.CloseAtLimitUnsafe(position, secondOrderPrice, position.OpenVolume);
+                    if (position.Direction == Side.Buy)
+                    {
+                        _tab.BuyAtLimitToPositionUnsafe(position, secondOrderPrice, GetVolume(_tab));
+                    }
+                    else if (position.Direction == Side.Sell)
+                    {
+                        _tab.SellAtLimitToPositionUnsafe(position, secondOrderPrice, GetVolume(_tab));
+                    }
                 }
             }
 
             // Stop
 
-            if(position.StopOrderPrice == 0)
+
+            decimal stopPrice = 0;
+
+            if (position.Direction == Side.Buy)
             {
-                decimal stopPrice = 0;
-
-                if (position.Direction == Side.Buy)
-                {
-                    stopPrice = position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
-                }
-                else if (position.Direction == Side.Sell)
-                {
-                    stopPrice = position.EntryPrice + position.EntryPrice * (StopPercent.ValueDecimal / 100);
-                }
-
-                _tab.CloseAtStopMarket(position, stopPrice, "StopActivate");
+                stopPrice = position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
             }
+            else if (position.Direction == Side.Sell)
+            {
+                stopPrice = position.EntryPrice + position.EntryPrice * (StopPercent.ValueDecimal / 100);
+            }
+
+            _tab.CloseAtStopMarket(position, stopPrice, "StopActivate");
+
+
+            // Profit
+
+
+            decimal profitPrice = 0;
+
+            if (position.Direction == Side.Buy)
+            {
+                profitPrice = position.EntryPrice + position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+            }
+            else if (position.Direction == Side.Sell)
+            {
+                profitPrice = position.EntryPrice - position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+            }
+
+            _tab.CloseAtProfitMarket(position, profitPrice, "ProfitActivate");
+
         }
 
         private decimal GetVolume(BotTabSimple tab)
