@@ -622,7 +622,8 @@ namespace OsEngine.Logging
                     _messageSender.AddNewMessage(messageLog);
                 }
             }
-            if (type == LogMessageType.Error || type == LogMessageType.Error)
+            if (type == LogMessageType.Error 
+                && _errorLogShutDown == false)
             {
                 LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
                 SetNewErrorMessage(messageLog);
@@ -959,6 +960,8 @@ namespace OsEngine.Logging
             _gridErrorLog.Columns.Add(column);
         }
 
+        private static bool _errorLogShutDown = false;
+
         /// <summary>
         /// send new error message
         /// выслать новое сообщение об ошибке
@@ -983,10 +986,12 @@ namespace OsEngine.Logging
                 row1.Cells.Add(new DataGridViewTextBoxCell());
                 row1.Cells[2].Value = "To much ERRORS. Error log shut down.";
                 _gridErrorLog.Rows.Insert(0, row1);
+                _errorLogShutDown = true;
                 return;
             }
             else if (_gridErrorLog.Rows.Count > 500)
             {
+                _errorLogShutDown = true;
                 return;
             }
 
