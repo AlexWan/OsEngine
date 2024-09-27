@@ -2335,6 +2335,8 @@ namespace OsEngine.Journal
                     showDontOpenPositions = CheckBoxShowDontOpenPoses.IsChecked.Value;
                 }
 
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
                 for (int i = 0; i < closePositions.Count; i++)
                 {
                     if (closePositions[i].TimeCreate < _startTime
@@ -2349,8 +2351,20 @@ namespace OsEngine.Journal
                         continue;
                     }
 
-                    _closePositionGrid.Rows.Insert(0, GetRow(closePositions[i]));
+                    rows.Insert(0, GetRow(closePositions[i]));
                 }
+
+                HostClosePosition.Child = null;
+
+                _closePositionGrid.Rows.Clear();
+                _closePositionGrid.ClearSelection();
+
+                if (rows.Count > 0)
+                {
+                    _closePositionGrid.Rows.AddRange(rows.ToArray());
+                }
+
+                HostClosePosition.Child = _closePositionGrid;
             }
             catch(Exception ex )
             {
