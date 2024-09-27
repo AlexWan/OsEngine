@@ -167,7 +167,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     DoubleExitSlipage = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out TypeDoubleExitOrder);
                     Enum.TryParse(reader.ReadLine(), out ValuesType);
-
+                    Enum.TryParse(reader.ReadLine(), out OrderTypeTime);
+                    
                     reader.Close();
                 }
             }
@@ -214,6 +215,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     writer.WriteLine(DoubleExitSlipage);
                     writer.WriteLine(TypeDoubleExitOrder);
                     writer.WriteLine(ValuesType);
+                    writer.WriteLine(OrderTypeTime);
                     writer.Close();
                 }
             }
@@ -452,6 +454,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public decimal SetbackToClosePosition;
 
         public ManualControlValuesType ValuesType;
+
+        /// <summary>
+        /// Order lifetime type
+        /// </summary>
+        public OrderTypeTime OrderTypeTime;
 
         /// <summary>
         /// Journal

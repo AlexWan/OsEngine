@@ -40,10 +40,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ComboBoxValuesType.Items.Add(ManualControlValuesType.Percent.ToString());
                 ComboBoxValuesType.SelectedItem = _strategySettings.ValuesType.ToString();
 
+                ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Specified.ToString());
+                ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.GTC.ToString());
+                ComboBoxOrdersTypeTime.SelectedItem = _strategySettings.OrderTypeTime.ToString();
+
                 // stop
                 // стоп
 
-                CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
+              CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
                 TextBoxStopPercentLength.Text = _strategySettings.StopDistance.ToStringWithNoEndZero();
                 TextBoxSlipageStop.Text = _strategySettings.StopSlipage.ToStringWithNoEndZero();
 
@@ -98,6 +102,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ButtonAccept.Content = OsLocalization.Trader.Label17;
                 CheckBoxDoubleExitIsOnIsOn.Content = OsLocalization.Trader.Label99;
                 LabelValuesType.Content = OsLocalization.Trader.Label158;
+                LabelOrdersTypeTime.Content = OsLocalization.Trader.Label422;
             }
             catch (Exception error)
             {
@@ -192,6 +197,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 _strategySettings.SetbackToOpenPosition = TextBoxSetbackToOpen.Text.ToDecimal();
 
                 Enum.TryParse(ComboBoxValuesType.SelectedItem.ToString(), out _strategySettings.ValuesType);
+
+                Enum.TryParse(ComboBoxOrdersTypeTime.SelectedItem.ToString(), out _strategySettings.OrderTypeTime);
 
                 _strategySettings.Save();
             }

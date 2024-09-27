@@ -590,10 +590,5 @@ namespace OsEngine.Entity
         ///  Order will be in the queue until it is withdrawn
         /// </summary>
         GTC,
-
-        /// <summary>
-        /// Order will be valid only during the current trading day
-        /// </summary>
-        Day,
     }
 }

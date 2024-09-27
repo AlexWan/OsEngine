@@ -92,9 +92,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ManualPositionSupport.LogMessageEvent += SetNewLogMessage;
                 ManualPositionSupport.DontOpenOrderDetectedEvent += _dealOpeningWatcher_DontOpenOrderDetectedEvent;
 
-                _acebergMaker = new AcebergMaker();
-                _acebergMaker.NewOrderNeadToExecute += _acebergMaker_NewOrderNeadToExecute;
-                _acebergMaker.NewOrderNeadToCansel += _acebergMaker_NewOrderNeadToCansel;
+                _acebergMaker = new IcebergMaker();
+                _acebergMaker.NewOrderNeedToExecute += _acebergMaker_NewOrderNeadToExecute;
+                _acebergMaker.NewOrderNeedToCancel += _acebergMaker_NewOrderNeadToCansel;
 
                 if (startProgram == StartProgram.IsOsTrader)
                 {// load the latest orders for robots to the general storage in ServerMaster
@@ -379,8 +379,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_acebergMaker != null)
                 {
-                    _acebergMaker.NewOrderNeadToExecute -= _acebergMaker_NewOrderNeadToExecute;
-                    _acebergMaker.NewOrderNeadToCansel -= _acebergMaker_NewOrderNeadToCansel;
+                    _acebergMaker.NewOrderNeedToExecute -= _acebergMaker_NewOrderNeadToExecute;
+                    _acebergMaker.NewOrderNeedToCancel -= _acebergMaker_NewOrderNeadToCansel;
                     _acebergMaker = null;
                 }
 
@@ -1606,7 +1606,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">volum</param>
         /// <param name="price">order price</param>
         /// <param name="orderCount">iceberg orders count</param>
-        public Position BuyAtAceberg(decimal volume, decimal price, int orderCount)
+        public Position BuyAtIceberg(decimal volume, decimal price, int orderCount)
         {
             try
             {
@@ -1691,7 +1691,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _acebergMaker.MakeNewAceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, AcebergType.Open, volume, this);
+                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
 
                 return newDeal;
             }
@@ -1709,9 +1709,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">order price</param>
         /// <param name="orderCount">iceberg orders count</param>
         /// <param name="signalType">>open position signal nameа. Will be written to position property: SignalTypeOpen</param>
-        public Position BuyAtAceberg(decimal volume, decimal price, int orderCount, string signalType)
+        public Position BuyAtIceberg(decimal volume, decimal price, int orderCount, string signalType)
         {
-            Position position = BuyAtAceberg(volume, price, orderCount);
+            Position position = BuyAtIceberg(volume, price, orderCount);
 
             if (position != null)
             {
@@ -2105,7 +2105,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _acebergMaker.MakeNewAceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, AcebergType.ModificateBuy, volume, this);
+                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifyBuy, volume, this);
             }
             catch (Exception error)
             {
@@ -2393,7 +2393,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">volume</param>
         /// <param name="price">price</param>
         /// <param name="orderCount">iceberg orders count</param>
-        public Position SellAtAceberg(decimal volume, decimal price, int orderCount)
+        public Position SellAtIceberg(decimal volume, decimal price, int orderCount)
         {
             try
             {
@@ -2478,7 +2478,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _acebergMaker.MakeNewAceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, AcebergType.Open, volume, this);
+                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
 
                 return newDeal;
             }
@@ -2496,7 +2496,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">price</param>
         /// <param name="orderCount">orders count</param>
         /// <param name="signalType">open position signal name. Will be written to position property: SignalTypeOpen</param>
-        public Position SellAtAceberg(decimal volume, decimal price, int orderCount, string signalType)
+        public Position SellAtIceberg(decimal volume, decimal price, int orderCount, string signalType)
         {
             if (_connector.IsConnected == false
                 || _connector.IsReadyToTrade == false)
@@ -2505,7 +2505,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return null;
             }
 
-            Position position = SellAtAceberg(volume, price, orderCount);
+            Position position = SellAtIceberg(volume, price, orderCount);
 
             if (position != null)
             {
@@ -2899,7 +2899,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _acebergMaker.MakeNewAceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, AcebergType.ModificateSell, volume, this);
+                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifySell, volume, this);
             }
             catch (Exception error)
             {
@@ -4967,7 +4967,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Icebergs master
         /// </summary>
-        private AcebergMaker _acebergMaker;
+        private IcebergMaker _acebergMaker;
 
         /// <summary>
         /// Iceberg Master Requests To Cancel Order
@@ -4992,7 +4992,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _acebergMaker?.ClearAcebergs();
+                _acebergMaker?.ClearIcebergs();
             }
             catch (Exception error)
             {

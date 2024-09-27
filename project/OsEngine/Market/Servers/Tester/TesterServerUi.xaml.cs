@@ -507,6 +507,11 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     Thread.Sleep(1000);
 
+                    if(_uiIsClosed)
+                    {
+                        return;
+                    }
+
                     if (_lastTimeConnectSecurity.AddSeconds(5) > DateTime.Now)
                     {
                         BlockButtonStartTests();
