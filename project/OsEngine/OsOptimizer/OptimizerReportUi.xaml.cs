@@ -481,6 +481,10 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+            int selectedRow = 0;
+
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
             for (int i = 0; i < fazeReport.Reports.Count; i++)
             {
                 OptimizerReport report = fazeReport.Reports[i];
@@ -552,10 +556,17 @@ namespace OsEngine.OsOptimizer
                 cell13.Value = OsLocalization.Optimizer.Message42;
                 row.Cells.Add(cell13);
 
-                _gridResults.Rows.Add(row);
-
-
+                rows.Add(row);
             }
+
+            WindowsFormsHostResults.Child = null;
+
+            if (rows.Count > 0)
+            {
+                _gridResults.Rows.AddRange(rows.ToArray());
+            }
+
+            WindowsFormsHostResults.Child = _gridResults;
 
             _gridResults.SelectionChanged += _gridResults_SelectionChanged;
             _gridResults.CellMouseClick += _gridResults_CellMouseClick;

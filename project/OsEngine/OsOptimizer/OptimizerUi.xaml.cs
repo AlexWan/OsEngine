@@ -319,6 +319,12 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
+                if (!ProgressBarPrime.Dispatcher.CheckAccess())
+                {
+                    ProgressBarPrime.Dispatcher.Invoke(RepaintResults);
+                    return;
+                }
+
                 for (int i = 0; i < _reports.Count; i++)
                 {
                     SortResults(_reports[i].Reports);
@@ -326,7 +332,16 @@ namespace OsEngine.OsOptimizer
 
                 PaintEndOnAllProgressBars();
                 PaintTableFazes();
+
+                if (_gridFazesEnd.Rows.Count > 0)
+                {
+                    _gridFazesEnd.Rows[0].Selected = true;
+                    _gridFazesEnd.Rows[0].Cells[0].Selected = true;
+                    _gridFazesEnd.CurrentCell = _gridFazes.Rows[0].Cells[0];
+                }
+
                 PaintTableResults();
+
                 StartUserActivity();
 
                 _resultsCharting.ReLoad(_reports);
@@ -2900,6 +2915,8 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
             for (int i = 0; i < fazeReport.Reports.Count; i++)
             {
                 OptimizerReport report = fazeReport.Reports[i];
@@ -2971,9 +2988,17 @@ namespace OsEngine.OsOptimizer
                 cell13.Value = OsLocalization.Optimizer.Message42;
                 row.Cells.Add(cell13);
 
-                _gridResults.Rows.Add(row);
-
+                rows.Add(row);
             }
+
+            WindowsFormsHostResults.Child = null;
+
+            if (rows.Count > 0)
+            {
+                _gridResults.Rows.AddRange(rows.ToArray());
+            }
+
+            WindowsFormsHostResults.Child = _gridResults;
 
             _gridResults.SelectionChanged += _gridResults_SelectionChanged;
             _gridResults.CellMouseClick += _gridResults_CellMouseClick;

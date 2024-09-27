@@ -2277,6 +2277,7 @@ namespace OsEngine.Journal
                 }
 
                 _closePositionGrid.Rows.Clear();
+                _closePositionGrid.ClearSelection();
 
                 List<Journal> myJournals = GetActiveJournals();
 
@@ -2354,17 +2355,12 @@ namespace OsEngine.Journal
                     rows.Insert(0, GetRow(closePositions[i]));
                 }
 
-                HostClosePosition.Child = null;
-
-                _closePositionGrid.Rows.Clear();
-                _closePositionGrid.ClearSelection();
-
                 if (rows.Count > 0)
                 {
+                    HostClosePosition.Child = null;
                     _closePositionGrid.Rows.AddRange(rows.ToArray());
+                    HostClosePosition.Child = _closePositionGrid;
                 }
-
-                HostClosePosition.Child = _closePositionGrid;
             }
             catch(Exception ex )
             {
