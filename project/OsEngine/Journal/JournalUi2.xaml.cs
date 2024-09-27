@@ -122,6 +122,9 @@ namespace OsEngine.Journal
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
 
+            CheckBoxShowDontOpenPoses.Click += CheckBoxShowDontOpenPoses_Click;
+            CheckBoxShowDontOpenPoses.Content = OsLocalization.Journal.Label17;
+
             GlobalGUILayout.Listen(this, JournalName);
         }
 
@@ -2325,10 +2328,23 @@ namespace OsEngine.Journal
                     }
                 }
 
+                bool showDontOpenPositions = false;
+                
+                if(CheckBoxShowDontOpenPoses.IsChecked.HasValue)
+                {
+                    showDontOpenPositions = CheckBoxShowDontOpenPoses.IsChecked.Value;
+                }
+
                 for (int i = 0; i < closePositions.Count; i++)
                 {
                     if (closePositions[i].TimeCreate < _startTime
                        || closePositions[i].TimeCreate > _endTime)
+                    {
+                        continue;
+                    }
+
+                    if(showDontOpenPositions == false &&
+                        closePositions[i].State == PositionStateType.OpeningFail)
                     {
                         continue;
                     }
@@ -2340,6 +2356,11 @@ namespace OsEngine.Journal
             {
                 SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
+        }
+
+        private void CheckBoxShowDontOpenPoses_Click(object sender, RoutedEventArgs e)
+        {
+            PaintClosePositionGrid();
         }
 
         private void _closePositionGrid_DoubleClick(object sender, EventArgs e)
