@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using OsEngine.Market;
 
@@ -228,6 +229,11 @@ namespace OsEngine.Entity
         public TimeSpan LifeTime;
 
         /// <summary>
+        /// Order lifetime type
+        /// </summary>
+        public OrderTypeTime OrderTypeTime;
+
+        /// <summary>
         /// Flag saying that this order was created to close by stop or profit order
         /// the tester needs to perform it adequately
         /// </summary>
@@ -421,6 +427,8 @@ namespace OsEngine.Entity
 
             result.Append(TimeDone.ToString(CultureInfo) + "@");
 
+            result.Append(OrderTypeTime + "@");
+
             if (State == OrderStateType.Done && Volume == VolumeExecute &&
                 _trades != null && _trades.Count > 0)
             {
@@ -483,6 +491,11 @@ namespace OsEngine.Entity
             }
             Comment = saveArray[18];
             TimeDone = Convert.ToDateTime(saveArray[19], CultureInfo);
+
+            if(saveArray.Length > 21)
+            {
+                Enum.TryParse(saveArray[20], true, out OrderTypeTime);
+            }
         }
     }
 
@@ -561,5 +574,26 @@ namespace OsEngine.Entity
         None,
         Open,
         Close
+    }
+
+    /// <summary>
+    /// Order lifetime type
+    /// </summary>
+    public enum OrderTypeTime
+    {
+        /// <summary>
+        /// Order will be valid for as long as specified in the LifeTime variable
+        /// </summary>
+        Specified,
+
+        /// <summary>
+        ///  Order will be in the queue until it is withdrawn
+        /// </summary>
+        GTC,
+
+        /// <summary>
+        /// Order will be valid only during the current trading day
+        /// </summary>
+        Day,
     }
 }
