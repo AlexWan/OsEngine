@@ -535,6 +535,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (indicator == null)
                 throw new Exception("Error! Indicator with name " + nameArea + " not found");
 
+            if(_chartMaster == null)
+            {
+                return null;
+            }
+
             return _chartMaster.CreateIndicator(indicator, nameArea);
         }
 

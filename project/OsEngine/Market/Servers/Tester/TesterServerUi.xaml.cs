@@ -652,6 +652,14 @@ namespace OsEngine.Market.Servers.Tester
 
         private void buttonStartTest_Click(object sender, RoutedEventArgs e)
         {
+            if(_server.TimeStart == DateTime.MinValue)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Market.Label133);
+                ui.ShowDialog();
+
+                return;
+            }
+
             Thread worker = new Thread(_server.TestingStart);
             worker.CurrentCulture = new CultureInfo("ru-RU");
             worker.IsBackground = true;

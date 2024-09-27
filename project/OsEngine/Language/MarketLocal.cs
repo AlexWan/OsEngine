@@ -564,6 +564,10 @@ namespace OsEngine.Language
           "Eng:Connect data_" +
           "Ru:Подключаем данные_");
 
+        public string Label133 => OsLocalization.ConvertToLocString(
+          "Eng:First, connect the historical data and connect the robots to it._" +
+          "Ru:Сначала подключите исторические данные и подключите к ним роботов._");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
