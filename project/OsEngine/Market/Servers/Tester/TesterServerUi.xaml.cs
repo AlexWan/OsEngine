@@ -40,6 +40,7 @@ namespace OsEngine.Market.Servers.Tester
             _currentCulture = OsLocalization.CurCulture;
             OsEngine.Layout.StickyBorders.Listen(this);
             _server = server;
+            _server.LoadSecurityEvent += _server_LoadSecurityEvent;
             _log = log;
 
             _server.LoadSecurityTestSettings();
@@ -481,6 +482,104 @@ namespace OsEngine.Market.Servers.Tester
             PaintPausePlayButtonByActualServerState();
         }
 
+        #region Block button start on connect securities
+
+        private void _server_LoadSecurityEvent()
+        {
+            _lastTimeConnectSecurity = DateTime.Now;
+
+            if (_buttonStartLockerThread == null)
+            {
+                _buttonStartLockerThread = new Thread(ButtonStartThreadWorkArea);
+                _buttonStartLockerThread.Start();
+            }
+        }
+
+        private Thread _buttonStartLockerThread;
+
+        private DateTime _lastTimeConnectSecurity;
+
+        private void ButtonStartThreadWorkArea()
+        {
+            while(true)
+            {
+                try
+                {
+                    Thread.Sleep(1000);
+
+                    if (_lastTimeConnectSecurity.AddSeconds(5) > DateTime.Now)
+                    {
+                        BlockButtonStartTests();
+                    }
+                    else
+                    {
+                        UnblockButtonStartTests();
+                        _buttonStartLockerThread = null;
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    _server.SendLogMessage(e.ToString(),LogMessageType.Error);
+                }
+            }
+        }
+
+        private void BlockButtonStartTests()
+        {
+            try
+            {
+                if (ButtonStartTest.Dispatcher.CheckAccess() == false)
+                {
+                    ButtonStartTest.Dispatcher.Invoke(BlockButtonStartTests);
+                    return;
+                }
+
+                if (ButtonStartTest.Content.ToString() == OsLocalization.Market.Button2)
+                {
+                    ButtonStartTest.Content = OsLocalization.Market.Label132 + ".";
+                    ButtonStartTest.IsEnabled = false;
+                    return;
+                }
+
+                int pointsCount = ButtonStartTest.Content.ToString().Split('.').Length;
+
+                if (pointsCount > 5)
+                {
+                    ButtonStartTest.Content = OsLocalization.Market.Label132 + ".";
+                }
+                else
+                {
+                    ButtonStartTest.Content = ButtonStartTest.Content + ".";
+                }
+            }
+            catch (Exception e)
+            {
+                _server.SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UnblockButtonStartTests()
+        {
+            try
+            {
+                if (ButtonStartTest.Dispatcher.CheckAccess() == false)
+                {
+                    ButtonStartTest.Dispatcher.Invoke(UnblockButtonStartTests);
+                    return;
+                }
+
+                ButtonStartTest.Content = OsLocalization.Market.Button2;
+                ButtonStartTest.IsEnabled = true;
+            }
+            catch (Exception e)
+            {
+                _server.SendLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
         // button handlers / обработчики кнопок
 
         private void buttonFast_Click(object sender, RoutedEventArgs e)
@@ -602,7 +701,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// chart/чарт
+        // chart/чарт
 
         private void ResizeWorker()
         {
@@ -1155,8 +1254,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// sliders. Setting the start and end time of testing
-// слайдеры. Установка начального и конечного времени тестирования
+        // sliders. Setting the start and end time of testing
 
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {

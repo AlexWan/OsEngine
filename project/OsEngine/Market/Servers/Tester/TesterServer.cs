@@ -3548,6 +3548,11 @@ namespace OsEngine.Market.Servers.Tester
 
                 _lastStartSecurityTime = DateTime.Now;
 
+                if(LoadSecurityEvent !=  null)
+                {
+                    LoadSecurityEvent();
+                }
+
                 return series;
             }
         }
@@ -3748,6 +3753,8 @@ namespace OsEngine.Market.Servers.Tester
         /// коннекторам подключеным к серверу необходимо перезаказать данные
         /// </summary>
         public event Action NeadToReconnectEvent;
+
+        public event Action LoadSecurityEvent;
 
 // candles / свечи
         /// <summary>

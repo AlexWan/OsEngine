@@ -74,7 +74,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "Example of using a non-safe method of closing positions with multiple limit orders at the same time";
+            Description = "Example of using a non-safe method of position averaging by several limit orders simultaneously.";
         }
 
         void Event_ParametrsChangeByUser()

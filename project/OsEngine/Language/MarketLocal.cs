@@ -560,6 +560,10 @@ namespace OsEngine.Language
            "Eng:The button opens the window of securities settings that the connector has. Here you can configure price accuracy, volume accuracy, etc._" +
            "Ru:Кнопка открывает окно настроек бумаг, которые есть у коннектора. Здесь можно настроить точность цены, точность объёма и т.д._");
 
+        public string Label132 => OsLocalization.ConvertToLocString(
+          "Eng:Connect data_" +
+          "Ru:Подключаем данные_");
+
         public string LabelComissionType => OsLocalization.ConvertToLocString(
             "Eng:Comission type_" +
             "Ru:Тип комиссии_");
