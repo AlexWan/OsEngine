@@ -975,6 +975,12 @@ namespace OsEngine.Entity
                 {
                     for (int i = CloseOrders.Count-1; i > -1 && i < CloseOrders.Count; i--)
                     {
+                        if (CloseOrders[i].State != OrderStateType.Done
+                            && CloseOrders[i].State != OrderStateType.Patrial)
+                        {
+                            continue;
+                        }
+
                         DateTime time = CloseOrders[i].GetLastTradeTime();
                         if (time != DateTime.MinValue)
                         {
