@@ -333,6 +333,13 @@ namespace OsEngine.Entity
             {
                 return TimeCallBack;
             }
+            if (_trades.Count == 0)
+            {
+                return TimeCallBack;
+            }
+            {
+                return TimeCallBack;
+            }
             if (_trades[0] == null)
             {
                 return TimeCallBack;
