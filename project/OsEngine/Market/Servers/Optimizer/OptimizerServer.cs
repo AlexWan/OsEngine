@@ -792,10 +792,14 @@ namespace OsEngine.Market.Servers.Optimizer
 
             // order not filled. check if it's time to recall / ордер не `исполнился. проверяем, не пора ли отзывать
 
-            if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+
+            if (order.OrderTypeTime == OrderTypeTime.Specified)
             {
-                CanselOnBoardOrder(order);
-                return true;
+                if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+                {
+                    CanselOnBoardOrder(order);
+                    return true;
+                }
             }
             return false;
         }
@@ -940,13 +944,17 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
-			// order is not executed. check if it's time to recall
+            // order is not executed. check if it's time to recall
             // ордер не исполнился. проверяем, не пора ли отзывать
 
-            if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+
+            if (order.OrderTypeTime == OrderTypeTime.Specified)
             {
-                CanselOnBoardOrder(order);
-                return true;
+                if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+                {
+                    CanselOnBoardOrder(order);
+                    return true;
+                }
             }
             return false;
         }
@@ -1128,13 +1136,17 @@ namespace OsEngine.Market.Servers.Optimizer
                     return true;
                 }
             }
-			// order didn't execute. check if it's time to recall
+            // order didn't execute. check if it's time to recall
             // ордер не `исполнился. проверяем, не пора ли отзывать
 
-            if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+
+            if (order.OrderTypeTime == OrderTypeTime.Specified)
             {
-                CanselOnBoardOrder(order);
-                return true;
+                if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+                {
+                    CanselOnBoardOrder(order);
+                    return true;
+                }
             }
             return false;
         }
@@ -1924,6 +1936,7 @@ namespace OsEngine.Market.Servers.Optimizer
             orderOnBoard.LifeTime = order.LifeTime;
             orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
             orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
+            orderOnBoard.OrderTypeTime = order.OrderTypeTime;
 
             OrdersActiv.Add(orderOnBoard);
 

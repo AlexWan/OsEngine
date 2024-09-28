@@ -183,7 +183,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     DataGridViewRow nRow = new DataGridViewRow();
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
-                    nRow.Cells[0].Value = securities[i].FileAdress;
+                    nRow.Cells[0].Value = securities[i].FileAddress;
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells[1].Value = securities[i].Security.Name;
                    

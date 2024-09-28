@@ -531,12 +531,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
-                        if (SecondToOpenIsOn &&
-                            openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
+                        if(openOrder.OrderTypeTime == OrderTypeTime.Specified)
                         {
-                            SendNewLogMessage(OsLocalization.Trader.Label70 + openOrder.NumberMarket,
-                                LogMessageType.Trade);
-                            SendOrderToClose(openOrder, position);
+                            if (SecondToOpenIsOn &&
+                                openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
+                            {
+                                SendNewLogMessage(OsLocalization.Trader.Label70 + openOrder.NumberMarket,
+                                    LogMessageType.Trade);
+                                SendOrderToClose(openOrder, position);
+                            }
                         }
 
                         if (SetbackToOpenIsOn &&
@@ -587,12 +590,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
-                        if (SecondToCloseIsOn &&
-                            closeOrder.TimeCreate.Add(closeOrder.LifeTime) < ServerTime)
+                        if (closeOrder.OrderTypeTime == OrderTypeTime.Specified)
                         {
-                            SendNewLogMessage(OsLocalization.Trader.Label70 + closeOrder.NumberMarket,
-                                LogMessageType.Trade);
-                            SendOrderToClose(closeOrder, position);
+                            if (SecondToCloseIsOn &&
+                            closeOrder.TimeCreate.Add(closeOrder.LifeTime) < ServerTime)
+                            {
+                                SendNewLogMessage(OsLocalization.Trader.Label70 + closeOrder.NumberMarket,
+                                    LogMessageType.Trade);
+                                SendOrderToClose(closeOrder, position);
+                            }
                         }
 
                         if (SetbackToCloseIsOn &&

@@ -103,6 +103,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 CheckBoxDoubleExitIsOnIsOn.Content = OsLocalization.Trader.Label99;
                 LabelValuesType.Content = OsLocalization.Trader.Label158;
                 LabelOrdersTypeTime.Content = OsLocalization.Trader.Label422;
+
+                ComboBoxOrdersTypeTime.SelectionChanged += ComboBoxOrdersTypeTime_SelectionChanged;
+                ComboBoxOrdersTypeTime_SelectionChanged(null, null);
             }
             catch (Exception error)
             {
@@ -111,6 +114,31 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             this.Activate();
             this.Focus();
+        }
+
+        private void ComboBoxOrdersTypeTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            OrderTypeTime typeTime = OrderTypeTime.Specified;
+
+            if(Enum.TryParse(ComboBoxOrdersTypeTime.SelectedItem.ToString(),out  typeTime) == false)
+            {
+                return;
+            }
+
+            if(typeTime == OrderTypeTime.Specified)
+            {
+                CheckBoxSecondToOpenIsOn.IsEnabled = true;
+                CheckBoxSecondToCloseIsOn.IsEnabled = true;
+                TextBoxSecondToOpen.IsEnabled = true;
+                TextBoxSecondToClose.IsEnabled = true;
+            }
+            else if(typeTime == OrderTypeTime.GTC)
+            {
+                CheckBoxSecondToOpenIsOn.IsEnabled = false;
+                CheckBoxSecondToCloseIsOn.IsEnabled = false;
+                TextBoxSecondToOpen.IsEnabled = false;
+                TextBoxSecondToClose.IsEnabled = false;
+            }
         }
 
         /// <summary>

@@ -970,6 +970,8 @@ namespace OsEngine.OsOptimizer
 
                     bot.TabsSimple[i].ManualPositionSupport.TypeDoubleExitOrder = _master.ManualControl.TypeDoubleExitOrder;
                     bot.TabsSimple[i].ManualPositionSupport.ValuesType = _master.ManualControl.ValuesType;
+
+                    bot.TabsSimple[i].ManualPositionSupport.OrderTypeTime = _master.ManualControl.OrderTypeTime;
                 }
 
                 for (int i = 0; _master.TabsIndexNamesAndTimeFrames != null &&

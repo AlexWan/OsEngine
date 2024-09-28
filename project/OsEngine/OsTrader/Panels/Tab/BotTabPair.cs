@@ -29,7 +29,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             TabName = name;
             StartProgram = startProgram;
-            StandartManualControl = new BotManualControl(name, null, StartProgram);
+            StandardManualControl = new BotManualControl(name, null, StartProgram);
 
             LoadStandartSettings();
             LoadPairs();
@@ -397,7 +397,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Module support position. The standard settings from it will be copied to all pairs
         /// </summary>
-        public BotManualControl StandartManualControl;
+        public BotManualControl StandardManualControl;
 
         /// <summary>
         /// Type of pair sorting in the pair list
@@ -534,8 +534,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 pair.Sec1TradeRegime = Sec1TradeRegime;
                 pair.Sec2TradeRegime = Sec2TradeRegime;
 
-                CopyPositionControllerSettings(pair.Tab1, StandartManualControl);
-                CopyPositionControllerSettings(pair.Tab2, StandartManualControl);
+                CopyPositionControllerSettings(pair.Tab1, StandardManualControl);
+                CopyPositionControllerSettings(pair.Tab2, StandardManualControl);
 
                 pair.EmulatorIsOn = _emulatorIsOn;
                 pair.EventsIsOn = _eventsIsOn;
@@ -587,6 +587,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.ManualPositionSupport.StopSlipage = control.StopSlipage;
                 tab.ManualPositionSupport.TypeDoubleExitOrder = control.TypeDoubleExitOrder;
                 tab.ManualPositionSupport.ValuesType = control.ValuesType;
+                tab.ManualPositionSupport.OrderTypeTime = control.OrderTypeTime;
             }
             catch (Exception error)
             {
@@ -710,8 +711,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     pair.AutoRebuildCointegration = AutoRebuildCointegration;
                     pair.AutoRebuildCorrelation = AutoRebuildCorrelation;
 
-                    CopyPositionControllerSettings(pair.Tab1, StandartManualControl);
-                    CopyPositionControllerSettings(pair.Tab2, StandartManualControl);
+                    CopyPositionControllerSettings(pair.Tab1, StandardManualControl);
+                    CopyPositionControllerSettings(pair.Tab2, StandardManualControl);
 
                     pair.Save();
                 }

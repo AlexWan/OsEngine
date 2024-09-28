@@ -5,7 +5,6 @@
 
 using System;
 using OsEngine.Entity;
-using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -17,8 +16,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Create position
         /// </summary>
-        public Position CreatePosition(string botName, Side direction, decimal priceOrder, decimal volume, OrderPriceType priceType, TimeSpan timeLife,
-            Security security, Portfolio portfolio, StartProgram startProgram)
+        public Position CreatePosition(string botName, Side direction, decimal priceOrder, 
+            decimal volume, OrderPriceType priceType, TimeSpan timeLife,
+            Security security, Portfolio portfolio, StartProgram startProgram, OrderTypeTime orderTypeTime)
         {
             Position newDeal = new Position();
 
@@ -27,7 +27,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.Direction = direction;
             newDeal.State = PositionStateType.Opening;
 
-            newDeal.AddNewOpenOrder(CreateOrder(security, direction, priceOrder, volume, priceType, timeLife, startProgram,OrderPositionConditionType.Open));
+            newDeal.AddNewOpenOrder(CreateOrder(security, direction, priceOrder, volume, 
+                priceType, timeLife, startProgram,OrderPositionConditionType.Open, orderTypeTime));
 
             newDeal.NameBot = botName;
             newDeal.Lots = security.Lot;
@@ -48,15 +49,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             return newDeal;
         }
 
-        private int _ordersNumInOptimizer = 1;
-
         /// <summary>
         /// Create order
         /// </summary>
         public Order CreateOrder(Security security,
             Side direction, decimal priceOrder, decimal volume, 
             OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram,
-                OrderPositionConditionType positionConditionType)
+                OrderPositionConditionType positionConditionType, OrderTypeTime orderTypeTime)
         {
             Order newOrder = new Order();
 
@@ -70,6 +69,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.PositionConditionType = positionConditionType;
             newOrder.SecurityNameCode = security.Name;
             newOrder.SecurityClassCode = security.NameClass;
+            newOrder.OrderTypeTime = orderTypeTime;
 
             return newOrder;
         }
@@ -77,7 +77,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Create closing order
         /// </summary>
-        public Order CreateCloseOrderForDeal(Security security, Position deal, decimal price, OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram)
+        public Order CreateCloseOrderForDeal(Security security, Position deal, decimal price, 
+            OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram, OrderTypeTime orderTypeTime)
         {
             Side direction;
 
@@ -108,6 +109,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.PositionConditionType = OrderPositionConditionType.Close;
             newOrder.SecurityNameCode = security.Name;
             newOrder.SecurityClassCode = security.NameClass;
+            newOrder.OrderTypeTime = orderTypeTime;
 
             return newOrder;
         }

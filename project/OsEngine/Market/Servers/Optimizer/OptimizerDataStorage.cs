@@ -565,7 +565,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 for (int i = 0; i < files.Length; i++)
                 {
                     security.Add(new SecurityTester());
-                    security[security.Count - 1].FileAdress = files[i];
+                    security[security.Count - 1].FileAddress = files[i];
 
                     string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
 
@@ -874,7 +874,7 @@ namespace OsEngine.Market.Servers.Optimizer
             for (int i = 0; i < files.Length; i++)
             {
                 security.Add(new SecurityTester());
-                security[security.Count - 1].FileAdress = files[i];
+                security[security.Count - 1].FileAddress = files[i];
 
                 string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
 
@@ -1104,7 +1104,7 @@ namespace OsEngine.Market.Servers.Optimizer
             for (int i = 0; i < files.Length; i++)
             {
                 security.Add(new SecurityTester());
-                security[security.Count - 1].FileAdress = files[i];
+                security[security.Count - 1].FileAddress = files[i];
 
                 string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
 
@@ -1784,7 +1784,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     return null;
                 }
 
-                StreamReader reader = new StreamReader(sec.FileAdress);
+                StreamReader reader = new StreamReader(sec.FileAddress);
                 List<Candle> candles = new List<Candle>();
 
                 while (!reader.EndOfStream)
@@ -1843,7 +1843,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return null;
             }
 
-            StreamReader reader = new StreamReader(sec.FileAdress);
+            StreamReader reader = new StreamReader(sec.FileAddress);
             List<Trade> trades = new List<Trade>();
 
             while (!reader.EndOfStream)
@@ -1856,7 +1856,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
                 catch
                 {
-                    SendLogMessage(OsLocalization.Market.Message31 + sec.FileAdress, LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message31 + sec.FileAddress, LogMessageType.Error);
                     break;
                 }
                 if (trade.Time < timeStart)
@@ -1900,7 +1900,7 @@ DateTime timeEnd)
                 return null;
             }
 
-            StreamReader reader = new StreamReader(sec.FileAdress);
+            StreamReader reader = new StreamReader(sec.FileAddress);
             List<MarketDepth> marketDepths = new List<MarketDepth>();
 
             while (!reader.EndOfStream)
@@ -1913,7 +1913,7 @@ DateTime timeEnd)
                 }
                 catch
                 {
-                    SendLogMessage(OsLocalization.Market.Message31 + sec.FileAdress, LogMessageType.Error);
+                    SendLogMessage(OsLocalization.Market.Message31 + sec.FileAddress, LogMessageType.Error);
                     break;
                 }
                 if (depth.Time < timeStart)

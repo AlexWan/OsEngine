@@ -159,7 +159,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _tabPair.StandartManualControl.ShowDialog();
+                _tabPair.StandardManualControl.ShowDialog();
             }
             catch (Exception error)
             {

@@ -48,7 +48,7 @@ namespace OsEngine.Market.Servers.Tester
             TypeTesterData = TesterDataType.Candle;
             Load();
 
-            if (_activSet != null)
+            if (_activeSet != null)
             {
                 _needToReloadSecurities = true;
             }
@@ -188,7 +188,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + @"TestServer.txt"))
                 {
-                    _activSet = reader.ReadLine();
+                    _activeSet = reader.ReadLine();
                     _slipageToSimpleOrder = Convert.ToInt32(reader.ReadLine());
                     StartPortfolio = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out _typeTesterData);
@@ -218,7 +218,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + @"TestServer.txt", false))
                 {
-                    writer.WriteLine(_activSet);
+                    writer.WriteLine(_activeSet);
                     writer.WriteLine(_slipageToSimpleOrder);
                     writer.WriteLine(StartPortfolio);
                     writer.WriteLine(_typeTesterData);
@@ -298,11 +298,11 @@ namespace OsEngine.Market.Servers.Tester
             
             if (SourceDataType == TesterSourceDataType.Set)
             {
-                if (string.IsNullOrWhiteSpace(_activSet))
+                if (string.IsNullOrWhiteSpace(_activeSet))
                 {
                     return "";
                 }
-                pathToSettings = _activSet + "\\SecurityTestSettings.txt";
+                pathToSettings = _activeSet + "\\SecurityTestSettings.txt";
             }
             else
             {
@@ -322,11 +322,11 @@ namespace OsEngine.Market.Servers.Tester
 
             if (SourceDataType == TesterSourceDataType.Set)
             {
-                if (string.IsNullOrWhiteSpace(_activSet))
+                if (string.IsNullOrWhiteSpace(_activeSet))
                 {
                     return "";
                 }
-                pathToSettings = _activSet + "\\SecuritiesSettings.txt";
+                pathToSettings = _activeSet + "\\SecuritiesSettings.txt";
             }
             else
             {
@@ -604,7 +604,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            _timeWeWhaitToStopFastRegime = timeToGo;
+            _timeWeAwaitToStopFastRegime = timeToGo;
 
             if (TestingFastIsActivate == false)
             {
@@ -614,10 +614,10 @@ namespace OsEngine.Market.Servers.Tester
 
         private void CheckGoTo()
         {
-            if (_timeWeWhaitToStopFastRegime != DateTime.MinValue &&
-               _timeWeWhaitToStopFastRegime < TimeNow)
+            if (_timeWeAwaitToStopFastRegime != DateTime.MinValue &&
+               _timeWeAwaitToStopFastRegime < TimeNow)
             {
-                _timeWeWhaitToStopFastRegime = DateTime.MinValue;
+                _timeWeAwaitToStopFastRegime = DateTime.MinValue;
                 
                 if (TestingFastIsActivate)
                 {
@@ -628,7 +628,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
            
-        private DateTime _timeWeWhaitToStopFastRegime;
+        private DateTime _timeWeAwaitToStopFastRegime;
 
         private bool _waitSomeActionInPosition;
 
@@ -736,13 +736,13 @@ namespace OsEngine.Market.Servers.Tester
         public void SetNewSet(string setName)
         {
             string newSet = @"Data" + @"\" + @"Set_" + setName;
-            if (newSet == _activSet)
+            if (newSet == _activeSet)
             {
                 return;
             }
 
             SendLogMessage(OsLocalization.Market.Message27 + setName, LogMessageType.System);
-            _activSet = newSet;
+            _activeSet = newSet;
 
             if (_sourceDataType == TesterSourceDataType.Set)
             {
@@ -821,10 +821,10 @@ namespace OsEngine.Market.Servers.Tester
 		/// path to the data folder. He is the name of the active set
         /// путь к папке с данными. Он же название активного сета
         /// </summary>
-        private string _activSet;
+        private string _activeSet;
         public string ActiveSet
         {
-            get { return _activSet; }
+            get { return _activeSet; }
         }
 
         /// <summary>
@@ -981,11 +981,11 @@ namespace OsEngine.Market.Servers.Tester
             {
                 if (namesSecurity.Find(name => name == SecuritiesTester[i].Security.Name) == null)
                 {
-                    SecuritiesTester[i].IsActiv = false;
+                    SecuritiesTester[i].IsActive = false;
                 }
                 else
                 {
-                    SecuritiesTester[i].IsActiv = true;
+                    SecuritiesTester[i].IsActive = true;
                 }
             }
 
@@ -1165,7 +1165,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         private void LoadSecurities()
         {
-            if ((_sourceDataType == TesterSourceDataType.Set && (string.IsNullOrWhiteSpace(_activSet) || !Directory.Exists(_activSet))) ||
+            if ((_sourceDataType == TesterSourceDataType.Set && (string.IsNullOrWhiteSpace(_activeSet) || !Directory.Exists(_activeSet))) ||
                 (_sourceDataType == TesterSourceDataType.Folder && (string.IsNullOrWhiteSpace(_pathToFolder) || !Directory.Exists(_pathToFolder))))
             {
                 return;
@@ -1173,7 +1173,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if (_sourceDataType == TesterSourceDataType.Set)
             { // Hercules data sets/сеты данных Геркулеса
-                string[] directories = Directory.GetDirectories(_activSet);
+                string[] directories = Directory.GetDirectories(_activeSet);
 
                 if (directories.Length == 0)
                 {
@@ -1189,7 +1189,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 for (int i = 0; i < directories.Length; i++)
                 {
-                    LoadSeciruty(directories[i]);
+                    LoadSecurity(directories[i]);
                 }
 
                 _dataIsReady = true;
@@ -1216,7 +1216,7 @@ namespace OsEngine.Market.Servers.Tester
         /// выгрузить один инструмент из папки
         /// </summary>
         /// <param name="path">folder path to instrument / путь к папке с инструментом</param>
-        private void LoadSeciruty(string path)
+        private void LoadSecurity(string path)
         {
             string[] directories = Directory.GetDirectories(path);
 
@@ -1259,7 +1259,7 @@ namespace OsEngine.Market.Servers.Tester
             for (int i = 0; i < files.Length; i++)
             {
                 security.Add(new SecurityTester());
-                security[security.Count - 1].FileAdress = files[i];
+                security[security.Count - 1].FileAddress = files[i];
                 security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
                 security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
                 security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
@@ -1592,7 +1592,7 @@ namespace OsEngine.Market.Servers.Tester
             for (int i = 0; i < files.Length; i++)
             {
                 security.Add(new SecurityTester());
-                security[security.Count-1].FileAdress = files[i];
+                security[security.Count-1].FileAddress = files[i];
                 security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
                 security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
                 security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
@@ -1836,7 +1836,7 @@ namespace OsEngine.Market.Servers.Tester
             for (int i = 0; i < files.Length; i++)
             {
                 security.Add(new SecurityTester());
-                security[security.Count - 1].FileAdress = files[i];
+                security[security.Count - 1].FileAddress = files[i];
                 security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
                 security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
                 security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
@@ -2496,11 +2496,15 @@ namespace OsEngine.Market.Servers.Tester
 
             // order didn't execute. check if it's time to recall / ордер не `исполнился. проверяем, не пора ли отзывать
 
-            if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+            if(order.OrderTypeTime == OrderTypeTime.Specified)
             {
-                CanselOnBoardOrder(order);
-                return true;
+                if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+                {
+                    CanselOnBoardOrder(order);
+                    return true;
+                }
             }
+
             return false;
         }
 
@@ -2668,10 +2672,13 @@ namespace OsEngine.Market.Servers.Tester
 
             // order is not executed. check if it's time to recall / ордер не исполнился. проверяем, не пора ли отзывать
 
-            if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+            if (order.OrderTypeTime == OrderTypeTime.Specified)
             {
-                CanselOnBoardOrder(order);
-                return true;
+                if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+                {
+                    CanselOnBoardOrder(order);
+                    return true;
+                }
             }
             return false;
         }
@@ -2866,10 +2873,13 @@ namespace OsEngine.Market.Servers.Tester
 
             // order didn't execute. check if it's time to recall / ордер не `исполнился. проверяем, не пора ли отзывать
 
-            if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+            if (order.OrderTypeTime == OrderTypeTime.Specified)
             {
-                CanselOnBoardOrder(order);
-                return true;
+                if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
+                {
+                    CanselOnBoardOrder(order);
+                    return true;
+                }
             }
             return false;
         }
@@ -4084,6 +4094,7 @@ namespace OsEngine.Market.Servers.Tester
             orderOnBoard.LifeTime = order.LifeTime;
             orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
             orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
+            orderOnBoard.OrderTypeTime = order.OrderTypeTime;
 
             OrdersActiv.Add(orderOnBoard);
 
@@ -4408,7 +4419,7 @@ namespace OsEngine.Market.Servers.Tester
 		/// address of file with instrument data
         /// адрес файла с данными инструмента
         /// </summary>
-        public string FileAdress;
+        public string FileAddress;
 
         /// <summary>
 		/// start time of data in the file
@@ -4439,7 +4450,7 @@ namespace OsEngine.Market.Servers.Tester
 		/// whether the series is activated for unloading
         /// активирована ли серия для выгрузки
         /// </summary>
-        public bool IsActiv;
+        public bool IsActive;
 
         /// <summary>
 		/// thread control reading the data file
@@ -4455,7 +4466,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             try
             {
-                _reader = new StreamReader(FileAdress);
+                _reader = new StreamReader(FileAddress);
                 LastCandle = null;
                 LastTrade = null;
                 LastMarketDepth = null;
@@ -4475,7 +4486,7 @@ namespace OsEngine.Market.Servers.Tester
         /// <param name="now">время для синхронизации</param>
         public void Load(DateTime now)
         {
-            if (IsActiv == false)
+            if (IsActive == false)
             {
                 return;
             }
@@ -4522,7 +4533,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             if (_reader == null || (_reader.EndOfStream && LastTrade == null))
             {
-                _reader = new StreamReader(FileAdress);
+                _reader = new StreamReader(FileAddress);
             }
             if (now > TimeEnd ||
                 now < TimeStart)
@@ -4621,7 +4632,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             if (_reader == null || _reader.EndOfStream)
             {
-                _reader = new StreamReader(FileAdress);
+                _reader = new StreamReader(FileAddress);
             }
             if (now > TimeEnd || 
                 now < TimeStart)
@@ -4782,7 +4793,7 @@ namespace OsEngine.Market.Servers.Tester
         {
             if (_reader == null || _reader.EndOfStream)
             {
-                _reader = new StreamReader(FileAdress);
+                _reader = new StreamReader(FileAddress);
             }
 
             if (now > TimeEnd ||
