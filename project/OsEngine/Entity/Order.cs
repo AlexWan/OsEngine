@@ -337,9 +337,6 @@ namespace OsEngine.Entity
             {
                 return TimeCallBack;
             }
-            {
-                return TimeCallBack;
-            }
             if (_trades[0] == null)
             {
                 return TimeCallBack;
