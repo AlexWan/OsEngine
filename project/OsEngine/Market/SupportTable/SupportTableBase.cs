@@ -293,6 +293,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(bitMart);
 
+            SupportConnection bitMartFutures = new SupportConnection()
+            {
+                ServerType = ServerType.BitMartFutures,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMart.png",
+                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
+                Discount = 0
+            };
+            supportList.Add(bitMartFutures);
+
             SupportConnection bitmex = new SupportConnection()
             {
                 ServerType = ServerType.BitMex,
