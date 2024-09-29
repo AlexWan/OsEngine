@@ -12,7 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
-using Grpc.Core;
 using OsEngine.Charts;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -78,10 +77,12 @@ namespace OsEngine.Market.Servers.Tester
 
             if(_server.ServerStatus == ServerConnectStatus.Disconnect)
             {
+                ButtonStartTest.Content = OsLocalization.Market.Label134;
                 ButtonStartTest.IsEnabled = false;
             }
             else
             {
+                ButtonStartTest.Content = OsLocalization.Market.Button2;
                 ButtonStartTest.IsEnabled = true;
             }
 
@@ -194,7 +195,6 @@ namespace OsEngine.Market.Servers.Tester
             ButtonSinhronazer.Content = OsLocalization.Market.Button1;
             Title = OsLocalization.Market.TitleTester;
             Label21.Content = OsLocalization.Market.Label21;
-            ButtonStartTest.Content = OsLocalization.Market.Button2;
             Label29.Header = OsLocalization.Market.Label29;
             Label30.Header = OsLocalization.Market.Label30;
             Label31.Header = OsLocalization.Market.Label31;
@@ -454,10 +454,12 @@ namespace OsEngine.Market.Servers.Tester
 
             if (_server.ServerStatus == ServerConnectStatus.Disconnect)
             {
+                ButtonStartTest.Content = OsLocalization.Market.Label134;
                 ButtonStartTest.IsEnabled = false;
             }
             else
             {
+                ButtonStartTest.Content = OsLocalization.Market.Button2;
                 ButtonStartTest.IsEnabled = true;
             }
         }

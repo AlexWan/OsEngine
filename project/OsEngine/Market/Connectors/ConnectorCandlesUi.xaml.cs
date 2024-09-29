@@ -131,8 +131,8 @@ namespace OsEngine.Market.Connectors
                 Label8.Content = OsLocalization.Market.Label8;
                 Label9.Content = OsLocalization.Market.Label9;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
-                LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
+                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
                 LabelCandleType.Content = OsLocalization.Market.Label65;

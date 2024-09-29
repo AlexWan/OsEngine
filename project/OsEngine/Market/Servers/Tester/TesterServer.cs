@@ -1097,6 +1097,14 @@ namespace OsEngine.Market.Servers.Tester
                         }
                     }
 
+                    if (_serverConnectStatus == ServerConnectStatus.Connect)
+                    {
+                        if (Securities == null || Securities.Count == 0)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                        }
+                    }
+
                     if (_portfolios.Count == 0)
                     {
                         CreatePortfolio();

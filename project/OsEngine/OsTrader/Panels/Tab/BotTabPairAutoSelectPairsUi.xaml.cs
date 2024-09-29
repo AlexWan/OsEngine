@@ -121,8 +121,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Label6.Content = OsLocalization.Market.Label6;
                 LabelTimeFrame.Content = OsLocalization.Market.Label10;
                
-                LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
+                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;

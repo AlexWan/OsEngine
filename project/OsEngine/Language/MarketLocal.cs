@@ -568,12 +568,16 @@ namespace OsEngine.Language
           "Eng:First, connect the historical data and connect the robots to it._" +
           "Ru:Сначала подключите исторические данные и подключите к ним роботов._");
 
-        public string LabelComissionType => OsLocalization.ConvertToLocString(
-            "Eng:Comission type_" +
+        public string Label134 => OsLocalization.ConvertToLocString(
+          "Eng:No data_" +
+          "Ru:Нет данных_");
+
+        public string LabelCommissionType => OsLocalization.ConvertToLocString(
+            "Eng:Commission type_" +
             "Ru:Тип комиссии_");
 
-        public string LabelComissionValue => OsLocalization.ConvertToLocString(
-            "Eng:Comission value_" +
+        public string LabelCommissionValue => OsLocalization.ConvertToLocString(
+            "Eng:Commission value_" +
             "Ru:Значение комиссии_");
 
         public string TitleServerMasterUi => OsLocalization.ConvertToLocString(

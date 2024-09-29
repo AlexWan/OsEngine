@@ -124,8 +124,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Label8.Content = OsLocalization.Market.Label8;
                 Label9.Content = OsLocalization.Market.Label9;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
-                LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
+                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
