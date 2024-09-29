@@ -76,6 +76,15 @@ namespace OsEngine.Market.Servers.Tester
             Height = 130;
             Width = 670;
 
+            if(_server.ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                ButtonStartTest.IsEnabled = false;
+            }
+            else
+            {
+                ButtonStartTest.IsEnabled = true;
+            }
+
             _server.TestingStartEvent += _server_TestingStartEvent;
             _server.SecuritiesChangeEvent += _server_SecuritiesChangeEvent;
             _server.TestRegimeChangeEvent += _server_TestRegimeChangeEvent;
@@ -262,6 +271,7 @@ namespace OsEngine.Market.Servers.Tester
             _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
             _server.TestRegimeChangeEvent -= _server_TestRegimeChangeEvent;
             _server.TestingFastEvent -= _server_TestingFastEvent;
+            _server.LoadSecurityEvent -= _server_LoadSecurityEvent;
 
             _server = null;
 
@@ -441,6 +451,15 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
             LabelStatus.Content = status;
+
+            if (_server.ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                ButtonStartTest.IsEnabled = false;
+            }
+            else
+            {
+                ButtonStartTest.IsEnabled = true;
+            }
         }
 
         /// <summary>

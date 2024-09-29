@@ -857,6 +857,14 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public DateTime TimeNow;
 
+        public bool DataIsReady
+        {
+            get
+            {
+                return _dataIsReady;
+            }
+        }
+
         /// <summary>
 		/// are data ready for loading
         /// готовы ли данные к загрузке
@@ -1076,6 +1084,7 @@ namespace OsEngine.Market.Servers.Tester
         private void WorkThreadArea()
         {
             Thread.Sleep(2000);
+
             while (true)
             {
                 try
