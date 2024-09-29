@@ -316,13 +316,13 @@ namespace OsEngine.Market
                 secondRow.Cells[0].Value = portfolio.Number;
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[1].Value = portfolio.ValueBegin.ToString().ToDecimal();
+                secondRow.Cells[1].Value = portfolio.ValueBegin.ToStringWithNoEndZero().ToDecimal();
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[2].Value = portfolio.ValueCurrent.ToString().ToDecimal();
+                secondRow.Cells[2].Value = portfolio.ValueCurrent.ToStringWithNoEndZero().ToDecimal();
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[3].Value = portfolio.ValueBlocked.ToString().ToDecimal();
+                secondRow.Cells[3].Value = portfolio.ValueBlocked.ToStringWithNoEndZero().ToDecimal();
 
                 _gridPortfolio.Rows.Add(secondRow);
 
@@ -366,13 +366,13 @@ namespace OsEngine.Market
                         nRow.Cells[4].Value = positionsOnBoard[i].SecurityNameCode;
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[5].Value = positionsOnBoard[i].ValueBegin.ToString().ToDecimal();
+                        nRow.Cells[5].Value = positionsOnBoard[i].ValueBegin.ToStringWithNoEndZero().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[6].Value = positionsOnBoard[i].ValueCurrent.ToString().ToDecimal();
+                        nRow.Cells[6].Value = positionsOnBoard[i].ValueCurrent.ToStringWithNoEndZero().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToString().ToDecimal();
+                        nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToStringWithNoEndZero().ToDecimal();
 
                         if(HaveClosePosButton(portfolio, positionsOnBoard[i]))
                         {
