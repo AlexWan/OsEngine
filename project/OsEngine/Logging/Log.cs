@@ -1007,7 +1007,7 @@ namespace OsEngine.Logging
             row.Cells[2].Value = message.Message;
             _gridErrorLog.Rows.Insert(0, row);
 
-            if (PrimeSettingsMaster.ErrorLogMessageBoxIsActiv)
+            if (PrimeSettingsMaster.ErrorLogMessageBoxIsActive)
             {
                 if (_logErrorUi == null)
                 {
@@ -1020,7 +1020,7 @@ namespace OsEngine.Logging
                 }
             }
 
-            if (PrimeSettingsMaster.ErrorLogBeepIsActiv)
+            if (PrimeSettingsMaster.ErrorLogBeepIsActive)
             {
                 SystemSounds.Beep.Play();
             }

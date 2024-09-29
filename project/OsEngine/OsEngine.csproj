@@ -1000,13 +1000,6 @@
     <Compile Include="OsOptimizer\TabIndexOptimizerUi.xaml.cs">
       <DependentUpon>TabIndexOptimizerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\AdminPanelApi\AdminApiMaster.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\AdminPanelClient.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\Authorization.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\Counter.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\IApiServer.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\ServerModel.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\TcpServer.cs" />
     <Compile Include="Layout\GlobalGUILayout.cs" />
     <Compile Include="OsTrader\BuyAtStopPositionsViewer.cs" />
     <Compile Include="OsTrader\GlobalPositionViewer.cs" />

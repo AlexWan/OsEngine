@@ -11,9 +11,7 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.Tester;
-using OsEngine.OsTrader.AdminPanelApi;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
@@ -40,7 +38,6 @@ namespace OsEngine.OsTrader
         #region Static Part
 
         public static OsTraderMaster Master;
-        public static AdminApiMaster ApiMaster;
 
         #endregion
 
@@ -133,11 +130,6 @@ namespace OsEngine.OsTrader
 
             Master = this;
 
-            if (_startProgram == StartProgram.IsOsTrader && PrimeSettingsMaster.AutoStartApi)
-            {
-                ApiMaster = new AdminApiMaster(Master);
-            }
-
             if (CriticalErrorHandler.ErrorInStartUp && CriticalErrorEvent != null)
             {
                 try
@@ -196,11 +188,6 @@ namespace OsEngine.OsTrader
             ReloadRiskJournals();
             
             Master = this;
-
-            if (_startProgram == StartProgram.IsOsTrader && PrimeSettingsMaster.AutoStartApi)
-            {
-                ApiMaster = new AdminApiMaster(Master);
-            }
 
             ServerMaster.ClearPositionOnBoardEvent += ServerMaster_ClearPositionOnBoardEvent;
         }

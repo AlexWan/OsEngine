@@ -393,7 +393,7 @@ namespace OsEngine
             Thread worker = new Thread(SendMessageInCrashServer);
             worker.Start();
 
-            if (PrimeSettingsMaster.RebootTradeUiLigth == true &&
+            if (PrimeSettingsMaster.RebootTradeUiLight == true &&
                 RobotUiLight.IsRobotUiLightStart)
             {
                 Reboot(message);
@@ -664,7 +664,7 @@ namespace OsEngine
             {
                 ButtonRobotLight_Click(this, default);
             }
-            else if (Array.Exists(args, a => a.Equals("-error")) && PrimeSettingsMaster.RebootTradeUiLigth)
+            else if (Array.Exists(args, a => a.Equals("-error")) && PrimeSettingsMaster.RebootTradeUiLight)
             {
 
                 CriticalErrorHandler.ErrorInStartUp = true;

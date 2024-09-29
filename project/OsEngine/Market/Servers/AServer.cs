@@ -2267,7 +2267,7 @@ namespace OsEngine.Market.Servers
                     continue;
                 }
 
-                if (PrimeSettings.PrimeSettingsMaster.TransactionBeepIsActiv == false)
+                if (PrimeSettings.PrimeSettingsMaster.TransactionBeepIsActive == false)
                 {
                     continue;
                 }

@@ -9,8 +9,6 @@ using System.Drawing;
 using System.Windows.Forms;
 using OsEngine.Language;
 using System.IO;
-using OsEngine.Charts.CandleChart.Indicators;
-using System.Data.Common;
 
 namespace OsEngine.Entity
 {
