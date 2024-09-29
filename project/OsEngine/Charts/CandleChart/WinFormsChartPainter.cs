@@ -23,7 +23,6 @@ using OsEngine.Logging;
 using Color = System.Drawing.Color;
 using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
-using OsEngine.Charts.CandleChart.ChartAddons; //AVP ChartRoulette
 using OsEngine.Language;
 
 namespace OsEngine.Charts.CandleChart
@@ -35,8 +34,6 @@ namespace OsEngine.Charts.CandleChart
     public class WinFormsChartPainter : IChartPainter
     {
         //service сервис
-
-        private ChartRoulette chartRoulette;    //AVP ChartRoulette 
         
         /// <summary>
         /// constructor
@@ -55,7 +52,6 @@ namespace OsEngine.Charts.CandleChart
 
                 CreateChart();
                 _chart.Text = name;
-                chartRoulette = new ChartRoulette(this, _chart);  //AVP ChartRoulette Comment on this line if roulette is buggy
 
                 Task task = new Task(PainterThreadArea);
                 task.Start();               
@@ -389,9 +385,6 @@ namespace OsEngine.Charts.CandleChart
                 _chart.ClientSizeChanged -= _chart_ClientSizeChanged;
                 _chart.AxisViewChanging -= _chart_AxisViewChanging;
                 _chart.MouseUp -= _chart_MouseUp;
-
-                chartRoulette?.Dispose(); //AVP ChartRoulette 
-                chartRoulette = null;
 
                 _chart.Series.Clear();
                 _chart.ChartAreas.Clear();
