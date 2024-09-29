@@ -1924,7 +1924,7 @@ namespace OsEngine.Charts.CandleChart
                         {
                             Order curOrder = deals[i].OpenOrders[j];
 
-                            if (curOrder.State != OrderStateType.Activ)
+                            if (curOrder.State != OrderStateType.Active)
                             {
                                 continue;
                             }
@@ -1981,7 +1981,7 @@ namespace OsEngine.Charts.CandleChart
                         {
                             Order curOrder = deals[i].CloseOrders[j];
 
-                            if(curOrder.State != OrderStateType.Activ)
+                            if(curOrder.State != OrderStateType.Active)
                             {
                                 continue;
                             }

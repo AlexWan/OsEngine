@@ -164,10 +164,10 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (OpenOrders.Find(order => order.State == OrderStateType.Activ 
+                if (OpenOrders.Find(order => order.State == OrderStateType.Active 
                                              || order.State == OrderStateType.Pending 
                                              || order.State == OrderStateType.None
-                                             || order.State == OrderStateType.Patrial) != null)
+                                             || order.State == OrderStateType.Partial) != null)
                 {
                     return true;
                 }
@@ -188,10 +188,10 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (CloseOrders.Find(order => order.State == OrderStateType.Activ 
+                if (CloseOrders.Find(order => order.State == OrderStateType.Active 
                                               || order.State == OrderStateType.Pending
                                               || order.State == OrderStateType.None
-                                              || order.State == OrderStateType.Patrial) != null
+                                              || order.State == OrderStateType.Partial) != null
                     )
                 {
                     return true;
@@ -398,8 +398,8 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
-                    if (_openOrders[i].State == OrderStateType.Activ ||
-                        _openOrders[i].State == OrderStateType.Patrial)
+                    if (_openOrders[i].State == OrderStateType.Active ||
+                        _openOrders[i].State == OrderStateType.Partial)
                     {
                         volumeWait += _openOrders[i].Volume - _openOrders[i].VolumeExecute;
                     }
@@ -976,7 +976,7 @@ namespace OsEngine.Entity
                     for (int i = CloseOrders.Count-1; i > -1 && i < CloseOrders.Count; i--)
                     {
                         if (CloseOrders[i].State != OrderStateType.Done
-                            && CloseOrders[i].State != OrderStateType.Patrial)
+                            && CloseOrders[i].State != OrderStateType.Partial)
                         {
                             continue;
                         }

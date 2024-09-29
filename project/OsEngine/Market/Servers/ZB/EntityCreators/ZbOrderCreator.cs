@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.ZB.EntityCreators
             {
                 if (stateQuery == "True")
                 {
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.NumberMarket = innerData["entrustId"].Value<string>();
                     NewTrackedOrder?.Invoke(order);
                 }
@@ -61,12 +61,12 @@ namespace OsEngine.Market.Servers.ZB.EntityCreators
 
                 if (state == "3")
                 {
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.TimeCreate = time;
                 }
                 if (state == "0")
                 {
-                    order.State = OrderStateType.Patrial;
+                    order.State = OrderStateType.Partial;
                 }
                 else if (state == "1")
                 {

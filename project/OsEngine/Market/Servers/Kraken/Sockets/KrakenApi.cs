@@ -554,7 +554,7 @@ namespace Kraken.WebSockets
 
                 else
                 {
-                    orderOsEngine.State = OsEngine.Entity.OrderStateType.Activ;
+                    orderOsEngine.State = OsEngine.Entity.OrderStateType.Active;
                 }
 
                 if (OrdersUpdateEvent != null)

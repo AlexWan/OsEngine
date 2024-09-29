@@ -71,14 +71,14 @@ namespace OsEngine.Entity
             get
             {
                 if((State == OrderStateType.None 
-                    || State == OrderStateType.Activ
+                    || State == OrderStateType.Active
                     || State == OrderStateType.Cancel)
                     && _trades == null)
                 {
                     return 0;
                 }
 
-                return GetMidlePrice();
+                return GetMiddlePrice();
             }
         }
 
@@ -293,7 +293,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Take the average order execution price
         /// </summary>
-        public decimal GetMidlePrice()
+        public decimal GetMiddlePrice()
         {
             if (_trades == null)
             {
@@ -537,7 +537,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Accepted by the exchange and exhibited in the system
         /// </summary>
-        Activ,
+        Active,
 
         /// <summary>
         /// Waiting for registration
@@ -552,7 +552,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Partitial done
         /// </summary>
-        Patrial,
+        Partial,
 
         /// <summary>
         /// Error

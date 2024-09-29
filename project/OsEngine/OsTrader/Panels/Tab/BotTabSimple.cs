@@ -3014,7 +3014,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
                 {
-                    if (position.CloseOrders[i].State == OrderStateType.Activ)
+                    if (position.CloseOrders[i].State == OrderStateType.Active)
                     {
                         _connector.OrderCancel(position.CloseOrders[i]);
                     }
@@ -3022,7 +3022,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; position.OpenOrders != null && i < position.OpenOrders.Count; i++)
                 {
-                    if (position.OpenOrders[i].State == OrderStateType.Activ)
+                    if (position.OpenOrders[i].State == OrderStateType.Active)
                     {
                         _connector.OrderCancel(position.OpenOrders[i]);
                     }
@@ -3626,7 +3626,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     for (int i = 0; i < position.OpenOrders.Count; i++)
                     {
                         Order order = position.OpenOrders[i];
-                        if (order.State == OrderStateType.Activ)
+                        if (order.State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.OpenOrders[i]);
                         }
@@ -3640,7 +3640,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         Order closeOrder = position.CloseOrders[i];
 
-                        if (closeOrder.State == OrderStateType.Activ)
+                        if (closeOrder.State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(closeOrder);
                         }
@@ -3795,7 +3795,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         for (int i = 0; i < position.OpenOrders.Count; i++)
                         {
-                            if (position.OpenOrders[i].State == OrderStateType.Activ)
+                            if (position.OpenOrders[i].State == OrderStateType.Active)
                             {
                                 _connector.OrderCancel(position.OpenOrders[i]);
                             }
@@ -3919,7 +3919,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         for (int i = 0; i < position.OpenOrders.Count; i++)
                         {
-                            if (position.OpenOrders[i].State == OrderStateType.Activ)
+                            if (position.OpenOrders[i].State == OrderStateType.Active)
                             {
                                 _connector.OrderCancel(position.OpenOrders[i]);
                             }
@@ -3973,7 +3973,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
                     {
-                        if (position.CloseOrders[i].State == OrderStateType.Activ)
+                        if (position.CloseOrders[i].State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.CloseOrders[i]);
                         }
@@ -3981,7 +3981,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     for (int i = 0; position.OpenOrders != null && i < position.OpenOrders.Count; i++)
                     {
-                        if (position.OpenOrders[i].State == OrderStateType.Activ)
+                        if (position.OpenOrders[i].State == OrderStateType.Active)
                         {
                             _connector.OrderCancel(position.OpenOrders[i]);
                         }
@@ -4083,7 +4083,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         for (int i = 0; i < position.OpenOrders.Count; i++)
                         {
-                            if (position.OpenOrders[i].State == OrderStateType.Activ)
+                            if (position.OpenOrders[i].State == OrderStateType.Active)
                             {
                                 _connector.OrderCancel(position.OpenOrders[i]);
                             }
@@ -4394,7 +4394,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 lock (_lockerManualReload)
                 {
                     if (position.CloseOrders != null &&
-                        position.CloseOrders[position.CloseOrders.Count - 1].State == OrderStateType.Activ)
+                        position.CloseOrders[position.CloseOrders.Count - 1].State == OrderStateType.Active)
                     {
                         return;
                     }

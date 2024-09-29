@@ -512,7 +512,7 @@ namespace OsEngine.Market.Servers.Lmax
                             return;
                         }
 
-                        order.State = OrderStateType.Activ;
+                        order.State = OrderStateType.Active;
                         order.NumberMarket = entity.GetFieldByTag((int)Tags.OrderID);
                         order.Side = entity.GetFieldByTag((int)Tags.Side) == "1" ? Side.Buy : Side.Sell;
                         order.Volume = entity.GetFieldByTag((int)Tags.OrderQty).ToDecimal();

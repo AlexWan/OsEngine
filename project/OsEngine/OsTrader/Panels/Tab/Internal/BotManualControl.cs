@@ -520,8 +520,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         // open orders
                         Order openOrder = position.OpenOrders[i2];
 
-                        if (openOrder.State != OrderStateType.Activ &&
-                            openOrder.State != OrderStateType.Patrial)
+                        if (openOrder.State != OrderStateType.Active &&
+                            openOrder.State != OrderStateType.Partial)
                         {
                             continue;
                         }
@@ -579,8 +579,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
-                        if ((closeOrder.State != OrderStateType.Activ &&
-                             closeOrder.State != OrderStateType.Patrial))
+                        if ((closeOrder.State != OrderStateType.Active &&
+                             closeOrder.State != OrderStateType.Partial))
                         {
                             continue;
                         }

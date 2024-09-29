@@ -4084,7 +4084,7 @@ namespace OsEngine.Market.Servers.Tester
             orderOnBoard.Price = order.Price;
             orderOnBoard.SecurityNameCode = order.SecurityNameCode;
             orderOnBoard.Side = order.Side;
-            orderOnBoard.State = OrderStateType.Activ;
+            orderOnBoard.State = OrderStateType.Active;
             orderOnBoard.ServerType = order.ServerType;
             orderOnBoard.TimeCallBack = ServerTime;
             orderOnBoard.TimeCreate = ServerTime;

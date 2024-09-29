@@ -1485,15 +1485,15 @@ namespace OsEngine.Market.Servers.Bybit
                     //Console.WriteLine("UpdateOrder - " + message);
                     stateType = responseMyTrades.data[i].orderStatus.ToUpper() switch
                     {
-                        "CREATED" => OrderStateType.Activ,
-                        "NEW" => OrderStateType.Activ,
-                        "ORDER_NEW" => OrderStateType.Activ,
-                        "PARTIALLYFILLED" => OrderStateType.Activ,
+                        "CREATED" => OrderStateType.Active,
+                        "NEW" => OrderStateType.Active,
+                        "ORDER_NEW" => OrderStateType.Active,
+                        "PARTIALLYFILLED" => OrderStateType.Active,
                         "FILLED" => OrderStateType.Done,
                         "ORDER_FILLED" => OrderStateType.Done,
                         "CANCELLED" => OrderStateType.Cancel,
                         "ORDER_CANCELLED" => OrderStateType.Cancel,
-                        "PARTIALLYFILLEDCANCELED" => OrderStateType.Patrial,
+                        "PARTIALLYFILLEDCANCELED" => OrderStateType.Partial,
                         "REJECTED" => OrderStateType.Fail,
                         "ORDER_REJECTED" => OrderStateType.Fail,
                         "ORDER_FAILED" => OrderStateType.Fail,
@@ -1502,7 +1502,7 @@ namespace OsEngine.Market.Servers.Bybit
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = responseMyTrades.data[i].symbol + (responseMyTrades.data[i].category.ToLower() == Category.spot.ToString() ? "":".P");
                     newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].createdTime));
-                    if (stateType == OrderStateType.Activ)
+                    if (stateType == OrderStateType.Active)
                     {
                         newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseMyTrades.data[i].updatedTime));
                     }
@@ -2071,7 +2071,7 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     parametrs["category"] = Category.spot.ToString();
                 }
-                if (order.State != OrderStateType.Activ)
+                if (order.State != OrderStateType.Active)
                 {
                     continue;
                 }
@@ -2098,16 +2098,16 @@ namespace OsEngine.Market.Servers.Bybit
                     switch (oStatus)
                     {
                         case "Created":
-                            order.State = OrderStateType.Activ;
+                            order.State = OrderStateType.Active;
                             break;
                         case "Rejected":
                             order.State = OrderStateType.Fail;
                             break;
                         case "New":
-                            order.State = OrderStateType.Activ;
+                            order.State = OrderStateType.Active;
                             break;
                         case "PartiallyFilled":
-                            order.State = OrderStateType.Activ;
+                            order.State = OrderStateType.Active;
                             break;
                         case "Filled":
                             order.State = OrderStateType.Done;
@@ -2213,8 +2213,8 @@ namespace OsEngine.Market.Servers.Bybit
 
                 // check trades
 
-                if (newOrder.State == OrderStateType.Activ
-                    || newOrder.State == OrderStateType.Patrial
+                if (newOrder.State == OrderStateType.Active
+                    || newOrder.State == OrderStateType.Partial
                     || newOrder.State == OrderStateType.Done
                     || newOrder.State == OrderStateType.Cancel)
                 {
@@ -2291,7 +2291,7 @@ namespace OsEngine.Market.Servers.Bybit
             foreach(JToken order in ordChild)
             {
                 Order newOrder = new Order();
-                newOrder.State = OrderStateType.Activ;
+                newOrder.State = OrderStateType.Active;
                 newOrder.TypeOrder = OrderPriceType.Limit;
                 newOrder.PortfolioNumber = "BybitUNIFIED";
 
@@ -2362,15 +2362,15 @@ namespace OsEngine.Market.Servers.Bybit
 
                 OrderStateType stateType = status.ToUpper() switch
                 {
-                    "CREATED" => OrderStateType.Activ,
-                    "NEW" => OrderStateType.Activ,
-                    "ORDER_NEW" => OrderStateType.Activ,
-                    "PARTIALLYFILLED" => OrderStateType.Activ,
+                    "CREATED" => OrderStateType.Active,
+                    "NEW" => OrderStateType.Active,
+                    "ORDER_NEW" => OrderStateType.Active,
+                    "PARTIALLYFILLED" => OrderStateType.Active,
                     "FILLED" => OrderStateType.Done,
                     "ORDER_FILLED" => OrderStateType.Done,
                     "CANCELLED" => OrderStateType.Cancel,
                     "ORDER_CANCELLED" => OrderStateType.Cancel,
-                    "PARTIALLYFILLEDCANCELED" => OrderStateType.Patrial,
+                    "PARTIALLYFILLEDCANCELED" => OrderStateType.Partial,
                     "REJECTED" => OrderStateType.Fail,
                     "ORDER_REJECTED" => OrderStateType.Fail,
                     "ORDER_FAILED" => OrderStateType.Fail,

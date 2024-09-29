@@ -1927,7 +1927,7 @@ namespace OsEngine.Market.Servers.Optimizer
             orderOnBoard.Price = order.Price;
             orderOnBoard.SecurityNameCode = order.SecurityNameCode;
             orderOnBoard.Side = order.Side;
-            orderOnBoard.State = OrderStateType.Activ;
+            orderOnBoard.State = OrderStateType.Active;
             orderOnBoard.TimeCallBack = ServerTime;
             orderOnBoard.TimeCreate = ServerTime;
             orderOnBoard.TypeOrder = order.TypeOrder;

@@ -2596,7 +2596,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                 if (state == "O")
                 {
-                     order.State = OrderStateType.Activ;
+                     order.State = OrderStateType.Active;
                 }
                 else if (state == "M")
                 {

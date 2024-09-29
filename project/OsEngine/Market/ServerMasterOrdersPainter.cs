@@ -198,7 +198,7 @@ namespace OsEngine.Market
                                 continue;
                             }
 
-                            if (order.State == OrderStateType.Activ
+                            if (order.State == OrderStateType.Active
                                 || order.State == OrderStateType.Pending
                                 || order.State == OrderStateType.None)
                             {
@@ -544,7 +544,7 @@ namespace OsEngine.Market
                     {
                         for (int i = 0; i < _orders.Count; i++)
                         {
-                            if (_orders[i].State == OrderStateType.Activ &&
+                            if (_orders[i].State == OrderStateType.Active &&
                                 !string.IsNullOrEmpty(_orders[i].PortfolioNumber))
                             {
                                 if (_orders[i].PortfolioNumber == "Emulator")
@@ -637,7 +637,7 @@ namespace OsEngine.Market
                             return;
                         }
                     }
-                    if ((order.State == OrderStateType.Activ || order.State == OrderStateType.Pending)
+                    if ((order.State == OrderStateType.Active || order.State == OrderStateType.Pending)
                         &&
                             !string.IsNullOrEmpty(order.PortfolioNumber))
                     {

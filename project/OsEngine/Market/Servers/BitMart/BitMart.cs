@@ -1395,7 +1395,7 @@ namespace OsEngine.Market.Servers.BitMart
                 MyOrderEvent?.Invoke(order);
 
                 if (MyTradeEvent != null && 
-                    (order.State == OrderStateType.Done || order.State == OrderStateType.Patrial))
+                    (order.State == OrderStateType.Done || order.State == OrderStateType.Partial))
                 {
                     UpdateTrades(order);
                 }
@@ -1461,7 +1461,7 @@ namespace OsEngine.Market.Servers.BitMart
 
             if (baseOrder.order_state == "new")
             {
-                order.State = OrderStateType.Activ;
+                order.State = OrderStateType.Active;
             }
             else if (baseOrder.order_state == "filled")
             {
@@ -1469,7 +1469,7 @@ namespace OsEngine.Market.Servers.BitMart
             }
             else if (baseOrder.order_state == "partially_filled")
             {
-                order.State = OrderStateType.Patrial;
+                order.State = OrderStateType.Partial;
             }
             else if (baseOrder.order_state == "canceled" || baseOrder.order_state == "partially_canceled")
             {
@@ -1746,7 +1746,7 @@ namespace OsEngine.Market.Servers.BitMart
             {
                 Order order = orders[i];
 
-                if(order.State == OrderStateType.Activ)
+                if(order.State == OrderStateType.Active)
                 {
                     CancelOrder(order);
                 }
@@ -1761,7 +1761,7 @@ namespace OsEngine.Market.Servers.BitMart
             {
                 Order order = orders[i];
 
-                if (order.State == OrderStateType.Activ
+                if (order.State == OrderStateType.Active
                     && order.SecurityNameCode == security.Name)
                 {
                     CancelOrder(order);
@@ -1928,7 +1928,7 @@ namespace OsEngine.Market.Servers.BitMart
 
             MyOrderEvent?.Invoke(myOrder);
 
-            if (myOrder.State == OrderStateType.Done || myOrder.State == OrderStateType.Patrial)
+            if (myOrder.State == OrderStateType.Done || myOrder.State == OrderStateType.Partial)
             {
                 UpdateTrades(myOrder);
             }
@@ -1982,17 +1982,17 @@ namespace OsEngine.Market.Servers.BitMart
 
             if (baseOrder.state == "new")
             {
-                order.State = OrderStateType.Activ;
+                order.State = OrderStateType.Active;
             }
             else if (baseOrder.state == "partially_filled")
             {
-                order.State = OrderStateType.Patrial;
+                order.State = OrderStateType.Partial;
             }
 
 
             if (baseOrder.state == "new")
             {
-                order.State = OrderStateType.Activ;
+                order.State = OrderStateType.Active;
             }
             else if (baseOrder.state == "filled")
             {
@@ -2000,7 +2000,7 @@ namespace OsEngine.Market.Servers.BitMart
             }
             else if (baseOrder.state == "partially_filled")
             {
-                order.State = OrderStateType.Patrial;
+                order.State = OrderStateType.Partial;
             }
             else if (baseOrder.state == "canceled" || baseOrder.state == "partially_canceled")
             {

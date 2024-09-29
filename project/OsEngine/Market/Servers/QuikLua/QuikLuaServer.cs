@@ -1337,7 +1337,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     if (qOrder.State == State.Active)
                     {
-                        order.State = OrderStateType.Activ;
+                        order.State = OrderStateType.Active;
                         order.TimeCallBack = new DateTime(qOrder.Datetime.year, qOrder.Datetime.month,
                             qOrder.Datetime.day,
                             qOrder.Datetime.hour, qOrder.Datetime.min, qOrder.Datetime.sec);
@@ -1358,7 +1358,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                     else if (qOrder.Balance != 0)
                     {
-                        order.State = OrderStateType.Patrial;
+                        order.State = OrderStateType.Partial;
                         order.VolumeExecute = qOrder.Quantity - qOrder.Balance;
                     }
 

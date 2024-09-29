@@ -420,7 +420,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             if (_ordersInSystem != null)
             {
                 if (NewOrderNeedToCancel != null &&
-                    _ordersInSystem.State == OrderStateType.Activ)
+                    _ordersInSystem.State == OrderStateType.Active)
                 {
                     NewOrderNeedToCancel(_ordersInSystem);
                     _ordersInSystem = null;

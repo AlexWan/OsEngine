@@ -852,10 +852,10 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         orderState = OrderStateType.Done;
                         break;
                     case "PENDING":
-                        orderState = OrderStateType.Activ;
+                        orderState = OrderStateType.Active;
                         break;
                     case "PARTIALLY_FILLED":
-                        orderState = OrderStateType.Patrial;
+                        orderState = OrderStateType.Partial;
                         break;
                     case "CANCELED":
                         orderState = OrderStateType.Cancel;
@@ -864,7 +864,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         orderState = OrderStateType.Fail;
                         break;
                     case "NEW":
-                        orderState = OrderStateType.Activ;
+                        orderState = OrderStateType.Active;
                         break;
                 }
 
@@ -885,7 +885,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 //если ордер исполнен, вызываем MyTradeEvent
                 if (orderState == OrderStateType.Done
-                    || orderState == OrderStateType.Patrial)
+                    || orderState == OrderStateType.Partial)
                 {
                     UpdateMyTrade(message);
                 }
@@ -1049,7 +1049,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
                 if (response.code == "0")
                 {
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.NumberMarket = response.data.orderId;
                 }
                 else

@@ -1053,7 +1053,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (item.ordType.Equals("market") &&
                     stateType != OrderStateType.Done &&
-                    stateType != OrderStateType.Patrial)
+                    stateType != OrderStateType.Partial)
                 {
                     continue;
                 }
@@ -1087,7 +1087,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     newOrder.TypeOrder = OrderPriceType.Market;
                 }
 
-                if (stateType == OrderStateType.Patrial)
+                if (stateType == OrderStateType.Partial)
                 {
                     MyOrderEvent(newOrder);
 
@@ -1386,7 +1386,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
 
                     if(curOder.State == OrderStateType.Done ||
-                        curOder.State == OrderStateType.Patrial)
+                        curOder.State == OrderStateType.Partial)
                     {
                         FindMyTradesToOrder(curOder);
                     }
@@ -1576,10 +1576,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 case ("init"):
                 case ("new"):
-                    stateType = OrderStateType.Activ;
+                    stateType = OrderStateType.Active;
                     break;
                 case ("partial-fill"):
-                    stateType = OrderStateType.Patrial;
+                    stateType = OrderStateType.Partial;
                     break;
                 case ("full-fill"):
                     stateType = OrderStateType.Done;

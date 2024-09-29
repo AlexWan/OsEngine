@@ -1040,13 +1040,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         orderState = OrderStateType.Done;
                         break;
                     case "PARTIALLY_FILLED":
-                        orderState = OrderStateType.Patrial;
+                        orderState = OrderStateType.Partial;
                         break;
                     case "CANCELED":
                         orderState = OrderStateType.Cancel;
                         break;
                     case "NEW":
-                        orderState = OrderStateType.Activ;
+                        orderState = OrderStateType.Active;
                         break;
                     case "EXPIRED":
                         orderState = OrderStateType.Fail;
@@ -1073,7 +1073,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 //если ордер исполнен, вызываем MyTradeEvent
                 if (orderState == OrderStateType.Done
-                    || orderState == OrderStateType.Patrial)
+                    || orderState == OrderStateType.Partial)
                 {
                     UpdateMyTrade(message);
                 }
@@ -1244,7 +1244,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 ResponseFuturesBingXMessage<OrderData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<OrderData>>(json.Content);
                 if (response.code == "0")
                 {
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.NumberMarket = response.data.order.orderId;
                 }
                 else
@@ -1409,19 +1409,19 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                                     openOrder.State = OrderStateType.Done;
                                     break;
                                 case "PARTIALLY_FILLED":
-                                    openOrder.State = OrderStateType.Patrial;
+                                    openOrder.State = OrderStateType.Partial;
                                     break;
                                 case "CANCELED":
                                     openOrder.State = OrderStateType.Cancel;
                                     break;
                                 case "NEW":
-                                    openOrder.State = OrderStateType.Activ;
+                                    openOrder.State = OrderStateType.Active;
                                     break;
                                 case "EXPIRED":
                                     openOrder.State = OrderStateType.Fail;
                                     break;
                                 case "PENDING":
-                                    openOrder.State = OrderStateType.Activ;
+                                    openOrder.State = OrderStateType.Active;
                                     break;
                                 default:
                                     openOrder.State = OrderStateType.None;
@@ -1578,19 +1578,19 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                                 openOrder.State = OrderStateType.Done;
                                 break;
                             case "PARTIALLY_FILLED":
-                                openOrder.State = OrderStateType.Patrial;
+                                openOrder.State = OrderStateType.Partial;
                                 break;
                             case "CANCELLED":
                                 openOrder.State = OrderStateType.Cancel;
                                 break;
                             case "NEW":
-                                openOrder.State = OrderStateType.Activ;
+                                openOrder.State = OrderStateType.Active;
                                 break;
                             case "EXPIRED":
                                 openOrder.State = OrderStateType.Fail;
                                 break;
                             case "PENDING":
-                                openOrder.State = OrderStateType.Activ;
+                                openOrder.State = OrderStateType.Active;
                                 break;
                             default:
                                 openOrder.State = OrderStateType.None;

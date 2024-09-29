@@ -239,11 +239,11 @@ namespace OsEngine.Entity
             DataGridViewComboBoxCell stateCell = new DataGridViewComboBoxCell();
 
             stateCell.Items.Add(OrderStateType.None.ToString());
-            stateCell.Items.Add(OrderStateType.Activ.ToString());
+            stateCell.Items.Add(OrderStateType.Active.ToString());
             stateCell.Items.Add(OrderStateType.Cancel.ToString());
             stateCell.Items.Add(OrderStateType.Done.ToString());
             stateCell.Items.Add(OrderStateType.Fail.ToString());
-            stateCell.Items.Add(OrderStateType.Patrial.ToString());
+            stateCell.Items.Add(OrderStateType.Partial.ToString());
             stateCell.Items.Add(OrderStateType.Pending.ToString());
             nRow.Cells.Add(stateCell);
             nRow.Cells[6].Value = order.State.ToString();

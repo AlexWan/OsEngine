@@ -407,7 +407,7 @@ namespace OsEngine.Market.Connectors
             newOrder.NumberMarket = DateTime.Now.ToString(new CultureInfo("ru-RU")) + order.NumberUser;
             order.NumberMarket = newOrder.NumberMarket;
             newOrder.NumberUser = order.NumberUser;
-            newOrder.State = OrderStateType.Activ;
+            newOrder.State = OrderStateType.Active;
             newOrder.Volume = order.Volume;
             newOrder.VolumeExecute = 0;
             newOrder.Price = order.Price;

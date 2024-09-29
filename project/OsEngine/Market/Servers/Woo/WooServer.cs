@@ -1080,7 +1080,7 @@ namespace OsEngine.Market.Servers.Woo
             switch (orderStateResponse)
             {
                 case ("NEW"):
-                    stateType = OrderStateType.Activ;
+                    stateType = OrderStateType.Active;
                     break;
                 case ("FILLED"):
                     stateType = OrderStateType.Done;
@@ -1089,13 +1089,13 @@ namespace OsEngine.Market.Servers.Woo
                     stateType = OrderStateType.Fail;
                     break;
                 case ("PARTIAL_FILLED"):
-                    stateType = OrderStateType.Patrial;
+                    stateType = OrderStateType.Partial;
                     break;
                 case ("CANCELLED"):
                     stateType = OrderStateType.Cancel;
                     break;
                 case ("REPLACED"):
-                    stateType = OrderStateType.Activ; 
+                    stateType = OrderStateType.Active; 
                     break;
                 default:
                     stateType = OrderStateType.None;

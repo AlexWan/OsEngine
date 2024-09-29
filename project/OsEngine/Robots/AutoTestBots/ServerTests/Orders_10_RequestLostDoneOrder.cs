@@ -261,7 +261,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            if (order.State == OrderStateType.Activ)
+            if (order.State == OrderStateType.Active)
             {
                 _ordersActive.Add(order);
             }
@@ -277,7 +277,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 _ordersFail.Add(order);
             }
-            else if (order.State == OrderStateType.Patrial)
+            else if (order.State == OrderStateType.Partial)
             {
                 _ordersPatrial.Add(order);
             }

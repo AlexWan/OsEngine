@@ -832,7 +832,7 @@ namespace OsEngine.OsTrader
             Order newOrder = new Order();
 
             newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgram);
-            newOrder.State = OrderStateType.Activ;
+            newOrder.State = OrderStateType.Active;
             newOrder.Volume = Math.Abs(pos.ValueCurrent);
             newOrder.Price = 0;
             newOrder.TimeCreate = server.ServerTime;

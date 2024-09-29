@@ -2299,12 +2299,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         }
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
                         {
-                            order.State = OrderStateType.Activ;
+                            order.State = OrderStateType.Active;
                         }
                         else if (state.ExecutionReportStatus ==
                                  OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
                         {
-                            order.State = OrderStateType.Patrial;
+                            order.State = OrderStateType.Partial;
                         }
 
                         if (MyOrderEvent != null)
@@ -2432,7 +2432,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 }
                 else
                 {
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.NumberMarket = response.OrderId;
                 }
 
@@ -2480,7 +2480,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 request.IdempotencyKey = orderId;
                 request.Quantity = Convert.ToInt32(order.Volume - order.VolumeExecute);
 
-                if (request.Quantity <= 0 || order.State != OrderStateType.Activ)
+                if (request.Quantity <= 0 || order.State != OrderStateType.Active)
                 {
                     SendLogMessage("Can`t change order price because it`s not in Active state", LogMessageType.Error);
                     return;
@@ -2527,7 +2527,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 else
                 {
                     // А теперь записываем новые данные для нового ордера
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.NumberMarket = response.OrderId;
                     order.NumberUser = newOrderNumber;
                     order.Price = newPrice;
@@ -2623,7 +2623,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             {
                 Order order = orders[i];
 
-                if(order.State == OrderStateType.Activ)
+                if(order.State == OrderStateType.Active)
                 {
                     CancelOrder(order);
                 }
@@ -2638,7 +2638,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             {
                 Order order = orders[i];
 
-                if (order.State == OrderStateType.Activ
+                if (order.State == OrderStateType.Active
                     && order.SecurityNameCode == security.Name)
                 {
                     CancelOrder(order);
@@ -2657,8 +2657,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     continue;
                 }
 
-                if (orders[i].State != OrderStateType.Activ
-                    && orders[i].State != OrderStateType.Patrial
+                if (orders[i].State != OrderStateType.Active
+                    && orders[i].State != OrderStateType.Partial
                     && orders[i].State != OrderStateType.Pending)
                 {
                     continue;
@@ -2749,12 +2749,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 }
                 else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
                 {
-                    newOrder.State = OrderStateType.Activ;
+                    newOrder.State = OrderStateType.Active;
                 }
                 else if (state.ExecutionReportStatus ==
                          OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
                 {
-                    newOrder.State = OrderStateType.Patrial;
+                    newOrder.State = OrderStateType.Partial;
                 }
 
                 if (MyOrderEvent != null)
@@ -2762,7 +2762,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     MyOrderEvent(newOrder);
                 }
 
-                if (newOrder.State == OrderStateType.Done || newOrder.State == OrderStateType.Patrial)
+                if (newOrder.State == OrderStateType.Done || newOrder.State == OrderStateType.Partial)
                 {
                     // add all trades for this order
                     for (int i = 0; i < state.Stages.Count; i++)
@@ -2883,11 +2883,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         }
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
                         {
-                            newOrder.State = OrderStateType.Activ;
+                            newOrder.State = OrderStateType.Active;
                         }
                         else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
                         {
-                            newOrder.State = OrderStateType.Patrial;
+                            newOrder.State = OrderStateType.Partial;
                         }
 
                         osEngineOrders.Add(newOrder);
