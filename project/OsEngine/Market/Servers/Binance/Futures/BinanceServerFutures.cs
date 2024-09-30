@@ -472,7 +472,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         onePortf.marginBalance.ToDecimal();
                     newPortf.ValueCurrent =
                         onePortf.marginBalance.ToDecimal();
-
+                    newPortf.PortfolioName = "BinanceFutures";
 
                     decimal lockedBalanceUSDT = 0m;
                     if (onePortf.asset.Equals("USDT"))
@@ -508,6 +508,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     newPortf.ValueCurrent =
                         onePortf.positionAmt.ToDecimal();
+
+                    newPortf.PortfolioName = "BinanceFutures";
 
                     myPortfolio.SetNewPosition(newPortf);
                 }

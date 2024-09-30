@@ -315,6 +315,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     newPortf.ValueBlocked =
                         onePortf.locked.ToDecimal();
 
+                    newPortf.PortfolioName = "BinanceSpot";
+
                     myPortfolio.SetNewPosition(newPortf);
                 }
 

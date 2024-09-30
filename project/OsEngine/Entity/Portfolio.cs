@@ -59,6 +59,11 @@ namespace OsEngine.Entity
                 return;
             }
 
+            if(string.IsNullOrEmpty(position.PortfolioName))
+            {
+                position.PortfolioName = Number;
+            }
+
             if (_positionOnBoard != null && _positionOnBoard.Count != 0)
             {
                 for (int i = 0; i < _positionOnBoard.Count; i ++)

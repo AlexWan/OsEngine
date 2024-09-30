@@ -1674,7 +1674,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                             order_id = parsed_data.order_id.ToString();
                             _serverOrderIDs.TryAdd(order.NumberUser.ToString(), order_id);
                         }
-                    } 
+                    }
 
                     if (string.IsNullOrEmpty(order_id))
                     {

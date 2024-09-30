@@ -114,7 +114,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 15; }
+            get { return 5; }
         }
 
         public bool IsCanChangeOrderPrice
