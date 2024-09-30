@@ -1586,19 +1586,31 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 BitMartPosition basePos = basePositions[k];
 
+                string name = basePos.symbol;
+                decimal volume = basePos.hold_volume.ToDecimal();
+                if (basePos.position_type == 1)
+                {
+                    name += "_LONG";
+                }
+                else
+                {
+                    name += "_SHORT";
+                    volume = -volume;
+                }
+
                 bool found = false;
 
                 for (int i = 0; i < positions.Count; i++)
                 {
                     PositionOnBoard position = positions[i];
-                    if (position.SecurityNameCode != basePos.symbol)
+                    if (position.SecurityNameCode != name)
                     {
                         continue;
                     }
 
                     found = true;
 
-                    position.ValueCurrent = basePos.hold_volume.ToDecimal();
+                    position.ValueCurrent = volume;
                     position.ValueBlocked = basePos.frozen_volume.ToDecimal();
 
                     portf.SetNewPosition(position);
@@ -1609,8 +1621,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     PositionOnBoard newPos = new PositionOnBoard()
                     {
                         PortfolioName = this._portfolioName,
-                        SecurityNameCode = basePos.symbol,
-                        ValueCurrent = basePos.hold_volume.ToDecimal(),
+                        SecurityNameCode = name,
+                        ValueCurrent = volume,
                         ValueBlocked = basePos.frozen_volume.ToDecimal(),
                         ValueBegin = 0
                     };
