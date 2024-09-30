@@ -1679,6 +1679,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     if (string.IsNullOrEmpty(order_id))
                     {
                         SendLogMessage($"Order creation answer is wrong: {content}", LogMessageType.Error);
+
+                        if(content.Contains("You do not have the permissions to perform this operation. "))
+                        {
+                            CreateOrderFail(order);
+                        }
                     }
                 }
                 else
