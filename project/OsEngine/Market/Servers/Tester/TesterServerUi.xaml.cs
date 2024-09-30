@@ -1066,7 +1066,6 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         // instrument table
-        //  таблица с инструментами
 
         bool _neadToRePaintGrid;
 

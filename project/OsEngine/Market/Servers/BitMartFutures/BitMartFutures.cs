@@ -19,8 +19,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using WebSocket4Net;
-using OsEngine.Charts.CandleChart.Indicators;
-using Com.Lmax.Api.Internal;
 
 namespace OsEngine.Market.Servers.BitMartFutures
 {
@@ -241,11 +239,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     newSecurity.NameId = item.symbol;
                     newSecurity.State = SecurityStateType.Activ;
                     newSecurity.Decimals = GetDecimalsVolume(item.price_precision);
-                    newSecurity.DecimalsVolume = GetDecimalsVolume(item.contract_size);
+                    newSecurity.DecimalsVolume = GetDecimalsVolume(item.vol_precision);
                     newSecurity.PriceStep = GetPriceStep( newSecurity.Decimals );
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.Lot = 1;
-                    newSecurity.SecurityType = SecurityType.CurrencyPair;
+                    newSecurity.SecurityType = SecurityType.Futures;
                     newSecurity.Exchange = ServerType.BitMartFutures.ToString();
                     newSecurity.MinTradeAmount = item.min_volume.ToDecimal() ;
 
@@ -312,11 +310,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 string endPoint = $"/contract/private/assets-detail";
 
-                SendLogMessage("GetCurrentPortfolio request: " + endPoint, LogMessageType.Connect);
+                //SendLogMessage("GetCurrentPortfolio request: " + endPoint, LogMessageType.Connect);
                 HttpResponseMessage response = _restClient.Get(endPoint, secured: true);
 
                 string content = response.Content.ReadAsStringAsync().Result;
-                SendLogMessage("GetCurrentPortfolio message: " + content, LogMessageType.Connect);
+                //SendLogMessage("GetCurrentPortfolio message: " + content, LogMessageType.Connect);
                 BitMartBaseMessage parsed =
                     JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
 

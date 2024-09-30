@@ -179,7 +179,15 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT"
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect

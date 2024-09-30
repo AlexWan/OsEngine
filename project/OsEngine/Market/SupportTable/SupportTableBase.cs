@@ -288,8 +288,8 @@ namespace OsEngine.Market.SupportTable
                 ServerType = ServerType.BitMart,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\BitMart.png",
-                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
-                Discount = 0
+                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en", 
+                Discount = 40
             };
             supportList.Add(bitMart);
 
@@ -299,7 +299,7 @@ namespace OsEngine.Market.SupportTable
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\BitMart.png",
                 LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
-                Discount = 0
+                Discount = 30
             };
             supportList.Add(bitMartFutures);
 
