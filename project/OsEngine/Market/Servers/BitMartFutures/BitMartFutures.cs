@@ -1473,15 +1473,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             order.TimeCreate = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.create_time.ToString());
             order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.update_time.ToString());
             
-
-            if (baseOrder.side <= 2)
-            {
-                order.Side = Side.Buy;
-            }
-            else // 3, 4
-            {
-                order.Side = Side.Sell;
-            }
+            SetOrderSide(order, baseOrder.side);
 
             //Action
             //- 1 = match deal
@@ -1724,11 +1716,25 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
             if(order.Side == Side.Buy)
             {
-                requestObj.side = 1;
+                if (order.PositionConditionType == OrderPositionConditionType.Close)
+                {
+                    requestObj.side = 2; // close short
+                }
+                else
+                {
+                    requestObj.side = 1; // open long
+                }
             }
             else
             {
-                requestObj.side = 4;
+                if (order.PositionConditionType == OrderPositionConditionType.Close)
+                {
+                    requestObj.side = 3; // close long
+                }
+                else
+                {
+                    requestObj.side = 4; // open short
+                }
             }
 
             if (order.TypeOrder == OrderPriceType.Limit)
@@ -2181,6 +2187,37 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
         }
 
+        private void SetOrderSide(Order order, int exchangeSide)
+        {
+            /*
+             Order side
+                -1=buy_open_long
+                -2=buy_close_short
+                -3=sell_close_long
+                -4=sell_open_short
+             */
+            order.PositionConditionType = OrderPositionConditionType.Open;
+
+            if (exchangeSide == 1 || exchangeSide == 2)
+            {
+                order.Side = Side.Buy;
+
+                if (exchangeSide == 2)
+                {
+                    order.PositionConditionType = OrderPositionConditionType.Close;
+                }
+            }
+            else
+            {
+                order.Side = Side.Sell;
+
+                if (exchangeSide == 3)
+                {
+                    order.PositionConditionType = OrderPositionConditionType.Close;
+                }
+            }
+        }
+
         private Order ConvertRestOrdersToOsEngineOrder(BitMartRestOrder baseOrder, bool from_history)
         {
             Order order = new Order();
@@ -2226,21 +2263,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
             order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.update_time.ToString());
 
-            /*
-             Order side
-                -1=buy_open_long
-                -2=buy_close_short
-                -3=sell_close_long
-                -4=sell_open_short
-             */
-            if (baseOrder.side == 1 || baseOrder.side == 2)
-            {
-                order.Side = Side.Buy;
-            }
-            else
-            {
-                order.Side = Side.Sell;
-            }
+            SetOrderSide(order, baseOrder.side);
 
             //Order status
             //    -1 = status_approval
