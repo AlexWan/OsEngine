@@ -311,6 +311,7 @@ namespace OsEngine.Market.Servers.Optimizer
                                 _candleSeriesTesterActivate[i].Clear();
                                 _candleSeriesTesterActivate[i].NewCandleEvent -= TesterServer_NewCandleEvent;
                                 _candleSeriesTesterActivate[i].NewTradesEvent -= TesterServer_NewTradesEvent;
+                                _candleSeriesTesterActivate[i].NeedToCheckOrders -= TesterServer_NeedToCheckOrders;
                                 _candleSeriesTesterActivate[i].NewMarketDepthEvent -= TesterServer_NewMarketDepthEvent;
                                 _candleSeriesTesterActivate[i].LogMessageEvent -= SendLogMessage;
                             }
@@ -432,6 +433,7 @@ namespace OsEngine.Market.Servers.Optimizer
             securityOpt.TimeEnd = timeEnd;
             securityOpt.NewCandleEvent += TesterServer_NewCandleEvent;
             securityOpt.NewTradesEvent += TesterServer_NewTradesEvent;
+            securityOpt.NeedToCheckOrders += TesterServer_NeedToCheckOrders;
             securityOpt.NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
             securityOpt.LogMessageEvent += SendLogMessage;
 
@@ -1781,6 +1783,11 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
+        private void TesterServer_NeedToCheckOrders()
+        {
+            CheckOrders();
+        }
+
         /// <summary>
 		/// take all trades by instrument
         /// взять все сделки по инструменту
@@ -2361,7 +2368,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        // parsing ticks files / разбор файлов тиковых
+        // parsing ticks files
 
         /// <summary>
 		/// last trade of instrument from file
@@ -2440,17 +2447,27 @@ namespace OsEngine.Market.Servers.Optimizer
 
             LastTradeSeries = lastTradesSeries;
 
-            if (NewTradesEvent != null)
+            for (int i = 0; i < lastTradesSeries.Count; i++)
             {
-                NewTradesEvent(lastTradesSeries, _lastTradeIndex, Trades.Count);
+                List<Trade> trades = new List<Trade>() { lastTradesSeries[i] };
+                LastTradeSeries = trades;
+                NewTradesEvent(trades, _lastTradeIndex, Trades.Count);
+                NeedToCheckOrders();
             }
         }
 
-		// parsing candle files
-        // разбор свечных файлов
+        /// <summary>
+        /// new ticks appeared
+        /// новые тики появились
+        /// </summary>
+        public event Action<List<Trade>, int, int> NewTradesEvent;
+
+        public event Action NeedToCheckOrders;
+
+        // parsing candle files
 
         /// <summary>
-		/// last candle
+        /// last candle
         /// последняя свеча
         /// </summary>
         public Candle LastCandle
@@ -2565,12 +2582,6 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         /// <summary>
-		/// new ticks appeared
-        /// новые тики появились
-        /// </summary>
-        public event Action<List<Trade>,int, int> NewTradesEvent;
-
-        /// <summary>
 		/// new candles appeared
         /// новые свечи появились
         /// </summary>
@@ -2582,8 +2593,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public event Action<MarketDepth,int,int> NewMarketDepthEvent;
 
-		// parsing depths
-        // разбор стаканов
+		// parsing market depths
 
         /// <summary>
 		/// last trade of instrument from file
@@ -2649,7 +2659,6 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
 		// logging
-        // работа с логами
 
         /// <summary>
 		/// save a new log message

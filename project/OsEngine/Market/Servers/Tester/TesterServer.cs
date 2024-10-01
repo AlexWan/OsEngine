@@ -4626,8 +4626,15 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// parsing candle files
-// разбор свечных файлов
+        /// <summary>
+        /// new ticks appeared
+        /// новые тики появились
+        /// </summary>
+        public event Action<List<Trade>> NewTradesEvent;
+
+        public event Action NeedToCheckOrders;
+
+        // parsing candle files
 
         private Candle _lastCandle;
 
@@ -4778,14 +4785,6 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         /// <summary>
-		/// new ticks appeared
-        /// новые тики появились
-        /// </summary>
-        public event Action<List<Trade>> NewTradesEvent;
-
-        public event Action NeedToCheckOrders;
-
-        /// <summary>
 		/// new candles appeared
         /// новые свечи появились
         /// </summary>
@@ -4797,8 +4796,7 @@ namespace OsEngine.Market.Servers.Tester
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-// parsing depths
-// разбор стаканов
+// parsing market depths
 
         /// <summary>
 		/// last trade of instrumnet from the file
@@ -4855,7 +4853,6 @@ namespace OsEngine.Market.Servers.Tester
 
 
 // logging
-// работа с логами
 
         /// <summary>
 		/// save a new log message
