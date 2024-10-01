@@ -1463,8 +1463,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
             catch
             {
-                SendLogMessage("strage order num: " + baseOrder.client_order_id, LogMessageType.Error);
-                return null;
+                //SendLogMessage("strage order num: " + baseOrder.client_order_id, LogMessageType.Error);
+                //return null;
             }
 
             order.NumberMarket = baseOrder.order_id;
