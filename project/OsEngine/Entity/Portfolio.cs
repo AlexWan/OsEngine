@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Market;
 using System.Collections.Generic;
 
 namespace OsEngine.Entity
@@ -36,6 +37,11 @@ namespace OsEngine.Entity
         /// Session profit
         /// </summary>
         public decimal Profit;
+
+        /// <summary>
+        /// Connector to which the portfolio belongs
+        /// </summary>
+        public ServerType ServerType;
 
         // then goes the storage of open positions in the system by portfolio
 

@@ -324,6 +324,18 @@ namespace OsEngine.Market
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
                 secondRow.Cells[3].Value = portfolio.ValueBlocked.ToStringWithNoEndZero().ToDecimal();
 
+                if(portfolio.ServerType != ServerType.None)
+                {
+                    secondRow.Cells.Add(new DataGridViewTextBoxCell());
+                    secondRow.Cells.Add(new DataGridViewTextBoxCell());
+                    secondRow.Cells.Add(new DataGridViewTextBoxCell());
+                    secondRow.Cells.Add(new DataGridViewTextBoxCell());
+
+                    secondRow.Cells.Add(new DataGridViewButtonCell());
+                    secondRow.Cells[8].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    secondRow.Cells[8].Value = OsLocalization.Market.Label135;
+                }
+
                 _gridPortfolio.Rows.Add(secondRow);
 
                 List<PositionOnBoard> positionsOnBoard = portfolio.GetPositionOnBoard();
@@ -597,21 +609,73 @@ namespace OsEngine.Market
         /// </summary>
         private void _gridPortfolio_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            try
+            {
+                int rowInd = e.RowIndex;
+                int colInd = e.ColumnIndex;
+
+                if (colInd != 8)
+                {
+                    return;
+                }
+
+                if (_gridPortfolio.Rows[rowInd].Cells.Count < 9 ||
+                    _gridPortfolio.Rows[rowInd].Cells[colInd] == null ||
+                    _gridPortfolio.Rows[rowInd].Cells[colInd].Value == null)
+                {
+                    return;
+                }
+
+                if (_gridPortfolio.Rows[rowInd].Cells[colInd].Value.ToString() == OsLocalization.Market.Label82)
+                {
+                    // закрытие позиции на бирже
+
+                    ClosePositionOnBoardClick(sender, e);
+                }
+                else if (_gridPortfolio.Rows[rowInd].Cells[colInd].Value.ToString() == OsLocalization.Market.Label135)
+                {
+                    // вызывать окно сравнения позиций в роботе и в журнале
+                    ShowPositionsCompareUi(sender, e);
+                }
+            }
+            catch(Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
+        private void ShowPositionsCompareUi(object sender, DataGridViewCellEventArgs e)
+        {
             int rowInd = e.RowIndex;
             int colInd = e.ColumnIndex;
 
-            if(colInd != 8)
+            string portfolioName = _gridPortfolio.Rows[rowInd].Cells[0].Value.ToString();
+
+            IServer myServer = GetServerByPortfolioName(portfolioName);
+
+            if (myServer == null)
             {
                 return;
             }
 
-            if (_gridPortfolio.Rows[rowInd].Cells.Count < 9 ||
-                _gridPortfolio.Rows[rowInd].Cells[colInd] == null ||
-                _gridPortfolio.Rows[rowInd].Cells[colInd].Value == null ||
-                _gridPortfolio.Rows[rowInd].Cells[colInd].Value.ToString() != OsLocalization.Market.Label82)
+            AServer aServer = null;
+
+            try
+            {
+                aServer = (AServer)myServer;
+            }
+            catch (Exception ex)
             {
                 return;
             }
+
+            aServer.ShowComparePositionsModuleDialog();
+        }
+
+        private void ClosePositionOnBoardClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int rowInd = e.RowIndex;
+            int colInd = e.ColumnIndex;
 
             string secName = _gridPortfolio.Rows[rowInd].Cells[4].Value.ToString();
 
@@ -622,20 +686,20 @@ namespace OsEngine.Market
 
             string secVol = _gridPortfolio.Rows[rowInd].Cells[6].Value.ToString();
 
-            AcceptDialogUi ui = new AcceptDialogUi( secName + OsLocalization.Market.Label83);
+            AcceptDialogUi ui = new AcceptDialogUi(secName + OsLocalization.Market.Label83);
 
             ui.ShowDialog();
 
-            if(ui.UserAcceptActioin == false)
+            if (ui.UserAcceptActioin == false)
             {
                 return;
             }
 
             string portfolioName = "";
 
-            for(int i = rowInd; i >= 0; i--)
+            for (int i = rowInd; i >= 0; i--)
             {
-                if(_gridPortfolio.Rows[i].Cells[0] == null)
+                if (_gridPortfolio.Rows[i].Cells[0] == null)
                 {
                     continue;
                 }
@@ -654,7 +718,7 @@ namespace OsEngine.Market
 
             IServer myServer = GetServerByPortfolioName(portfolioName);
 
-            if(myServer == null)
+            if (myServer == null)
             {
                 return;
             }
@@ -665,6 +729,7 @@ namespace OsEngine.Market
             {
                 ClearPositionOnBoardEvent(trimmedSecName, myServer, secName);
             }
+
         }
 
         /// <summary>

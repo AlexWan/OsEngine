@@ -451,6 +451,7 @@
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\ComparePositionsModule.cs" />
     <Compile Include="Market\Servers\AServerOrdersHub.cs" />
     <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
@@ -628,6 +629,9 @@
     <Compile Include="Market\Servers\Bybit\BybitServerPermission.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\ResponseRestMessage.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\ResponseWebSocketMessage.cs" />
+    <Compile Include="Market\Servers\ComparePositionsModuleUi.xaml.cs">
+      <DependentUpon>ComparePositionsModuleUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Deribit\DeribitServer.cs" />
     <Compile Include="Market\Servers\Deribit\DeribitServerPermission.cs" />
     <Compile Include="Market\Servers\Deribit\Entity\JsonRequest.cs" />
@@ -1542,6 +1546,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\ComparePositionsModuleUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

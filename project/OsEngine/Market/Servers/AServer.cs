@@ -124,6 +124,9 @@ namespace OsEngine.Market.Servers
                 _ordersHub.GetAllActivOrdersOnReconnectEvent += _ordersHub_GetAllActivOrdersOnReconnectEvent;
                 _ordersHub.ActivStateOrderCheckStatusEvent += _ordersHub_ActivStateOrderCheckStatusEvent;
                 _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
+
+                _comparePositionsModule = new ComparePositionsModule(this);
+                _comparePositionsModule.LogMessageEvent += SendLogMessage;
             }
             get { return _serverRealization; }
         }
@@ -1151,6 +1154,11 @@ namespace OsEngine.Market.Servers
 
                 for (int i = 0; i < portf.Count; i++)
                 {
+                    if (portf[i].ServerType == ServerType.None)
+                    {
+                        portf[i].ServerType = this.ServerType;
+                    }
+
                     Portfolio curPortfolio = _portfolios.Find(p => p.Number == portf[i].Number);
 
                     if (curPortfolio == null)
@@ -2774,6 +2782,33 @@ namespace OsEngine.Market.Servers
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Compare positions module
+
+        private ComparePositionsModule _comparePositionsModule;
+
+        public void ShowComparePositionsModuleDialog()
+        {
+            if(_comparePositionsModuleUi == null)
+            {
+                _comparePositionsModuleUi = new ComparePositionsModuleUi(_comparePositionsModule);
+                _comparePositionsModuleUi.Closed += _comparePositionsModuleUi_Closed;
+                _comparePositionsModuleUi.Show();
+            }
+            else
+            {
+                _comparePositionsModuleUi.Activate();
+            }
+        }
+
+        private void _comparePositionsModuleUi_Closed(object sender, EventArgs e)
+        {
+            _comparePositionsModuleUi = null;
+        }
+
+        private ComparePositionsModuleUi _comparePositionsModuleUi;
 
         #endregion
 

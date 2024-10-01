@@ -361,8 +361,8 @@ namespace OsEngine.Language
           "Ru:Правила поддержки_");
 
         public string Label82 => OsLocalization.ConvertToLocString(
-          "Eng:Delete_" +
-          "Ru:Удалить_");
+          "Eng:Close_" +
+          "Ru:Закрыть_");
 
         public string Label83 => OsLocalization.ConvertToLocString(
           "Eng: \nDo you want to delete a position on the exchange? \nRobots trading this security will be stopped!_" +
@@ -571,6 +571,10 @@ namespace OsEngine.Language
         public string Label134 => OsLocalization.ConvertToLocString(
           "Eng:No data_" +
           "Ru:Нет данных_");
+
+        public string Label135 => OsLocalization.ConvertToLocString(
+          "Eng:Compare positions_" +
+          "Ru:Сравнить позиции_");
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +

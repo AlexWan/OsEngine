@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using OsEngine.Language;
 using System.IO;
+using System.Data.Common;
 
 namespace OsEngine.Entity
 {
@@ -782,7 +783,7 @@ positionOpener.LifeTimeType
             column.CellTemplate = cell0;
             column.HeaderText = OsLocalization.Entity.ColumnPortfolio2;
             column.ReadOnly = true;
-            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
 
             _gridPosition.Columns.Add(column);
 
@@ -790,7 +791,7 @@ positionOpener.LifeTimeType
             column1.CellTemplate = cell0;
             column1.HeaderText = OsLocalization.Entity.ColumnPortfolio3;
             column1.ReadOnly = true;
-            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
 
             _gridPosition.Columns.Add(column1);
 
@@ -798,7 +799,7 @@ positionOpener.LifeTimeType
             column3.CellTemplate = cell0;
             column3.HeaderText = OsLocalization.Entity.ColumnPortfolio4;
             column3.ReadOnly = true;
-            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
 
             _gridPosition.Columns.Add(column3);
 
@@ -814,7 +815,7 @@ positionOpener.LifeTimeType
             column5.CellTemplate = cell0;
             column5.HeaderText = OsLocalization.Entity.ColumnPortfolio6;
             column5.ReadOnly = true;
-            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
 
             _gridPosition.Columns.Add(column5);
 
@@ -822,7 +823,7 @@ positionOpener.LifeTimeType
             column6.CellTemplate = cell0;
             column6.HeaderText = OsLocalization.Entity.ColumnPortfolio7;
             column6.ReadOnly = true;
-            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
 
             _gridPosition.Columns.Add(column6);
 
@@ -830,13 +831,13 @@ positionOpener.LifeTimeType
             column7.CellTemplate = cell0;
             column7.HeaderText = OsLocalization.Entity.ColumnPortfolio8;
             column7.ReadOnly = true;
-            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             _gridPosition.Columns.Add(column7);
 
             DataGridViewColumn column8 = new DataGridViewColumn();
             column8.CellTemplate = cell0;
             column8.ReadOnly = true;
-            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             _gridPosition.Columns.Add(column8);
 
             return _gridPosition;
