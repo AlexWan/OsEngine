@@ -669,7 +669,7 @@ namespace OsEngine.Market
                 return;
             }
 
-            aServer.ShowComparePositionsModuleDialog();
+            aServer.ShowComparePositionsModuleDialog(portfolioName);
         }
 
         private void ClosePositionOnBoardClick(object sender, DataGridViewCellEventArgs e)

@@ -7,11 +7,14 @@
         mc:Ignorable="d"
         Title="Compare positions module" Height="395" Width="662" MinWidth="690" MinHeight="200" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
-        <WindowsFormsHost Name="Host" Margin="5,35,5,75"/>
-        <Label Content="Connection: " Margin="5,5,5,0" VerticalAlignment="Top"/>
+        <WindowsFormsHost Name="Host" Margin="5,51,5,75"/>
+        <Label Name="LabelConnectionName" Content="Connection: " Margin="5,5,5,0" VerticalAlignment="Top"/>
+        <Label Name="LabelPortfolioName" Content="Portfolio: " Margin="5,28,5,0" VerticalAlignment="Top"/>
+        
         <CheckBox Content="Send log message on error" HorizontalAlignment="Left" Margin="13,0,0,50" VerticalAlignment="Bottom" Width="215"/>
         <Label Content="Verification period" HorizontalAlignment="Left" Margin="13,0,0,22" VerticalAlignment="Bottom"/>
         <ComboBox HorizontalAlignment="Left" Margin="165,0,0,22" VerticalAlignment="Bottom" Width="120"/>
+        
 
     </Grid>
 </Window>

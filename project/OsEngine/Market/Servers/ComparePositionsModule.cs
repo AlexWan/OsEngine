@@ -16,10 +16,11 @@ namespace OsEngine.Market.Servers
     {
         public ComparePositionsModule(AServer server)
         {
-
+            Server = server;
 
         }
 
+        public AServer Server;
 
         #region Log
 

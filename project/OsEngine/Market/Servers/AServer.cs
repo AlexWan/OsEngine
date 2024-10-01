@@ -2789,26 +2789,46 @@ namespace OsEngine.Market.Servers
 
         private ComparePositionsModule _comparePositionsModule;
 
-        public void ShowComparePositionsModuleDialog()
+        public void ShowComparePositionsModuleDialog(string portfolioName)
         {
-            if(_comparePositionsModuleUi == null)
+            ComparePositionsModuleUi myUi = null;
+
+            for(int i = 0;i < _comparePositionsModuleUi.Count;i++)
             {
-                _comparePositionsModuleUi = new ComparePositionsModuleUi(_comparePositionsModule);
-                _comparePositionsModuleUi.Closed += _comparePositionsModuleUi_Closed;
-                _comparePositionsModuleUi.Show();
+                if (_comparePositionsModuleUi[i].PortfolioName == portfolioName)
+                {
+                    myUi = _comparePositionsModuleUi[i];
+                    break;
+                }
+            }
+
+            if (myUi == null)
+            {
+                myUi = new ComparePositionsModuleUi(_comparePositionsModule,portfolioName);
+                myUi.GuiClosed += MyUi_GuiClosed;
+                _comparePositionsModuleUi.Add(myUi);
+                myUi.Show();
             }
             else
             {
-                _comparePositionsModuleUi.Activate();
+                myUi.Activate();
             }
         }
 
-        private void _comparePositionsModuleUi_Closed(object sender, EventArgs e)
+        private void MyUi_GuiClosed(string portfolioName)
         {
-            _comparePositionsModuleUi = null;
+            for (int i = 0; i < _comparePositionsModuleUi.Count; i++)
+            {
+                if (_comparePositionsModuleUi[i].PortfolioName == portfolioName)
+                {
+                    _comparePositionsModuleUi[i].GuiClosed -= MyUi_GuiClosed;
+                    _comparePositionsModuleUi.RemoveAt(i);
+                    break;
+                }
+            }
         }
 
-        private ComparePositionsModuleUi _comparePositionsModuleUi;
+        private List<ComparePositionsModuleUi> _comparePositionsModuleUi = new List<ComparePositionsModuleUi>();
 
         #endregion
 

@@ -30,7 +30,9 @@ namespace OsEngine.Market.Servers
     {
         ComparePositionsModule _comparePositionsModule;
 
-        public ComparePositionsModuleUi(ComparePositionsModule comparePositionsModule)
+        public string PortfolioName;
+
+        public ComparePositionsModuleUi(ComparePositionsModule comparePositionsModule, string portfolioName)
         {
             InitializeComponent();
 
@@ -38,10 +40,23 @@ namespace OsEngine.Market.Servers
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             _comparePositionsModule = comparePositionsModule;
+            PortfolioName = portfolioName;
             CreateTable();
+            this.Closed += ComparePositionsModuleUi_Closed;
 
-
+            LabelPortfolioName.Content += portfolioName;
+            LabelConnectionName.Content += _comparePositionsModule.Server.ServerType.ToString();
         }
+
+        private void ComparePositionsModuleUi_Closed(object sender, EventArgs e)
+        {
+           if(GuiClosed != null)
+            {
+                GuiClosed(PortfolioName);
+            }
+        }
+
+        public event Action<string> GuiClosed;
 
         #region Grid
 
