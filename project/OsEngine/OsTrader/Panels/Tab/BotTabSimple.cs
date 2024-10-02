@@ -4880,7 +4880,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if ((PositionOpenerToStop[i].ActivateType == StopActivateType.HigherOrEqual &&
                          price >= PositionOpenerToStop[i].PriceRedLine)
                         ||
-                        (PositionOpenerToStop[i].ActivateType == StopActivateType.LowerOrEqyal &&
+                        (PositionOpenerToStop[i].ActivateType == StopActivateType.LowerOrEqual &&
                          price <= PositionOpenerToStop[i].PriceRedLine))
                     {
                         if (PositionOpenerToStop[i].Side == Side.Buy)
