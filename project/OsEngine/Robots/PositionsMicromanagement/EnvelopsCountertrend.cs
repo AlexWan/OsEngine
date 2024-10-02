@@ -181,7 +181,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 {
                     nextEntryPrice = firstPosEntryPrice - firstPosEntryPrice * (AveragingOnePercent.ValueDecimal / 100);
                     _tab.BuyAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, 
-                        StopActivateType.LowerOrEqyal, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
+                        StopActivateType.LowerOrEqual, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
                 else if (positions[0].Direction == Side.Sell)
                 {
@@ -203,7 +203,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 {
                     nextEntryPrice = firstPosEntryPrice - firstPosEntryPrice * (AveragingTwoPercent.ValueDecimal / 100);
                     _tab.BuyAtStopMarket(GetVolume(_tab), nextEntryPrice, nextEntryPrice, 
-                        StopActivateType.LowerOrEqyal, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
+                        StopActivateType.LowerOrEqual, 1, "", PositionOpenerToStopLifeTimeType.CandlesCount);
                 }
                 else if (positions[0].Direction == Side.Sell)
                 {

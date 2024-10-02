@@ -155,7 +155,7 @@ namespace OsEngine.Robots.Trend
                      _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] -
                      Slippage.ValueInt * _tab.Securiti.PriceStep,
                     _envelop.ValuesDown[_envelop.ValuesDown.Count - 1],
-                    StopActivateType.LowerOrEqyal, 1);
+                    StopActivateType.LowerOrEqual, 1);
             }
             else
             { // trail stop logic
