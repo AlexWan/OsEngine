@@ -193,7 +193,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 string[] values = new string[]
                 {
-                    "USDT"
+                    "USDT",
+                    "BTC",
+                    "ETH"
                 };
 
                 return values;

@@ -3,6 +3,9 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Entity;
+using OsEngine.Market.Servers.GateIo.GateIoFutures.Entities;
+
 namespace OsEngine.Language
 {
     public class MarketLocal
@@ -575,6 +578,54 @@ namespace OsEngine.Language
         public string Label135 => OsLocalization.ConvertToLocString(
           "Eng:Compare positions_" +
           "Ru:Сравнить позиции_");
+
+        public string Label136 => OsLocalization.ConvertToLocString(
+          "Eng:Connection: _" +
+          "Ru:Подключение: _");
+
+        public string Label137 => OsLocalization.ConvertToLocString(
+          "Eng:Compare positions module_" +
+          "Ru:Модуль сравнения позиций_");
+
+        public string Label138 => OsLocalization.ConvertToLocString(
+          "Eng:Auto log message on error_" +
+          "Ru:Автоматическое сообщение об ошибке_");
+
+        public string Label139 => OsLocalization.ConvertToLocString(
+          "Eng:Verification period_" +
+          "Ru:Период проверки_");
+
+        public string Label140 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio_" +
+          "Ru:Портфель_");
+
+        public string Label141 => OsLocalization.ConvertToLocString(
+          "Eng:State_" +
+          "Ru:Статус_");
+
+        public string Label142 => OsLocalization.ConvertToLocString(
+          "Eng:Robots Long_" +
+          "Ru:Роботы Лонг_");
+
+        public string Label143 => OsLocalization.ConvertToLocString(
+          "Eng:Robots Short_" +
+          "Ru:Роботы Шорт_");
+
+        public string Label144 => OsLocalization.ConvertToLocString(
+          "Eng:Robots Common_" +
+          "Ru:Роботы Общее_");
+
+        public string Label145 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio Long_" +
+          "Ru:Портфель Лонг_");
+
+        public string Label146 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio Short_" +
+          "Ru:Портфель Шорт_");
+
+        public string Label147 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio Common_" +
+          "Ru:Портфель Общее_");
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +

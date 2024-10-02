@@ -895,6 +895,40 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
+        /// <summary>
+        /// open positions on robot sources
+        /// </summary>
+        public List<Position> OpenPositions
+        {
+            get
+            {
+                List<Position> result = new List<Position>();
+
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return result;
+                }
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i] == null)
+                    {
+                        continue;
+                    }
+                    if (journals[i].OpenPositions == null ||
+                        journals[i].OpenPositions.Count == 0)
+                    {
+                        continue;
+                    }
+                    result.AddRange(journals[i].OpenPositions);
+                }
+                return result;
+            }
+        }
+
         // working with strategy parameters
 
         /// <summary>

@@ -1263,6 +1263,21 @@ namespace OsEngine.Entity
         /// Portfolio size at the time of opening the portfolio
         /// </summary>
         public decimal PortfolioValueOnOpenPosition;
+
+        public string PortfolioName
+        {
+            get
+            {
+                if( OpenOrders!= null 
+                    && OpenOrders.Count> 0)
+                {
+                    return OpenOrders[0].PortfolioNumber;
+                }
+
+                return null;
+            }
+
+        }
     }
 
     /// <summary>
