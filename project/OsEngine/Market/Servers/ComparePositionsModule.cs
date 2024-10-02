@@ -284,7 +284,7 @@ namespace OsEngine.Market.Servers
             {
                 string[] ignoreNames = permission.ManuallyClosePositionOnBoard_ExceptionPositionNames;
 
-                for(int i = 0;i < ignoreNames.Length;i++)
+                for(int i = 0; ignoreNames != null && i < ignoreNames.Length;i++)
                 {
                     for(int j = 0;j < securities.Count;j++)
                     {

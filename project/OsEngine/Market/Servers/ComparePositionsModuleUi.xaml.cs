@@ -47,7 +47,7 @@ namespace OsEngine.Market.Servers
             this.Closed += ComparePositionsModuleUi_Closed;
 
             LabelConnectionName.Content = OsLocalization.Market.Label136;
-            LabelConnectionName.Content += _comparePositionsModule.Server.ServerType.ToString();
+            LabelConnectionName.Content += " " + _comparePositionsModule.Server.ServerType.ToString();
             Title = OsLocalization.Market.Label137;
             CheckBoxAutoLogMessageOnError.Content = OsLocalization.Market.Label138;
             LabelVerificationPeriod.Content = OsLocalization.Market.Label139;
