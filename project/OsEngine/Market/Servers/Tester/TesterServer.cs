@@ -199,6 +199,7 @@ namespace OsEngine.Market.Servers.Tester
                     _profitMarketIsOn = Convert.ToBoolean(reader.ReadLine());
                     _guiIsOpenFullSettings = Convert.ToBoolean(reader.ReadLine());
                     _removeTradesFromMemory = Convert.ToBoolean(reader.ReadLine());
+                    
                     reader.Close();
                 }
             }
@@ -2401,7 +2402,8 @@ namespace OsEngine.Market.Servers.Tester
                         // if order is not quotation and put into the market / если заявка не котировачная и выставлена в рынок
                         realPrice = openPrice;
                     }
-                    else if (order.IsStopOrProfit && order.Price > maxPrice)
+                    else if (order.IsStopOrProfit 
+                        && order.Price > maxPrice)
                     {
                         realPrice = maxPrice;
                     }
@@ -5041,4 +5043,5 @@ namespace OsEngine.Market.Servers.Tester
         FiftyFifty
 
     }
+
 }

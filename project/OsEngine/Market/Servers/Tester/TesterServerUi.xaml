@@ -51,18 +51,17 @@
             </TabItem>
             <TabItem Name="Label30" Header=" Performance settings " FontSize="14">
                 <Grid >
-                    <TextBox x:Name="TextBoxSlipageSimpleOrder" Margin="126,159,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
-                    <Label Name="Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="49,84,0,0" VerticalAlignment="Top" FontSize="16" />
-                    <CheckBox Name="CheckBoxSlipageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="49,125,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOff_Checked"/>
-                    <CheckBox Name="CheckBoxSlipageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="49,159,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOn_Checked"/>
-                    <TextBox x:Name="TextBoxSlipageStop" Margin="398,159,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
-                    <Label Name="Label33" Content="Stop slippage" HorizontalAlignment="Center" Margin="306,84,261,0" VerticalAlignment="Top" FontSize="16" />
-                    <CheckBox Name="CheckBoxSlipageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="306,125,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOff_Checked"/>
-                    <CheckBox Name="CheckBoxSlipageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="306,159,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOn_Checked"/>
-                    <Label Name="Label34" Content="Order execution" HorizontalAlignment="Right" Margin="0,84,79,0" VerticalAlignment="Top" FontSize="16" />
-                    <CheckBox Name="CheckBoxExecutionOrderIntersection" Content="Price crossing" HorizontalAlignment="Left" Margin="566,125,0,0" VerticalAlignment="Top" Checked="CheckBoxExecutionOrderIntersection_Checked"/>
-                    <CheckBox Name="CheckBoxExecutionOrderTuch" Content="Price touch" HorizontalAlignment="Left" Margin="566,159,0,0" VerticalAlignment="Top" Cursor="" Checked="CheckBoxExecutionOrderTuch_Checked"/>
-                    <CheckBox Name="CheckBoxExecutionOrderFiftyFifty" Content="50 / 50" HorizontalAlignment="Left" Margin="566,195,0,0" VerticalAlignment="Top" Cursor="" Checked="CheckBoxExecutionOrderFiftyFifty_Checked"/>
+                    <TextBox x:Name="TextBoxSlipageSimpleOrder" Margin="116,107,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
+                    <Label Name="Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="39,32,0,0" VerticalAlignment="Top" FontSize="16" />
+                    <CheckBox Name="CheckBoxSlipageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="39,73,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOff_Checked"/>
+                    <CheckBox Name="CheckBoxSlipageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="39,107,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOn_Checked"/>
+                    <TextBox x:Name="TextBoxSlipageStop" Margin="388,107,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
+                    <Label Name="Label33" Content="Stop slippage" HorizontalAlignment="Left" Margin="350,32,0,0" VerticalAlignment="Top" FontSize="16" />
+                    <CheckBox Name="CheckBoxSlipageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="296,73,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOff_Checked"/>
+                    <CheckBox Name="CheckBoxSlipageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="296,107,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOn_Checked"/>
+                    <Label Name="Label34" Content="Order execution" HorizontalAlignment="Right" Margin="0,32,89,0" VerticalAlignment="Top" FontSize="16" />
+                    <ComboBox Name="ComboBoxOrderActivationType" HorizontalAlignment="Left" Margin="622,73,0,0" VerticalAlignment="Top" Width="116"/>
+                    <Label Name="LabelOrderActivationType" Content="Activation" HorizontalAlignment="Left" Margin="545,73,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Name="Label31" Header=" Portfolio " FontSize="14">

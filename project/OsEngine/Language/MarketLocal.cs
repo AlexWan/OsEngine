@@ -627,6 +627,14 @@ namespace OsEngine.Language
           "Eng:Portfolio Common_" +
           "Ru:Портфель Общее_");
 
+        public string Label148 => OsLocalization.ConvertToLocString(
+          "Eng:Activation_" +
+          "Ru:Активация_");
+
+        public string Label149 => OsLocalization.ConvertToLocString(
+          "Eng:Scheme_" +
+          "Ru:Схема_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");

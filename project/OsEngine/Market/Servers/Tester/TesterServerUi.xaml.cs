@@ -122,18 +122,11 @@ namespace OsEngine.Market.Servers.Tester
                 CheckBoxSlipageLimitOn.IsChecked = false;
             }
 
-            if (_server.OrderExecutionType == OrderExecutionType.Touch)
-            {
-                CheckBoxExecutionOrderTuch.IsChecked = true;
-            }
-            else if (_server.OrderExecutionType == OrderExecutionType.Intersection)
-            {
-                CheckBoxExecutionOrderIntersection.IsChecked = true;
-            }
-            else if (_server.OrderExecutionType == OrderExecutionType.FiftyFifty)
-            {
-                CheckBoxExecutionOrderFiftyFifty.IsChecked = true;
-            }
+            ComboBoxOrderActivationType.Items.Add(OrderExecutionType.Touch.ToString());
+            ComboBoxOrderActivationType.Items.Add(OrderExecutionType.Intersection.ToString());
+            ComboBoxOrderActivationType.Items.Add(OrderExecutionType.FiftyFifty.ToString());
+            ComboBoxOrderActivationType.SelectedItem = _server.OrderExecutionType.ToString();
+            ComboBoxOrderActivationType.SelectionChanged += ComboBoxOrderActivationType_SelectionChanged;
 
             // progress bar/прогресс бар
 
@@ -212,10 +205,10 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxSlipageStopOff.Content = OsLocalization.Market.Label35;
             CheckBoxSlipageLimitOn.Content = OsLocalization.Market.Label36;
             CheckBoxSlipageStopOn.Content = OsLocalization.Market.Label36;
-            CheckBoxExecutionOrderIntersection.Content = OsLocalization.Market.Label38;
-            CheckBoxExecutionOrderTuch.Content = OsLocalization.Market.Label37;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
+
+            LabelOrderActivationType.Content = OsLocalization.Market.Label148;
 
             ButtonNextPos.Content = OsLocalization.Market.Label62;
             ButtonGoTo.Content = OsLocalization.Market.Label63;
@@ -1402,25 +1395,21 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxSlipageStopOff.IsChecked = false;
         }
 
-        private void CheckBoxExecutionOrderIntersection_Checked(object sender, RoutedEventArgs e)
+        private void ComboBoxOrderActivationType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _server.OrderExecutionType = OrderExecutionType.Intersection;
-            CheckBoxExecutionOrderTuch.IsChecked = false;
-            CheckBoxExecutionOrderFiftyFifty.IsChecked = false;
-        }
+            try
+            {
+                OrderExecutionType type = OrderExecutionType.Intersection;
 
-        private void CheckBoxExecutionOrderTuch_Checked(object sender, RoutedEventArgs e)
-        {
-            _server.OrderExecutionType = OrderExecutionType.Touch;
-            CheckBoxExecutionOrderIntersection.IsChecked = false;
-            CheckBoxExecutionOrderFiftyFifty.IsChecked = false;
-        }
-
-        private void CheckBoxExecutionOrderFiftyFifty_Checked(object sender, RoutedEventArgs e)
-        {
-            _server.OrderExecutionType = OrderExecutionType.FiftyFifty;
-            CheckBoxExecutionOrderTuch.IsChecked = false;
-            CheckBoxExecutionOrderIntersection.IsChecked = false;
+                if (Enum.TryParse(ComboBoxOrderActivationType.SelectedItem.ToString(), out type))
+                {
+                    _server.OrderExecutionType = type;
+                }
+            }
+            catch(Exception ex)
+            {
+                _server.SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
         }
 
         private void CheckBoxOnOffMarketPortfolio_Checked(object sender, RoutedEventArgs e)

@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace OsEngine.Charts.CandleChart.Indicators.Indicator
 {
-   // [IndicatorAttribute("ASI")]
+    //[IndicatorAttribute("ASI")]
     internal class ASI : Aindicator
     {
         /// <summary>
@@ -25,6 +25,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         /// Data series for indicator output
         /// </summary>
         public IndicatorDataSeries _seriesSma;
+
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
@@ -44,12 +45,22 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
         public override void OnProcess(List<Candle> candles, int index)
         {
 
-            if (index - 1 > candles.Count || index < 2 || _lengthSma.ValueInt > index)
+            if (index - 1 > candles.Count
+                || index < 2
+                || _lengthSma.ValueInt > index)
+            {
                 return;
+            }
 
             decimal SI = CaclSI(candles, index);
 
-            _seriesASI.Values[index] += SI != 0 ? SI + _seriesASI.Values[index - 1] : _seriesASI.Values[index - 1];
+            if (SI != 0)
+            {
+                SI = SI + _seriesASI.Values[index - 1];
+            }
+
+            _seriesASI.Values[index] = SI;
+
             _seriesSma.Values[index] = CaclSMAFromASI(index);
 
         }/// <summary>
@@ -74,6 +85,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
             decimal K = Math.Max(H_Cprev, L_Cprev);
 
             decimal R = 0;
+
             if (H_Cprev >= Math.Max(L_Cprev, H_L))
             {
                 R = H_Cprev - (0.5m * L_Cprev) + (0.25m * Cprev_Oprev);
@@ -95,6 +107,7 @@ namespace OsEngine.Charts.CandleChart.Indicators.Indicator
 
             return SI;
         }
+
         /// <summary>
         /// Calculation of Sma from ASI
         /// </summary>    
