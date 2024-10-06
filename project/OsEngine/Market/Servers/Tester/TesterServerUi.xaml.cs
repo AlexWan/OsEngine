@@ -27,12 +27,6 @@ namespace OsEngine.Market.Servers.Tester
     /// </summary>
     public partial class TesterServerUi 
     {
-        /// <summary>
-        /// constructor
-        /// конструктор
-        /// </summary>
-        /// <param name="server">server/сервер</param>
-        /// <param name="log">log/лог</param>
         public TesterServerUi(TesterServer server, Log log)
         {
             InitializeComponent();
@@ -49,7 +43,7 @@ namespace OsEngine.Market.Servers.Tester
             log.StartPaint(Host);
 
             TextBoxStartDepozit.Text = _server.StartPortfolio.ToString(new CultureInfo("ru-RU"));
-            TextBoxStartDepozit.TextChanged += TextBoxStartDepozit_TextChanged;
+            TextBoxStartDepozit.TextChanged += TextBoxStartDeposit_TextChanged;
 
             if (_server.ProfitMarketIsOn == true)
             {
@@ -98,13 +92,13 @@ namespace OsEngine.Market.Servers.Tester
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
             TextBoxTo.TextChanged += TextBoxTo_TextChanged;
 
-            TextBoxSlipageSimpleOrder.Text = _server.SlipageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
-            TextBoxSlipageSimpleOrder.TextChanged += TextBoxSlipageSimpleOrderTextChanged;
+            TextBoxSlipageSimpleOrder.Text = _server.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlipageSimpleOrder.TextChanged += TextBoxSlippageSimpleOrderTextChanged;
 
-            TextBoxSlipageStop.Text = _server.SlipageToStopOrder.ToString(new CultureInfo("ru-RU"));
-            TextBoxSlipageStop.TextChanged += TextBoxSlipageStop_TextChanged;
+            TextBoxSlipageStop.Text = _server.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlipageStop.TextChanged += TextBoxSlippageStop_TextChanged;
 
-            if (_server.SlipageToStopOrder == 0)
+            if (_server.SlippageToStopOrder == 0)
             {
                 CheckBoxSlipageStopOff.IsChecked = true;
             }
@@ -113,7 +107,7 @@ namespace OsEngine.Market.Servers.Tester
                 CheckBoxSlipageStopOn.IsChecked = false;
             }
 
-            if (_server.SlipageToSimpleOrder == 0)
+            if (_server.SlippageToSimpleOrder == 0)
             {
                 CheckBoxSlipageLimitOff.IsChecked = true;
             }
@@ -152,7 +146,18 @@ namespace OsEngine.Market.Servers.Tester
 
             List<string> sets = _server.Sets;
 
-            // sets/сеты
+            // clearing
+
+            CreateClearingGrid();
+
+            PaintClearingGrid();
+
+            // non trade periods
+
+            CreateNonTradePeriodsGrid();
+            PaintNonTradePeriodsGrid();
+
+            // sets
 
             for (int i = 0;sets != null && sets.Count != 0 && i < sets.Count; i++)
             {
@@ -169,7 +174,7 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxRemoveTrades.IsChecked = _server.RemoveTradesFromMemory;
             CheckBoxRemoveTrades.Click += CheckBoxRemoveTrades_Click;
 
-            // data for test/данные для тестирования
+            // data for test
 
             ComboBoxDataType.Items.Add(TesterDataType.Candle);
             ComboBoxDataType.Items.Add(TesterDataType.TickAllCandleState);
@@ -180,12 +185,12 @@ namespace OsEngine.Market.Servers.Tester
             ComboBoxDataType.SelectionChanged +=ComboBoxDataType_SelectionChanged;
 
             TextBoxDataPath.Text = _server.PathToFolder;
-            ComboBoxDataSourseType.Items.Add(TesterSourceDataType.Folder);
-            ComboBoxDataSourseType.Items.Add(TesterSourceDataType.Set);
-            ComboBoxDataSourseType.SelectedItem = _server.SourceDataType;
-            ComboBoxDataSourseType.SelectionChanged += ComboBoxDataSourseType_SelectionChanged;
+            ComboBoxDataSourceType.Items.Add(TesterSourceDataType.Folder);
+            ComboBoxDataSourceType.Items.Add(TesterSourceDataType.Set);
+            ComboBoxDataSourceType.SelectedItem = _server.SourceDataType;
+            ComboBoxDataSourceType.SelectionChanged += ComboBoxDataSourceType_SelectionChanged;
 
-            ButtonSinhronazer.Content = OsLocalization.Market.Button1;
+            ButtonSynchronizer.Content = OsLocalization.Market.Button1;
             Title = OsLocalization.Market.TitleTester;
             Label21.Content = OsLocalization.Market.Label21;
             Label29.Header = OsLocalization.Market.Label29;
@@ -207,11 +212,12 @@ namespace OsEngine.Market.Servers.Tester
             CheckBoxSlipageStopOn.Content = OsLocalization.Market.Label36;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
-
+            LabelClearing.Content = OsLocalization.Market.Label150;
+            LabelNonTradePeriod.Content = OsLocalization.Market.Label151;
             LabelOrderActivationType.Content = OsLocalization.Market.Label148;
-
             ButtonNextPos.Content = OsLocalization.Market.Label62;
             ButtonGoTo.Content = OsLocalization.Market.Label63;
+            CheckBoxRemoveTrades.Content = OsLocalization.Market.Label130;
 
             Thread worker = new Thread(SecuritiesGridPainterWorkerPlace);
             worker.Start();
@@ -229,7 +235,7 @@ namespace OsEngine.Market.Servers.Tester
 
             if(server.GuiIsOpenFullSettings)
             {
-                ButtonSinhronazer_Click(null, null);
+                ButtonSynchronizer_Click(null, null);
             }
 
             GlobalGUILayout.Listen(this, "testerServerGui");
@@ -237,24 +243,20 @@ namespace OsEngine.Market.Servers.Tester
 
         private CultureInfo _currentCulture;
 
-        /// <summary>
-        /// window is closing
-        /// окно закрывается
-        /// </summary>
-        void TesterServerUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void TesterServerUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _uiIsClosed = true;
 
             Closing -= TesterServerUi_Closing;
 
-            TextBoxStartDepozit.TextChanged -= TextBoxStartDepozit_TextChanged;
+            TextBoxStartDepozit.TextChanged -= TextBoxStartDeposit_TextChanged;
             TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
             TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
-            TextBoxSlipageSimpleOrder.TextChanged -= TextBoxSlipageSimpleOrderTextChanged;
-            TextBoxSlipageStop.TextChanged -= TextBoxSlipageStop_TextChanged;
+            TextBoxSlipageSimpleOrder.TextChanged -= TextBoxSlippageSimpleOrderTextChanged;
+            TextBoxSlipageStop.TextChanged -= TextBoxSlippageStop_TextChanged;
             ComboBoxSets.SelectionChanged -= ComboBoxSets_SelectionChanged;
             ComboBoxDataType.SelectionChanged -= ComboBoxDataType_SelectionChanged;
-            ComboBoxDataSourseType.SelectionChanged -= ComboBoxDataSourseType_SelectionChanged;
+            ComboBoxDataSourceType.SelectionChanged -= ComboBoxDataSourceType_SelectionChanged;
             SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
             SliderTo.ValueChanged -= SliderTo_ValueChanged;
 
@@ -274,6 +276,18 @@ namespace OsEngine.Market.Servers.Tester
             HostSecurities.Child = null;
             _securitiesGrid = null;
 
+            DataGridFactory.ClearLinks(_gridClearing);
+            _gridClearing.CellClick -= _gridClearing_CellClick;
+            _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
+            HostClearing.Child = null;
+            _gridClearing = null;
+
+            DataGridFactory.ClearLinks(_gridNonTradePeriods);
+            _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
+            _gridNonTradePeriods.CellClick -= _gridNonTradePeriods_CellClick;
+            HostNonTradePeriods.Child = null;
+            _gridNonTradePeriods = null;
+
             _log.StopPaint();
             _log = null;
         }
@@ -283,22 +297,14 @@ namespace OsEngine.Market.Servers.Tester
             _server.RemoveTradesFromMemory = CheckBoxRemoveTrades.IsChecked.Value;
         }
 
-        /// <summary>
-        /// data source has changed. Folder or Set
-        /// источник данных изменился. Папка или Сет 
-        /// </summary>
-        void ComboBoxDataSourseType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ComboBoxDataSourceType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             TesterSourceDataType sourceDataType;
-            Enum.TryParse(ComboBoxDataSourseType.SelectedItem.ToString(), out sourceDataType);
+            Enum.TryParse(ComboBoxDataSourceType.SelectedItem.ToString(), out sourceDataType);
             _server.SourceDataType = sourceDataType;
         }
 
-        /// <summary>
-        /// translation type has changed
-        /// изменился тип транслируемых данных
-        /// </summary>
-        void ComboBoxDataType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ComboBoxDataType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             TesterDataType type;
             Enum.TryParse(ComboBoxDataType.SelectedItem.ToString(), out type);
@@ -308,20 +314,12 @@ namespace OsEngine.Market.Servers.Tester
             PaintGrid();
         }
 
-        /// <summary>
-        /// data set has changed
-        /// сет данных изменился
-        /// </summary>
-        void ComboBoxSets_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ComboBoxSets_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             _server.SetNewSet(ComboBoxSets.SelectedItem.ToString());
             PaintGrid();
         }
 
-        /// <summary>
-        /// work method of thread updates a progress bar
-        /// метод работы потока обновляющего прогресс бар
-        /// </summary>
         private void UpdaterProgressBarThreadArea()
         {
             while (true)
@@ -337,11 +335,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// updat progress bar
-        /// обновить прогресс бар
-        /// </summary>
-        void ChangeProgressBar()
+        private void ChangeProgressBar()
         {
             try
             {
@@ -371,30 +365,22 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// changed slippage window
-        /// изменилось окно проскальзывания
-        /// </summary>
-        void TextBoxSlipageSimpleOrderTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void TextBoxSlippageSimpleOrderTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
             {
-                _server.SlipageToSimpleOrder = Convert.ToInt32(TextBoxSlipageSimpleOrder.Text);
+                _server.SlippageToSimpleOrder = Convert.ToInt32(TextBoxSlipageSimpleOrder.Text);
                 _server.Save();
             }
             catch (Exception)
             {
-                TextBoxSlipageSimpleOrder.Text = _server.SlipageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
+                TextBoxSlipageSimpleOrder.Text = _server.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
                 // ignore
             }
             
         }
 
-        /// <summary>
-        /// changed window with value of initial deposit
-        /// изменилось окно со значением начального депозита
-        /// </summary>
-        void TextBoxStartDepozit_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void TextBoxStartDeposit_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
             {
@@ -408,35 +394,27 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        void TextBoxSlipageStop_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void TextBoxSlippageStop_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             try
             {
-                _server.SlipageToStopOrder = Convert.ToInt32(TextBoxSlipageStop.Text);
+                _server.SlippageToStopOrder = Convert.ToInt32(TextBoxSlipageStop.Text);
                 _server.Save();
             }
             catch (Exception)
             {
-                TextBoxSlipageStop.Text = _server.SlipageToStopOrder.ToString(new CultureInfo("ru-RU"));
+                TextBoxSlipageStop.Text = _server.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
                 // ignore
             }
         }
 
-        // server/сервер
+        #region Server
 
-        /// <summary>
-        /// test server
-        /// тестовый сервер
-        /// </summary>
         private TesterServer _server;
 
         private Log _log;
 
-        /// <summary>
-        /// changed server status 
-        /// изменился статус сервера
-        /// </summary>
-        void _server_ConnectStatusChangeEvent(string status)
+        private void _server_ConnectStatusChangeEvent(string status)
         {
             if (!LabelStatus.Dispatcher.CheckAccess())
             {
@@ -457,33 +435,21 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// changed server instrument
-        /// изменились инструменты в сервере
-        /// </summary>
-        void _server_SecuritiesChangeEvent(List<Security> securities)
+        private void _server_SecuritiesChangeEvent(List<Security> securities)
         {
-            _neadToRePaintGrid = true;
+            _needToRePaintGrid = true;
         }
 
-        /// <summary>
-        /// start testing event
-        /// событие начала тестирования
-        /// </summary>
-        void _server_TestingStartEvent()
+        private void _server_TestingStartEvent()
         {
             _chartActive = true;
             CreateChart();
             PaintPausePlayButtonByActualServerState();
         }
 
-        /// <summary>
-        /// add a new security to the tester
-        /// добавлена новая бумага в тестер
-        /// </summary>
-        void server_TestingNewSecurityEvent()
+        private void server_TestingNewSecurityEvent()
         {
-            _neadToRePaintGrid = true;
+            _needToRePaintGrid = true;
         }
 
         private void _server_TestRegimeChangeEvent(TesterRegime regime)
@@ -495,6 +461,8 @@ namespace OsEngine.Market.Servers.Tester
         {
             PaintPausePlayButtonByActualServerState();
         }
+
+        #endregion
 
         #region Block button start on connect securities
 
@@ -599,7 +567,7 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
-        // button handlers / обработчики кнопок
+        #region Button handlers
 
         private void buttonFast_Click(object sender, RoutedEventArgs e)
         {
@@ -686,7 +654,7 @@ namespace OsEngine.Market.Servers.Tester
             ButtonPausePlay.Content = "| |";
         }
 
-        private void ButtonSinhronazer_Click(object sender, RoutedEventArgs e)
+        private void ButtonSynchronizer_Click(object sender, RoutedEventArgs e)
         {
             if (HostSecurities.Visibility == Visibility.Hidden)
             {
@@ -728,7 +696,9 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        // chart/чарт
+        #endregion
+
+        #region Chart
 
         private void ResizeWorker()
         {
@@ -743,12 +713,12 @@ namespace OsEngine.Market.Servers.Tester
                         return;
                     }
 
-                    if (_neadToUpdateChartValue == false)
+                    if (_needToUpdateChartValue == false)
                     {
                         continue;
                     }
 
-                    _neadToUpdateChartValue = false;
+                    _needToUpdateChartValue = false;
 
                     PaintProfitOnChart();
                     Resize();
@@ -761,16 +731,8 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// report chart
-        /// чарт для отчёта
-        /// </summary>
-        Chart _chartReport;
+        private Chart _chartReport;
 
-        /// <summary>
-        /// create chart
-        /// создать чарт
-        /// </summary>
         private void CreateChart()
         {
             if (!HostPortfolio.Dispatcher.CheckAccess())
@@ -840,10 +802,6 @@ namespace OsEngine.Market.Servers.Tester
 
         }
 
-        /// <summary>
-        /// paint ENTIRE chart
-        /// прорисовать ВЕСЬ чарт
-        /// </summary>
         private void PaintProfitOnChart()
         {
             try
@@ -901,10 +859,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// paint the last data
-        /// прорисовать последнии данные
-        /// </summary>
         private void PaintLastPointOnChart()
         {
             if (_chartReport.InvokeRequired)
@@ -957,26 +911,18 @@ namespace OsEngine.Market.Servers.Tester
             Resize();
         }
 
-        /// <summary>
-        /// chart is ready for step-by-step drawing
-        /// чарт готов к пошаговой прорисовке
-        /// </summary>
         private bool _chartActive;
 
-        private bool _neadToUpdateChartValue;
+        private bool _needToUpdateChartValue;
 
-        /// <summary>
-        /// new value of portfolio from the server has come
-        /// пришло новое значение портфеля из сервера
-        /// </summary>
-        void _server_NewCurrentValue(decimal val)
+        private void _server_NewCurrentValue(decimal val)
         {
             if (_chartActive == false)
             {
                 return;
             }
 
-            _neadToUpdateChartValue = true;
+            _needToUpdateChartValue = true;
         }
 
         private void Resize()
@@ -1058,11 +1004,495 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        // instrument table
+        #endregion
 
-        bool _neadToRePaintGrid;
+        #region Clearing
 
-        bool _uiIsClosed;
+        private DataGridView _gridClearing;
+
+        public void CreateClearingGrid()
+        {
+            _gridClearing = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = _gridClearing.DefaultCellStyle;
+
+            _gridClearing.ScrollBars = ScrollBars.Vertical;
+
+            // Num
+            DataGridViewColumn column2 = new DataGridViewColumn();
+            column2.CellTemplate = cell0;
+            column2.HeaderText = OsLocalization.Market.Label157;
+            column2.ReadOnly = true;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            _gridClearing.Columns.Add(column2);
+
+            // Time
+            DataGridViewColumn column3 = new DataGridViewColumn();
+            column3.CellTemplate = cell0;
+            column3.HeaderText = OsLocalization.Market.Label152;
+            column3.ReadOnly = false;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridClearing.Columns.Add(column3);
+
+            // OnOff
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            column4.HeaderText = OsLocalization.Market.Label153;
+            column4.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            column4.ReadOnly = false;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridClearing.Columns.Add(column4);
+
+            // Button Add or Delete
+            DataGridViewColumn column5 = new DataGridViewColumn();
+            column5.CellTemplate = cell0;
+            //column5.HeaderText = "Button";
+            column5.ReadOnly = true;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            _gridClearing.Columns.Add(column5);
+
+            HostClearing.Child = _gridClearing;
+            _gridClearing.CellClick += _gridClearing_CellClick;
+            _gridClearing.CellValueChanged += _gridClearing_CellValueChanged;
+        }
+
+        public void PaintClearingGrid()
+        {
+            try
+            {
+                if (_gridClearing.InvokeRequired)
+                {
+                    _gridClearing.Invoke(new Action(PaintClearingGrid));
+                    return;
+                }
+
+                _gridClearing.CellValueChanged -= _gridClearing_CellValueChanged;
+
+                _gridClearing.Rows.Clear();
+
+                for(int i = 0;i < _server.ClearingTimes.Count;i++)
+                {
+                    _gridClearing.Rows.Add(GetClearingRow(_server.ClearingTimes[i],i+1));
+                }
+
+                _gridClearing.Rows.Add(GetClearingLastRow());
+
+                _gridClearing.CellValueChanged += _gridClearing_CellValueChanged;
+            }
+            catch (Exception error)
+            {
+                try
+                {
+                    _server.SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        private DataGridViewRow GetClearingLastRow()
+        {
+            DataGridViewRow nRow = new DataGridViewRow();
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            nRow.Cells.Add(new DataGridViewButtonCell());
+            nRow.Cells[3].Value = OsLocalization.Market.Label156;
+
+            return nRow;
+        }
+
+        private DataGridViewRow GetClearingRow(OrderClearing clearing, int num)
+        {
+            DataGridViewRow nRow = new DataGridViewRow();
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[0].Value = num.ToString();
+
+            string timeOfDay = clearing.Time.Hour.ToString();
+
+            if(timeOfDay.Length == 1)
+            {
+                timeOfDay = "0" + timeOfDay;
+            }
+
+            timeOfDay += ":";
+            string minute = clearing.Time.Minute.ToString();
+
+            if (minute.Length == 1)
+            {
+                minute = "0" + minute;
+            }
+            timeOfDay += minute;
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[1].Value = timeOfDay;
+
+            DataGridViewCheckBoxCell checkBox = new DataGridViewCheckBoxCell();
+            checkBox.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            checkBox.Value = clearing.IsOn;
+
+            nRow.Cells.Add(checkBox);
+
+            nRow.Cells.Add(new DataGridViewButtonCell());
+            nRow.Cells[3].Value = OsLocalization.Market.Label47;
+
+            return nRow;
+        }
+
+        private void _gridClearing_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if (row > _server.ClearingTimes.Count)
+                {
+                    return;
+                }
+
+                if (column == 3)
+                {
+                    if (row == _server.ClearingTimes.Count)
+                    {// Создание нового клиринга
+                        _server.CreateNewClearing();
+                        PaintClearingGrid();
+                    }
+                    else
+                    {// Удаление клиринга
+
+                        AcceptDialogUi ui = new AcceptDialogUi("Are you sure you want to remove the clearing?");
+
+                        ui.ShowDialog();
+
+                        if (ui.UserAcceptActioin == false)
+                        {
+                            return;
+                        }
+
+                        _server.RemoveClearing(row);
+                        PaintClearingGrid();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _server.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _gridClearing_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if (column == 1)
+                { // Изменилось время клиринга
+
+                    string value = _gridClearing.Rows[row].Cells[column].Value.ToString();
+
+                    // "19:05"
+
+                    if (value.Length != 5
+                        || value.Contains(":") == false)
+                    {
+                        return;
+                    }
+
+                    string[] values = value.Split(':');
+
+                    int hour = int.Parse(values[0]);
+                    int minute = int.Parse(values[1]);
+
+                    _server.ClearingTimes[row].Time = new DateTime(2022, 1, 1, hour, minute, 0);
+                    _server.SaveClearingInfo();
+                }
+                else if (column == 2)
+                { // Изменилось состояние вкл/выкл
+                    string value = _gridClearing.Rows[row].Cells[column].Value.ToString();
+
+                    if (value == "True")
+                    {
+                        _server.ClearingTimes[row].IsOn = true;
+                        _server.SaveClearingInfo();
+                    }
+                    else if (value == "False")
+                    {
+                        _server.ClearingTimes[row].IsOn = false;
+                        _server.SaveClearingInfo();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _server.SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Non-trade periods
+
+        private DataGridView _gridNonTradePeriods;
+
+        public void CreateNonTradePeriodsGrid()
+        {
+            _gridNonTradePeriods = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = _gridNonTradePeriods.DefaultCellStyle;
+
+            _gridNonTradePeriods.ScrollBars = ScrollBars.Vertical;
+
+            // Name
+            DataGridViewColumn column2 = new DataGridViewColumn();
+            column2.CellTemplate = cell0;
+            column2.HeaderText = OsLocalization.Market.Label157;
+            column2.ReadOnly = false;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            _gridNonTradePeriods.Columns.Add(column2);
+
+            // Date start
+            DataGridViewColumn column3 = new DataGridViewColumn();
+            column3.CellTemplate = cell0;
+            column3.HeaderText = OsLocalization.Market.Label154;
+            column3.ReadOnly = false;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridNonTradePeriods.Columns.Add(column3);
+
+            // Date end
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            column4.HeaderText = OsLocalization.Market.Label155;
+            column4.ReadOnly = false;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridNonTradePeriods.Columns.Add(column4);
+
+            // OnOff
+            DataGridViewColumn column5 = new DataGridViewColumn();
+            column5.CellTemplate = cell0;
+            column5.HeaderText = OsLocalization.Market.Label153;
+            column4.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            column5.ReadOnly = false;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridNonTradePeriods.Columns.Add(column5);
+
+            // Button Add or Delete
+            DataGridViewColumn column6 = new DataGridViewColumn();
+            column6.CellTemplate = cell0;
+            //column6.HeaderText = "Button";
+            column6.ReadOnly = true;
+            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            _gridNonTradePeriods.Columns.Add(column6);
+
+            HostNonTradePeriods.Child = _gridNonTradePeriods;
+            _gridNonTradePeriods.CellValueChanged += _gridNonTradePeriods_CellValueChanged;
+            _gridNonTradePeriods.CellClick += _gridNonTradePeriods_CellClick;
+        }
+
+        public void PaintNonTradePeriodsGrid()
+        {
+            try
+            {
+                if (_gridNonTradePeriods.InvokeRequired)
+                {
+                    _gridNonTradePeriods.Invoke(new Action(PaintNonTradePeriodsGrid));
+                    return;
+                }
+
+                _gridNonTradePeriods.CellValueChanged -= _gridNonTradePeriods_CellValueChanged;
+
+                _gridNonTradePeriods.Rows.Clear();
+
+                for (int i = 0; i < _server.NonTradePeriods.Count; i++)
+                {
+                    _gridNonTradePeriods.Rows.Add(GetNonTradePeriodsRow(_server.NonTradePeriods[i], i + 1));
+                }
+
+                _gridNonTradePeriods.Rows.Add(GetNonTradePeriodsLastRow());
+
+                _gridNonTradePeriods.CellValueChanged += _gridNonTradePeriods_CellValueChanged;
+            }
+            catch (Exception error)
+            {
+                try
+                {
+                    _server.SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        private DataGridViewRow GetNonTradePeriodsLastRow()
+        {
+            DataGridViewRow nRow = new DataGridViewRow();
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            nRow.Cells.Add(new DataGridViewButtonCell());
+            nRow.Cells[4].Value = OsLocalization.Market.Label156;
+
+            return nRow;
+        }
+
+        private DataGridViewRow GetNonTradePeriodsRow(NonTradePeriod period, int num)
+        {
+            DataGridViewRow nRow = new DataGridViewRow();
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[0].Value = num.ToString();
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+
+            string dateStart = period.DateStart.Date.ToString(OsLocalization.CurCulture);
+            dateStart = dateStart.Split(' ')[0];
+
+            nRow.Cells[1].Value = dateStart;
+
+            string dateEnd = period.DateEnd.Date.ToString(OsLocalization.CurCulture);
+            dateEnd = dateEnd.Split(' ')[0];
+
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
+            nRow.Cells[2].Value = dateEnd;
+
+            DataGridViewCheckBoxCell checkBox = new DataGridViewCheckBoxCell();
+            checkBox.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            checkBox.Value = period.IsOn;
+
+            nRow.Cells.Add(checkBox);
+
+            nRow.Cells.Add(new DataGridViewButtonCell());
+            nRow.Cells[4].Value = OsLocalization.Market.Label47;
+
+            return nRow;
+        }
+
+        private void _gridNonTradePeriods_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if (row > _server.NonTradePeriods.Count)
+                {
+                    return;
+                }
+
+                if (column == 4)
+                {
+                    if (row == _server.NonTradePeriods.Count)
+                    {// Создание нового периода
+                        _server.CreateNewNonTradePeriod();
+                        PaintNonTradePeriodsGrid();
+                    }
+                    else
+                    {// Удаление периода
+
+                        AcceptDialogUi ui = new AcceptDialogUi("Are you sure you want to remove the non trade period?");
+
+                        ui.ShowDialog();
+
+                        if (ui.UserAcceptActioin == false)
+                        {
+                            return;
+                        }
+
+                        _server.RemoveNonTradePeriod(row);
+                        PaintNonTradePeriodsGrid();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _server.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _gridNonTradePeriods_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if (column == 1)
+                { // Изменилось время старта периода
+                    string value = _gridNonTradePeriods.Rows[row].Cells[column].Value.ToString();
+
+                    DateTime time = DateTime.MinValue;
+
+                    try
+                    {
+                        time = Convert.ToDateTime(value, OsLocalization.CurCulture);
+                    }
+                    catch
+                    {
+                        return;
+                    }
+
+                    _server.NonTradePeriods[row].DateStart = time;
+                    _server.SaveNonTradePeriods();
+                }
+                else if (column == 2)
+                { // Изменилось время конца периода
+                    string value = _gridNonTradePeriods.Rows[row].Cells[column].Value.ToString();
+
+                    DateTime time = DateTime.MinValue;
+
+                    try
+                    {
+                        time = Convert.ToDateTime(value, OsLocalization.CurCulture);
+                    }
+                    catch
+                    {
+                        return;
+                    }
+
+                    _server.NonTradePeriods[row].DateEnd = time;
+                    _server.SaveNonTradePeriods();
+
+
+                }
+                else if (column == 3)
+                { // Изменилось состояние вкл/выкл
+                    string value = _gridNonTradePeriods.Rows[row].Cells[column].Value.ToString();
+
+                    if (value == "True")
+                    {
+                        _server.NonTradePeriods[row].IsOn = true;
+                        _server.SaveNonTradePeriods();
+                    }
+                    else if (value == "False")
+                    {
+                        _server.NonTradePeriods[row].IsOn = false;
+                        _server.SaveNonTradePeriods();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _server.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Securities table
+
+        private bool _needToRePaintGrid;
+
+        private bool _uiIsClosed;
 
         private void SecuritiesGridPainterWorkerPlace()
         {
@@ -1075,9 +1505,9 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
-                if(_neadToRePaintGrid)
+                if(_needToRePaintGrid)
                 {
-                    _neadToRePaintGrid = false;
+                    _needToRePaintGrid = false;
 
                     try
                     {
@@ -1091,16 +1521,8 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// instrument table
-        /// таблица с инструментами
-        /// </summary>
         private DataGridView _securitiesGrid;
 
-        /// <summary>
-        /// create instrument table
-        /// создать таблицу с инструментами
-        /// </summary>
         private void CreateGrid()
         {
             _securitiesGrid = DataGridFactory.GetDataGridDataSource();
@@ -1111,20 +1533,16 @@ namespace OsEngine.Market.Servers.Tester
             _securitiesGrid.CellValueChanged += _myGridView_CellValueChanged;
         }
 
-        /// <summary>
-        /// paint instrument table
-        /// прорисовать таблицу с инструментами
-        /// </summary>
         private void PaintGrid()
         {
-            if (_securitiesGrid.InvokeRequired)
-            {
-                _securitiesGrid.Invoke(new Action(PaintGrid));
-                return;
-            }
-
             try
             {
+                if (_securitiesGrid.InvokeRequired)
+                {
+                    _securitiesGrid.Invoke(new Action(PaintGrid));
+                    return;
+                }
+
                 SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
                 SliderTo.ValueChanged -= SliderTo_ValueChanged;
 
@@ -1212,7 +1630,7 @@ namespace OsEngine.Market.Servers.Tester
                 SliderFrom.ValueChanged += SliderFrom_ValueChanged;
                 SliderTo.ValueChanged += SliderTo_ValueChanged;
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 try
                 {
@@ -1240,11 +1658,7 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// double click on instrument table
-        /// двойной клик по таблице с инструментами
-        /// </summary>
-        void _myGridView_DoubleClick(object sender, EventArgs e)
+        private void _myGridView_DoubleClick(object sender, EventArgs e)
         {
             DataGridViewRow row = null;
             try
@@ -1280,7 +1694,9 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        // sliders. Setting the start and end time of testing
+        #endregion
+
+        #region Sliders. Setting the start and end time of testing
 
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -1298,7 +1714,7 @@ namespace OsEngine.Market.Servers.Tester
             TextBoxTo.TextChanged += TextBoxTo_TextChanged;
         }
 
-        void SliderFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void SliderFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
 
@@ -1315,7 +1731,7 @@ namespace OsEngine.Market.Servers.Tester
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
         }
 
-        void TextBoxTo_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void TextBoxTo_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             DateTime to;
             try
@@ -1340,7 +1756,7 @@ namespace OsEngine.Market.Servers.Tester
             SliderTo.Value = SliderFrom.Minimum + SliderTo.Maximum - (to - DateTime.MinValue).TotalMinutes;
         }
 
-        void TextBoxFrom_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void TextBoxFrom_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             DateTime from;
             try
@@ -1369,27 +1785,27 @@ namespace OsEngine.Market.Servers.Tester
             TextBoxDataPath.Text = _server.PathToFolder;
         }
 
-        private void CheckBoxSlipageLimitOff_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxSlippageLimitOff_Checked(object sender, RoutedEventArgs e)
         {
             TextBoxSlipageSimpleOrder.Text = "0";
             TextBoxSlipageSimpleOrder.IsEnabled = false;
             CheckBoxSlipageLimitOn.IsChecked = false;
         }
 
-        private void CheckBoxSlipageLimitOn_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxSlippageLimitOn_Checked(object sender, RoutedEventArgs e)
         {
             TextBoxSlipageSimpleOrder.IsEnabled = true;
             CheckBoxSlipageLimitOff.IsChecked = false;
         }
 
-        private void CheckBoxSlipageStopOff_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxSlippageStopOff_Checked(object sender, RoutedEventArgs e)
         {
             TextBoxSlipageStop.Text = "0";
             TextBoxSlipageStop.IsEnabled = false;
             CheckBoxSlipageStopOn.IsChecked = false;
         }
 
-        private void CheckBoxSlipageStopOn_Checked(object sender, RoutedEventArgs e)
+        private void CheckBoxSlippageStopOn_Checked(object sender, RoutedEventArgs e)
         {
             TextBoxSlipageStop.IsEnabled = true;
             CheckBoxSlipageStopOff.IsChecked = false;
@@ -1423,5 +1839,7 @@ namespace OsEngine.Market.Servers.Tester
                 _server.ProfitMarketIsOn = false;
             }
         }
+
+        #endregion
     }
 }

@@ -635,6 +635,38 @@ namespace OsEngine.Language
           "Eng:Scheme_" +
           "Ru:Схема_");
 
+        public string Label150 => OsLocalization.ConvertToLocString(
+          "Eng:Orders clearing system_" +
+          "Ru:Отзыв ордеров внутри дня_");
+
+        public string Label151 => OsLocalization.ConvertToLocString(
+          "Eng:Non-trading periods_" +
+          "Ru:Не торговые периоды_");
+
+        public string Label152 => OsLocalization.ConvertToLocString(
+          "Eng:Time_" +
+          "Ru:Время_");
+
+        public string Label153 => OsLocalization.ConvertToLocString(
+          "Eng:On/Off_" +
+          "Ru:Вкл/Выкл_");
+
+        public string Label154 => OsLocalization.ConvertToLocString(
+          "Eng:Date start_" +
+          "Ru:Дата старта_");
+
+        public string Label155 => OsLocalization.ConvertToLocString(
+          "Eng:Date end_" +
+          "Ru:Дата конца_");
+
+        public string Label156 => OsLocalization.ConvertToLocString(
+          "Eng:Create_" +
+          "Ru:Создать_");
+
+        public string Label157 => OsLocalization.ConvertToLocString(
+          "Eng:Number_" +
+          "Ru:Номер_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");
@@ -732,7 +764,6 @@ namespace OsEngine.Language
         public string Message24 => OsLocalization.ConvertToLocString(
             "Eng: Cancel order - _" +
             "Ru: Отзываем ордер - _");
-
 
         public string TitleAServerParametrUi => OsLocalization.ConvertToLocString(
             "Eng:Connection settings _" +

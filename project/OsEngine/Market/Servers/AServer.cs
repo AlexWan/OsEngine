@@ -674,9 +674,9 @@ namespace OsEngine.Market.Servers
             SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            if (NeadToReconnectEvent != null)
+            if (NeedToReconnectEvent != null)
             {
-                NeadToReconnectEvent();
+                NeedToReconnectEvent();
             }
         }
 
@@ -688,7 +688,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// need to reconnect server and get a new data
         /// </summary>
-        public event Action NeadToReconnectEvent;
+        public event Action NeedToReconnectEvent;
 
         #endregion
 
@@ -728,7 +728,7 @@ namespace OsEngine.Market.Servers
                         ServerRealization.Connect();
                         LastStartServerTime = DateTime.Now;
 
-                        NeadToReconnectEvent?.Invoke();
+                        NeedToReconnectEvent?.Invoke();
 
                         continue;
                     }
@@ -788,9 +788,9 @@ namespace OsEngine.Market.Servers
                     Task task = new Task(PrimeThreadArea);
                     task.Start();
 
-                    if (NeadToReconnectEvent != null)
+                    if (NeedToReconnectEvent != null)
                     {
-                        NeadToReconnectEvent();
+                        NeedToReconnectEvent();
                     }
 
                     return;

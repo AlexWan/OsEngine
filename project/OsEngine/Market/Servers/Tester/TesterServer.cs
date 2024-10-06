@@ -18,22 +18,12 @@ using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Market.Servers.Tester
 {
-
-    /// <summary>
-	/// server for testing
-	/// Delivers synchronized data. Executes applications. Keeps track of positions
-    /// сервер для тестирования. 
-    /// Поставляет синхронизированные данные. Исполняет заявки. Следит за позициями
-    /// </summary>
     public class TesterServer: IServer
     {
+        #region Service and base settings
 
         private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
 
-        /// <summary>
-		/// constructor
-        /// конструктор
-        /// </summary>
         public TesterServer()
         {
             _portfolios = new List<Portfolio>();
@@ -42,11 +32,13 @@ namespace OsEngine.Market.Servers.Tester
             _serverConnectStatus = ServerConnectStatus.Disconnect;
             ServerStatus = ServerConnectStatus.Disconnect;
             TesterRegime = TesterRegime.NotActive;
-            _slipageToSimpleOrder = 0;
-            _slipageToStopOrder = 0;
+            _slippageToSimpleOrder = 0;
+            _slippageToStopOrder = 0;
             StartPortfolio = 1000000;
             TypeTesterData = TesterDataType.Candle;
             Load();
+            LoadClearingInfo();
+            LoadNonTradePeriods();
 
             if (_activeSet != null)
             {
@@ -69,15 +61,11 @@ namespace OsEngine.Market.Servers.Tester
 
             _candleSeriesTesterActivate = new List<SecurityTester>();
 
-            OrdersActiv = new List<Order>();
+            OrdersActive = new List<Order>();
 
             CheckSet();
         }
 
-        /// <summary>
-		/// server type
-        /// тип сервера
-        /// </summary>
         public ServerType ServerType
         {
             get { return ServerType.Tester; }
@@ -85,10 +73,6 @@ namespace OsEngine.Market.Servers.Tester
 
         private TesterServerUi _ui;
 
-        /// <summary>
-		/// show settings window
-        /// показать окно настроек
-        /// </summary>
         public void ShowDialog()
         {
             if (_ui == null)
@@ -121,7 +105,7 @@ namespace OsEngine.Market.Servers.Tester
         }
         private bool _guiIsOpenFullSettings;
 
-        void _ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void _ui_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _ui = null;
         }
@@ -145,11 +129,6 @@ namespace OsEngine.Market.Servers.Tester
         }
         private bool _removeTradesFromMemory;
 
-
-        /// <summary>
-		/// data type that the tester orders
-        /// тип данных которые заказывает тестер
-        /// </summary>
         public TesterDataType TypeTesterData
         {
             get { return _typeTesterData; }
@@ -173,10 +152,6 @@ namespace OsEngine.Market.Servers.Tester
         }
         private TesterDataType _typeTesterData;
 
-        /// <summary>
-		/// download settings from the file
-        /// загрузить настройки из файла
-        /// </summary>
         private void Load()
         {
             if (!File.Exists(@"Engine\" + @"TestServer.txt"))
@@ -189,12 +164,12 @@ namespace OsEngine.Market.Servers.Tester
                 using (StreamReader reader = new StreamReader(@"Engine\" + @"TestServer.txt"))
                 {
                     _activeSet = reader.ReadLine();
-                    _slipageToSimpleOrder = Convert.ToInt32(reader.ReadLine());
+                    _slippageToSimpleOrder = Convert.ToInt32(reader.ReadLine());
                     StartPortfolio = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out _typeTesterData);
                     Enum.TryParse(reader.ReadLine(), out _sourceDataType);
                     _pathToFolder = reader.ReadLine();
-                    _slipageToStopOrder = Convert.ToInt32(reader.ReadLine());
+                    _slippageToStopOrder = Convert.ToInt32(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out _orderExecutionType);
                     _profitMarketIsOn = Convert.ToBoolean(reader.ReadLine());
                     _guiIsOpenFullSettings = Convert.ToBoolean(reader.ReadLine());
@@ -209,10 +184,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// save settings
-        /// сохранить настройки
-        /// </summary>
         public void Save()
         {
             try
@@ -220,12 +191,12 @@ namespace OsEngine.Market.Servers.Tester
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + @"TestServer.txt", false))
                 {
                     writer.WriteLine(_activeSet);
-                    writer.WriteLine(_slipageToSimpleOrder);
+                    writer.WriteLine(_slippageToSimpleOrder);
                     writer.WriteLine(StartPortfolio);
                     writer.WriteLine(_typeTesterData);
                     writer.WriteLine(_sourceDataType);
                     writer.WriteLine(_pathToFolder);
-                    writer.WriteLine(_slipageToStopOrder);
+                    writer.WriteLine(_slippageToStopOrder);
                     writer.WriteLine(_orderExecutionType);
                     writer.WriteLine(_profitMarketIsOn);
                     writer.WriteLine(_guiIsOpenFullSettings);
@@ -239,10 +210,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// save security test settings
-        /// сохранить тестовые настройки инструмента
-        /// </summary>
         public void SaveSecurityTestSettings()
         {
             try
@@ -259,10 +226,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// load security test settings
-        /// загрузить тестовые настройки инструмента
-        /// </summary>
         public void LoadSecurityTestSettings()
         {
             try
@@ -341,34 +304,20 @@ namespace OsEngine.Market.Servers.Tester
             return pathToSettings;
         }
 
-        // additional part from standart servers
-        // аппендикс от нормальных серверов
+        #endregion
 
-        /// <summary>
-		/// isn't used in the test server
-        /// в тестовом сервере не используется
-        /// </summary>
+        #region Additional part from standard servers
+
         public void StartServer(){}
 
-        /// <summary>
-		/// isn't used in the test server
-        /// в тестовом сервере не используется
-        /// </summary>
         public void StopServer(){}
        
-        /// <summary>
-        /// server time of last starting
-        /// время последнего старта сервера
-        /// </summary>
         public DateTime LastStartServerTime { get; set; }
 
-        // Managment
-        // Управление
+        #endregion
 
-        /// <summary>
-        /// start testing
-        /// начать тестирование
-        /// </summary>
+        #region Management
+
         public void TestingStart()
         {
             try
@@ -402,9 +351,9 @@ namespace OsEngine.Market.Servers.Tester
 
                 _candleManager.Clear();
 
-                if (NeadToReconnectEvent != null)
+                if (NeedToReconnectEvent != null)
                 {
-                    NeadToReconnectEvent();
+                    NeedToReconnectEvent();
                 }
 
                 int timeToWaitConnect = 100 + countSeriesInLastTest * 60;
@@ -460,7 +409,7 @@ namespace OsEngine.Market.Servers.Tester
 
                 NumberGen.ResetToZeroInTester();
 
-                OrdersActiv.Clear();
+                OrdersActive.Clear();
 
                 Thread.Sleep(2000);
 
@@ -490,10 +439,6 @@ namespace OsEngine.Market.Servers.Tester
 
         public bool IsAlreadyStarted;
 
-        /// <summary>
-		/// speed testing by hiding areas
-        /// ускорить тестирование, спрятав области
-        /// </summary>
         public void TestingFastOnOff()
         {
             if(TesterRegime == TesterRegime.NotActive)
@@ -524,10 +469,6 @@ namespace OsEngine.Market.Servers.Tester
 
         public bool TestingFastIsActivate;
 
-        /// <summary>
-		/// stops testing, or starts
-        /// останавливает тестирование, или запускает
-        /// </summary>
         public void TestingPausePlay()
         {
             if (TesterRegime == TesterRegime.NotActive)
@@ -544,10 +485,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// get the next second and stop testing
-        /// прогрузить следующую секунду и остановить тестирование
-        /// </summary>
         public void TestingPlusOne()
         {
             if (TesterRegime == TesterRegime.NotActive)
@@ -557,10 +494,6 @@ namespace OsEngine.Market.Servers.Tester
             TesterRegime = TesterRegime.PlusOne;
         }
 
-        /// <summary>
-        /// speed testing by hiding areas by Position Action
-        /// ускорить тестирование, спрятав области, до следующего события связанного со сделками
-        /// </summary>
         public void ToNextPositionActionTestingFast()
         {
             if (TesterRegime == TesterRegime.NotActive)
@@ -590,10 +523,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// speed testing by hiding areas by Time
-        /// ускорить тестирование, спрятав области, до определённого времени
-        /// </summary>
         public void ToDateTimeTestingFast(DateTime timeToGo)
         {
             if (TesterRegime == TesterRegime.NotActive)
@@ -633,424 +562,24 @@ namespace OsEngine.Market.Servers.Tester
 
         private bool _waitSomeActionInPosition;
 
-        /// <summary>
-		/// Testing started
-        /// Тестирование запущено
-        /// </summary>
         public event Action TestingStartEvent;
 
-        /// <summary>
-		/// rewind mode enabled
-        /// включен режим перемотки
-        /// </summary>
         public event Action TestingFastEvent;
 
-        /// <summary>
-		/// testing stopped
-        /// тестирование прервано
-        /// </summary>
         public event Action TestingEndEvent;
 
-        /// <summary>
-		/// new securities in tester
-        /// новые бумаги в тестере
-        /// </summary>
         public event Action TestingNewSecurityEvent;
 
-// work with data connection
-// работа с подключением данных
+        #endregion
 
-        public TesterSourceDataType SourceDataType
-        {
-            get { return _sourceDataType; }
-            set
-            {
-                if (value == _sourceDataType)
-                {
-                    return;
-                }
+        #region Main thread work place
 
-                _sourceDataType = value;
-                ReloadSecurities();
-            }
-        }
-        private TesterSourceDataType _sourceDataType;
-
-        /// <summary>
-		/// data sets
-        /// сеты данных
-        /// </summary>
-        private List<string> _sets;
-        public List<string> Sets 
-        {
-            get
-            {
-                return _sets; 
-            }
-            private set
-            {
-                _sets = value;
-            } 
-        } 
-
-        /// <summary>
-		/// take all sets from folder
-        /// взять все сеты из папки
-        /// </summary>
-        private void CheckSet()
-        {
-            if (!Directory.Exists(@"Data"))
-            {
-                Directory.CreateDirectory(@"Data");
-            }
-
-            string[] folders = Directory.GetDirectories(@"Data" + @"\");
-
-            if (folders.Length == 0)
-            {
-                SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
-            }
-
-            List<string> sets = new List<string>();
-
-            for (int i = 0; i < folders.Length; i++)
-            {
-                if (folders[i].Split('_').Length == 2)
-                {
-                    sets.Add(folders[i].Split('_')[1]);
-                    SendLogMessage("Найден сет: " + folders[i].Split('_')[1], LogMessageType.System);
-                }
-            }
-
-            if (sets.Count == 0)
-            {
-                SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
-            }
-            Sets = sets;
-        }
-
-        /// <summary>
-		/// bind to the tester a new data set
-        /// привязать к тестору новый сет данных
-        /// </summary>
-        /// <param name="setName">имя сета</param>
-        public void SetNewSet(string setName)
-        {
-            string newSet = @"Data" + @"\" + @"Set_" + setName;
-            if (newSet == _activeSet)
-            {
-                return;
-            }
-
-            SendLogMessage(OsLocalization.Market.Message27 + setName, LogMessageType.System);
-            _activeSet = newSet;
-
-            if (_sourceDataType == TesterSourceDataType.Set)
-            {
-                ReloadSecurities();
-            }
-            Save();
-        }
-
-        public void ReloadSecurities()
-        {
-            // clear all data and disconnect / чистим все данные, отключаемся
-            TesterRegime = TesterRegime.NotActive;
-            _dataIsReady = false;
-            ServerStatus = ServerConnectStatus.Disconnect;
-            _securities = null;
-            SecuritiesTester = null;
-            _candleManager.Clear();
-            _candleSeriesTesterActivate = new List<SecurityTester>();
-            Save();
-
-            // update / обновляем
-            
-            _needToReloadSecurities = true;
-
-            if (NeadToReconnectEvent != null)
-            {
-                NeadToReconnectEvent();
-            }
-        }
-
-        /// <summary>
-		/// path to the data folder
-        /// путь к папке с данными
-        /// </summary>
-        public string PathToFolder
-        {
-            get { return _pathToFolder; }
-        }
-        private string _pathToFolder;
-
-        /// <summary>
-		/// call folder path selection window
-        /// вызвать окно выбора пути к папке
-        /// </summary>
-        public void ShowPathSenderDialog()
-        {
-            if(TesterRegime == TesterRegime.Play)
-            {
-                TesterRegime = TesterRegime.Pause;
-            }
-
-            System.Windows.Forms.FolderBrowserDialog myDialog = new System.Windows.Forms.FolderBrowserDialog();
-
-            if (string.IsNullOrWhiteSpace(_pathToFolder))
-            {
-                myDialog.SelectedPath = _pathToFolder;
-            }
-
-            myDialog.ShowDialog();
-
-            if (myDialog.SelectedPath != "" && 
-                _pathToFolder != myDialog.SelectedPath) // если хоть что-то выбрано
-            {
-                _pathToFolder = myDialog.SelectedPath;
-                if (_sourceDataType == TesterSourceDataType.Folder)
-                {
-                    ReloadSecurities();
-                }
-            }
-        }
-
-// Synchronizer
-// Синхронизатор
-
-        /// <summary>
-		/// path to the data folder. He is the name of the active set
-        /// путь к папке с данными. Он же название активного сета
-        /// </summary>
-        private string _activeSet;
-        public string ActiveSet
-        {
-            get { return _activeSet; }
-        }
-
-        /// <summary>
-		/// minimum time that can be set for synchronization
-        /// минимальное время которое можно задать для синхронизации
-        /// </summary>
-        public DateTime TimeMin;
-
-        /// <summary>
-		/// maximum time that can be set for synchronization
-        /// максимальное время которое можно задать для синхронизации
-        /// </summary>
-        public DateTime TimeMax;
-
-        /// <summary>
-		/// start time of testing selected by the user
-        /// время начала тестирования выбранное пользователем
-        /// </summary>
-        public DateTime TimeStart;
-
-        /// <summary>
-		/// finish time of testing selected by the user
-        /// время конца тестирования выбранное пользователем
-        /// </summary>
-        public DateTime TimeEnd;
-
-        /// <summary>
-		/// time synchronizer at now time of history
-        /// время синхронизатора в данный момент подачи истории
-        /// </summary>
-        public DateTime TimeNow;
-
-        public bool DataIsReady
-        {
-            get
-            {
-                return _dataIsReady;
-            }
-        }
-
-        /// <summary>
-		/// are data ready for loading
-        /// готовы ли данные к загрузке
-        /// </summary>
-        private bool _dataIsReady;
-
-        /// <summary>
-		/// securities available for loading
-        /// бумаги доступные для загрузки 
-        /// </summary>
-        public List<SecurityTester> SecuritiesTester;
-
-        /// <summary>
-		/// removes unnecessary connections by synchronizing them with loaded bots
-        /// удаляет лишние подключения синхронизируя их с загруженными ботами
-        /// </summary>
-        public void SynhSecurities(List<BotPanel> bots)
-        {
-            if (bots == null || bots.Count == 0 ||
-              SecuritiesTester == null || SecuritiesTester.Count == 0)
-            {
-                return;
-            }
-
-            List<string> namesSecurity = new List<string>();
-
-            for (int i = 0; i < bots.Count; i++)
-            {
-                List<BotTabSimple> currentTabs = bots[i].TabsSimple;
-
-                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
-                {
-                    if (currentTabs[i2].Securiti != null)
-                    {
-                        namesSecurity.Add(currentTabs[i2].Securiti.Name);
-                    }
-                }
-            }
-
-            for (int i = 0; i < bots.Count; i++)
-            {
-                List<BotTabPair> currentTabs = bots[i].TabsPair;
-
-                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
-                {
-                    List<PairToTrade> pairs = currentTabs[i2].Pairs;
-
-                    for(int i3 = 0; i3 < pairs.Count;i3++)
-                    {
-                        PairToTrade pair = pairs[i3];
-
-                        if(pair.Tab1.Securiti != null)
-                        {
-                            namesSecurity.Add(pair.Tab1.Securiti.Name);
-                        }
-                        if (pair.Tab2.Securiti != null)
-                        {
-                            namesSecurity.Add(pair.Tab2.Securiti.Name);
-                        }
-                    }
-                }
-            }
-
-            for (int i = 0; i < bots.Count; i++)
-            {
-                List<BotTabScreener> currentTabs = bots[i].TabsScreener;
-
-                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
-                {
-                    List<string> secs = new List<string>();
-
-                    for (int i3 = 0; i3 < currentTabs[i2].SecuritiesNames.Count; i3++)
-                    {
-                        if (string.IsNullOrEmpty(currentTabs[i2].SecuritiesNames[i3].SecurityName))
-                        {
-                            continue;
-                        }
-                        secs.Add(currentTabs[i2].SecuritiesNames[i3].SecurityName);
-                    }
-
-                    if (secs.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    namesSecurity.AddRange(secs);
-                }
-            }
-
-            for (int i = 0; i < bots.Count; i++)
-            {
-                List<BotTabCluster> currentTabs = bots[i].TabsCluster;
-
-                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
-                {
-                    namesSecurity.Add(currentTabs[i2].CandleConnector.SecurityName);
-                }
-            }
-
-            for (int i = 0; i < bots.Count; i++)
-            {
-                List<BotTabIndex> currentTabsSpread = bots[i].TabsIndex;
-
-                for (int i2 = 0; currentTabsSpread != null && i2 < currentTabsSpread.Count; i2++)
-                {
-                    BotTabIndex index = currentTabsSpread[i2];
-
-                    for (int i3 = 0; index.Tabs != null && i3 < index.Tabs.Count; i3++)
-                    {
-                        ConnectorCandles currentConnector = index.Tabs[i3];
-
-                        if (!string.IsNullOrWhiteSpace(currentConnector.SecurityName))
-                        {
-                            namesSecurity.Add(currentConnector.SecurityName);
-                        }
-                    }
-
-                }
-            }
-
-            for (int i = 0; i < SecuritiesTester.Count; i++)
-            {
-                if (namesSecurity.Find(name => name == SecuritiesTester[i].Security.Name) == null)
-                {
-                    SecuritiesTester[i].IsActive = false;
-                }
-                else
-                {
-                    SecuritiesTester[i].IsActive = true;
-                }
-            }
-
-            _candleManager.SynhSeries(namesSecurity);
-
-            if (TypeTesterData == TesterDataType.TickAllCandleState ||
-                TypeTesterData == TesterDataType.TickOnlyReadyCandle)
-            {
-                _timeAddType = TimeAddInTestType.Second;
-            }
-            else if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
-                     TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
-            {
-                _timeAddType = TimeAddInTestType.MilliSecond;
-            }
-            else if (TypeTesterData == TesterDataType.Candle)
-            {
-
-                if (SecuritiesTester.Find(name => name.TimeFrameSpan < new TimeSpan(0, 0, 1, 0)) == null)
-                {
-                    _timeAddType = TimeAddInTestType.Minute;
-                }
-                else
-                {
-                    _timeAddType = TimeAddInTestType.Second;
-                }
-            }
-        }
-
-// work place of main thread
-// место работы основного потока
-
-        /// <summary>
-		/// synchronizer accuracy. For candles above a minute - minutes. For ticks - seconds. For depths - milliseconds
-        /// точность синхронизатора. Для свечек выше минуты - минутки. Для тиков - секунды. Для стаканов - миллисекунды
-		/// set in the SynhSecurities method
-        /// устанавливается в методе SynhSecurities
-        /// </summary>
         private TimeAddInTestType _timeAddType;
 
-        /// <summary>
-		/// did the data from data series go
-        /// пошли ли данные из серий данных
-        /// </summary>
         private bool _dataIsActive;
 
-        /// <summary>
-		/// is it time to reload securities in the directory
-        /// пора ли перезагружать бумаги в директории
-        /// </summary>
         private bool _needToReloadSecurities;
 
-        /// <summary>
-		/// test mode
-        /// режим тестирования
-        /// </summary>
         public TesterRegime TesterRegime
         {
             get { return _testerRegime; }
@@ -1072,16 +601,8 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<TesterRegime> TestRegimeChangeEvent;
 
-        /// <summary>
-		/// main thread that downloads all data
-        /// основной поток, которые занимается прогрузкой всех данных
-        /// </summary>
         private Thread _worker;
 
-        /// <summary>
-		/// work place of main thread
-        /// место работы основного потока
-        /// </summary>
         private void WorkThreadArea()
         {
             Thread.Sleep(2000);
@@ -1158,10 +679,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// create portfolio for test server
-        /// создать портфель для тестового сервера
-        /// </summary>
         private void CreatePortfolio()
         {
 
@@ -1177,939 +694,11 @@ namespace OsEngine.Market.Servers.Tester
             UpdatePortfolios(new[] { portfolio }.ToList());
         }
 
-        /// <summary>
-		/// download data about securities from the directory
-        /// загрузить данные о бумагах из директории
-        /// </summary>
-        private void LoadSecurities()
-        {
-            if ((_sourceDataType == TesterSourceDataType.Set && (string.IsNullOrWhiteSpace(_activeSet) || !Directory.Exists(_activeSet))) ||
-                (_sourceDataType == TesterSourceDataType.Folder && (string.IsNullOrWhiteSpace(_pathToFolder) || !Directory.Exists(_pathToFolder))))
-            {
-                return;
-            }
-
-            if (_sourceDataType == TesterSourceDataType.Set)
-            { // Hercules data sets/сеты данных Геркулеса
-                string[] directories = Directory.GetDirectories(_activeSet);
-
-                if (directories.Length == 0)
-                {
-                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
-                    return;
-                }
-
-                TimeMax = DateTime.MinValue;
-                TimeEnd = DateTime.MaxValue;
-                TimeMin = DateTime.MaxValue;
-                TimeStart = DateTime.MinValue;
-                TimeNow = DateTime.MinValue;
-
-                for (int i = 0; i < directories.Length; i++)
-                {
-                    LoadSecurity(directories[i]);
-                }
-
-                _dataIsReady = true;
-            }
-            else // if (_sourceDataType == TesterSourceDataType.Folder)
-            { // simple files from folder/простые файлы из папки
-
-                string[] files = Directory.GetFiles(_pathToFolder);
-
-                if (files.Length == 0)
-                {
-                    SendLogMessage(OsLocalization.Market.Message49, LogMessageType.Error);
-                }
-
-                LoadCandleFromFolder(_pathToFolder);
-                LoadTickFromFolder(_pathToFolder);
-                LoadMarketDepthFromFolder(_pathToFolder);
-                _dataIsReady = true;
-            }
-        }
-
-        /// <summary>
-		/// unload one tool from folder
-        /// выгрузить один инструмент из папки
-        /// </summary>
-        /// <param name="path">folder path to instrument / путь к папке с инструментом</param>
-        private void LoadSecurity(string path)
-        {
-            string[] directories = Directory.GetDirectories(path);
-
-            if (directories.Length == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < directories.Length; i++)
-            {
-                string name = directories[i].Split('\\')[3];
-
-                if (name == "MarketDepth")
-                {
-                    LoadMarketDepthFromFolder(directories[i]);
-                }
-                else if (name == "Tick")
-                {
-                    LoadTickFromFolder(directories[i]);
-                }
-                else
-                {
-                    LoadCandleFromFolder(directories[i]);
-                }
-            }
-        }
-
-        private void LoadCandleFromFolder(string folderName)
-        {
-
-            string[] files = Directory.GetFiles(folderName);
-
-            if (files.Length == 0)
-            {
-                return;
-            }
-
-            List<SecurityTester> security = new List<SecurityTester>();
-
-            for (int i = 0; i < files.Length; i++)
-            {
-                security.Add(new SecurityTester());
-                security[security.Count - 1].FileAddress = files[i];
-                security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
-                security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
-                security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
-                security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
-                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
-
-                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
-
-                security[security.Count - 1].Security = new Security();
-                security[security.Count - 1].Security.Name = name;
-                security[security.Count - 1].Security.Lot = 1;
-                security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.Go = 1;
-                security[security.Count - 1].Security.PriceStepCost = 1;
-                security[security.Count - 1].Security.PriceStep = 1;
-                // timeframe / тф
-                // price step / шаг цены
-                // begin / начало
-                // end / конец
-
-                StreamReader reader = new StreamReader(files[i]);
-
-                // candles / свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
-                // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
-                // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
-
-                string firstRowInFile = reader.ReadLine();
-
-                if(string.IsNullOrEmpty(firstRowInFile))
-                {
-                    security.Remove(security[security.Count - 1]);
-                    reader.Close();
-                    continue;
-                }
-
-                try
-                {
-                    // check whether candles are in the file / смотрим свечи ли в файле
-                    Candle candle = new Candle();
-                    candle.SetCandleFromString(firstRowInFile);
-                    // candles are in the file. We look at which ones / в файле свечи. Смотрим какие именно
-
-                    security[security.Count - 1].TimeStart = candle.TimeStart;
-
-                    Candle candle2 = new Candle();
-                    candle2.SetCandleFromString(reader.ReadLine());
-
-                    security[security.Count - 1].DataType = SecurityTesterDataType.Candle;
-                    security[security.Count - 1].TimeFrameSpan = GetTimeSpan(reader);
-                    security[security.Count - 1].TimeFrame = GetTimeFrame(security[security.Count - 1].TimeFrameSpan);
-                    // step price / шаг цены
-
-                    decimal minPriceStep = decimal.MaxValue;
-                    int countFive = 0;
-
-                    CultureInfo culture = CultureInfo;
-
-                    for (int i2 = 0; i2 < 20; i2++)
-                    {
-                        if (reader.EndOfStream == true)
-                        {
-                            reader.Close();
-                            reader = new StreamReader(files[i]);
-
-                            if (reader.EndOfStream == true)
-                            {
-                                break;
-                            }
-
-                            continue;
-                        }
-
-                        Candle candleN = new Candle();
-                        candleN.SetCandleFromString(reader.ReadLine());
-
-                        decimal openD = (decimal) Convert.ToDouble(candleN.Open);
-                        decimal highD = (decimal) Convert.ToDouble(candleN.High);
-                        decimal lowD = (decimal) Convert.ToDouble(candleN.Low);
-                        decimal closeD = (decimal) Convert.ToDouble(candleN.Close);
-
-                        string open = openD.ToString().Replace(".", ",");
-                        string high = highD.ToString().Replace(".", ",");
-                        string low = lowD.ToString().Replace(".", ",");
-                        string close = closeD.ToString().Replace(".", ",");
-
-                        if (open.Split(',').Length > 1 ||
-                            high.Split(',').Length > 1 ||
-                            low.Split(',').Length > 1 ||
-                            close.Split(',').Length > 1)
-                        {
-                            // if the real part takes place / если имеет место вещественная часть
-                            int length = 1;
-
-                            if (open.Split(',').Length > 1 &&
-                                open.Split(',')[1].Length > length)
-                            {
-                                length = open.Split(',')[1].Length;
-                            }
-
-                            if (high.Split(',').Length > 1 &&
-                                high.Split(',')[1].Length > length)
-                            {
-                                length = high.Split(',')[1].Length;
-                            }
-
-                            if (low.Split(',').Length > 1 &&
-                                low.Split(',')[1].Length > length)
-                            {
-                                length = low.Split(',')[1].Length;
-                            }
-
-                            if (close.Split(',').Length > 1 &&
-                                close.Split(',')[1].Length > length)
-                            {
-                                length = close.Split(',')[1].Length;
-                            }
-
-                            if (length == 1 && minPriceStep > 0.1m)
-                            {
-                                minPriceStep = 0.1m;
-                            }
-                            if (length == 2 && minPriceStep > 0.01m)
-                            {
-                                minPriceStep = 0.01m;
-                            }
-                            if (length == 3 && minPriceStep > 0.001m)
-                            {
-                                minPriceStep = 0.001m;
-                            }
-                            if (length == 4 && minPriceStep > 0.0001m)
-                            {
-                                minPriceStep = 0.0001m;
-                            }
-                            if (length == 5 && minPriceStep > 0.00001m)
-                            {
-                                minPriceStep = 0.00001m;
-                            }
-                            if (length == 6 && minPriceStep > 0.000001m)
-                            {
-                                minPriceStep = 0.000001m;
-                            }
-                            if (length == 7 && minPriceStep > 0.0000001m)
-                            {
-                                minPriceStep = 0.0000001m;
-                            }
-                            if (length == 8 && minPriceStep > 0.00000001m)
-                            {
-                                minPriceStep = 0.00000001m;
-                            }
-                            if (length == 9 && minPriceStep > 0.000000001m)
-                            {
-                                minPriceStep = 0.000000001m;
-                            }
-                        }
-                        else
-                        {
-                            // if the real part doesn't take place / если вещественной части нет
-                            int length = 1;
-
-                            for (int i3 = open.Length - 1; open.ToString(culture)[i3] == '0'; i3--)
-                            {
-                                length = length*10;
-                            }
-
-                            int lengthLow = 1;
-
-                            for (int i3 = low.Length - 1; low[i3] == '0'; i3--)
-                            {
-                                lengthLow = lengthLow*10;
-
-                                if (length > lengthLow)
-                                {
-                                    length = lengthLow;
-                                }
-                            }
-
-                            int lengthHigh = 1;
-
-                            for (int i3 = high.Length - 1; high[i3] == '0'; i3--)
-                            {
-                                lengthHigh = lengthHigh*10;
-
-                                if (length > lengthHigh)
-                                {
-                                    length = lengthHigh;
-                                }
-                            }
-
-                            int lengthClose = 1;
-
-                            for (int i3 = close.Length - 1; close[i3] == '0'; i3--)
-                            {
-                                lengthClose = lengthClose*10;
-
-                                if (length > lengthClose)
-                                {
-                                    length = lengthClose;
-                                }
-                            }
-                            if (minPriceStep > length)
-                            {
-                                minPriceStep = length;
-                            }
-
-                            if (minPriceStep == 1 &&
-                                openD%5 == 0 && highD%5 == 0 &&
-                                closeD%5 == 0 && lowD%5 == 0)
-                            {
-                                countFive++;
-                            }
-                        }
-                    }
-
-
-                    if (minPriceStep == 1 &&
-                        countFive == 20)
-                    {
-                        minPriceStep = 5;
-                    }
-
-
-                    security[security.Count - 1].Security.PriceStep = minPriceStep;
-                    security[security.Count - 1].Security.PriceStepCost = minPriceStep;
-
-
-                    // last data / последняя дата
-                    string lastString = firstRowInFile;
-
-                    while (!reader.EndOfStream)
-                    {
-                        string curStr = reader.ReadLine();
-
-                        if(string.IsNullOrEmpty(curStr))
-                        {
-                            continue;
-                        }
-                        lastString = curStr;
-                    }
-
-                    Candle candle3 = new Candle();
-                    candle3.SetCandleFromString(lastString);
-                    security[security.Count - 1].TimeEnd = candle3.TimeStart;
-                    continue;
-                }
-                catch (Exception)
-                {
-                    security.Remove(security[security.Count - 1]);
-                }
-                finally
-                {
-                    reader.Close();
-                }
-            }
- 
- // save securities 
- // сохраняем бумаги
-
-            if (security == null || 
-                security.Count == 0)
-            {
-                return;
-            }
-
-            if (_securities == null)
-            {
-                _securities = new List<Security>();
-            }
-
-            if (SecuritiesTester == null)
-            {
-                SecuritiesTester = new List<SecurityTester>();
-            }
-
-            for (int i = 0; i < security.Count; i++)
-            {
-                if (_securities.Find(security1 => security1.Name == security[i].Security.Name) == null)
-                {
-                    _securities.Add(security[i].Security);
-                }
-                
-                SecuritiesTester.Add(security[i]);
-            }
-
-// count the time
-// считаем время
-
-            if (SecuritiesTester.Count != 0)
-            {
-                for (int i = 0; i < SecuritiesTester.Count; i++)
-                {
-                    if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) ||
-                        (SecuritiesTester[i].TimeStart != DateTime.MinValue &&SecuritiesTester[i].TimeStart < TimeMin))
-                    {
-                        TimeMin = SecuritiesTester[i].TimeStart;
-                        TimeStart = SecuritiesTester[i].TimeStart;
-                        TimeNow = SecuritiesTester[i].TimeStart;
-                    }
-                    if (SecuritiesTester[i].TimeEnd != DateTime.MinValue &&
-                        SecuritiesTester[i].TimeEnd > TimeMax)
-                    {
-                        TimeMax = SecuritiesTester[i].TimeEnd;
-                        TimeEnd = SecuritiesTester[i].TimeEnd;
-                    }
-                }
-            }
-
-            // check in tester file data on the presence of multipliers and GO for securities
-            // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
-
-            SetToSecuritiesDopSettings();
-            LoadSecurityTestSettings();
-
-            if (TestingNewSecurityEvent != null)
-            {
-                TestingNewSecurityEvent();
-            }
-        }
-
-        private void LoadTickFromFolder(string folderName)
-        {
-            string[] files = Directory.GetFiles(folderName);
-
-            if (files.Length == 0)
-            {
-                return;
-            }
-
-            List<SecurityTester> security = new List<SecurityTester>();
-
-            for (int i = 0; i < files.Length; i++)
-            {
-                security.Add(new SecurityTester());
-                security[security.Count-1].FileAddress = files[i];
-                security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
-                security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
-                security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
-                security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
-                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
-
-                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
-
-                security[security.Count - 1].Security = new Security();
-                security[security.Count - 1].Security.Name = name;
-                security[security.Count - 1].Security.Lot = 1;
-                security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.Go = 1;
-                security[security.Count - 1].Security.PriceStepCost = 1;
-                security[security.Count - 1].Security.PriceStep = 1;
-				// timeframe / тф
-				// price step / шаг цены
-				// begin / начало
-				// end / конец
-
-                StreamReader reader = new StreamReader(files[i]);
-
-                // candles / свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
-                // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
-                // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
-
-                string firstRowInFile = reader.ReadLine();
-
-                if(string.IsNullOrEmpty(firstRowInFile))
-                {
-                    security.Remove(security[security.Count - 1]);
-                    reader.Close();
-                    continue;
-                }
-
-                try
-                {
-                    // check whether ticks are in the file / смотрим тики ли в файле
-                    Trade trade = new Trade();
-                    trade.SetTradeFromString(firstRowInFile);
-                    // ticks are in the file / в файле тики
-
-                    security[security.Count - 1].TimeStart = trade.Time;
-                    security[security.Count - 1].DataType = SecurityTesterDataType.Tick;
-
-                    // price step / шаг цены
-
-                    decimal minPriceStep = decimal.MaxValue;
-                    int countFive = 0;
-
-                    CultureInfo culture = CultureInfo;
-
-                    for (int i2 = 0; i2 < 20; i2++)
-                    {
-                        Trade tradeN = new Trade();
-                        tradeN.SetTradeFromString(reader.ReadLine());
-
-                        decimal open = (decimal)Convert.ToDouble(tradeN.Price);
-
-
-                        if (open.ToString(culture).Split(',').Length > 1)
-                        {
-                            // if the real part takes place / если имеет место вещественная часть
-                            int length = 1;
-
-                            if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > length)
-                            {
-                                length = open.ToString(culture).Split(',')[1].Length;
-                            }
-
-
-                            if (length == 1 && minPriceStep > 0.1m)
-                            {
-                                minPriceStep = 0.1m;
-                            }
-                            if (length == 2 && minPriceStep > 0.01m)
-                            {
-                                minPriceStep = 0.01m;
-                            }
-                            if (length == 3 && minPriceStep > 0.001m)
-                            {
-                                minPriceStep = 0.001m;
-                            }
-                            if (length == 4 && minPriceStep > 0.0001m)
-                            {
-                                minPriceStep = 0.0001m;
-                            }
-                            if (length == 5 && minPriceStep > 0.00001m)
-                            {
-                                minPriceStep = 0.00001m;
-                            }
-                            if (length == 6 && minPriceStep > 0.000001m)
-                            {
-                                minPriceStep = 0.000001m;
-                            }
-                            if (length == 7 && minPriceStep > 0.0000001m)
-                            {
-                                minPriceStep = 0.0000001m;
-                            }
-                            if (length == 8 && minPriceStep > 0.00000001m)
-                            {
-                                minPriceStep = 0.00000001m;
-                            }
-                            if (length == 9 && minPriceStep > 0.000000001m)
-                            {
-                                minPriceStep = 0.000000001m;
-                            }
-                        }
-                        else
-                        {
-                            // if the real part doesn't take place / если вещественной части нет
-                            int length = 1;
-
-                            for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
-                            {
-                                length = length * 10;
-                            }
-
-                            if (minPriceStep > length)
-                            {
-                                minPriceStep = length;
-                            }
-
-                            if (length == 1 &&
-                                open % 5 == 0)
-                            {
-                                countFive++;
-                            }
-                        }
-                    }
-
-
-                    if (minPriceStep == 1 &&
-                        countFive == 20)
-                    {
-                        minPriceStep = 5;
-                    }
-
-
-                    security[security.Count - 1].Security.PriceStep = minPriceStep;
-                    security[security.Count - 1].Security.PriceStepCost = minPriceStep;
-
-                    // last data / последняя дата
-                    string lastString2 = firstRowInFile;
-
-                    while (!reader.EndOfStream)
-                    {
-                        string curRow = reader.ReadLine();
-
-                        if(string.IsNullOrEmpty(curRow))
-                        {
-                            continue;
-                        }
-
-                        lastString2 = curRow;
-                    }
-
-                    Trade trade2 = new Trade();
-                    trade2.SetTradeFromString(lastString2);
-                    security[security.Count - 1].TimeEnd = trade2.Time;
-                }
-                catch (Exception)
-                {
-                    security.Remove(security[security.Count - 1]);
-                }
-
-                reader.Close();
-            }
-
-            // save securities / сохраняем бумаги
-
-            if (security.Count == 0)
-            {
-                return;
-            }
-
-            if (_securities == null)
-            {
-                _securities = new List<Security>();
-            }
-
-            if (SecuritiesTester == null)
-            {
-                SecuritiesTester = new List<SecurityTester>();
-            }
-
-            for (int i = 0; i < security.Count; i++)
-            {
-                if (_securities.Find(security1 => security1.Name == security[i].Security.Name) == null)
-                {
-                    _securities.Add(security[i].Security);
-                }
-                SecuritiesTester.Add(security[i]);
-            }
-
-            // count the time / считаем время 
-
-            if (SecuritiesTester.Count != 0)
-            {
-                for (int i = 0; i < SecuritiesTester.Count; i++)
-                {
-                    if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) ||
-                        (SecuritiesTester[i].TimeStart != DateTime.MinValue && SecuritiesTester[i].TimeStart < TimeMin))
-                    {
-                        TimeMin = SecuritiesTester[i].TimeStart;
-                        TimeStart = SecuritiesTester[i].TimeStart;
-                        TimeNow = SecuritiesTester[i].TimeStart;
-                    }
-                    if (SecuritiesTester[i].TimeEnd != DateTime.MinValue &&
-                        SecuritiesTester[i].TimeEnd > TimeMax)
-                    {
-                        TimeMax = SecuritiesTester[i].TimeEnd;
-                        TimeEnd = SecuritiesTester[i].TimeEnd;
-                    }
-                }
-            }
-
-            // check in the tester file data on the presence of multipliers and GO for securities
-            // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
-
-            SetToSecuritiesDopSettings();
-
-            if (TestingNewSecurityEvent != null)
-            {
-                TestingNewSecurityEvent();
-            }
-        }
-
-        private void LoadMarketDepthFromFolder(string folderName)
-        {
-            string[] files = Directory.GetFiles(folderName);
-
-            if (files.Length == 0)
-            {
-                return;
-            }
-
-            List<SecurityTester> security = new List<SecurityTester>();
-
-            for (int i = 0; i < files.Length; i++)
-            {
-                security.Add(new SecurityTester());
-                security[security.Count - 1].FileAddress = files[i];
-                security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
-                security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
-                security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
-                security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
-                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
-
-                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
-
-                security[security.Count - 1].Security = new Security();
-                security[security.Count - 1].Security.Name = name;
-                security[security.Count - 1].Security.Lot = 1;
-                security[security.Count - 1].Security.NameClass = "TestClass";
-                security[security.Count - 1].Security.Go = 1;
-                security[security.Count - 1].Security.PriceStepCost = 1;
-                security[security.Count - 1].Security.PriceStep = 1;
-				// timeframe / тф
-				// price step / шаг цены
-				// begin / начало
-				// end / конец
-
-                StreamReader reader = new StreamReader(files[i]);
-
-                // NameSecurity_Time_Bids_Asks
-                // Bids: level*level*level
-                // level: Bid&Ask&Price
-
-                string firstRowInFile = reader.ReadLine();
-
-                if(string.IsNullOrEmpty(firstRowInFile))
-                {
-                    security.Remove(security[security.Count - 1]);
-                    reader.Close();
-                    continue;
-                }
-
-                try
-                {
-                    // check whether depth is in the file / смотрим стакан ли в файле
-
-                    MarketDepth trade = new MarketDepth();
-                    trade.SetMarketDepthFromString(firstRowInFile);
-
-                    // depth is in the file / в файле стаканы
-
-                    security[security.Count - 1].TimeStart = trade.Time;
-                    security[security.Count - 1].DataType = SecurityTesterDataType.MarketDepth;
-
-                    // price step / шаг цены
-
-                    decimal minPriceStep = decimal.MaxValue;
-                    int countFive = 0;
-
-                    CultureInfo culture = CultureInfo;
-
-                    for (int i2 = 0; i2 < 20; i2++)
-                    {
-                        MarketDepth tradeN = new MarketDepth();
-                        string lastStr = reader.ReadLine();
-                        try
-                        {
-                            tradeN.SetMarketDepthFromString(lastStr);
-                        }
-                        catch (Exception error)
-                        {
-                            Thread.Sleep(2000);
-                            SendLogMessage(error.ToString(),LogMessageType.Error);
-                            continue;
-                        }
-                        
-                        decimal open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
-
-                        if (open == 0)
-                        {
-                            open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
-                        }
-
-                        if (open.ToString(culture).Split(',').Length > 1)
-                        {
-                            // if the real part takes place / если имеет место вещественная часть
-                            int length = 1;
-
-                            if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > length)
-                            {
-                                length = open.ToString(culture).Split(',')[1].Length;
-                            }
-
-
-                            if (length == 1 && minPriceStep > 0.1m)
-                            {
-                                minPriceStep = 0.1m;
-                            }
-                            if (length == 2 && minPriceStep > 0.01m)
-                            {
-                                minPriceStep = 0.01m;
-                            }
-                            if (length == 3 && minPriceStep > 0.001m)
-                            {
-                                minPriceStep = 0.001m;
-                            }
-                            if (length == 4 && minPriceStep > 0.0001m)
-                            {
-                                minPriceStep = 0.0001m;
-                            }
-                            if (length == 5 && minPriceStep > 0.00001m)
-                            {
-                                minPriceStep = 0.00001m;
-                            }
-                            if (length == 6 && minPriceStep > 0.000001m)
-                            {
-                                minPriceStep = 0.000001m;
-                            }
-                            if (length == 7 && minPriceStep > 0.0000001m)
-                            {
-                                minPriceStep = 0.0000001m;
-                            }
-                            if (length == 8 && minPriceStep > 0.00000001m)
-                            {
-                                minPriceStep = 0.00000001m;
-                            }
-                            if (length == 9 && minPriceStep > 0.000000001m)
-                            {
-                                minPriceStep = 0.000000001m;
-                            }
-                        }
-                        else
-                        {
-                            // if the real part doesn't take place / если вещественной части нет
-                            int length = 1;
-
-                            for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
-                            {
-                                length = length * 10;
-                            }
-
-                            if (minPriceStep > length)
-                            {
-                                minPriceStep = length;
-                            }
-
-                            if (length == 1 &&
-                                open % 5 == 0)
-                            {
-                                countFive++;
-                            }
-                        }
-                    }
-
-
-                    if (minPriceStep == 1 &&
-                        countFive == 20)
-                    {
-                        minPriceStep = 5;
-                    }
-
-
-                    security[security.Count - 1].Security.PriceStep = minPriceStep;
-                    security[security.Count - 1].Security.PriceStepCost = minPriceStep;
-
-                    // last data / последняя дата
-                    string lastString2 = firstRowInFile;
-
-                    while (!reader.EndOfStream)
-                    {
-                        string curRow = reader.ReadLine();
-
-                        if(string.IsNullOrEmpty(curRow))
-                        {
-                            continue;
-                        }
-
-                        lastString2 = curRow;
-                    }
-
-                    MarketDepth trade2 = new MarketDepth();
-                    trade2.SetMarketDepthFromString(lastString2);
-                    security[security.Count - 1].TimeEnd = trade2.Time;
-                }
-                catch(Exception error)
-                {
-                    security.Remove(security[security.Count - 1]);
-                }
-
-                reader.Close();
-            }
-
-			// save securities
-            // сохраняем бумаги
-
-            if (security == null ||
-                security.Count == 0)
-            {
-                return;
-            }
-
-            if (_securities == null)
-            {
-                _securities = new List<Security>();
-            }
-
-            if (SecuritiesTester == null)
-            {
-                SecuritiesTester = new List<SecurityTester>();
-            }
-
-            for (int i = 0; i < security.Count; i++)
-            {
-                if (_securities.Find(security1 => security1.Name == security[i].Security.Name) == null)
-                {
-                    _securities.Add(security[i].Security);
-                }
-                SecuritiesTester.Add(security[i]);
-            }
-
-			// count the time
-            // считаем время 
-
-            if (SecuritiesTester.Count != 0)
-            {
-                for (int i = 0; i < SecuritiesTester.Count; i++)
-                {
-                    if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) ||
-                        (SecuritiesTester[i].TimeStart != DateTime.MinValue && SecuritiesTester[i].TimeStart < TimeMin))
-                    {
-                        TimeMin = SecuritiesTester[i].TimeStart;
-                        TimeStart = SecuritiesTester[i].TimeStart;
-                        TimeNow = SecuritiesTester[i].TimeStart;
-                    }
-                    if (SecuritiesTester[i].TimeEnd != DateTime.MinValue &&
-                        SecuritiesTester[i].TimeEnd > TimeMax)
-                    {
-                        TimeMax = SecuritiesTester[i].TimeEnd;
-                        TimeEnd = SecuritiesTester[i].TimeEnd;
-                    }
-                }
-            }
-
-            // check in the tester file data on the presence of multipliers and GO for securities
-            // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
-
-            SetToSecuritiesDopSettings();
-
-            if (TestingNewSecurityEvent != null)
-            {
-                TestingNewSecurityEvent();
-            }
-        }
-
         private void TesterServer_NeedToCheckOrders()
         {
             CheckOrders();
         }
 
-        // получить истинный TimeFrameSpan
-        // get true TimeFrameSpan
         private TimeSpan GetTimeSpan(StreamReader reader)
         {
 
@@ -2162,10 +751,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// unload the next batch of data from files
-        /// выгрузить из файлов следующую партию данных
-        /// </summary>
         private void LoadNextData()
         {
             if (TimeNow > TimeEnd)
@@ -2198,7 +783,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 TimeNow = TimeNow.AddSeconds(1);
             }
-            else if (_timeAddType == TimeAddInTestType.MilliSecond)
+            else if (_timeAddType == TimeAddInTestType.Millisecond)
             {
                 TimeNow = TimeNow.AddMilliseconds(1);
             }
@@ -2222,23 +807,22 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// check order execution
-// проверка исполнения ордеров
+        #endregion
 
-        /// <summary>
-		/// check order execution
-        /// проверить ордера на исполненность
-        /// </summary>
+        #region Orders 1. Check order execution
+
         private void CheckOrders()
         {
-            if (OrdersActiv.Count == 0)
+            if (OrdersActive.Count == 0)
             {
                 return;
             }
 
-            for (int i = 0; i < OrdersActiv.Count; i++)
+            CheckRejectOrdersOnClearing(OrdersActive, ServerTime);
+
+            for (int i = 0; i < OrdersActive.Count; i++)
             {
-                Order order = OrdersActiv[i];
+                Order order = OrdersActive[i];
                 // check availability of securities on the market / проверяем наличие инструмента на рынке
 
                 SecurityTester security = GetMySecurity(order);
@@ -2289,13 +873,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// check order execution with using candle testing
-        /// проверить исполнение ордера при тестировании на свечках
-        /// </summary>
-        /// <param name="order">order/ордер</param>
-        /// <param name="lastCandle">candle for checking execution/свеча на которой проверяем исполнение</param>
-        /// <returns>if it is completed or responded in time, return true/если исполнилось или отозвалось по времени, возвратиться true</returns>
         private bool CheckOrdersInCandleTest(Order order, Candle lastCandle)
         {
             decimal minPrice = decimal.MaxValue;
@@ -2321,9 +898,9 @@ namespace OsEngine.Market.Servers.Tester
             if (order.IsStopOrProfit)
             {
                 int slipage = 0;
-                if (_slipageToStopOrder > 0)
+                if (_slippageToStopOrder > 0)
                 {
-                    slipage = _slipageToStopOrder;
+                    slipage = _slippageToStopOrder;
                 }
                 decimal realPrice = order.Price;
                 if (order.Side == Side.Buy)
@@ -2343,11 +920,11 @@ namespace OsEngine.Market.Servers.Tester
 
                 ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -2366,11 +943,11 @@ namespace OsEngine.Market.Servers.Tester
 
                 ExecuteOnBoardOrder(order, realPrice, time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -2410,13 +987,13 @@ namespace OsEngine.Market.Servers.Tester
 
                     int slipage = 0;
 
-                    if (order.IsStopOrProfit && _slipageToStopOrder > 0)
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
                     {
-                        slipage = _slipageToStopOrder;
+                        slipage = _slippageToStopOrder;
                     }
-                    else if (order.IsStopOrProfit == false && _slipageToSimpleOrder > 0)
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
                     {
-                        slipage = _slipageToSimpleOrder;
+                        slipage = _slippageToSimpleOrder;
                     }
 
                     if (realPrice > maxPrice)
@@ -2426,11 +1003,11 @@ namespace OsEngine.Market.Servers.Tester
 
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -2476,13 +1053,13 @@ namespace OsEngine.Market.Servers.Tester
                     }
 
                     int slipage = 0;
-                    if (order.IsStopOrProfit && _slipageToStopOrder > 0)
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
                     {
-                        slipage = _slipageToStopOrder;
+                        slipage = _slippageToStopOrder;
                     }
-                    else if (order.IsStopOrProfit == false && _slipageToSimpleOrder > 0)
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
                     {
-                        slipage = _slipageToSimpleOrder;
+                        slipage = _slippageToSimpleOrder;
                     }
 
                     if (realPrice < minPrice)
@@ -2492,11 +1069,11 @@ namespace OsEngine.Market.Servers.Tester
 
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -2519,7 +1096,7 @@ namespace OsEngine.Market.Servers.Tester
             {
                 if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
                 {
-                    CanselOnBoardOrder(order);
+                    CancelOnBoardOrder(order);
                     return true;
                 }
             }
@@ -2527,15 +1104,6 @@ namespace OsEngine.Market.Servers.Tester
             return false;
         }
 
-        /// <summary>
-		/// check order execution with using ticks testing
-        /// проверить исполнение ордера при тиковом прогоне
-        /// </summary>
-        /// <param name="order">order for execution/ордер для исполнения</param>
-        /// <param name="lastTrade">last price on the instrument/последняя цена по инструменту</param>
-        /// <param name="firstTime">Is this the first execution check? If the first is possible execution at the current price./первая ли эта проверка на исполнение. Если первая то возможно исполнение по текущей цене.
-        /// if false then execution is only by order price. In this case, we quote/есил false, то исполнение только по цене ордером. В этом случае мы котируем</param>
-        /// <returns></returns>
         private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime)
         {
             SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
@@ -2548,19 +1116,19 @@ namespace OsEngine.Market.Servers.Tester
             if (order.IsStopOrProfit)
             {
                 int slipage = 0;
-                if (_slipageToStopOrder > 0)
+                if (_slippageToStopOrder > 0)
                 {
-                    slipage = _slipageToStopOrder;
+                    slipage = _slippageToStopOrder;
                 }
                 decimal realPrice = order.Price;
 
                 ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, slipage);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -2579,11 +1147,11 @@ namespace OsEngine.Market.Servers.Tester
 
                 ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -2609,22 +1177,22 @@ namespace OsEngine.Market.Servers.Tester
                 {// execute/исполняем
                     int slipage = 0;
 
-                    if (order.IsStopOrProfit && _slipageToStopOrder > 0)
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
                     {
-                        slipage = _slipageToStopOrder;
+                        slipage = _slippageToStopOrder;
                     }
-                    else if (order.IsStopOrProfit == false && _slipageToSimpleOrder > 0)
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
                     {
-                        slipage = _slipageToSimpleOrder;
+                        slipage = _slippageToSimpleOrder;
                     }
 
                     ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -2658,21 +1226,21 @@ namespace OsEngine.Market.Servers.Tester
                 {// execute/исполняем
                     int slipage = 0;
 
-                    if (order.IsStopOrProfit && _slipageToStopOrder > 0)
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
                     {
-                        slipage = _slipageToStopOrder;
+                        slipage = _slippageToStopOrder;
                     }
-                    else if (order.IsStopOrProfit == false && _slipageToSimpleOrder > 0)
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
                     {
-                        slipage = _slipageToSimpleOrder;
+                        slipage = _slippageToSimpleOrder;
                     }
                     ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -2695,20 +1263,13 @@ namespace OsEngine.Market.Servers.Tester
             {
                 if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
                 {
-                    CanselOnBoardOrder(order);
+                    CancelOnBoardOrder(order);
                     return true;
                 }
             }
             return false;
         }
 
-        /// <summary>
-		/// check order execution by testing with using depth
-        /// проверить исполнение ордера при тестировании на свечках
-        /// </summary>
-        /// <param name="order">order/ордер</param>
-        /// <param name="lastMarketDepth">depth for checking execution/стакан на которой проверяем исполнение</param>
-        /// <returns>if it is executed or responded in time, return true/если исполнилось или отозвалось по времени, возвратиться true</returns>
         private bool CheckOrdersInMarketDepthTest(Order order, MarketDepth lastMarketDepth)
         {
             if (lastMarketDepth == null)
@@ -2729,19 +1290,19 @@ namespace OsEngine.Market.Servers.Tester
             if (order.IsStopOrProfit)
             {
                 int slipage = 0;
-                if (_slipageToStopOrder > 0)
+                if (_slippageToStopOrder > 0)
                 {
-                    slipage = _slipageToStopOrder;
+                    slipage = _slippageToStopOrder;
                 }
                 decimal realPrice = order.Price;
 
                 ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -2769,11 +1330,11 @@ namespace OsEngine.Market.Servers.Tester
 
                 ExecuteOnBoardOrder(order, realPrice, lastMarketDepth.Time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -2806,20 +1367,20 @@ namespace OsEngine.Market.Servers.Tester
 
                     int slipage = 0;
 
-                    if (order.IsStopOrProfit && _slipageToStopOrder > 0)
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
                     {
-                        slipage = _slipageToStopOrder;
+                        slipage = _slippageToStopOrder;
                     }
-                    else if (order.IsStopOrProfit == false && _slipageToSimpleOrder > 0)
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
                     {
-                        slipage = _slipageToSimpleOrder;
+                        slipage = _slippageToSimpleOrder;
                     }
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -2860,21 +1421,21 @@ namespace OsEngine.Market.Servers.Tester
 
                     int slipage = 0;
 
-                    if (order.IsStopOrProfit && _slipageToStopOrder > 0)
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
                     {
-                        slipage = _slipageToStopOrder;
+                        slipage = _slippageToStopOrder;
                     }
-                    else if (order.IsStopOrProfit == false && _slipageToSimpleOrder > 0)
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
                     {
-                        slipage = _slipageToSimpleOrder;
+                        slipage = _slippageToSimpleOrder;
                     }
 
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -2896,17 +1457,13 @@ namespace OsEngine.Market.Servers.Tester
             {
                 if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
                 {
-                    CanselOnBoardOrder(order);
+                    CancelOnBoardOrder(order);
                     return true;
                 }
             }
             return false;
         }
 
-        /// <summary>
-		/// order execution type
-        /// тип исполнения ордеров
-        /// </summary>
         public OrderExecutionType OrderExecutionType
         {
             get { return _orderExecutionType; }
@@ -2918,37 +1475,815 @@ namespace OsEngine.Market.Servers.Tester
         }
         private OrderExecutionType _orderExecutionType;
 
-        /// <summary>
-		/// the next type of order execution, if we chose type 50 * 50 and they should alternate
-        /// cледующий по очереди тип исполнения заявки, 
-        /// если мы выбрали тип 50*50 и они должны чередоваться
-        /// </summary>
         private OrderExecutionType _lastOrderExecutionTypeInFiftyFiftyType;
 
-        public int SlipageToSimpleOrder
+        public int SlippageToSimpleOrder
         {
-            get { return _slipageToSimpleOrder; }
+            get { return _slippageToSimpleOrder; }
             set
             {
-                _slipageToSimpleOrder = value;
+                _slippageToSimpleOrder = value;
                 Save();
             }
         }
-        private int _slipageToSimpleOrder;
+        private int _slippageToSimpleOrder;
 
-        public int SlipageToStopOrder
+        public int SlippageToStopOrder
         {
-            get { return _slipageToStopOrder; }
+            get { return _slippageToStopOrder; }
             set
             {
-                _slipageToStopOrder = value;
+                _slippageToStopOrder = value;
                 Save();
             }
         }
-        private int _slipageToStopOrder;
+        private int _slippageToStopOrder;
 
-// storage of additional security data: GO, Multipliers, Lots
-// хранение дополнительных данных о бумагах: ГО, Мультипликаторы, Лоты
+        #endregion
+
+        #region Orders 2. Work with placing and cancellation of my orders
+
+        private List<Order> OrdersActive;
+
+        private int _iteratorNumbersOrders;
+
+        private int _iteratorNumbersMyTrades;
+
+        public void ExecuteOrder(Order order)
+        {
+            order.TimeCreate = ServerTime;
+
+            if(order.PositionConditionType == OrderPositionConditionType.Open 
+                && OrderCanExecuteByNonTradePeriods(order) == false)
+            {
+                SendLogMessage("No trading period. Open order cancel", LogMessageType.System);
+                FailedOperationOrder(order);
+                return;
+            }
+
+            if (OrdersActive.Count != 0)
+            {
+                for (int i = 0; i < OrdersActive.Count; i++)
+                {
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message39, LogMessageType.Error);
+                        FailedOperationOrder(order);
+                        return;
+                    }
+                }
+            }
+
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                SendLogMessage(OsLocalization.Market.Message40, LogMessageType.Error);
+                FailedOperationOrder(order);
+                return;
+            }
+
+            if (order.Price <= 0
+                && order.TypeOrder != OrderPriceType.Market)
+            {
+                SendLogMessage(OsLocalization.Market.Message41 + order.Price, LogMessageType.Error);
+                FailedOperationOrder(order);
+                return;
+            }
+
+            if (order.Volume <= 0)
+            {
+                SendLogMessage(OsLocalization.Market.Message42 + order.Volume, LogMessageType.Error);
+                FailedOperationOrder(order);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(order.PortfolioNumber))
+            {
+                SendLogMessage(OsLocalization.Market.Message43, LogMessageType.Error);
+                FailedOperationOrder(order);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(order.SecurityNameCode))
+            {
+                SendLogMessage(OsLocalization.Market.Message44, LogMessageType.Error);
+                FailedOperationOrder(order);
+                return;
+            }
+
+            Order orderOnBoard = new Order();
+            orderOnBoard.NumberMarket = _iteratorNumbersOrders++.ToString();
+            orderOnBoard.NumberUser = order.NumberUser;
+            orderOnBoard.PortfolioNumber = order.PortfolioNumber;
+            orderOnBoard.Price = order.Price;
+            orderOnBoard.SecurityNameCode = order.SecurityNameCode;
+            orderOnBoard.Side = order.Side;
+            orderOnBoard.State = OrderStateType.Active;
+            orderOnBoard.ServerType = order.ServerType;
+            orderOnBoard.TimeCallBack = ServerTime;
+            orderOnBoard.TimeCreate = ServerTime;
+            orderOnBoard.TypeOrder = order.TypeOrder;
+            orderOnBoard.Volume = order.Volume;
+            orderOnBoard.Comment = order.Comment;
+            orderOnBoard.LifeTime = order.LifeTime;
+            orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
+            orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
+            orderOnBoard.OrderTypeTime = order.OrderTypeTime;
+
+            OrdersActive.Add(orderOnBoard);
+
+            if (NewOrderIncomeEvent != null)
+            {
+                NewOrderIncomeEvent(orderOnBoard);
+            }
+
+            if (SecuritiesTester[0].DataType == SecurityTesterDataType.Tick)
+            {
+                SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
+
+                decimal f = order.Price / security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price;
+                if (f > 1.02m ||
+                    f < 0.98m)
+                {
+
+                }
+
+                //CheckOrdersInTickTest(orderOnBoard, security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price, toMarket);
+
+            }
+
+            if (orderOnBoard.IsStopOrProfit)
+            {
+                SecurityTester security = GetMySecurity(order);
+
+                if (security.DataType == SecurityTesterDataType.Candle)
+                { // testing with using candles / прогон на свечках
+                    if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
+                    {
+                        OrdersActive.Remove(orderOnBoard);
+                    }
+                }
+                else if (security.DataType == SecurityTesterDataType.Tick)
+                {
+                    if (CheckOrdersInTickTest(orderOnBoard, security.LastTrade, true))
+                    {
+                        OrdersActive.Remove(orderOnBoard);
+                    }
+                }
+            }
+        }
+
+        private SecurityTester GetMySecurity(Order order)
+        {
+            SecurityTester security = null;
+
+            if (TypeTesterData == TesterDataType.Candle)
+            {
+                for (int i = 0; i < _candleSeriesTesterActivate.Count; i++)
+                {
+                    if (_candleSeriesTesterActivate[i].Security.Name == order.SecurityNameCode
+                        && _candleSeriesTesterActivate[i].TimeFrame == order.TimeFrameInTester)
+                    {
+                        security = _candleSeriesTesterActivate[i];
+                        break;
+                    }
+                }
+
+                if (security == null)
+                {
+                    security =
+                         _candleSeriesTesterActivate.Find(
+                             tester =>
+                                 tester.Security.Name == order.SecurityNameCode
+                                 &&
+                                 (tester.LastCandle != null
+                                 || tester.LastTradeSeries != null
+                                 || tester.LastMarketDepth != null));
+                }
+            }
+            else
+            {
+                security =
+                     _candleSeriesTesterActivate.Find(
+                         tester =>
+                             tester.Security.Name == order.SecurityNameCode
+                             &&
+                             (tester.LastCandle != null
+                             || tester.LastTradeSeries != null
+                             || tester.LastMarketDepth != null));
+            }
+
+            return security;
+        }
+
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
+        public void CancelOrder(Order order)
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                SendLogMessage(OsLocalization.Market.Message45, LogMessageType.Error);
+                FailedOperationOrder(order);
+                return;
+            }
+
+            CancelOnBoardOrder(order);
+        }
+
+        public void CancelAllOrders()
+        {
+
+        }
+
+        public event Action<Order> NewOrderIncomeEvent;
+
+        #endregion
+
+        #region Orders 3. Internal operations of the "exchange" on orders
+
+        private void CancelOnBoardOrder(Order order)
+        {
+            Order orderToClose = null;
+
+            if (OrdersActive.Count != 0)
+            {
+                for (int i = 0; i < OrdersActive.Count; i++)
+                {
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
+                    {
+                        orderToClose = OrdersActive[i];
+                    }
+                }
+            }
+
+            if (orderToClose == null)
+            {
+                SendLogMessage(OsLocalization.Market.Message46, LogMessageType.Error);
+                FailedOperationOrder(order);
+                return;
+            }
+
+            for (int i = 0; i < OrdersActive.Count; i++)
+            {
+                if (OrdersActive[i].NumberUser == order.NumberUser)
+                {
+                    OrdersActive.RemoveAt(i);
+                    break;
+                }
+            }
+
+            orderToClose.State = OrderStateType.Cancel;
+
+            if (NewOrderIncomeEvent != null)
+            {
+                NewOrderIncomeEvent(orderToClose);
+            }
+        }
+
+        private void FailedOperationOrder(Order order)
+        {
+            Order orderOnBoard = new Order();
+            orderOnBoard.NumberMarket = _iteratorNumbersOrders++.ToString();
+            orderOnBoard.NumberUser = order.NumberUser;
+            orderOnBoard.PortfolioNumber = order.PortfolioNumber;
+            orderOnBoard.Price = order.Price;
+            orderOnBoard.SecurityNameCode = order.SecurityNameCode;
+            orderOnBoard.Side = order.Side;
+            orderOnBoard.State = OrderStateType.Fail;
+            orderOnBoard.TimeCallBack = ServerTime;
+            orderOnBoard.TimeCreate = order.TimeCreate;
+            orderOnBoard.TypeOrder = order.TypeOrder;
+            orderOnBoard.Volume = order.Volume;
+            orderOnBoard.Comment = order.Comment;
+            orderOnBoard.ServerType = order.ServerType;
+
+            if (NewOrderIncomeEvent != null)
+            {
+                NewOrderIncomeEvent(orderOnBoard);
+            }
+        }
+
+        private void ExecuteOnBoardOrder(Order order, decimal price, DateTime time, int slipage)
+        {
+            decimal realPrice = price;
+
+            if (order.Volume == order.VolumeExecute ||
+                order.State == OrderStateType.Done)
+            {
+                return;
+            }
+
+
+            if (slipage != 0)
+            {
+                if (order.Side == Side.Buy)
+                {
+                    Security mySecurity = GetSecurityForName(order.SecurityNameCode, "");
+
+                    if (mySecurity != null && mySecurity.PriceStep != 0)
+                    {
+                        realPrice += mySecurity.PriceStep * slipage;
+                    }
+                }
+
+                if (order.Side == Side.Sell)
+                {
+                    Security mySecurity = GetSecurityForName(order.SecurityNameCode, "");
+
+                    if (mySecurity != null && mySecurity.PriceStep != 0)
+                    {
+                        realPrice -= mySecurity.PriceStep * slipage;
+                    }
+                }
+            }
+
+            MyTrade trade = new MyTrade();
+            trade.NumberOrderParent = order.NumberMarket;
+            trade.NumberTrade = _iteratorNumbersMyTrades++.ToString();
+            trade.SecurityNameCode = order.SecurityNameCode;
+            trade.Volume = order.Volume;
+            trade.Time = time;
+            trade.Price = realPrice;
+            trade.Side = order.Side;
+
+            MyTradesIncome(trade);
+
+            order.State = OrderStateType.Done;
+            order.Price = realPrice;
+
+            if (NewOrderIncomeEvent != null)
+            {
+                NewOrderIncomeEvent(order);
+            }
+
+            ChangePosition(order);
+
+            CheckWaitOrdersRegime();
+        }
+
+        #endregion
+
+        #region Clearing system 
+
+        public List<OrderClearing> ClearingTimes = new List<OrderClearing>();
+        
+        public void SaveClearingInfo()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"TestServerClearings.txt", false))
+                {
+                    for(int i = 0;i < ClearingTimes.Count;i++)
+                    {
+                        writer.WriteLine(ClearingTimes[i].GetSaveString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private void LoadClearingInfo()
+        {
+            if (!File.Exists(@"Engine\" + @"TestServerClearings.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"TestServerClearings.txt"))
+                {
+                    while(reader.EndOfStream == false)
+                    {
+                        string str = reader.ReadLine();
+
+                        if(str != "")
+                        {
+                            OrderClearing clearings = new OrderClearing();
+                            clearings.SetFromString(str);
+                            ClearingTimes.Add(clearings);
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        public void CreateNewClearing()
+        {
+            OrderClearing newClearing = new OrderClearing();
+
+            newClearing.Time = new DateTime(2000, 1, 1, 19, 0, 0);
+            ClearingTimes.Add(newClearing);
+            SaveClearingInfo();
+        }
+
+        public void RemoveClearing(int num)
+        {
+            if(num > ClearingTimes.Count)
+            {
+                return;
+            }
+
+            ClearingTimes.RemoveAt(num);
+            SaveClearingInfo();
+        }
+
+        private DateTime _lastCheckClearingTime;
+
+        private void CheckRejectOrdersOnClearing(List<Order> orders, DateTime timeOnMarket)
+        {
+            if (ClearingTimes.Count == 0
+                || orders.Count == 0)
+            {
+                _lastCheckClearingTime = timeOnMarket;
+                return;
+            }
+
+            for(int i = 0;i < ClearingTimes.Count;i++)
+            {
+                if (ClearingTimes[i].IsOn == false)
+                {
+                    continue;
+                }
+                
+                if(_lastCheckClearingTime.TimeOfDay < ClearingTimes[i].Time.TimeOfDay
+                    && 
+                    timeOnMarket.TimeOfDay >= ClearingTimes[i].Time.TimeOfDay)
+                {
+                    Order[] ordersToCancel = orders.ToArray();
+
+                    for(int j = 0;j < ordersToCancel.Length;j++)
+                    {
+                        CancelOnBoardOrder(ordersToCancel[j]);
+                    }
+
+                    _lastCheckClearingTime = timeOnMarket;
+                    return;
+                }
+            }
+
+            _lastCheckClearingTime = timeOnMarket;
+        }
+
+        #endregion
+
+        #region Non-trade periods. 
+
+        public List<NonTradePeriod> NonTradePeriods = new List<NonTradePeriod>();
+
+        public void SaveNonTradePeriods()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"TestServerNonTradePeriods.txt", false))
+                {
+                    for (int i = 0; i < NonTradePeriods.Count; i++)
+                    {
+                        writer.WriteLine(NonTradePeriods[i].GetSaveString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private void LoadNonTradePeriods()
+        {
+            if (!File.Exists(@"Engine\" + @"TestServerNonTradePeriods.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"TestServerNonTradePeriods.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string str = reader.ReadLine();
+
+                        if (str != "")
+                        {
+                            NonTradePeriod period = new NonTradePeriod();
+                            period.SetFromString(str);
+                            NonTradePeriods.Add(period);
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        public void CreateNewNonTradePeriod()
+        {
+            NonTradePeriod newClearing = new NonTradePeriod();
+
+            NonTradePeriods.Add(newClearing);
+            SaveNonTradePeriods();
+        }
+
+        public void RemoveNonTradePeriod(int num)
+        {
+            if (num > NonTradePeriods.Count)
+            {
+                return;
+            }
+
+            NonTradePeriods.RemoveAt(num);
+            SaveNonTradePeriods();
+        }
+
+        public bool OrderCanExecuteByNonTradePeriods(Order order)
+        {
+            if(NonTradePeriods.Count == 0)
+            {
+                return true;
+            }
+
+            for(int i = 0;i < NonTradePeriods.Count;i++)
+            {
+                if (NonTradePeriods[i].IsOn == false)
+                {
+                    continue;
+                }
+
+                DateTime timeStart = NonTradePeriods[i].DateStart;
+                DateTime timeEnd = NonTradePeriods[i].DateEnd;
+
+                if(order.TimeCreate >  timeStart
+                    && order.TimeCreate < timeEnd)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        #endregion
+
+        #region Server status
+
+        private ServerConnectStatus _serverConnectStatus;
+
+        public ServerConnectStatus ServerStatus
+        {
+            get { return _serverConnectStatus; }
+            private set
+            {
+                if (value != _serverConnectStatus)
+                {
+                    _serverConnectStatus = value;
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
+                    if (ConnectStatusChangeEvent != null)
+                    {
+                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
+                    }
+                }
+            }
+        }
+
+        public event Action<string> ConnectStatusChangeEvent;
+
+        public int CountDaysTickNeedToSave { get; set; }
+
+        public bool NeedToSaveTicks { get; set; }
+
+        #endregion
+
+        #region Server time
+
+        public DateTime ServerTime
+        {
+            get { return _serverTime; }
+
+            private set
+            {
+                if (value > _serverTime)
+                {
+                    DateTime lastTime = _serverTime;
+                    _serverTime = value;
+
+                    if (_serverTime != lastTime &&
+                        TimeServerChangeEvent != null)
+                    {
+                        TimeServerChangeEvent(_serverTime);
+                    }
+                }
+            }
+        }
+        private DateTime _serverTime;
+
+        public event Action<DateTime> TimeServerChangeEvent;
+
+        #endregion
+
+        #region Profits and losses of exchange
+
+        public List<decimal> ProfitArray;
+
+        public bool ProfitMarketIsOn
+        {
+            get { return _profitMarketIsOn; }
+            set
+            {
+                _profitMarketIsOn = value;
+                Save();
+            }
+        }
+        private bool _profitMarketIsOn = true;
+
+        public void AddProfit(decimal profit)
+        {
+            if(_profitMarketIsOn == false)
+            {
+                return;
+            }
+            _portfolios[0].ValueCurrent += profit;
+            ProfitArray.Add(_portfolios[0].ValueCurrent);
+
+            if (NewCurrentValue != null)
+            {
+                NewCurrentValue(_portfolios[0].ValueCurrent);
+            }
+
+            if (PortfoliosChangeEvent != null)
+            {
+                PortfoliosChangeEvent(_portfolios);
+            }
+
+        }
+
+        public event Action<decimal> NewCurrentValue;
+
+        #endregion
+
+        #region Portfolios and positions on the exchange
+
+        public decimal StartPortfolio
+        {
+            set
+            {
+                if(_startPortfolio == value)
+                {
+                    return;
+                }
+                _startPortfolio = value;
+
+                if (_portfolios != null && _portfolios.Count != 0)
+                {
+                    _portfolios[0].ValueCurrent = StartPortfolio;
+                    _portfolios[0].ValueBegin = StartPortfolio;
+                    _portfolios[0].ValueBlocked = 0;
+
+                    if(PortfoliosChangeEvent != null)
+                    {
+                        PortfoliosChangeEvent(_portfolios);
+                    }
+                }
+            }
+            get { return _startPortfolio; }
+        }
+        private decimal _startPortfolio;
+
+        public List<Portfolio> Portfolios
+        {
+            get { return _portfolios; }
+        }
+        private List<Portfolio> _portfolios;
+
+        private void ChangePosition(Order orderExecute)
+        {
+            List<PositionOnBoard> positions = _portfolios[0].GetPositionOnBoard();
+
+            if(positions == null ||
+                orderExecute == null)
+            {
+                return;
+            }
+
+            PositionOnBoard myPositioin =
+                positions.Find(board => board.SecurityNameCode == orderExecute.SecurityNameCode);
+
+            if (myPositioin == null)
+            {
+                myPositioin = new PositionOnBoard();
+                myPositioin.SecurityNameCode = orderExecute.SecurityNameCode;
+                myPositioin.PortfolioName = orderExecute.PortfolioNumber;
+                myPositioin.ValueBegin = 0;
+            }
+
+            if (orderExecute.Side == Side.Buy)
+            {
+                myPositioin.ValueCurrent += orderExecute.Volume;
+            }
+
+            if (orderExecute.Side == Side.Sell)
+            {
+                myPositioin.ValueCurrent -= orderExecute.Volume;
+            }
+
+            _portfolios[0].SetNewPosition(myPositioin);
+
+            if (PortfoliosChangeEvent != null)
+            {
+                PortfoliosChangeEvent(_portfolios);
+            }
+        }
+
+        private void UpdatePortfolios(List<Portfolio> portfoliosNew)
+        {
+
+           _portfolios = portfoliosNew;
+
+            if (PortfoliosChangeEvent != null)
+            {
+                PortfoliosChangeEvent(_portfolios);
+            }
+        }
+
+        public Portfolio GetPortfolioForName(string name)
+        {
+            if (_portfolios == null)
+            {
+                return null;
+            }
+
+            return _portfolios.Find(portfolio => portfolio.Number == name);
+        }
+
+        public event Action<List<Portfolio>> PortfoliosChangeEvent;
+
+        #endregion
+
+        #region Securities
+
+        private List<Security> _securities;
+
+        public List<Security> Securities
+        {
+            get { return _securities; }
+        }
+
+        public Security GetSecurityForName(string name,string secClass)
+        {
+            if (_securities == null)
+            {
+                return null;
+            }
+
+            return _securities.Find(security => security.Name == name);
+        }
+
+        private void _candleManager_CandleUpdateEvent(CandleSeries series)
+        {
+            if (TesterRegime == TesterRegime.PlusOne)
+            {
+                TesterRegime = TesterRegime.Pause;
+            }
+
+            // write last tick time in server time / перегружаем последним временем тика время сервера
+            ServerTime = series.CandlesAll[series.CandlesAll.Count - 1].TimeStart;
+
+            if (NewCandleIncomeEvent != null)
+            {
+                NewCandleIncomeEvent(series);
+            }
+        }
+
+        public event Action<List<Security>> SecuritiesChangeEvent;
+
+        public void ShowSecuritiesDialog()
+        {
+            SecuritiesUi ui = new SecuritiesUi(this);
+            ui.ShowDialog();
+        }
+
+        #endregion
+
+        #region Storage of additional security data: GO, Multipliers, Lots
 
         private void SetToSecuritiesDopSettings()
         {
@@ -3120,339 +2455,1079 @@ namespace OsEngine.Market.Servers.Tester
                 // send to the log / отправить в лог
             }
 
-            if (NeadToReconnectEvent != null)
+            if (NeedToReconnectEvent != null)
             {
-                NeadToReconnectEvent();
+                NeedToReconnectEvent();
             }
         }
 
-// server status
-// статус сервера
+        #endregion
 
-        private ServerConnectStatus _serverConnectStatus;
+        #region Get securities data from file system
 
-        /// <summary>
-		/// server status
-        /// статус сервера
-        /// </summary>
-        public ServerConnectStatus ServerStatus
+        public TesterSourceDataType SourceDataType
         {
-            get { return _serverConnectStatus; }
-            private set
-            {
-                if (value != _serverConnectStatus)
-                {
-                    _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-		/// changed connection status
-        /// изменился статус соединения
-        /// </summary>
-        public event Action<string> ConnectStatusChangeEvent;
-
-        public int CountDaysTickNeadToSave { get; set; }
-
-        public bool NeadToSaveTicks { get; set; }
-
-// server time
-// время сервера
-
-        private DateTime _serverTime;
-        /// <summary>
-		/// server time
-        /// время сервера
-        /// </summary>
-        public DateTime ServerTime
-        {
-            get { return _serverTime; }
-
-            private set
-            {
-                if (value > _serverTime)
-                {
-                    DateTime lastTime = _serverTime;
-                    _serverTime = value;
-
-                    if (_serverTime != lastTime &&
-                        TimeServerChangeEvent != null)
-                    {
-                        TimeServerChangeEvent(_serverTime);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-		/// changed server time
-        /// изменилось время сервера
-        /// </summary>
-        public event Action<DateTime> TimeServerChangeEvent;
-
-// profits and losses of exchange
-// прибыли и убытки биржи
-
-        public List<decimal> ProfitArray;
-
-        /// <summary>
-		/// whether calculation of internal profit of the exchange is included
-        /// включен ли рассчёт внутреннего профита биржи
-        /// </summary>
-        public bool ProfitMarketIsOn
-        {
-            get { return _profitMarketIsOn; }
+            get { return _sourceDataType; }
             set
             {
-                _profitMarketIsOn = value;
-                Save();
-            }
-        }
-        private bool _profitMarketIsOn;
-
-        public void AddProfit(decimal profit)
-        {
-            if(_profitMarketIsOn == false)
-            {
-                return;
-            }
-            _portfolios[0].ValueCurrent += profit;
-            ProfitArray.Add(_portfolios[0].ValueCurrent);
-
-            if (NewCurrentValue != null)
-            {
-                NewCurrentValue(_portfolios[0].ValueCurrent);
-            }
-
-            if (PortfoliosChangeEvent != null)
-            {
-                PortfoliosChangeEvent(_portfolios);
-            }
-
-        }
-
-        public event Action<decimal> NewCurrentValue; 
-
-// portfolios and positions on the exchange
-// портфели и позиция на бирже
-
-        /// <summary>
-		/// initial portfolio value when testing
-        /// начальное значение портфеля при тестировании
-        /// </summary>
-        public decimal StartPortfolio
-        {
-            set
-            {
-                if(_startPortfolio == value)
+                if (value == _sourceDataType)
                 {
                     return;
                 }
-                _startPortfolio = value;
 
-                if (_portfolios != null && _portfolios.Count != 0)
+                _sourceDataType = value;
+                ReloadSecurities();
+            }
+        }
+        private TesterSourceDataType _sourceDataType;
+
+        private List<string> _sets;
+        public List<string> Sets
+        {
+            get
+            {
+                return _sets;
+            }
+            private set
+            {
+                _sets = value;
+            }
+        }
+
+        private void CheckSet()
+        {
+            if (!Directory.Exists(@"Data"))
+            {
+                Directory.CreateDirectory(@"Data");
+            }
+
+            string[] folders = Directory.GetDirectories(@"Data" + @"\");
+
+            if (folders.Length == 0)
+            {
+                SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
+            }
+
+            List<string> sets = new List<string>();
+
+            for (int i = 0; i < folders.Length; i++)
+            {
+                if (folders[i].Split('_').Length == 2)
                 {
-                    _portfolios[0].ValueCurrent = StartPortfolio;
-                    _portfolios[0].ValueBegin = StartPortfolio;
-                    _portfolios[0].ValueBlocked = 0;
-
-                    if(PortfoliosChangeEvent != null)
-                    {
-                        PortfoliosChangeEvent(_portfolios);
-                    }
+                    sets.Add(folders[i].Split('_')[1]);
+                    SendLogMessage("Найден сет: " + folders[i].Split('_')[1], LogMessageType.System);
                 }
             }
-            get { return _startPortfolio; }
-        }
-        private decimal _startPortfolio;
 
-        private List<Portfolio> _portfolios;
-
-        /// <summary>
-		/// portfolios
-        /// портфели
-        /// </summary>
-        public List<Portfolio> Portfolios
-        {
-            get { return _portfolios; }
+            if (sets.Count == 0)
+            {
+                SendLogMessage(OsLocalization.Market.Message25, LogMessageType.System);
+            }
+            Sets = sets;
         }
 
-        /// <summary>
-		/// changed portfolio position
-        /// изменить позицию по портфелю
-        /// </summary>
-        /// <param name="orderExecute">executed order that will affect the position/исполненный ордер который повлияет на позицию</param>
-        private void ChangePosition(Order orderExecute)
+        public void SetNewSet(string setName)
         {
-            List<PositionOnBoard> positions = _portfolios[0].GetPositionOnBoard();
-
-            if(positions == null ||
-                orderExecute == null)
+            string newSet = @"Data" + @"\" + @"Set_" + setName;
+            if (newSet == _activeSet)
             {
                 return;
             }
 
-            PositionOnBoard myPositioin =
-                positions.Find(board => board.SecurityNameCode == orderExecute.SecurityNameCode);
+            SendLogMessage(OsLocalization.Market.Message27 + setName, LogMessageType.System);
+            _activeSet = newSet;
 
-            if (myPositioin == null)
+            if (_sourceDataType == TesterSourceDataType.Set)
             {
-                myPositioin = new PositionOnBoard();
-                myPositioin.SecurityNameCode = orderExecute.SecurityNameCode;
-                myPositioin.PortfolioName = orderExecute.PortfolioNumber;
-                myPositioin.ValueBegin = 0;
+                ReloadSecurities();
             }
+            Save();
+        }
 
-            if (orderExecute.Side == Side.Buy)
+        public void ReloadSecurities()
+        {
+            // clear all data and disconnect / чистим все данные, отключаемся
+            TesterRegime = TesterRegime.NotActive;
+            _dataIsReady = false;
+            ServerStatus = ServerConnectStatus.Disconnect;
+            _securities = null;
+            SecuritiesTester = null;
+            _candleManager.Clear();
+            _candleSeriesTesterActivate = new List<SecurityTester>();
+            Save();
+
+            // update / обновляем
+
+            _needToReloadSecurities = true;
+
+            if (NeedToReconnectEvent != null)
             {
-                myPositioin.ValueCurrent += orderExecute.Volume;
-            }
-
-            if (orderExecute.Side == Side.Sell)
-            {
-                myPositioin.ValueCurrent -= orderExecute.Volume;
-            }
-
-            _portfolios[0].SetNewPosition(myPositioin);
-
-            if (PortfoliosChangeEvent != null)
-            {
-                PortfoliosChangeEvent(_portfolios);
+                NeedToReconnectEvent();
             }
         }
 
-        /// <summary>
-		/// incoming new portfolios
-        /// входящие новые портфели из ДДЕ сервера
-        /// </summary>
-        void UpdatePortfolios(List<Portfolio> portfoliosNew)
+        public string PathToFolder
         {
-
-           _portfolios = portfoliosNew;
-
-            if (PortfoliosChangeEvent != null)
-            {
-                PortfoliosChangeEvent(_portfolios);
-            }
+            get { return _pathToFolder; }
         }
+        private string _pathToFolder;
 
-        /// <summary>
-		/// take portfolios by number/name
-        /// взять портфель по номеру/названию
-        /// </summary>
-        public Portfolio GetPortfolioForName(string name)
+        public void ShowPathSenderDialog()
         {
-            if (_portfolios == null)
-            {
-                return null;
-            }
-
-            return _portfolios.Find(portfolio => portfolio.Number == name);
-        }
-
-        /// <summary>
-		/// changed the portfolio
-        /// изменился портфель
-        /// </summary>
-        public event Action<List<Portfolio>> PortfoliosChangeEvent;
-
- // securities / бумаги
-
-
-        private List<Security> _securities;
-
-        /// <summary>
-		/// all securities available for trading
-        /// все бумаги доступные для торгов
-        /// </summary>
-        public List<Security> Securities
-        {
-            get { return _securities; }
-        }
-
-        /// <summary>
-		/// take security as Security class by name
-        /// взять бумагу в виде класса Security по названию
-        /// </summary>
-        public Security GetSecurityForName(string name,string secClass)
-        {
-            if (_securities == null)
-            {
-                return null;
-            }
-
-            return _securities.Find(security => security.Name == name);
-        }
-
-        /// <summary>
-		/// incoming candles from CandleManager
-        /// входящие свечки из CandleManager
-        /// </summary>
-        void _candleManager_CandleUpdateEvent(CandleSeries series)
-        {
-            if (TesterRegime == TesterRegime.PlusOne)
+            if (TesterRegime == TesterRegime.Play)
             {
                 TesterRegime = TesterRegime.Pause;
             }
 
-            // write last tick time in server time / перегружаем последним временем тика время сервера
-            ServerTime = series.CandlesAll[series.CandlesAll.Count - 1].TimeStart;
+            System.Windows.Forms.FolderBrowserDialog myDialog = new System.Windows.Forms.FolderBrowserDialog();
 
-            if (NewCandleIncomeEvent != null)
+            if (string.IsNullOrWhiteSpace(_pathToFolder))
             {
-                NewCandleIncomeEvent(series);
+                myDialog.SelectedPath = _pathToFolder;
+            }
+
+            myDialog.ShowDialog();
+
+            if (myDialog.SelectedPath != "" &&
+                _pathToFolder != myDialog.SelectedPath) // если хоть что-то выбрано
+            {
+                _pathToFolder = myDialog.SelectedPath;
+                if (_sourceDataType == TesterSourceDataType.Folder)
+                {
+                    ReloadSecurities();
+                }
             }
         }
 
-        /// <summary>
-		/// tester instrument changed
-        /// инструменты тестера изменились
-        /// </summary>
-        public event Action<List<Security>> SecuritiesChangeEvent;
-
-        /// <summary>
-		/// show instruments
-        /// показать инструменты 
-        /// </summary>
-        public void ShowSecuritiesDialog()
+        private void LoadSecurities()
         {
-            SecuritiesUi ui = new SecuritiesUi(this);
-            ui.ShowDialog();
+            if ((_sourceDataType == TesterSourceDataType.Set && (string.IsNullOrWhiteSpace(_activeSet) || !Directory.Exists(_activeSet))) ||
+                (_sourceDataType == TesterSourceDataType.Folder && (string.IsNullOrWhiteSpace(_pathToFolder) || !Directory.Exists(_pathToFolder))))
+            {
+                return;
+            }
+
+            if (_sourceDataType == TesterSourceDataType.Set)
+            { // Hercules data sets/сеты данных Геркулеса
+                string[] directories = Directory.GetDirectories(_activeSet);
+
+                if (directories.Length == 0)
+                {
+                    SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
+                    return;
+                }
+
+                TimeMax = DateTime.MinValue;
+                TimeEnd = DateTime.MaxValue;
+                TimeMin = DateTime.MaxValue;
+                TimeStart = DateTime.MinValue;
+                TimeNow = DateTime.MinValue;
+
+                for (int i = 0; i < directories.Length; i++)
+                {
+                    LoadSecurity(directories[i]);
+                }
+
+                _dataIsReady = true;
+            }
+            else // if (_sourceDataType == TesterSourceDataType.Folder)
+            { // simple files from folder/простые файлы из папки
+
+                string[] files = Directory.GetFiles(_pathToFolder);
+
+                if (files.Length == 0)
+                {
+                    SendLogMessage(OsLocalization.Market.Message49, LogMessageType.Error);
+                }
+
+                LoadCandleFromFolder(_pathToFolder);
+                LoadTickFromFolder(_pathToFolder);
+                LoadMarketDepthFromFolder(_pathToFolder);
+                _dataIsReady = true;
+            }
         }
 
-// subscribe instruments to download / Заказ инструмента на скачивание
+        private void LoadSecurity(string path)
+        {
+            string[] directories = Directory.GetDirectories(path);
+
+            if (directories.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < directories.Length; i++)
+            {
+                string name = directories[i].Split('\\')[3];
+
+                if (name == "MarketDepth")
+                {
+                    LoadMarketDepthFromFolder(directories[i]);
+                }
+                else if (name == "Tick")
+                {
+                    LoadTickFromFolder(directories[i]);
+                }
+                else
+                {
+                    LoadCandleFromFolder(directories[i]);
+                }
+            }
+        }
+
+        private void LoadCandleFromFolder(string folderName)
+        {
+
+            string[] files = Directory.GetFiles(folderName);
+
+            if (files.Length == 0)
+            {
+                return;
+            }
+
+            List<SecurityTester> security = new List<SecurityTester>();
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                security.Add(new SecurityTester());
+                security[security.Count - 1].FileAddress = files[i];
+                security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
+                security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
+                security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
+                security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
+                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
+
+                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
+
+                security[security.Count - 1].Security = new Security();
+                security[security.Count - 1].Security.Name = name;
+                security[security.Count - 1].Security.Lot = 1;
+                security[security.Count - 1].Security.NameClass = "TestClass";
+                security[security.Count - 1].Security.Go = 1;
+                security[security.Count - 1].Security.PriceStepCost = 1;
+                security[security.Count - 1].Security.PriceStep = 1;
+                // timeframe / тф
+                // price step / шаг цены
+                // begin / начало
+                // end / конец
+
+                StreamReader reader = new StreamReader(files[i]);
+
+                // candles / свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
+                // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
+                // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
+
+                string firstRowInFile = reader.ReadLine();
+
+                if (string.IsNullOrEmpty(firstRowInFile))
+                {
+                    security.Remove(security[security.Count - 1]);
+                    reader.Close();
+                    continue;
+                }
+
+                try
+                {
+                    // check whether candles are in the file / смотрим свечи ли в файле
+                    Candle candle = new Candle();
+                    candle.SetCandleFromString(firstRowInFile);
+                    // candles are in the file. We look at which ones / в файле свечи. Смотрим какие именно
+
+                    security[security.Count - 1].TimeStart = candle.TimeStart;
+
+                    Candle candle2 = new Candle();
+                    candle2.SetCandleFromString(reader.ReadLine());
+
+                    security[security.Count - 1].DataType = SecurityTesterDataType.Candle;
+                    security[security.Count - 1].TimeFrameSpan = GetTimeSpan(reader);
+                    security[security.Count - 1].TimeFrame = GetTimeFrame(security[security.Count - 1].TimeFrameSpan);
+                    // step price / шаг цены
+
+                    decimal minPriceStep = decimal.MaxValue;
+                    int countFive = 0;
+
+                    CultureInfo culture = CultureInfo;
+
+                    for (int i2 = 0; i2 < 20; i2++)
+                    {
+                        if (reader.EndOfStream == true)
+                        {
+                            reader.Close();
+                            reader = new StreamReader(files[i]);
+
+                            if (reader.EndOfStream == true)
+                            {
+                                break;
+                            }
+
+                            continue;
+                        }
+
+                        Candle candleN = new Candle();
+                        candleN.SetCandleFromString(reader.ReadLine());
+
+                        decimal openD = (decimal)Convert.ToDouble(candleN.Open);
+                        decimal highD = (decimal)Convert.ToDouble(candleN.High);
+                        decimal lowD = (decimal)Convert.ToDouble(candleN.Low);
+                        decimal closeD = (decimal)Convert.ToDouble(candleN.Close);
+
+                        string open = openD.ToString().Replace(".", ",");
+                        string high = highD.ToString().Replace(".", ",");
+                        string low = lowD.ToString().Replace(".", ",");
+                        string close = closeD.ToString().Replace(".", ",");
+
+                        if (open.Split(',').Length > 1 ||
+                            high.Split(',').Length > 1 ||
+                            low.Split(',').Length > 1 ||
+                            close.Split(',').Length > 1)
+                        {
+                            // if the real part takes place / если имеет место вещественная часть
+                            int length = 1;
+
+                            if (open.Split(',').Length > 1 &&
+                                open.Split(',')[1].Length > length)
+                            {
+                                length = open.Split(',')[1].Length;
+                            }
+
+                            if (high.Split(',').Length > 1 &&
+                                high.Split(',')[1].Length > length)
+                            {
+                                length = high.Split(',')[1].Length;
+                            }
+
+                            if (low.Split(',').Length > 1 &&
+                                low.Split(',')[1].Length > length)
+                            {
+                                length = low.Split(',')[1].Length;
+                            }
+
+                            if (close.Split(',').Length > 1 &&
+                                close.Split(',')[1].Length > length)
+                            {
+                                length = close.Split(',')[1].Length;
+                            }
+
+                            if (length == 1 && minPriceStep > 0.1m)
+                            {
+                                minPriceStep = 0.1m;
+                            }
+                            if (length == 2 && minPriceStep > 0.01m)
+                            {
+                                minPriceStep = 0.01m;
+                            }
+                            if (length == 3 && minPriceStep > 0.001m)
+                            {
+                                minPriceStep = 0.001m;
+                            }
+                            if (length == 4 && minPriceStep > 0.0001m)
+                            {
+                                minPriceStep = 0.0001m;
+                            }
+                            if (length == 5 && minPriceStep > 0.00001m)
+                            {
+                                minPriceStep = 0.00001m;
+                            }
+                            if (length == 6 && minPriceStep > 0.000001m)
+                            {
+                                minPriceStep = 0.000001m;
+                            }
+                            if (length == 7 && minPriceStep > 0.0000001m)
+                            {
+                                minPriceStep = 0.0000001m;
+                            }
+                            if (length == 8 && minPriceStep > 0.00000001m)
+                            {
+                                minPriceStep = 0.00000001m;
+                            }
+                            if (length == 9 && minPriceStep > 0.000000001m)
+                            {
+                                minPriceStep = 0.000000001m;
+                            }
+                        }
+                        else
+                        {
+                            // if the real part doesn't take place / если вещественной части нет
+                            int length = 1;
+
+                            for (int i3 = open.Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                            {
+                                length = length * 10;
+                            }
+
+                            int lengthLow = 1;
+
+                            for (int i3 = low.Length - 1; low[i3] == '0'; i3--)
+                            {
+                                lengthLow = lengthLow * 10;
+
+                                if (length > lengthLow)
+                                {
+                                    length = lengthLow;
+                                }
+                            }
+
+                            int lengthHigh = 1;
+
+                            for (int i3 = high.Length - 1; high[i3] == '0'; i3--)
+                            {
+                                lengthHigh = lengthHigh * 10;
+
+                                if (length > lengthHigh)
+                                {
+                                    length = lengthHigh;
+                                }
+                            }
+
+                            int lengthClose = 1;
+
+                            for (int i3 = close.Length - 1; close[i3] == '0'; i3--)
+                            {
+                                lengthClose = lengthClose * 10;
+
+                                if (length > lengthClose)
+                                {
+                                    length = lengthClose;
+                                }
+                            }
+                            if (minPriceStep > length)
+                            {
+                                minPriceStep = length;
+                            }
+
+                            if (minPriceStep == 1 &&
+                                openD % 5 == 0 && highD % 5 == 0 &&
+                                closeD % 5 == 0 && lowD % 5 == 0)
+                            {
+                                countFive++;
+                            }
+                        }
+                    }
 
 
-        /// <summary>
-        /// candle series of Tester for downloading
-        /// серии свечек Тестера запущенные на скачивание
-        /// </summary>
+                    if (minPriceStep == 1 &&
+                        countFive == 20)
+                    {
+                        minPriceStep = 5;
+                    }
+
+
+                    security[security.Count - 1].Security.PriceStep = minPriceStep;
+                    security[security.Count - 1].Security.PriceStepCost = minPriceStep;
+
+
+                    // last data / последняя дата
+                    string lastString = firstRowInFile;
+
+                    while (!reader.EndOfStream)
+                    {
+                        string curStr = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(curStr))
+                        {
+                            continue;
+                        }
+                        lastString = curStr;
+                    }
+
+                    Candle candle3 = new Candle();
+                    candle3.SetCandleFromString(lastString);
+                    security[security.Count - 1].TimeEnd = candle3.TimeStart;
+                    continue;
+                }
+                catch (Exception)
+                {
+                    security.Remove(security[security.Count - 1]);
+                }
+                finally
+                {
+                    reader.Close();
+                }
+            }
+
+            // save securities 
+            // сохраняем бумаги
+
+            if (security == null ||
+                security.Count == 0)
+            {
+                return;
+            }
+
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
+            if (SecuritiesTester == null)
+            {
+                SecuritiesTester = new List<SecurityTester>();
+            }
+
+            for (int i = 0; i < security.Count; i++)
+            {
+                if (_securities.Find(security1 => security1.Name == security[i].Security.Name) == null)
+                {
+                    _securities.Add(security[i].Security);
+                }
+
+                SecuritiesTester.Add(security[i]);
+            }
+
+            // count the time
+            // считаем время
+
+            if (SecuritiesTester.Count != 0)
+            {
+                for (int i = 0; i < SecuritiesTester.Count; i++)
+                {
+                    if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) ||
+                        (SecuritiesTester[i].TimeStart != DateTime.MinValue && SecuritiesTester[i].TimeStart < TimeMin))
+                    {
+                        TimeMin = SecuritiesTester[i].TimeStart;
+                        TimeStart = SecuritiesTester[i].TimeStart;
+                        TimeNow = SecuritiesTester[i].TimeStart;
+                    }
+                    if (SecuritiesTester[i].TimeEnd != DateTime.MinValue &&
+                        SecuritiesTester[i].TimeEnd > TimeMax)
+                    {
+                        TimeMax = SecuritiesTester[i].TimeEnd;
+                        TimeEnd = SecuritiesTester[i].TimeEnd;
+                    }
+                }
+            }
+
+            // check in tester file data on the presence of multipliers and GO for securities
+            // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
+
+            SetToSecuritiesDopSettings();
+            LoadSecurityTestSettings();
+
+            if (TestingNewSecurityEvent != null)
+            {
+                TestingNewSecurityEvent();
+            }
+        }
+
+        private void LoadTickFromFolder(string folderName)
+        {
+            string[] files = Directory.GetFiles(folderName);
+
+            if (files.Length == 0)
+            {
+                return;
+            }
+
+            List<SecurityTester> security = new List<SecurityTester>();
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                security.Add(new SecurityTester());
+                security[security.Count - 1].FileAddress = files[i];
+                security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
+                security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
+                security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
+                security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
+                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
+
+                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
+
+                security[security.Count - 1].Security = new Security();
+                security[security.Count - 1].Security.Name = name;
+                security[security.Count - 1].Security.Lot = 1;
+                security[security.Count - 1].Security.NameClass = "TestClass";
+                security[security.Count - 1].Security.Go = 1;
+                security[security.Count - 1].Security.PriceStepCost = 1;
+                security[security.Count - 1].Security.PriceStep = 1;
+                // timeframe / тф
+                // price step / шаг цены
+                // begin / начало
+                // end / конец
+
+                StreamReader reader = new StreamReader(files[i]);
+
+                // candles / свечи: 20110111,100000,19577.00000,19655.00000,19533.00000,19585.00000,2752
+                // ticks ver.1 / тики 1 вар: 20150401,100000,86160.000000000,2
+                // ticks ver.2 / тики 2 вар: 20151006,040529,3010,5,Buy/Sell/Unknown
+
+                string firstRowInFile = reader.ReadLine();
+
+                if (string.IsNullOrEmpty(firstRowInFile))
+                {
+                    security.Remove(security[security.Count - 1]);
+                    reader.Close();
+                    continue;
+                }
+
+                try
+                {
+                    // check whether ticks are in the file / смотрим тики ли в файле
+                    Trade trade = new Trade();
+                    trade.SetTradeFromString(firstRowInFile);
+                    // ticks are in the file / в файле тики
+
+                    security[security.Count - 1].TimeStart = trade.Time;
+                    security[security.Count - 1].DataType = SecurityTesterDataType.Tick;
+
+                    // price step / шаг цены
+
+                    decimal minPriceStep = decimal.MaxValue;
+                    int countFive = 0;
+
+                    CultureInfo culture = CultureInfo;
+
+                    for (int i2 = 0; i2 < 20; i2++)
+                    {
+                        Trade tradeN = new Trade();
+                        tradeN.SetTradeFromString(reader.ReadLine());
+
+                        decimal open = (decimal)Convert.ToDouble(tradeN.Price);
+
+
+                        if (open.ToString(culture).Split(',').Length > 1)
+                        {
+                            // if the real part takes place / если имеет место вещественная часть
+                            int length = 1;
+
+                            if (open.ToString(culture).Split(',').Length > 1 &&
+                                open.ToString(culture).Split(',')[1].Length > length)
+                            {
+                                length = open.ToString(culture).Split(',')[1].Length;
+                            }
+
+
+                            if (length == 1 && minPriceStep > 0.1m)
+                            {
+                                minPriceStep = 0.1m;
+                            }
+                            if (length == 2 && minPriceStep > 0.01m)
+                            {
+                                minPriceStep = 0.01m;
+                            }
+                            if (length == 3 && minPriceStep > 0.001m)
+                            {
+                                minPriceStep = 0.001m;
+                            }
+                            if (length == 4 && minPriceStep > 0.0001m)
+                            {
+                                minPriceStep = 0.0001m;
+                            }
+                            if (length == 5 && minPriceStep > 0.00001m)
+                            {
+                                minPriceStep = 0.00001m;
+                            }
+                            if (length == 6 && minPriceStep > 0.000001m)
+                            {
+                                minPriceStep = 0.000001m;
+                            }
+                            if (length == 7 && minPriceStep > 0.0000001m)
+                            {
+                                minPriceStep = 0.0000001m;
+                            }
+                            if (length == 8 && minPriceStep > 0.00000001m)
+                            {
+                                minPriceStep = 0.00000001m;
+                            }
+                            if (length == 9 && minPriceStep > 0.000000001m)
+                            {
+                                minPriceStep = 0.000000001m;
+                            }
+                        }
+                        else
+                        {
+                            // if the real part doesn't take place / если вещественной части нет
+                            int length = 1;
+
+                            for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                            {
+                                length = length * 10;
+                            }
+
+                            if (minPriceStep > length)
+                            {
+                                minPriceStep = length;
+                            }
+
+                            if (length == 1 &&
+                                open % 5 == 0)
+                            {
+                                countFive++;
+                            }
+                        }
+                    }
+
+
+                    if (minPriceStep == 1 &&
+                        countFive == 20)
+                    {
+                        minPriceStep = 5;
+                    }
+
+
+                    security[security.Count - 1].Security.PriceStep = minPriceStep;
+                    security[security.Count - 1].Security.PriceStepCost = minPriceStep;
+
+                    // last data / последняя дата
+                    string lastString2 = firstRowInFile;
+
+                    while (!reader.EndOfStream)
+                    {
+                        string curRow = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(curRow))
+                        {
+                            continue;
+                        }
+
+                        lastString2 = curRow;
+                    }
+
+                    Trade trade2 = new Trade();
+                    trade2.SetTradeFromString(lastString2);
+                    security[security.Count - 1].TimeEnd = trade2.Time;
+                }
+                catch (Exception)
+                {
+                    security.Remove(security[security.Count - 1]);
+                }
+
+                reader.Close();
+            }
+
+            // save securities / сохраняем бумаги
+
+            if (security.Count == 0)
+            {
+                return;
+            }
+
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
+            if (SecuritiesTester == null)
+            {
+                SecuritiesTester = new List<SecurityTester>();
+            }
+
+            for (int i = 0; i < security.Count; i++)
+            {
+                if (_securities.Find(security1 => security1.Name == security[i].Security.Name) == null)
+                {
+                    _securities.Add(security[i].Security);
+                }
+                SecuritiesTester.Add(security[i]);
+            }
+
+            // count the time / считаем время 
+
+            if (SecuritiesTester.Count != 0)
+            {
+                for (int i = 0; i < SecuritiesTester.Count; i++)
+                {
+                    if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) ||
+                        (SecuritiesTester[i].TimeStart != DateTime.MinValue && SecuritiesTester[i].TimeStart < TimeMin))
+                    {
+                        TimeMin = SecuritiesTester[i].TimeStart;
+                        TimeStart = SecuritiesTester[i].TimeStart;
+                        TimeNow = SecuritiesTester[i].TimeStart;
+                    }
+                    if (SecuritiesTester[i].TimeEnd != DateTime.MinValue &&
+                        SecuritiesTester[i].TimeEnd > TimeMax)
+                    {
+                        TimeMax = SecuritiesTester[i].TimeEnd;
+                        TimeEnd = SecuritiesTester[i].TimeEnd;
+                    }
+                }
+            }
+
+            // check in the tester file data on the presence of multipliers and GO for securities
+            // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
+
+            SetToSecuritiesDopSettings();
+
+            if (TestingNewSecurityEvent != null)
+            {
+                TestingNewSecurityEvent();
+            }
+        }
+
+        private void LoadMarketDepthFromFolder(string folderName)
+        {
+            string[] files = Directory.GetFiles(folderName);
+
+            if (files.Length == 0)
+            {
+                return;
+            }
+
+            List<SecurityTester> security = new List<SecurityTester>();
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                security.Add(new SecurityTester());
+                security[security.Count - 1].FileAddress = files[i];
+                security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
+                security[security.Count - 1].NewTradesEvent += TesterServer_NewTradesEvent;
+                security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
+                security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
+                security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
+
+                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
+
+                security[security.Count - 1].Security = new Security();
+                security[security.Count - 1].Security.Name = name;
+                security[security.Count - 1].Security.Lot = 1;
+                security[security.Count - 1].Security.NameClass = "TestClass";
+                security[security.Count - 1].Security.Go = 1;
+                security[security.Count - 1].Security.PriceStepCost = 1;
+                security[security.Count - 1].Security.PriceStep = 1;
+                // timeframe / тф
+                // price step / шаг цены
+                // begin / начало
+                // end / конец
+
+                StreamReader reader = new StreamReader(files[i]);
+
+                // NameSecurity_Time_Bids_Asks
+                // Bids: level*level*level
+                // level: Bid&Ask&Price
+
+                string firstRowInFile = reader.ReadLine();
+
+                if (string.IsNullOrEmpty(firstRowInFile))
+                {
+                    security.Remove(security[security.Count - 1]);
+                    reader.Close();
+                    continue;
+                }
+
+                try
+                {
+                    // check whether depth is in the file / смотрим стакан ли в файле
+
+                    MarketDepth trade = new MarketDepth();
+                    trade.SetMarketDepthFromString(firstRowInFile);
+
+                    // depth is in the file / в файле стаканы
+
+                    security[security.Count - 1].TimeStart = trade.Time;
+                    security[security.Count - 1].DataType = SecurityTesterDataType.MarketDepth;
+
+                    // price step / шаг цены
+
+                    decimal minPriceStep = decimal.MaxValue;
+                    int countFive = 0;
+
+                    CultureInfo culture = CultureInfo;
+
+                    for (int i2 = 0; i2 < 20; i2++)
+                    {
+                        MarketDepth tradeN = new MarketDepth();
+                        string lastStr = reader.ReadLine();
+                        try
+                        {
+                            tradeN.SetMarketDepthFromString(lastStr);
+                        }
+                        catch (Exception error)
+                        {
+                            Thread.Sleep(2000);
+                            SendLogMessage(error.ToString(), LogMessageType.Error);
+                            continue;
+                        }
+
+                        decimal open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
+
+                        if (open == 0)
+                        {
+                            open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
+                        }
+
+                        if (open.ToString(culture).Split(',').Length > 1)
+                        {
+                            // if the real part takes place / если имеет место вещественная часть
+                            int length = 1;
+
+                            if (open.ToString(culture).Split(',').Length > 1 &&
+                                open.ToString(culture).Split(',')[1].Length > length)
+                            {
+                                length = open.ToString(culture).Split(',')[1].Length;
+                            }
+
+
+                            if (length == 1 && minPriceStep > 0.1m)
+                            {
+                                minPriceStep = 0.1m;
+                            }
+                            if (length == 2 && minPriceStep > 0.01m)
+                            {
+                                minPriceStep = 0.01m;
+                            }
+                            if (length == 3 && minPriceStep > 0.001m)
+                            {
+                                minPriceStep = 0.001m;
+                            }
+                            if (length == 4 && minPriceStep > 0.0001m)
+                            {
+                                minPriceStep = 0.0001m;
+                            }
+                            if (length == 5 && minPriceStep > 0.00001m)
+                            {
+                                minPriceStep = 0.00001m;
+                            }
+                            if (length == 6 && minPriceStep > 0.000001m)
+                            {
+                                minPriceStep = 0.000001m;
+                            }
+                            if (length == 7 && minPriceStep > 0.0000001m)
+                            {
+                                minPriceStep = 0.0000001m;
+                            }
+                            if (length == 8 && minPriceStep > 0.00000001m)
+                            {
+                                minPriceStep = 0.00000001m;
+                            }
+                            if (length == 9 && minPriceStep > 0.000000001m)
+                            {
+                                minPriceStep = 0.000000001m;
+                            }
+                        }
+                        else
+                        {
+                            // if the real part doesn't take place / если вещественной части нет
+                            int length = 1;
+
+                            for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                            {
+                                length = length * 10;
+                            }
+
+                            if (minPriceStep > length)
+                            {
+                                minPriceStep = length;
+                            }
+
+                            if (length == 1 &&
+                                open % 5 == 0)
+                            {
+                                countFive++;
+                            }
+                        }
+                    }
+
+
+                    if (minPriceStep == 1 &&
+                        countFive == 20)
+                    {
+                        minPriceStep = 5;
+                    }
+
+
+                    security[security.Count - 1].Security.PriceStep = minPriceStep;
+                    security[security.Count - 1].Security.PriceStepCost = minPriceStep;
+
+                    // last data / последняя дата
+                    string lastString2 = firstRowInFile;
+
+                    while (!reader.EndOfStream)
+                    {
+                        string curRow = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(curRow))
+                        {
+                            continue;
+                        }
+
+                        lastString2 = curRow;
+                    }
+
+                    MarketDepth trade2 = new MarketDepth();
+                    trade2.SetMarketDepthFromString(lastString2);
+                    security[security.Count - 1].TimeEnd = trade2.Time;
+                }
+                catch (Exception error)
+                {
+                    security.Remove(security[security.Count - 1]);
+                }
+
+                reader.Close();
+            }
+
+            // save securities
+            // сохраняем бумаги
+
+            if (security == null ||
+                security.Count == 0)
+            {
+                return;
+            }
+
+            if (_securities == null)
+            {
+                _securities = new List<Security>();
+            }
+
+            if (SecuritiesTester == null)
+            {
+                SecuritiesTester = new List<SecurityTester>();
+            }
+
+            for (int i = 0; i < security.Count; i++)
+            {
+                if (_securities.Find(security1 => security1.Name == security[i].Security.Name) == null)
+                {
+                    _securities.Add(security[i].Security);
+                }
+                SecuritiesTester.Add(security[i]);
+            }
+
+            // count the time
+            // считаем время 
+
+            if (SecuritiesTester.Count != 0)
+            {
+                for (int i = 0; i < SecuritiesTester.Count; i++)
+                {
+                    if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) ||
+                        (SecuritiesTester[i].TimeStart != DateTime.MinValue && SecuritiesTester[i].TimeStart < TimeMin))
+                    {
+                        TimeMin = SecuritiesTester[i].TimeStart;
+                        TimeStart = SecuritiesTester[i].TimeStart;
+                        TimeNow = SecuritiesTester[i].TimeStart;
+                    }
+                    if (SecuritiesTester[i].TimeEnd != DateTime.MinValue &&
+                        SecuritiesTester[i].TimeEnd > TimeMax)
+                    {
+                        TimeMax = SecuritiesTester[i].TimeEnd;
+                        TimeEnd = SecuritiesTester[i].TimeEnd;
+                    }
+                }
+            }
+
+            // check in the tester file data on the presence of multipliers and GO for securities
+            // проверяем в файле тестера данные о наличии мультипликаторов и ГО для бумаг
+
+            SetToSecuritiesDopSettings();
+
+            if (TestingNewSecurityEvent != null)
+            {
+                TestingNewSecurityEvent();
+            }
+        }
+
+        #endregion
+
+        #region Subscribe securities to robots
+
         private List<SecurityTester> _candleSeriesTesterActivate;
 
-        /// <summary>
-		/// tick candle loading wizard
-        /// мастер загрузки свечек из тиков
-        /// </summary>
         private CandleManager _candleManager;
 
         private object _starterLocker = new object();
 
         private DateTime _lastStartSecurityTime;
 
-        /// <summary>
-        /// start uploading data on instrument
-        /// Начать выгрузку данных по инструменту. 
-        /// </summary>
-        /// <param name="securityName"> security name for running / имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder"> object that has data about timeframe / объект несущий в себе данные о таймФрейме</param>
-        /// <param name="securityClass"> security class for running / класс бумаги которую будем запускать</param>
-        /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
         public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
         {
             lock (_starterLocker)
@@ -3549,7 +3624,7 @@ namespace OsEngine.Market.Servers.Tester
                 }
                 else if (TypeTesterData == TesterDataType.Candle)
                 {
-                    TimeSpan time = GetTimeFremeInSpan(timeFrameBuilder.TimeFrame);
+                    TimeSpan time = GetTimeFrameInSpan(timeFrameBuilder.TimeFrame);
                     if (_candleSeriesTesterActivate.Find(tester => tester.Security.Name == securityName &&
                                                                    tester.DataType == SecurityTesterDataType.Candle &&
                                                                    tester.TimeFrameSpan == time) == null)
@@ -3586,26 +3661,18 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// start data downloading on instrument 
-        /// Начать выгрузку данных по инструменту
-        /// </summary>
         public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
         {
             return null;
         }
 
-        /// <summary>
-		/// take ticks data on instrument for period
-        /// взять тиковые данные по инструменту за определённый период
-        /// </summary>
         public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
         {
             return null;
         }
 
-        private TimeSpan GetTimeFremeInSpan(TimeFrame frame)
+        private TimeSpan GetTimeFrameInSpan(TimeFrame frame)
         {
             TimeSpan result = new TimeSpan(0,0,1,0);
 
@@ -3765,10 +3832,6 @@ namespace OsEngine.Market.Servers.Tester
            return timeFrame;
         }
 
-        /// <summary>
-		/// stop getting data on instrument
-        /// прекратить принимать данные по бумаге 
-        /// </summary>
         public void StopThisSecurity(CandleSeries series)
         {
             if (series != null)
@@ -3777,19 +3840,188 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// connectors connected to the server need to get a new data
-        /// коннекторам подключеным к серверу необходимо перезаказать данные
-        /// </summary>
-        public event Action NeadToReconnectEvent;
+        public event Action NeedToReconnectEvent;
 
         public event Action LoadSecurityEvent;
 
-// candles / свечи
-        /// <summary>
-		/// new candle appeared in the server
-        /// в сервере появилась новая свечка
-        /// </summary>
+        #endregion
+
+        #region Synchronizer 
+
+        private string _activeSet;
+        public string ActiveSet
+        {
+            get { return _activeSet; }
+        }
+
+        public DateTime TimeMin;
+
+        public DateTime TimeMax;
+
+        public DateTime TimeStart;
+
+        public DateTime TimeEnd;
+
+        public DateTime TimeNow;
+
+        public bool DataIsReady
+        {
+            get
+            {
+                return _dataIsReady;
+            }
+        }
+
+        private bool _dataIsReady;
+
+        public List<SecurityTester> SecuritiesTester;
+
+        public void SynchSecurities(List<BotPanel> bots)
+        {
+            if (bots == null || bots.Count == 0 ||
+              SecuritiesTester == null || SecuritiesTester.Count == 0)
+            {
+                return;
+            }
+
+            List<string> namesSecurity = new List<string>();
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                List<BotTabSimple> currentTabs = bots[i].TabsSimple;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    if (currentTabs[i2].Securiti != null)
+                    {
+                        namesSecurity.Add(currentTabs[i2].Securiti.Name);
+                    }
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                List<BotTabPair> currentTabs = bots[i].TabsPair;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    List<PairToTrade> pairs = currentTabs[i2].Pairs;
+
+                    for (int i3 = 0; i3 < pairs.Count; i3++)
+                    {
+                        PairToTrade pair = pairs[i3];
+
+                        if (pair.Tab1.Securiti != null)
+                        {
+                            namesSecurity.Add(pair.Tab1.Securiti.Name);
+                        }
+                        if (pair.Tab2.Securiti != null)
+                        {
+                            namesSecurity.Add(pair.Tab2.Securiti.Name);
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                List<BotTabScreener> currentTabs = bots[i].TabsScreener;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    List<string> secs = new List<string>();
+
+                    for (int i3 = 0; i3 < currentTabs[i2].SecuritiesNames.Count; i3++)
+                    {
+                        if (string.IsNullOrEmpty(currentTabs[i2].SecuritiesNames[i3].SecurityName))
+                        {
+                            continue;
+                        }
+                        secs.Add(currentTabs[i2].SecuritiesNames[i3].SecurityName);
+                    }
+
+                    if (secs.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    namesSecurity.AddRange(secs);
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                List<BotTabCluster> currentTabs = bots[i].TabsCluster;
+
+                for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
+                {
+                    namesSecurity.Add(currentTabs[i2].CandleConnector.SecurityName);
+                }
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                List<BotTabIndex> currentTabsSpread = bots[i].TabsIndex;
+
+                for (int i2 = 0; currentTabsSpread != null && i2 < currentTabsSpread.Count; i2++)
+                {
+                    BotTabIndex index = currentTabsSpread[i2];
+
+                    for (int i3 = 0; index.Tabs != null && i3 < index.Tabs.Count; i3++)
+                    {
+                        ConnectorCandles currentConnector = index.Tabs[i3];
+
+                        if (!string.IsNullOrWhiteSpace(currentConnector.SecurityName))
+                        {
+                            namesSecurity.Add(currentConnector.SecurityName);
+                        }
+                    }
+
+                }
+            }
+
+            for (int i = 0; i < SecuritiesTester.Count; i++)
+            {
+                if (namesSecurity.Find(name => name == SecuritiesTester[i].Security.Name) == null)
+                {
+                    SecuritiesTester[i].IsActive = false;
+                }
+                else
+                {
+                    SecuritiesTester[i].IsActive = true;
+                }
+            }
+
+            _candleManager.SynhSeries(namesSecurity);
+
+            if (TypeTesterData == TesterDataType.TickAllCandleState ||
+                TypeTesterData == TesterDataType.TickOnlyReadyCandle)
+            {
+                _timeAddType = TimeAddInTestType.Second;
+            }
+            else if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
+                     TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
+            {
+                _timeAddType = TimeAddInTestType.Millisecond;
+            }
+            else if (TypeTesterData == TesterDataType.Candle)
+            {
+
+                if (SecuritiesTester.Find(name => name.TimeFrameSpan < new TimeSpan(0, 0, 1, 0)) == null)
+                {
+                    _timeAddType = TimeAddInTestType.Minute;
+                }
+                else
+                {
+                    _timeAddType = TimeAddInTestType.Second;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Candles
+
         void TesterServer_NewCandleEvent(Candle candle, string nameSecurity, TimeSpan timeFrame)
         {
             ServerTime = candle.TimeStart;
@@ -3808,20 +4040,11 @@ namespace OsEngine.Market.Servers.Tester
 
         }
 
-        /// <summary>
-		/// new candle appeared
-        /// появилась новая свеча
-        /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
 
-// bid and ask / бид и аск
+        #endregion
 
-        /// <summary>
-        /// bid and ask updated / обновился бид с аском
-        /// </summary>
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
-
-// depth / стакан
+        #region Market depth 
 
         void TesterServer_NewMarketDepthEvent(MarketDepth marketDepth)
         {
@@ -3836,32 +4059,19 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// updated depth
-        /// обновился стакан
-        /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-// all trades table
-// таблица всех сделок
+        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
 
-        /// <summary>
-		/// all trades in the storage
-        /// все сделки в хранилище
-        /// </summary>
+        #endregion
+
+        #region All trades table
+
         private List<Trade>[] _allTrades;
 
-        /// <summary>
-		/// all ticks from server
-        /// все тики имеющиеся у сервера
-        /// </summary>
         public List<Trade>[] AllTrades { get { return _allTrades; } }
 
-        /// <summary>
-		/// send new trades from server
-        /// пришли новые сделки из сервера
-        /// </summary>
-        void TesterServer_NewTradesEvent(List<Trade> tradesNew)
+        private void TesterServer_NewTradesEvent(List<Trade> tradesNew)
         {
             if (_dataIsActive == false)
             {
@@ -3955,10 +4165,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// take all trades on instrument
-        /// взять все сделки по инструменту
-        /// </summary>
         public List<Trade> GetAllTradesToSecurity(Security security)
         {
             for (int i = 0; _allTrades != null && i < _allTrades.Length; i++)
@@ -3972,19 +4178,12 @@ namespace OsEngine.Market.Servers.Tester
             return null;
         }
 
-        /// <summary>
-		/// called when comes new deals on instrument
-        /// вызывается когда по инструменту приходят новые сделки
-        /// </summary>
         public event Action<List<Trade>> NewTradeEvent;
 
-// my trades
-// мои сделки
+        #endregion
 
-        /// <summary>
-		/// my incoming trades
-        /// входящие мои сделки
-        /// </summary>
+        #region My trades
+
         private void MyTradesIncome(MyTrade trade)
         {
             if (_myTrades == null)
@@ -4002,397 +4201,22 @@ namespace OsEngine.Market.Servers.Tester
 
         private List<MyTrade> _myTrades;
 
-        /// <summary>
-		/// my trades
-        /// мои сделки
-        /// </summary>
         public List<MyTrade> MyTrades
         {
             get { return _myTrades; }
         }
 
-        /// <summary>
-		/// called when new My Deal comes
-        /// вызывается когда приходит новая Моя Сделка
-        /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
-// work with placing and cancellation of my orders
-// работа по выставлению и снятию моих ордеров
+        #endregion
 
-        /// <summary>
-		/// placed order on the exchange
-        /// выставленные на биржу ордера
-        /// </summary>
-        private List<Order> OrdersActiv;
+        #region Logging
 
-        /// <summary>
-		/// iterator of order numbers on the exchange
-        /// итератор номеров ордеров на бирже
-        /// </summary>
-        private int _iteratorNumbersOrders;
-
-        /// <summary>
-		/// iterator of trade numbers on the exchange
-        /// итератор номеров трэйдов на бирже
-        /// </summary>
-        private int _iteratorNumbersMyTrades;
-
-        /// <summary>
-		/// place order to the exchange
-        /// выставить ордер на биржу
-        /// </summary>
-        public void ExecuteOrder(Order order)
-        {
-
-            order.TimeCreate = ServerTime;
-
-            if (OrdersActiv.Count != 0)
-            {
-                for (int i = 0; i < OrdersActiv.Count; i++)
-                {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
-                    {
-                        SendLogMessage(OsLocalization.Market.Message39, LogMessageType.Error);
-                        FailedOperationOrder(order);
-                        return;
-                    }
-                }
-            }
-
-            if (ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                SendLogMessage(OsLocalization.Market.Message40, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (order.Price <= 0
-                && order.TypeOrder != OrderPriceType.Market)
-            {
-                SendLogMessage(OsLocalization.Market.Message41 + order.Price, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (order.Volume <= 0)
-            {
-                SendLogMessage(OsLocalization.Market.Message42 + order.Volume, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(order.PortfolioNumber))
-            {
-                SendLogMessage(OsLocalization.Market.Message43, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(order.SecurityNameCode))
-            {
-                SendLogMessage(OsLocalization.Market.Message44, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            Order orderOnBoard = new Order();
-            orderOnBoard.NumberMarket = _iteratorNumbersOrders++.ToString();
-            orderOnBoard.NumberUser = order.NumberUser;
-            orderOnBoard.PortfolioNumber = order.PortfolioNumber;
-            orderOnBoard.Price = order.Price;
-            orderOnBoard.SecurityNameCode = order.SecurityNameCode;
-            orderOnBoard.Side = order.Side;
-            orderOnBoard.State = OrderStateType.Active;
-            orderOnBoard.ServerType = order.ServerType;
-            orderOnBoard.TimeCallBack = ServerTime;
-            orderOnBoard.TimeCreate = ServerTime;
-            orderOnBoard.TypeOrder = order.TypeOrder;
-            orderOnBoard.Volume = order.Volume;
-            orderOnBoard.Comment = order.Comment;
-            orderOnBoard.LifeTime = order.LifeTime;
-            orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
-            orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
-            orderOnBoard.OrderTypeTime = order.OrderTypeTime;
-
-            OrdersActiv.Add(orderOnBoard);
-
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderOnBoard);
-            }
-
-            if (SecuritiesTester[0].DataType == SecurityTesterDataType.Tick)
-            {
-                SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
-
-                decimal f = order.Price/security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price;
-                if (f > 1.02m ||
-                    f < 0.98m)
-                {
-                    
-                }
-
-                //CheckOrdersInTickTest(orderOnBoard, security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price, toMarket);
-                
-            }
-
-            if (orderOnBoard.IsStopOrProfit)
-            {
-                SecurityTester security = GetMySecurity(order);
-
-                if (security.DataType == SecurityTesterDataType.Candle)
-                { // testing with using candles / прогон на свечках
-                    if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
-                    {
-                        OrdersActiv.Remove(orderOnBoard);
-                    }
-                }
-                else if (security.DataType == SecurityTesterDataType.Tick)
-                { 
-                    if (CheckOrdersInTickTest(orderOnBoard, security.LastTrade, true))
-                    {
-                        OrdersActiv.Remove(orderOnBoard);
-                    }
-                }
-            }
-        }
-
-        private SecurityTester GetMySecurity(Order order)
-        {
-            SecurityTester security = null;
-
-            if(TypeTesterData == TesterDataType.Candle)
-            {
-                for(int i = 0;i < _candleSeriesTesterActivate.Count;i++)
-                {
-                    if (_candleSeriesTesterActivate[i].Security.Name == order.SecurityNameCode 
-                        && _candleSeriesTesterActivate[i].TimeFrame == order.TimeFrameInTester)
-                    {
-                        security = _candleSeriesTesterActivate[i];
-                        break;
-                    }
-                }
-
-                if(security == null)
-                {
-                    security =
-                         _candleSeriesTesterActivate.Find(
-                             tester =>
-                                 tester.Security.Name == order.SecurityNameCode
-                                 &&
-                                 (tester.LastCandle != null
-                                 || tester.LastTradeSeries != null
-                                 || tester.LastMarketDepth != null));
-                }
-            }
-            else
-            {
-                security =
-                     _candleSeriesTesterActivate.Find(
-                         tester =>
-                             tester.Security.Name == order.SecurityNameCode
-                             &&
-                             (tester.LastCandle != null
-                             || tester.LastTradeSeries != null
-                             || tester.LastMarketDepth != null));
-            }
-
-            return security;
-        }
-
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-
-        }
-
-        /// <summary>
-		/// cancel order from the exchange
-        /// отозвать ордер с биржи
-        /// </summary>
-        public void CancelOrder(Order order)
-        {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                SendLogMessage(OsLocalization.Market.Message45, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            CanselOnBoardOrder(order);
-        }
-
-        /// <summary>
-        /// cancel all orders from trading system
-        /// отозвать все ордера из торговой системы
-        /// </summary>
-        public void CancelAllOrders()
-        {
-
-        }
-
-        /// <summary>
-		/// updated order on the exchange
-        /// обновился ордер на бирже
-        /// </summary>
-        public event Action<Order> NewOrderIncomeEvent;
-
-// internal operations of the "exchange" on orders
-// внутренние операции "биржи" над ордерами
-
-        /// <summary>
-		/// cancel order from the exchange
-        /// провести отзыв ордера с биржи 
-        /// </summary>
-        private void CanselOnBoardOrder(Order order)
-        {
-            Order orderToClose = null;
-
-            if (OrdersActiv.Count != 0)
-            {
-                for (int i = 0; i < OrdersActiv.Count; i++)
-                {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
-                    {
-                        orderToClose = OrdersActiv[i];
-                    }
-                }
-            }
-
-            if (orderToClose == null)
-            {
-                SendLogMessage(OsLocalization.Market.Message46, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            for (int i = 0; i < OrdersActiv.Count; i++)
-            {
-                if (OrdersActiv[i].NumberUser == order.NumberUser)
-                {
-                    OrdersActiv.RemoveAt(i);
-                    break;
-                }
-            }
-
-            orderToClose.State = OrderStateType.Cancel;
-
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderToClose);
-            }
-        }
-
-        /// <summary>
-		/// reject order on the stock exchange
-        /// провести отбраковку ордера на бирже
-        /// </summary>
-        private void FailedOperationOrder(Order order)
-        {
-            Order orderOnBoard = new Order();
-            orderOnBoard.NumberMarket = _iteratorNumbersOrders++.ToString();
-            orderOnBoard.NumberUser = order.NumberUser;
-            orderOnBoard.PortfolioNumber = order.PortfolioNumber;
-            orderOnBoard.Price = order.Price;
-            orderOnBoard.SecurityNameCode = order.SecurityNameCode;
-            orderOnBoard.Side = order.Side;
-            orderOnBoard.State = OrderStateType.Fail;
-            orderOnBoard.TimeCallBack = ServerTime;
-            orderOnBoard.TimeCreate = order.TimeCreate;
-            orderOnBoard.TypeOrder = order.TypeOrder;
-            orderOnBoard.Volume = order.Volume;
-            orderOnBoard.Comment = order.Comment;
-            orderOnBoard.ServerType = order.ServerType;
-
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(orderOnBoard);
-            }
-        }
-        
-        /// <summary>
-		/// execute order on the exchange
-        /// исполнить ордер на бирже
-        /// </summary>
-        private void ExecuteOnBoardOrder(Order order,decimal price, DateTime time, int slipage)
-        {
-            decimal realPrice = price;
-
-            if(order.Volume == order.VolumeExecute ||
-                order.State == OrderStateType.Done)
-            {
-                return;
-            }
-
-
-            if (slipage != 0)
-            {
-                if (order.Side == Side.Buy)
-                {
-                    Security mySecurity = GetSecurityForName(order.SecurityNameCode,"");
-
-                    if (mySecurity != null && mySecurity.PriceStep != 0)
-                    {
-                        realPrice += mySecurity.PriceStep * slipage;
-                    }
-                }
-
-                if (order.Side == Side.Sell)
-                {
-                    Security mySecurity = GetSecurityForName(order.SecurityNameCode,"");
-
-                    if (mySecurity != null && mySecurity.PriceStep != 0)
-                    {
-                        realPrice -= mySecurity.PriceStep * slipage;
-                    }
-                }
-            }
-
-            MyTrade trade = new MyTrade();
-            trade.NumberOrderParent = order.NumberMarket;
-            trade.NumberTrade = _iteratorNumbersMyTrades++.ToString();
-            trade.SecurityNameCode = order.SecurityNameCode;
-            trade.Volume = order.Volume;
-            trade.Time = time;
-            trade.Price = realPrice;
-            trade.Side = order.Side;
-
-            MyTradesIncome(trade);
-
-            order.State = OrderStateType.Done;
-            order.Price = realPrice;
-
-            if (NewOrderIncomeEvent != null)
-            {
-                NewOrderIncomeEvent(order);
-            }
-
-            ChangePosition(order);
-
-            CheckWaitOrdersRegime();
-        }
-
-// logging
-// работа с логами
-
-        /// <summary>
-		/// send a new log message
-        /// отправить в лог новый мессадж
-        /// </summary>
         void TesterServer_LogMessageEvent(string logMessage)
         {
             SendLogMessage(logMessage,LogMessageType.Error);
         }
 
-        /// <summary>
-		/// save a log message new 
-        /// сохранить новую запись в лог
-        /// </summary>
         public void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -4406,81 +4230,38 @@ namespace OsEngine.Market.Servers.Tester
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// log manager
-        /// лог менеджер
-        /// </summary>
-        /// 
         private Log _logMaster;
 
-        /// <summary>
-		/// called when there is a new message in the log
-        /// вызывается когда есть новое сообщение в логе
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 
     /// <summary>
 	/// Tester security. Encapsulates test data and data upload methods.
-    /// бумага в тестере. 
-    /// Инкапсулирует данные для тестирования и методы прогрузки данных
     /// </summary>
     public class SecurityTester
     {
-
-        /// <summary>
-		/// security
-        /// бумага которой принадлежит объект
-        /// </summary>
         public Security Security;
 
-        /// <summary>
-		/// address of file with instrument data
-        /// адрес файла с данными инструмента
-        /// </summary>
         public string FileAddress;
 
-        /// <summary>
-		/// start time of data in the file
-        /// время начала данных в файле
-        /// </summary>
         public DateTime TimeStart;
 
-        /// <summary>
-		/// end time of data in the file
-        /// время конца данных в файле
-        /// </summary>
         public DateTime TimeEnd;
 
-        /// <summary>
-		/// data type stored in the object
-        /// Тип данных хранящихся в объекте
-        /// </summary>
         public SecurityTesterDataType DataType;
 
         public TimeSpan TimeFrameSpan;
 
         public TimeFrame TimeFrame;
 
-// data upload management
-// управление выгрузгой данных
+        // data upload management
 
-        /// <summary>
-		/// whether the series is activated for unloading
-        /// активирована ли серия для выгрузки
-        /// </summary>
         public bool IsActive;
 
-        /// <summary>
-		/// thread control reading the data file
-        /// поток управляющий считыванием файла с данными
-        /// </summary>
         private StreamReader _reader;
 
-        /// <summary>
-		/// clear object and bring it to the initial state ready for testing
-        /// очистить объект и привести к начальному, готовому к тестированию состоянию
-        /// </summary>
         public void Clear()
         {
             try
@@ -4496,13 +4277,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// get new time object
-		/// this method loads candles or ticks
-        /// прогрузить объект новым временем
-        /// этот метод и прогружает свечи или тики
-        /// </summary>
-        /// <param name="now">время для синхронизации</param>
         public void Load(DateTime now)
         {
             if (IsActive == false)
@@ -4523,31 +4297,14 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-// parsing tick files
-// разбор файлов тиковых
+        // parsing tick files
 
-        /// <summary>
-		/// last instrument trade from the file
-        /// последний трейд инструмента из файла
-        /// </summary>
         public Trade LastTrade;
 
-        /// <summary>
-		/// last downloaded ticks for the last second
-        /// последние подгруженные тики за последнюю секунду
-        /// </summary>
         public List<Trade> LastTradeSeries; 
 
-        /// <summary>
-		/// the last line from the reader, participates in loading
-        /// последняя строка из ридера, участвует в прогрузке
-        /// </summary>
         private string _lastString;
 
-        /// <summary>
-		/// check whether it is time to send a new batch of ticks
-        /// проверить, не пора ли высылать новую партию тиков
-        /// </summary>
         private void CheckTrades(DateTime now)
         {
             if (_reader == null || (_reader.EndOfStream && LastTrade == null))
@@ -4628,10 +4385,6 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-        /// new ticks appeared
-        /// новые тики появились
-        /// </summary>
         public event Action<List<Trade>> NewTradesEvent;
 
         public event Action NeedToCheckOrders;
@@ -4640,20 +4393,12 @@ namespace OsEngine.Market.Servers.Tester
 
         private Candle _lastCandle;
 
-        /// <summary>
-		/// last candle
-        /// последняя свеча
-        /// </summary>
         public Candle LastCandle
         {
             get { return _lastCandle; } 
             set { _lastCandle = value; }
         }
 
-        /// <summary>
-		/// check, is it time to send the candle
-        /// провирить, не пора ли высылать свечку
-        /// </summary>
         private void CheckCandles(DateTime now)
         {
             if (_reader == null || _reader.EndOfStream)
@@ -4786,24 +4531,12 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// new candles appeared
-        /// новые свечи появились
-        /// </summary>
         public event Action<Candle, string,TimeSpan> NewCandleEvent;
 
-        /// <summary>
-		/// new depths appeared
-        /// новые тики появились
-        /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-// parsing market depths
+        // parsing market depths
 
-        /// <summary>
-		/// last trade of instrumnet from the file
-        /// последний трейд инструмента из файла
-        /// </summary>
         public MarketDepth LastMarketDepth;
 
         private void CheckMarketDepth(DateTime now)
@@ -4853,13 +4586,8 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+        // logging
 
-// logging
-
-        /// <summary>
-		/// save a new log message
-        /// сохранить новую запись в лог
-        /// </summary>
         private void SendLogMessage(string message)
         {
             if (LogMessageEvent != null)
@@ -4868,180 +4596,149 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        /// <summary>
-		/// called when there is a new log message
-        /// вызывается когда есть новое сообщение в логе
-        /// </summary>
         public event Action<string> LogMessageEvent;
 
     }
 
     /// <summary>
-	/// data type
-    /// тип данных 
+	/// Data storage type
     /// </summary>
     public enum TesterSourceDataType
     {
-
-        /// <summary>
-		/// data set
-        /// Сет данных
-        /// </summary>
         Set,
 
-        /// <summary>
-		/// folder with data
-        /// папка с данными
-        /// </summary>
         Folder
     }
 
     /// <summary>
-	/// testing mode
-    /// режимы тестирования
+	/// Current operation mode of the tester
     /// </summary>
     public enum TesterRegime
     {
         NotActive,
 
-        /// <summary>
-        /// pause
-        /// пауза
-        /// </summary>
         Pause,
 
-        /// <summary>
-		/// play
-        /// работает
-        /// </summary>
         Play,
 
-        /// <summary>
-		/// load the next data and pause
-        /// надо прогрузить следующие данные и поставить на паузу
-        /// </summary>
         PlusOne,
     }
 
     /// <summary>
-	/// data type from Tester
-    /// тип данных идущих из тестера
+	/// Type of data translation from the tester
     /// </summary>
     public enum TesterDataType
     {
-        /// <summary>
-		/// candles
-        /// свечи
-        /// </summary>
         Candle,
 
-        /// <summary>
-		/// ticks. all candles states
-        /// тики. Все состояния свечей
-        /// </summary>
         TickAllCandleState,
 
-        /// <summary>
-		/// ticks. only ready candles
-        /// тики. Только готовые свечи
-        /// </summary>
         TickOnlyReadyCandle,
 
-        /// <summary>
-		/// depth. all candle states
-        /// стаканы. Все состояния свечей
-        /// </summary>
         MarketDepthAllCandleState,
 
-        /// <summary>
-		/// depth. only ready ticks
-        /// стаканы. Только готовые свечи
-        /// </summary>
         MarketDepthOnlyReadyCandle,
 
-        /// <summary>
-		/// unknown
-        /// неизвестно
-        /// </summary>
         Unknown
     }
 
     /// <summary>
-	/// data type stored in test security
-    /// тип данных хранящийся в тестовой бумаге
+	/// Type of data stored
     /// </summary>
     public enum SecurityTesterDataType
     {
-        /// <summary>
-		/// candles
-        /// свечи
-        /// </summary>
         Candle,
 
-        /// <summary>
-		/// ticks
-        /// тики
-        /// </summary>
         Tick,
 
-        /// <summary>
-		/// depth
-        /// стакан
-        /// </summary>
         MarketDepth
     }
 
     /// <summary>
-	/// time step in the synchronizer
-    /// шаг времени в синхронизаторе. 
+	/// Time step in the synchronizer
     /// </summary>
     public enum TimeAddInTestType
     {
-        /// <summary>
-        /// 5 minute
-        /// 5 минут
-        /// </summary>
         FiveMinute,
-        /// <summary>
-		/// minute
-        /// минута
-        /// </summary>
+
         Minute,
-        /// <summary>
-		/// second
-        /// секунда
-        /// </summary>
+
         Second,
-        /// <summary>
-		/// milisecond
-        /// миллисекунда
-        /// </summary>
-        MilliSecond
+
+        Millisecond
     }
 
     /// <summary>
-	/// type of order execution
-    /// тип исполнения ордера
+	/// type of limit order execution
     /// </summary>
     public enum OrderExecutionType
     {
-        /// <summary>
-		/// intersection
-        /// Пересечение
-        /// </summary>
         Intersection,
 
-        /// <summary>
-		/// Touch
-        /// Прикосновение
-        /// </summary>
         Touch,
 
-        /// <summary>
-        /// 50 / 50
-        /// </summary>
         FiftyFifty
+    }
 
+    /// <summary>
+    /// Clearing for limit orders
+    /// </summary>
+    public class OrderClearing
+    {
+
+        public DateTime Time;
+
+        public bool IsOn;
+
+        public string GetSaveString()
+        {
+            string result = "";
+
+            result += Time.ToString(CultureInfo.InvariantCulture) + "$";
+            result += IsOn;
+
+            return result;
+        }
+
+        public void SetFromString(string str)
+        {
+            string[] strings = str.Split('$');
+
+            Time = Convert.ToDateTime(strings[0], CultureInfo.InvariantCulture);
+            IsOn = Convert.ToBoolean(strings[1]);
+        }
+    }
+
+    /// <summary>
+    /// Period with NO new positions and NO new open orders in tester
+    /// </summary>
+    public class NonTradePeriod
+    {
+        public DateTime DateStart;
+
+        public DateTime DateEnd;
+
+        public bool IsOn;
+
+        public string GetSaveString()
+        {
+            string result = "";
+
+            result += DateStart.ToString(CultureInfo.InvariantCulture) + "$";
+            result += DateEnd.ToString(CultureInfo.InvariantCulture) + "$";
+            result += IsOn;
+
+            return result;
+        }
+
+        public void SetFromString(string str)
+        {
+            string[] strings = str.Split('$');
+
+            DateStart = Convert.ToDateTime(strings[0], CultureInfo.InvariantCulture);
+            DateEnd = Convert.ToDateTime(strings[1], CultureInfo.InvariantCulture);
+            IsOn = Convert.ToBoolean(strings[2]);
+        }
     }
 
 }

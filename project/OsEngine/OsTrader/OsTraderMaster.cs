@@ -1268,7 +1268,7 @@ namespace OsEngine.OsTrader
                 }
                 if (PanelsArray != null)
                 {
-                    ((TesterServer)ServerMaster.GetServers()[0]).SynhSecurities(PanelsArray.ToList());
+                    ((TesterServer)ServerMaster.GetServers()[0]).SynchSecurities(PanelsArray.ToList());
                 }
             }
             catch (Exception error)

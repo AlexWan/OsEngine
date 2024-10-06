@@ -63,7 +63,7 @@ namespace OsEngine.Market.Servers
         /// need to reconnect data from server
         /// необходимо перезаказать данные у сервера
         /// </summary>
-        event Action NeadToReconnectEvent;
+        event Action NeedToReconnectEvent;
 
         #endregion
 

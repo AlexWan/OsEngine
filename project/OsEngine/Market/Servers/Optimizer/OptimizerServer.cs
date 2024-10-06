@@ -182,7 +182,7 @@ namespace OsEngine.Market.Servers.Optimizer
             else if (TypeTesterData == TesterDataType.MarketDepthAllCandleState ||
                      TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
             {
-                _timeAddType = TimeAddInTestType.MilliSecond;
+                _timeAddType = TimeAddInTestType.Millisecond;
             }
             else if (TypeTesterData == TesterDataType.Candle)
             {
@@ -513,7 +513,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 TimeNow = TimeNow.AddMinutes(1);
             }
-            else if (_timeAddType == TimeAddInTestType.MilliSecond)
+            else if (_timeAddType == TimeAddInTestType.Millisecond)
             {
                 TimeNow = TimeNow.AddMilliseconds(1);
             }
@@ -1599,7 +1599,7 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// connectors connected to the server need to get a new data
         /// коннекторам подключеным к серверу необходимо перезаказать данные
         /// </summary>
-        public event Action NeadToReconnectEvent;
+        public event Action NeedToReconnectEvent;
 
 // candles
 // свечи

@@ -458,9 +458,9 @@ namespace OsEngine.Market.Servers.AstsBridge
                         _threadPrime.IsBackground = true;
                         _threadPrime.Start();
 
-                        if (NeadToReconnectEvent != null)
+                        if (NeedToReconnectEvent != null)
                         {
-                            NeadToReconnectEvent();
+                            NeedToReconnectEvent();
                         }
 
                         return;
@@ -1235,7 +1235,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// connectors connected to server need to re-order data
         /// коннекторам подключеным к серверу необходимо перезаказать данные
         /// </summary>
-        public event Action NeadToReconnectEvent;
+        public event Action NeedToReconnectEvent;
 
 // depth
 // стакан
