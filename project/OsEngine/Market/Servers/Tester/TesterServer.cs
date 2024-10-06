@@ -1975,8 +1975,13 @@ namespace OsEngine.Market.Servers.Tester
 
         private void CheckOrderByDayLife(List<Order> orders, DateTime timeOnMarket)
         {
-            if (ClearingTimes.Count == 0
-                            || orders.Count == 0)
+            if (orders.Count == 0)
+            {
+                _lastCheckDayOrdersTime = timeOnMarket;
+                return;
+            }
+
+            if(_lastCheckDayOrdersTime == DateTime.MinValue)
             {
                 _lastCheckDayOrdersTime = timeOnMarket;
                 return;

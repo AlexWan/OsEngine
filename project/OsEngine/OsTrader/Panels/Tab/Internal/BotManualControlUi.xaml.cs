@@ -140,7 +140,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 TextBoxSecondToClose.IsEnabled = true;
             }
             else if(typeTime == OrderTypeTime.GTC
-                || typeTime == OrderTypeTime.Session)
+                || typeTime == OrderTypeTime.Session
+                || typeTime == OrderTypeTime.Day)
             {
                 CheckBoxSecondToOpenIsOn.IsEnabled = false;
                 CheckBoxSecondToCloseIsOn.IsEnabled = false;
