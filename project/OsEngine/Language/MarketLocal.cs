@@ -653,7 +653,7 @@ namespace OsEngine.Language
 
         public string Label154 => OsLocalization.ConvertToLocString(
           "Eng:Date start_" +
-          "Ru:Дата старта_");
+          "Ru:Дата начала_");
 
         public string Label155 => OsLocalization.ConvertToLocString(
           "Eng:Date end_" +

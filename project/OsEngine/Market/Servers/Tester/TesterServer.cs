@@ -1901,41 +1901,101 @@ namespace OsEngine.Market.Servers.Tester
             SaveClearingInfo();
         }
 
-        private DateTime _lastCheckClearingTime;
+        private DateTime _lastCheckSessionOrdersTime;
+
+        private DateTime _lastCheckDayOrdersTime;
 
         private void CheckRejectOrdersOnClearing(List<Order> orders, DateTime timeOnMarket)
+        {
+            if(orders.Count == 0)
+            {
+                return;
+            }
+
+            List<Order> sessionLifeOrders = new List<Order>();
+            List<Order> dayLifeOrders = new List<Order>();
+
+            for (int i = 0;i < orders.Count;i++)
+            {
+                if (orders[i].OrderTypeTime == OrderTypeTime.Day)
+                {
+                    dayLifeOrders.Add(orders[i]);
+                }
+                else if (orders[i].OrderTypeTime == OrderTypeTime.Session)
+                {
+                    sessionLifeOrders.Add(orders[i]);
+                }
+            }
+
+            if(sessionLifeOrders.Count > 0)
+            {
+                CheckOrderBySessionLife(sessionLifeOrders, timeOnMarket);
+            }
+
+            if (dayLifeOrders.Count > 0)
+            {
+                CheckOrderByDayLife(dayLifeOrders, timeOnMarket);
+            }
+        }
+
+        private void CheckOrderBySessionLife(List<Order> orders, DateTime timeOnMarket)
         {
             if (ClearingTimes.Count == 0
                 || orders.Count == 0)
             {
-                _lastCheckClearingTime = timeOnMarket;
+                _lastCheckSessionOrdersTime = timeOnMarket;
                 return;
             }
 
-            for(int i = 0;i < ClearingTimes.Count;i++)
+            for (int i = 0; i < ClearingTimes.Count; i++)
             {
                 if (ClearingTimes[i].IsOn == false)
                 {
                     continue;
                 }
-                
-                if(_lastCheckClearingTime.TimeOfDay < ClearingTimes[i].Time.TimeOfDay
-                    && 
+
+                if (_lastCheckSessionOrdersTime.TimeOfDay < ClearingTimes[i].Time.TimeOfDay
+                    &&
                     timeOnMarket.TimeOfDay >= ClearingTimes[i].Time.TimeOfDay)
                 {
                     Order[] ordersToCancel = orders.ToArray();
 
-                    for(int j = 0;j < ordersToCancel.Length;j++)
+                    for (int j = 0; j < ordersToCancel.Length; j++)
                     {
                         CancelOnBoardOrder(ordersToCancel[j]);
                     }
 
-                    _lastCheckClearingTime = timeOnMarket;
+                    _lastCheckSessionOrdersTime = timeOnMarket;
                     return;
                 }
             }
 
-            _lastCheckClearingTime = timeOnMarket;
+            _lastCheckSessionOrdersTime = timeOnMarket;
+        }
+
+        private void CheckOrderByDayLife(List<Order> orders, DateTime timeOnMarket)
+        {
+            if (ClearingTimes.Count == 0
+                            || orders.Count == 0)
+            {
+                _lastCheckDayOrdersTime = timeOnMarket;
+                return;
+            }
+
+            if (_lastCheckDayOrdersTime.Date != timeOnMarket.Date)
+            {
+                Order[] ordersToCancel = orders.ToArray();
+
+                for (int j = 0; j < ordersToCancel.Length; j++)
+                {
+                    CancelOnBoardOrder(ordersToCancel[j]);
+                }
+
+                _lastCheckDayOrdersTime = timeOnMarket;
+                return;
+            }
+
+            _lastCheckDayOrdersTime = timeOnMarket;
         }
 
         #endregion

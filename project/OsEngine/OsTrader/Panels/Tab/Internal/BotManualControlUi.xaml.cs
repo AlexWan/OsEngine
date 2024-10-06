@@ -42,6 +42,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Specified.ToString());
                 ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.GTC.ToString());
+
+                if(strategySettings._startProgram == StartProgram.IsTester)
+                {
+                    ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Session.ToString());
+                    ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Day.ToString());
+                }
+
                 ComboBoxOrdersTypeTime.SelectedItem = _strategySettings.OrderTypeTime.ToString();
 
                 // stop
@@ -125,14 +132,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            if(typeTime == OrderTypeTime.Specified)
+            if (typeTime == OrderTypeTime.Specified)
             {
                 CheckBoxSecondToOpenIsOn.IsEnabled = true;
                 CheckBoxSecondToCloseIsOn.IsEnabled = true;
                 TextBoxSecondToOpen.IsEnabled = true;
                 TextBoxSecondToClose.IsEnabled = true;
             }
-            else if(typeTime == OrderTypeTime.GTC)
+            else if(typeTime == OrderTypeTime.GTC
+                || typeTime == OrderTypeTime.Session)
             {
                 CheckBoxSecondToOpenIsOn.IsEnabled = false;
                 CheckBoxSecondToCloseIsOn.IsEnabled = false;

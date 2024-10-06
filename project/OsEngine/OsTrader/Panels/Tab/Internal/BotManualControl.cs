@@ -275,7 +275,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Program that created the robot
         /// </summary>
-        private StartProgram _startProgram;
+        public StartProgram _startProgram;
 
         /// <summary>
         /// Disable all support functions
