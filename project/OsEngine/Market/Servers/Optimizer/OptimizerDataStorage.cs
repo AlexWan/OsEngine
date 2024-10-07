@@ -433,6 +433,12 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             try
             {
+                TimeMax = DateTime.MinValue;
+                TimeEnd = DateTime.MaxValue;
+                TimeMin = DateTime.MaxValue;
+                TimeStart = DateTime.MinValue;
+                TimeNow = DateTime.MinValue;
+
                 if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activSet))
                 {
                     if (!Directory.Exists(_activSet))
@@ -510,12 +516,6 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     return;
                 }
-
-                TimeMax = DateTime.MinValue;
-                TimeEnd = DateTime.MaxValue;
-                TimeMin = DateTime.MaxValue;
-                TimeStart = DateTime.MinValue;
-                TimeNow = DateTime.MinValue;
 
                 for (int i = 0; i < directories.Length; i++)
                 {
@@ -833,14 +833,16 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     for (int i = 0; i < SecuritiesTester.Count; i++)
                     {
-                        if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) ||
+                        if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) 
+                            ||
                             (SecuritiesTester[i].TimeStart != DateTime.MinValue && SecuritiesTester[i].TimeStart < TimeMin))
                         {
                             TimeMin = SecuritiesTester[i].TimeStart;
                             TimeStart = SecuritiesTester[i].TimeStart;
                             TimeNow = SecuritiesTester[i].TimeStart;
                         }
-                        if (SecuritiesTester[i].TimeEnd != DateTime.MinValue &&
+                        if (SecuritiesTester[i].TimeEnd != DateTime.MinValue 
+                            &&
                             SecuritiesTester[i].TimeEnd > TimeMax)
                         {
                             TimeMax = SecuritiesTester[i].TimeEnd;

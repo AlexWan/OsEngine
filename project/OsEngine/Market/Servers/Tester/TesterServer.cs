@@ -2672,6 +2672,12 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
+            TimeMax = DateTime.MinValue;
+            TimeEnd = DateTime.MaxValue;
+            TimeMin = DateTime.MaxValue;
+            TimeStart = DateTime.MinValue;
+            TimeNow = DateTime.MinValue;
+
             if (_sourceDataType == TesterSourceDataType.Set)
             { // Hercules data sets/сеты данных Геркулеса
                 string[] directories = Directory.GetDirectories(_activeSet);
@@ -2681,12 +2687,6 @@ namespace OsEngine.Market.Servers.Tester
                     SendLogMessage(OsLocalization.Market.Message28, LogMessageType.System);
                     return;
                 }
-
-                TimeMax = DateTime.MinValue;
-                TimeEnd = DateTime.MaxValue;
-                TimeMin = DateTime.MaxValue;
-                TimeStart = DateTime.MinValue;
-                TimeNow = DateTime.MinValue;
 
                 for (int i = 0; i < directories.Length; i++)
                 {
