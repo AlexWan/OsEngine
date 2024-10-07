@@ -45,7 +45,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 if(strategySettings._startProgram == StartProgram.IsTester)
                 {
-                    ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Session.ToString());
                     ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Day.ToString());
                 }
 
@@ -140,7 +139,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 TextBoxSecondToClose.IsEnabled = true;
             }
             else if(typeTime == OrderTypeTime.GTC
-                || typeTime == OrderTypeTime.Session
                 || typeTime == OrderTypeTime.Day)
             {
                 CheckBoxSecondToOpenIsOn.IsEnabled = false;

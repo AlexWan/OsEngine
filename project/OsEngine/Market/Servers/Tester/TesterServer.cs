@@ -1912,7 +1912,6 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            List<Order> sessionLifeOrders = new List<Order>();
             List<Order> dayLifeOrders = new List<Order>();
 
             for (int i = 0;i < orders.Count;i++)
@@ -1921,18 +1920,13 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     dayLifeOrders.Add(orders[i]);
                 }
-                else if (orders[i].OrderTypeTime == OrderTypeTime.Session)
-                {
-                    sessionLifeOrders.Add(orders[i]);
-                }
             }
 
-            if(sessionLifeOrders.Count > 0)
+            if(ClearingTimes.Count != 0)
             {
-                CheckOrderBySessionLife(sessionLifeOrders, timeOnMarket);
+                CheckOrderBySessionLife(dayLifeOrders, timeOnMarket);
             }
-
-            if (dayLifeOrders.Count > 0)
+            else
             {
                 CheckOrderByDayLife(dayLifeOrders, timeOnMarket);
             }

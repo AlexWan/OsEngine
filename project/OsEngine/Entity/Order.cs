@@ -596,11 +596,6 @@ namespace OsEngine.Entity
         GTC,
 
         /// <summary>
-        /// Order will be during the trading session. If the exchange has such possibilities
-        /// </summary>
-        Session,
-
-        /// <summary>
         /// Order will be throughout the day. If the exchange has such possibilities
         /// </summary>
         Day
