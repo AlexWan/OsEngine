@@ -395,7 +395,7 @@ namespace OsEngine.Market
                 {
                     newServer = new MoexFixFastTwimeFuturesServer();
                 }
-                if (type == ServerType.MoexFixFastTwimeFutures)
+                if (type == ServerType.MoexFixFastCurrency)
                 {
                     newServer = new MoexFixFastCurrencyServer();
                 }
