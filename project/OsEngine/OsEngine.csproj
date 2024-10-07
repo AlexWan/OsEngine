@@ -828,6 +828,17 @@
     <Compile Include="Market\Servers\MoexFixFastSpot\FIX\Trailer.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\MoexFixFastSpotServer.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\MoexFixFastSpotServerPermission.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\FixMessageConstructor.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\IDsModifiedFixOrders.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\MarketDataGroup.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\NumbersMD.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\OrderChange.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\ReplyTwimeMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\Snapshot.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\TwimeMessageConstructor.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\TwimeOrderReport.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\MoexFixFastTwimeFuturesServer.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\MoexFixFastTwimeFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssDataServer.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssPermission.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
