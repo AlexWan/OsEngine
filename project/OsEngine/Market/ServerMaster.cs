@@ -62,6 +62,7 @@ using OsEngine.Market.Servers.MoexFixFastSpot;
 using OsEngine.Market.Servers.BitMart;
 using OsEngine.Market.Servers.BitMartFutures;
 using OsEngine.Market.Servers.MoexFixFastCurrency;
+using OsEngine.Market.Servers.MoexFixFastTwimeFutures;
 
 namespace OsEngine.Market
 {
@@ -209,7 +210,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitMart);
                 serverTypes.Add(ServerType.BitMartFutures);
                 serverTypes.Add(ServerType.MoexFixFastCurrency);
-
+                serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
+                
                 serverTypes.Add(ServerType.AstsBridge);
 
 
@@ -388,7 +390,12 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
-                if (type == ServerType.MoexFixFastCurrency)
+
+                if (type == ServerType.MoexFixFastTwimeFutures)
+                {
+                    newServer = new MoexFixFastTwimeFuturesServer();
+                }
+                if (type == ServerType.MoexFixFastTwimeFutures)
                 {
                     newServer = new MoexFixFastCurrencyServer();
                 }
@@ -1168,6 +1175,11 @@ namespace OsEngine.Market
                 {
                     serverPermission = new MoexFixFastCurrencyServerPermission();
                 }
+                else if (type == ServerType.MoexFixFastTwimeFutures)
+                {
+                    serverPermission = new MoexFixFastTwimeFuturesServerPermission();
+                }
+
 
                 if (serverPermission != null)
                 {
@@ -1606,5 +1618,10 @@ namespace OsEngine.Market
         /// FIX/FAST for MOEX Currency
         /// </summary>
         MoexFixFastCurrency,
+
+        /// <summary>
+        /// FIX/FAST/TWIME for MOEX Futures
+        /// </summary>
+        MoexFixFastTwimeFutures,
     }
 }
