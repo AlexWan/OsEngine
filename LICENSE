@@ -1,82 +1,61 @@
-BASE END-USER LICENSE AGREEMENT.
+END USER LICENSE AGREEMENT
 
-1. SUBJECT OF THE AGREEMENT.
-1.1 Limited Liability Company "VAN TECHNOLOGIES", registered in accordance with the legislation of the Russian Federation (OGRN 1232300013593, INN 2373023082, hereinafter referred to as the Rights Holder), is the developer and exclusive right holder of a complex of software programs for computerized exchange trading called Open Source Engine (hereinafter referred to as the Software).
-1.2 The current version of the Software is posted by the Rights Holder on the webpage o-s-a.net on the Internet - https://o-s-a.net/os-engine.html (hereinafter referred to as the Official Source) and on the webpage github.com - https://github.com/AlexWan/OsEngine.
-1.3 This base end-user license agreement applies to individuals acting without the formation of a legal entity and non-profit organizations intending to use the Software and meeting the criteria set forth in section 2 ("Scope of the License") of this agreement (hereinafter referred to as the User).
-1.4 The Rights Holder grants the User a simple (non-exclusive) license to use the Software under the terms of this base end-user license agreement (hereinafter referred to as the Agreement).
-1.5 The Agreement is considered concluded, and its terms are deemed fully and unconditionally accepted by the User at the moment when the User records the Software from the Official Source into the memory of any computer.
+1. SUBJECT OF THE AGREEMENT  
+1.1. The Limited Liability Company "VAN TECHNOLOGIES", registered in accordance with the legislation of the Russian Federation (BIN 1232300013593, TIN 2373023082, hereinafter referred to as the "Right Holder"), is the developer and holder of the exclusive rights to a suite of software for automating exchange trading titled Open Source Algo Trading Platform (under the trademark OSENGINE), hereinafter referred to as the "Software".  
+1.2. The current version of the Software is made available by the Right Holder on the website page o-s-a.net on the Internet (hereinafter referred to as the "Official Source").  
+1.3. This license agreement applies to individuals and legal entities, commercial and non-commercial organizations intending to use the Software, hereinafter referred to as the "User".  
+1.4. The Right Holder grants the User a simple (non-exclusive) license to use the Software under the terms of this End User License Agreement (hereinafter referred to as the "Agreement").  
+1.5. The Agreement is deemed concluded, and its terms are considered fully and unconditionally accepted (accepted) by the User at the moment they record the Software from the Official Source into the memory of any computer.
 
-2. SCOPE OF THE LICENSE.
-2.1 The following categories of individuals have the right to use the Software under the terms of the Agreement:
-(1) Individuals whose total income in the last 12 months does not exceed the equivalent of 10 million Russian rubles, using the Software for automating the process of participation in exchange trading, as well as for other purposes at their discretion;
-(2) Individuals using the Software for educational purposes within the framework of their middle or higher education, including when writing graduation papers;
-(3) Non-profit organizations using the Software for non-profit projects, provided that the non-profit organization does not generate income from the use of the Software.
-2.2 For the purposes of this section of the Agreement, the User's income is understood as any income (revenue) received by the User as an individual or legal entity from any type of economic activity (including, but not limited to, any type of entrepreneurial activity, sale of property or property rights, receipt of dividends) in any countries in accordance with applicable legislation.
-2.3 If, when using the Software under this basic license agreement, there comes a point where the aggregate income of the User - an individual for the last 12 months exceeds the amount equivalent to 10 million Russian rubles, such User is obligated to immediately enter into an extended license agreement with the Right holder and use the Software under the terms of such agreement.
-2.4 Continuing to use the Software when the User - an individual reaches the specified revenue threshold without entering into an extended license agreement is a violation of the exclusive right of the Right holder.
-2.5 This basic license agreement does not apply to:
-(1) Any types of commercial organizations;
-(2) An individual whose aggregate income for the last 12 months exceeds the amount equivalent to 10 million Russian rubles;
-(3) Any types of non-profit organizations planning to generate revenue from the use of the Software;
-(4) Other persons not directly listed in clause 2.1 of the Agreement.
-2.6 The categories of individuals listed in clause 2.5 of the Agreement are entitled to use the Software only upon entering into an extended license Agreement with the Right holder. Otherwise, it would be a violation of the exclusive right of the Right holder.
-2.7 To enter into an extended license agreement, the User must visit the following web page: https://o-s-a.net/os-engine-license-about
+2. PURPOSE AND FUNCTIONALITY OF THE SOFTWARE  
+2.1. The Software is intended for participants in exchange trading of financial assets (traders). It allows automating the process of participating in exchange trading by processing historical trading data, finding optimal trading strategies based on that data, and executing buy and sell operations on the exchange using software robots.  
+2.2. The Software includes the following computer programs:  
+(1) Data - a program for loading historical trading data from various sources;  
+(2) Optimizer - a program for selecting optimal parameters for the strategy;  
+(3) Tester - a program for simultaneously testing multiple strategies based on historical data (exchange emulator);  
+(4) Miner - a program for finding profitable patterns on charts;  
+(5) Botstation - a program for launching trading robots.  
+2.3. The Right Holder has the right to make any changes to the Software at its discretion and without prior notice to the User. Current versions of the Software with changes are made available by the Right Holder in the Official Source.
 
-3.  PURPOSE AND FUNCTIONALITY OF THE SOFTWARE.
-3.1 The software is designed for participants in exchange trading of financial assets (traders). It allows for the automation of the trading process by processing historical trading data, searching for optimal trading strategies based on them, and executing buying and selling operations on the exchange through programmatic robots.
-3.2 The software includes the following programs for computer systems:
-(1) Data - a program for downloading historical trading data from various sources;
-(2) Optimizer - a program for selecting optimal parameters for a strategy;
-(3) Tester - a program for testing multiple strategies simultaneously using historical data (an exchange emulator);
-(4) Miner - a program for finding profitable patterns on a chart;
-(5) Botstation - a program for launching robots in trading.
-3.3 The Right holder has the right to make any changes to the Software at its discretion and without prior notice to the User. Updated versions of the Software with the changes made are posted by the Right holder in the Official source.
-3.4 The Right holder has the right to limit the scope of functionality of the Software in order to provide access to the Software for the maximum number of Users, at its own discretion.
+3. WAYS TO USE THE SOFTWARE  
+3.1. The User has the right to use the Software throughout the duration of the exclusive rights to the Software and in all territories of the world only in the ways provided in this section of the Agreement and listed in paragraph 3.2.  
+3.2. The User is permitted to:  
+(1) Trade financial assets on the exchange.  
+(2) Make modifications to the source code of the Software and use the resulting derivative Software only for personal use and/or internal use within a legal entity.  
+(3) Use and make copies of the Software for educational purposes within the framework of acquiring secondary or higher education, including when writing thesis papers.  
+(4) Create video or text tutorials on the use of the Software, sell these tutorials or distribute them for free to other Users, mentioning the copyright and exclusive rights of the Right Holder.  
+(5) Create extensions for the Software, subsequently storing them in the Custom folder (OsEngine-master\project\OsEngine\bin\Debug\Custom) and sell extensions or distribute them for free to other Users. Extensions for the Software include robots, indicators, new types of candles created by the User independently or with the involvement of third parties.
 
-4.  METHODS OF USING THE SOFTWARE.
-4.1 The User is entitled to use the Software only in the ways provided for in this section of the Agreement.
-4.2 The Software may be used in accordance with its functional capabilities for the purposes established for the respective categories of Users in clause 2.1 of the Agreement. To do this, the User has the right to reproduce the Software (create copies) in an unlimited number of instances.
-4.3 The User has the right to make changes to the source code of the Software and use the derived software obtained in this way for the purposes established for the respective categories of Users in clause 2.1 of the Agreement.
-4.4 The User has the right to distribute an unlimited number of copies of the Software and derivative programs among third parties who fall into the categories of Users specified in clause 2.1 of the Agreement. In doing so, the User grants (sub-licenses) the right to use the Software and derivative programs in accordance with the terms of this Agreement.
-4.5 The User has the right to use the Software for the entire duration of the exclusive right to the Software, and worldwide.
+4. RESTRICTIONS ON THE USE OF THE SOFTWARE  
+4.1. The User is prohibited from:  
+(1) Using the Software for illegal purposes or in violation of the lawful rights and interests of third parties.  
+(2) Modifying or deleting copyright information that accompanies the Software.  
+(3) Removing technical means of copyright protection, if such are applied by the Right Holder in the Software.  
+(4) Distributing copies of the Software or the source code of the Software with partially modified source code under a new name (name created by the User) or an existing name (name of the Right Holder), whether for a fee or free of charge.  
+(5) Creating derivative software not mentioned in paragraph 3.2(5) and distributing it under a new name (name created by the User) or an existing name (name of the Right Holder), whether for a fee or free of charge.
 
-5.  LIMITATIONS ON THE USE OF THE SOFTWARE.
-5.1 The User is prohibited from using the Software for unlawful purposes or in violation of the lawful rights and interests of third parties.
-5.2 The User is prohibited from modifying or removing copyright information accompanying the Software.
-5.3 The User is prohibited from bypassing technical protection measures used by the Right holder in the Software without the permission of the Right holder.
-5.4 When distributing copies of the Software and derivative software, the User is required to accompany the relevant copies with a copy of the text of this Agreement.
-5.5 When distributing derivative software, the User is required to indicate the names of the Right holder and the Software as the original source on which the derivative software is based.
-5.6 The User is not entitled to transfer their rights under the Agreement to third parties.
+5. EXCLUSIVE RIGHTS OF THE RIGHT HOLDER  
+5.1. The Right Holder assures the User that it is the legitimate owner of the exclusive rights to the Software and that granting the right to use the Software under the Agreement does not violate the lawful rights and interests of third parties.  
+5.2. In executing the Agreement, the Right Holder retains exclusive rights to the Software, including but not limited to the right to use and modify the Software, grant licenses for its use to third parties, and transfer the exclusive rights to the Software.  
+5.3. If the User makes modifications to the source code of the Software and publishes the resulting derivative Software on the Right Holder's page at https://github.com/AlexWan/OsEngine, the exclusive rights to the corresponding derivative Software belong to the Right Holder.  
+5.4. The Right Holder may, at its discretion, take legal measures to protect its exclusive rights to the Software and hold violators liable under civil, administrative, or criminal law.
 
-6. EXCLUSIVE RIGHTS OF THE RIGHTHOLDER.
-6.1 The right holder assures the User that they are the legitimate owner of the exclusive right to the Software and that granting the right to use the Software under the Agreement does not infringe upon the lawful rights and interests of third parties.
-6.2 When executing the Agreement, the right holder retains the exclusive right to the Software. This includes, but is not limited to, the right to use, modify the Software, grant licenses for its use to third parties, and transfer the exclusive right to the Software.
-6.3 If the User makes modifications to the source code of the Software and publishes the resulting derivative Software on the right holder's page at https://github.com/AlexWan/OsEngine, the exclusive right to the corresponding derivative Software belongs to the right holder.
-6.4 The right holder, at their own discretion, implements measures provided by law to protect their exclusive right to the Software and to hold violators civilly, administratively, or criminally liable.
+6. DISCLAIMER OF LIABILITY BY THE RIGHT HOLDER  
+6.1. The Software is provided by the Right Holder on an "as is" basis, that is, in the state it is in at the time of concluding the Agreement, and the User accepts the Software with all possible defects that may arise during its use.  
+6.2. The Right Holder does not provide the User with any guarantees regarding the Software, including that:  
+(1) The Software will meet the User's requirements and expectations;  
+(2) The Software will operate continuously, quickly, reliably, and without errors;  
+(3) The results obtained using the Software will be accurate and reliable;  
+(4) All errors in the Software will be corrected by the Right Holder.  
+6.3. The User is solely responsible for any consequences of using the Software. The Right Holder is not liable to the User for any losses incurred from using the Software, including the following cases:  
+(1) Suspension of the User's activities;  
+(2) Damage to or loss of the User's property;  
+(3) Failure to generate income by the User;  
+(4) Holding the User liable under civil, administrative, or criminal law.  
+6.4. The User takes measures to comply with applicable law when using the Software for exchange trading and, if necessary, obtains the relevant permits from the competent authorities.
 
-7. DISCLAIMER OF LIABILITY BY THE RIGHTHOLDER.
-7.1 The Software is provided by the right holder "as is," meaning in the condition in which it is at the time of entering into the Agreement, and the User accepts the Software with all possible defects that may arise during its use.
-7.2 The right holder does not provide any warranties to the User regarding the Software, including the following:
-(1) The Software will meet the User's requirements and expectations;
-(2) The Software will function continuously, quickly, reliably, and without errors;
-(3) The results that may be obtained using the Software will be accurate and reliable;
-(4) All errors in the Software will be corrected by the right holder.
-7.3 The User is solely responsible for any consequences of using the Software. The right holder shall not be liable to the User for any losses incurred through the use of the Software, including the following cases:
-(1) Suspension of the User's activities;
-(2) Damage to or loss of the User's property;
-(3) Failure to obtain income by the User;
-(4) Holding the User civilly, administratively, or criminally liable.
-7.4 The User is solely responsible for complying with applicable laws when using the Software for exchange trading and, if necessary, obtaining the relevant permissions from the authorized government bodies.
-
-8. AMENDMENT AND TERMINATION OF THE AGREEMENT.
-8.1 The right holder has the right to make changes to the Agreement without prior notice to the User.
-8.2 The changes shall come into effect from the moment the new version of the Agreement is brought to public attention through the Official Source.
-8.3 The User who disagrees with the current or new version of the Agreement must immediately cease using the Software. The use of the Software in violation of the terms of the current or new version of the Agreement constitutes a violation of the right holder's exclusive rights.
-8.4 The right holder has the right to terminate the Agreement at any time without prior notice to the User and without payment of any penalties.
-
-9. APPLICABLE LAW AND DISPUTE RESOLUTION.
-9.1 The relationships and obligations arising from the Agreement are governed by the laws of the Russian Federation.
-9.2 To settle a dispute arising from the Agreement, a mandatory pre-trial procedure is established by sending a written claim by the respective Party. The Party receiving the claim must provide a written response within one month from the date of receipt.
-9.3 If the claim is not satisfied or left unanswered within the specified period, the Parties resolve the dispute in court at the location of the right holder in accordance with the applicable procedural law of the Russian Federation.
-
+7. AMENDMENT AND TERMINATION OF THE AGREEMENT  
+7.1 The Right Holder has the right to make changes to the Agreement without prior notification to the User.  
+7.2 Changes shall take effect from the moment the new version of the Agreement is made public in the Official Source.  
+7.3 The User who does not agree with the current or new version of the Agreement must immediately cease the use of the Software. Using the Software in violation of the terms of the current or new version of the Agreement constitutes a violation of the exclusive rights of the Right Holder.  
+7.4 The Right Holder has the right to terminate the Agreement at any time without prior notification to the User and without any penalty payments.

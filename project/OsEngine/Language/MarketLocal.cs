@@ -641,7 +641,7 @@ namespace OsEngine.Language
 
         public string Label151 => OsLocalization.ConvertToLocString(
           "Eng:Non-trading periods_" +
-          "Ru:Не торговые периоды_");
+          "Ru:Неторговые периоды_");
 
         public string Label152 => OsLocalization.ConvertToLocString(
           "Eng:Time_" +
