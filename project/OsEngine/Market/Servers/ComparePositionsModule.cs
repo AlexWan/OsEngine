@@ -28,25 +28,6 @@ namespace OsEngine.Market.Servers
 
         public AServer Server;
 
-        public bool AutoLogMessageOnError
-        {
-            get
-            {
-                return _autoLogMessageOnError;
-            }
-            set
-            {
-                if(_autoLogMessageOnError == value)
-                {
-                    return;
-                }
-
-                _autoLogMessageOnError = value;
-                Save();
-            }
-        }
-        private bool _autoLogMessageOnError;
-
         public ComparePositionsVerificationPeriod VerificationPeriod
         {
             get
@@ -66,14 +47,20 @@ namespace OsEngine.Market.Servers
         }
         private ComparePositionsVerificationPeriod _verificationPeriod;
 
-        private void Save()
+        public List<string> PortfoliosToWatch = new List<string>();
+
+        public void Save()
         {
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Server.ServerType.ToString() + @"CompareModule.txt", false))
                 {
-                    writer.WriteLine(_autoLogMessageOnError);
                     writer.WriteLine(_verificationPeriod);
+
+                    for(int i = 0;i < PortfoliosToWatch.Count;i++)
+                    {
+                        writer.WriteLine(PortfoliosToWatch[i]);
+                    }
 
                     writer.Close();
                 }
@@ -94,8 +81,17 @@ namespace OsEngine.Market.Servers
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + Server.ServerType.ToString() + @"CompareModule.txt"))
                 {
-                    _autoLogMessageOnError = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out _verificationPeriod);
+
+                    while(reader.EndOfStream == false)
+                    {
+                        string portfolio = reader.ReadLine();
+
+                        if(string.IsNullOrEmpty(portfolio)  == false)
+                        {
+                            PortfoliosToWatch.Add(portfolio);
+                        }
+                    }
 
                     reader.Close();
                 }
@@ -128,7 +124,7 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if(_autoLogMessageOnError == false)
+                    if(PortfoliosToWatch.Count == 0)
                     {
                         continue;
                     }
@@ -164,9 +160,14 @@ namespace OsEngine.Market.Servers
 
                     for(int i = 0; portfolios != null && i < portfolios.Count; i++)
                     {
-                        CheckPortfolio(portfolios[i]);
+                        for(int j = 0;j < PortfoliosToWatch.Count; j++)
+                        {
+                            if (PortfoliosToWatch[j] == portfolios[i].PortfolioName)
+                            {
+                                CheckPortfolio(portfolios[i]);
+                            }
+                        }
                     }
-
                 }
                 catch (Exception e)
                 {

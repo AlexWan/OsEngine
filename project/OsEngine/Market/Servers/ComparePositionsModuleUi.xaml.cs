@@ -52,7 +52,27 @@ namespace OsEngine.Market.Servers
             CheckBoxAutoLogMessageOnError.Content = OsLocalization.Market.Label138;
             LabelVerificationPeriod.Content = OsLocalization.Market.Label139;
 
-            CheckBoxAutoLogMessageOnError.IsChecked = comparePositionsModule.AutoLogMessageOnError;
+
+            bool isInArray = false;
+
+            for (int i = 0; i < _comparePositionsModule.PortfoliosToWatch.Count; i++)
+            {
+                if (_comparePositionsModule.PortfoliosToWatch[i] == PortfolioName)
+                {
+                    isInArray = true;
+                    break;
+                }
+            }
+
+            if(isInArray == true)
+            {
+                CheckBoxAutoLogMessageOnError.IsChecked = true;
+            }
+            else
+            {
+                CheckBoxAutoLogMessageOnError.IsChecked = false;
+            }
+         
             CheckBoxAutoLogMessageOnError.Click += CheckBoxAutoLogMessageOnError_Click;
 
             ComboBoxVerificationPeriod.Items.Add(ComparePositionsVerificationPeriod.Min1.ToString());
@@ -72,7 +92,38 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                _comparePositionsModule.AutoLogMessageOnError = CheckBoxAutoLogMessageOnError.IsChecked.Value;
+                if(CheckBoxAutoLogMessageOnError.IsChecked.Value == true)
+                {
+                    bool isInArray = false;
+
+                    for(int i =0;i < _comparePositionsModule.PortfoliosToWatch.Count;i++)
+                    {
+                        if (_comparePositionsModule.PortfoliosToWatch[i] == PortfolioName)
+                        {
+                            isInArray = true; 
+                            break;    
+                        }
+                    }
+
+                    if(isInArray == false)
+                    {
+                        _comparePositionsModule.PortfoliosToWatch.Add(PortfolioName);
+                        _comparePositionsModule.Save();
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < _comparePositionsModule.PortfoliosToWatch.Count; i++)
+                    {
+                        if (_comparePositionsModule.PortfoliosToWatch[i] == PortfolioName)
+                        {
+                            _comparePositionsModule.PortfoliosToWatch.RemoveAt(i);
+                            _comparePositionsModule.Save();
+                            break;
+                        }
+                    }
+
+                }
             }
             catch (Exception ex)
             {
