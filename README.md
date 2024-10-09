@@ -84,7 +84,7 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 3) Arbitrage strategies for trading divergences of correlating instruments, including one-legged arbitrage.
 
-Until August 2023, the project was distributed under the Apache 2 licence. Since September 2023 it is distributed under a commercial licence. All rights belong to Wang Technologies Ltd. In order to use any part of the project in your commercial projects, you need to obtain an extended licence on the site of the right holder.
+Until August 2023, the project was distributed under the Apache 2 licence. Since September 2023 it is distributed under a commercial licence. All rights belong to Wang Technologies Ltd.
 
 By downloading Os Engine, you agree that if a critical error occurs, information about it will be sent to the developer. Instructions on how to disable this functionality: https://os-engine-eng.com/posts/crash-reception-server.html
 
@@ -179,7 +179,7 @@ FAQ: https://o-s-a.net/os-engine-faq
 
 Телеграмм группа поддержки: https://t.me/osengine_official_support
 
-До августа 2023 года проект распространялся под лицензией Apache 2. С сентября 2023 года распространяется под коммерческой лицензией. Все права принадлежат ООО "Ван Технологии". Для того чтобы использовать любую часть проекта, добавленного в репозиторий начиная с сентября 2023 года в своих коммерческих проектах, Вам необходимо получить расширенную лицензию на сайте правообладателя.
+До августа 2023 года проект распространялся под лицензией Apache 2. С сентября 2023 года распространяется под коммерческой лицензией. Все права принадлежат ООО "Ван Технологии". 
 
 Разьяснения относительно лицензионного соглашения: https://o-s-a.net/os-engine-license-about 
 
