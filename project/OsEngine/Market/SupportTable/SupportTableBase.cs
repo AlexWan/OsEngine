@@ -68,10 +68,30 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(fixFast);
 
+            SupportConnection fixFastCur = new SupportConnection()
+            {
+                ServerType = ServerType.MoexFixFastCurrency,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Moex\\FixFast.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(fixFastCur);
+
+            SupportConnection fixFastForts = new SupportConnection()
+            {
+                ServerType = ServerType.MoexFixFastTwimeFutures,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Moex\\FixFast.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(fixFastForts);
+
             SupportConnection plaza = new SupportConnection()
             {
                 ServerType = ServerType.Plaza,
-                SupportType = SupportServerType.No,
+                SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Moex\\Plaza2.png",
                 LingSiteUrl = "",
                 Discount = 0
