@@ -1351,6 +1351,11 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
+                if (_isPaint == false)
+                {
+                    return;
+                }
+
                 if (history == null && _myCandles == null)
                 {
                     return;
@@ -1359,6 +1364,11 @@ namespace OsEngine.Charts.CandleChart
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<List<Candle>>(PaintCandles), history);
+                    return;
+                }
+
+                if (_isPaint == false)
+                {
                     return;
                 }
 
@@ -3854,12 +3864,22 @@ namespace OsEngine.Charts.CandleChart
                 {
                     return;
                 }
+
+                if (_isPaint == false)
+                {
+                    return;
+                }
+
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<IIndicator>(PaintIndicator), indicator);
                     return;
                 }
 
+                if (_isPaint == false)
+                {
+                    return;
+                }
 
                 if (indicator.ValuesToChart != null)
                 {
@@ -5165,12 +5185,14 @@ namespace OsEngine.Charts.CandleChart
                         {
                             try
                             {
+                                area.AxisY2.CustomLabels[i] = new CustomLabel(min, max, label, 0, LabelMarkStyle.LineSideMark);
                                 area.AxisY2.CustomLabels.RemoveAt(i);
                                 i--;
                                 continue;
                             }
                             catch
                             {
+                                continue;
                                 // ignore
                             }
                         }
@@ -5251,6 +5273,11 @@ namespace OsEngine.Charts.CandleChart
             string positon = oldlabel.Price.ToDecimal().ToString(CultureInfo.InvariantCulture);
             for (int i = 0; i < area.AxisY2.CustomLabels.Count; i++)
             {
+                if(area.AxisY2.CustomLabels[i] == null)
+                {
+                    continue;
+                }
+
                 if (area.AxisY2.CustomLabels[i].Text == positon && area.AxisY2.CustomLabels[i].ForeColor == color)
                 {
                     area.AxisY2.CustomLabels.Remove(area.AxisY2.CustomLabels[i]);
@@ -5385,12 +5412,29 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int indSecond = 0; indSecond < _labels.Count; indSecond++)
                 {
+                    ChartYLabels curLabel = null; 
+
+                    try
+                    {
+                        curLabel = _labels[indSecond];
+                    }
+                    catch
+                    {
+                        // ignore
+                        continue;
+                    }
+
+                    if(curLabel == null)
+                    {
+                        continue;
+                    }
+
                     if (indLabel == indSecond)
                     {
                         continue;
                     }
 
-                    if (_labels[indSecond].IsPrime)
+                    if (curLabel.IsPrime)
                     {
                         // If two primes are on each other, leave it
                         // если два прайма друг на дружке, то оставляем
@@ -5398,18 +5442,18 @@ namespace OsEngine.Charts.CandleChart
                     }
 
 
-                    if (_labels[indSecond].AreaName != label.AreaName)
+                    if (curLabel.AreaName != label.AreaName)
                     {
                         continue;
                     }
 
-                    double price = _labels[indSecond].Price.ToDouble();
+                    double price = curLabel.Price.ToDouble();
                     if (price < max &&
                         price > min)
                     {
                         // found intersection
                         // нашли пересечение
-                        ClearLabelOnY2(_labels[indSecond].SeriesName, nameArea, _labels[indSecond].Color);
+                        ClearLabelOnY2(curLabel.SeriesName, nameArea, curLabel.Color);
                         indSecond--;
                     }
                 }
@@ -6344,6 +6388,13 @@ namespace OsEngine.Charts.CandleChart
 
             for (int i = 0; chartSeries != null && i < chartSeries.Count; i++)
             {
+                if (chartSeries[i] == null)
+                {
+                    _chart.Series.Clear();
+                    i--;
+                    continue;
+                }
+
                 if (chartSeries[i].ChartArea == areaName)
                 {
                     seriesOnArea.Add(chartSeries[i]);
@@ -6971,7 +7022,22 @@ namespace OsEngine.Charts.CandleChart
 
         private SeriesYLength GetSeriesYLength(Series series, int start, int end, Series candleSeries)
         {
-            SeriesYLength currentLength = _seriesYLengths.Find(yl => yl.Series.Name == series.Name);
+            SeriesYLength currentLength = null;
+
+            for (int i =0; i < _seriesYLengths.Count;i++)
+            {
+                if (_seriesYLengths[i] == null)
+                {
+                    _seriesYLengths.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                if (_seriesYLengths[i].Series.Name == series.Name)
+                {
+                    currentLength = _seriesYLengths[i];
+                    break;
+                }
+            }
 
             if(end >= series.Points.Count)
             {
@@ -7221,6 +7287,11 @@ namespace OsEngine.Charts.CandleChart
 
             for (int i = 0; i < labelCount; i++)
             {
+                if (area.AxisX.CustomLabels[i] == null)
+                {
+                    continue;
+                }
+
                 area.AxisX.CustomLabels[i].FromPosition = value - area.AxisX.Interval * 0.7;
                 area.AxisX.CustomLabels[i].ToPosition = value + area.AxisX.Interval * 0.7;
                 area.AxisX.CustomLabels[i].Text = _myCandles[(int)value].TimeStart.ToString(_cultureInterfaces);
