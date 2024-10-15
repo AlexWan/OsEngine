@@ -2173,7 +2173,16 @@ namespace OsEngine.Charts.CandleChart
 
                     for(int j = 0; j < _chart.Series.Count;j++)
                     {
-                        Series curSeries = _chart.Series[j];
+                        Series curSeries = null;
+
+                        try
+                        {
+                            curSeries = _chart.Series[j];
+                        }
+                        catch
+                        {
+                            continue;
+                        }
 
                         if (curSeries.Name == profitStopOrderSeries[i].Name)
                         {
@@ -2210,7 +2219,16 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int j = 0; j < _chart.Series.Count; j++)
                 {
-                    Series curSeries = _chart.Series[j];
+                    Series curSeries = null;
+
+                    try
+                    {
+                        curSeries = _chart.Series[j];
+                    }
+                    catch
+                    {
+                        continue;
+                    }
 
                     string name = curSeries.Name.Split('_')[0];
 
@@ -6390,8 +6408,28 @@ namespace OsEngine.Charts.CandleChart
             {
                 if (chartSeries[i] == null)
                 {
+                    List<Series> noNullSeries = new List<Series>();
+
+                    for(int j = 0;j < chartSeries.Count;j++)
+                    {
+                        if (chartSeries[j] == null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            noNullSeries.Add(chartSeries[j]);
+                        }
+                    }
+
                     _chart.Series.Clear();
                     i--;
+
+                    for (int j = 0; j < noNullSeries.Count; j++)
+                    {
+                        _chart.Series.Add(noNullSeries[j]);
+                    }
+
                     continue;
                 }
 
