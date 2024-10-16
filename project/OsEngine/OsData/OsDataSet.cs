@@ -1633,7 +1633,7 @@ namespace OsEngine.OsData
             pie.Status = DataPieStatus.Load;
         }
 
-        private List<Trade> GetTradexAllHistory()
+        private List<Trade> GetTradesAllHistory()
         {
             if (_isDeleted) { return null; }
 
@@ -1685,7 +1685,7 @@ namespace OsEngine.OsData
 
             _saveStrCandleCount = curSaveStrObjectsCount;
 
-            List<Trade> extTrades = GetTradexAllHistory();
+            List<Trade> extTrades = GetTradesAllHistory();
 
             if (extTrades.Count == 0)
             {
@@ -1851,7 +1851,7 @@ namespace OsEngine.OsData
 
         public List<Candle> GetExtCandlesFromTrades()
         {
-            List<Trade> trades = GetTradexAllHistory();
+            List<Trade> trades = GetTradesAllHistory();
 
             if (trades == null
                 || trades.Count == 0)
@@ -2236,7 +2236,9 @@ namespace OsEngine.OsData
             // 1 Актуальное время старта
             CandlePieStatusInfo CandlesInfo = null;
 
-            if (_pathMyTempPieInTfFolder.Contains("Tick") == false)
+            if (_pathMyTempPieInTfFolder.Contains("Tick") == false
+                &&
+                _pathMyTempPieInTfFolder.Contains("Sec") == false)
             {
                 CandlesInfo = LoadCandlesPieStatus();
             }
@@ -2245,7 +2247,9 @@ namespace OsEngine.OsData
 
             if ((CandlesInfo == null
                 || CandlesInfo.FirstCandle == null)
-                && _pathMyTempPieInTfFolder.Contains("Tick") == true)
+                && 
+                (_pathMyTempPieInTfFolder.Contains("Tick") == true
+                || _pathMyTempPieInTfFolder.Contains("Sec") == true))
             {
                 TradesInfo = LoadTradesPieStatus();
             }
