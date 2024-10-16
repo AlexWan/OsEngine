@@ -1006,7 +1006,19 @@ namespace OsEngine.OsTrader.Panels.Tab
                             continue;
                         }
 
-                        if (positionsOnBoard[i].SecurityNameCode.Contains(Securiti.Name))
+                        if (positionsOnBoard[i].ValueCurrent == 0)
+                        {
+                            continue;
+                        }
+
+                        string nameShort = Securiti.Name + "_SHORT";
+                        string nameLong = Securiti.Name + "_LONG";
+                        string nameBoth = Securiti.Name + "_BOTH";
+
+                        if (positionsOnBoard[i].SecurityNameCode.Equals(Securiti.Name)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameShort)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameLong)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameBoth))
                         {
                             posesWithMySecurity.Add(positionsOnBoard[i]);
                         }
