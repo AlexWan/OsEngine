@@ -349,16 +349,16 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewButtonColumn column11 = new DataGridViewButtonColumn();
             column11.CellTemplate = new DataGridViewButtonCell();
-            column11.HeaderText = OsLocalization.Optimizer.Message40;
+            //column11.HeaderText = OsLocalization.Optimizer.Message40;
             column11.ReadOnly = true;
-            column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridResults.Columns.Add(column11);
 
             DataGridViewButtonColumn column12 = new DataGridViewButtonColumn();
             column12.CellTemplate = new DataGridViewButtonCell();
-            column12.HeaderText = OsLocalization.Optimizer.Message42;
+           // column12.HeaderText = OsLocalization.Optimizer.Message42;
             column12.ReadOnly = true;
-            column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridResults.Columns.Add(column12);
 
             _gridResults.Rows.Add(null, null);
