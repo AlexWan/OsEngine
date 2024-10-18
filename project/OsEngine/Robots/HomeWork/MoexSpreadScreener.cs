@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 
 namespace OsEngine.Robots.HomeWork
@@ -17,6 +18,7 @@ namespace OsEngine.Robots.HomeWork
         private StrategyParameterString _regime;
         private List<string> _listSecurities;
         private List<string> _listMathSign = new List<string> { @"/", @"-" };
+        private int _countCell = 7;
 
         public MoexSpreadScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -32,10 +34,13 @@ namespace OsEngine.Robots.HomeWork
             CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab("Table Parameters");
 
             CreateTable();
+           //CreateChart();
             customTab.AddChildren(_host);            
 
             _tab.CandleUpdateEvent += _tab_CandleUpdateEvent;
             _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;
+
+           
         }
 
         bool isLoad = false;
@@ -46,6 +51,7 @@ namespace OsEngine.Robots.HomeWork
             {
                 _listSecurities = GetListSecuruties();
                 CreateButtonAddRow();
+                CreateChart();
                 LoadTable();
                 isLoad = true;
             }
@@ -58,6 +64,21 @@ namespace OsEngine.Robots.HomeWork
 
         public override void ShowIndividualSettingsDialog()
         {
+        }
+
+        private void CreateCustomContainer()
+        {
+            var container = new TableLayoutPanel();
+            container.Dock = DockStyle.Fill;
+
+            CreateTable();
+
+            // Настройка размеров
+            container.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            container.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+            container.RowStyles.Add(new RowStyle(SizeType.Percent, 70));
+            container.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         }
 
         private void CreateButtonAddRow()
@@ -75,14 +96,36 @@ namespace OsEngine.Robots.HomeWork
 
             newRow.Cells.Add(buttonCell);
 
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < _countCell; i++)
             {
                 newRow.Cells.Add(new DataGridViewTextBoxCell());
             }
                        
+            newRow.ReadOnly = true;
             _grid.Rows.Add(newRow);
-            _grid.Rows[_grid.Rows.Count - 1].ReadOnly = true;
+
+           
+        }
+
+        private Chart _chart;
+
+        private void CreateChart()
+        {
+            if (MainWindow.GetDispatcher.CheckAccess() == false)
+            {
+                MainWindow.GetDispatcher.Invoke(new Action(CreateChart));
+                return;
+            }
+
+            DataGridViewRow newRow = new DataGridViewRow();
+            newRow.Cells.Clear();/*
+            newRow.Cells.Add(new DataGridViewTextBoxCell());
             
+            newRow.Cells[0].Value = "Width Column";*/
+            
+            newRow.ReadOnly = true;
+            _grid.Rows.Add(newRow);
+
         }
 
         private WindowsFormsHost _host;
@@ -172,14 +215,15 @@ namespace OsEngine.Robots.HomeWork
 
         private void NewGrid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 7 && e.RowIndex != _grid.Rows.Count - 1)
+            if (e.ColumnIndex == 7 && e.RowIndex < _grid.Rows.Count - 2)
             {
                 _grid.Rows.RemoveAt(e.RowIndex);                               
             }
 
-            if (e.ColumnIndex == 0 && e.RowIndex == _grid.Rows.Count - 1)
+            if (e.ColumnIndex == 0 && e.RowIndex == _grid.Rows.Count - 2)
             {
-                SetNewRowsSpread();
+                _listSecurities = GetListSecuruties();
+                SetNewRowsSpread();                
             }
 
             SaveTable();
@@ -187,11 +231,11 @@ namespace OsEngine.Robots.HomeWork
 
         private void NewGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 0 && e.RowIndex != _grid.Rows.Count - 1)
+            if (e.ColumnIndex == 0 && e.RowIndex < _grid.Rows.Count - 2)
             {
                 GetLastPriceSecurityInTable(e.ColumnIndex, e.RowIndex);
             }
-            if (e.ColumnIndex == 1 && e.RowIndex != _grid.Rows.Count - 1)
+            if (e.ColumnIndex == 1 && e.RowIndex < _grid.Rows.Count - 2)
             {
                 GetLastPriceSecurityInTable(e.ColumnIndex, e.RowIndex);
             }
@@ -293,7 +337,7 @@ namespace OsEngine.Robots.HomeWork
                     {
                         mathSign = @"-";
                     }
-                    _grid.Rows[i].Cells[6].Value = GetSpread(Convert.ToDecimal(_grid.Rows[i].Cells[2].Value), Convert.ToDecimal(_grid.Rows[i].Cells[3].Value), mathSign, Convert.ToDecimal(_grid.Rows[i].Cells[5].Value));
+                    _grid.Rows[i].Cells[6].Value = CalculateSpread(Convert.ToDecimal(_grid.Rows[i].Cells[2].Value), Convert.ToDecimal(_grid.Rows[i].Cells[3].Value), mathSign, Convert.ToDecimal(_grid.Rows[i].Cells[5].Value));
                 }
             }
             catch (Exception ex)
@@ -302,17 +346,17 @@ namespace OsEngine.Robots.HomeWork
             }            
         }
 
-        private decimal GetSpread(decimal price1, decimal price2, string mathSign, decimal mult)
+        private decimal CalculateSpread(decimal price1, decimal price2, string mathSign, decimal mult)
         {           
             if (mathSign == @"-")
             {
-                return GetRound(price1 - price2 * mult);
+                return CalculateRound(price1 - price2 * mult);
             }
 
-            return GetRound(price1 / (price2 * mult));
+            return CalculateRound(price1 / (price2 * mult));
         }
 
-        private decimal GetRound(decimal number)
+        private decimal CalculateRound(decimal number)
         {
             if (number > 1)
             {
@@ -345,7 +389,7 @@ namespace OsEngine.Robots.HomeWork
             newRow.Cells[3].ReadOnly = true;
             newRow.Cells[6].ReadOnly = true;
 
-            _grid.Rows.Insert(_grid.Rows.Count - 1, newRow);
+            _grid.Rows.Insert(_grid.Rows.Count - 2, newRow);
         }
 
         private void SaveTable()
@@ -355,7 +399,7 @@ namespace OsEngine.Robots.HomeWork
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SpreadScreener.txt", false)
                     )
                 {
-                    for (int i = 0; i < _grid.Rows.Count - 1; i++)
+                    for (int i = 0; i < _grid.Rows.Count - 2; i++)
                     {
                         string saveString = "";
 
@@ -423,7 +467,7 @@ namespace OsEngine.Robots.HomeWork
                                 newRow.Cells[3].ReadOnly = true;
                                 newRow.Cells[6].ReadOnly = true;
 
-                                _grid.Rows.Insert(_grid.Rows.Count - 1, newRow);
+                                _grid.Rows.Insert(_grid.Rows.Count - 2, newRow);
                             }
                             else
                             {
