@@ -1226,7 +1226,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 OrderStateType stateType = GetOrderState(item.State);
 
                 if (item.Type.Equals("Market", StringComparison.OrdinalIgnoreCase) 
-                    && stateType == OrderStateType.Activ)
+                    && stateType == OrderStateType.Active)
                 {
                     return;
                 }
@@ -1271,7 +1271,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 newOrder.ServerType = ServerType.XTSpot;
                 newOrder.PortfolioNumber = "XTSpot";
 
-                if (stateType == OrderStateType.Done || stateType == OrderStateType.Patrial)
+                if (stateType == OrderStateType.Done || stateType == OrderStateType.Partial)
                 {
                     CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, 1);
                 }
@@ -1286,11 +1286,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 switch (orderStatusResponse.ToLower())
                 {
                     case ("new"):
-                        stateType = OrderStateType.Activ;
+                        stateType = OrderStateType.Active;
                         break;
                     
                     case ("partially_filled"):
-                        stateType = OrderStateType.Patrial;
+                        stateType = OrderStateType.Partial;
                         break;
                     
                     case ("filled"):
@@ -1382,7 +1382,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                     {
                         SendLogMessage($"Order num {order.NumberUser} on XT exchange.", LogMessageType.Trade);
-                        order.State = OrderStateType.Activ;
+                        order.State = OrderStateType.Active;
                         if (order.TypeOrder == OrderPriceType.Market)
                         {
                             order.State = OrderStateType.Done;
@@ -1690,7 +1690,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 MyOrderEvent?.Invoke(myOrder);
 
                 if(myOrder.State == OrderStateType.Done 
-                   || myOrder.State == OrderStateType.Patrial)
+                   || myOrder.State == OrderStateType.Partial)
                 {
                     CreateQueryMyTrade(myOrder.SecurityNameCode,myOrder.NumberMarket,1);
                 }

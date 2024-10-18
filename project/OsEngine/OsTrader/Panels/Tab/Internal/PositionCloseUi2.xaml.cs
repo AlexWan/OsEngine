@@ -650,7 +650,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
                     Order order = Position.CloseOrders[i];
 
-                    if(order.State == OrderStateType.Activ)
+                    if(order.State == OrderStateType.Active)
                     {
                         Tab.CloseOrder(order);
                     }

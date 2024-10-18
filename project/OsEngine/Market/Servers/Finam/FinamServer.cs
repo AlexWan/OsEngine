@@ -296,9 +296,9 @@ namespace OsEngine.Market.Servers.Finam
                     _threadPrime.IsBackground = true;
                     _threadPrime.Start();
 
-                    if (NeadToReconnectEvent != null)
+                    if (NeedToReconnectEvent != null)
                     {
-                        NeadToReconnectEvent();
+                        NeedToReconnectEvent();
                     }
 
                     return;
@@ -1353,7 +1353,7 @@ namespace OsEngine.Market.Servers.Finam
         /// connectors connected to server need to reload data
         /// коннекторам подключеным к серверу необходимо перезаказать данные
         /// </summary>
-        public event Action NeadToReconnectEvent;
+        public event Action NeedToReconnectEvent;
 
         /// <summary>
         /// candles downloading from method GetSmartComCandleHistory

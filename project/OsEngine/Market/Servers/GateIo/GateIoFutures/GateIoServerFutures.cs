@@ -1254,7 +1254,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                 if (responseDepths.result[i].Status.Equals("open"))
                 {
-                    orderState = OrderStateType.Activ;
+                    orderState = OrderStateType.Active;
                 }
                 else
                 {
@@ -1397,7 +1397,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 if (orderResponse.Status == "open" || orderResponse.Status == "finished")
                 {
                     order.NumberMarket = orderResponse.Id;
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     SendLogMessage($"Order num {order.NumberUser} wait to execution on exchange.", LogMessageType.Trade);
                 }
                 else

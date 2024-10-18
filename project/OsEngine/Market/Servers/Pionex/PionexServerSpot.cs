@@ -860,7 +860,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             OrderStateType stateType = GetOrderState(item.status, item.filledSize);
 
-            if (item.type.Equals("MARKET") && stateType == OrderStateType.Activ)
+            if (item.type.Equals("MARKET") && stateType == OrderStateType.Active)
             {
                 return;
             }
@@ -894,11 +894,11 @@ namespace OsEngine.Market.Servers.Pionex
 
             if (status == "OPEN" && filledSize == "0")
             {
-                stateType = OrderStateType.Activ;
+                stateType = OrderStateType.Active;
             }
             else if (status == "OPEN" && filledSize != "0")
             {
-                stateType = OrderStateType.Patrial;
+                stateType = OrderStateType.Partial;
             }
             else if (status == "CLOSED" && filledSize != "0")
             {
@@ -962,7 +962,7 @@ namespace OsEngine.Market.Servers.Pionex
                 if (response.result == "true")
                 {
                     SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.NumberMarket = response.data.orderId;
                 }
                 else

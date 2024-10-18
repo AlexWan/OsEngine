@@ -271,6 +271,10 @@ namespace OsEngine.OsTrader
                     nRow.Cells[2].Value = "";
                 }
 
+                int decimalsPrice = position.PriceStep.ToStringWithNoEndZero().DecimalsCount();
+
+                decimalsPrice++;
+
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[3].Value = position.NameBot;
 
@@ -305,7 +309,7 @@ namespace OsEngine.OsTrader
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[10].Value = openPrice.ToStringWithNoEndZero();
+                nRow.Cells[10].Value = Math.Round(openPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 decimal closePrice = position.ClosePrice;
 
@@ -320,22 +324,22 @@ namespace OsEngine.OsTrader
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[11].Value = closePrice.ToStringWithNoEndZero();
+                nRow.Cells[11].Value = Math.Round(closePrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
+                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[13].Value = Math.Round(position.StopOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[14].Value = Math.Round(position.StopOrderPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[15].Value = Math.Round(position.ProfitOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[16].Value = Math.Round(position.ProfitOrderPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[17].Value = position.SignalTypeOpen;
@@ -392,7 +396,11 @@ namespace OsEngine.OsTrader
                 nRow.Cells[9].Value = position.WaitVolume.ToStringWithNoEndZero();
             }
 
-            decimal openPrice = position.EntryPrice;
+            int decimalsPrice = position.PriceStep.ToStringWithNoEndZero().DecimalsCount();
+
+            decimalsPrice++;
+
+            decimal openPrice = Math.Round(position.EntryPrice, decimalsPrice);
 
             if (openPrice == 0)
             {
@@ -410,7 +418,7 @@ namespace OsEngine.OsTrader
                 nRow.Cells[10].Value = openPrice.ToStringWithNoEndZero();
             }
 
-            decimal closePrice = position.ClosePrice;
+            decimal closePrice = Math.Round(position.ClosePrice, decimalsPrice);
 
             if (closePrice == 0)
             {
@@ -428,33 +436,63 @@ namespace OsEngine.OsTrader
                 nRow.Cells[11].Value = closePrice.ToStringWithNoEndZero();
             }
 
+            decimal profit = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice);
+
             if (nRow.Cells[12].Value == null
-                || nRow.Cells[12].Value.ToString() != position.ProfitPortfolioPunkt.ToStringWithNoEndZero())
+                || nRow.Cells[12].Value.ToString() != profit.ToStringWithNoEndZero())
             {
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
+                nRow.Cells[12].Value = profit.ToStringWithNoEndZero();
             }
+
+            decimal stopRedLine = Math.Round(position.StopOrderRedLine, decimalsPrice);
+
             if (nRow.Cells[13].Value == null ||
-                nRow.Cells[13].Value.ToString() != position.StopOrderRedLine.ToStringWithNoEndZero())
+                nRow.Cells[13].Value.ToString() != stopRedLine.ToStringWithNoEndZero())
             {
-                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[13].Value = stopRedLine.ToStringWithNoEndZero();
             }
+
+            decimal stopPrice = Math.Round(position.StopOrderPrice, decimalsPrice);
 
             if (nRow.Cells[14].Value == null
-                || nRow.Cells[14].Value.ToString() != position.StopOrderPrice.ToStringWithNoEndZero())
+                || nRow.Cells[14].Value.ToString() != stopPrice.ToStringWithNoEndZero())
             {
-                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
-            }
-            if (nRow.Cells[15].Value == null ||
-                 nRow.Cells[15].Value.ToString() != position.ProfitOrderRedLine.ToStringWithNoEndZero())
-            {
-                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
-            }
-            if (nRow.Cells[16].Value != null ||
-                nRow.Cells[16].Value.ToString() != position.ProfitOrderPrice.ToStringWithNoEndZero())
-            {
-                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[14].Value = stopPrice.ToStringWithNoEndZero();
             }
 
+            decimal profitRedLine = Math.Round(position.ProfitOrderRedLine,decimalsPrice);
+
+            if (nRow.Cells[15].Value == null ||
+                 nRow.Cells[15].Value.ToString() != profitRedLine.ToStringWithNoEndZero())
+            {
+                nRow.Cells[15].Value = profitRedLine.ToStringWithNoEndZero();
+            }
+
+            decimal profitPrice = Math.Round(position.ProfitOrderPrice,decimalsPrice);
+
+            if (nRow.Cells[16].Value == null ||
+                nRow.Cells[16].Value.ToString() != profitPrice.ToStringWithNoEndZero())
+            {
+                nRow.Cells[16].Value = profitPrice.ToStringWithNoEndZero();
+            }
+
+            if (string.IsNullOrEmpty(position.SignalTypeOpen) == false)
+            {
+                if (nRow.Cells[17].Value == null
+                ||
+                nRow.Cells[17].Value.ToString() != position.SignalTypeOpen.ToString())
+                {
+                    nRow.Cells[17].Value = position.SignalTypeOpen;
+                }
+            }
+            if (string.IsNullOrEmpty(position.SignalTypeClose) == false)
+            {
+                if (nRow.Cells[18].Value == null ||
+                nRow.Cells[18].Value.ToString() != position.SignalTypeClose)
+                {
+                    nRow.Cells[18].Value = position.SignalTypeClose;
+                }
+            }
         }
 
         private async void WatcherThreadWorkArea()
@@ -521,18 +559,97 @@ namespace OsEngine.OsTrader
                     if (_gridOpenPoses != null)
                     {
                         CheckPosition(_gridOpenPoses, openPositions);
+                        Sort(_gridOpenPoses);
                     }
 
                     if (_gridClosePoses != null)
                     {
                         CheckPosition(_gridClosePoses, closePositions);
+                        Sort(_gridClosePoses);
                     }
+
+                    
                 }
                 catch(Exception e)
                 {
                     SendNewLogMessage(e.ToString(),LogMessageType.Error);
                     await Task.Delay(5000);
                 }
+            }
+        }
+
+        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptions]
+        private void Sort(DataGridView grid)
+        {
+            try
+            {
+                if (grid.InvokeRequired)
+                {
+                    grid.Invoke(new Action<DataGridView>(Sort), grid);
+                    return;
+                }
+
+                bool needToSort = false;
+
+                for (int i = 1; i < grid.Rows.Count; i++)
+                {
+                    if (grid.Rows[i].Cells[0].Value == null
+                        || grid.Rows[i - 1].Cells[0].Value == null)
+                    {
+                        continue;
+                    }
+
+                    int numCur = Convert.ToInt32(grid.Rows[i].Cells[0].Value.ToString());
+                    int numPrev = Convert.ToInt32(grid.Rows[i - 1].Cells[0].Value.ToString());
+
+                    if (numCur > numPrev)
+                    {
+                        needToSort = true;
+                        break;
+                    }
+                }
+
+                if (needToSort == false)
+                {
+                    return;
+                }
+
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+                rows.Add(grid.Rows[0]);
+
+                for (int i = 1; i < grid.Rows.Count; i++)
+                {
+                    DataGridViewRow curRow = grid.Rows[i];
+
+                    int numCur = Convert.ToInt32(grid.Rows[i].Cells[0].Value.ToString());
+
+                    bool isInArray = false;
+
+                    for (int i2 = 0; i2 < rows.Count; i2++)
+                    {
+                        int numCurInRowsGrid = Convert.ToInt32(rows[i2].Cells[0].Value.ToString());
+
+                        if (numCur > numCurInRowsGrid)
+                        {
+                            rows.Insert(i2, curRow);
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        rows.Add(curRow);
+                    }
+                }
+
+                grid.Rows.Clear();
+                grid.Rows.AddRange(rows.ToArray());
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -595,20 +712,27 @@ namespace OsEngine.OsTrader
 
         private void _gridClosePoses_DoubleClick(object sender, EventArgs e)
         {
-            PaintPos(_gridClosePoses);
+            try
+            {
+                PaintPos(_gridClosePoses);
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void _gridClosePoses_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
             try
             {
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 MenuItem[] items = new MenuItem[1];
 
                 items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
@@ -623,7 +747,6 @@ namespace OsEngine.OsTrader
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-
         }
 
         void ClosePositionClearDelete_Click(object sender, EventArgs e)
@@ -669,20 +792,27 @@ namespace OsEngine.OsTrader
 
         private void _gridOpenPoses_DoubleClick(object sender, EventArgs e)
         {
-            PaintPos(_gridOpenPoses);
+            try
+            {
+                PaintPos(_gridOpenPoses);
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void _gridAllPositions_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
             try
             {
+                MouseEventArgs mouse = (MouseEventArgs)e;
+
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 MenuItem[] items = new MenuItem[5];
 
                 items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
@@ -925,13 +1055,14 @@ namespace OsEngine.OsTrader
 
         private void ColoredRow(Color color)
         {
-            if(_lastClickGrid.InvokeRequired)
-            {
-                _lastClickGrid.Invoke(new Action<Color>(ColoredRow),color);
-                return;
-            }
             try
             {
+                if (_lastClickGrid.InvokeRequired)
+                {
+                    _lastClickGrid.Invoke(new Action<Color>(ColoredRow), color);
+                    return;
+                }
+
                 _lastClickGrid.Rows[_rowToPaintInOpenPoses].DefaultCellStyle.SelectionBackColor = color;
             }
             catch

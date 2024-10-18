@@ -472,7 +472,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         onePortf.marginBalance.ToDecimal();
                     newPortf.ValueCurrent =
                         onePortf.marginBalance.ToDecimal();
-
+                    newPortf.PortfolioName = "BinanceFutures";
 
                     decimal lockedBalanceUSDT = 0m;
                     if (onePortf.asset.Equals("USDT"))
@@ -508,6 +508,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     newPortf.ValueCurrent =
                         onePortf.positionAmt.ToDecimal();
+
+                    newPortf.PortfolioName = "BinanceFutures";
 
                     myPortfolio.SetNewPosition(newPortf);
                 }
@@ -1781,7 +1783,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 newOrder.NumberMarket = order.i.ToString();
                 //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
                 newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
-                newOrder.State = OrderStateType.Activ;
+                newOrder.State = OrderStateType.Active;
                 newOrder.Volume = order.q.ToDecimal();
                 newOrder.Price = order.p.ToDecimal();
                 newOrder.ServerType = ServerType.BinanceFutures;
@@ -2296,7 +2298,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             if(myOrder.State == OrderStateType.Done ||
-                myOrder.State == OrderStateType.Patrial)
+                myOrder.State == OrderStateType.Partial)
             {
                 List<MyTrade> myTrades = GetMyTradesByOrderQuery(myOrder);
 
@@ -2402,13 +2404,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newOrder.Price = orderOnBoardResp.price.ToDecimal();
                     newOrder.Volume = orderOnBoardResp.origQty.ToDecimal();
                     newOrder.TypeOrder = OrderPriceType.Limit;
-                    newOrder.State = OrderStateType.Activ;
+                    newOrder.State = OrderStateType.Active;
 
                     if (string.IsNullOrEmpty(orderOnBoardResp.executedQty) == false &&
                         orderOnBoardResp.executedQty != "0")
                     {
                         newOrder.VolumeExecute = orderOnBoardResp.executedQty.ToDecimal();
-                        newOrder.State = OrderStateType.Patrial;
+                        newOrder.State = OrderStateType.Partial;
                     }
                     newOrder.ServerType = ServerType.BinanceFutures;
                     newOrder.SecurityNameCode = orderOnBoardResp.symbol;
@@ -2500,7 +2502,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             if (orderOnBoard.status == "NEW" ||
                 orderOnBoard.status == "PARTIALLY_FILLED")
             { // order is active. Do nothing / ордер активен. Ничего не делаем
-                newOrder.State = OrderStateType.Activ;
+                newOrder.State = OrderStateType.Active;
             }
             else if (orderOnBoard.status == "FILLED")
             {

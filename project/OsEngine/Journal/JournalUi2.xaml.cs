@@ -122,6 +122,9 @@ namespace OsEngine.Journal
             ComboBoxChartType.SelectionChanged += ComboBoxChartType_SelectionChanged;
             TabControlPrime.SelectionChanged += TabControlPrime_SelectionChanged;
 
+            CheckBoxShowDontOpenPoses.Click += CheckBoxShowDontOpenPoses_Click;
+            CheckBoxShowDontOpenPoses.Content = OsLocalization.Journal.Label17;
+
             GlobalGUILayout.Listen(this, JournalName);
         }
 
@@ -557,9 +560,9 @@ namespace OsEngine.Journal
                     CreateTableToStatistic();
                 }
 
-                List<string> positionsAllState = PositionStaticticGenerator.GetStatisticNew(positionsAll);
-                List<string> positionsLongState = PositionStaticticGenerator.GetStatisticNew(positionsLong);
-                List<string> positionsShortState = PositionStaticticGenerator.GetStatisticNew(positionsShort);
+                List<string> positionsAllState = PositionStatisticGenerator.GetStatisticNew(positionsAll);
+                List<string> positionsLongState = PositionStatisticGenerator.GetStatisticNew(positionsLong);
+                List<string> positionsShortState = PositionStatisticGenerator.GetStatisticNew(positionsShort);
 
                 if (positionsAllState == null)
                 {
@@ -2016,6 +2019,10 @@ namespace OsEngine.Journal
                     //nRow.Cells[5].Style.SelectionBackColor = Color.DarkOrange;
                 }
 
+                int decimalsPrice = position.PriceStep.ToStringWithNoEndZero().DecimalsCount();
+
+                decimalsPrice++;
+
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[6].Value = position.State;
 
@@ -2029,25 +2036,25 @@ namespace OsEngine.Journal
                 nRow.Cells[9].Value = position.WaitVolume;
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
+                nRow.Cells[10].Value = Math.Round(position.EntryPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
+                nRow.Cells[11].Value = Math.Round(position.ClosePrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
+                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[13].Value = Math.Round(position.StopOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[14].Value = Math.Round(position.StopOrderPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
+                nRow.Cells[15].Value = Math.Round(position.ProfitOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+                nRow.Cells[16].Value = Math.Round(position.ProfitOrderPrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[17].Value = position.SignalTypeOpen;
@@ -2270,6 +2277,7 @@ namespace OsEngine.Journal
                 }
 
                 _closePositionGrid.Rows.Clear();
+                _closePositionGrid.ClearSelection();
 
                 List<Journal> myJournals = GetActiveJournals();
 
@@ -2321,6 +2329,15 @@ namespace OsEngine.Journal
                     }
                 }
 
+                bool showDontOpenPositions = false;
+                
+                if(CheckBoxShowDontOpenPoses.IsChecked.HasValue)
+                {
+                    showDontOpenPositions = CheckBoxShowDontOpenPoses.IsChecked.Value;
+                }
+
+                List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
                 for (int i = 0; i < closePositions.Count; i++)
                 {
                     if (closePositions[i].TimeCreate < _startTime
@@ -2329,13 +2346,31 @@ namespace OsEngine.Journal
                         continue;
                     }
 
-                    _closePositionGrid.Rows.Insert(0, GetRow(closePositions[i]));
+                    if(showDontOpenPositions == false &&
+                        closePositions[i].State == PositionStateType.OpeningFail)
+                    {
+                        continue;
+                    }
+
+                    rows.Insert(0, GetRow(closePositions[i]));
+                }
+
+                if (rows.Count > 0)
+                {
+                    HostClosePosition.Child = null;
+                    _closePositionGrid.Rows.AddRange(rows.ToArray());
+                    HostClosePosition.Child = _closePositionGrid;
                 }
             }
             catch(Exception ex )
             {
                 SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
+        }
+
+        private void CheckBoxShowDontOpenPoses_Click(object sender, RoutedEventArgs e)
+        {
+            PaintClosePositionGrid();
         }
 
         private void _closePositionGrid_DoubleClick(object sender, EventArgs e)

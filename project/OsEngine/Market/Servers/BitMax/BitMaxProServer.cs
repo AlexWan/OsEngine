@@ -227,7 +227,7 @@ namespace OsEngine.Market.Servers.BitMax
                 };
 
                 _couplers.Add(newCoupler);
-                order.State = OrderStateType.Activ;
+                order.State = OrderStateType.Active;
                 order.NumberMarket = result.Data.Info.OrderId;
                 MyOrderEvent?.Invoke(order);
             }
@@ -848,7 +848,7 @@ namespace OsEngine.Market.Servers.BitMax
 
             if (data.St == "New")
             {
-                order.State = OrderStateType.Activ;
+                order.State = OrderStateType.Active;
             }
             else if (data.St == "Canceled")
             {
@@ -857,7 +857,7 @@ namespace OsEngine.Market.Servers.BitMax
             }
             else if (data.St == "PartiallyFilled")
             {
-                order.State = OrderStateType.Patrial;
+                order.State = OrderStateType.Partial;
             }
             else if (data.St == "Filled")
             {

@@ -124,8 +124,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Label8.Content = OsLocalization.Market.Label8;
                 Label9.Content = OsLocalization.Market.Label9;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
-                LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
+                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
@@ -743,9 +743,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void UpdateGrid(List<Security> securities)
         {
+            SecuritiesHost.Child = null;
+
             _gridSecurities.Rows.Clear();
 
             // number, class, type, paper abbreviation, full name, additional name, on/off
+
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
             for (int indexSecuriti = 0; indexSecuriti < securities.Count; indexSecuriti++)
             {
@@ -781,8 +785,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     checkBox.Value = true;
                 }
 
-                _gridSecurities.Rows.Add(nRow);
+                rows.Add(nRow);
             }
+
+            if (rows.Count > 0)
+            {
+                _gridSecurities.Rows.AddRange(rows.ToArray());
+            }
+
+            SecuritiesHost.Child = _gridSecurities;
         }
 
         private void CheckBoxSelectAllCheckBox_Click(object sender, RoutedEventArgs e)

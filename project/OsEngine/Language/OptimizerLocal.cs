@@ -179,7 +179,7 @@ namespace OsEngine.Language
 
         public string Message42 => OsLocalization.ConvertToLocString(
             "Eng:Params_" +
-            "Ru:Парам_");
+            "Ru:Параметры_");
 
         public string Message43 => OsLocalization.ConvertToLocString(
             "Eng:Cannot start optimization. Set timeFrame_" +

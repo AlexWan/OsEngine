@@ -1975,7 +1975,7 @@ namespace OsEngine.Market.Servers.Alor
 
             if (baseMessage.status == "working")
             {
-                order.State = OrderStateType.Activ;
+                order.State = OrderStateType.Active;
             }
             else if (baseMessage.status == "filled")
             {
@@ -2286,7 +2286,7 @@ namespace OsEngine.Market.Servers.Alor
                 int qty = Convert.ToInt32(order.Volume - order.VolumeExecute);
 
                 if(qty <= 0 ||
-                    order.State != OrderStateType.Activ)
+                    order.State != OrderStateType.Active)
                 {
                     SendLogMessage("Can`t change price to order. It`s don`t in Activ state", LogMessageType.Error);
                     return;
@@ -2426,7 +2426,7 @@ namespace OsEngine.Market.Servers.Alor
             {
                 Order order = orders[i];
 
-                if(order.State == OrderStateType.Activ)
+                if(order.State == OrderStateType.Active)
                 {
                     CancelOrder(order);
                 }
@@ -2441,7 +2441,7 @@ namespace OsEngine.Market.Servers.Alor
             {
                 Order order = orders[i];
 
-                if (order.State == OrderStateType.Activ
+                if (order.State == OrderStateType.Active
                     && order.SecurityNameCode == security.Name)
                 {
                     CancelOrder(order);
@@ -2460,8 +2460,8 @@ namespace OsEngine.Market.Servers.Alor
                     continue;
                 }
 
-                if (orders[i].State != OrderStateType.Activ
-                    && orders[i].State != OrderStateType.Patrial
+                if (orders[i].State != OrderStateType.Active
+                    && orders[i].State != OrderStateType.Partial
                     && orders[i].State != OrderStateType.Pending)
                 {
                     continue;
@@ -2520,7 +2520,7 @@ namespace OsEngine.Market.Servers.Alor
             }
 
             if(orderOnMarket.State == OrderStateType.Done 
-                || orderOnMarket.State == OrderStateType.Patrial)
+                || orderOnMarket.State == OrderStateType.Partial)
             {
                 List<MyTrade> tradesBySecurity 
                     = GetMyTradesBySecurity(order.SecurityNameCode, order.PortfolioNumber.Split('_')[0]);

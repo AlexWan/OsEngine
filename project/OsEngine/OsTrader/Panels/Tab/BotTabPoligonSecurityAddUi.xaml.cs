@@ -131,8 +131,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Label5.Content = OsLocalization.Market.Label7;
                 Label6.Content = OsLocalization.Market.Label6;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
-                LabelComissionType.Content = OsLocalization.Market.LabelComissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelComissionValue;
+                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
                 LabelOperation.Content = OsLocalization.Trader.Label343;
                 LabelBaseCurrency.Content = OsLocalization.Trader.Label317;

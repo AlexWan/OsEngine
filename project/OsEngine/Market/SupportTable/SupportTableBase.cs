@@ -68,10 +68,30 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(fixFast);
 
+            SupportConnection fixFastCur = new SupportConnection()
+            {
+                ServerType = ServerType.MoexFixFastCurrency,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Moex\\FixFast.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(fixFastCur);
+
+            SupportConnection fixFastForts = new SupportConnection()
+            {
+                ServerType = ServerType.MoexFixFastTwimeFutures,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Moex\\FixFast.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(fixFastForts);
+
             SupportConnection plaza = new SupportConnection()
             {
                 ServerType = ServerType.Plaza,
-                SupportType = SupportServerType.No,
+                SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Moex\\Plaza2.png",
                 LingSiteUrl = "",
                 Discount = 0
@@ -288,10 +308,20 @@ namespace OsEngine.Market.SupportTable
                 ServerType = ServerType.BitMart,
                 SupportType = SupportServerType.Prime,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\BitMart.png",
-                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
-                Discount = 0
+                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en", 
+                Discount = 40
             };
             supportList.Add(bitMart);
+
+            SupportConnection bitMartFutures = new SupportConnection()
+            {
+                ServerType = ServerType.BitMartFutures,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMart.png",
+                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
+                Discount = 30
+            };
+            supportList.Add(bitMartFutures);
 
             SupportConnection bitmex = new SupportConnection()
             {

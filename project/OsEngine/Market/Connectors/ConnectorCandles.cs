@@ -204,7 +204,7 @@ namespace OsEngine.Market.Connectors
                 _myServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
                 _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
                 _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-                _myServer.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+                _myServer.NeedToReconnectEvent -= _myServer_NeadToReconnectEvent;
                 _myServer = null;
             }
 
@@ -970,7 +970,7 @@ namespace OsEngine.Market.Connectors
             server.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
             server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-            server.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+            server.NeedToReconnectEvent -= _myServer_NeadToReconnectEvent;
             server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
         }
 
@@ -982,7 +982,7 @@ namespace OsEngine.Market.Connectors
             server.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
             server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-            server.NeadToReconnectEvent -= _myServer_NeadToReconnectEvent;
+            server.NeedToReconnectEvent -= _myServer_NeadToReconnectEvent;
             server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
 
             if (NeadToLoadServerData)
@@ -996,7 +996,7 @@ namespace OsEngine.Market.Connectors
                 server.PortfoliosChangeEvent += Server_PortfoliosChangeEvent;
             }
 
-            server.NeadToReconnectEvent += _myServer_NeadToReconnectEvent;
+            server.NeedToReconnectEvent += _myServer_NeadToReconnectEvent;
         }
 
         public bool NeadToLoadServerData = true;

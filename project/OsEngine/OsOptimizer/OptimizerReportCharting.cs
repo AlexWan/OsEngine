@@ -949,8 +949,14 @@ namespace OsEngine.OsOptimizer
                 if(max != decimal.MinValue &&
                     min != decimal.MaxValue)
                 {
-                    _chartTotalProfit.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(Math.Round(max + max * 0.2m,2));
-                    _chartTotalProfit.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(Math.Round(min,2));
+                    max = Math.Round(max + max * 0.2m, 4);
+                    min = Math.Round(min, 4);
+
+                    if(max > min)
+                    {
+                        _chartTotalProfit.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(max);
+                        _chartTotalProfit.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(min);
+                    }
                 }
             }
             catch (Exception ex)
@@ -1161,8 +1167,14 @@ namespace OsEngine.OsOptimizer
                 if (max != decimal.MinValue &&
                     min != decimal.MaxValue)
                 {
-                    _chartAverageProfit.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(Math.Round(max + max * 0.2m, 2));
-                    _chartAverageProfit.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(Math.Round(min, 2));
+                    max = Math.Round(max + max * 0.2m, 4);
+                    min = Math.Round(min, 4);
+
+                    if (max > min)
+                    {
+                        _chartAverageProfit.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(max);
+                        _chartAverageProfit.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(min);
+                    }
                 }
 
             }
@@ -1378,8 +1390,14 @@ namespace OsEngine.OsOptimizer
                 if (max != decimal.MinValue &&
                     min != decimal.MaxValue)
                 {
-                    _chartProfitFactor.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(Math.Round(max + max * 0.2m, 2));
-                    _chartProfitFactor.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(Math.Round(min, 2));
+                    max = Math.Round(max + max * 0.2m, 4);
+                    min = Math.Round(min, 4);
+
+                    if (max > min)
+                    {
+                        _chartProfitFactor.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(max);
+                        _chartProfitFactor.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(min);
+                    }
                 }
             }
             catch (Exception ex)

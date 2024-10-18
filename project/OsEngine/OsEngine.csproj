@@ -93,8 +93,8 @@
       <HintPath>Vendors\LmaxClientLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OpenFAST">
       <HintPath>bin\Debug\OpenFAST.dll</HintPath>
@@ -219,7 +219,6 @@
     <Compile Include="Charts\CandleChart\CandleChartUi.xaml.cs">
       <DependentUpon>CandleChartUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Charts\CandleChart\ChartAddons\ChartRoulette.cs" />
     <Compile Include="Charts\CandleChart\Elements\Circle.cs" />
     <Compile Include="Charts\CandleChart\Elements\IChartElement.cs" />
     <Compile Include="Charts\CandleChart\Elements\Line.cs" />
@@ -452,6 +451,7 @@
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\ComparePositionsModule.cs" />
     <Compile Include="Market\Servers\AServerOrdersHub.cs" />
     <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
     <Compile Include="Entity\StartProgramm.cs" />
@@ -587,6 +587,16 @@
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\RequestWebsocketAuth.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseWebSocketMessageAction.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\BitMartFutures.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\BitMartFuturesServerPermission.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\Entity\BitMartClient.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\Entity\BitMartOrdersRest.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\Entity\BitMartOrdersSocket.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\Entity\BitMartPortfolioRest.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\Entity\BitMartPortfolioSocket.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\Entity\BitMartSecurityRest.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\Entity\BitMartSecuritySocket.cs" />
+    <Compile Include="Market\Servers\BitMartFutures\Entity\BitMartSubscribleSocket.cs" />
     <Compile Include="Market\Servers\BitMart\BitMart.cs" />
     <Compile Include="Market\Servers\BitMart\BitMartServerPermission.cs" />
     <Compile Include="Market\Servers\BitMart\Entity\BitMartClient.cs" />
@@ -619,6 +629,9 @@
     <Compile Include="Market\Servers\Bybit\BybitServerPermission.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\ResponseRestMessage.cs" />
     <Compile Include="Market\Servers\Bybit\Entities\ResponseWebSocketMessage.cs" />
+    <Compile Include="Market\Servers\ComparePositionsModuleUi.xaml.cs">
+      <DependentUpon>ComparePositionsModuleUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Deribit\DeribitServer.cs" />
     <Compile Include="Market\Servers\Deribit\DeribitServerPermission.cs" />
     <Compile Include="Market\Servers\Deribit\Entity\JsonRequest.cs" />
@@ -815,6 +828,17 @@
     <Compile Include="Market\Servers\MoexFixFastSpot\FIX\Trailer.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\MoexFixFastSpotServer.cs" />
     <Compile Include="Market\Servers\MoexFixFastSpot\MoexFixFastSpotServerPermission.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\FixMessageConstructor.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\IDsModifiedFixOrders.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\MarketDataGroup.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\NumbersMD.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\OrderChange.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\ReplyTwimeMessage.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\Snapshot.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\TwimeMessageConstructor.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\Entity\TwimeOrderReport.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\MoexFixFastTwimeFuturesServer.cs" />
+    <Compile Include="Market\Servers\MoexFixFastTwimeFutures\MoexFixFastTwimeFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssDataServer.cs" />
     <Compile Include="Market\Servers\MOEX\MoexIssPermission.cs" />
     <Compile Include="Market\Servers\NinjaTrader\NinjaTraderClient.cs" />
@@ -909,7 +933,7 @@
     <Compile Include="Entity\PositionUi.xaml.cs">
       <DependentUpon>PositionUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Journal\Internal\DealStaticticGenerator.cs" />
+    <Compile Include="Journal\Internal\DealStatisticGenerator.cs" />
     <Compile Include="Market\Servers\Quik\QuikDdeServer.cs" />
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServer.cs" />
@@ -1000,13 +1024,6 @@
     <Compile Include="OsOptimizer\TabIndexOptimizerUi.xaml.cs">
       <DependentUpon>TabIndexOptimizerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsTrader\AdminPanelApi\AdminApiMaster.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\AdminPanelClient.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\Authorization.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\Counter.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\IApiServer.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\ServerModel.cs" />
-    <Compile Include="OsTrader\AdminPanelApi\TcpServer.cs" />
     <Compile Include="Layout\GlobalGUILayout.cs" />
     <Compile Include="OsTrader\BuyAtStopPositionsViewer.cs" />
     <Compile Include="OsTrader\GlobalPositionViewer.cs" />
@@ -1117,6 +1134,11 @@
     </Compile>
     <Compile Include="Robots\BotFactory.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\AlligatorTrendAverage.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\CandlesTurnaroundPattern.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\CustomIcebergSample.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\EnvelopsCountertrend.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\PriceChannelCounterTrend.cs" />
     <Compile Include="Robots\CurrencyArbitrage\CurrencyArbitrageClassic.cs" />
     <Compile Include="Robots\CurrencyArbitrage\CurrencyMoveExplorer.cs" />
     <Compile Include="Robots\Engines\EnginePair.cs" />
@@ -1161,6 +1183,8 @@
     <Compile Include="Robots\Patterns\CustomCandlesImpulseTrader.cs" />
     <Compile Include="Robots\Patterns\VolatilityAdaptiveCandlesTrader.cs" />
     <Compile Include="Robots\Patterns\ThreeSoldierVolatilityAdaptive.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\UnsafeAveragePosition.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\UnsafeLimitsClosingSample.cs" />
     <Compile Include="Robots\Screeners\BollingerMomentumScreener.cs" />
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
@@ -1248,7 +1272,7 @@
     </Compile>
     <Compile Include="OsTrader\Panels\Tab\BotTabIndex.cs" />
     <Compile Include="OsTrader\Panels\Tab\IIBotTab.cs" />
-    <Compile Include="OsTrader\Panels\Tab\Internal\AcebergMaker.cs" />
+    <Compile Include="OsTrader\Panels\Tab\Internal\IcebergMaker.cs" />
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionCreator.cs" />
     <Compile Include="OsTrader\RiskManager\RiskManager.cs" />
     <Compile Include="OsTrader\Gui\RobotUi.xaml.cs">
@@ -1269,7 +1293,7 @@
     <Compile Include="Robots\Patterns\ThreeSoldier.cs" />
     <Compile Include="Robots\MarketMaker\TwoLegArbitrage.cs" />
     <Compile Include="Robots\CounterTrend\WilliamsRangeTrade.cs" />
-    <Compile Include="Robots\Trend\TwoEntrySample.cs" />
+    <Compile Include="Robots\PositionsMicromanagement\TwoEntrySample.cs" />
     <Compile Include="Robots\Trend\TwoTimeFramesBot.cs" />
     <Compile Include="Robots\VolatilityStageRotationSamples\BollingerTrendVolatilityStagesFilter.cs" />
     <Compile Include="Robots\VolatilityStageRotationSamples\PriceChannelScreenerOnIndexVolatility.cs" />
@@ -1548,6 +1572,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\ComparePositionsModuleUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

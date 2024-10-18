@@ -40,10 +40,20 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ComboBoxValuesType.Items.Add(ManualControlValuesType.Percent.ToString());
                 ComboBoxValuesType.SelectedItem = _strategySettings.ValuesType.ToString();
 
+                ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Specified.ToString());
+                ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.GTC.ToString());
+
+                if(strategySettings._startProgram == StartProgram.IsTester)
+                {
+                    ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Day.ToString());
+                }
+
+                ComboBoxOrdersTypeTime.SelectedItem = _strategySettings.OrderTypeTime.ToString();
+
                 // stop
                 // стоп
 
-                CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
+              CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
                 TextBoxStopPercentLength.Text = _strategySettings.StopDistance.ToStringWithNoEndZero();
                 TextBoxSlipageStop.Text = _strategySettings.StopSlipage.ToStringWithNoEndZero();
 
@@ -98,6 +108,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ButtonAccept.Content = OsLocalization.Trader.Label17;
                 CheckBoxDoubleExitIsOnIsOn.Content = OsLocalization.Trader.Label99;
                 LabelValuesType.Content = OsLocalization.Trader.Label158;
+                LabelOrdersTypeTime.Content = OsLocalization.Trader.Label422;
+
+                ComboBoxOrdersTypeTime.SelectionChanged += ComboBoxOrdersTypeTime_SelectionChanged;
+                ComboBoxOrdersTypeTime_SelectionChanged(null, null);
             }
             catch (Exception error)
             {
@@ -106,6 +120,32 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             this.Activate();
             this.Focus();
+        }
+
+        private void ComboBoxOrdersTypeTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            OrderTypeTime typeTime = OrderTypeTime.Specified;
+
+            if(Enum.TryParse(ComboBoxOrdersTypeTime.SelectedItem.ToString(),out  typeTime) == false)
+            {
+                return;
+            }
+
+            if (typeTime == OrderTypeTime.Specified)
+            {
+                CheckBoxSecondToOpenIsOn.IsEnabled = true;
+                CheckBoxSecondToCloseIsOn.IsEnabled = true;
+                TextBoxSecondToOpen.IsEnabled = true;
+                TextBoxSecondToClose.IsEnabled = true;
+            }
+            else if(typeTime == OrderTypeTime.GTC
+                || typeTime == OrderTypeTime.Day)
+            {
+                CheckBoxSecondToOpenIsOn.IsEnabled = false;
+                CheckBoxSecondToCloseIsOn.IsEnabled = false;
+                TextBoxSecondToOpen.IsEnabled = false;
+                TextBoxSecondToClose.IsEnabled = false;
+            }
         }
 
         /// <summary>
@@ -192,6 +232,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 _strategySettings.SetbackToOpenPosition = TextBoxSetbackToOpen.Text.ToDecimal();
 
                 Enum.TryParse(ComboBoxValuesType.SelectedItem.ToString(), out _strategySettings.ValuesType);
+
+                Enum.TryParse(ComboBoxOrdersTypeTime.SelectedItem.ToString(), out _strategySettings.OrderTypeTime);
 
                 _strategySettings.Save();
             }

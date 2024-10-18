@@ -875,7 +875,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
             OrderStateType stateType = GetOrderState(item.status, item.type, item.filledSize, item.originSize);
 
-            if (item.orderType.Equals("market") && stateType == OrderStateType.Activ)
+            if (item.orderType.Equals("market") && stateType == OrderStateType.Active)
             {
                return;
             }
@@ -910,7 +910,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             newOrder.PortfolioNumber = "KuCoinSpot";
 
             if (stateType == OrderStateType.Done ||
-                    stateType == OrderStateType.Patrial)
+                    stateType == OrderStateType.Partial)
             {
                // Thread.Sleep(1000);
                 // как только приходит ордер исполненный или частично исполненный триггер на запрос моего трейда по имени бумаги
@@ -931,14 +931,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 case ("new"):
                 case ("update"):
                 case ("open"):
-                    stateType = OrderStateType.Activ;
+                    stateType = OrderStateType.Active;
                     break;
 
                 case ("match"):
                //     if (orderFilledSize.ToDecimal() == orderOriginSize.ToDecimal())
                  //       stateType = OrderStateType.Done;
                    // else
-                        stateType = OrderStateType.Patrial;
+                        stateType = OrderStateType.Partial;
 
                     break;
 
@@ -1001,7 +1001,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 if (stateResponse.code.Equals("200000") == true)
                 {
                     SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.NumberMarket = stateResponse.data.orderId;
 
                     if (MyOrderEvent != null)

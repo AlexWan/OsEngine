@@ -11,12 +11,11 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Language;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 /* Description
-Overbought / Oversold RSI Contrand Strategy with Trend Filtering via MovingAverage
+Overbought / Oversold RSI Countertrend Strategy with Trend Filtering via MovingAverage
 Buy:
 1. Sma more price.
 2. Rsi is higher than UpLine.
@@ -29,8 +28,8 @@ By return signal
 namespace OsEngine.Robots.CounterTrend
 {
     /// <summary>
-    /// Overbought / Oversold RSI Contrand Strategy with Trend Filtering via MovingAverage
-    /// конттрендовая стратегия по перекупленности/перепроданности RSI с фильтром по тренду через MovingAverage
+    /// Overbought / Oversold RSI countertrend Strategy with Trend Filtering via MovingAverage
+    /// контртрендовая стратегия по перекупленности / перепроданности RSI с фильтром по тренду через MovingAverage
     /// </summary>
     [Bot("RsiContrtrend")]
     public class RsiContrtrend : BotPanel

@@ -124,6 +124,9 @@ namespace OsEngine.Market.Servers
                 _ordersHub.GetAllActivOrdersOnReconnectEvent += _ordersHub_GetAllActivOrdersOnReconnectEvent;
                 _ordersHub.ActivStateOrderCheckStatusEvent += _ordersHub_ActivStateOrderCheckStatusEvent;
                 _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
+
+                _comparePositionsModule = new ComparePositionsModule(this);
+                _comparePositionsModule.LogMessageEvent += SendLogMessage;
             }
             get { return _serverRealization; }
         }
@@ -671,9 +674,9 @@ namespace OsEngine.Market.Servers
             SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            if (NeadToReconnectEvent != null)
+            if (NeedToReconnectEvent != null)
             {
-                NeadToReconnectEvent();
+                NeedToReconnectEvent();
             }
         }
 
@@ -685,7 +688,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// need to reconnect server and get a new data
         /// </summary>
-        public event Action NeadToReconnectEvent;
+        public event Action NeedToReconnectEvent;
 
         #endregion
 
@@ -725,7 +728,7 @@ namespace OsEngine.Market.Servers
                         ServerRealization.Connect();
                         LastStartServerTime = DateTime.Now;
 
-                        NeadToReconnectEvent?.Invoke();
+                        NeedToReconnectEvent?.Invoke();
 
                         continue;
                     }
@@ -785,9 +788,9 @@ namespace OsEngine.Market.Servers
                     Task task = new Task(PrimeThreadArea);
                     task.Start();
 
-                    if (NeadToReconnectEvent != null)
+                    if (NeedToReconnectEvent != null)
                     {
-                        NeadToReconnectEvent();
+                        NeedToReconnectEvent();
                     }
 
                     return;
@@ -1151,6 +1154,11 @@ namespace OsEngine.Market.Servers
 
                 for (int i = 0; i < portf.Count; i++)
                 {
+                    if (portf[i].ServerType == ServerType.None)
+                    {
+                        portf[i].ServerType = this.ServerType;
+                    }
+
                     Portfolio curPortfolio = _portfolios.Find(p => p.Number == portf[i].Number);
 
                     if (curPortfolio == null)
@@ -2267,7 +2275,7 @@ namespace OsEngine.Market.Servers
                     continue;
                 }
 
-                if (PrimeSettings.PrimeSettingsMaster.TransactionBeepIsActiv == false)
+                if (PrimeSettings.PrimeSettingsMaster.TransactionBeepIsActive == false)
                 {
                     continue;
                 }
@@ -2774,6 +2782,53 @@ namespace OsEngine.Market.Servers
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Compare positions module
+
+        private ComparePositionsModule _comparePositionsModule;
+
+        public void ShowComparePositionsModuleDialog(string portfolioName)
+        {
+            ComparePositionsModuleUi myUi = null;
+
+            for(int i = 0;i < _comparePositionsModuleUi.Count;i++)
+            {
+                if (_comparePositionsModuleUi[i].PortfolioName == portfolioName)
+                {
+                    myUi = _comparePositionsModuleUi[i];
+                    break;
+                }
+            }
+
+            if (myUi == null)
+            {
+                myUi = new ComparePositionsModuleUi(_comparePositionsModule,portfolioName);
+                myUi.GuiClosed += MyUi_GuiClosed;
+                _comparePositionsModuleUi.Add(myUi);
+                myUi.Show();
+            }
+            else
+            {
+                myUi.Activate();
+            }
+        }
+
+        private void MyUi_GuiClosed(string portfolioName)
+        {
+            for (int i = 0; i < _comparePositionsModuleUi.Count; i++)
+            {
+                if (_comparePositionsModuleUi[i].PortfolioName == portfolioName)
+                {
+                    _comparePositionsModuleUi[i].GuiClosed -= MyUi_GuiClosed;
+                    _comparePositionsModuleUi.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        private List<ComparePositionsModuleUi> _comparePositionsModuleUi = new List<ComparePositionsModuleUi>();
 
         #endregion
 

@@ -318,11 +318,11 @@ namespace OsEngine.Market.Servers.Hitbtc
 
             if (result.status == "new")
             {
-                order.State = OrderStateType.Activ;
+                order.State = OrderStateType.Active;
             }
             else if (result.status == "partiallyFilled")
             {
-                order.State = OrderStateType.Patrial;
+                order.State = OrderStateType.Partial;
             }
             else if (result.status == "filled")
             {

@@ -261,7 +261,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                         newOsOrder.TimeCallBack = new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(Math.Round(Convert.ToDouble(newCreatedOrder.timestamp.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), CultureInfo.InvariantCulture)));
 
-                        newOsOrder.State = OrderStateType.Activ;
+                        newOsOrder.State = OrderStateType.Active;
 
                         if (MyOrderEvent != null)
                         {
@@ -760,11 +760,11 @@ namespace OsEngine.Market.Servers.Bitfinex
                                         switch (values[5])
                                         {
                                             case "ACTIVE":
-                                                order.State = OrderStateType.Activ;
+                                                order.State = OrderStateType.Active;
                                                 break;
 
                                             case "PARTIALLY FILLED":
-                                                order.State = OrderStateType.Patrial;
+                                                order.State = OrderStateType.Partial;
                                                 break;
 
                                             case "CANCELED":

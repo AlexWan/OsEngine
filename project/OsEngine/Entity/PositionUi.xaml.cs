@@ -130,6 +130,10 @@ namespace OsEngine.Entity
             stateCell.Items.Add(PositionStateType.OpeningFail.ToString());
             stateCell.Items.Add(PositionStateType.Deleted.ToString());
 
+            int decimalsPrice = position.PriceStep.ToStringWithNoEndZero().DecimalsCount();
+
+            decimalsPrice++;
+
             nRow.Cells.Add(stateCell);
             nRow.Cells[6].Value = position.State.ToString();
 
@@ -143,25 +147,25 @@ namespace OsEngine.Entity
             nRow.Cells[9].Value = position.WaitVolume;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[10].Value = position.EntryPrice.ToStringWithNoEndZero();
+            nRow.Cells[10].Value = Math.Round(position.EntryPrice, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[11].Value = position.ClosePrice.ToStringWithNoEndZero();
+            nRow.Cells[11].Value = Math.Round(position.ClosePrice, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[12].Value = position.ProfitPortfolioPunkt.ToStringWithNoEndZero();
+            nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[13].Value = position.StopOrderRedLine.ToStringWithNoEndZero();
+            nRow.Cells[13].Value = Math.Round(position.StopOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[14].Value = position.StopOrderPrice.ToStringWithNoEndZero();
+            nRow.Cells[14].Value = Math.Round(position.StopOrderPrice, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[15].Value = position.ProfitOrderRedLine.ToStringWithNoEndZero();
+            nRow.Cells[15].Value = Math.Round(position.ProfitOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[16].Value = position.ProfitOrderPrice.ToStringWithNoEndZero();
+            nRow.Cells[16].Value = Math.Round(position.ProfitOrderPrice, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[17].Value = position.SignalTypeOpen;
@@ -235,11 +239,11 @@ namespace OsEngine.Entity
             DataGridViewComboBoxCell stateCell = new DataGridViewComboBoxCell();
 
             stateCell.Items.Add(OrderStateType.None.ToString());
-            stateCell.Items.Add(OrderStateType.Activ.ToString());
+            stateCell.Items.Add(OrderStateType.Active.ToString());
             stateCell.Items.Add(OrderStateType.Cancel.ToString());
             stateCell.Items.Add(OrderStateType.Done.ToString());
             stateCell.Items.Add(OrderStateType.Fail.ToString());
-            stateCell.Items.Add(OrderStateType.Patrial.ToString());
+            stateCell.Items.Add(OrderStateType.Partial.ToString());
             stateCell.Items.Add(OrderStateType.Pending.ToString());
             nRow.Cells.Add(stateCell);
             nRow.Cells[6].Value = order.State.ToString();

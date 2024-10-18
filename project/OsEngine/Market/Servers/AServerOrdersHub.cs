@@ -333,8 +333,8 @@ namespace OsEngine.Market.Servers
                     continue;
                 }
 
-                if(orderFromApi.State == OrderStateType.Activ
-                    || orderFromApi.State == OrderStateType.Patrial
+                if(orderFromApi.State == OrderStateType.Active
+                    || orderFromApi.State == OrderStateType.Partial
                     || orderFromApi.State == OrderStateType.Pending)
                 {
                     

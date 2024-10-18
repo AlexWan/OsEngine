@@ -3,6 +3,9 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Entity;
+using OsEngine.Market.Servers.GateIo.GateIoFutures.Entities;
+
 namespace OsEngine.Language
 {
     public class MarketLocal
@@ -361,8 +364,8 @@ namespace OsEngine.Language
           "Ru:Правила поддержки_");
 
         public string Label82 => OsLocalization.ConvertToLocString(
-          "Eng:Delete_" +
-          "Ru:Удалить_");
+          "Eng:Close_" +
+          "Ru:Закрыть_");
 
         public string Label83 => OsLocalization.ConvertToLocString(
           "Eng: \nDo you want to delete a position on the exchange? \nRobots trading this security will be stopped!_" +
@@ -560,12 +563,116 @@ namespace OsEngine.Language
            "Eng:The button opens the window of securities settings that the connector has. Here you can configure price accuracy, volume accuracy, etc._" +
            "Ru:Кнопка открывает окно настроек бумаг, которые есть у коннектора. Здесь можно настроить точность цены, точность объёма и т.д._");
 
-        public string LabelComissionType => OsLocalization.ConvertToLocString(
-            "Eng:Comission type_" +
+        public string Label132 => OsLocalization.ConvertToLocString(
+          "Eng:Connect data_" +
+          "Ru:Подключаем данные_");
+
+        public string Label133 => OsLocalization.ConvertToLocString(
+          "Eng:First, connect the historical data and connect the robots to it._" +
+          "Ru:Сначала подключите исторические данные и подключите к ним роботов._");
+
+        public string Label134 => OsLocalization.ConvertToLocString(
+          "Eng:No data_" +
+          "Ru:Нет данных_");
+
+        public string Label135 => OsLocalization.ConvertToLocString(
+          "Eng:Compare positions_" +
+          "Ru:Сравнить позиции_");
+
+        public string Label136 => OsLocalization.ConvertToLocString(
+          "Eng:Connection: _" +
+          "Ru:Подключение: _");
+
+        public string Label137 => OsLocalization.ConvertToLocString(
+          "Eng:Compare positions module_" +
+          "Ru:Модуль сравнения позиций_");
+
+        public string Label138 => OsLocalization.ConvertToLocString(
+          "Eng:Auto log message on error_" +
+          "Ru:Автоматическое сообщение об ошибке_");
+
+        public string Label139 => OsLocalization.ConvertToLocString(
+          "Eng:Verification period_" +
+          "Ru:Период проверки_");
+
+        public string Label140 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio_" +
+          "Ru:Портфель_");
+
+        public string Label141 => OsLocalization.ConvertToLocString(
+          "Eng:State_" +
+          "Ru:Статус_");
+
+        public string Label142 => OsLocalization.ConvertToLocString(
+          "Eng:Robots Long_" +
+          "Ru:Роботы Лонг_");
+
+        public string Label143 => OsLocalization.ConvertToLocString(
+          "Eng:Robots Short_" +
+          "Ru:Роботы Шорт_");
+
+        public string Label144 => OsLocalization.ConvertToLocString(
+          "Eng:Robots Common_" +
+          "Ru:Роботы Общее_");
+
+        public string Label145 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio Long_" +
+          "Ru:Портфель Лонг_");
+
+        public string Label146 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio Short_" +
+          "Ru:Портфель Шорт_");
+
+        public string Label147 => OsLocalization.ConvertToLocString(
+          "Eng:Portfolio Common_" +
+          "Ru:Портфель Общее_");
+
+        public string Label148 => OsLocalization.ConvertToLocString(
+          "Eng:Activation_" +
+          "Ru:Активация_");
+
+        public string Label149 => OsLocalization.ConvertToLocString(
+          "Eng:Scheme_" +
+          "Ru:Схема_");
+
+        public string Label150 => OsLocalization.ConvertToLocString(
+          "Eng:Orders clearing system_" +
+          "Ru:Отзыв ордеров внутри дня_");
+
+        public string Label151 => OsLocalization.ConvertToLocString(
+          "Eng:Non-trading periods_" +
+          "Ru:Неторговые периоды_");
+
+        public string Label152 => OsLocalization.ConvertToLocString(
+          "Eng:Time_" +
+          "Ru:Время_");
+
+        public string Label153 => OsLocalization.ConvertToLocString(
+          "Eng:On/Off_" +
+          "Ru:Вкл/Выкл_");
+
+        public string Label154 => OsLocalization.ConvertToLocString(
+          "Eng:Date start_" +
+          "Ru:Дата начала_");
+
+        public string Label155 => OsLocalization.ConvertToLocString(
+          "Eng:Date end_" +
+          "Ru:Дата конца_");
+
+        public string Label156 => OsLocalization.ConvertToLocString(
+          "Eng:Create_" +
+          "Ru:Создать_");
+
+        public string Label157 => OsLocalization.ConvertToLocString(
+          "Eng:Number_" +
+          "Ru:Номер_");
+
+        public string LabelCommissionType => OsLocalization.ConvertToLocString(
+            "Eng:Commission type_" +
             "Ru:Тип комиссии_");
 
-        public string LabelComissionValue => OsLocalization.ConvertToLocString(
-            "Eng:Comission value_" +
+        public string LabelCommissionValue => OsLocalization.ConvertToLocString(
+            "Eng:Commission value_" +
             "Ru:Значение комиссии_");
 
         public string TitleServerMasterUi => OsLocalization.ConvertToLocString(
@@ -657,7 +764,6 @@ namespace OsEngine.Language
         public string Message24 => OsLocalization.ConvertToLocString(
             "Eng: Cancel order - _" +
             "Ru: Отзываем ордер - _");
-
 
         public string TitleAServerParametrUi => OsLocalization.ConvertToLocString(
             "Eng:Connection settings _" +

@@ -1119,11 +1119,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 if (responceDepths.result[i].Event.Equals("put"))
                 {
-                    orderState = OrderStateType.Activ;
+                    orderState = OrderStateType.Active;
                 }
                 else if (responceDepths.result[i].Event.Equals("update"))
                 {
-                    orderState = OrderStateType.Patrial;
+                    orderState = OrderStateType.Partial;
                 }
                 else
                 {

@@ -961,7 +961,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 OrderStateType stateType = GetOrderState(item.status);
 
-                if (item.ordType.Equals("market") && stateType == OrderStateType.Activ)
+                if (item.ordType.Equals("market") && stateType == OrderStateType.Active)
                 {
                     continue;
                 }
@@ -995,7 +995,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 newOrder.PortfolioNumber = "BitGetSpot";
 
                 if (stateType == OrderStateType.Done ||
-                    stateType == OrderStateType.Patrial)
+                    stateType == OrderStateType.Partial)
                 {
                     // как только приходит ордер исполненный или частично исполненный триггер на запрос моего трейда по имени бумаги
                     CreateQueryMyTrade(newOrder.SecurityNameCode + "_SPBL", newOrder.NumberMarket);
@@ -1017,11 +1017,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 case ("init"):
                 case ("new"):
-                    stateType = OrderStateType.Activ;
+                    stateType = OrderStateType.Active;
                     break;
                 case ("partial_fill"):
                 case ("partial-fill"):
-                    stateType = OrderStateType.Patrial;
+                    stateType = OrderStateType.Partial;
                     break;
                 case ("full_fill"):
                 case ("full-fill"):
@@ -1245,7 +1245,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = orderJson.data[i].symbol;
                     newOrder.NumberMarket = orderJson.data[i].orderId;
-                    newOrder.State = OrderStateType.Activ;
+                    newOrder.State = OrderStateType.Active;
                     newOrder.PortfolioNumber = "BitGetSpot";
                     newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderJson.data[i].cTime));
                     newOrder.TimeCreate = newOrder.TimeCallBack;
@@ -1381,7 +1381,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     MyOrderEvent(newOrder);
 
                     if(newOrder.State == OrderStateType.Done ||
-                        newOrder.State == OrderStateType.Patrial)
+                        newOrder.State == OrderStateType.Partial)
                     {
                         string secName = newOrder.SecurityNameCode;
 

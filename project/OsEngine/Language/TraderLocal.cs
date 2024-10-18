@@ -1587,5 +1587,9 @@ namespace OsEngine.Language
         public string Label421 => OsLocalization.ConvertToLocString(
          "Eng:Entry time_" +
           "Ru:Время входа_");
+
+        public string Label422 => OsLocalization.ConvertToLocString(
+          "Eng:Orders life time_" +
+          "Ru:Время жизни ордера_");
     }
 }

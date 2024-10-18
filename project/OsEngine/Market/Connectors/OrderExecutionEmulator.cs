@@ -142,6 +142,7 @@ namespace OsEngine.Market.Connectors
             newOrder.VolumeExecute = order.VolumeExecute;
             newOrder.Price = order.Price;
             newOrder.TypeOrder = order.TypeOrder;
+            newOrder.OrderTypeTime = order.OrderTypeTime;
             newOrder.TimeCreate = order.TimeCreate;
 
             if(string.IsNullOrEmpty(order.SecurityNameCode) == false 
@@ -355,6 +356,7 @@ namespace OsEngine.Market.Connectors
             newOrder.Price = order.Price;
             newOrder.TimeCreate = order.TimeCreate;
             newOrder.TypeOrder = order.TypeOrder;
+            newOrder.OrderTypeTime = order.OrderTypeTime;
 
             if (_serverTime > newOrder.TimeCreate)
             {
@@ -405,12 +407,13 @@ namespace OsEngine.Market.Connectors
             newOrder.NumberMarket = DateTime.Now.ToString(new CultureInfo("ru-RU")) + order.NumberUser;
             order.NumberMarket = newOrder.NumberMarket;
             newOrder.NumberUser = order.NumberUser;
-            newOrder.State = OrderStateType.Activ;
+            newOrder.State = OrderStateType.Active;
             newOrder.Volume = order.Volume;
             newOrder.VolumeExecute = 0;
             newOrder.Price = order.Price;
             newOrder.TimeCreate = order.TimeCreate;
             newOrder.TypeOrder = order.TypeOrder;
+            newOrder.OrderTypeTime = order.OrderTypeTime;
 
             if (_serverTime > newOrder.TimeCreate)
             {

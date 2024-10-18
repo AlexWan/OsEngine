@@ -164,10 +164,10 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (OpenOrders.Find(order => order.State == OrderStateType.Activ 
+                if (OpenOrders.Find(order => order.State == OrderStateType.Active 
                                              || order.State == OrderStateType.Pending 
                                              || order.State == OrderStateType.None
-                                             || order.State == OrderStateType.Patrial) != null)
+                                             || order.State == OrderStateType.Partial) != null)
                 {
                     return true;
                 }
@@ -188,10 +188,10 @@ namespace OsEngine.Entity
                     return false;
                 }
 
-                if (CloseOrders.Find(order => order.State == OrderStateType.Activ 
+                if (CloseOrders.Find(order => order.State == OrderStateType.Active 
                                               || order.State == OrderStateType.Pending
                                               || order.State == OrderStateType.None
-                                              || order.State == OrderStateType.Patrial) != null
+                                              || order.State == OrderStateType.Partial) != null
                     )
                 {
                     return true;
@@ -319,6 +319,16 @@ namespace OsEngine.Entity
         public string SignalTypeClose;
 
         /// <summary>
+        /// Closing signal type if a stop order is triggered
+        /// </summary>
+        public string SignalTypeStop;
+
+        /// <summary>
+        /// Closing signal type if a profit order is triggered
+        /// </summary>
+        public string SignalTypeProfit;
+
+        /// <summary>
         /// Maximum volume by position
         /// </summary>
         public decimal MaxVolume
@@ -388,8 +398,8 @@ namespace OsEngine.Entity
 
                 for (int i = 0; _openOrders != null && i < _openOrders.Count; i++)
                 {
-                    if (_openOrders[i].State == OrderStateType.Activ ||
-                        _openOrders[i].State == OrderStateType.Patrial)
+                    if (_openOrders[i].State == OrderStateType.Active ||
+                        _openOrders[i].State == OrderStateType.Partial)
                     {
                         volumeWait += _openOrders[i].Volume - _openOrders[i].VolumeExecute;
                     }
@@ -965,6 +975,12 @@ namespace OsEngine.Entity
                 {
                     for (int i = CloseOrders.Count-1; i > -1 && i < CloseOrders.Count; i--)
                     {
+                        if (CloseOrders[i].State != OrderStateType.Done
+                            && CloseOrders[i].State != OrderStateType.Partial)
+                        {
+                            continue;
+                        }
+
                         DateTime time = CloseOrders[i].GetLastTradeTime();
                         if (time != DateTime.MinValue)
                         {
@@ -1247,6 +1263,21 @@ namespace OsEngine.Entity
         /// Portfolio size at the time of opening the portfolio
         /// </summary>
         public decimal PortfolioValueOnOpenPosition;
+
+        public string PortfolioName
+        {
+            get
+            {
+                if( OpenOrders!= null 
+                    && OpenOrders.Count> 0)
+                {
+                    return OpenOrders[0].PortfolioNumber;
+                }
+
+                return null;
+            }
+
+        }
     }
 
     /// <summary>

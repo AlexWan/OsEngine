@@ -1080,8 +1080,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public void Start()
         {
-            Thread worker = new Thread(Process);
+            Thread worker = new Thread(WorkerPlace);
             worker.Start();
+        }
+
+        private void WorkerPlace()
+        {
+            try
+            {
+                Process();
+            }
+            catch(Exception e)
+            {
+                SetNewError(e.ToString());
+                TestEnded();
+            }
         }
 
         public abstract void Process();

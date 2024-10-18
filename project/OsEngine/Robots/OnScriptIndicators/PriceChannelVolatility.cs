@@ -229,7 +229,7 @@ public class PriceChannelVolatility : BotPanel
                 decimal priceEnter = _lastPcDown;
                 _tab.SellAtStop(VolumeFix1.ValueDecimal,
                     priceEnter - Slippage.ValueInt * _tab.Securiti.PriceStep,
-                    priceEnter, StopActivateType.LowerOrEqyal);
+                    priceEnter, StopActivateType.LowerOrEqual);
             }
             return;
         }
@@ -250,7 +250,7 @@ public class PriceChannelVolatility : BotPanel
                 decimal priceEnter = _lastPcDown - (_lastAtr * KofAtr.ValueDecimal);
                 _tab.SellAtStop(VolumeFix2.ValueDecimal,
                     priceEnter - Slippage.ValueInt * _tab.Securiti.PriceStep,
-                    priceEnter, StopActivateType.LowerOrEqyal);
+                    priceEnter, StopActivateType.LowerOrEqual);
             }
         }
     }

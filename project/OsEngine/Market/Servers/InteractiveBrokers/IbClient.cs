@@ -1584,7 +1584,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             else if (status == "PreSubmitted" ||
                      status == "Submitted")
             {
-                newOsOrder.State = OrderStateType.Activ;
+                newOsOrder.State = OrderStateType.Active;
                 newOsOrder.TimeCallBack = DateTime.Now;
                 osOrder.TimeCallBack = DateTime.Now;
             }

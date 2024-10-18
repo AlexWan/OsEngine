@@ -1,7 +1,7 @@
 ﻿<Window x:Class="OsEngine.Market.Servers.Tester.TesterServerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Exchange emulator" Height="492" Width="815" MinHeight="120" MinWidth="670" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+        Title="Exchange emulator" Height="492" Width="815" MinHeight="120" MinWidth="770" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
 
         <Grid.RowDefinitions>
@@ -9,7 +9,7 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Rectangle Margin="5"  Grid.Row="1"/>
-        <Button Grid.Row="0" Grid.Column="0" Name="ButtonSinhronazer" Content="More settings" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="129" Click="ButtonSinhronazer_Click" FontSize="14"/>
+        <Button Grid.Row="0" Grid.Column="0" Name="ButtonSynchronizer" Content="More settings" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="129" Click="ButtonSynchronizer_Click" FontSize="14"/>
         <Button Grid.Row="0" x:Name="ButtonFast" Content="&gt;&gt;&gt;&gt;&gt;" Margin="162,49,383,0" VerticalAlignment="Top" RenderTransformOrigin="0.333,1.5" Click="buttonFast_Click" IsEnabled="True"
                 Grid.Column="0" FontSize="14" />
         <Button Grid.Row="0" x:Name="ButtonNextCandle" Content="+ 1" Margin="0,49,194,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonNextCandle_Click" HorizontalAlignment="Right" Width="90" FontSize="14"/>
@@ -28,7 +28,7 @@
                     <Label Name="Label25" Content="Translation type" HorizontalAlignment="Left" Margin="9,35,0,0" VerticalAlignment="Top"/>
                     <Button x:Name="ButtonSetDataFromPath" Content="Find in folder" Margin="627,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
                     <TextBox x:Name="TextBoxDataPath" Margin="324,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <ComboBox x:Name="ComboBoxDataSourseType" HorizontalAlignment="Left" Margin="96,5,0,0" VerticalAlignment="Top" Width="197"/>
+                    <ComboBox x:Name="ComboBoxDataSourceType" HorizontalAlignment="Left" Margin="96,5,0,0" VerticalAlignment="Top" Width="197"/>
                     <Label Name="Label24" Content="Source" HorizontalAlignment="Left" Margin="9,5,0,0" VerticalAlignment="Top"  />
                     <Slider x:Name="SliderFrom" Margin="268,65,10,0" VerticalAlignment="Top" Height="22"/>
                     <Slider x:Name="SliderTo" Margin="268,95,12,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
@@ -51,18 +51,33 @@
             </TabItem>
             <TabItem Name="Label30" Header=" Performance settings " FontSize="14">
                 <Grid >
-                    <TextBox x:Name="TextBoxSlipageSimpleOrder" Margin="126,159,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
-                    <Label Name="Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="49,84,0,0" VerticalAlignment="Top" FontSize="16" />
-                    <CheckBox Name="CheckBoxSlipageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="49,125,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOff_Checked"/>
-                    <CheckBox Name="CheckBoxSlipageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="49,159,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageLimitOn_Checked"/>
-                    <TextBox x:Name="TextBoxSlipageStop" Margin="398,159,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
-                    <Label Name="Label33" Content="Stop slippage" HorizontalAlignment="Center" Margin="306,84,261,0" VerticalAlignment="Top" FontSize="16" />
-                    <CheckBox Name="CheckBoxSlipageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="306,125,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOff_Checked"/>
-                    <CheckBox Name="CheckBoxSlipageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="306,159,0,0" VerticalAlignment="Top" Checked="CheckBoxSlipageStopOn_Checked"/>
-                    <Label Name="Label34" Content="Order execution" HorizontalAlignment="Right" Margin="0,84,79,0" VerticalAlignment="Top" FontSize="16" />
-                    <CheckBox Name="CheckBoxExecutionOrderIntersection" Content="Price crossing" HorizontalAlignment="Left" Margin="566,125,0,0" VerticalAlignment="Top" Checked="CheckBoxExecutionOrderIntersection_Checked"/>
-                    <CheckBox Name="CheckBoxExecutionOrderTuch" Content="Price touch" HorizontalAlignment="Left" Margin="566,159,0,0" VerticalAlignment="Top" Cursor="" Checked="CheckBoxExecutionOrderTuch_Checked"/>
-                    <CheckBox Name="CheckBoxExecutionOrderFiftyFifty" Content="50 / 50" HorizontalAlignment="Left" Margin="566,195,0,0" VerticalAlignment="Top" Cursor="" Checked="CheckBoxExecutionOrderFiftyFifty_Checked"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="124"/>
+                        <RowDefinition Height="221*"/>
+                    </Grid.RowDefinitions>
+                    <Grid x:Name="GridOrdersSettings" >
+                        <TextBox x:Name="TextBoxSlipageSimpleOrder" Margin="135,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="96" Height="23"/>
+                        <Label Name = "Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="38,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
+                        <CheckBox Name = "CheckBoxSlipageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="38,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageLimitOff_Checked" Height="23" Width="121"/>
+                        <CheckBox Name = "CheckBoxSlipageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="38,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageLimitOn_Checked" Height="23" Width="92"/>
+                        <TextBox x:Name="TextBoxSlipageStop" Margin="390,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="102" Height="23"/>
+                        <Label Name = "Label33" Content="Stop slippage" Margin="284,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" HorizontalAlignment="Left" Width="208" />
+                        <CheckBox Name = "CheckBoxSlipageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="284,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageStopOff_Checked" Height="24" Width="104"/>
+                        <CheckBox Name = "CheckBoxSlipageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="284,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageStopOn_Checked" Height="23" Width="101"/>
+                        <Label Name = "Label34" Content="Order execution" HorizontalAlignment="Left" Margin="544,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
+                        <ComboBox Name = "ComboBoxOrderActivationType" HorizontalAlignment="Left" Margin="626,0,0,0" VerticalAlignment="Center" Width="111" Height="23"/>
+                        <Label Name = "LabelOrderActivationType" Content="Activation" HorizontalAlignment="Left" Margin="544,0,0,0" VerticalAlignment="Center" Height="24" Width="82"/>
+                    </Grid>
+                    <Grid Grid.Row="1" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="390*"/>
+                            <ColumnDefinition Width="389*"/>
+                        </Grid.ColumnDefinitions>
+                        <WindowsFormsHost Name="HostClearing" Margin="0,26,5,0" />
+                        <WindowsFormsHost Name="HostNonTradePeriods" Grid.Column="1" Margin="5,26,0,0"/>
+                        <Label Name="LabelNonTradePeriod" Grid.Column="1" Content="Non-trading periods" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        <Label Name="LabelClearing" Content="Orders clearing system" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                    </Grid>
                 </Grid>
             </TabItem>
             <TabItem Name="Label31" Header=" Portfolio " FontSize="14">

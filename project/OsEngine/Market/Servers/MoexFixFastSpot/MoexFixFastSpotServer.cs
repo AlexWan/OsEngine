@@ -3417,11 +3417,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         if (OrdStatus == "0" || OrdStatus == "9" || OrdStatus == "E")
                         {
-                            order.State = OrderStateType.Activ;
+                            order.State = OrderStateType.Active;
                         }
                         else if (OrdStatus == "1")
                         {
-                            order.State = OrderStateType.Patrial;
+                            order.State = OrderStateType.Partial;
                         }
                         else if (OrdStatus == "2")
                         {
@@ -3611,7 +3611,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                     return;
                 }
 
-                if (order.State != OrderStateType.Activ)
+                if (order.State != OrderStateType.Active)
                 {
                     SendLogMessage("Can`t change price of non-active order", LogMessageType.Error);
                     return;

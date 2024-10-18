@@ -997,7 +997,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Tabs[0].SetNewLogMessage(OsLocalization.Trader.Label177, LogMessageType.Error);
             }
 
-            SuncFirstTab();
+            SynchFirstTab();
             SaveIndicators();
         }
 
@@ -1434,7 +1434,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Tabs[0].ShowManualControlDialog();
-                SuncFirstTab();
+                SynchFirstTab();
             }
             catch (Exception ex)
             {
@@ -1660,7 +1660,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// синхронизировать первую вкладку с остальными
         /// </summary>
-        public void SuncFirstTab()
+        public void SynchFirstTab()
         {
             try
             {
@@ -1673,7 +1673,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 1; i < Tabs.Count; i++)
                 {
-                    SyncTabsIndicators(firstTab, Tabs[i]);
+                    SynchTabsIndicators(firstTab, Tabs[i]);
                     SyncTabsManualPositionControl(firstTab, Tabs[i]);
                 }
             }
@@ -1703,13 +1703,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             second.ManualPositionSupport.StopSlipage = first.ManualPositionSupport.StopSlipage;
             second.ManualPositionSupport.TypeDoubleExitOrder = first.ManualPositionSupport.TypeDoubleExitOrder;
             second.ManualPositionSupport.ValuesType = first.ManualPositionSupport.ValuesType;
+            second.ManualPositionSupport.OrderTypeTime = first.ManualPositionSupport.OrderTypeTime;
             second.ManualPositionSupport.Save();
         }
 
         /// <summary>
         /// синхронизировать две вкладки
         /// </summary>
-        private void SyncTabsIndicators(BotTabSimple first, BotTabSimple second)
+        private void SynchTabsIndicators(BotTabSimple first, BotTabSimple second)
         {
             List<IIndicator> indicatorsFirst = first.Indicators;
 
@@ -1755,7 +1756,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Aindicator indFirst = (Aindicator)indicatorsFirst[i];
                 Aindicator indSecond = (Aindicator)second.Indicators[i];
 
-                if (SuncIndicatorsSettings(indFirst, indSecond))
+                if (SynchIndicatorsSettings(indFirst, indSecond))
                 {
                     indSecond.Save();
                     indSecond.Reload();
@@ -1810,7 +1811,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// синхронизировать настройки для индикатора
         /// </summary>
-        private bool SuncIndicatorsSettings(Aindicator indFirst, Aindicator second)
+        private bool SynchIndicatorsSettings(Aindicator indFirst, Aindicator second)
         {
             bool isChange = false;
 

@@ -402,7 +402,7 @@ namespace OsEngine.Market.Servers.Kraken
                         newOrder.NumberMarket = order.TxId;
                         newOrder.PortfolioNumber = osOrder.PortfolioNumber;
                         newOrder.Side = osOrder.Side;
-                        newOrder.State = OrderStateType.Activ;
+                        newOrder.State = OrderStateType.Active;
                         newOrder.TimeCallBack = time;
 
                         if (MyOrderEvent != null)

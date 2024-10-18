@@ -7,65 +7,24 @@
         mc:Ignorable="d"
         Title="Configuration" Style="{StaticResource WindowStyleNoResize}" Height="447" Width="404" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
-        <TabControl>
-            <TabItem Name="MainItem" Header="Main" Width="150">
-                <Grid>
-                    <ComboBox x:Name="ComboBoxLocalization" Margin="183,28,56,0" VerticalAlignment="Top" Height="23"/>
-                    <Label Name="LanguageLabel"  Content="Language" HorizontalAlignment="Left" Margin="79,28,0,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelHeader"  Content="Bot header" HorizontalAlignment="Left" Margin="79,112,0,0" VerticalAlignment="Top"/>
-                    <CheckBox Name="CheckBoxExtraLogWindow" Margin="0,140,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23" />
-                    <Label Name="ShowExtraLogWindowLabel" Content="Show emergency log window" HorizontalAlignment="Left" Margin="79,140,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxExtraLogSound" Margin="0,168,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-                    <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="79,168,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,196,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-                    <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="79,196,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Center" Margin="0,280,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="97" />
-                    <TextBox Name="TextBoxBotHeader" HorizontalAlignment="Left" Margin="183,112,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="151"/>
-                    <Label x:Name="LabelRebootTradeUiLigth" Content="Reboot Ligth on error" HorizontalAlignment="Left" Margin="79,223,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxRebootTradeUiLigth" Margin="0,223,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-                    <ComboBox x:Name="ComboBoxTimeFormat" Margin="183,56,56,0" VerticalAlignment="Top" Height="23"/>
-                    <Label x:Name="LabelTimeFormat"  Content="Time format" HorizontalAlignment="Left" Margin="79,56,0,0" VerticalAlignment="Top"/>
-                    <ComboBox x:Name="ComboBoxDateFormat" Margin="183,84,56,0" VerticalAlignment="Top" Height="23"/>
-                    <Label x:Name="LabelDateFormat"  Content="Date format" HorizontalAlignment="Left" Margin="79,84,0,0" VerticalAlignment="Top"/>
-                    <Label x:Name="LabelReportCriticalErrors" Content="Report critical errors" HorizontalAlignment="Left" Margin="79,251,0,0" VerticalAlignment="Top"/>
-                    <CheckBox x:Name="CheckBoxReportCriticalErrors" Margin="0,251,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-                </Grid>
-            </TabItem>
-            <TabItem Name="AdminItem" Header="Admin panel access" Width="150">
-                <Grid>
-                    <Label Name="LabelState" HorizontalAlignment="Left"
-                           VerticalAlignment="Top" Margin="25,23,0,0" Width="79" Content="State"/>
-                    <Label Name="LabelStateValue" HorizontalAlignment="Left"
-                           VerticalAlignment="Top" Margin="109,23,0,0" Width="73" Content=""/>
-                    <Label Name="LabelToken" HorizontalAlignment="Left"
-                           VerticalAlignment="Top" Margin="25,51,0,0" Width="54" Content="Token"/>
-                    <TextBox Name="TextBoxToken" HorizontalAlignment="Left" IsReadOnly="True"
-                             VerticalAlignment="Top" Margin="97,51,0,0" Width="205"></TextBox>
-                    <Label Name="LabelIp" HorizontalAlignment="Left"
-                           VerticalAlignment="Top" Margin="25,79,0,0" Width="67" Content="IP"/>
-                    <TextBox Name="TextBoxIp" HorizontalAlignment="Left"
-                             VerticalAlignment="Top" Margin="97,79,0,0" Width="205"
-                             TextChanged="TextBoxIp_OnTextChanged"/>
-                    <CheckBox Name="AutoStartChb" HorizontalAlignment="Left"
-                              VerticalAlignment="Top" Margin="269,165,0,0" Width="17" Height="23" />
-                    <Label Name="LabelConfirm" HorizontalAlignment="Left" VerticalAlignment="Top" 
-                           Margin="25,165,0,0" Width="228" Content="Start admin panel API automatically"/>
-                    <Label x:Name="LabelPort" HorizontalAlignment="Left"
-                        VerticalAlignment="Top" Margin="25,107,0,0" Width="67" Content="PORT"/>
-                    <TextBox x:Name="TextBoxPort" HorizontalAlignment="Left"
-                        VerticalAlignment="Top" Margin="97,107,0,0" Width="205"
-                        TextChanged="TextBoxPort_OnTextChanged"/>
-                    <Button x:Name="BtnGenerateToken" HorizontalAlignment="Left"
-                        VerticalAlignment="Top" Margin="325,51,0,0" Width="35"  Height="23"
-                        Click="BtnGenerateToken_OnClick">
-                        <Button.Background>
-                            <ImageBrush ImageSource="/Images/generateButton.png" />
-                        </Button.Background>
-                    </Button>
-
-                </Grid>
-            </TabItem>
-        </TabControl>
-
+        <ComboBox x:Name="ComboBoxLocalization" Margin="183,28,56,0" VerticalAlignment="Top" Height="23"/>
+        <Label Name="LanguageLabel"  Content="Language" HorizontalAlignment="Left" Margin="79,28,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelHeader"  Content="Bot header" HorizontalAlignment="Left" Margin="79,112,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxExtraLogWindow" Margin="0,140,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23" />
+        <Label Name="ShowExtraLogWindowLabel" Content="Show emergency log window" HorizontalAlignment="Left" Margin="79,140,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxExtraLogSound" Margin="0,168,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+        <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="79,168,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,196,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+        <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="79,196,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Center" Margin="0,280,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="97" />
+        <TextBox Name="TextBoxBotHeader" HorizontalAlignment="Left" Margin="183,112,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="151"/>
+        <Label x:Name="LabelRebootTradeUiLigth" Content="Reboot Ligth on error" HorizontalAlignment="Left" Margin="79,223,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxRebootTradeUiLigth" Margin="0,223,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+        <ComboBox x:Name="ComboBoxTimeFormat" Margin="183,56,56,0" VerticalAlignment="Top" Height="23"/>
+        <Label x:Name="LabelTimeFormat"  Content="Time format" HorizontalAlignment="Left" Margin="79,56,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxDateFormat" Margin="183,84,56,0" VerticalAlignment="Top" Height="23"/>
+        <Label x:Name="LabelDateFormat"  Content="Date format" HorizontalAlignment="Left" Margin="79,84,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="LabelReportCriticalErrors" Content="Report critical errors" HorizontalAlignment="Left" Margin="79,251,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxReportCriticalErrors" Margin="0,251,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
     </Grid>
 </Window>

@@ -127,6 +127,10 @@ namespace OsEngine.Language
           "Eng:Show_" +
           "Ru:Показывать_");
 
+        public string Label17 => OsLocalization.ConvertToLocString(
+          "Eng:Show don`t open positions_" +
+          "Ru:Показывать не открытые позиции_");
+
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +
             "Ru:Эквити_");

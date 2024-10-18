@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using OsEngine.Market;
 
@@ -70,14 +71,14 @@ namespace OsEngine.Entity
             get
             {
                 if((State == OrderStateType.None 
-                    || State == OrderStateType.Activ
+                    || State == OrderStateType.Active
                     || State == OrderStateType.Cancel)
                     && _trades == null)
                 {
                     return 0;
                 }
 
-                return GetMidlePrice();
+                return GetMiddlePrice();
             }
         }
 
@@ -228,6 +229,11 @@ namespace OsEngine.Entity
         public TimeSpan LifeTime;
 
         /// <summary>
+        /// Order lifetime type
+        /// </summary>
+        public OrderTypeTime OrderTypeTime;
+
+        /// <summary>
         /// Flag saying that this order was created to close by stop or profit order
         /// the tester needs to perform it adequately
         /// </summary>
@@ -287,7 +293,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Take the average order execution price
         /// </summary>
-        public decimal GetMidlePrice()
+        public decimal GetMiddlePrice()
         {
             if (_trades == null)
             {
@@ -324,6 +330,10 @@ namespace OsEngine.Entity
         public DateTime GetLastTradeTime()
         {
             if (_trades == null)
+            {
+                return TimeCallBack;
+            }
+            if (_trades.Count == 0)
             {
                 return TimeCallBack;
             }
@@ -421,6 +431,8 @@ namespace OsEngine.Entity
 
             result.Append(TimeDone.ToString(CultureInfo) + "@");
 
+            result.Append(OrderTypeTime + "@");
+
             if (State == OrderStateType.Done && Volume == VolumeExecute &&
                 _trades != null && _trades.Count > 0)
             {
@@ -483,6 +495,11 @@ namespace OsEngine.Entity
             }
             Comment = saveArray[18];
             TimeDone = Convert.ToDateTime(saveArray[19], CultureInfo);
+
+            if(saveArray.Length > 21)
+            {
+                Enum.TryParse(saveArray[20], true, out OrderTypeTime);
+            }
         }
     }
 
@@ -520,7 +537,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Accepted by the exchange and exhibited in the system
         /// </summary>
-        Activ,
+        Active,
 
         /// <summary>
         /// Waiting for registration
@@ -535,7 +552,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Partitial done
         /// </summary>
-        Patrial,
+        Partial,
 
         /// <summary>
         /// Error
@@ -561,5 +578,26 @@ namespace OsEngine.Entity
         None,
         Open,
         Close
+    }
+
+    /// <summary>
+    /// Order lifetime type
+    /// </summary>
+    public enum OrderTypeTime
+    {
+        /// <summary>
+        /// Order will be valid for as long as specified in the LifeTime variable
+        /// </summary>
+        Specified,
+
+        /// <summary>
+        ///  Order will be in the queue until it is withdrawn
+        /// </summary>
+        GTC,
+
+        /// <summary>
+        /// Order will be throughout the day. If the exchange has such possibilities
+        /// </summary>
+        Day
     }
 }

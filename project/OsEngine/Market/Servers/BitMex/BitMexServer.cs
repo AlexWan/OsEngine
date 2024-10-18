@@ -1645,7 +1645,7 @@ namespace OsEngine.Market.Servers.BitMex
                     }
                     else if (myOrders[i].ordStatus == "New")
                     {
-                        order.State = OrderStateType.Activ;
+                        order.State = OrderStateType.Active;
                     }
 
                     if (myOrders[i].orderQty != null)
@@ -1743,9 +1743,9 @@ namespace OsEngine.Market.Servers.BitMex
                             _ordersToCheck.RemoveAt(i);
                             i--;
                         }
-                        else if (osOrder.State == OrderStateType.Activ)
+                        else if (osOrder.State == OrderStateType.Active)
                         {
-                            _ordersToCheck[i].State = OrderStateType.Activ;
+                            _ordersToCheck[i].State = OrderStateType.Active;
                             if (MyOrderEvent != null)
                             {
                                 MyOrderEvent(_ordersToCheck[i]);
@@ -1943,7 +1943,7 @@ namespace OsEngine.Market.Servers.BitMex
                             {
                                 if (Convert.ToBoolean(myOrder.data[i].workingIndicator))
                                 {
-                                    needOrder.State = OrderStateType.Activ;
+                                    needOrder.State = OrderStateType.Active;
                                 }
 
                                 if (myOrder.data[i].ordStatus == "Canceled")
@@ -1959,7 +1959,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                                 if (myOrder.data[i].ordStatus == "PartiallyFilled")
                                 {
-                                    needOrder.State = OrderStateType.Patrial;
+                                    needOrder.State = OrderStateType.Partial;
                                     if (myOrder.data[i].cumQty != null)
                                     {
                                         needOrder.VolumeExecute = myOrder.data[i].cumQty.ToDecimal();

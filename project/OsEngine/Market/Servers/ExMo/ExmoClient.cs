@@ -639,7 +639,7 @@ namespace OsEngine.Market.Servers.ExMo
 
                     if (orderType == "user_open_orders")
                     {
-                        newOrder.State = OrderStateType.Activ;
+                        newOrder.State = OrderStateType.Active;
                     }
                     else
                     {
@@ -789,7 +789,7 @@ namespace OsEngine.Market.Servers.ExMo
                         JToken.Parse(jsonCurrency).SelectToken("order_id").ToString();
 
                     order.NumberMarket = id;
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
 
                     /* "result": true,
                      "error": "",

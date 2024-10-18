@@ -266,7 +266,8 @@ namespace OsEngine.Entity
             {
                 try
                 {
-                    if (value != _timeFrame)
+                    if (value != _timeFrame ||
+                        value == TimeFrame.Sec1)
                     {
                         _timeFrame = value;
                         if (value == TimeFrame.Sec1)

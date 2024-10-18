@@ -217,7 +217,7 @@ namespace OsEngine.Robots.High_Frequency
 
         private void LogicClosePosition(BotTabSimple tab, Position position)
         {
-            if (position.OpenOrders[0].State == OrderStateType.Activ)
+            if (position.OpenOrders[0].State == OrderStateType.Active)
             { // ордер ещё не исполнен на открытие
                 Order order = position.OpenOrders[0];
 

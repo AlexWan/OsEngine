@@ -2496,7 +2496,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     }
                                     else if (action == 1)
                                     {
-                                        order.State = OrderStateType.Activ;
+                                        order.State = OrderStateType.Active;
                                     }
                                     else if (action == 2)
                                     {
@@ -2575,7 +2575,7 @@ namespace OsEngine.Market.Servers.Plaza
 
                                         order = _ordersToExecute.Dequeue();
 
-                                        order.State = OrderStateType.Activ;
+                                        order.State = OrderStateType.Active;
                                         order.NumberMarket = msgData["order_id"].asLong().ToString();
                                     }
                                     else
@@ -2662,7 +2662,7 @@ namespace OsEngine.Market.Servers.Plaza
                                         order = _ordersToChange.Dequeue();
 
                                         order.NumberMarket = msgData["order_id1"].asLong().ToString();
-                                        order.State = OrderStateType.Activ;
+                                        order.State = OrderStateType.Active;
 
                                         SendLogMessage($"Move order. NumberUser - {order.NumberUser}. Message - {msgData["message"].asString()}", LogMessageType.System);
                                     }
@@ -2761,7 +2761,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     }
                                     else if (action == 1)
                                     {
-                                        order.State = OrderStateType.Activ;
+                                        order.State = OrderStateType.Active;
                                     }
                                     else if (action == 2)
                                     {

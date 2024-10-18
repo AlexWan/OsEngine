@@ -319,6 +319,12 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
+                if (!ProgressBarPrime.Dispatcher.CheckAccess())
+                {
+                    ProgressBarPrime.Dispatcher.Invoke(RepaintResults);
+                    return;
+                }
+
                 for (int i = 0; i < _reports.Count; i++)
                 {
                     SortResults(_reports[i].Reports);
@@ -326,7 +332,16 @@ namespace OsEngine.OsOptimizer
 
                 PaintEndOnAllProgressBars();
                 PaintTableFazes();
+
+                if (_gridFazesEnd.Rows.Count > 0)
+                {
+                    _gridFazesEnd.Rows[0].Selected = true;
+                    _gridFazesEnd.Rows[0].Cells[0].Selected = true;
+                    _gridFazesEnd.CurrentCell = _gridFazes.Rows[0].Cells[0];
+                }
+
                 PaintTableResults();
+
                 StartUserActivity();
 
                 _resultsCharting.ReLoad(_reports);
@@ -2767,16 +2782,16 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewButtonColumn column11 = new DataGridViewButtonColumn();
             column11.CellTemplate = new DataGridViewButtonCell();
-            column11.HeaderText = OsLocalization.Optimizer.Message40;
+            //column11.HeaderText = OsLocalization.Optimizer.Message40;
             column11.ReadOnly = true;
-            column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridResults.Columns.Add(column11);
 
             DataGridViewButtonColumn column12 = new DataGridViewButtonColumn();
             column12.CellTemplate = new DataGridViewButtonCell();
-            column12.HeaderText = OsLocalization.Optimizer.Message42;
+            //column12.HeaderText = OsLocalization.Optimizer.Message42;
             column12.ReadOnly = true;
-            column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridResults.Columns.Add(column12);
 
             _gridResults.Rows.Add(null, null);
@@ -2900,6 +2915,8 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
             for (int i = 0; i < fazeReport.Reports.Count; i++)
             {
                 OptimizerReport report = fazeReport.Reports[i];
@@ -2971,9 +2988,17 @@ namespace OsEngine.OsOptimizer
                 cell13.Value = OsLocalization.Optimizer.Message42;
                 row.Cells.Add(cell13);
 
-                _gridResults.Rows.Add(row);
-
+                rows.Add(row);
             }
+
+            WindowsFormsHostResults.Child = null;
+
+            if (rows.Count > 0)
+            {
+                _gridResults.Rows.AddRange(rows.ToArray());
+            }
+
+            WindowsFormsHostResults.Child = _gridResults;
 
             _gridResults.SelectionChanged += _gridResults_SelectionChanged;
             _gridResults.CellMouseClick += _gridResults_CellMouseClick;

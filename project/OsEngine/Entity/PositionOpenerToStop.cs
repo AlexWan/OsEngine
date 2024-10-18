@@ -157,7 +157,14 @@ namespace OsEngine.Entity
         /// <summary>
         /// activate when the price is lower or equal 
         /// </summary>
-        LowerOrEqyal
+        LowerOrEqual = 2,
+        
+        /// <summary>
+        /// activate when the price is lower or equal.
+        /// Left for backwards compatibility with typo
+        /// </summary>
+        [Obsolete("Typo. Use LowerOrEqual instead.")]
+        LowerOrEqyal = 2,
     }
 
     public enum PositionOpenerToStopLifeTimeType

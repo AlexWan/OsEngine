@@ -167,7 +167,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     DoubleExitSlipage = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out TypeDoubleExitOrder);
                     Enum.TryParse(reader.ReadLine(), out ValuesType);
-
+                    Enum.TryParse(reader.ReadLine(), out OrderTypeTime);
+                    
                     reader.Close();
                 }
             }
@@ -214,6 +215,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     writer.WriteLine(DoubleExitSlipage);
                     writer.WriteLine(TypeDoubleExitOrder);
                     writer.WriteLine(ValuesType);
+                    writer.WriteLine(OrderTypeTime);
                     writer.Close();
                 }
             }
@@ -273,7 +275,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Program that created the robot
         /// </summary>
-        private StartProgram _startProgram;
+        public StartProgram _startProgram;
 
         /// <summary>
         /// Disable all support functions
@@ -454,6 +456,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public ManualControlValuesType ValuesType;
 
         /// <summary>
+        /// Order lifetime type
+        /// </summary>
+        public OrderTypeTime OrderTypeTime;
+
+        /// <summary>
         /// Journal
         /// </summary>
         private BotTabSimple _botTab;
@@ -513,8 +520,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                         // open orders
                         Order openOrder = position.OpenOrders[i2];
 
-                        if (openOrder.State != OrderStateType.Activ &&
-                            openOrder.State != OrderStateType.Patrial)
+                        if (openOrder.State != OrderStateType.Active &&
+                            openOrder.State != OrderStateType.Partial)
                         {
                             continue;
                         }
@@ -524,12 +531,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
-                        if (SecondToOpenIsOn &&
-                            openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
+                        if(openOrder.OrderTypeTime == OrderTypeTime.Specified)
                         {
-                            SendNewLogMessage(OsLocalization.Trader.Label70 + openOrder.NumberMarket,
-                                LogMessageType.Trade);
-                            SendOrderToClose(openOrder, position);
+                            if (SecondToOpenIsOn &&
+                                openOrder.TimeCreate.Add(openOrder.LifeTime) < ServerTime)
+                            {
+                                SendNewLogMessage(OsLocalization.Trader.Label70 + openOrder.NumberMarket,
+                                    LogMessageType.Trade);
+                                SendOrderToClose(openOrder, position);
+                            }
                         }
 
                         if (SetbackToOpenIsOn &&
@@ -569,8 +579,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
-                        if ((closeOrder.State != OrderStateType.Activ &&
-                             closeOrder.State != OrderStateType.Patrial))
+                        if ((closeOrder.State != OrderStateType.Active &&
+                             closeOrder.State != OrderStateType.Partial))
                         {
                             continue;
                         }
@@ -580,12 +590,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
-                        if (SecondToCloseIsOn &&
-                            closeOrder.TimeCreate.Add(closeOrder.LifeTime) < ServerTime)
+                        if (closeOrder.OrderTypeTime == OrderTypeTime.Specified)
                         {
-                            SendNewLogMessage(OsLocalization.Trader.Label70 + closeOrder.NumberMarket,
-                                LogMessageType.Trade);
-                            SendOrderToClose(closeOrder, position);
+                            if (SecondToCloseIsOn &&
+                            closeOrder.TimeCreate.Add(closeOrder.LifeTime) < ServerTime)
+                            {
+                                SendNewLogMessage(OsLocalization.Trader.Label70 + closeOrder.NumberMarket,
+                                    LogMessageType.Trade);
+                                SendOrderToClose(closeOrder, position);
+                            }
                         }
 
                         if (SetbackToCloseIsOn &&

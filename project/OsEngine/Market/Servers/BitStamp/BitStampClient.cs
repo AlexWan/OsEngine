@@ -900,7 +900,7 @@ namespace OsEngine.Market.Servers.BitStamp
                 newOrder.PortfolioNumber = order.PortfolioNumber;
                 newOrder.Side = order.Side;
                 newOrder.Price = order.Price;
-                newOrder.State = OrderStateType.Activ;
+                newOrder.State = OrderStateType.Active;
                 newOrder.Volume = order.Volume;
 
                 if (MyOrderEvent != null)

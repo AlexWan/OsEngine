@@ -23,7 +23,6 @@ using OsEngine.Logging;
 using Color = System.Drawing.Color;
 using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
-using OsEngine.Charts.CandleChart.ChartAddons; //AVP ChartRoulette
 using OsEngine.Language;
 
 namespace OsEngine.Charts.CandleChart
@@ -35,8 +34,6 @@ namespace OsEngine.Charts.CandleChart
     public class WinFormsChartPainter : IChartPainter
     {
         //service сервис
-
-        private ChartRoulette chartRoulette;    //AVP ChartRoulette 
         
         /// <summary>
         /// constructor
@@ -55,7 +52,6 @@ namespace OsEngine.Charts.CandleChart
 
                 CreateChart();
                 _chart.Text = name;
-                chartRoulette = new ChartRoulette(this, _chart);  //AVP ChartRoulette Comment on this line if roulette is buggy
 
                 Task task = new Task(PainterThreadArea);
                 task.Start();               
@@ -389,9 +385,6 @@ namespace OsEngine.Charts.CandleChart
                 _chart.ClientSizeChanged -= _chart_ClientSizeChanged;
                 _chart.AxisViewChanging -= _chart_AxisViewChanging;
                 _chart.MouseUp -= _chart_MouseUp;
-
-                chartRoulette?.Dispose(); //AVP ChartRoulette 
-                chartRoulette = null;
 
                 _chart.Series.Clear();
                 _chart.ChartAreas.Clear();
@@ -1358,6 +1351,11 @@ namespace OsEngine.Charts.CandleChart
                     return;
                 }
 
+                if (_isPaint == false)
+                {
+                    return;
+                }
+
                 if (history == null && _myCandles == null)
                 {
                     return;
@@ -1366,6 +1364,11 @@ namespace OsEngine.Charts.CandleChart
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<List<Candle>>(PaintCandles), history);
+                    return;
+                }
+
+                if (_isPaint == false)
+                {
                     return;
                 }
 
@@ -1907,52 +1910,62 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
                 }
-                //  forming Profit and Stop lines
-                // формируем линии Профитов и Стопов
+
                 for (int i = 0; i < deals.Count; i++)
                 {
                     // going through open order limit
                     // проходим Лимит ОРДЕРА НА ОТКРЫТИИ
 
-                    if (deals[i].State == PositionStateType.Opening 
-                        && deals[i].OpenOrders != null 
-                        && deals[i].OpenOrders.Count > 0 
-                        && deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].State == OrderStateType.Activ)
+                    if ((deals[i].State == PositionStateType.Closing
+                        || deals[i].State == PositionStateType.Opening
+                        || deals[i].State == PositionStateType.Open)
+                        && 
+                        deals[i].OpenOrders != null 
+                        && deals[i].OpenOrders.Count > 0)
                     {
-                        Series lineSeries = new Series("Open_" + deals[i].Number);
-                        lineSeries.ChartType = SeriesChartType.Line;
-                        lineSeries.YAxisType = AxisType.Secondary;
-                        lineSeries.XAxisType = AxisType.Secondary;
-                        lineSeries.ChartArea = "Prime";
-                        lineSeries.ShadowOffset = 1;
-                        lineSeries.YValuesPerPoint = 1;
-
-
-                        lineSeries.Points.AddXY(0, deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].Price);
-                        lineSeries.Points.AddXY(_myCandles.Count + 500, deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].Price);
-
-                        if (deals[i].OpenOrders[deals[i].OpenOrders.Count - 1].Side == Side.Buy)
+                        for (int j = 0; j < deals[i].OpenOrders.Count; j++)
                         {
-                            lineSeries.Color = Color.Green;
-                        }
-                        else
-                        {
-                            lineSeries.Color = Color.Red;
-                        }
+                            Order curOrder = deals[i].OpenOrders[j];
 
-                        if (stopProfitOrderSeries == null)
-                        {
-                            stopProfitOrderSeries = new[] { lineSeries };
-                        }
-                        else
-                        {
-                            Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
-                            for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                            if (curOrder.State != OrderStateType.Active)
                             {
-                                newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                continue;
                             }
-                            newLineSeries[newLineSeries.Length - 1] = lineSeries;
-                            stopProfitOrderSeries = newLineSeries;
+
+                            Series lineSeries = new Series("Open_" + deals[i].Number + j.ToString());
+                            lineSeries.ChartType = SeriesChartType.Line;
+                            lineSeries.YAxisType = AxisType.Secondary;
+                            lineSeries.XAxisType = AxisType.Secondary;
+                            lineSeries.ChartArea = "Prime";
+                            lineSeries.ShadowOffset = 1;
+                            lineSeries.YValuesPerPoint = 1;
+
+                            lineSeries.Points.AddXY(0, curOrder.Price);
+                            lineSeries.Points.AddXY(_myCandles.Count + 500, curOrder.Price);
+
+                            if (curOrder.Side == Side.Buy)
+                            {
+                                lineSeries.Color = Color.Green;
+                            }
+                            else
+                            {
+                                lineSeries.Color = Color.Red;
+                            }
+
+                            if (stopProfitOrderSeries == null)
+                            {
+                                stopProfitOrderSeries = new[] { lineSeries };
+                            }
+                            else
+                            {
+                                Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
+                                for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                                {
+                                    newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                }
+                                newLineSeries[newLineSeries.Length - 1] = lineSeries;
+                                stopProfitOrderSeries = newLineSeries;
+                            }
                         }
                     }
                 }
@@ -1960,45 +1973,57 @@ namespace OsEngine.Charts.CandleChart
                 {
                     // going through Order limit on close
                     // проходим Лимит ОРДЕРА НА ЗАКРЫТИИ
-                    if (deals[i].State == PositionStateType.Closing &&
+                    if ((deals[i].State == PositionStateType.Closing
+                        || deals[i].State == PositionStateType.Opening
+                        || deals[i].State == PositionStateType.Open)
+                        &&
                         deals[i].CloseOrders != null &&
-                        deals[i].CloseOrders.Count > 0 &&
-                        deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].State == OrderStateType.Activ)
+                        deals[i].CloseOrders.Count > 0)
                     {
-                        Series lineSeries = new Series("Close_" + deals[i].Number);
-                        lineSeries.ChartType = SeriesChartType.Line;
-                        lineSeries.YAxisType = AxisType.Secondary;
-                        lineSeries.XAxisType = AxisType.Secondary;
-                        lineSeries.ChartArea = "Prime";
-                        lineSeries.ShadowOffset = 1;
-                        lineSeries.YValuesPerPoint = 1;
-
-
-                        lineSeries.Points.AddXY(0, deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].Price);
-                        lineSeries.Points.AddXY(_myCandles.Count + 500, deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].Price);
-
-                        if (deals[i].CloseOrders[deals[i].CloseOrders.Count - 1].Side == Side.Buy)
+                        for(int j = 0;j < deals[i].CloseOrders.Count;j++)
                         {
-                            lineSeries.Color = Color.Green;
-                        }
-                        else
-                        {
-                            lineSeries.Color = Color.Red;
-                        }
+                            Order curOrder = deals[i].CloseOrders[j];
 
-                        if (stopProfitOrderSeries == null)
-                        {
-                            stopProfitOrderSeries = new[] { lineSeries };
-                        }
-                        else
-                        {
-                            Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
-                            for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                            if(curOrder.State != OrderStateType.Active)
                             {
-                                newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                continue;
                             }
-                            newLineSeries[newLineSeries.Length - 1] = lineSeries;
-                            stopProfitOrderSeries = newLineSeries;
+
+                            Series lineSeries = new Series("Close_" + deals[i].Number + j.ToString());
+                            lineSeries.ChartType = SeriesChartType.Line;
+                            lineSeries.YAxisType = AxisType.Secondary;
+                            lineSeries.XAxisType = AxisType.Secondary;
+                            lineSeries.ChartArea = "Prime";
+                            lineSeries.ShadowOffset = 1;
+                            lineSeries.YValuesPerPoint = 1;
+
+
+                            lineSeries.Points.AddXY(0, curOrder.Price);
+                            lineSeries.Points.AddXY(_myCandles.Count + 500, curOrder.Price);
+
+                            if (curOrder.Side == Side.Buy)
+                            {
+                                lineSeries.Color = Color.Green;
+                            }
+                            else
+                            {
+                                lineSeries.Color = Color.Red;
+                            }
+
+                            if (stopProfitOrderSeries == null)
+                            {
+                                stopProfitOrderSeries = new[] { lineSeries };
+                            }
+                            else
+                            {
+                                Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
+                                for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                                {
+                                    newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                }
+                                newLineSeries[newLineSeries.Length - 1] = lineSeries;
+                                stopProfitOrderSeries = newLineSeries;
+                            }
                         }
                     }
                 }
@@ -2007,11 +2032,14 @@ namespace OsEngine.Charts.CandleChart
                     // going through stop order
                     // проходим СТОП ОРДЕРА
                     if (
-                        (deals[i].State == PositionStateType.Open || deals[i].State == PositionStateType.Closing) &&
+                        (deals[i].State == PositionStateType.Closing
+                        || deals[i].State == PositionStateType.Opening
+                        || deals[i].State == PositionStateType.Open) 
+                        &&
                         deals[i].StopOrderIsActiv)
                     {
                         Series lineSeries = new Series("Stop_" + deals[i].Number);
-                        lineSeries.ChartType = SeriesChartType.Line;
+                        lineSeries.ChartType = SeriesChartType.StepLine;
                         lineSeries.YAxisType = AxisType.Secondary;
                         lineSeries.XAxisType = AxisType.Secondary;
                         lineSeries.ChartArea = "Prime";
@@ -2053,7 +2081,10 @@ namespace OsEngine.Charts.CandleChart
                     // going through order profit
                     // проходим ПРОФИТ ОРДЕРА
                     if (
-                       (deals[i].State == PositionStateType.Open || deals[i].State == PositionStateType.Closing) &&
+                       (deals[i].State == PositionStateType.Closing
+                        || deals[i].State == PositionStateType.Opening
+                        || deals[i].State == PositionStateType.Open) 
+                        &&
                         deals[i].ProfitOrderIsActiv)
                     {
                         Series lineSeries = new Series("Profit_" + deals[i].Number);
@@ -2142,7 +2173,16 @@ namespace OsEngine.Charts.CandleChart
 
                     for(int j = 0; j < _chart.Series.Count;j++)
                     {
-                        Series curSeries = _chart.Series[j];
+                        Series curSeries = null;
+
+                        try
+                        {
+                            curSeries = _chart.Series[j];
+                        }
+                        catch
+                        {
+                            continue;
+                        }
 
                         if (curSeries.Name == profitStopOrderSeries[i].Name)
                         {
@@ -2179,7 +2219,16 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int j = 0; j < _chart.Series.Count; j++)
                 {
-                    Series curSeries = _chart.Series[j];
+                    Series curSeries = null;
+
+                    try
+                    {
+                        curSeries = _chart.Series[j];
+                    }
+                    catch
+                    {
+                        continue;
+                    }
 
                     string name = curSeries.Name.Split('_')[0];
 
@@ -2313,11 +2362,14 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private int MagicSearch(DateTime time, List<Candle> candles, int start, int end, decimal price)
         {
-            if(end - start < 5 ||
-                start > end)
-            {
-
+            if(_startProgram == StartProgram.IsTester
+                && candles[candles.Count-1].TimeStart <= time
+                && 
+                (price > candles[candles.Count-1].High || price < candles[candles.Count - 1].Low))
+            {// при прорисовке в тестере, пришла последняя сделка, по ещё не прорисованной свече
+                return candles.Count;
             }
+
             if (end - start < 50)
             {
                 for (int i = start; i < end; i++)
@@ -3830,12 +3882,22 @@ namespace OsEngine.Charts.CandleChart
                 {
                     return;
                 }
+
+                if (_isPaint == false)
+                {
+                    return;
+                }
+
                 if (_chart.InvokeRequired)
                 {
                     _chart.Invoke(new Action<IIndicator>(PaintIndicator), indicator);
                     return;
                 }
 
+                if (_isPaint == false)
+                {
+                    return;
+                }
 
                 if (indicator.ValuesToChart != null)
                 {
@@ -5141,12 +5203,14 @@ namespace OsEngine.Charts.CandleChart
                         {
                             try
                             {
+                                area.AxisY2.CustomLabels[i] = new CustomLabel(min, max, label, 0, LabelMarkStyle.LineSideMark);
                                 area.AxisY2.CustomLabels.RemoveAt(i);
                                 i--;
                                 continue;
                             }
                             catch
                             {
+                                continue;
                                 // ignore
                             }
                         }
@@ -5227,6 +5291,11 @@ namespace OsEngine.Charts.CandleChart
             string positon = oldlabel.Price.ToDecimal().ToString(CultureInfo.InvariantCulture);
             for (int i = 0; i < area.AxisY2.CustomLabels.Count; i++)
             {
+                if(area.AxisY2.CustomLabels[i] == null)
+                {
+                    continue;
+                }
+
                 if (area.AxisY2.CustomLabels[i].Text == positon && area.AxisY2.CustomLabels[i].ForeColor == color)
                 {
                     area.AxisY2.CustomLabels.Remove(area.AxisY2.CustomLabels[i]);
@@ -5361,12 +5430,29 @@ namespace OsEngine.Charts.CandleChart
 
                 for (int indSecond = 0; indSecond < _labels.Count; indSecond++)
                 {
+                    ChartYLabels curLabel = null; 
+
+                    try
+                    {
+                        curLabel = _labels[indSecond];
+                    }
+                    catch
+                    {
+                        // ignore
+                        continue;
+                    }
+
+                    if(curLabel == null)
+                    {
+                        continue;
+                    }
+
                     if (indLabel == indSecond)
                     {
                         continue;
                     }
 
-                    if (_labels[indSecond].IsPrime)
+                    if (curLabel.IsPrime)
                     {
                         // If two primes are on each other, leave it
                         // если два прайма друг на дружке, то оставляем
@@ -5374,18 +5460,18 @@ namespace OsEngine.Charts.CandleChart
                     }
 
 
-                    if (_labels[indSecond].AreaName != label.AreaName)
+                    if (curLabel.AreaName != label.AreaName)
                     {
                         continue;
                     }
 
-                    double price = _labels[indSecond].Price.ToDouble();
+                    double price = curLabel.Price.ToDouble();
                     if (price < max &&
                         price > min)
                     {
                         // found intersection
                         // нашли пересечение
-                        ClearLabelOnY2(_labels[indSecond].SeriesName, nameArea, _labels[indSecond].Color);
+                        ClearLabelOnY2(curLabel.SeriesName, nameArea, curLabel.Color);
                         indSecond--;
                     }
                 }
@@ -5762,15 +5848,15 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            double persentMove = Math.Abs(myPosition.ValueYMouseOnClickStart - e.Y)/_host.Child.Height;
+            double percentMove = Math.Abs(myPosition.ValueYMouseOnClickStart - e.Y)/_host.Child.Height;
 
-            if (double.IsInfinity(persentMove) ||
-                persentMove == 0)
+            if (double.IsInfinity(percentMove) ||
+                percentMove == 0)
             {
                 return;
             }
 
-            double concateValue = 100*persentMove;
+            double concateValue = 100*percentMove;
 
             if (myPosition.ValueYMouseOnClickStart < e.Y)
             {
@@ -5918,15 +6004,15 @@ namespace OsEngine.Charts.CandleChart
             }
 
 
-            double persentMove = Math.Abs(myPosition.ValueXMouseOnClickStart - e.X) / _host.Child.Width;
+            double percentMove = Math.Abs(myPosition.ValueXMouseOnClickStart - e.X) / _host.Child.Width;
 
-            if (double.IsInfinity(persentMove) ||
-                persentMove == 0)
+            if (double.IsInfinity(percentMove) ||
+                percentMove == 0)
             {
                 return;
             }
 
-            //double concateValue = 100*persentMove*5;
+            //double concateValue = 100*percentMove*5;
 
 
                 int maxSize = 0;
@@ -5947,7 +6033,7 @@ namespace OsEngine.Charts.CandleChart
                 }
 
                 double newVal = myPosition.CountXValuesChartOnClickStart +
-                             myPosition.CountXValuesChartOnClickStart*persentMove*3;
+                             myPosition.CountXValuesChartOnClickStart*percentMove*3;
 
 
                 if (newVal > maxSize)
@@ -5974,7 +6060,7 @@ namespace OsEngine.Charts.CandleChart
             else if (myPosition.ValueXMouseOnClickStart > e.X)
             {
                 double newVal = myPosition.CountXValuesChartOnClickStart -
-               myPosition.CountXValuesChartOnClickStart * persentMove * 3;
+               myPosition.CountXValuesChartOnClickStart * percentMove * 3;
 
 
                 if (newVal < 5)
@@ -6320,6 +6406,33 @@ namespace OsEngine.Charts.CandleChart
 
             for (int i = 0; chartSeries != null && i < chartSeries.Count; i++)
             {
+                if (chartSeries[i] == null)
+                {
+                    List<Series> noNullSeries = new List<Series>();
+
+                    for(int j = 0;j < chartSeries.Count;j++)
+                    {
+                        if (chartSeries[j] == null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            noNullSeries.Add(chartSeries[j]);
+                        }
+                    }
+
+                    _chart.Series.Clear();
+                    i--;
+
+                    for (int j = 0; j < noNullSeries.Count; j++)
+                    {
+                        _chart.Series.Add(noNullSeries[j]);
+                    }
+
+                    continue;
+                }
+
                 if (chartSeries[i].ChartArea == areaName)
                 {
                     seriesOnArea.Add(chartSeries[i]);
@@ -6947,7 +7060,22 @@ namespace OsEngine.Charts.CandleChart
 
         private SeriesYLength GetSeriesYLength(Series series, int start, int end, Series candleSeries)
         {
-            SeriesYLength currentLength = _seriesYLengths.Find(yl => yl.Series.Name == series.Name);
+            SeriesYLength currentLength = null;
+
+            for (int i =0; i < _seriesYLengths.Count;i++)
+            {
+                if (_seriesYLengths[i] == null)
+                {
+                    _seriesYLengths.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                if (_seriesYLengths[i].Series.Name == series.Name)
+                {
+                    currentLength = _seriesYLengths[i];
+                    break;
+                }
+            }
 
             if(end >= series.Points.Count)
             {
@@ -7197,6 +7325,11 @@ namespace OsEngine.Charts.CandleChart
 
             for (int i = 0; i < labelCount; i++)
             {
+                if (area.AxisX.CustomLabels[i] == null)
+                {
+                    continue;
+                }
+
                 area.AxisX.CustomLabels[i].FromPosition = value - area.AxisX.Interval * 0.7;
                 area.AxisX.CustomLabels[i].ToPosition = value + area.AxisX.Interval * 0.7;
                 area.AxisX.CustomLabels[i].Text = _myCandles[(int)value].TimeStart.ToString(_cultureInterfaces);

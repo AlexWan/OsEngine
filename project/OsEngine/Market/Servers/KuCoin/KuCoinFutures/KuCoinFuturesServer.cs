@@ -948,7 +948,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             OrderStateType stateType = GetOrderState(item.status, item.type);
 
-            if (item.orderType != null && item.orderType.Equals("market") && stateType == OrderStateType.Activ)
+            if (item.orderType != null && item.orderType.Equals("market") && stateType == OrderStateType.Active)
             {
                return;
             }
@@ -982,7 +982,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             newOrder.ServerType = ServerType.KuCoinFutures;
             newOrder.PortfolioNumber = "KuCoinFutures";
 
-            if (stateType == OrderStateType.Done || (stateType == OrderStateType.Patrial && item.size != item.filledSize))
+            if (stateType == OrderStateType.Done || (stateType == OrderStateType.Partial && item.size != item.filledSize))
             {
                 // как только приходит ордер исполненный или частично исполненный триггер на запрос моего трейда по имени бумаги
                 CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, Convert.ToInt64(item.ts) / 1000000);
@@ -999,11 +999,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             switch (orderStatusResponse)
             {
                 case ("open"):
-                    stateType = OrderStateType.Activ;
+                    stateType = OrderStateType.Active;
                     break;
 
                 case ("match"):
-                    stateType = OrderStateType.Patrial;
+                    stateType = OrderStateType.Partial;
                     break;
 
                 case ("done"):
@@ -1066,7 +1066,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 if (stateResponse.code.Equals("200000") == true)
                 {
                     SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     order.NumberMarket = stateResponse.data.orderId;
 
                     if (MyOrderEvent != null)

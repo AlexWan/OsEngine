@@ -1216,13 +1216,13 @@ namespace OsEngine.Market.Servers.HTX.Spot
             switch (orderStateResponse)
             {
                 case ("submitted"):
-                    stateType = OrderStateType.Activ;
+                    stateType = OrderStateType.Active;
                     break;
                 case ("filled"):
                     stateType = OrderStateType.Done;
                     break;                
                 case ("partial-filled"):
-                    stateType = OrderStateType.Patrial;
+                    stateType = OrderStateType.Partial;
                     break;
                 case ("canceled"):
                     stateType = OrderStateType.Cancel;
@@ -1367,8 +1367,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     continue;
                 }
 
-                if (orders[i].State != OrderStateType.Activ
-                    && orders[i].State != OrderStateType.Patrial
+                if (orders[i].State != OrderStateType.Active
+                    && orders[i].State != OrderStateType.Partial
                     && orders[i].State != OrderStateType.Pending)
                 {
                     continue;
@@ -1517,7 +1517,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
 
             if (orderOnMarket.State == OrderStateType.Done
-                || orderOnMarket.State == OrderStateType.Patrial)
+                || orderOnMarket.State == OrderStateType.Partial)
             {
                 List<MyTrade> tradesBySecurity
                     = GetMyTradesBySecurity(orderOnMarket.NumberMarket);

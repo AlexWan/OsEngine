@@ -315,6 +315,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     newPortf.ValueBlocked =
                         onePortf.locked.ToDecimal();
 
+                    newPortf.PortfolioName = "BinanceSpot";
+
                     myPortfolio.SetNewPosition(newPortf);
                 }
 
@@ -1657,7 +1659,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 newOrder.NumberMarket = order.i.ToString();
                 //newOrder.PortfolioNumber = order.PortfolioNumber; добавить в сервере
                 newOrder.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
-                newOrder.State = OrderStateType.Activ;
+                newOrder.State = OrderStateType.Active;
                 newOrder.Volume = order.q.ToDecimal();
                 newOrder.Price = order.p.ToDecimal();
                 newOrder.ServerType = ServerType.Binance;
@@ -2292,7 +2294,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             if (orderOnBoard.status == "NEW" ||
                 orderOnBoard.status == "PARTIALLY_FILLED")
             { // order is active. Do nothing / ордер активен. Ничего не делаем
-                newOrder.State = OrderStateType.Activ;
+                newOrder.State = OrderStateType.Active;
             }
             else if (orderOnBoard.status == "FILLED")
             {
@@ -2387,7 +2389,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
 
             if(myOrderActualOnBoard.State == OrderStateType.Done ||
-                myOrderActualOnBoard.State == OrderStateType.Patrial)
+                myOrderActualOnBoard.State == OrderStateType.Partial)
             { // запрашиваем MyTrades, если по ордеру были исполнения
 
                 List<MyTrade> tradesSpot = GetAllMyTradesToOrder(myOrderActualOnBoard);
@@ -2532,7 +2534,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 if (myOrder.status == "NEW")
                 { 
-                    newOrder.State = OrderStateType.Activ;
+                    newOrder.State = OrderStateType.Active;
                 }
                 else if (myOrder.status == "FILLED")
                 {
@@ -2541,7 +2543,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
                 else if (myOrder.status == "PARTIALLY_FILLED")
                 {
-                    newOrder.State = OrderStateType.Patrial;
+                    newOrder.State = OrderStateType.Partial;
                 }
                 else if (myOrder.status == "CANCEL"
                     || myOrder.status == "CANCELED"
@@ -2606,7 +2608,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
 
                 newOrder.SecurityNameCode = orders[i].symbol;
-                newOrder.State = OrderStateType.Activ;
+                newOrder.State = OrderStateType.Active;
                 newOrder.Price = orders[i].price.ToDecimal();
                 newOrder.Volume = orders[i].origQty.ToDecimal();
                 newOrder.ServerType = ServerType.Binance;

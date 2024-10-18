@@ -5,15 +5,13 @@
 
 using System;
 using System.IO;
-using OsEngine.OsTrader.AdminPanelApi;
 
 namespace OsEngine.PrimeSettings
 {
     public class PrimeSettingsMaster
     {
-        public static ApiState ApiState { get; set; }
 
-        public static bool ErrorLogMessageBoxIsActiv
+        public static bool ErrorLogMessageBoxIsActive
         {
             get
             {
@@ -21,18 +19,18 @@ namespace OsEngine.PrimeSettings
                 {
                     Load();
                 }
-                return _errorLogMessageBoxIsActiv;
+                return _errorLogMessageBoxIsActive;
             }
             set
             {
-                _errorLogMessageBoxIsActiv = value;
+                _errorLogMessageBoxIsActive = value;
                 Save();
             }
         }
 
-        private static bool _errorLogMessageBoxIsActiv = true;
+        private static bool _errorLogMessageBoxIsActive = true;
 
-        public static bool ErrorLogBeepIsActiv
+        public static bool ErrorLogBeepIsActive
         {
             get
             {
@@ -40,14 +38,14 @@ namespace OsEngine.PrimeSettings
                 {
                     Load();
                 }
-                return _errorLogBeepIsActiv;
+                return _errorLogBeepIsActive;
             }
-            set { _errorLogBeepIsActiv = value; Save(); }
+            set { _errorLogBeepIsActive = value; Save(); }
         }
 
-        private static bool _errorLogBeepIsActiv = true;
+        private static bool _errorLogBeepIsActive = true;
 
-        public static bool TransactionBeepIsActiv
+        public static bool TransactionBeepIsActive
         {
             get
             {
@@ -55,18 +53,18 @@ namespace OsEngine.PrimeSettings
                 {
                     Load();
                 }
-                return _transactionBeepIsActiv;
+                return _transactionBeepIsActive;
             }
             set
             {
-                _transactionBeepIsActiv = value;
+                _transactionBeepIsActive = value;
                 Save();
             }
         }
 
-        private static bool _transactionBeepIsActiv;
+        private static bool _transactionBeepIsActive;
 
-        public static bool RebootTradeUiLigth
+        public static bool RebootTradeUiLight
         {
             get
             {
@@ -74,16 +72,16 @@ namespace OsEngine.PrimeSettings
                 {
                     Load();
                 }
-                return _rebootTradeUiLigth;
+                return _rebootTradeUiLight;
             }
             set
             {
-                _rebootTradeUiLigth = value;
+                _rebootTradeUiLight = value;
                 Save();
             }
         }
 
-        private static bool _rebootTradeUiLigth;
+        private static bool _rebootTradeUiLight;
 
         public static bool ReportCriticalErrors
         {
@@ -104,82 +102,6 @@ namespace OsEngine.PrimeSettings
 
         private static bool _reportCriticalErrors = true;
 
-        public static bool AutoStartApi
-        {
-            get
-            {
-                if (_isLoad == false)
-                {
-                    Load();
-                }
-                return _autoStartApi;
-            }
-            set
-            {
-                _autoStartApi = value;
-                Save();
-            }
-        }
-
-        private static bool _autoStartApi;
-
-        public static string Token
-        {
-            get
-            {
-                if (_isLoad == false)
-                {
-                    Load();
-                }
-                return _token;
-            }
-            set
-            {
-                _token = value;
-                Save();
-            }
-        }
-
-        private static string _token;
-
-        public static string Ip
-        {
-            get
-            {
-                if (_isLoad == false)
-                {
-                    Load();
-                }
-                return _ip;
-            }
-            set
-            {
-                _ip = value;
-                Save();
-            }
-        }
-
-        private static string _ip;
-
-        public static string Port
-        {
-            get
-            {
-                if (_isLoad == false)
-                {
-                    Load();
-                }
-                return _port;
-            }
-            set
-            {
-                _port = value;
-                Save();
-            }
-        }
-
-        private static string _port;
-
         public static string LabelInHeaderBotStation
         {
             get
@@ -199,25 +121,17 @@ namespace OsEngine.PrimeSettings
 
         private static string _labelInHeaderBotStation;
 
-        /// <summary>
-        /// save settings
-        /// сохранить настройки
-        /// </summary>
         public static void Save()
         {
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\PrimeSettings.txt", false))
                 {
-                    writer.WriteLine(_transactionBeepIsActiv);
-                    writer.WriteLine(_errorLogBeepIsActiv);
-                    writer.WriteLine(_errorLogMessageBoxIsActiv);
-                    writer.WriteLine(_autoStartApi);
-                    writer.WriteLine(_token);
-                    writer.WriteLine(_ip);
-                    writer.WriteLine(_port);
+                    writer.WriteLine(_transactionBeepIsActive);
+                    writer.WriteLine(_errorLogBeepIsActive);
+                    writer.WriteLine(_errorLogMessageBoxIsActive);
                     writer.WriteLine(_labelInHeaderBotStation);
-                    writer.WriteLine(_rebootTradeUiLigth);
+                    writer.WriteLine(_rebootTradeUiLight);
                     writer.WriteLine(_reportCriticalErrors);
 
                     writer.Close();
@@ -231,10 +145,6 @@ namespace OsEngine.PrimeSettings
 
         private static bool _isLoad;
 
-        /// <summary>
-        /// load settings
-        /// загрузить настройки
-        /// </summary>
         private static void Load()
         {
             _isLoad = true;
@@ -246,15 +156,19 @@ namespace OsEngine.PrimeSettings
             {
                 using (StreamReader reader = new StreamReader(@"Engine\PrimeSettings.txt"))
                 {
-                    _transactionBeepIsActiv = Convert.ToBoolean(reader.ReadLine());
-                    _errorLogBeepIsActiv = Convert.ToBoolean(reader.ReadLine());
-                    _errorLogMessageBoxIsActiv = Convert.ToBoolean(reader.ReadLine());
-                    _autoStartApi = Convert.ToBoolean(reader.ReadLine());
-                    _token = reader.ReadLine();
-                    _ip = reader.ReadLine();
-                    _port = reader.ReadLine();
+                    _transactionBeepIsActive = Convert.ToBoolean(reader.ReadLine());
+                    _errorLogBeepIsActive = Convert.ToBoolean(reader.ReadLine());
+                    _errorLogMessageBoxIsActive = Convert.ToBoolean(reader.ReadLine());
+
                     _labelInHeaderBotStation = reader.ReadLine();
-                    _rebootTradeUiLigth = Convert.ToBoolean(reader.ReadLine());
+
+                    if(_labelInHeaderBotStation == "True"
+                        || _labelInHeaderBotStation == "False")
+                    {
+                        _labelInHeaderBotStation = "";
+                    }
+
+                    _rebootTradeUiLight = Convert.ToBoolean(reader.ReadLine());
                     _reportCriticalErrors = Convert.ToBoolean(reader.ReadLine());
 
                     reader.Close();

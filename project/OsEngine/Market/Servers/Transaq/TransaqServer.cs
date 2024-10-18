@@ -1958,7 +1958,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (order.Status == "active")
                 {
-                    newOrder.State = OrderStateType.Activ;
+                    newOrder.State = OrderStateType.Active;
                 }
                 else if (order.Status == "cancelled" ||
                          order.Status == "expired" ||

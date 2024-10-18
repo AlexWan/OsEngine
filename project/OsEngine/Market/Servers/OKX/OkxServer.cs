@@ -1879,7 +1879,7 @@ namespace OsEngine.Market.Servers.OKX
                         &&
                         OrderResponse.data[i].state.Equals("live"))
                     {
-                        newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Activ);
+                        newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Active);
                     }
 
                     else if ((OrderResponse.data[i].ordType.Equals("limit") ||
@@ -1900,7 +1900,7 @@ namespace OsEngine.Market.Servers.OKX
                         MyOrderEvent(newOrder);
                     }
 
-                    if (newOrder.State == OrderStateType.Patrial ||
+                    if (newOrder.State == OrderStateType.Partial ||
                         newOrder.State == OrderStateType.Done)
                     {
                         Thread.Sleep(500);
@@ -2200,7 +2200,7 @@ namespace OsEngine.Market.Servers.OKX
                     &&
                     OrderResponse.data[i].state.Equals("live"))
                 {
-                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Activ);
+                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Active);
                 }
 
                 else if ((OrderResponse.data[i].ordType.Equals("limit") ||
@@ -2233,7 +2233,7 @@ namespace OsEngine.Market.Servers.OKX
             }
 
             if(myOrder.State == OrderStateType.Done 
-                || myOrder.State == OrderStateType.Patrial)
+                || myOrder.State == OrderStateType.Partial)
             {
                 List<MyTrade> myTrades = GenerateTradesToOrder(myOrder, 1);
 
@@ -2282,7 +2282,7 @@ namespace OsEngine.Market.Servers.OKX
                     &&
                     OrderResponse.data[i].state.Equals("live"))
                 {
-                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Activ);
+                    newOrder = OrderUpdate(OrderResponse.data[i], OrderStateType.Active);
                 }
 
                 else if ((OrderResponse.data[i].ordType.Equals("limit") ||

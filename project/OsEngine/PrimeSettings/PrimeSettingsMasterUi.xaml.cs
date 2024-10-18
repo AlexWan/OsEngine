@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -59,23 +58,18 @@ namespace OsEngine.PrimeSettings
                 Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
             };
 
-            CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActiv;
-            CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActiv;
-            CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActiv;
-            TextBoxToken.Text = PrimeSettingsMaster.Token;
-            TextBoxIp.Text = PrimeSettingsMaster.Ip;
-            TextBoxPort.Text = PrimeSettingsMaster.Port;
-            AutoStartChb.IsChecked = PrimeSettingsMaster.AutoStartApi;
+            CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActive;
+            CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActive;
+            CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActive;
             TextBoxBotHeader.Text = PrimeSettingsMaster.LabelInHeaderBotStation;
-            CheckBoxRebootTradeUiLigth.IsChecked = PrimeSettingsMaster.RebootTradeUiLigth;
+            CheckBoxRebootTradeUiLigth.IsChecked = PrimeSettingsMaster.RebootTradeUiLight;
             CheckBoxReportCriticalErrors.IsChecked = PrimeSettingsMaster.ReportCriticalErrors;
 
             CheckBoxExtraLogWindow.Click += CheckBoxExtraLogWindow_Click;
             CheckBoxExtraLogSound.Click += CheckBoxExtraLogSound_Click;
             CheckBoxTransactionSound.Click += CheckBoxTransactionSound_Click;
-            AutoStartChb.Click += AutoStartChb_Click;
             TextBoxBotHeader.TextChanged += TextBoxBotHeader_TextChanged;
-            CheckBoxRebootTradeUiLigth.Click += RebootTradeUiLigth_Click;
+            CheckBoxRebootTradeUiLigth.Click += RebootTradeUiLight_Click;
             CheckBoxReportCriticalErrors.Click += CheckBoxReportCriticalErrors_Click;
 
             ChangeText();
@@ -87,7 +81,6 @@ namespace OsEngine.PrimeSettings
 
         private void ChangeText()
         {
-            MainItem.Header = OsLocalization.PrimeSettings.Title;
             LanguageLabel.Content = OsLocalization.PrimeSettings.LanguageLabel;
             LabelTimeFormat.Content = OsLocalization.PrimeSettings.TimeFormat;
             LabelDateFormat.Content = OsLocalization.PrimeSettings.DateFormat;
@@ -95,19 +88,11 @@ namespace OsEngine.PrimeSettings
             ExtraLogSound.Content = OsLocalization.PrimeSettings.ExtraLogSoundLabel;
             TransactionSoundLabel.Content = OsLocalization.PrimeSettings.TransactionSoundLabel;
             TextBoxMessageToUsers.Text = OsLocalization.PrimeSettings.TextBoxMessageToUsers;
-            AdminItem.Header = OsLocalization.PrimeSettings.Title2;
 
-            LabelState.Content = OsLocalization.PrimeSettings.LblState;
-            LabelToken.Content = OsLocalization.PrimeSettings.LblToken;
-            LabelIp.Content = OsLocalization.PrimeSettings.LblIp;
-            LabelPort.Content = OsLocalization.PrimeSettings.LblPort;
-
-            LabelConfirm.Content = OsLocalization.PrimeSettings.LblAdminPanel;
             LabelHeader.Content = OsLocalization.PrimeSettings.LabelBotHeader;
             LabelRebootTradeUiLigth.Content = OsLocalization.PrimeSettings.LabelLightReboot;
             LabelReportCriticalErrors.Content = OsLocalization.PrimeSettings.ReportErrorsOnServer;
         }
-
 
         private void TextBoxBotHeader_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -117,55 +102,31 @@ namespace OsEngine.PrimeSettings
         private void CheckBoxTransactionSound_Click(object sender, RoutedEventArgs e)
         {
             if (CheckBoxTransactionSound.IsChecked != null)
-                PrimeSettingsMaster.TransactionBeepIsActiv = CheckBoxTransactionSound.IsChecked.Value;
+                PrimeSettingsMaster.TransactionBeepIsActive = CheckBoxTransactionSound.IsChecked.Value;
         }
 
         private void CheckBoxExtraLogSound_Click(object sender, RoutedEventArgs e)
         {
             if (CheckBoxExtraLogSound.IsChecked != null)
-                PrimeSettingsMaster.ErrorLogBeepIsActiv = CheckBoxExtraLogSound.IsChecked.Value;
+                PrimeSettingsMaster.ErrorLogBeepIsActive = CheckBoxExtraLogSound.IsChecked.Value;
         }
 
         private void CheckBoxExtraLogWindow_Click(object sender, RoutedEventArgs e)
         {
             if (CheckBoxExtraLogWindow.IsChecked != null)
-                PrimeSettingsMaster.ErrorLogMessageBoxIsActiv = CheckBoxExtraLogWindow.IsChecked.Value;
+                PrimeSettingsMaster.ErrorLogMessageBoxIsActive = CheckBoxExtraLogWindow.IsChecked.Value;
         }
 
-        private void AutoStartChb_Click(object sender, RoutedEventArgs e)
-        {
-            if (AutoStartChb.IsChecked != null)
-                PrimeSettingsMaster.AutoStartApi = AutoStartChb.IsChecked.Value;
-        }
-
-
-        private void RebootTradeUiLigth_Click(object sender, RoutedEventArgs e)
+        private void RebootTradeUiLight_Click(object sender, RoutedEventArgs e)
         {
             if (CheckBoxRebootTradeUiLigth.IsChecked != null)
-                PrimeSettingsMaster.RebootTradeUiLigth = CheckBoxRebootTradeUiLigth.IsChecked.Value;
+                PrimeSettingsMaster.RebootTradeUiLight = CheckBoxRebootTradeUiLigth.IsChecked.Value;
         }
 
         private void CheckBoxReportCriticalErrors_Click(object sender, RoutedEventArgs e)
         {
             if (CheckBoxReportCriticalErrors.IsChecked != null)
                 PrimeSettingsMaster.ReportCriticalErrors = CheckBoxReportCriticalErrors.IsChecked.Value;
-        }
-
-        private void BtnGenerateToken_OnClick(object sender, RoutedEventArgs e)
-        {
-            string token = Guid.NewGuid().ToString();
-            TextBoxToken.Text = token;
-            PrimeSettingsMaster.Token = TextBoxToken.Text;
-        }
-
-        private void TextBoxIp_OnTextChanged(object sender, TextChangedEventArgs e)
-        {
-            PrimeSettingsMaster.Ip = TextBoxIp.Text;
-        }
-
-        private void TextBoxPort_OnTextChanged(object sender, TextChangedEventArgs e)
-        {
-            PrimeSettingsMaster.Port = TextBoxPort.Text;
         }
     }
 }

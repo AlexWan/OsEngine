@@ -725,6 +725,12 @@ namespace OsEngine.OsOptimizer
 
             BotPanel bot = CreateNewBot(botName, parametrs, paramOptimized, server, StartProgram.IsOsOptimizer);
 
+            if(bot == null)
+            {
+                SendLogMessage("Critical Optimizer Error. Robot cannot be created", LogMessageType.Error);
+                return;
+            }
+
             // wait for the robot to connect to its data server
             // ждём пока робот подключиться к своему серверу данных
 
@@ -964,6 +970,8 @@ namespace OsEngine.OsOptimizer
 
                     bot.TabsSimple[i].ManualPositionSupport.TypeDoubleExitOrder = _master.ManualControl.TypeDoubleExitOrder;
                     bot.TabsSimple[i].ManualPositionSupport.ValuesType = _master.ManualControl.ValuesType;
+
+                    bot.TabsSimple[i].ManualPositionSupport.OrderTypeTime = _master.ManualControl.OrderTypeTime;
                 }
 
                 for (int i = 0; _master.TabsIndexNamesAndTimeFrames != null &&

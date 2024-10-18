@@ -369,7 +369,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 Order order = new Order();
                 order.NumberUser = Convert.ToInt32(str[1]);
                 order.NumberMarket = str[3];
-                order.State = OrderStateType.Activ;
+                order.State = OrderStateType.Active;
                 order.TimeCallBack = Convert.ToDateTime(str[4], CultureInfo.InvariantCulture);
 
                 if (MyOrderEvent != null)

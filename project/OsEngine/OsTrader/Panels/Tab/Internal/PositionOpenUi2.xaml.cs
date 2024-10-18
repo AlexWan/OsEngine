@@ -46,7 +46,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             LabelStopActivationPrice.Content = OsLocalization.Trader.Label206;
             LabelStopActivationType.Content = OsLocalization.Trader.Label207;
 
-            ComboBoxStopLimitType.Items.Add(StopActivateType.LowerOrEqyal.ToString());
+            ComboBoxStopLimitType.Items.Add(StopActivateType.LowerOrEqual.ToString());
             ComboBoxStopLimitType.Items.Add(StopActivateType.HigherOrEqual.ToString());
             ComboBoxStopLimitType.SelectedItem = StopActivateType.HigherOrEqual.ToString();
 

@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Market;
 using System.Collections.Generic;
 
 namespace OsEngine.Entity
@@ -37,6 +38,11 @@ namespace OsEngine.Entity
         /// </summary>
         public decimal Profit;
 
+        /// <summary>
+        /// Connector to which the portfolio belongs
+        /// </summary>
+        public ServerType ServerType;
+
         // then goes the storage of open positions in the system by portfolio
 
         private List<PositionOnBoard> _positionOnBoard;
@@ -57,6 +63,11 @@ namespace OsEngine.Entity
             if(string.IsNullOrEmpty(position.SecurityNameCode))
             {
                 return;
+            }
+
+            if(string.IsNullOrEmpty(position.PortfolioName))
+            {
+                position.PortfolioName = Number;
             }
 
             if (_positionOnBoard != null && _positionOnBoard.Count != 0)

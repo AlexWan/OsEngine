@@ -1174,10 +1174,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     stateType = OrderStateType.Pending;
                     break;                
                 case ("3"):
-                    stateType = OrderStateType.Activ;
+                    stateType = OrderStateType.Active;
                     break;
                 case ("4"):
-                    stateType = OrderStateType.Patrial;
+                    stateType = OrderStateType.Partial;
                     break;
                 case ("5"):
                     stateType = OrderStateType.Cancel;
@@ -1395,8 +1395,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     continue;
                 }
 
-                if (orders[i].State != OrderStateType.Activ
-                    && orders[i].State != OrderStateType.Patrial
+                if (orders[i].State != OrderStateType.Active
+                    && orders[i].State != OrderStateType.Partial
                     && orders[i].State != OrderStateType.Pending)
                 {
                     continue;
@@ -1500,7 +1500,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
 
             if (orderOnMarket.State == OrderStateType.Done
-                || orderOnMarket.State == OrderStateType.Patrial)
+                || orderOnMarket.State == OrderStateType.Partial)
             {
                 List<MyTrade> tradesBySecurity
                     = GetMyTradesBySecurity(order.SecurityNameCode, order.NumberMarket, order.TimeCreate);

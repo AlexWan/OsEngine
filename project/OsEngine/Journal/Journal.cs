@@ -751,7 +751,7 @@ namespace OsEngine.Journal
                 {
                     return;
                 }
-                _positionController.ProcesPosition(position);
+                _positionController.ProcessPosition(position);
             }
             catch (Exception error)
             {

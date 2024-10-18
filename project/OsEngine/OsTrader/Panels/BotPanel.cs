@@ -640,7 +640,7 @@ namespace OsEngine.OsTrader.Panels
 position => position.State != PositionStateType.OpeningFail
 && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStaticticGenerator.GetAllProfitPersent(positions.ToArray());
+                    result += PositionStatisticGenerator.GetAllProfitPersent(positions.ToArray());
                 }
                 return result;
             }
@@ -675,7 +675,7 @@ position => position.State != PositionStateType.OpeningFail
 position => position.State != PositionStateType.OpeningFail
 && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStaticticGenerator.GetAllProfitInPunkt(positions.ToArray());
+                    result += PositionStatisticGenerator.GetAllProfitInPunkt(positions.ToArray());
                 }
                 return result;
             }
@@ -710,7 +710,7 @@ position => position.State != PositionStateType.OpeningFail
                     position => position.State != PositionStateType.OpeningFail
                     && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStaticticGenerator.GetMidleProfitInPersentOneContract(positions.ToArray());
+                    result += PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(positions.ToArray());
                 }
                 return result;
             }
@@ -740,7 +740,7 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         continue;
                     }
-                    result += PositionStaticticGenerator.GetProfitFactor(journals[i].AllPosition.ToArray());
+                    result += PositionStatisticGenerator.GetProfitFactor(journals[i].AllPosition.ToArray());
                 }
                 return result;
             }
@@ -770,7 +770,7 @@ position => position.State != PositionStateType.OpeningFail
                     {
                         continue;
                     }
-                    result += PositionStaticticGenerator.GetMaxDownPersent(journals[i].AllPosition.ToArray());
+                    result += PositionStatisticGenerator.GetMaxDownPercent(journals[i].AllPosition.ToArray());
                 }
                 return result;
             }
@@ -892,6 +892,40 @@ position => position.State != PositionStateType.OpeningFail
                     pos.AddRange(allPositionOpen);
                 }
                 return pos.Count;
+            }
+        }
+
+        /// <summary>
+        /// open positions on robot sources
+        /// </summary>
+        public List<Position> OpenPositions
+        {
+            get
+            {
+                List<Position> result = new List<Position>();
+
+                List<Journal.Journal> journals = GetJournals();
+
+                if (journals == null ||
+                    journals.Count == 0)
+                {
+                    return result;
+                }
+
+                for (int i = 0; i < journals.Count; i++)
+                {
+                    if (journals[i] == null)
+                    {
+                        continue;
+                    }
+                    if (journals[i].OpenPositions == null ||
+                        journals[i].OpenPositions.Count == 0)
+                    {
+                        continue;
+                    }
+                    result.AddRange(journals[i].OpenPositions);
+                }
+                return result;
             }
         }
 

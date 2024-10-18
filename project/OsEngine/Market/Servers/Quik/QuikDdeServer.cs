@@ -959,7 +959,7 @@ namespace OsEngine.Market.Servers.Quik
                     {
                         return;
                     }
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                     if (MyOrderEvent  != null)
                     {
                         MyOrderEvent(order);
@@ -1032,7 +1032,7 @@ namespace OsEngine.Market.Servers.Quik
 
                 if (nStatus == 1)
                 {
-                    order.State = OrderStateType.Activ;
+                    order.State = OrderStateType.Active;
                 }
                 else if (nStatus == 2)
                 {
