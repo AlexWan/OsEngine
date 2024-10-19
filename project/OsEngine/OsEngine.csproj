@@ -1133,6 +1133,16 @@
       <DependentUpon>BotCreateUi2.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\BotFactory.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson1HelloWorld.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson2Bot1.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson2Bot2.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson3Bot1.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson3Bot2.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson3Bot3.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson4Bot1.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson5Bot1.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson5Bot2.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson6Bot1.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
     <Compile Include="Robots\PositionsMicromanagement\AlligatorTrendAverage.cs" />
     <Compile Include="Robots\PositionsMicromanagement\CandlesTurnaroundPattern.cs" />

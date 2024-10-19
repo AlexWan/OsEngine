@@ -30,6 +30,16 @@ Fisher&Fisher based on multithreading Entering a position - we are waiting for a
 GridSample&Logic of the first Buy: if there are N candles falling down, we place the first order according to the close of the last candle. Next: buy if the price is greater than entryUpPrice or less than entryDownPrice. Exit: by stop&Include&&Simple 1*&&
 HighFrequencyTrader&robot analyzing the density of the market depth&Include&&Simple 1*&&
 IndexArbitrageClassic&Classic trading with two index&Include&&Index 2*Screener 2*&&
+Lesson1HelloWorld&&Include&&&&
+Lesson2Bot1&&Include&&&&
+Lesson2Bot2&&Include&&&&
+Lesson3Bot1&&Include&&Simple 1*&&
+Lesson3Bot2&&Include&&Simple 1*&Sma*&
+Lesson3Bot3&&Include&&Simple 1*&Sma*Sma*&
+Lesson4Bot1&&Include&&Simple 1*&Sma*Sma*&
+Lesson5Bot1&&Include&&Simple 1*&Sma*&
+Lesson5Bot2&&Include&&Simple 1*&Alligator*PriceChannel*AO*&
+Lesson6Bot1&&Include&&Simple 1*&Bollinger*ATR*&
 MacdRevers&Trend strategy at the intersection of the MACD indicator Logic of the first Enter: lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell Next: lastMacdDown > 0 and lastMacdUp < lastMacdDown close position and open Short. lastMacdDown < 0 and lastMacdUp > lastMacdDown close position and open Long.&Include&&Simple 1*&MACD*&
 MacdTrail&Trend strategy based on the Macd indicator and trail stop Logic Enter: lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell Exit: By TralingStop&Include&&Simple 1*&MacdLine*&
 MomentumMacd&Trend strategy based on 2 indicators Momentum and Macd. if lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short. if lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.&Include&&Simple 1*&MacdLine*Momentum*&
