@@ -133,6 +133,7 @@ public class PairRsiTrade : BotPanel
         _candles1 = candles;
 
         if (_candles2 == null ||
+            _candles2.Count == 0 ||
             _candles2[_candles2.Count - 1].TimeStart != _candles1[_candles1.Count - 1].TimeStart)
         {
             return;
@@ -147,6 +148,7 @@ public class PairRsiTrade : BotPanel
         _candles2 = candles;
 
         if (_candles1 == null ||
+            _candles1.Count == 0 ||
             _candles2[_candles2.Count - 1].TimeStart != _candles1[_candles1.Count - 1].TimeStart)
         {
             return;

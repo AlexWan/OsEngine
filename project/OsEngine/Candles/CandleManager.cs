@@ -179,12 +179,16 @@ namespace OsEngine.Entity
                             if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
                             {
                                 if (_activSeriesBasedOnMd != null)
+                                {
                                     _activSeriesBasedOnMd.Add(series);
+                                }
                             }
                             else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
                             {
                                 if (_activSeriesBasedOnTrades != null)
+                                {
                                     _activSeriesBasedOnTrades.Add(series);
+                                }
                             }
 
                             continue;

@@ -582,7 +582,9 @@ namespace OsEngine.Market.Connectors
             {
                 try
                 {
-                    if (value != TimeFrameBuilder.TimeFrame)
+                    if (value != TimeFrameBuilder.TimeFrame
+                        || (value == TimeFrame.Sec1 && 
+                        TimeFrameBuilder.TimeFrameTimeSpan.TotalSeconds == 0))
                     {
                         TimeFrameBuilder.TimeFrame = value;
                         Reconnect();
