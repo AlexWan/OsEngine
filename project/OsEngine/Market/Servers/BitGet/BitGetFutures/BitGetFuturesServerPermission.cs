@@ -44,7 +44,7 @@
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf2MinuteCanLoad
@@ -54,7 +54,7 @@
 
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf10MinuteCanLoad
@@ -64,17 +64,17 @@
 
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf1HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf2HourCanLoad
@@ -84,7 +84,7 @@
 
         public bool DataFeedTf4HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTfDayCanLoad
@@ -139,7 +139,7 @@
                 TimeFrameSec30IsOn = false,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
-                TimeFrameMin3IsOn = false,
+                TimeFrameMin3IsOn = true,
                 TimeFrameMin5IsOn = true,
                 TimeFrameMin10IsOn = false,
                 TimeFrameMin15IsOn = true,

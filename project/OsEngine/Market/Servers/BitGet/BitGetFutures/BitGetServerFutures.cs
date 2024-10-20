@@ -4,7 +4,6 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.ZB;
 using RestSharp;
 using SuperSocket.ClientEngine;
 using System;
@@ -74,7 +73,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 | SecurityProtocolType.Tls11
                 | SecurityProtocolType.Tls;
 
-            string requestStr = "/api/mix/v1/market/contracts?productType=umcbl";
+            string requestStr = "/api/v2/public/time";
             RestRequest requestRest = new RestRequest(requestStr, Method.GET);
             IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
 
@@ -169,43 +168,47 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public void GetSecurities()
         {
-            string requestStr = "/api/mix/v1/market/contracts?productType=umcbl";
-            RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-            var json = new RestClient(BaseUrl).Execute(requestRest).Content;
+            List<string> listCoin = new List<string>() { "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES" };
 
-            ResponseRestMessage<List<RestMessageSymbol>> symbols = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<RestMessageSymbol>>());
-
-            List<Security> securities = new List<Security>();
-
-            for (int i = 0; i < symbols.data.Count; i++)
+            for (int indCoin = 0; indCoin < listCoin.Count; indCoin++)
             {
-                var item = symbols.data[i];
+                string requestStr = $"/api/v2/mix/market/contracts?productType={listCoin[indCoin]}";
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                var json = new RestClient(BaseUrl).Execute(requestRest).Content;
 
-                var decimals = Convert.ToInt32(item.pricePlace);
-                var priceStep = (GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep))).ToDecimal();
+                ResponseRestMessage<List<RestMessageSymbol>> symbols = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<RestMessageSymbol>>());
 
-                if (item.symbolStatus.Equals("normal"))
+                List<Security> securities = new List<Security>();
+
+                for (int i = 0; i < symbols.data.Count; i++)
                 {
-                    Security newSecurity = new Security();
+                    var item = symbols.data[i];
 
-                    newSecurity.Exchange = ServerType.BitGetFutures.ToString();
-                    newSecurity.DecimalsVolume = Convert.ToInt32(item.volumePlace);
-                    newSecurity.Lot = GetVolumeStep(newSecurity.DecimalsVolume);
-                    newSecurity.Name = item.symbol;
-                    newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.quoteCoin;
-                    newSecurity.NameId = item.symbol;
-                    newSecurity.SecurityType = SecurityType.Futures;
-                    newSecurity.Decimals = decimals;
-                    newSecurity.PriceStep = priceStep;
-                    newSecurity.PriceStepCost = priceStep;
-                    newSecurity.State = SecurityStateType.Activ;
+                    var decimals = Convert.ToInt32(item.pricePlace);
+                    var priceStep = (GetPriceStep(Convert.ToInt32(item.pricePlace), Convert.ToInt32(item.priceEndStep))).ToDecimal();
 
-                    securities.Add(newSecurity);
+                    if (item.symbolStatus.Equals("normal"))
+                    {
+                        Security newSecurity = new Security();
+
+                        newSecurity.Exchange = ServerType.BitGetFutures.ToString();
+                        newSecurity.DecimalsVolume = Convert.ToInt32(item.volumePlace);
+                        newSecurity.Lot = GetVolumeStep(newSecurity.DecimalsVolume);
+                        newSecurity.Name = item.symbol;
+                        newSecurity.NameFull = item.symbol;
+                        newSecurity.NameClass = listCoin[indCoin];
+                        newSecurity.NameId = item.symbol;
+                        newSecurity.SecurityType = SecurityType.Futures;
+                        newSecurity.Decimals = decimals;
+                        newSecurity.PriceStep = priceStep;
+                        newSecurity.PriceStepCost = priceStep;
+                        newSecurity.State = SecurityStateType.Activ;
+
+                        securities.Add(newSecurity);
+                    }
                 }
+                SecurityEvent(securities);
             }
-
-            SecurityEvent(securities);
         }
 
         private decimal GetVolumeStep(int ScalePrice)
@@ -519,16 +522,72 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            return GetCandleHistory(security.Name, 
+            return GetCandleHistory(security, 
                 timeFrameBuilder.TimeFrameTimeSpan, false, 0, DateTime.Now);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            int CountToLoad = 200;
+
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
+            }
+
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+
+            if (!CheckTf(tfTotalMinutes))
+            {
+                return null;
+            }
+
+            string timeFrame = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
+
             return null;
         }
 
-        public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
+        private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            if (startTime >= endTime ||
+                startTime >= DateTime.Now ||
+                actualTime > endTime ||
+                actualTime > DateTime.Now ||
+                endTime < DateTime.UtcNow.AddYears(-20))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool CheckTf(int timeFrameMinutes)
+        {
+            if (timeFrameMinutes == 1 ||
+                timeFrameMinutes == 3 ||
+                timeFrameMinutes == 5 ||
+                timeFrameMinutes == 15 ||
+                timeFrameMinutes == 30 ||
+                timeFrameMinutes == 60 ||
+                timeFrameMinutes == 240)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private string GetInterval(TimeSpan timeFrame)
+        {
+            if (timeFrame.Minutes != 0)
+            {
+                return $"{timeFrame.Minutes}";
+            }
+            else
+            {
+                return $"{timeFrame.Hours * 60}";
+            }
+        }
+
+        public List<Candle> GetCandleHistory(Security security, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
         {
 
             string stringInterval = GetStringInterval(tf);
@@ -536,6 +595,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             List<Candle> candles = new List<Candle>();
             DateTime TimeToRequest = DateTime.UtcNow;
+            long differenceTime = Convert.ToInt64(tf.TotalMilliseconds * CountToLoadCandle);
 
             if (IsOsData == true)
             {
@@ -553,7 +613,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 List<Candle> rangeCandles = new List<Candle>();
 
-                rangeCandles = CreateQueryCandles(nameSec, stringInterval, limit, TimeToRequest.AddSeconds(10));
+                rangeCandles = CreateQueryCandles(security, stringInterval, limit, differenceTime, TimeToRequest);
 
                 rangeCandles.Reverse();
 
@@ -572,37 +632,57 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             return candles;
         }
 
-        private List<Candle> CreateQueryCandles(string nameSec, string stringInterval, int limit, DateTime timeEndToLoad)
+        private List<Candle> CreateQueryCandles(Security security, string stringInterval, int limit, long diffTime, DateTime timeEndToLoad)
         {
-            string requestStr = $"/api/mix/v1/market/candles" + $"?symbol={nameSec}&startTime=0&granularity={stringInterval}&limit={limit}&endTime={TimeManager.GetTimeStampMilliSecondsToDateTime(timeEndToLoad)}";
+            long endTime = TimeManager.GetTimeStampMilliSecondsToDateTime(timeEndToLoad);
+            long startTime = endTime - diffTime;
+
+            string requestStr = $"/api/v2/mix/market/candles?symbol={security.Name}&productType={security.NameClass.ToLower()}&" +
+                $"startTime={startTime}&granularity={stringInterval}&limit={limit}&endTime={endTime}";
             RestRequest requestRest = new RestRequest(requestStr, Method.GET);
             IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
-
+            //"https://api.bitget.com/api/v2/mix/market/history-candles?symbol=BTCUSDT&productType=usdt-futures&granularity=30m&limit=200&startTime=1729301298000&endTime=1729330098000"
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 return null;
             }
 
-            List<string[]> symbols = JsonConvert.DeserializeAnonymousType(response.Content, new List<string[]>());
+            RestMessageCandle symbols = JsonConvert.DeserializeObject<RestMessageCandle>(response.Content);
 
             List<Candle> candles = new List<Candle>();
 
-            foreach (var item in symbols)
+            for(int i = 0; i < symbols.data.Count; i++)
             {
-                candles.Add(new Candle()
+                if (CheckCandlesToZeroData(symbols.data[i]))
                 {
-                    Close = item[4].ToDecimal(),
-                    High = item[2].ToDecimal(),
-                    Low = item[3].ToDecimal(),
-                    Open = item[1].ToDecimal(),
-                    Volume = item[5].ToDecimal(),
-                    State = CandleState.Finished,
-                    TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[0]))
-                });
-            }
+                    continue;
+                }
 
+                Candle candle = new Candle();
+
+                candle.State = CandleState.Finished;
+                candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(long.Parse(symbols.data[i][0]));
+                candle.Volume = symbols.data[i][5].ToDecimal();
+                candle.Close = symbols.data[i][4].ToDecimal();
+                candle.High = symbols.data[i][2].ToDecimal();
+                candle.Low = symbols.data[i][3].ToDecimal();
+                candle.Open = symbols.data[i][1].ToDecimal();
+
+                candles.Add(candle);
+            }                      
             return candles;
+        }
 
+        private bool CheckCandlesToZeroData(List<string> item)
+        {
+            if (item[1].ToDecimal() == 0 ||
+                item[2].ToDecimal() == 0 ||
+                item[3].ToDecimal() == 0 ||
+                item[4].ToDecimal() == 0)
+            {
+                return true;
+            }
+            return false;
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)

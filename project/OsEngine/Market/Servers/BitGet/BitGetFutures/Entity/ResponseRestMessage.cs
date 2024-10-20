@@ -10,6 +10,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public T data;
     }
 
+    public class RestMessageCandle
+    {
+        public string code { get; set; }
+        public string msg { get; set; }
+        public long requestTime { get; set; }
+        public List<List<string>> data { get; set; }
+    }
+
     public class RestMessageSymbol
     {
         public string symbol;
