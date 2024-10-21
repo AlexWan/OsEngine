@@ -21,19 +21,23 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         StrategyParameterInt _priceChannelLen;
 
+        // логика
+        // покупаем отложенной заявкой по хаю ценового канала
+        // выходим отложенной заявкой по лою ценового канала
+
         public Lesson8Bot2(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
-
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            _priceChannelLen = CreateParameter("Price channel len", 40, 1, 50, 4);
+            _priceChannelLen = CreateParameter("Price Channel len", 40, 1, 50, 4);
+
+
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
@@ -61,9 +65,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
             }
             else
             {// логика закрытия позиции
-               
-                decimal low = GetLow(candles,_priceChannelLen.ValueInt);
 
+                decimal low = GetLow(candles, _priceChannelLen.ValueInt);
                 _tabToTrade.CloseAtTrailingStopMarket(positions[0], low);
             }
         }
@@ -73,6 +76,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             decimal high = 0;
 
             // цикл с конца. Движение назад
+
             for (int i = candles.Count - 1; i >= 0 && i > candles.Count - 1 - len; i--)
             {
                 Candle currentCandle = candles[i];
@@ -111,7 +115,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         public override void ShowIndividualSettingsDialog()
         {
-
 
         }
 

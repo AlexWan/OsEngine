@@ -28,23 +28,28 @@ namespace OsEngine.Robots.BotsFromStartLessons
         StrategyParameterInt _stopPriceStep;
         StrategyParameterInt _profitPriceStep;
 
+        // Логика
+        // 1 Мы смотрим лучший бид. Объём в нём. 
+        // 2 Мы складываем объёмы в бидах ниже. Идём на глубину N.
+        // 3 Если в лучшем биде объёмы на M % > чем в суммарных бидах ниже. Покупаем. Ура.
+
         public Lesson8Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            _millisecondsToSleepWorker = CreateParameter("Worker seconds to sleep", 1000, 1, 50, 4);
-            _countBidsToCheck = CreateParameter("Count bids to check", 3, 1, 50, 4);
-            _percentInFirstBid = CreateParameter("Percent in first bid", 100, 1.0m, 50, 4);
-            _slippagePriceStep = CreateParameter("Slippage price step", -1, 1, 50, 4);
-            _stopPriceStep = CreateParameter("Stop price step", 10, 1, 50, 4);
-            _profitPriceStep = CreateParameter("Profit price step", 5, 1, 50, 4);
+            _millisecondsToSleepWorker = CreateParameter("Worker milliseconds to sleep", 1000, 1, 50, 5);
+
+            _countBidsToCheck = CreateParameter("Count bids to check", 3, 1, 50, 5);
+            _percentInFirstBid = CreateParameter("Percent in first bid", 100m, 10, 50, 5);
+            _slippagePriceStep = CreateParameter("Slippage to entry. Price step", -2, 1, 10, 1);
+
+            _stopPriceStep = CreateParameter("Stop. Price step", 15, 10, 50, 1);
+            _profitPriceStep = CreateParameter("Profit. Price step", 5, 10, 50, 1);
 
             Thread worker = new Thread(WorkerPlace);
             worker.Start();
@@ -52,91 +57,87 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void WorkerPlace()
         {
-            while(true) // цикл while. Бесконечный
+            while (true) // Цикл с условием в скобках. Если в скобках true, то цикл - продолжается
             {
-                try
+                Thread.Sleep(_millisecondsToSleepWorker.ValueInt);
+
+                if (_regime.ValueString == "Off")
                 {
-                    Thread.Sleep(_millisecondsToSleepWorker.ValueInt);
+                    continue;
+                }
 
-                    if (_regime.ValueString == "Off")
+                if (_tabToTrade.IsConnected == false)
+                { // если источник ещё не готов. И не подключен к данным
+                    continue;
+                }
+
+                if (_tabToTrade.IsReadyToTrade == false)
+                { // если источник не готов торговать
+                    continue;
+                }
+
+                List<Position> positions = _tabToTrade.PositionsOpenAll;
+
+                if (positions.Count == 0)
+                { // логика открытия
+                    MarketDepth md = _tabToTrade.MarketDepth;
+
+                    if (md == null)
                     {
                         continue;
                     }
 
-                    if (_tabToTrade.IsConnected == false
-                        || _tabToTrade.IsReadyToTrade == false)
+                    md = md.GetCopy();
+
+                    if (md.Bids == null
+                        || md.Bids.Count < _countBidsToCheck.ValueInt + 2)
                     {
                         continue;
                     }
 
-                    List<Position> positions = _tabToTrade.PositionsOpenAll;
+                    decimal firstBidVolume = md.Bids[0].Bid; // берём объём в лучшем уровне покупки стакана
 
-                    if (positions.Count == 0) // позиций нет. Правда!
-                    {// логика открытия позиции
+                    decimal checkBidsVolume = 0;
 
-                        MarketDepth md = _tabToTrade.MarketDepth.GetCopy();
-
-                        if (md.Bids.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        if (md.Bids.Count < _countBidsToCheck.ValueInt + 1)
-                        {
-                            continue;
-                        }
-
-                        decimal firstBidVolume = md.Bids[0].Bid;
-
-                        decimal checkBidsVolume = 0;
-
-                        for (int i = 1; i < _countBidsToCheck.ValueInt; i++)
-                        {
-                            checkBidsVolume += md.Bids[i].Bid;
-                        }
-
-                        if (firstBidVolume / (checkBidsVolume / 100) >= _percentInFirstBid.ValueDecimal)
-                        { // первый бид больше суммы бидов на percentInFirstBid
-
-                            decimal volume = GetVolume(_tabToTrade);
-
-                            decimal price = md.Bids[0].Price;
-
-                            price += _tabToTrade.Securiti.PriceStep * _slippagePriceStep.ValueInt;
-
-                            _tabToTrade.BuyAtLimit(volume, price);
-                        }
+                    for (int i = 1; i < _countBidsToCheck.ValueInt; i++)
+                    {// считаем суммарный объём в бидах под лучшим, на глубину countBidsToCheck
+                        checkBidsVolume += md.Bids[i].Bid;
                     }
-                    else
-                    {// логика закрытия позиции
-                        Position pos = positions[0];
 
-                        if (pos.OpenVolume == 0)
-                        {
-                            continue;
-                        }
+                    if (firstBidVolume / (checkBidsVolume / 100) >= _percentInFirstBid.ValueDecimal)
+                    {
+                        decimal volume = GetVolume(_tabToTrade);
+                        decimal price = md.Bids[0].Price;
+                        price += _tabToTrade.Securiti.PriceStep * _slippagePriceStep.ValueInt;
 
-                        if (pos.State != PositionStateType.Open)
-                        {
-                            continue;
-                        }
-
-                        if (pos.StopOrderPrice != 0)
-                        {
-                            continue;
-                        }
-
-                        decimal stopPrice = pos.EntryPrice - _tabToTrade.Securiti.PriceStep * _stopPriceStep.ValueInt;
-                        decimal profitPrice = pos.EntryPrice + _tabToTrade.Securiti.PriceStep * _profitPriceStep.ValueInt;
-
-                        _tabToTrade.CloseAtStopMarket(pos, stopPrice);
-                        _tabToTrade.CloseAtProfitMarket(pos, profitPrice);
+                        _tabToTrade.BuyAtLimit(volume, price);
                     }
                 }
-                catch(Exception e)
-                {
-                    SendNewLogMessage(e.ToString(),Logging.LogMessageType.Error);
-                    Thread.Sleep(5000);
+                else
+                {// логика закрытия
+                    Position pos = positions[0];
+
+                    if (pos.OpenVolume == 0)
+                    {
+                        continue;
+                    }
+                    if (pos.State != PositionStateType.Open)
+                    {
+                        continue;
+                    }
+                    if (pos.StopOrderPrice != 0)
+                    {
+                        continue;
+                    }
+
+                    decimal stopPrice =
+                        pos.EntryPrice - _tabToTrade.Securiti.PriceStep * _stopPriceStep.ValueInt;
+
+                    decimal profitPrice =
+                        pos.EntryPrice + _tabToTrade.Securiti.PriceStep * _profitPriceStep.ValueInt;
+
+                    _tabToTrade.CloseAtStopMarket(pos, stopPrice);
+                    _tabToTrade.CloseAtProfitMarket(pos, profitPrice);
                 }
             }
         }
@@ -148,7 +149,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         public override void ShowIndividualSettingsDialog()
         {
-
 
         }
 
