@@ -4418,13 +4418,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                         return;
                     }
 
-                    if(position.OpenOrders[position.OpenOrders.Count - 1] == null)
-                    {
-                        return;
-                    }
-
                     if(StartProgram == StartProgram.IsOsTrader)
                     {
+                        if (position.OpenOrders[position.OpenOrders.Count - 1] == null)
+                        {
+                            return;
+                        }
+
                         Order openOrder = position.OpenOrders[position.OpenOrders.Count - 1];
 
                         if (openOrder.TradesIsComing == false)
