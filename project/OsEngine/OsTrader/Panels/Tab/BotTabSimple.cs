@@ -4403,24 +4403,39 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(position == null ||
+                    ManualPositionSupport == null)
+                {
+                    return;
+                }
+
                 lock (_lockerManualReload)
                 {
                     if (position.CloseOrders != null &&
+                        position.CloseOrders[position.CloseOrders.Count - 1] != null &&
                         position.CloseOrders[position.CloseOrders.Count - 1].State == OrderStateType.Active)
                     {
                         return;
                     }
 
-                    Order openOrder = position.OpenOrders[position.OpenOrders.Count - 1];
-
-                    if (openOrder.TradesIsComing == false)
+                    if(position.OpenOrders[position.OpenOrders.Count - 1] == null)
                     {
-                        PositionToSecondLoopSender sender = new PositionToSecondLoopSender() { Position = position };
-                        sender.PositionNeadToStopSend += ManualReloadStopsAndProfitToPosition;
-
-                        Task task = new Task(sender.Start);
-                        task.Start();
                         return;
+                    }
+
+                    if(StartProgram == StartProgram.IsOsTrader)
+                    {
+                        Order openOrder = position.OpenOrders[position.OpenOrders.Count - 1];
+
+                        if (openOrder.TradesIsComing == false)
+                        {
+                            PositionToSecondLoopSender sender = new PositionToSecondLoopSender() { Position = position };
+                            sender.PositionNeadToStopSend += ManualReloadStopsAndProfitToPosition;
+
+                            Task task = new Task(sender.Start);
+                            task.Start();
+                            return;
+                        }
                     }
 
                     ManualPositionSupport.TryReloadStopAndProfit(this, position);
