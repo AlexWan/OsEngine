@@ -358,7 +358,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price + price * 0.01m, mySec.Decimals); // Проскальзывание 1%
+            price = Math.Round(price + price * 0.001m, mySec.Decimals); // Проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
             _whaitSide = Side.Buy;
@@ -455,7 +455,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.01m, mySec.Decimals); // Проскальзывание 1%
+            price = Math.Round(price - price * 0.001m, mySec.Decimals); // Проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
             _whaitSide = Side.Sell;

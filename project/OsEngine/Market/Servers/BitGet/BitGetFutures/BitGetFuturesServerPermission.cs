@@ -192,7 +192,12 @@
                     "USDT",
                     "USD",
                     "BTC",
-                    "ETH"
+                    "ETH",
+                    "SUSDT",
+                    "SBTC",
+                    "SEOS",
+                    "SETH",
+                    "SUSDC"
                 };
 
                 return values;

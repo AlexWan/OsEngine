@@ -12,9 +12,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
 
     public class RestMessageCandle
     {
-        public string code { get; set; }
-        public string msg { get; set; }
-        public long requestTime { get; set; }
         public List<List<string>> data { get; set; }
     }
 
@@ -87,65 +84,80 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
 
     public class RestMessageOrders
     {
-        public string symbol; // ": "BTCUSDT_UMCBL",
-        public string size; // ": 0.050,
-        public string orderId; // ": "1044911928892862465",
-        public string clientOid; // ": "xx005",
-        public string filledQty; // ": 0.000,
-        public string fee; // ": 0E-8,
-        public string price; // ": 25500.00,
-        public string state; // ": "new",
-        public string side; // ": "open_long",
-        public string timeInForce; // ": "normal",
-        public string totalProfits; // ": 0E-8,
-        public string posSide; // ": "long",
-        public string marginCoin; // ": "USDT",
-        public string presetTakeProfitPrice; // ": 33800.00,
-        public string presetStopLossPrice; // ": 11300.00,
-        public string filledAmount; // ": 0.0000,
-        public string orderType; // ": "limit",
-        public string leverage; // ": "4",
-        public string marginMode; // ": "crossed",
-        public string reduceOnly; // ": false,
-        public string enterPointSource; // ": "API",
-        public string tradeSide; // ": "open_long",
-        public string holdMode; // ": "double_hold",
-        public string orderSource; // ": "normal",
-        public string cTime; // ": "1684852338057",
-        public string uTime; // ": "1684852338057"
+        public List<EntrustedList> entrustedList;
     }
 
-    public class RestOrderStatusResponce
+    public class EntrustedList
     {
-        public string code;
-
-        public RestMessageOrders data;
+        public string symbol;
+        public string baseVolume;
+        public string orderId;
+        public string clientOid;
+        public string filledQty;
+        public string fee;
+        public string price;
+        public string status;
+        public string side;
+        public string timeInForce;
+        public string totalProfits;
+        public string posSide;
+        public string marginCoin;
+        public string presetTakeProfitPrice;
+        public string presetStopLossPrice;
+        public string filledAmount;
+        public string orderType;
+        public string leverage;
+        public string marginMode;
+        public string size;
+        public string holdMode;
+        public string tradeSide;
+        public string cTime;
+        public string uTime;
+    }
+        
+    public class DataOrderStatus
+    {
+        public string symbol;
+        public string size;
+        public string orderId;
+        public string clientOid;
+        public string price;
+        public string state;
+        public string side;
+        public string posSide;
+        public string posMode;
+        public string orderType;
+        public string cTime;
     }
 
     public class RestMyTradesResponce
     {
         public string code;
 
-        public string msg; //":"success",
+        public string msg;
 
-        public List<RestMyTrade> data;
+        public DataMyTrades data;
     }
 
-    public class RestMyTrade
+    public class DataMyTrades
     {
-        public string tradeId; // ":"802377534023585793",
-        public string symbol; // ":"BTCUSDT_UMCBL",
-        public string orderId; // ":"802377533381816325",
-        public string price; // ":"0",
-        public string sizeQty; // ":"0.3247",
-        public string fee; // ":"0E-8",
-        public string side; // ":"burst_close_long",
-        public string fillAmount; // ":"0.3247",
-        public string profit; // ":"0E-8",
-        public string enterPointSource; // ": "WEB",
-        public string tradeSide; // ": "buy_single",
-        public string holdMode; // ": "single_hold",
-        public string takerMakerFlag; // ": "taker",
-        public string ctime; // ":"1627027632241"
+        public List<FillList> fillList;
+    }
+    public class FillList
+    {
+        public string tradeId; 
+        public string symbol; 
+        public string orderId; 
+        public string price; 
+        public string baseVolume; 
+        public string fee; 
+        public string side; 
+        public string fillAmount;
+        public string profit; 
+        public string enterPointSource; 
+        public string tradeSide;
+        public string holdMode; 
+        public string takerMakerFlag; 
+        public string cTime; 
     }
 }
