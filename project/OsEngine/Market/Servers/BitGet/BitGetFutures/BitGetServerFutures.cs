@@ -1771,6 +1771,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         OrderStateType stateType = GetOrderState(stateResponse.data.state);
 
                         newOrder.SecurityNameCode = stateResponse.data.symbol;
+                        newOrder.SecurityClassCode = stateResponse.data.marginCoin + "-FUTURES";
                         newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(stateResponse.data.cTime));
                         int.TryParse(stateResponse.data.clientOid, out newOrder.NumberUser);
                         newOrder.NumberMarket = stateResponse.data.orderId.ToString();
@@ -1952,6 +1953,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             OrderStateType stateType = GetOrderState(item.status);
 
             newOrder.SecurityNameCode = item.symbol;
+            newOrder.SecurityClassCode = item.marginCoin + "-FUTURES";
             newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
             int.TryParse(item.clientOid, out newOrder.NumberUser);   
             newOrder.NumberMarket = item.orderId.ToString();

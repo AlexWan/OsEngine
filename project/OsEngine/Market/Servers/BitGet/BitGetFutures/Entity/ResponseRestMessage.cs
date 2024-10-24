@@ -128,6 +128,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string posMode;
         public string orderType;
         public string cTime;
+        public string marginCoin;
     }
 
     public class RestMyTradesResponce
