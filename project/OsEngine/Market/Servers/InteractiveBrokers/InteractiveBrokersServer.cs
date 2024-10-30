@@ -6,6 +6,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using System.IO;
+using System.Diagnostics.Contracts;
 
 
 namespace OsEngine.Market.Servers.InteractiveBrokers
@@ -443,7 +444,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 //    securityIb.Right, securityIb.Multiplier, securityIb.Exchange, securityIb.PrimaryExch, securityIb.Currency,"",true, new TagValueList());
                 //_twsServer.reqMktData2(securityIb.ConId, securityIb.LocalSymbol, securityIb.SecType, securityIb.Exchange, securityIb.PrimaryExch, securityIb.Currency, "", false, new TagValueList());
 
-                string name = securityIb.Symbol + "_" + securityIb.SecType + "_" + securityIb.Exchange;
+                string name = securityIb.Symbol + "_" + securityIb.SecType + "_" + securityIb.Exchange + "_" + securityIb.LocalSymbol;
 
                 if (_securities.Find(securiti => securiti.Name == name) == null)
                 {
@@ -451,6 +452,20 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     security.Name = name;
                     security.NameFull = name;
                     security.NameClass = securityIb.SecType;
+
+                    if(security.NameClass == "FUT")
+                    {
+                        security.SecurityType = SecurityType.Futures;
+                    }
+                    else if (security.NameClass == "CASH")
+                    {
+                        security.SecurityType = SecurityType.CurrencyPair;
+                    }
+                    else
+                    {
+                        security.SecurityType = SecurityType.Stock;
+                    }
+                    
 
                     if (string.IsNullOrWhiteSpace(security.NameClass))
                     {
@@ -463,7 +478,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     security.PriceLimitLow = 0;
                     security.PriceLimitHigh = 0;
                     security.NameId = name;
-                    security.SecurityType = SecurityType.Stock;
+                
 
                     _securities.Add(security);
 
@@ -552,7 +567,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 }
 
                 // see if you already have the right Os.Engine security / смотрим, есть ли нужная бумага в формате Os.Engine
-                string name = contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange;
+                string name = contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange + "_" + contract.LocalSymbol;
 
                 if (_securities == null ||
                     _securities.Find(security => security.Name == name) == null)
@@ -722,7 +737,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     return;
                 }
 
-                string name = myContract.Symbol + "_" + myContract.SecType + "_" + myContract.Exchange;
+                string name = myContract.Symbol + "_" + myContract.SecType + "_" + myContract.Exchange + "_" + myContract.LocalSymbol;
 
                 Security mySecurity = _securities.Find(security => security.Name == name);
 
@@ -855,7 +870,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             SecurityIb contractIb =
     _secIB.Find(
         contract =>
-            contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange ==
+            contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange + "_" + contract.LocalSymbol ==
             order.SecurityNameCode);
 
             if (contractIb == null)
@@ -986,7 +1001,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 SecurityIb contractIb =
            _secIB.Find(
          contract =>
-             contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange == security.Name);
+             contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange + "_" + contract.LocalSymbol == security.Name);
 
                 if (contractIb == null)
                 {
@@ -1048,16 +1063,15 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 SecurityIb contractIb =
 _secIB.Find(
 contract =>
- contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange == nameSec);
+ contract.Symbol + "_" + contract.SecType + "_" + contract.Exchange + "_" + contract.LocalSymbol == nameSec);
+                
 
                 if (contractIb == null)
                 {
                     return null;
                 }
-
                 DateTime timeEnd = DateTime.Now.ToUniversalTime();
                 DateTime timeStart = timeEnd.AddMinutes(60);
-
                 string barSize = "1 min";
 
                 int mergeCount = 0;

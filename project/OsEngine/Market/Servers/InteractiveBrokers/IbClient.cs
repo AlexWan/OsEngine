@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
@@ -1480,7 +1481,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             trade.Price = price;
             trade.Volume = size;
             trade.Time = DateTime.Now;
-            trade.SecurityNameCode = security.Symbol + "_" + security.SecType + "_" + security.Exchange;
+            trade.SecurityNameCode = security.Symbol + "_" + security.SecType + "_" + security.Exchange + "_" + security.LocalSymbol;
+            
 
             if (tickType == 1)
             {
