@@ -287,7 +287,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                         saveStr += _secIB[i].SecIdType + "@";
                         saveStr += _secIB[i].SecType + "@";
                         saveStr += _secIB[i].Strike + "@";
-                        saveStr += /*_secIB[i].Symbol+*/  "@";
+                        saveStr += _secIB[i].Symbol +  "@";
                         saveStr += /*_secIB[i].TradingClass +*/ "@";
                         saveStr += _secIB[i].CreateMarketDepthFromTrades + "@";
                         //saveStr += _secToSubscrible[i].UnderComp + "@";
@@ -412,12 +412,11 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     _securities = new List<Security>();
                 }
 
-                SecurityIb securityIb = _secIB.Find(security => security.Symbol == contract.Symbol
+                SecurityIb securityIb = _secIB.Find(security => security.LocalSymbol == contract.LocalSymbol
                                                                         && security.Exchange == contract.Exchange);
-
                 if (securityIb == null)
                 {
-                    securityIb = _secIB.Find(security => security.LocalSymbol == contract.LocalSymbol
+                    securityIb = _secIB.Find(security => security.Symbol == contract.Symbol
                                                                         && security.Exchange == contract.Exchange);
                 }
 
