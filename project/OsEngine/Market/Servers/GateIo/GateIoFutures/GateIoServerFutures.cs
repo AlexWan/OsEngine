@@ -1272,7 +1272,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     }
                 }
 
-                newOrder.NumberUser = Convert.ToInt32(responseDepths.result[i].Text.Replace("t-", ""));
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(responseDepths.result[i].Text.Replace("t-", ""));
+                }
+                catch
+                {
+                    // ignore
+                }
+                
                 newOrder.NumberMarket = responseDepths.result[i].Id;
                 newOrder.Side = responseDepths.result[i].Size.ToDecimal() > 0 ? Side.Buy : Side.Sell;
                 newOrder.State = orderState;

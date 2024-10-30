@@ -1026,10 +1026,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             Trade trade = new Trade();
             trade.SecurityNameCode = responceTrades.result.currency_pair;
 
-            trade.Price = Convert.ToDecimal(responceTrades.result.price.Replace('.', ','));
+            trade.Price = responceTrades.result.price.ToDecimal();
             trade.Id = responceTrades.result.id;
             trade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(responceTrades.result.create_time));
-            trade.Volume = Convert.ToDecimal(responceTrades.result.amount.Replace('.', ','));
+            trade.Volume = responceTrades.result.amount.ToDecimal();
             trade.Side = responceTrades.result.side.Equals("sell") ? Side.Sell : Side.Buy;
 
             NewTradesEvent(trade);
@@ -1136,7 +1136,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                         orderState = OrderStateType.Done;
                     }
                 }
-                newOrder.NumberUser = Convert.ToInt32(responceDepths.result[i].text.Replace("t-", ""));
+
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(responceDepths.result[i].text.Replace("t-", ""));
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 newOrder.NumberMarket = responceDepths.result[i].id;
                 newOrder.Side = responceDepths.result[i].side.Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = orderState;
