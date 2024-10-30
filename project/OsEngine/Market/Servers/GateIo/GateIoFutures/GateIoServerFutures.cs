@@ -1241,11 +1241,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             for (int i = 0; i < responseDepths.result.Count; i++)
             {
-                if (responseDepths.result[i].Text == "web")
-                {
-                    continue;
-                }
-
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = responseDepths.result[i].Contract;
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(responseDepths.result[i].CreateTime));
@@ -1287,7 +1282,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 newOrder.Volume = Math.Abs(responseDepths.result[i].Size.ToDecimal());
                 newOrder.Price = responseDepths.result[i].Price.ToDecimal();
                 newOrder.ServerType = ServerType.GateIoFutures;
-                newOrder.PortfolioNumber = "GateIoFuturesWallet";
+                newOrder.PortfolioNumber = "GateIoFutures";
 
                 MyOrderEvent(newOrder);
             }
