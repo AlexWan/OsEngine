@@ -96,4 +96,41 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string time { get; set; }
         public string isBlockTrade { get; set; }
     }
+
+    public class PositionOnBoardResult
+    {
+        public string symbol; // ": "ADAUSDT",
+        public string leverage; // ": "10",
+        public string autoAddMargin; // ": 0,
+        public string avgPrice; // ": "0.3594",
+        public string liqPrice; // ": "",
+        public string riskLimitValue; // ": "200000",
+        public string takeProfit; // ": "",
+        public string positionValue; // ": "0.3594",
+        public string isReduceOnly; // ": false,
+        public string tpslMode; // ": "Full",
+        public string riskId; // ": 116,
+        public string trailingStop; // ": "0",
+        public string unrealisedPnl; // ": "0.0001",
+        public string markPrice; // ": "0.3595",
+        public string adlRankIndicator; // ": 2,
+        public string cumRealisedPnl; // ": "-0.0624684",
+        public string positionMM; // ": "0.00301896",
+        public string createdTime; // ": "1707043707699",
+        public string positionIdx; // ": 0,
+        public string positionIM; // ": "0.03626346",
+        public string seq; // ": 162587161997,
+        public string updatedTime; // ": "1730270283779",
+        public string side; // ": "Buy",
+        public string bustPrice; // ": "",
+        public string positionBalance; // ": "0",
+        public string leverageSysUpdatedTime; // ": "",
+        public string curRealisedPnl; // ": "-0.0003594",
+        public string size; // ": "1",
+        public string positionStatus; // ": "Normal",
+        public string mmrSysUpdatedTime; // ": "",
+        public string stopLoss; // ": "",
+        public string tradeMode; // ": 0,
+        public string sessionAvgPrice; // ": ""
+    }
 }

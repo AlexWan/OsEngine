@@ -525,6 +525,7 @@ namespace OsEngine.Market.Servers.Bybit
 
 
                     PositionOnBoard.AddRange(GetPositionsSpot(item.SelectToken("coin").Children().ToList(), portfolio.Number));
+
                     for (int i = 0; i < PositionOnBoard.Count; i++)
                     {
                         portfolio.SetNewPosition(PositionOnBoard[i]);
@@ -629,6 +630,7 @@ namespace OsEngine.Market.Servers.Bybit
                         {
                             return positionOnBoards;
                         }
+
                         List<PositionOnBoard> positions = CreatePosOnBoard(position.SelectToken("result.list"), portfolioNumber);
                         if ( positions != null && positions.Count > 0)
                         {
@@ -654,19 +656,24 @@ namespace OsEngine.Market.Servers.Bybit
         {
             List<PositionOnBoard> poses = new List<PositionOnBoard>();
 
-            List<JToken> list = data.Children().ToList();
-            for (int i = 0; i < list.Count; i++)
+            List<PositionOnBoardResult> positions =
+                      JsonConvert.DeserializeAnonymousType(data.ToString(), new List<PositionOnBoardResult>());
+
+            for (int i = 0; i < positions.Count; i++)
             {
-                JToken posJson = list[i];
+                PositionOnBoardResult posJson = positions[i];
+
                 PositionOnBoard pos = new PositionOnBoard();
 
                 pos.PortfolioName = potrolioNumber;
                 pos.SecurityNameCode
-                    = posJson.SelectToken("symbol").ToString()+".P";
-                //+ "_" + posJson.SelectToken("side").ToString();
+                    = posJson.symbol+".P";
 
-                pos.ValueBegin = posJson.SelectToken("size").Value<decimal>() * (posJson.SelectToken("side").Value<string>() == "Buy" ? 1 : -1);
+                pos.ValueBegin = 
+                    posJson.size.ToDecimal() * (posJson.side == "Buy" ? 1 : -1);
+                
                 pos.ValueCurrent = pos.ValueBegin;
+
                 poses.Add(pos);
             }
 
