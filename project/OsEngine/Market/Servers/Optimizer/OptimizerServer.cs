@@ -479,16 +479,19 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void LoadNextData()
         {
-            if (TimeNow > _storages[0].TimeEndAddDay)
+            for(int i = 0;i < _storages.Count;i++)
             {
-                _testerRegime = TesterRegime.Pause;
-
-                SendLogMessage(OsLocalization.Market.Message37, LogMessageType.System);
-                if (TestingEndEvent != null)
+                if (TimeNow > _storages[i].TimeEndAddDay)
                 {
-                    TestingEndEvent(NumberServer);
+                    _testerRegime = TesterRegime.Pause;
+
+                    SendLogMessage(OsLocalization.Market.Message37, LogMessageType.System);
+                    if (TestingEndEvent != null)
+                    {
+                        TestingEndEvent(NumberServer);
+                    }
+                    return;
                 }
-                return;
             }
 
             if (_candleSeriesTesterActivate == null ||
