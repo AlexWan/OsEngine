@@ -115,7 +115,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-
                     TimeToSendPingPublic = DateTime.Now;
                     TimeToSendPingPrivate = DateTime.Now;
                     FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
@@ -153,7 +152,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 UnsubscribeFromAllWebSockets();
                 _subscribledSecutiries.Clear();
-                //_subscribledSecutiries = null;
                 DeleteWebSocketConnection();
             }
             catch (Exception exeption)
@@ -502,8 +500,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     $"startTime={startTime}&granularity={interval}&limit={limitCandles}&endTime={endTime}";
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
                 IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
-
-                //"https://api.bitget.com//api/v2/mix/market/history-candles?symbol=BTCUSDT&productType=usdt-futures&startTime=1722394800000&granularity=4H&endTime=1725332400000&limit=200"
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -1407,6 +1403,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     {
                         newOrder.TypeOrder = OrderPriceType.Market;
                     }
+                    else
+                    {
+                        newOrder.TypeOrder = OrderPriceType.Limit;
+                    }
 
                     if (stateType == OrderStateType.Partial)
                     {
@@ -1781,7 +1781,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         newOrder.Price = stateResponse.data.price.ToDecimal();
                         newOrder.ServerType = ServerType.BitGetFutures;
                         newOrder.PortfolioNumber = "BitGetFutures";
-                        newOrder.TypeOrder = OrderPriceType.Limit;
+                        newOrder.TypeOrder = stateResponse.data.orderType == "limit" ? OrderPriceType.Limit : OrderPriceType.Market;
 
                         if (newOrder != null
                             && MyOrderEvent != null)
@@ -1963,7 +1963,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             newOrder.Price = item.price.ToDecimal();
             newOrder.ServerType = ServerType.BitGetFutures;
             newOrder.PortfolioNumber = "BitGetFutures";
-            newOrder.TypeOrder = OrderPriceType.Limit;
+            newOrder.TypeOrder = item.orderType == "limit" ? OrderPriceType.Limit : OrderPriceType.Market;
             
             return newOrder;
         }
@@ -2036,6 +2036,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        private HttpClient _httpClient = new HttpClient();
+
         private HttpResponseMessage CreatePrivateQueryOrders(string path, string method, string queryString, string body)
         {
             try
@@ -2045,21 +2047,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                 string signature = GenerateSignature(timestamp, method, requestPath, queryString, body, SeckretKey);
 
-                HttpClient httpClient = new HttpClient();
-
-                httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
-                httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
+                _httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
+                _httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
+                _httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
+                _httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
+                _httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
 
                 if (method.Equals("POST"))
                 {
-                    return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
+                    return _httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
                 }
                 else
                 {
-                    return httpClient.GetAsync(url).Result;
+                    return _httpClient.GetAsync(url).Result;
                 }
             }
             catch (Exception ex)

@@ -101,27 +101,7 @@
         {
             get { return false; }
         }
-
-        public bool MarketOrdersIsSupport
-        {
-            get { return true; }
-        }
-
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
-        public bool IsCanChangeOrderPrice
-        {
-            get { return false; }
-        }
-
-        public int WaitTimeSecondsAfterFirstStartToSendOrders
-        {
-            get { return 1; }
-        }
-
+                
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
@@ -152,6 +132,21 @@
                 TimeFrameDayIsOn = false
             };
 
+        public bool MarketOrdersIsSupport
+        {
+            get { return true; }
+        }       
+
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
+        }
+
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
+        {
+            get { return 1; }
+        }
+
         public bool UseStandartCandlesStarter
         {
             get { return true; }
@@ -169,17 +164,7 @@
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get
-            {
-                string[] values = new string[]
-                {
-                    "_long",
-                    "_short",
-                    "_both"
-                };
-
-                return values;
-            }
+            get { return null; }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
@@ -202,6 +187,11 @@
 
                 return values;
             }
+        }
+
+        public bool IsTradeServer
+        {
+            get { return true; }
         }
 
         public bool CanQueryOrdersAfterReconnect

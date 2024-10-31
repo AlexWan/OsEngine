@@ -311,6 +311,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.OKX);
                 serverTypes.Add(ServerType.Woo);
                 serverTypes.Add(ServerType.BitGetFutures);
+                serverTypes.Add(ServerType.BitGetSpot);
 
                 return serverTypes;
             }

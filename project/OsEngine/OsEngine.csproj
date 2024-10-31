@@ -451,6 +451,7 @@
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseRestMessage.cs" />
     <Compile Include="Market\Servers\ComparePositionsModule.cs" />
     <Compile Include="Market\Servers\AServerOrdersHub.cs" />
     <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
@@ -585,7 +586,6 @@
     <Compile Include="Market\Servers\BitGet\BitGetSpot\BitGetServerSpot.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\BitGetSpotServerPermission.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\RequestWebsocketAuth.cs" />
-    <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseWebSocketMessageAction.cs" />
     <Compile Include="Market\Servers\BitMartFutures\BitMartFutures.cs" />
     <Compile Include="Market\Servers\BitMartFutures\BitMartFuturesServerPermission.cs" />
