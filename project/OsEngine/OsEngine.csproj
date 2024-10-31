@@ -451,6 +451,7 @@
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseRestMessage.cs" />
     <Compile Include="Market\Servers\ComparePositionsModule.cs" />
     <Compile Include="Market\Servers\AServerOrdersHub.cs" />
     <Compile Include="Market\Servers\AstsBridge\SecurityLevelOne.cs" />
@@ -585,7 +586,6 @@
     <Compile Include="Market\Servers\BitGet\BitGetSpot\BitGetServerSpot.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\BitGetSpotServerPermission.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\RequestWebsocketAuth.cs" />
-    <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetSpot\Entity\ResponseWebSocketMessageAction.cs" />
     <Compile Include="Market\Servers\BitMartFutures\BitMartFutures.cs" />
     <Compile Include="Market\Servers\BitMartFutures\BitMartFuturesServerPermission.cs" />
@@ -1157,6 +1157,21 @@
     <Compile Include="Robots\Engines\EnginePair.cs" />
     <Compile Include="Robots\Engines\PolygonalEngine.cs" />
     <Compile Include="Robots\High Frequency\MarketDepthScreener.cs" />
+    <Compile Include="Robots\HomeWork\ChartBot.cs" />
+    <Compile Include="Robots\HomeWork\ChartFractals.cs" />
+    <Compile Include="Robots\HomeWork\ChartRatio.cs" />
+    <Compile Include="Robots\HomeWork\GridBot.cs" />
+    <Compile Include="Robots\HomeWork\HomeWork1.cs" />
+    <Compile Include="Robots\HomeWork\Homework2_FirstArbitrage.cs" />
+    <Compile Include="Robots\HomeWork\HomeWork3_ParamBot.cs" />
+    <Compile Include="Robots\HomeWork\HomeWork4_IndicatorsTrend.cs" />
+    <Compile Include="Robots\HomeWork\MoexSpreadPairs.cs" />
+    <Compile Include="Robots\HomeWork\MoexSpreadScreener.cs" />
+    <Compile Include="Robots\HomeWork\SmartGrid.cs" />
+    <Compile Include="Robots\HomeWork\TableBot.cs" />
+    <Compile Include="Robots\HomeWork\TelegramBot.cs" />
+    <Compile Include="Robots\HomeWork\Test.cs" />
+    <Compile Include="Robots\HomeWork\Test1.cs" />
     <Compile Include="Robots\IndexArbitrage\IndexArbitrageClassic.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiExchangePairArbitrageOnTheIndex.cs" />
     <Compile Include="Robots\IndexArbitrage\MultiOneLegArbitrageInTrend.cs" />
