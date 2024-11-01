@@ -44,7 +44,7 @@
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf2MinuteCanLoad
@@ -54,7 +54,7 @@
 
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf10MinuteCanLoad
@@ -64,17 +64,17 @@
 
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf1HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf2HourCanLoad
@@ -84,7 +84,7 @@
 
         public bool DataFeedTf4HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTfDayCanLoad
@@ -102,29 +102,9 @@
             get { return false; }
         }
 
-        public bool MarketOrdersIsSupport
-        {
-            get { return false; }
-        }
-
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
-        public bool IsCanChangeOrderPrice
-        {
-            get { return false; }
-        }
-
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
-        }
-
-        public int WaitTimeSecondsAfterFirstStartToSendOrders
-        {
-            get { return 1; }
         }
 
         private TimeFramePermission _tradeTimeFramePermission
@@ -152,6 +132,21 @@
                 TimeFrameDayIsOn = false
             };
 
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
+        {
+            get { return 1; }
+        }
+
+        public bool MarketOrdersIsSupport
+        {
+            get { return false; }
+        }
+
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
+        }
+
         public bool UseStandartCandlesStarter
         {
             get { return true; }
@@ -160,6 +155,11 @@
         public bool IsUseLotToCalculateProfit
         {
             get { return false; }
+        }
+
+        public bool IsTradeServer
+        {
+            get { return true; }
         }
 
         public bool ManuallyClosePositionOnBoard_IsOn

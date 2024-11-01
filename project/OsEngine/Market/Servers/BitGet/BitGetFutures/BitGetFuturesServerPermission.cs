@@ -44,7 +44,7 @@
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf2MinuteCanLoad
@@ -54,7 +54,7 @@
 
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf10MinuteCanLoad
@@ -64,17 +64,17 @@
 
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf1HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf2HourCanLoad
@@ -84,7 +84,7 @@
 
         public bool DataFeedTf4HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTfDayCanLoad
@@ -100,26 +100,6 @@
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
-        }
-
-        public bool MarketOrdersIsSupport
-        {
-            get { return true; }
-        }
-
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
-        public bool IsCanChangeOrderPrice
-        {
-            get { return false; }
-        }
-
-        public int WaitTimeSecondsAfterFirstStartToSendOrders
-        {
-            get { return 1; }
         }
 
         public TimeFramePermission TradeTimeFramePermission
@@ -139,7 +119,7 @@
                 TimeFrameSec30IsOn = false,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
-                TimeFrameMin3IsOn = false,
+                TimeFrameMin3IsOn = true,
                 TimeFrameMin5IsOn = true,
                 TimeFrameMin10IsOn = false,
                 TimeFrameMin15IsOn = true,
@@ -151,6 +131,21 @@
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = false
             };
+
+        public bool MarketOrdersIsSupport
+        {
+            get { return true; }
+        }
+
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
+        }
+
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
+        {
+            get { return 1; }
+        }
 
         public bool UseStandartCandlesStarter
         {
@@ -169,17 +164,7 @@
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get
-            {
-                string[] values = new string[]
-                {
-                    "_long",
-                    "_short",
-                    "_both"
-                };
-
-                return values;
-            }
+            get { return null; }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
@@ -192,11 +177,21 @@
                     "USDT",
                     "USD",
                     "BTC",
-                    "ETH"
+                    "ETH",
+                    "SUSDT",
+                    "SBTC",
+                    "SEOS",
+                    "SETH",
+                    "SUSDC"
                 };
 
                 return values;
             }
+        }
+
+        public bool IsTradeServer
+        {
+            get { return true; }
         }
 
         public bool CanQueryOrdersAfterReconnect

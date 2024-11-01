@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+
 namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
 {
     public class RequestWebsocketAuth

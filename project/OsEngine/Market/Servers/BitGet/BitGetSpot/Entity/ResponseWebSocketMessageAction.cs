@@ -9,6 +9,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
         public T data;
     }
 
+    public class ResponseWebsocketTrade
+    {
+        public string ts;
+        public string price;
+        public string size;
+        public string side;
+        public string tradeId;
+    }
+
     public class ResponseWebSocketMessageSubscrible
     {
         public string Event;
@@ -33,27 +42,54 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
 
     public class ResponseWebSocketOrder
     {
-        public string instId;
-        public string ordId;
-        public string clOrdId;
-        public string px;
-        public string sz;
-        public string notional;
-        public string ordType;
-        public string force;
-        public string side;
-        public string fillPx;
-        public string tradeId;
-        public string fillSz;
-        public string fillTime;
-        public string fillFee;
-        public string fillFeeCcy;
-        public string execType;
-        public string accFillSz;
-        public string avgPx;
+        public string orderType;
         public string status;
+        public string instId;
         public string cTime;
-        public string uTime;
-        public string eps;
+        public string clientOid;
+        public string orderId;
+        public string side;
+        public string size;
+        public string baseVolume;
+        public string accBaseVolume;
+        public string price;
+        public string fillTime;
+        public string tradeId;
+        public string fillPrice;
+        public string posMode;
+        public string tradeSide;
+        public string posSide;
+        public string fillFee;
+        public string fillFeeCoin;
+    }
+
+    public class ResponseWebSocketAccount
+    {
+        public string frozen;
+        public string available;
+        public string coin;
+    }
+
+    public class ResponseMessagePositions
+    {
+        public string marginCoin;
+        public string instId;
+        public string holdSide;
+        public string frozen;
+        public string margin;
+        public string available;
+        public string locked;
+        public string total;
+        public string leverage;
+        public string achievedProfits;
+        public string averageOpenPrice;
+        public string marginMode;
+        public string holdMode;
+        public string unrealizedPL;
+        public string liquidationPrice;
+        public string keepMarginRate;
+        public string marketPrice;
+        public string cTime;
+        public string instType;
     }
 }
