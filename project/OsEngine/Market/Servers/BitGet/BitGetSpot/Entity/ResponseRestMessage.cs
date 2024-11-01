@@ -66,7 +66,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
         public string cTime;
         public string price;
     }
-
+  
     public class DataOrderStatus
     {
         public string symbol;
@@ -91,12 +91,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
 
     public class DataMyTrades
     {
-        public string tradeId;
-        public string symbol;
-        public string orderId;
-        public string price;
-        public string size;
-        public FeeDetail feeDetail;
+        public string tradeId; 
+        public string symbol; 
+        public string orderId; 
+        public string price; 
+        public string size; 
+        public FeeDetail feeDetail; 
         public string side;
         public string cTime;
         public string priceAvg;
