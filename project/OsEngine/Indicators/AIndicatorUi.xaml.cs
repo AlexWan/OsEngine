@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Market;
 using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.Indicators
@@ -83,6 +84,13 @@ namespace OsEngine.Indicators
 
             HostParameters.Child = _gridParam;
 
+            _gridParam.DataError += _gridParam_DataError;
+
+        }
+
+        private void _gridParam_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+           ServerMaster.SendNewLogMessage(e.ToString(),Logging.LogMessageType.Error);
         }
 
         private void UpdateGridParam()
@@ -228,6 +236,8 @@ namespace OsEngine.Indicators
 
             HostVisual.Child = _gridVisual;
             _gridVisual.Click += _gridVisual_Click;
+
+            _gridVisual.DataError += _gridParam_DataError;
         }
 
         private void UpdateGridVisual()
@@ -348,6 +358,8 @@ namespace OsEngine.Indicators
 
             HostIndicators.Child = _gridIndicators;
             _gridIndicators.Click += _gridIndicators_Click;
+
+            _gridIndicators.DataError += _gridParam_DataError;
         }
 
         private void UpdateGridIndicators()
