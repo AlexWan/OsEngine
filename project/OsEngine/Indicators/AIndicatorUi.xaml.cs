@@ -40,15 +40,53 @@ namespace OsEngine.Indicators
 
             this.Activate();
             this.Focus();
+
+            Closed += AIndicatorUi_Closed;
+        }
+
+        private void AIndicatorUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _gridParam.DataError -= _gridParam_DataError;
+                HostParameters.Child = null;
+                DataGridFactory.ClearLinks(_gridParam);
+                _gridParam = null;
+
+                _gridVisual.Click -= _gridVisual_Click;
+                _gridVisual.DataError -= _gridParam_DataError;
+                HostVisual.Child = null;
+                DataGridFactory.ClearLinks(_gridVisual);
+                _gridVisual = null;
+
+                _gridIndicators.Click -= _gridIndicators_Click;
+                _gridIndicators.DataError -= _gridParam_DataError;
+                HostIndicators.Child = null;
+                DataGridFactory.ClearLinks(_gridIndicators);
+                _gridIndicators = null;
+
+                _indicator = null;
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            SaveParam();
-            SaveVisual();
+            try
+            {
+                SaveParam();
+                SaveVisual();
 
-            IsAccepted = true;
-            Close();
+                IsAccepted = true;
+                Close();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
         }
 
         public bool IsAccepted;
@@ -83,9 +121,7 @@ namespace OsEngine.Indicators
             _gridParam.Rows.Add(null, null);
 
             HostParameters.Child = _gridParam;
-
             _gridParam.DataError += _gridParam_DataError;
-
         }
 
         private void _gridParam_DataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -412,11 +448,18 @@ namespace OsEngine.Indicators
 
         private void ButtonDefault_Click(object sender, RoutedEventArgs e)
         {
-            for (int i = 0; i < _indicator.Parameters.Count; i++)
+            try
             {
-                _indicator.Parameters[i].DoDefault();
+                for (int i = 0; i < _indicator.Parameters.Count; i++)
+                {
+                    _indicator.Parameters[i].DoDefault();
+                }
+                UpdateGridParam();
             }
-            UpdateGridParam();
+            catch (Exception error)
+            {
+                MessageBox.Show(error.ToString());
+            }
         }
     }
 }

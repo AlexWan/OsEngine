@@ -25,10 +25,7 @@ using OsEngine.PrimeSettings;
 using OsEngine.Layout;
 using System.Collections.Generic;
 using OsEngine.Entity;
-using System.Globalization;
-using OsEngine.Logging;
 using System.Net.Sockets;
-using System.Net;
 using System.Text;
 
 namespace OsEngine
@@ -136,24 +133,45 @@ namespace OsEngine
 
         private void ImageAlor2_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            Process.Start(new ProcessStartInfo("https://www.alorbroker.ru/open?pr=L0745") { UseShellExecute = true });
+            try
+            {
+                Process.Start(new ProcessStartInfo("https://www.alorbroker.ru/open?pr=L0745") { UseShellExecute = true });
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void ImageAlor_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            try
             {
-                ImageAlor2.Visibility = Visibility.Collapsed;
-                ImageAlor.Visibility = Visibility.Visible;
+                if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+                {
+                    ImageAlor2.Visibility = Visibility.Collapsed;
+                    ImageAlor.Visibility = Visibility.Visible;
+                }
+            }
+            catch
+            {
+                // ignore
             }
         }
 
         private void ImageAlor_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            try
             {
-                ImageAlor2.Visibility = Visibility.Visible;
-                ImageAlor.Visibility = Visibility.Collapsed;
+                if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+                {
+                    ImageAlor2.Visibility = Visibility.Visible;
+                    ImageAlor.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch
+            {
+                // ignore
             }
         }
 
