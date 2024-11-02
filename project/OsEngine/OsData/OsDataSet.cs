@@ -240,6 +240,8 @@ namespace OsEngine.OsData
                         SecuritiesLoad.Add(record);
                     }
                 }
+
+                ui.SelectedSecurity = null;
             }
             Save();
         }
