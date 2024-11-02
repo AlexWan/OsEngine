@@ -5,10 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -18,25 +15,15 @@ using System.Windows.Input;
 namespace OsEngine.OsData
 {
 
-    /// <summary>
-    /// Interaction Logic for NewSecurityDialog.xaml/Логика взаимодействия для NewSecurityDialog.xaml
-    /// </summary>
     public partial class NewSecurityUi
     {
-        /// <summary>
-        /// papers that are in the server/бумаги которые есть в сервере
-        /// </summary>
         private List<Security> _securities;
 
         /// <summary>
-        /// selected paper/выбранная бумага
+        /// selected securities
         /// </summary>
         public List<Security> SelectedSecurity = new List<Security>();
 
-        /// <summary>
-        /// constructor/конструктор
-        /// </summary>
-        /// <param name="securities">papers available for selection/бумаги доступные к выбору</param>
         public NewSecurityUi(List<Security> securities)
         {
             InitializeComponent();
@@ -71,6 +58,33 @@ namespace OsEngine.OsData
 
             this.Activate();
             this.Focus();
+
+            Closed += NewSecurityUi_Closed;
+        }
+
+        private void NewSecurityUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
+                CheckBoxSelectAllCheckBox.Click -= CheckBoxSelectAllCheckBox_Click;
+                TextBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+                TextBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+                TextBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+                TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+                ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+
+                _securities = null;
+                HostSecurity.Child = null;
+                DataGridFactory.ClearLinks(_gridSecurities);
+                _gridSecurities = null;
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void CheckBoxSelectAllCheckBox_Click(object sender, RoutedEventArgs e)
@@ -84,12 +98,12 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// paper table/таблица для бумаг
+        /// securities table
         /// </summary>
         private DataGridView _gridSecurities;
 
         /// <summary>
-        /// create a table for papers/создать таблицу для бумаг
+        /// create a table for securities
         /// </summary>
         private void CreateTable()
         {
@@ -125,7 +139,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// unload all available classes in the class selection menu/выгрузить все доступные классы в меню выбора классов
+        /// unload all available classes in the class selection menu
         /// </summary>
         private void GetClasses()
         {
@@ -159,7 +173,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// security doesn't contain enough info/бумага не содержит достаточно информации
+        /// security doesn't contain enough info
         /// </summary>
         private bool IsSecurityEmpty(Security security)
         {
@@ -168,12 +182,12 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// currently displayed papers/отображаемые на текущий момент бумаги
+        /// currently displayed securities
         /// </summary>
         private List<Security> _securitiesInBox = new List<Security>();
 
         /// <summary>
-        /// reload tool selection menu/перезагрузить меню выбора инструментов
+        /// reload tool selection menu
         /// </summary>
         private void ReloadSecurityTable()
         {
@@ -214,7 +228,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// the selected item in the class selection menu has changed/изменился выбранный элемент в меню выбора классов
+        /// the selected item in the class selection menu has changed
         /// </summary>
         void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -224,7 +238,7 @@ namespace OsEngine.OsData
         }
 
         /// <summary>
-        /// "Accept" button pressed/нажата кнопка "Принять"
+        /// "Accept" button pressed
         /// </summary>
         private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -249,7 +263,7 @@ namespace OsEngine.OsData
             Close();
         }
 
-        #region поиск по таблице бумаг
+        #region Search
 
         private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {

@@ -277,9 +277,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 security.SecurityType = SecurityType.Futures;
                 security.PriceStep = current.OrderPriceRound.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
-                security.Lot = current.MarkPriceRound.ToDecimal();
+                security.Lot = current.QuantoMultiplier.ToDecimal();
                 security.Decimals = current.OrderPriceRound.Split('.')[1].Count();
-                security.DecimalsVolume = current.MarkPriceRound.Split('.')[1].Count();
+                security.DecimalsVolume = 0;
 
                 if (current.OrderSizeMin != null)
                 {
