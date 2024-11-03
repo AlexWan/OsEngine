@@ -10,9 +10,6 @@ using System.Windows.Forms;
 
 namespace OsEngine.OsData
 {
-    /// <summary>
-    /// Interaction logic for OsDataSetDetailUi.xaml
-    /// </summary>
     public partial class OsDataSetDetailUi : Window
     {
         public OsDataSetDetailUi(SecurityTfLoader loader)
@@ -44,12 +41,19 @@ namespace OsEngine.OsData
 
         private void OsDataSetDetailUi_Closed(object sender, EventArgs e)
         {
-            _isDeleted = true;
-            _loader = null;
+            try
+            {
+                _isDeleted = true;
+                _loader = null;
 
-            _grid.CellClick -= _grid_CellClick;
-            DataGridFactory.ClearLinks(_grid);
-            _grid = null;
+                _grid.CellClick -= _grid_CellClick;
+                DataGridFactory.ClearLinks(_grid);
+                _grid = null;
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private async void PainterThreadArea()
@@ -194,68 +198,75 @@ namespace OsEngine.OsData
 
         private void _grid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            int row = e.RowIndex;
-            int col = e.ColumnIndex;
-
-            if(col != 5 && col != 6 && col != 7)
+            try
             {
-                return;
-            }
+                int row = e.RowIndex;
+                int col = e.ColumnIndex;
 
-            if(row >= _loader.DataPies.Count)
+                if (col != 5 && col != 6 && col != 7)
+                {
+                    return;
+                }
+
+                if (row >= _loader.DataPies.Count)
+                {
+                    return;
+                }
+
+                DataPie pie = _loader.DataPies[row];
+
+                if (col == 5)
+                { // показать файл файлом
+
+                    string tempFile = Environment.CurrentDirectory + "\\" + pie._pathMyTempPieInTfFolder + "\\" + pie.TempFileName;
+
+                    if (File.Exists(tempFile) == false)
+                    {
+                        return;
+                    }
+
+                    Process.Start("explorer.exe", tempFile);
+
+                }
+                if (col == 6)
+                { // открыть папку
+
+                    string tempFile = Environment.CurrentDirectory + "\\" + pie._pathMyTempPieInTfFolder;
+
+                    if (Directory.Exists(tempFile) == false)
+                    {
+                        return;
+                    }
+
+                    Process.Start("explorer.exe", tempFile);
+                }
+                else if (col == 7)
+                { // очистить данные. С ПОДТВЕРЖДЕНИЕМ!
+
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label58);
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptActioin == false)
+                    {
+                        return;
+                    }
+
+                    if (row >= _loader.DataPies.Count)
+                    {
+                        return;
+                    }
+
+                    _loader.DataPies[row].Clear();
+
+                    _loader.Status = SecurityLoadStatus.Loading;
+                    _loader.CheckTimeInSets();
+
+                    RePaintAll();
+                }
+            }
+            catch(Exception ex)
             {
-                return;
-            }
-
-            DataPie pie = _loader.DataPies[row];
-
-            if (col == 5)
-            { // показать файл файлом
-
-                string tempFile = Environment.CurrentDirectory + "\\" + pie._pathMyTempPieInTfFolder + "\\" + pie.TempFileName;
-                
-                if(File.Exists(tempFile) == false)
-                {
-                    return;
-                }
-
-                Process.Start("explorer.exe", tempFile);
-
-            }
-            if (col == 6)
-            { // открыть папку
-
-                string tempFile = Environment.CurrentDirectory + "\\" + pie._pathMyTempPieInTfFolder ;
-
-                if (Directory.Exists(tempFile) == false)
-                {
-                    return;
-                }
-
-                Process.Start("explorer.exe", tempFile);
-            }
-            else if(col == 7)
-            { // очистить данные. С ПОДТВЕРЖДЕНИЕМ!
-
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label58);
-                ui.ShowDialog();
-
-                if (ui.UserAcceptActioin == false)
-                {
-                    return;
-                }
-
-                if(row >= _loader.DataPies.Count)
-                {
-                    return;
-                }
-
-                _loader.DataPies[row].Clear();
-
-                _loader.Status = SecurityLoadStatus.Loading;
-                _loader.CheckTimeInSets();
-
-                RePaintAll();
+                _loader.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
             }
         }
 

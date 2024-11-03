@@ -80,6 +80,8 @@ namespace OsEngine.OsData
 
         #endregion
 
+        #region Object service part
+
         public OsDataSetPainter(OsDataSet set)
         {
             _set = set;
@@ -89,22 +91,6 @@ namespace OsEngine.OsData
             UID = currentDate.Ticks - centuryBegin.Ticks;
 
             AddPainterInArray(this);
-        }
-
-        public void Delete()
-        {
-            DeletePainterFromArray(this);
-
-            StopPaint();
-
-            if (_dataGrid != null)
-            {
-                _dataGrid.DataError -= _dataGrid_DataError;
-                _dataGrid.Click -= _dataGrid_Click;
-                _dataGrid.Rows.Clear();
-                DataGridFactory.ClearLinks(_dataGrid);
-                _dataGrid = null;
-            }
         }
 
         public long UID;
@@ -117,11 +103,11 @@ namespace OsEngine.OsData
             }
         }
 
-        OsDataSet _set;
+        private OsDataSet _set;
 
-        DataGridView _dataGrid;
+        #endregion
 
-        WindowsFormsHost _host;
+        #region Managment
 
         public void StartPaint(WindowsFormsHost host,
             System.Windows.Controls.Label setName,
@@ -207,13 +193,37 @@ namespace OsEngine.OsData
             }
         }
 
-        System.Windows.Controls.Label _labelSetName;
+        public void Delete()
+        {
+            DeletePainterFromArray(this);
 
-        System.Windows.Controls.Label _labelTimeStart;
+            StopPaint();
 
-        System.Windows.Controls.Label _labelTimeEnd;
+            if (_dataGrid != null)
+            {
+                _dataGrid.DataError -= _dataGrid_DataError;
+                _dataGrid.Click -= _dataGrid_Click;
+                _dataGrid.Rows.Clear();
+                DataGridFactory.ClearLinks(_dataGrid);
+                _dataGrid = null;
+            }
+        }
 
-        System.Windows.Controls.ProgressBar _bar;
+        private System.Windows.Controls.Label _labelSetName;
+
+        private System.Windows.Controls.Label _labelTimeStart;
+
+        private System.Windows.Controls.Label _labelTimeEnd;
+
+        private System.Windows.Controls.ProgressBar _bar;
+
+        #endregion
+
+        #region Paint interface
+
+        private DataGridView _dataGrid;
+
+        private WindowsFormsHost _host;
 
         private void CreateGrid()
         {
@@ -318,7 +328,7 @@ namespace OsEngine.OsData
             _grid.MouseLeave += _grid_MouseLeave;*/
         }
 
-        private int prevActiveRow;
+        private int _previousActiveRow;
 
         private void _dataGrid_Click(object sender, EventArgs e)
         {
@@ -329,19 +339,19 @@ namespace OsEngine.OsData
                     return;
                 }
 
-                int coluIndex = _dataGrid.SelectedCells[0].ColumnIndex;
+                int columnIndex = _dataGrid.SelectedCells[0].ColumnIndex;
                 int rowIndex = _dataGrid.SelectedCells[0].RowIndex;
 
-                if (prevActiveRow < _dataGrid.Rows.Count)
+                if (_previousActiveRow < _dataGrid.Rows.Count)
                 {
-                    _dataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    _dataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
                 }
 
                 _dataGrid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
 
-                prevActiveRow = rowIndex;
+                _previousActiveRow = rowIndex;
 
-                if (coluIndex == 10)
+                if (columnIndex == 10)
                 { // chart or раскрыть/скрыть бумаги внутри
 
                     bool isClickOnShowChartBtn = false;
@@ -443,7 +453,7 @@ namespace OsEngine.OsData
                         ui.ProcessCandles(candles);
                     }
                 }
-                else if (coluIndex == 11)
+                else if (columnIndex == 11)
                 { // delete or detail
 
                     if (_dataGrid.Rows[rowIndex].Cells[0].Value == null
@@ -540,13 +550,8 @@ namespace OsEngine.OsData
             }
             catch (Exception ex)
             {
-                SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
-        }
-
-        private void _dataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
-        {
-            SendNewLogMessage(e.Exception.ToString(), LogMessageType.Error);
         }
 
         public void RePaintInterface()
@@ -659,7 +664,7 @@ namespace OsEngine.OsData
                 {
                     DataGridViewRow rowInGrid = _dataGrid.Rows[i];
                     DataGridViewRow rowInNewArray = allRows[i];
-                    CompairCellsInRow(rowInGrid, rowInNewArray);
+                    CompareCellsInRow(rowInGrid, rowInNewArray);
                 }
             }
             catch (Exception ex)
@@ -668,7 +673,7 @@ namespace OsEngine.OsData
             }
         }
 
-        private void CompairCellsInRow(DataGridViewRow rowInGrid, DataGridViewRow rowInNewArray)
+        private void CompareCellsInRow(DataGridViewRow rowInGrid, DataGridViewRow rowInNewArray)
         {
             /*
 colum0.HeaderText = "Num";       0
@@ -802,7 +807,7 @@ colum12.HeaderText = "Delete";
 
             result.Add(GetPrimeRowToSecurity(SecToLoad, num));
 
-            if (SecToLoad.IsCollapced == false)
+            if (SecToLoad.IsCollapsed == false)
             {
                 for (int i = 0; i < SecToLoad.SecLoaders.Count; i++)
                 {
@@ -940,11 +945,11 @@ colum12.HeaderText = "Delete";
 
             row.Cells.Add(new DataGridViewButtonCell()); //"Chart";
 
-            if (SecToLoad.IsCollapced == true)
+            if (SecToLoad.IsCollapsed == true)
             {
                 row.Cells[10].Value = "vvv";
             }
-            else if (SecToLoad.IsCollapced == false)
+            else if (SecToLoad.IsCollapsed == false)
             {
                 row.Cells[10].Value = "^^^";
             }
@@ -955,7 +960,14 @@ colum12.HeaderText = "Delete";
             return row;
         }
 
-        // messages to log/сообщения в лог 
+        #endregion
+
+        #region Logging 
+
+        private void _dataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.Exception.ToString(), LogMessageType.Error);
+        }
 
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -970,5 +982,7 @@ colum12.HeaderText = "Delete";
         }
 
         public event Action<string, LogMessageType> NewLogMessageEvent;
+
+        #endregion
     }
 }

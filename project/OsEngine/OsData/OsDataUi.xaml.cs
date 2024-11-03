@@ -9,10 +9,6 @@ using OsEngine.Language;
 
 namespace OsEngine.OsData
 {
-    /// <summary>
-    /// Interaction Logic for OsDataUi.xaml
-    /// Логика взаимодействия для OsDataUi.xaml
-    /// </summary>
     public partial class OsDataUi
     {
         OsDataMasterPainter _osDataMaster;
@@ -23,14 +19,14 @@ namespace OsEngine.OsData
             LabelTimeEndValue.Content = "";
             LabelSetNameValue.Content = "";
             LabelTimeStartValue.Content = "";
-            OsEngine.Layout.StickyBorders.Listen(this);
+            Layout.StickyBorders.Listen(this);
 
             OsDataMaster master = new OsDataMaster();
 
             _osDataMaster = new OsDataMasterPainter(master, 
                 ChartHostPanel, HostLog, HostSource,
-                HostSet, RectChart, GreedChartPanel,
-                LabelSetNameValue, LabelTimeStartValue, LabelTimeEndValue, ProgressBarLoadProgress);
+                HostSet, LabelSetNameValue, LabelTimeStartValue,
+                LabelTimeEndValue, ProgressBarLoadProgress);
 
             LabelOsa.Content = "V_" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Closing += OsDataUi_Closing;

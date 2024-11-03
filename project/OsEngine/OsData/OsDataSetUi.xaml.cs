@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using System.Windows.Markup;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
@@ -14,29 +13,13 @@ using OsEngine.Market.Servers;
 
 namespace OsEngine.OsData
 {
-    /// <summary>
-    /// Interaction Logic for OsDataSetUi.xaml
-    /// Логика взаимодействия для OsDataSetUi.xaml
-    /// </summary>
+   
     public partial class OsDataSetUi
     {
-        /// <summary>
-        /// set belonging to this window
-        /// сет принадлежащий этому окну
-        /// </summary>
         private OsDataSet _set;
 
-        /// <summary>
-        /// is the set saved
-        /// сохранён ли сет
-        /// </summary>
         public bool IsSaved;
 
-        /// <summary>
-        /// constructor
-        /// конструктор
-        /// </summary>
-        /// <param name="set">set that needs to be managed/сет которым надо управлять</param>
         public OsDataSetUi(OsDataSet set)
         {
             InitializeComponent();
@@ -107,7 +90,7 @@ namespace OsEngine.OsData
             DatePickerTimeStart.SelectedDate = _set.BaseSettings.TimeStart;
             DatePickerTimeEnd.SelectedDate = _set.BaseSettings.TimeEnd;
 
-            CheckBoxNeadToUpDate.IsChecked = _set.BaseSettings.NeadToUpdate;
+            CheckBoxNeadToUpDate.IsChecked = _set.BaseSettings.NeedToUpdate;
 
             for (int i = 1; i < 26; i++)
             {
@@ -137,106 +120,139 @@ namespace OsEngine.OsData
 
             this.Activate();
             this.Focus();
+
+            Closed += OsDataSetUi_Closed;
+        }
+
+        private void OsDataSetUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _set = null;
+                HostSecurities.Child = null;
+                DataGridFactory.ClearLinks(_grid);
+                _grid = null;
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void TextBoxFolderName_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if(TextBoxFolderName.Text == OsLocalization.Data.Label45)
+            try
             {
-                TextBoxFolderName.Text = "";
-                TextBoxFolderName.MouseEnter -= TextBoxFolderName_MouseEnter;
+                if (TextBoxFolderName.Text == OsLocalization.Data.Label45)
+                {
+                    TextBoxFolderName.Text = "";
+                    TextBoxFolderName.MouseEnter -= TextBoxFolderName_MouseEnter;
+                }
+            }
+            catch
+            {
+                // ignore
             }
         }
 
         private void TextBoxFolderName_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            string text = TextBoxFolderName.Text;
-
-            text = text
-              .Replace("/", "")
-              .Replace("\\", "")
-              .Replace("*", "")
-              .Replace("-", "")
-              .Replace("+", "")
-              .Replace(":", "")
-              .Replace("@", "")
-              .Replace(";", "")
-              .Replace("%", "")
-              .Replace(">", "")
-              .Replace("<", "")
-              .Replace("^", "")
-              .Replace("{", "")
-              .Replace("}", "")
-              .Replace("[", "")
-              .Replace("]", "")
-              .Replace("_", "")
-              .Replace("`", "")
-              .Replace("(", "")
-              .Replace(")", "")
-              .Replace("$", "")
-              .Replace("#", "")
-              .Replace("!", "")
-              .Replace("&", "")
-              .Replace("?", "")
-              .Replace("=", "")
-              .Replace(",", "")
-              .Replace(".", "")
-              .Replace("'", "")
-              .Replace("|", "")
-              .Replace("~", "")
-              .Replace("№", "")
-              .Replace("\"", "");
-
-            if(text != TextBoxFolderName.Text)
+            try
             {
-                TextBoxFolderName.Text = text;
-                return;
-            }
+                string text = TextBoxFolderName.Text;
 
-            if (string.IsNullOrEmpty(text))
-            {
-                ComboBoxSource.Visibility = System.Windows.Visibility.Hidden;
-            }
-            else
-            {
-                ComboBoxSource.Visibility = System.Windows.Visibility.Visible;
-            }
-        }
+                text = text
+                  .Replace("/", "")
+                  .Replace("\\", "")
+                  .Replace("*", "")
+                  .Replace("-", "")
+                  .Replace("+", "")
+                  .Replace(":", "")
+                  .Replace("@", "")
+                  .Replace(";", "")
+                  .Replace("%", "")
+                  .Replace(">", "")
+                  .Replace("<", "")
+                  .Replace("^", "")
+                  .Replace("{", "")
+                  .Replace("}", "")
+                  .Replace("[", "")
+                  .Replace("]", "")
+                  .Replace("_", "")
+                  .Replace("`", "")
+                  .Replace("(", "")
+                  .Replace(")", "")
+                  .Replace("$", "")
+                  .Replace("#", "")
+                  .Replace("!", "")
+                  .Replace("&", "")
+                  .Replace("?", "")
+                  .Replace("=", "")
+                  .Replace(",", "")
+                  .Replace(".", "")
+                  .Replace("'", "")
+                  .Replace("|", "")
+                  .Replace("~", "")
+                  .Replace("№", "")
+                  .Replace("\"", "");
 
-        /// <summary>
-        /// switched source
-        /// переключили источник
-        /// </summary>
-        void ComboBoxSource_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            if (ComboBoxSource.SelectedItem != null)
-            {
-                if(ComboBoxSource.SelectedItem.ToString() == "None")
+                if (text != TextBoxFolderName.Text)
                 {
+                    TextBoxFolderName.Text = text;
                     return;
                 }
 
-                Enum.TryParse(ComboBoxSource.SelectedItem.ToString(), out _set.BaseSettings.Source);
+                if (string.IsNullOrEmpty(text))
+                {
+                    ComboBoxSource.Visibility = System.Windows.Visibility.Hidden;
+                }
+                else
+                {
+                    ComboBoxSource.Visibility = System.Windows.Visibility.Visible;
+                }
             }
-
-            SaveSettings();
-
-            CheckButtons();
+            catch
+            {
+                // ignore
+            }
         }
 
-        /// <summary>
-        /// set mode changed
-        /// изменён режим работы сета
-        /// </summary>
-        void ComboBoxRegime_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ComboBoxSource_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            CheckButtons();
+            try
+            {
+                if (ComboBoxSource.SelectedItem != null)
+                {
+                    if (ComboBoxSource.SelectedItem.ToString() == "None")
+                    {
+                        return;
+                    }
+
+                    Enum.TryParse(ComboBoxSource.SelectedItem.ToString(), out _set.BaseSettings.Source);
+                }
+
+                SaveSettings();
+
+                CheckButtons();
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
-        /// <summary>
-        /// check button activity
-        /// проверить активность кнопок
-        /// </summary>
+        private void ComboBoxRegime_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                CheckButtons();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         private void CheckButtons()
         {
             DataSetState currentState;
@@ -330,10 +346,6 @@ namespace OsEngine.OsData
             }
         }
 
-        /// <summary>
-        /// allow user to touch controls
-        /// разрешить пользователю трогать контролы
-        /// </summary>
         private void EnableControls(bool Enabled=true)
         {
             
@@ -357,10 +369,6 @@ namespace OsEngine.OsData
             }
         }
 
-        /// <summary>
-        /// save settings
-        /// сохранить настройки
-        /// </summary>
         private void SaveSettings()
         {
             TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("_", "");
@@ -403,7 +411,7 @@ namespace OsEngine.OsData
             _set.BaseSettings.TimeStart = DatePickerTimeStart.SelectedDate.Value;
             _set.BaseSettings.TimeEnd = DatePickerTimeEnd.SelectedDate.Value;
 
-            _set.BaseSettings.NeadToUpdate = CheckBoxNeadToUpDate.IsChecked.Value;
+            _set.BaseSettings.NeedToUpdate = CheckBoxNeadToUpDate.IsChecked.Value;
 
             if(_set.SecuritiesLoad != null)
             {
@@ -417,18 +425,8 @@ namespace OsEngine.OsData
             _set.Save();
         }
 
-        // paperwork/работа с бумагами
-
-        /// <summary>
-        /// Securities table
-        /// таблица бумаг
-        /// </summary>
         private DataGridView _grid;
 
-        /// <summary>
-        /// create a securities storage table
-        /// создать таблицу хранения бумаг
-        /// </summary>
         private void CreateSecuritiesTable()
         {
             _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
@@ -446,10 +444,6 @@ namespace OsEngine.OsData
             HostSecurities.Child = _grid;
         }
 
-        /// <summary>
-        /// reload securities storage table
-        /// перезагрузить таблицу хранения бумаг
-        /// </summary>
         private void ReloadSecuritiesOnTable()
         {
             _grid.Rows.Clear();
@@ -464,62 +458,75 @@ namespace OsEngine.OsData
             }
         }
 
-        /// <summary>
-        /// User clicked on button to add new paper to set
-        /// пользоваетль нажал на кнопку добавить новую бумагу к сету
-        /// </summary>
         private void ButtonAddSecurity_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _set.AddNewSecurity();
-            ReloadSecuritiesOnTable();
+            try
+            {
+                _set.AddNewSecurity();
+                ReloadSecuritiesOnTable();
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
-        /// <summary>
-        /// User is requesting paper removal from the set.
-        /// пользователь запрашивает удаление бумаги из сета
-        /// </summary>
         private void ButtonDelSecurity_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (_grid.CurrentCell == null)
+            try
             {
-                return;
+                if (_grid.CurrentCell == null)
+                {
+                    return;
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label42);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                _set.DeleteSecurity(_grid.Rows.Count - 1 - _grid.CurrentCell.RowIndex);
+                ReloadSecuritiesOnTable();
             }
-
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label42);
-            ui.ShowDialog();
-
-            if (ui.UserAcceptActioin == false)
+            catch
             {
-                return;
+                // ignore
             }
-
-            _set.DeleteSecurity(_grid.Rows.Count -1 -_grid.CurrentCell.RowIndex);
-            ReloadSecuritiesOnTable();
         }
 
         private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (TextBoxFolderName.Text == "")
+            try
             {
-                MessageBox.Show(OsLocalization.Data.Label23);
-                return;
-            }
+                if (TextBoxFolderName.Text == "")
+                {
+                    MessageBox.Show(OsLocalization.Data.Label23);
+                    return;
+                }
 
-            if(ComboBoxSource.SelectedItem == null ||
-                ComboBoxSource.SelectedItem.ToString() == "None")
+                if (ComboBoxSource.SelectedItem == null ||
+                    ComboBoxSource.SelectedItem.ToString() == "None")
+                {
+                    MessageBox.Show(OsLocalization.Data.Label44);
+                    return;
+                }
+
+                TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("_", "");
+                TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("\\", "");
+                TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("/", "");
+
+                SaveSettings();
+
+                IsSaved = true;
+                Close();
+            }
+            catch
             {
-                MessageBox.Show(OsLocalization.Data.Label44);
-                return;
+                // ignore
             }
-
-            TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("_", "");
-            TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("\\", "");
-            TextBoxFolderName.Text = TextBoxFolderName.Text.Replace("/", "");
-
-            SaveSettings();
-
-            IsSaved = true;
-            Close();
         }
     }
 }

@@ -33,8 +33,6 @@ namespace OsEngine.OsData
             WindowsFormsHost hostLog,
             WindowsFormsHost hostSource, 
             WindowsFormsHost hostSets, 
-            System.Windows.Shapes.Rectangle rectangle, 
-            Grid greedChartPanel,
             System.Windows.Controls.Label setName,
             System.Windows.Controls.Label labelTimeStart,
             System.Windows.Controls.Label labelTimeEnd,
@@ -353,23 +351,23 @@ namespace OsEngine.OsData
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
 
-            DataGridViewColumn colum0 = new DataGridViewColumn();
-            colum0.CellTemplate = cell0;
-            colum0.HeaderText = OsLocalization.Data.Label4;
-            colum0.ReadOnly = true;
-            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colum0);
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = OsLocalization.Data.Label4;
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(column0);
 
-            DataGridViewColumn colu = new DataGridViewColumn();
-            colu.CellTemplate = cell0;
-            colu.HeaderText = OsLocalization.Data.Label5;
-            colu.ReadOnly = true;
-            colu.Width = 130;
+            DataGridViewColumn column1 = new DataGridViewColumn();
+            column1.CellTemplate = cell0;
+            column1.HeaderText = OsLocalization.Data.Label5;
+            column1.ReadOnly = true;
+            column1.Width = 130;
             
-            newGrid.Columns.Add(colu);
+            newGrid.Columns.Add(column1);
 
             _gridSources = newGrid;
-            _gridSources.DoubleClick += _gridSources_DoubleClick;
+            _gridSources.DoubleClick += GridSources_DoubleClick;
             _hostSource.Child = _gridSources;
             _hostSource.VerticalAlignment = VerticalAlignment.Top;
         }
@@ -433,7 +431,7 @@ namespace OsEngine.OsData
 
                     _gridSources.Rows.Add(row1);
                 }
-                _gridSources[1, 0].Selected = true; // Select an invisible line to remove the default selection from the grid./Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+                _gridSources[1, 0].Selected = true; // Select an invisible line to remove the default selection from the grid
                 _gridSources.ClearSelection();
             }
             catch (Exception error)
@@ -442,7 +440,7 @@ namespace OsEngine.OsData
             }
         }
 
-        private void _gridSources_DoubleClick(object sender, EventArgs e)
+        private void GridSources_DoubleClick(object sender, EventArgs e)
         {
             try
             {
@@ -451,8 +449,7 @@ namespace OsEngine.OsData
                     return;
                 }
 
-                ServerType type;
-                Enum.TryParse(_gridSources.Rows[_gridSources.CurrentCell.RowIndex].Cells[0].Value.ToString(), out type);
+                Enum.TryParse(_gridSources.Rows[_gridSources.CurrentCell.RowIndex].Cells[0].Value.ToString(), out ServerType type);
 
                 if (ServerMaster.GetServers() == null)
                 {
@@ -496,24 +493,24 @@ namespace OsEngine.OsData
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;
 
-            DataGridViewColumn colum0 = new DataGridViewColumn();
-            colum0.CellTemplate = cell0;
-            colum0.HeaderText = OsLocalization.Data.Label3;
-            colum0.ReadOnly = true;
-            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            newGrid.Columns.Add(colum0);
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = OsLocalization.Data.Label3;
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            newGrid.Columns.Add(column0);
 
-            DataGridViewColumn colu = new DataGridViewColumn();
-            colu.CellTemplate = cell0;
-            colu.HeaderText = OsLocalization.Data.Label5;
-            colu.ReadOnly = true;
-            colu.Width = 100;
+            DataGridViewColumn column1 = new DataGridViewColumn();
+            column1.CellTemplate = cell0;
+            column1.HeaderText = OsLocalization.Data.Label5;
+            column1.ReadOnly = true;
+            column1.Width = 100;
           
-            newGrid.Columns.Add(colu);
+            newGrid.Columns.Add(column1);
 
             _gridSets = newGrid;
-            _gridSets.Click += _gridSet_Click;
-            _gridSets.DoubleClick += _gridSet_DoubleClick;
+            _gridSets.Click += GridSet_Click;
+            _gridSets.DoubleClick += GridSet_DoubleClick;
             _hostSets.Child = _gridSets;
         }
 
@@ -556,7 +553,7 @@ namespace OsEngine.OsData
                 }
                 if (_gridSets.Rows.Count != 0)
                 {
-                    _gridSets[0, 0].Selected = true; // Select an invisible line to remove the default selection from the grid./Выбрать невидимую строку, чтобы убрать выделение по умолчанию с грида.
+                    _gridSets[0, 0].Selected = true; // Select an invisible line to remove the default selection from the grid.
                     _gridSets.ClearSelection();
                 }
             }
@@ -566,7 +563,7 @@ namespace OsEngine.OsData
             }
         }
 
-        private void _gridSet_DoubleClick(object sender, EventArgs e)
+        private void GridSet_DoubleClick(object sender, EventArgs e)
         {
             try
             {
@@ -586,7 +583,7 @@ namespace OsEngine.OsData
             }
         }
 
-        private void _gridSet_Click(object sender, EventArgs e)
+        private void GridSet_Click(object sender, EventArgs e)
         {
             try
             {
@@ -602,7 +599,7 @@ namespace OsEngine.OsData
                     return;
                 }
 
-                // creating a context menu/cоздание контекстного меню
+                // creating a context menu
 
                 MenuItem[] items = new MenuItem[3];
 
