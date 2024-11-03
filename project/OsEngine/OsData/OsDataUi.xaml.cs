@@ -11,7 +11,7 @@ namespace OsEngine.OsData
 {
     public partial class OsDataUi
     {
-        OsDataMasterPainter _osDataMaster;
+        private OsDataMasterPainter _osDataMaster;
 
         public OsDataUi()
         {
@@ -44,7 +44,7 @@ namespace OsEngine.OsData
             _osDataMaster.StartPaintActiveSet();
         }
 
-        void OsDataUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void OsDataUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
             ui.ShowDialog();

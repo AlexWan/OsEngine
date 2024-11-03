@@ -19,9 +19,6 @@ namespace OsEngine.OsData
     {
         private List<Security> _securities;
 
-        /// <summary>
-        /// selected securities
-        /// </summary>
         public List<Security> SelectedSecurity = new List<Security>();
 
         public NewSecurityUi(List<Security> securities)
@@ -97,14 +94,8 @@ namespace OsEngine.OsData
             }
         }
 
-        /// <summary>
-        /// securities table
-        /// </summary>
         private DataGridView _gridSecurities;
 
-        /// <summary>
-        /// create a table for securities
-        /// </summary>
         private void CreateTable()
         {
             _gridSecurities = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
@@ -138,9 +129,6 @@ namespace OsEngine.OsData
             HostSecurity.Child = _gridSecurities;
         }
 
-        /// <summary>
-        /// unload all available classes in the class selection menu
-        /// </summary>
         private void GetClasses()
         {
             // order securities by class / упорядочить бумаги по классу
@@ -172,23 +160,14 @@ namespace OsEngine.OsData
             }
         }
 
-        /// <summary>
-        /// security doesn't contain enough info
-        /// </summary>
         private bool IsSecurityEmpty(Security security)
         {
             return string.IsNullOrEmpty(security.Name) ||
                    string.IsNullOrEmpty(security.NameFull);
         }
 
-        /// <summary>
-        /// currently displayed securities
-        /// </summary>
         private List<Security> _securitiesInBox = new List<Security>();
 
-        /// <summary>
-        /// reload tool selection menu
-        /// </summary>
         private void ReloadSecurityTable()
         {
             if (ComboBoxClass.SelectedItem == null)
@@ -227,19 +206,13 @@ namespace OsEngine.OsData
             _gridSecurities.Rows.AddRange(rows.ToArray());
         }
 
-        /// <summary>
-        /// the selected item in the class selection menu has changed
-        /// </summary>
-        void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             ReloadSecurityTable();
             UpdateSearchResults();
             UpdateSearchPanel();
         }
 
-        /// <summary>
-        /// "Accept" button pressed
-        /// </summary>
         private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (_gridSecurities.SelectedCells[0] == null ||
@@ -290,7 +263,7 @@ namespace OsEngine.OsData
             }
         }
 
-        List<int> _searchResults = new List<int>();
+        private List<int> _searchResults = new List<int>();
 
         private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
