@@ -897,7 +897,7 @@ namespace OsEngine.OsData
 
 
 
-            _pathMyTempPieInTfFolder = _pathMyTfFolder + "\\Tepm";
+            _pathMyTempPieInTfFolder = _pathMyTfFolder + "\\Temp";
 
             if (!Directory.Exists(_pathMyTempPieInTfFolder))
             {
