@@ -10,6 +10,7 @@ using SuperSocket.ClientEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -2036,8 +2037,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private HttpClient _httpClient = new HttpClient();
-
         private HttpResponseMessage CreatePrivateQueryOrders(string path, string method, string queryString, string body)
         {
             try
@@ -2047,19 +2046,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                 string signature = GenerateSignature(timestamp, method, requestPath, queryString, body, SeckretKey);
 
-                _httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
-                _httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
-                _httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
-                _httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
-                _httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
+                HttpClient httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
+                httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
+                httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
+                httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
+                httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
+
 
                 if (method.Equals("POST"))
                 {
-                    return _httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
+                    return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
                 }
                 else
                 {
-                    return _httpClient.GetAsync(url).Result;
+                    return httpClient.GetAsync(url).Result;
                 }
             }
             catch (Exception ex)
