@@ -609,14 +609,24 @@ namespace OsEngine.Journal.Internal
 
             for (int i = _deals.Count - 1; i > _deals.Count - 150 && i > -1; i--)
             {
+                Position curPosition = null;
+
+                try
+                {
+                    curPosition = _deals[i];
+                }
+                catch
+                {
+                    continue;
+                }
 
                 bool isCloseOrder = false;
 
-                if (_deals[i].CloseOrders != null && _deals[i].CloseOrders.Count > 0)
+                if (curPosition.CloseOrders != null && curPosition.CloseOrders.Count > 0)
                 {
-                    for (int indexCloseOrders = 0; indexCloseOrders < _deals[i].CloseOrders.Count; indexCloseOrders++)
+                    for (int indexCloseOrders = 0; indexCloseOrders < curPosition.CloseOrders.Count; indexCloseOrders++)
                     {
-                        if (_deals[i].CloseOrders[indexCloseOrders].NumberUser == updateOrder.NumberUser)
+                        if (curPosition.CloseOrders[indexCloseOrders].NumberUser == updateOrder.NumberUser)
                         {
                             isCloseOrder = true;
                             break;
@@ -627,11 +637,11 @@ namespace OsEngine.Journal.Internal
                 bool isOpenOrder = false;
 
                 if (isCloseOrder == false ||
-                    _deals[i].OpenOrders != null && _deals[i].OpenOrders.Count > 0)
+                    curPosition.OpenOrders != null && curPosition.OpenOrders.Count > 0)
                 {
-                    for (int indexOpenOrd = 0; indexOpenOrd < _deals[i].OpenOrders.Count; indexOpenOrd++)
+                    for (int indexOpenOrd = 0; indexOpenOrd < curPosition.OpenOrders.Count; indexOpenOrd++)
                     {
-                        if (_deals[i].OpenOrders[indexOpenOrd].NumberUser == updateOrder.NumberUser)
+                        if (curPosition.OpenOrders[indexOpenOrd].NumberUser == updateOrder.NumberUser)
                         {
                             isOpenOrder = true;
                             break;
@@ -641,13 +651,13 @@ namespace OsEngine.Journal.Internal
 
                 if (isOpenOrder || isCloseOrder)
                 {
-                    PositionStateType positionState = _deals[i].State;
-                    decimal lastPosVolume = _deals[i].OpenVolume;
+                    PositionStateType positionState = curPosition.State;
+                    decimal lastPosVolume = curPosition.OpenVolume;
 
-                    _deals[i].SetOrder(updateOrder);
+                    curPosition.SetOrder(updateOrder);
 
-                    if (positionState != _deals[i].State ||
-                        lastPosVolume != _deals[i].OpenVolume)
+                    if (positionState != curPosition.State ||
+                        lastPosVolume != curPosition.OpenVolume)
                     {
                         _openLongChanged = true;
                         _openShortChanged = true;
@@ -655,23 +665,22 @@ namespace OsEngine.Journal.Internal
                         _closeShortChanged = true;
                         _closeLongChanged = true;
 
-                        UpdeteOpenPositionArray(_deals[i]);
+                        UpdeteOpenPositionArray(curPosition);
                     }
 
-                    if (positionState != _deals[i].State && PositionStateChangeEvent != null)
+                    if (positionState != curPosition.State && PositionStateChangeEvent != null)
                     {
-                        // AlertMessageManager.ThrowAlert(null, "было " + positionState + "стало" + _deals[i].State, "");
-                        PositionStateChangeEvent(_deals[i]);
+                       PositionStateChangeEvent(curPosition);
                     }
 
-                    if (lastPosVolume != _deals[i].OpenVolume && PositionNetVolumeChangeEvent != null)
+                    if (lastPosVolume != curPosition.OpenVolume && PositionNetVolumeChangeEvent != null)
                     {
-                        PositionNetVolumeChangeEvent(_deals[i]);
+                        PositionNetVolumeChangeEvent(curPosition);
                     }
 
                     if (i < _deals.Count)
                     {
-                        ProcessPosition(_deals[i]);
+                        ProcessPosition(curPosition);
                     }
 
                     break;
