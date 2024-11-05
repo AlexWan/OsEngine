@@ -2,7 +2,6 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.BingX.BingXSpot.Entity;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
@@ -10,7 +9,6 @@ using SuperSocket.ClientEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -376,7 +374,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             if (limitCandles > span.TotalMinutes / tfTotalMinutes)
             {
-                limitCandles = (int)(span.TotalMinutes / tfTotalMinutes);
+                limitCandles = (int)Math.Round(span.TotalMinutes / tfTotalMinutes, MidpointRounding.AwayFromZero);
             }
 
             List<Candle> allCandles = new List<Candle>();
@@ -391,7 +389,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
 
-                List<Candle> candles = RequestCandleHistory(security, interval, from, to, isOsData);
+                List<Candle> candles = RequestCandleHistory(security, interval, from, to, isOsData, limitCandles);
 
                 if (candles == null || candles.Count == 0)
                 {
@@ -426,14 +424,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 startTimeData = endTimeData;
                 endTimeData = startTimeData.AddMinutes(tfTotalMinutes * limitCandles);
 
-                if (startTimeData >= DateTime.UtcNow)
+                if (startTimeData >= endTime)
                 {
                     break;
                 }
 
-                if (endTimeData > DateTime.UtcNow)
+                if (endTimeData > endTime)
                 {
-                    endTimeData = DateTime.UtcNow;
+                    endTimeData = endTime;
+                }
+
+                span = endTimeData - startTimeData;
+
+                if (limitCandles > span.TotalMinutes / tfTotalMinutes)
+                {
+                    limitCandles = (int)Math.Round(span.TotalMinutes / tfTotalMinutes, MidpointRounding.AwayFromZero);
                 }
 
             } while (true);
@@ -483,17 +488,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
-        private List<Candle> RequestCandleHistory(Security security, string interval, long startTime, long endTime, bool isOsData)
+        private List<Candle> RequestCandleHistory(Security security, string interval, long startTime, long endTime, bool isOsData, int limitCandles)
         {
             _rgCandleData.WaitToProceed(100);
 
             string stringUrl = "/api/v2/mix/market/candles";
-            int limitCandles = _limitCandlesTrader;
 
             if (isOsData)
             {
                 stringUrl = "/api/v2/mix/market/history-candles";
-                limitCandles = _limitCandlesData;
             }
 
             try
@@ -1244,6 +1247,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         pos.PortfolioName = "BitGetFutures";
                         pos.SecurityNameCode = positions.data[i].instId;
 
+                        if (positions.data[i].posMode == "hedge_mode")
+                        {
+                            pos.SecurityNameCode = positions.data[i].instId + "_" + positions.data[i].holdSide;
+                        }
+
                         if (positions.data[i].holdSide == "long")
                         {
                             pos.ValueCurrent = positions.data[i].available.ToDecimal();
@@ -1265,8 +1273,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         if (!_allPositions.ContainsKey(positions.arg.instType))
                         {
                             _allPositions.Add(positions.arg.instType, new List<string>());
-
                         }
+
                         if (!_allPositions[positions.arg.instType].Contains(pos.SecurityNameCode))
                         {
                             _allPositions[positions.arg.instType].Add(pos.SecurityNameCode);
@@ -1286,10 +1294,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             {
                                 for (int indData = 0; indData < positions.data.Count; indData++)
                                 {
-                                    if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId)
+                                    if (positions.data[indData].posMode == "hedge_mode")
                                     {
-                                        isInData = true;
-                                        break;
+                                        if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId + "_" + positions.data[indData].holdSide)
+                                        {
+                                            isInData = true;
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId)
+                                        {
+                                            isInData = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -1388,18 +1407,22 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
+
+
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = item.instId;
                     newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
                     int.TryParse(item.clientOId, out newOrder.NumberUser);
                     newOrder.NumberMarket = item.orderId.ToString();
-                    newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
+                    newOrder.Side = GetSide(item.tradeSide, item.side);
                     newOrder.State = stateType;
                     newOrder.Volume = item.size.ToDecimal();
                     newOrder.Price = item.price.ToDecimal();
                     newOrder.ServerType = ServerType.BitGetFutures;
                     newOrder.PortfolioNumber = "BitGetFutures";
                     newOrder.SecurityClassCode = order.arg.instType.ToString();
+
+
 
                     if (item.orderType.Equals("market"))
                     {
@@ -1421,7 +1444,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         myTrade.Volume = item.baseVolume.ToDecimal();
                         myTrade.Price = item.fillPrice.ToDecimal();
                         myTrade.SecurityNameCode = item.instId;
-                        myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
+                        myTrade.Side = GetSide(item.tradeSide, item.side);
 
                         MyTradeEvent(myTrade);
 
@@ -1441,7 +1464,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         {
                             myTrade.Price = item.fillPrice.ToDecimal();
                             myTrade.SecurityNameCode = item.instId;
-                            myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
+                            myTrade.Side = GetSide(item.tradeSide, item.side);
 
                             MyTradeEvent(myTrade);
                         }
@@ -1460,11 +1483,21 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        private Side GetSide(string tradeSide, string side)
+        {
+            if (tradeSide == "close")
+            {
+                return side == "buy" ? Side.Sell : Side.Buy;
+            }
+            return side == "buy" ? Side.Buy : Side.Sell;
+        }
+
         private void UpdateTrade(string message)
         {
             try
             {
                 ResponseWebSocketMessageAction<List<ResponseWebsocketTrade>> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseWebsocketTrade>>());
+
                 if (responseTrade == null)
                 {
                     return;
@@ -1611,15 +1644,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (_hedgeMode)
                 {
-                    if (order.PositionConditionType == OrderPositionConditionType.Open)
-                    {
-                        trSide = "open";
-                        posSide = order.Side == Side.Buy ? "buy" : "sell";
-                    }
-                    else
+                    if (order.PositionConditionType == OrderPositionConditionType.Close)
                     {
                         trSide = "close";
                         posSide = order.Side == Side.Buy ? "sell" : "buy";
+                    }
+                    else
+                    {
+                        trSide = "open";
+                        posSide = order.Side == Side.Buy ? "buy" : "sell";
                     }
                 }
                 else
@@ -2041,26 +2074,26 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
+                HttpClient _httpClient = new HttpClient();
+
                 string requestPath = path;
                 string url = $"{BaseUrl}{requestPath}";
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                 string signature = GenerateSignature(timestamp, method, requestPath, queryString, body, SeckretKey);
 
-                HttpClient httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
-                httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
-
+                _httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
+                _httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
+                _httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
+                _httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
+                _httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
 
                 if (method.Equals("POST"))
                 {
-                    return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
+                    return _httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
                 }
                 else
                 {
-                    return httpClient.GetAsync(url).Result;
+                    return _httpClient.GetAsync(url).Result;
                 }
             }
             catch (Exception ex)
@@ -2112,17 +2145,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         }
                         else
                         {
-                            SendLogMessage($"Code: {stateResponse.code}\n"
+                            SendLogMessage($"SetPositionMode - Code: {stateResponse.code}\n"
                                 + $"Message: {stateResponse.msg}", LogMessageType.Error);
                         }
                     }
                     else
                     {
-                        SendLogMessage($"Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                        SendLogMessage($"SetPositionMode - Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                         if (stateResponse != null && stateResponse.code != null)
                         {
-                            SendLogMessage($"Code: {stateResponse.code}\n"
+                            SendLogMessage($"SetPositionMode - Code: {stateResponse.code}\n"
                                 + $"Message: {stateResponse.msg}", LogMessageType.Error);
                         }
                     }

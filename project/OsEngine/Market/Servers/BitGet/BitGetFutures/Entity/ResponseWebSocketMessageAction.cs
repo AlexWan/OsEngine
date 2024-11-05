@@ -89,5 +89,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string marketPrice;
         public string cTime;
         public string instType;
+        public string posMode;
     }
 }

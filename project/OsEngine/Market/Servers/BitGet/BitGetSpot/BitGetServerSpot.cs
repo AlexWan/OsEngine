@@ -1923,12 +1923,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        private HttpClient _httpClient = new HttpClient();
-
         private HttpResponseMessage CreatePrivateQueryOrders(string path, string method, string queryString, string body)
         {
             try
             {
+                HttpClient _httpClient = new HttpClient();
+
                 string requestPath = path;
                 string url = $"{BaseUrl}{requestPath}";
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
