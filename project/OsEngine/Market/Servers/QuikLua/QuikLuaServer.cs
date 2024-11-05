@@ -662,22 +662,22 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
                     Portfolio needPortf;
-                    foreach (DepoLimitEx pos in spotPos)
+                    for (int i = 0; i < spotPos.Count;i++ )
                     {
-                        Security sec = _securities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
+                        Security sec = _securities.Find(sec => sec.Name.Split('+')[0] == spotPos[i].SecCode);
 
-                        if (pos.LimitKind == LimitKind.T0 && sec != null)
+                        if ((spotPos[i].LimitKind == LimitKind.T0 || spotPos[i].LimitKind == LimitKind.T1) && sec != null)
                         {
-                            needPortf = _portfolios.Find(p => p.Number == pos.TrdAccId);
+                            needPortf = _portfolios.Find(p => p.Number == spotPos[i].TrdAccId);
 
                             PositionOnBoard position = new PositionOnBoard();
 
                             if (needPortf != null)
                             {
-                                position.PortfolioName = pos.TrdAccId;
-                                position.ValueBegin = pos.OpenBalance;
-                                position.ValueCurrent = pos.CurrentBalance;
-                                position.ValueBlocked = pos.LockedSell;
+                                position.PortfolioName = spotPos[i].TrdAccId;
+                                position.ValueBegin = spotPos[i].OpenBalance;
+                                position.ValueCurrent = spotPos[i].CurrentBalance;
+                                position.ValueBlocked = spotPos[i].LockedSell;
                                 position.SecurityNameCode = sec.Name;
 
                                 needPortf.SetNewPosition(position);
