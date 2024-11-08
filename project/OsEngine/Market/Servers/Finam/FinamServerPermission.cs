@@ -44,7 +44,7 @@ namespace OsEngine.Market.Servers.Finam
         }
         public bool DataFeedTf2MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf5MinuteCanLoad
         {
