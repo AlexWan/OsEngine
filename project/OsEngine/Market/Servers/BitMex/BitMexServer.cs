@@ -17,7 +17,6 @@ using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
 using OsEngine.Market.Servers.Entity;
 using WebSocket4Net;
@@ -484,6 +483,7 @@ namespace OsEngine.Market.Servers.BitMex
                 lock (_getCandles)
                 {
                     List<BitMexCandle> allbmcandles = new List<BitMexCandle>();
+
                     _candles = null;
 
                     string end = timeEnd.ToString("yyyy-MM-dd HH:mm");
@@ -506,6 +506,7 @@ namespace OsEngine.Market.Servers.BitMex
                         {
                             return null;
                         }
+
                         List<BitMexCandle> bmcandles =
                             JsonConvert.DeserializeAnonymousType(res, new List<BitMexCandle>());
 
