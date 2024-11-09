@@ -33,8 +33,12 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         public string symbol { get; set; }
         public long id { get; set; }
         public string side { get; set; }
-        public int size { get; set; }
+        public string size { get; set; }
         public string price { get; set; }
+        public string timestamp { get; set; }
+        public string transactTime { get; set; }
+
+
     }
 
     public class FilterQuote

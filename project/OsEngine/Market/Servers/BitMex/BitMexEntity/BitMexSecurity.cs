@@ -7,113 +7,70 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
 {
     public class BitMexSecurity
     {
-        public string symbol { get; set; }
+        public string symbol;
+        public string rootSymbol; //string,
+        public string state;
+        public string typ;
+        public string listing;
+        public string quoteCurrency; //string
+        public string maxOrderQty;  // 0
+        public string maxPrice;     // 0
+        public string lotSize;
+        public string tickSize;
+        public string multiplier; // 0
+        public string initMargin; // 0
+        public string maintMargin; // 0
+        public string makerFee; // 0
+        public string takerFee; // 0
+        public string fundingRat; // 0
+        public string indicativeFundingRate; // 0
 
-        //public string rootSymbol { get; set; }
+        public string underlyingToSettleMultiplier;
+        public string underlyingToPositionMultiplier;
 
-        public string state { get; set; }
+        //"rebalanceTimestamp": "2024-07-27T07:02:30.608Z",
+        //"rebalanceInterval": "2024-07-27T07:02:30.608Z",
+        //"prevClosePrice": 0,
+        //"limitDownPrice": 0,
+        //"limitUpPrice": 0,
+        //"totalVolume": 0,
+        //"volume": 0,
+        //"volume24h": 0,
+        //"prevTotalTurnover": 0,
+        //"totalTurnover": 0,
+        //"turnover": 0,
+        //"turnover24h": 0,
+        //"homeNotional24h": 0,
+        //"foreignNotional24h": 0,
+        //"prevPrice24h": 0,
+        //"vwap": 0,
+        //"highPrice": 0,
+        //"lowPrice": 0,
+        //"lastPrice": 0,
+        //"lastPriceProtected": 0,
+        //"lastTickDirection": "string",
+        //"lastChangePcnt": 0,
+        //"bidPrice": 0,
+        //"midPrice": 0,
+        //"askPrice": 0,
+        //"impactBidPrice": 0,
+        //"impactMidPrice": 0,
+        //"impactAskPrice": 0,
+        //"hasLiquidity": true,
+        //"openInterest": 0,
+        //"openValue": 0,
+        //"fairMethod": "string",
+        //"fairBasisRate": 0,
+        //"fairBasis": 0,
+        //"fairPrice": 0,
+        //"markMethod": "string",
+        //"markPrice": 0,
+        //"indicativeSettlePrice": 0,
+        //"settledPriceAdjustmentRate": 0,
+        //"settledPrice": 0,
+        //"instantPnl": true,
+        //"minTick": 0,
+        //"timestamp": "2024-07-27T07:02:30.608Z"
 
-        public string typ { get; set; }
-
-        //public string listing { get; set; }
-        //public string front { get; set; }
-
-        public string expiry { get; set; }
-
-        //public string settle { get; set; }
-        //public string relistInterval { get; set; }
-        //public string inverseLeg { get; set; }
-        //public string sellLeg { get; set; }
-        //public string buyLeg { get; set; }
-        //public string positionCurrency { get; set; }
-        //public string underlying { get; set; }
-        //public string quoteCurrency { get; set; }
-        //public string underlyingSymbol { get; set; }
-        //public string reference { get; set; }
-        //public string referenceSymbol { get; set; }
-        //public object calcInterval { get; set; }
-        //public object publishInterval { get; set; }
-        //public object publishTime { get; set; }
-        //public int maxOrderQty { get; set; }
-        //public int maxPrice { get; set; }
-
-        /// <summary>
-        /// lot size
-        /// размер лота
-        /// </summary>
-        public int lotSize { get; set; }
-
-        public decimal tickSize { get; set; }
-        //public int multiplier { get; set; }
-        //public string settlCurrency { get; set; }
-        //public int? underlyingToPositionMultiplier { get; set; }
-        //public int? underlyingToSettleMultiplier { get; set; }
-        //public int? quoteToSettleMultiplier { get; set; }
-        //public bool isQuanto { get; set; }
-        //public bool isInverse { get; set; }
-        //public double initMargin { get; set; }
-        //public double maintMargin { get; set; }
-        //public long? riskLimit { get; set; }
-        //public long? riskStep { get; set; }
-        //public double? limit { get; set; }
-        //public bool capped { get; set; }
-        //public bool taxed { get; set; }
-        //public bool deleverage { get; set; }
-        //public double makerFee { get; set; }
-        //public double takerFee { get; set; }
-        //public double settlementFee { get; set; }
-        //public int insuranceFee { get; set; }
-        //public string fundingBaseSymbol { get; set; }
-        //public string fundingQuoteSymbol { get; set; }
-        //public string fundingPremiumSymbol { get; set; }
-        //public string fundingTimestamp { get; set; }
-        //public string fundingInterval { get; set; }
-        //public double? fundingRate { get; set; }
-        //public double? indicativeFundingRate { get; set; }
-        //public object rebalanceTimestamp { get; set; }
-        //public object rebalanceInterval { get; set; }
-        //public string openingTimestamp { get; set; }
-        //public string closingTimestamp { get; set; }
-        //public string sessionInterval { get; set; }
-        //public double prevClosePrice { get; set; }
-        //public double? limitDownPrice { get; set; }
-        //public double? limitUpPrice { get; set; }
-        //public object bankruptLimitDownPrice { get; set; }
-        //public object bankruptLimitUpPrice { get; set; }
-        //public long? prevTotalVolume { get; set; }
-        //public long? totalVolume { get; set; }
-        //public int volume { get; set; }
-        //public int volume24h { get; set; }
-        //public long? prevTotalTurnover { get; set; }
-        //public long? totalTurnover { get; set; }
-        //public object turnover { get; set; }
-        //public long? turnover24h { get; set; }
-        //public double prevPrice24h { get; set; }
-        //public double? vwap { get; set; }
-        //public double? highPrice { get; set; }
-        //public double? lowPrice { get; set; }
-        //public double lastPrice { get; set; }
-        //public double lastPriceProtected { get; set; }
-        //public string lastTickDirection { get; set; }
-        //public double lastChangePcnt { get; set; }
-        //public double bidPrice { get; set; }
-        //public double midPrice { get; set; }
-        //public double askPrice { get; set; }
-        //public double impactBidPrice { get; set; }
-        //public double impactMidPrice { get; set; }
-        //public double impactAskPrice { get; set; }
-        //public bool hasLiquidity { get; set; }
-        //public int openInterest { get; set; }
-        //public long? openValue { get; set; }
-        //public string fairMethod { get; set; }
-        //public double fairBasisRate { get; set; }
-        //public double? fairBasis { get; set; }
-        //public double? fairPrice { get; set; }
-        //public string markMethod { get; set; }
-        //public double markPrice { get; set; }
-        //public int indicativeTaxRate { get; set; }
-        //public double? indicativeSettlePrice { get; set; }
-        //public object settledPrice { get; set; }
-        //public string timestamp { get; set; }
     }
 }
