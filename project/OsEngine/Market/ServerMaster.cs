@@ -1189,7 +1189,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new MoexFixFastTwimeFuturesServerPermission();
                 }
-
+                else if (type == ServerType.BitMex)
+                {
+                    serverPermission = new BitMexServerPermission();
+                }
 
                 if (serverPermission != null)
                 {

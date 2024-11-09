@@ -7,21 +7,23 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
 using OsEngine.Market.Servers.Entity;
+using WebSocket4Net;
+
 
 namespace OsEngine.Market.Servers.BitMex
 {
-    /// <summary>
-    /// Bitmex server
-    /// сервер Bitmex
-    /// </summary>
     public class BitMexServer : AServer
     {
         public BitMexServer()
@@ -31,358 +33,488 @@ namespace OsEngine.Market.Servers.BitMex
 
             CreateParameterString(OsLocalization.Market.ServerParamId, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
-            CreateParameterBoolean("IsDemo", false);
-        }
-        
-        public List<Candle> GetBitMexCandleHistory(string nameSec, TimeSpan tf)
-        {
-            return ((BitMexServerRealization)ServerRealization).GetBitMexCandleHistory(nameSec, tf);
         }
     }
 
     public class BitMexServerRealization : IServerRealization
     {
+        #region 1 Constructor, Status, Connection
+
         public BitMexServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            Thread ordersExecutor = new Thread(ExecutorOrdersThreadArea);
-            ordersExecutor.CurrentCulture = new CultureInfo("ru-RU");
-            ordersExecutor.IsBackground = true;
-            ordersExecutor.Start();
+            Thread thread = new Thread(CheckAliveWebSocket);
+            thread.IsBackground = true;
+            thread.Name = "CheckAliveWebSocketBitMex";
+            thread.Start();
+
+            Thread converter = new Thread(MessageReader);
+            converter.IsBackground = true;
+            converter.Name = "MessageReaderBitMex";
+            converter.Start();
+
         }
 
-        /// <summary>
-        /// server status
-        /// статус сервера
-        /// </summary>
+        public void Connect()
+        {
+            _id = ((ServerParameterString)ServerParameters[0]).Value;
+            _secKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+
+            if (string.IsNullOrEmpty(_id) ||
+                string.IsNullOrEmpty(_secKey))
+            {
+                SendLogMessage("Can`t run BitMex connector. No keys", LogMessageType.Error);
+                return;
+            }
+
+            Uri uri = new Uri(_domain + "/api/v1");
+            try
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
+                    | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
+                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Can`t run BitMex connector. No internet connection. {ex.ToString()}", LogMessageType.Error);
+                return;
+            }
+
+            CreateWebSocketConnection();
+        }
+
+        public void Dispose()
+        {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+
+                if (DisconnectEvent != null)
+                {
+                    DisconnectEvent();
+                }
+            }
+
+            DeleteWebsocketConnection();
+            _subscribedSec.Clear();
+            _securities = new List<Security>();
+            _depths.Clear();
+            FifoListWebSocketMessage = new ConcurrentQueue<string>();
+        }
+
+
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+
         public ServerConnectStatus ServerStatus { get; set; }
 
-        /// <summary>
-        /// server type
-        /// тип сервера
-        /// </summary>
         public ServerType ServerType
         {
             get { return ServerType.BitMex; }
         }
 
-        /// <summary>
-        /// server parameters for server
-        /// параметры подключения для сервера
-        /// </summary>
+        #endregion
+
+        #region 2 Properties
+
         public List<IServerParameter> ServerParameters { get; set; }
-
-        /// <summary>
-        /// sever time
-        /// время сервера
-        /// </summary>
         public DateTime ServerTime { get; set; }
+        private string _id;
+        private string _secKey;
+        private string _domain = "https://www.bitmex.com";
+        private string _serverAdress = "wss://ws.bitmex.com/realtime";
 
-        /// <summary>
-        /// BitMex client
-        /// </summary>
-        private BitMexClient _client;
+        #endregion
 
-        /// <summary>
-        /// last start server time
-        /// время последнего старта сервера
-        /// </summary>
-        private DateTime _lastStartServerTime;
+        #region 3 Securities
 
-        /// <summary>
-        /// securities
-        /// бумаги
-        /// </summary>
+        private object _lock = new object();
         private List<Security> _securities;
 
-        /// <summary>
-        /// portfolios
-        /// портфели
-        /// </summary>
-        private List<Portfolio> _portfolios;
-
-        /// <summary>
-        /// candles
-        /// свечи
-        /// </summary>
-        private List<Candle> _candles;
-
-        /// <summary>
-        /// connection
-        /// подключение
-        /// </summary>
-        public void Connect()
+        public void GetSecurities()
         {
-            if (_client == null)
+            lock (_lock)
             {
-                _client = new BitMexClient();
-                _client.Connected += _client_Connected;
-                _client.Disconnected += _client_Disconnected;
-                _client.UpdatePortfolio += _client_UpdatePortfolio;
-                _client.UpdatePosition += _client_UpdatePosition;
-                _client.UpdateMarketDepth += _client_UpdateMarketDepth;
-                _client.NewTradesEvent += _client_NewTrades;
-                _client.MyTradeEvent += _client_NewMyTrades;
-                _client.MyOrderEvent += _client_MyOrderEvent;
-                _client.UpdateSecurity += _client_UpdateSecurity;
-                _client.BitMexLogMessageEvent += _client_SendLogMessage;
-                _client.ErrorEvent += _client_ErrorEvent;
+                try
+                {
+                    string res11 = Query("GET", "/instrument/active");
+                    List<BitMexSecurity> listSec = JsonConvert.DeserializeObject<List<BitMexSecurity>>(res11);
+
+                    if (_securities == null)
+                    {
+                        _securities = new List<Security>();
+                    }
+
+                    for (int i = 0; i < listSec.Count; i++)
+                    {
+                        BitMexSecurity sec = listSec[i];
+
+                        if (sec.state != "Open")
+                        {
+                            continue;
+                        }
+
+                        Security security = new Security();
+                        security.Exchange = ServerType.BitMex.ToString();
+                        security.Name = sec.symbol;
+                        security.NameFull = sec.symbol;
+                        security.NameClass = sec.typ;
+                        security.NameId = sec.symbol + sec.listing;
+                        security.SecurityType = SecurityType.CurrencyPair;
+                        security.Lot = 1;
+                        security.PriceStep = sec.tickSize.ToDecimal();
+                        security.PriceStepCost = security.PriceStep;
+
+                        if (security.PriceStep < 1)
+                        {
+                            string prStep = security.PriceStep.ToString(CultureInfo.InvariantCulture);
+
+                            security.Decimals = Convert.ToString(prStep).Split('.')[1].Length;
+                        }
+                        else
+                        {
+                            security.Decimals = 0;
+                        }
+
+                        if (sec.lotSize != null)
+                        {
+                            decimal lotSize = sec.lotSize.ToDecimal();
+                            decimal mult = sec.multiplier.ToDecimal();
+
+                            if (sec.quoteCurrency != "USD" && sec.quoteCurrency != "USDC" && sec.typ != "FFICSX")
+                            {
+                                decimal underlyingToPositionMultiplier = sec.underlyingToPositionMultiplier.ToDecimal();
+                                decimal underlyingToSettleMultiplier = sec.underlyingToSettleMultiplier.ToDecimal();
+                                decimal minimumTradeAmount = 0;
+
+                                if (underlyingToPositionMultiplier != 0)
+                                {
+                                    minimumTradeAmount = lotSize / underlyingToPositionMultiplier;
+                                }
+                                else if (underlyingToSettleMultiplier != 0)
+                                {
+                                    minimumTradeAmount = mult * lotSize / underlyingToSettleMultiplier;
+                                }
+                                else
+                                {
+                                    return;
+                                }
+
+                                string qtyInStr = minimumTradeAmount.ToStringWithNoEndZero().Replace(",", ".");
+                                if (qtyInStr.Split('.').Length > 1)
+                                {
+                                    security.DecimalsVolume = qtyInStr.Split('.')[1].Length;
+                                }
+                                else
+                                {
+                                    security.DecimalsVolume = 0;
+                                }
+                            }
+                            else
+                            {
+                                security.DecimalsVolume = 0;
+                            }
+                        }
+
+                        security.State = SecurityStateType.Activ;
+                        _securities.Add(security);
+                    }
+
+                    if (SecurityEvent != null)
+                    {
+                        SecurityEvent(_securities);
+                    }
+
+                }
+                catch (Exception exception)
+                {
+                    if (LogMessageEvent != null)
+                    {
+                        LogMessageEvent(exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+        }
+
+        public event Action<List<Security>> SecurityEvent;
+
+        #endregion
+
+        #region 4 Portfolios
+
+        //private List<Portfolio> _portfolios;
+
+        public event Action<List<Portfolio>> PortfolioEvent;
+
+        public void GetPortfolios()
+        {
+            try
+            {
+                string res = Query("GET", "/user/margin?currency=all", null, true);
+
+                if (res == null)
+                {
+                    return;
+                }
+
+                List<ResponseAsset> resp = JsonConvert.DeserializeAnonymousType(res, new List<ResponseAsset>());
+
+                Portfolio myPortfolio = new Portfolio();
+                myPortfolio.Number = "BitMex";
+                myPortfolio.ValueBegin = 1;
+                myPortfolio.ValueCurrent = 1;
+                //_portfolios.Add(myPortfolio);
+
+                for (int i = 0; i < resp.Count; i++)
+                {
+                    PositionOnBoard newPortf = new PositionOnBoard();
+
+                    newPortf.SecurityNameCode = resp[i].currency;
+                    newPortf.ValueBegin = resp[i].walletBalance.ToDecimal() / 1000000;
+                    newPortf.ValueCurrent = resp[i].marginBalance.ToDecimal() / 1000000;
+                    newPortf.ValueBlocked = newPortf.ValueBegin - resp[i].availableMargin.ToDecimal() / 1000000;
+                    newPortf.PortfolioName = "BitMex";
+
+                    myPortfolio.SetNewPosition(newPortf);
+                }
+
+                if (PortfolioEvent != null)
+                {
+                    PortfolioEvent(new List<Portfolio> { myPortfolio });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region 5 Data
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            int countLoad = GetCountCandlesToLoad();
+            int countCandle = countLoad > candleCount ? countLoad : candleCount;
+
+            DateTime timeStart = GetCountCandlesFromSliceTime(timeFrameBuilder, countCandle);
+            DateTime timeEnd = DateTime.Now;
+
+            List<Candle> candles = GetCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan, timeStart, timeEnd);
+
+            if (candles != null && candles.Count != 0)
+            {
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    candles[i].State = CandleState.Finished;
+                }
+                candles[candles.Count - 1].State = CandleState.Started;
             }
 
-            _lastStartServerTime = DateTime.Now;
-
-            if (((ServerParameterBool)ServerParameters[2]).Value)
+            return candles;
+        }
+        private DateTime GetCountCandlesFromSliceTime(TimeFrameBuilder timeFrameBuilder, int countCandle)
+        {
+            DateTime timeStart = DateTime.Now;
+            if (timeFrameBuilder.TimeFrameTimeSpan.Days != 0)
             {
-                _client.Domain = "https://testnet.bitmex.com";
-                _client.ServerAdres = "wss://testnet.bitmex.com/realtime";
+                int totalDay = timeFrameBuilder.TimeFrameTimeSpan.Days;
+                return timeStart = DateTime.Now - TimeSpan.FromDays(totalDay * countCandle);
+            }
+            else if (timeFrameBuilder.TimeFrameTimeSpan.Hours != 0)
+            {
+                int totalHour = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalHours);
+                return timeStart = DateTime.Now - TimeSpan.FromHours(totalHour * countCandle);
             }
             else
             {
-                _client.Domain = "https://www.bitmex.com";
-                _client.ServerAdres = "wss://www.bitmex.com/realtime";
+                int totalMinutes = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
+                return timeStart = DateTime.Now - TimeSpan.FromMinutes(totalMinutes * countCandle);
             }
-            _client.Id = ((ServerParameterString)ServerParameters[0]).Value;
-            _client.SecKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-
-            _client.Connect();
         }
 
-        /// <summary>
-        /// dispose API
-        /// осыободить апи
-        /// </summary>
-        public void Dispose()
-        {
-            if (_client != null)
-            {
-                _client.Disconnect();
-
-                _client.Connected -= _client_Connected;
-                _client.Disconnected -= _client_Disconnected;
-                _client.UpdatePortfolio -= _client_UpdatePortfolio;
-                _client.UpdateMarketDepth -= _client_UpdateMarketDepth;
-                _client.NewTradesEvent -= _client_NewTrades;
-                _client.MyTradeEvent -= _client_NewMyTrades;
-                _client.MyOrderEvent -= _client_MyOrderEvent;
-                _client.UpdateSecurity -= _client_UpdateSecurity;
-                _client.BitMexLogMessageEvent -= _client_SendLogMessage;
-                _client.ErrorEvent -= _client_ErrorEvent;
-            }
-
-            _client = null;
-            ServerStatus = ServerConnectStatus.Disconnect;
-            _subscribedSec = new List<string>();
-            _portfolioStarted = false;
-            DisconnectEvent?.Invoke();
-        }
-
-        /// <summary>
-        /// take current state of orders
-        /// взять текущие состояни ордеров
-        /// </summary>
-        public void GetOrdersState(List<Order> orders)
-        {
-            GetAllOrders(orders);
-        }
-
-        /// <summary>
-        /// check order state
-        /// проверить ордера на состояние
-        /// </summary>
-        /// <param name="oldOpenOrders"></param>
-        /// <returns></returns>
-        public bool GetAllOrders(List<Order> oldOpenOrders)
-        {
-            List<string> namesSec = new List<string>();
-
-            for (int i = 0; i < oldOpenOrders.Count; i++)
-            {
-                if (namesSec.Find(name => name.Contains(oldOpenOrders[i].SecurityNameCode)) == null)
-                {
-                    namesSec.Add(oldOpenOrders[i].SecurityNameCode);
-                }
-            }
-
-            string endPoint = "/order";
-            List<DatumOrder> allOrders = new List<DatumOrder>();
-
-            for (int i = 0; i < namesSec.Count; i++)
-            {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["symbol"] = namesSec[i];
-                //param["filter"] = "{\"open\":true}";
-                //param["columns"] = "";
-                param["count"] = 30.ToString();
-                //param["start"] = 0.ToString();
-                param["reverse"] = true.ToString();
-                //param["startTime"] = "";
-                //param["endTime"] = "";
-
-                var res = _client.CreateQuery("GET", endPoint, param, true);
-
-                List<DatumOrder> orders = JsonConvert.DeserializeAnonymousType(res, new List<DatumOrder>());
-
-                if (orders != null && orders.Count != 0)
-                {
-                    allOrders.AddRange(orders);
-                }
-            }
-
-            for (int i = 0; i < oldOpenOrders.Count; i++)
-            {
-                DatumOrder myOrder = allOrders.Find(ord => ord.orderID == oldOpenOrders[i].NumberMarket);
-
-                if (myOrder == null)
-                {
-                    continue;
-                }
-
-                if (String.IsNullOrEmpty(myOrder.clOrdID))
-                {
-                    continue;
-                }
-
-                if (myOrder.ordStatus == "New")
-                {
-                    continue;
-                }
-                else if (myOrder.ordStatus == "Filled")
-                {// order is executed
-                    MyTrade trade = new MyTrade();
-                    trade.NumberOrderParent = oldOpenOrders[i].NumberMarket;
-                    trade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
-                    trade.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
-                    trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.timestamp));
-                    trade.Side = oldOpenOrders[i].Side;
-
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(trade);
-                    }
-                }
-                else //if (myOrder.ordStatus == "Canceled")
-                {
-                    Order newOrder = new Order();
-                    newOrder.NumberMarket = oldOpenOrders[i].NumberMarket;
-                    newOrder.NumberUser = oldOpenOrders[i].NumberUser;
-                    newOrder.SecurityNameCode = oldOpenOrders[i].SecurityNameCode;
-                    newOrder.State = OrderStateType.Cancel;
-                    newOrder.Volume = oldOpenOrders[i].Volume;
-                    newOrder.VolumeExecute = oldOpenOrders[i].VolumeExecute;
-                    newOrder.Price = oldOpenOrders[i].Price;
-                    newOrder.TypeOrder = oldOpenOrders[i].TypeOrder;
-                    newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(myOrder.timestamp));
-                    newOrder.TimeCancel = newOrder.TimeCallBack;
-                    newOrder.ServerType = ServerType.BitMex;
-                    newOrder.PortfolioNumber = oldOpenOrders[i].PortfolioNumber;
-
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        public void GetAllActivOrders()
-        {
-
-        }
-
-        public void GetOrderStatus(Order order)
-        {
-
-        }
-
-        /// <summary>
-        /// subscribe to candles, all trades
-        /// подписаться на свечи, все сделки 
-        /// </summary>
-        public void Subscrible(Security security)
-        {
-            SubcribeDepthTradeOrder(security.Name);
-        }
-
-        /// <summary>
-        /// take candle history for period
-        /// взять историю свечек за период
-        /// </summary>
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-           return GetCandles(security.Name, timeFrameBuilder,startTime);
+            List<Candle> candles = new List<Candle>();
+
+            if (actualTime > endTime ||
+                startTime >= endTime ||
+                startTime >= DateTime.UtcNow ||
+                actualTime > endTime ||
+                actualTime > DateTime.UtcNow)
+            {
+                return null;
+            }
+
+            List<Candle> newCandles = GetCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan,
+                startTime, endTime);
+
+            if (newCandles == null || newCandles.Count == 0)
+            {
+                return null;
+            }
+
+            candles.AddRange(newCandles);
+            actualTime = candles[0].TimeStart;
+
+            while (actualTime > startTime)
+            {
+                newCandles = GetCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan,
+                    startTime, actualTime);
+
+                if (newCandles != null && candles.Count != 0 && newCandles.Count != 0)
+                {
+                    for (int i = 0; i < newCandles.Count; i++)
+                    {
+                        if (candles[0].TimeStart <= newCandles[i].TimeStart)
+                        {
+                            newCandles.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
+
+                if (newCandles == null)
+                {
+                    actualTime = actualTime.AddDays(5);
+                    continue;
+                }
+
+                if (newCandles.Count == 0)
+                {
+                    Thread.Sleep(5000);
+                    continue;
+                }
+
+                candles.InsertRange(0, newCandles);
+
+                actualTime = candles[0].TimeStart;
+
+                Thread.Sleep(3000);
+            }
+
+            if (candles.Count == 0)
+            {
+                return null;
+            }
+
+            for (int i = candles.Count - 1; i >= 0; i--)
+            {
+                if (candles[i].TimeStart <= endTime)
+                {
+                    break;
+                }
+                if (candles[i].TimeStart > endTime)
+                {
+                    candles.RemoveAt(i);
+                }
+            }
+
+            for (int i = 1; i < candles.Count; i++)
+            {
+                Candle candleNow = candles[i];
+                Candle candleLast = candles[i - 1];
+
+                if (candleLast.TimeStart == candleNow.TimeStart)
+                {
+                    candles.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+            }
+
+            return candles;
         }
 
-        /// <summary>
-        /// take candle history
-        /// взять историю свечек
-        /// </summary>
-        /// <param name="security"></param>
-        /// <param name="tf"></param>
-        /// <returns></returns>
-        private List<Candle> GetCandles(string security, TimeFrameBuilder timeFrameBuilder, DateTime timeStart)
+        private List<Candle> _candles;
+        private List<Candle> GetCandles(string security, TimeSpan timeSpan, DateTime startTime, DateTime endTime)
+        {
+            try
+            {
+                lock (_getCandlesLocker)
+                {
+                    if (timeSpan.TotalMinutes < 1)
+                    {
+                        return null;
+                    }
+
+                    if (timeSpan.Minutes == 1)
+                    {
+                        return GetCandlesTf(security, "1m", startTime, endTime);
+                    }
+                    if (timeSpan.Minutes == 5)
+                    {
+                        return GetCandlesTf(security, "5m", startTime, endTime);
+                    }
+                    if (timeSpan.TotalMinutes == 60)
+                    {
+                        return GetCandlesTf(security, "1h", startTime, endTime);
+                    }
+                    if (timeSpan.TotalMinutes == 1440)
+                    {
+                        return GetCandlesTf(security, "1d", startTime, endTime);
+                    }
+                    else
+                    {
+                        return СandlesBuilder(security, (int)timeSpan.TotalMinutes, startTime, endTime);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private object _getCandles = new object();
+
+        private List<Candle> GetCandlesTf(string security, string tf, DateTime startTime, DateTime timeEnd, int a = 1)
         {
             try
             {
                 lock (_getCandles)
                 {
-                    string tf = "1m";
-
-                    if (timeFrameBuilder.TimeFrame == TimeFrame.Min5)
-                    {
-                        tf = "5m";
-                    }
-                    else if (timeFrameBuilder.TimeFrame == TimeFrame.Hour1)
-                    {
-                        tf = "1h";
-                    }
-
-                    int shift = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
-
-                    // 1m,5m,1h
-
                     List<BitMexCandle> allbmcandles = new List<BitMexCandle>();
-
-                    DateTime actualTime = DateTime.Now.AddDays(1);
 
                     _candles = null;
 
-                    while  (actualTime > timeStart)
+                    string end = timeEnd.ToString("yyyy-MM-dd HH:mm");
+                    string start = startTime.ToString("yyyy-MM-dd HH:mm");
+
+                    var param = new Dictionary<string, string>();
+                    param.Add("binSize", tf);
+                    param.Add("partial", true.ToString());
+                    param.Add("symbol", security);
+                    param.Add("count", 10000.ToString());
+                    param.Add("reverse", true.ToString());
+                    param.Add("startTime", start);
+                    param.Add("endTime", end);
+
+                    try
                     {
-                        
-                        actualTime = TimeZoneInfo.ConvertTimeToUtc(actualTime);
+                        var res = Query("GET", "/trade/bucketed", param);
 
-                        string end = actualTime.ToString("yyyy-MM-dd HH:mm");
-
-                        var param = new Dictionary<string, string>();
-                        param["symbol"] = security;
-                        param["count"] = 500.ToString();
-                        param["binSize"] = tf;
-                        param["reverse"] = true.ToString();
-                        //param["startTime"] = start;
-                        param["endTime"] = end;
-                        param["partial"] = true.ToString();
-
-                        try
+                        if (res == "[]")
                         {
-                            var res = _client.CreateQuery("GET", "/trade/bucketed", param);
-
-                            List<BitMexCandle> bmcandles =
-                                JsonConvert.DeserializeAnonymousType(res, new List<BitMexCandle>());
-                            bmcandles.Reverse();
-                            allbmcandles.InsertRange(0,bmcandles);
-
-                            actualTime = Convert.ToDateTime(bmcandles[0].timestamp)
-                                .Subtract(TimeSpan.FromMinutes(shift));
+                            return null;
                         }
-                        catch
-                        {
-                            // ignored
-                        }
-                        Thread.Sleep(2000);
+
+                        List<BitMexCandle> bmcandles =
+                            JsonConvert.DeserializeAnonymousType(res, new List<BitMexCandle>());
+
+                        allbmcandles.AddRange(bmcandles);
+                    }
+                    catch
+                    {
+                        // ignored
                     }
 
                     if (_candles == null)
@@ -390,60 +522,206 @@ namespace OsEngine.Market.Servers.BitMex
                         _candles = new List<Candle>();
                     }
 
-                    foreach (var bitMexCandle in allbmcandles)
+                    for (int i = 0; i < allbmcandles.Count; i++)
                     {
                         Candle newCandle = new Candle();
 
-                        newCandle.Open = bitMexCandle.open;
-                        newCandle.High = bitMexCandle.high;
-                        newCandle.Low = bitMexCandle.low;
-                        newCandle.Close = bitMexCandle.close;
-                        newCandle.TimeStart = Convert.ToDateTime(bitMexCandle.timestamp).Subtract(TimeSpan.FromMinutes(shift));
-                        newCandle.Volume = bitMexCandle.volume;
+                        if (allbmcandles[i].open < allbmcandles[i].high)
+                        {
+                            newCandle.Open = allbmcandles[i].open;
+                            newCandle.High = allbmcandles[i].high;
+                        }
+                        else
+                        {
+                            newCandle.Open = allbmcandles[i].high;
+                            newCandle.High = allbmcandles[i].open;
+                        }
+                        if (allbmcandles[i].open > allbmcandles[i].low)
+                        {
+                            newCandle.Open = allbmcandles[i].open;
+                            newCandle.Low = allbmcandles[i].low;
+                        }
+                        else
+                        {
+                            newCandle.Open = allbmcandles[i].low;
+                            newCandle.Low = allbmcandles[i].open;
+                        }
+
+                        newCandle.Close = allbmcandles[i].close;
+                        newCandle.TimeStart = Convert.ToDateTime(allbmcandles[i].timestamp);
+                        newCandle.Volume = allbmcandles[i].volume;
+
 
                         _candles.Add(newCandle);
                     }
-                   // _candles.Reverse();
+
+                    _candles.Reverse();
                     return _candles;
                 }
             }
-            catch (Exception error)
+            catch (Exception exception)
             {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 return null;
             }
         }
 
-        /// <summary>
-        /// take tick data on instrument for period
-        /// взять тиковые данные по инструменту за определённый период
-        /// </summary>
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
+        private int GetCountCandlesToLoad()
         {
-            List<Trade> lastTrades = new List<Trade>();
+            var server = (AServer)ServerMaster.GetServers().Find(server => server.ServerType == ServerType.BitMex);
 
-            lastDate = endTime;
-           
-
-            while (lastDate > startTime)
+            for (int i = 0; i < server.ServerParameters.Count; i++)
             {
-                lastDate = TimeZoneInfo.ConvertTimeToUtc(lastDate);
-                List<Trade> trades = GetTickHistoryToSecurity(security, lastDate);
-
-                if (trades == null ||
-                    trades.Count == 0)
+                if (server.ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
                 {
-                    Thread.Sleep(5000);
-                    continue;
+                    var Param = (ServerParameterInt)server.ServerParameters[i];
+                    return Param.Value;
+                }
+            }
+
+            return 300;
+        }
+
+        private readonly object _getCandlesLocker = new object();
+
+        private List<Candle> СandlesBuilder(string security, int tf, DateTime startTime, DateTime endTime)
+        {
+            List<Candle> oldCandles;
+            int a;
+            if (tf > 60)
+            {
+                a = tf / 60;
+                oldCandles = GetCandlesTf(security, "1h", startTime, endTime);
+            }
+            else if (tf >= 10)
+            {
+                a = tf / 5;
+                oldCandles = GetCandlesTf(security, "5m", startTime, endTime);
+            }
+            else
+            {
+                a = tf / 1;
+                oldCandles = GetCandlesTf(security, "1m", startTime, endTime);
+            }
+
+            if (oldCandles == null || oldCandles.Count == 0)
+            {
+                return null;
+            }
+
+            int index = 0;
+
+            if (tf > 60)
+            {
+                index = oldCandles.FindIndex(can => can.TimeStart.Hour % a == 0);
+            }
+            else
+            {
+                index = oldCandles.FindIndex(can => can.TimeStart.Minute % tf == 0);
+            }
+
+            List<Candle> candlestf = new List<Candle>();
+
+            int count = 0;
+
+            Candle newCandle = new Candle();
+
+            for (int i = index; i < oldCandles.Count; i++)
+            {
+                count++;
+                if (count == 1)
+                {
+                    newCandle = new Candle();
+                    newCandle.Open = oldCandles[i].Open;
+                    newCandle.TimeStart = oldCandles[i].TimeStart;
+                    newCandle.Low = Decimal.MaxValue;
                 }
 
-                for (int i2 = 0; i2 < trades.Count; i2++)
-                {
-                    Trade ft = lastTrades.Find(x => x.Id == trades[i2].Id);
+                newCandle.High = oldCandles[i].High > newCandle.High
+                    ? oldCandles[i].High
+                    : newCandle.High;
 
-                    if (ft != null)
+                newCandle.Low = oldCandles[i].Low < newCandle.Low
+                    ? oldCandles[i].Low
+                    : newCandle.Low;
+
+                newCandle.Volume += oldCandles[i].Volume;
+
+                if (i == oldCandles.Count - 1 && count != a)
+                {
+                    newCandle.Close = oldCandles[i].Close;
+                    newCandle.State = CandleState.None;
+                    candlestf.Add(newCandle);
+                }
+
+                if (count == a)
+                {
+                    newCandle.Close = oldCandles[i].Close;
+                    newCandle.State = CandleState.Finished;
+                    candlestf.Add(newCandle);
+                    count = 0;
+                }
+            }
+
+            for (int i = 1; candlestf != null && i < candlestf.Count; i++)
+            {
+                if (candlestf[i - 1].TimeStart == candlestf[i].TimeStart)
+                {
+                    candlestf.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            return candlestf;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime lastDate)
+        {
+            if (lastDate > endTime ||
+                startTime >= endTime ||
+                startTime >= DateTime.Now ||
+                lastDate > endTime ||
+                lastDate > DateTime.Now)
+            {
+                return null;
+            }
+
+            List<Trade> allTrades = new List<Trade>();
+
+            List<Trade> trades = GetTickHistoryToSecurity(security.Name, startTime, endTime);
+
+            if (trades == null ||
+                    trades.Count == 0)
+            {
+                return null;
+            }
+
+            allTrades.AddRange(trades);
+            Trade lastTrade = trades.Last();
+            //lastTrade.Time = TimeZoneInfo.ConvertTimeToUtc(lastTrade.Time);
+
+            while (lastTrade.Time > startTime)
+            {
+                // lastDate = TimeZoneInfo.ConvertTimeToUtc(lastDate);
+                trades = GetTickHistoryToSecurity(security.Name, startTime, lastTrade.Time);
+
+                if (trades.Count == 0)
+                {
+                    break;
+                }
+
+                lastTrade = trades.Last();
+
+                if (trades != null && allTrades.Count != 0 && trades.Count != 0)
+                {
+                    for (int i = 0; i < trades.Count; i++)
                     {
-                        trades.RemoveAt(i2);
+                        if (allTrades[0].Time <= trades[i].Time
+                            || allTrades[0].Id == trades[i].Id)
+                        {
+                            trades.RemoveAt(i);
+                            i--;
+                        }
                     }
                 }
 
@@ -453,1375 +731,423 @@ namespace OsEngine.Market.Servers.BitMex
                     continue;
                 }
 
-                lastDate = trades[0].Time;
-
-                lastTrades.InsertRange(0,trades);
-
+                allTrades.InsertRange(allTrades.Count, trades);
                 Thread.Sleep(3000);
             }
 
-            return lastTrades;
+            allTrades.Reverse();
+
+            return allTrades;
         }
 
-        public List<Trade> GetTickHistoryToSecurity(Security security, DateTime endTime)
+        private object _lockerStarter = new object();
+        public List<Trade> GetTickHistoryToSecurity(string security, DateTime startTime, DateTime endTime)
         {
             try
             {
                 lock (_lockerStarter)
                 {
-                    _client_SendLogMessage("LOAD BLOCK: "+endTime.ToString(), LogMessageType.System);
                     List<Trade> trades = new List<Trade>();
 
                     Dictionary<string, string> param = new Dictionary<string, string>();
 
-                    //string start = startTime.ToString("yyyy-MM-dd HH:mm:ss");
-                    string end = endTime.ToString("yyyy-MM-dd HH:mm:ss");
+                    string start = startTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    string end = endTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-                    param["symbol"] = security.Name;
-                    param["count"] = 500.ToString();
-                    param["start"] = 0.ToString();
-                    param["reverse"] = true.ToString();
-                    // param["startTime"] = start;
-                    param["endTime"] = end;
+                    param.Add("symbol", security);
+                    param.Add("start", 0.ToString());
+                    param.Add("reverse", true.ToString());
+                    param.Add("startTime", start);
+                    param.Add("endTime", end);
+                    param.Add("count", "1000");
 
-                    var res = _client.CreateQuery("GET", "/trade", param);
+                    var res = Query("GET", "/trade", param);
 
-                    List<TradeBitMex> tradeHistory = JsonConvert.DeserializeAnonymousType(res, new List<TradeBitMex>());
-
-                    tradeHistory.Reverse();
-
-                    foreach (var oneTrade in tradeHistory)
+                    if (res == "")
                     {
-                        if (string.IsNullOrEmpty(oneTrade.price))
+                        return null;
+                    }
+
+                    List<DatumTrades> tradeHistory = JsonConvert.DeserializeAnonymousType(res, new List<DatumTrades>());
+
+                    for (int i = 0; i < tradeHistory.Count; i++)
+                    {
+                        if (string.IsNullOrEmpty(tradeHistory[i].price))
                         {
                             continue;
                         }
 
                         Trade trade = new Trade();
-                        trade.SecurityNameCode = oneTrade.symbol;
-                        trade.Id = oneTrade.trdMatchID;
-                        trade.Time = Convert.ToDateTime(oneTrade.timestamp);
-                        trade.Price = oneTrade.price.ToDecimal();
-                        trade.Volume = oneTrade.size.ToDecimal();
-                        trade.Side = oneTrade.side == "Sell" ? Side.Sell : Side.Buy;
+                        trade.SecurityNameCode = tradeHistory[i].symbol;
+                        trade.Id = tradeHistory[i].trdMatchID;
+                        trade.Time = Convert.ToDateTime(tradeHistory[i].timestamp);
+
+                        //long r = TimeManager.GetTimeStampMilliSecondsToDateTime(Convert.ToDateTime(tradeHistory[i].timestamp));
+                        //trade.Time = TimeManager.GetDateTimeFromTimeStamp(r);
+
+                        trade.Price = tradeHistory[i].price.ToDecimal();
+                        trade.Volume = tradeHistory[i].size.ToDecimal();
+                        trade.Side = tradeHistory[i].side == "Sell" ? Side.Sell : Side.Buy;
                         trades.Add(trade);
                     }
 
                     return trades;
                 }
             }
-            catch (Exception error)
+            catch (Exception exception)
             {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 return null;
             }
         }
 
-        private bool _portfolioStarted = false; // already subscribed to portfolios / уже подписались на портфели
+        #endregion
 
-        /// <summary>
-        /// request portfolios
-        /// запросить портфели
-        /// </summary>
-        public void GetPortfolios()
+        #region 6 WebSocket creation
+
+        private WebSocket _webSocket;
+
+        private void CreateWebSocketConnection()
         {
-            if (!_portfolioStarted)
+            if (_webSocket != null)
             {
-                string queryPortf = "{\"op\": \"subscribe\", \"args\": [\"margin\"]}";
-                string queryPos = "{\"op\": \"subscribe\", \"args\": [\"position\"]}";
+                return;
+            }
+            _webSocket = new WebSocket(_serverAdress);
+            _webSocket.EnableAutoSendPing = true;
+            _webSocket.AutoSendPingInterval = 10;
 
-                _client.SendQuery(queryPortf);
-                Thread.Sleep(500);
-                _client.SendQuery(queryPos);
-                _portfolioStarted = true;
+            _webSocket.Opened += _webSocket_Opened;
+            _webSocket.Closed += _webSocket_Closed;
+            _webSocket.MessageReceived += _webSocket_MessageReceived;
+            _webSocket.Error += _webSocket_Error;
+
+            _webSocket.Open();
+        }
+
+        private void DeleteWebsocketConnection()
+        {
+            if (_webSocket != null)
+            {
+                try
+                {
+                    _webSocket.Close();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                _webSocket.Opened -= _webSocket_Opened;
+                _webSocket.Closed -= _webSocket_Closed;
+                _webSocket.MessageReceived -= _webSocket_MessageReceived;
+                _webSocket.Error -= _webSocket_Error;
+                _webSocket = null;
             }
         }
 
-        /// <summary>
-        /// get instruments
-        /// получить инструменты
-        /// </summary>
-        public void GetSecurities()
+        private void Auth()
         {
-            _client.GetSecurities();
+            string nonce = GetExpires().ToString();
+            byte[] signatureBytes = hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes("GET/realtime" + nonce));
+            string signatureString = ByteArrayToString(signatureBytes);
+            string que = "{\"op\": \"authKeyExpires\", \"args\": [\"" + _id + "\"," + nonce + ",\"" + signatureString + "\"]}";
+            _webSocket.Send(que);
         }
 
-// data subscription
-// Подпись на данные
+        #endregion
 
-        /// <summary>
-        /// downloading candle master
-        /// мастер загрузки свечек
-        /// </summary>
-        private CandleManager _candleManager;
+        #region 7 WebSocket events
 
-        /// <summary>
-        /// securities already subscribed to data updates
-        /// бумаги уже подписанные на обновления данных
-        /// </summary>
-        private List<string> _subscribedSec = new List<string>();
+        private void _webSocket_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        {
+            var error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
 
-        /// <summary>
-        /// multi-threaded access locker in StartThisSecurity
-        /// объект блокирующий многопоточный доступ в StartThisSecurity
-        /// </summary>
-        private object _lockerStarter = new object();
+            if (error.Exception != null)
+            {
+                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+            }
+        }
 
-        /// <summary>
-        /// start downloading instrument data
-        /// начать выкачивать данный иснтрументн
-        /// </summary>
-        /// <param name="namePaper"> instrument name / название инструмента</param>
-        /// <returns> in the case of a successful launch returns CandleSeries, the object generating candles / в случае успешного запуска возвращает CandleSeries, объект генерирующий свечи</returns>
-        public void SubcribeDepthTradeOrder(string namePaper)
+        private void _webSocket_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
             try
             {
-                if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
+                if (e == null)
+                {
+                    return;
+                }
+                if (string.IsNullOrEmpty(e.Message))
+                {
+                    return;
+                }
+                if (FifoListWebSocketMessage == null)
                 {
                     return;
                 }
 
-                lock (_lockerStarter)
-                {
-                    if (namePaper == "")
-                    {
-                        return;
-                    }
-                    // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
-                    if (ServerStatus != ServerConnectStatus.Connect)
-                    {
-                        //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
-                        return;
-                    }
-
-                    if (_securities == null || _portfolios == null)
-                    {
-                        Thread.Sleep(5000);
-                        return;
-                    }
-
-                    Security security = null;
-
-                    for (int i = 0; _securities != null && i < _securities.Count; i++)
-                    {
-                        if (_securities[i].Name == namePaper)
-                        {
-                            security = _securities[i];
-                            break;
-                        }
-                    }
-
-                    if (security == null)
-                    {
-                        return;
-                    }
-
-                    _candles = null;
-
-                    if (_subscribedSec.Find(s => s == namePaper) == null)
-                    {
-
-
-                        string queryQuotes = "{\"op\": \"subscribe\", \"args\": [\"orderBookL2:" + security.Name + "\"]}";
-
-                        _client.SendQuery(queryQuotes);
-
-
-
-                        string queryTrades = "{\"op\": \"subscribe\", \"args\": [\"trade:" + security.Name + "\"]}";
-
-                        _client.SendQuery(queryTrades);
-
-
-
-                        string queryMyTrades = "{\"op\": \"subscribe\", \"args\": [\"execution:" + security.Name + "\"]}";
-
-                        _client.SendQuery(queryMyTrades);
-
-
-
-                        string queryorders = "{\"op\": \"subscribe\", \"args\": [\"order:" + security.Name + "\"]}";
-
-                        _client.SendQuery(queryorders);
-                        _subscribedSec.Add(namePaper);
-
-                    }
-                    Thread.Sleep(300);
-                }
+                FifoListWebSocketMessage.Enqueue(e.Message);
             }
             catch (Exception error)
             {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
-        private object _getCandles = new object();
-
-        /// <summary>
-        /// take candle history
-        /// взять историю свечек
-        /// </summary>
-        /// <param name="security"></param>
-        /// <param name="tf"></param>
-        /// <param name="shift"></param>
-        /// <returns></returns>
-        private List<Candle> GetCandlesTf(string security, string tf, int shift, int a=1)
+        private void _webSocket_Closed(object sender, EventArgs e)
         {
-            try
+            if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {
-                lock (_getCandles)
-                {
-                    List<BitMexCandle> allbmcandles = new List<BitMexCandle>();
-
-                    DateTime endTime;
-                    DateTime startTime = DateTime.MinValue;
-
-                    _candles = null;
-
-                    int countLoad = ((ServerParameterInt)(ServerParameters.Find(x => x.Name == OsLocalization.Market.ServerParam6))).Value;
-                    int countForLoad = 1;
-                    if (countLoad > (shift == 60 ? 300 : 480) / a)
-                        countForLoad =(int)Math.Ceiling((decimal)(countLoad /(shift == 60 ?(300 / a) : (480/ shift / a))));
-
-                    for (int i = 0; i < countForLoad; i++)
-                    {
-                        Thread.Sleep(500);
-                        if (i == 0)
-                        {//Для часового фрейма добавил очистку от минут.
-                            endTime =shift==60? DateTime.UtcNow.AddMinutes(-DateTime.UtcNow.Minute).Add(TimeSpan.FromMinutes(shift)) : DateTime.UtcNow.Add(TimeSpan.FromMinutes(shift));
-                            startTime = shift == 60 ? endTime.Subtract(TimeSpan.FromHours(300)) : endTime.Subtract(TimeSpan.FromMinutes(480));
-                        }
-                        else
-                        {
-                            endTime = shift == 60 ? startTime.Subtract(TimeSpan.FromHours(1)) : startTime.Subtract(TimeSpan.FromMinutes(1));
-                            startTime = shift == 60 ? endTime.Subtract(TimeSpan.FromHours(300)) : endTime.Subtract(TimeSpan.FromMinutes(480));
-                        }
-
-                        string end = endTime.ToString("yyyy-MM-dd HH:mm");
-                        string start = startTime.ToString("yyyy-MM-dd HH:mm");
-
-                        var param = new Dictionary<string, string>();
-                        param["symbol"] = security;
-                        param["count"] = 500.ToString();
-                        param["binSize"] = tf;
-                        param["reverse"] = true.ToString();
-                        param["startTime"] = start;
-                        param["endTime"] = end;
-                        param["partial"] = true.ToString();
-
-                        try
-                        {
-                            var res = _client.CreateQuery("GET", "/trade/bucketed", param);
-
-                            List<BitMexCandle> bmcandles =
-                                JsonConvert.DeserializeAnonymousType(res, new List<BitMexCandle>());
-
-                            allbmcandles.AddRange(bmcandles);
-                        }
-                        catch
-                        {
-                            // ignored
-                        }
-                    }
-
-                    if (_candles == null)
-                    {
-                        _candles = new List<Candle>();
-                    }
-
-                    foreach (var bitMexCandle in allbmcandles)
-                    {
-                        Candle newCandle = new Candle();
-
-                        newCandle.Open = bitMexCandle.open;
-                        newCandle.High = bitMexCandle.high;
-                        newCandle.Low = bitMexCandle.low;
-                        newCandle.Close = bitMexCandle.close;
-                        newCandle.TimeStart = Convert.ToDateTime(bitMexCandle.timestamp).Subtract(TimeSpan.FromMinutes(shift));
-                        newCandle.Volume = bitMexCandle.volume;
-
-                        _candles.Add(newCandle);
-                    }
-                    _candles.Reverse();
-                    return _candles;
-                }
-            }
-            catch (Exception error)
-            {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// multi-threaded access locker to GetBitMexCandleHistory
-        /// блокиратор многопоточного доступа к GetBitMexCandleHistory
-        /// </summary>
-        private readonly object _getCandlesLocker = new object();
-
-        /// <summary>
-        /// take instrument candle
-        /// взять свечи по инструменту
-        /// </summary>
-        /// <param name="security"> short security name / короткое название бумаги</param>
-        /// <param name="timeSpan"> timeframe / таймФрейм</param>
-        /// <returns>failure will return null / в случае неудачи вернётся null</returns>
-        public List<Candle> GetBitMexCandleHistory(string security, TimeSpan timeSpan)
-        {
-            try
-            {
-                lock (_getCandlesLocker)
-                {
-                    if (//timeSpan.TotalMinutes > 60 || Для обработки часов
-                        timeSpan.TotalMinutes < 1)
-                    {
-                        return null;
-                    }
-
-                    if (timeSpan.Minutes == 1)
-                    {
-                        return GetCandlesTf(security, "1m", 1);
-                    }
-                    if (timeSpan.Minutes == 5)
-                    {
-                        return GetCandlesTf(security, "5m", 5);
-                    }
-                    if (timeSpan.TotalMinutes == 60)
-                    {
-                        return GetCandlesTf(security, "1h", 60);
-                    }
-                    else
-                    {
-                        return СandlesBuilder(security, (int)timeSpan.TotalMinutes);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// method returns candles of a larger timeframe made from smaller
-        /// метод возврящает свечи большего таймфрейма, сделанные из меньшего
-        /// </summary>
-        /// <param name="security"></param>
-        /// <param name="tf"></param>
-        /// <returns></returns>
-        private List<Candle> СandlesBuilder(string security, int tf)
-        {
-            List<Candle> candles1M;
-            int a;
-            if (tf> 60)
-            {
-                a = tf / 60;
-                candles1M = GetCandlesTf(security, "1h", 60,a);
-            }
-            else if (tf >= 10)
-            {
-                a = tf / 5;
-                candles1M = GetCandlesTf(security, "5m", 5, a);
-            }
-            else
-            {
-                a = tf / 1;
-                candles1M = GetCandlesTf(security, "1m", 1, a);
-            }
-
-            int index = candles1M.FindIndex(can => can.TimeStart.Minute % tf == 0);
-
-            List<Candle> candlestf = new List<Candle>();
-
-            int count = 0;
-
-            Candle newCandle = new Candle();
-
-            for (int i = index; i < candles1M.Count; i++)
-            {
-                count++;
-                if (count == 1)
-                {
-                    newCandle = new Candle();
-                    newCandle.Open = candles1M[i].Open;
-                    newCandle.TimeStart = candles1M[i].TimeStart;
-                    newCandle.Low = Decimal.MaxValue;
-                }
-
-                newCandle.High = candles1M[i].High > newCandle.High
-                    ? candles1M[i].High
-                    : newCandle.High;
-
-                newCandle.Low = candles1M[i].Low < newCandle.Low
-                    ? candles1M[i].Low
-                    : newCandle.Low;
-
-                newCandle.Volume += candles1M[i].Volume;
-
-                if (i == candles1M.Count - 1 && count != a)
-                {
-                    newCandle.Close = candles1M[i].Close;
-                    newCandle.State = CandleState.None;
-                    candlestf.Add(newCandle);
-                }
-
-                if (count == a)
-                {
-                    newCandle.Close = candles1M[i].Close;
-                    newCandle.State = CandleState.Finished;
-                    candlestf.Add(newCandle);
-                    count = 0;
-                }
-            }
-
-            return candlestf;
-        }
-
-        // event implementation
-        // реализация событий
-
-        /// <summary>
-        /// client connected
-        /// клиент подключился
-        /// </summary>
-        void _client_Connected()
-        {
-            if (ConnectEvent != null)
-            {
-                ConnectEvent();
-            }
-            ServerStatus = ServerConnectStatus.Connect;
-        }
-
-        /// <summary>
-        /// client disconnected
-        /// клиент отключился
-        /// </summary>
-        void _client_Disconnected()
-        {
-            if (DisconnectEvent != null)
-            {
+                SendLogMessage("Connection Closed by GateIo. WebSocket Closed Event", LogMessageType.Connect);
+                ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
             }
-            ServerStatus = ServerConnectStatus.Disconnect;
         }
 
-        /// <summary>
-        /// portfolios updated
-        /// обновились портфели
-        /// </summary>
-        void _client_UpdatePortfolio(BitMexPortfolio portf)
+        private void _webSocket_Opened(object sender, EventArgs e)
         {
-            try
+            Auth();
+            SendLogMessage("Connection Open", LogMessageType.Connect);
+
+            if (ConnectEvent != null && ServerStatus != ServerConnectStatus.Connect)
             {
-                if (_portfolios == null)
-                {
-                    _portfolios = new List<Portfolio>();
-                }
-                Portfolio osPortf = _portfolios.Find(p => p.Number == portf.data[0].account.ToString());
-
-                if (osPortf == null)
-                {
-                    osPortf = new Portfolio();
-                    osPortf.Number = portf.data[0].account.ToString();
-                    osPortf.ValueBegin = Convert.ToDecimal(portf.data[0].walletBalance) / 100000000m;
-                    osPortf.ValueCurrent = Convert.ToDecimal(portf.data[0].walletBalance) / 100000000m;
-                    _portfolios.Add(osPortf);
-                }
-
-                if (portf.data[0].walletBalance == 0)
-                {
-                    return;
-                }
-
-                if (portf.action == "update")
-                {
-                    osPortf.ValueCurrent = Convert.ToDecimal(portf.data[0].walletBalance) / 100000000m;
-                    osPortf.Profit = portf.data[0].unrealisedPnl;
-
-                }
-                else
-                {
-                    osPortf.ValueCurrent = Convert.ToDecimal(portf.data[0].walletBalance) / 100000000m;
-                    osPortf.Profit = portf.data[0].unrealisedPnl;
-                }
-
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent();
             }
-            catch (Exception error)
-            {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
+
+            _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"margin\"]}");
+            _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"position\"]}");
         }
 
-        /// <summary>
-        /// positions updated
-        /// обновились позиции
-        /// </summary>
-        private void _client_UpdatePosition(BitMexPosition pos)
-        {
-            if (_portfolios != null)
-            {
-                for (int i = 0; i < pos.data.Count; i++)
-                {
-                    Portfolio needPortfolio = _portfolios.Find(p => p.Number == pos.data[i].account.ToString());
 
-                    PositionOnBoard newPos = new PositionOnBoard();
+        #endregion
 
-                    newPos.PortfolioName = pos.data[i].account.ToString();
-                    newPos.SecurityNameCode = pos.data[i].symbol;
+        #region 8 WebSocket check alive
 
-                    if (string.IsNullOrEmpty(pos.data[i].currentQty) == false)
-                    {
-                        newPos.ValueCurrent =
-                                pos.data[i].currentQty.ToDecimal();
-                    }
-                    
+        private DateTime _timeLastSendPing = DateTime.Now;
 
-                    needPortfolio.SetNewPosition(newPos);
-                }
-
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
-            }
-        }
-
-        private object _quoteLock = new object();
-
-        /// <summary>
-        /// depth
-        /// стакан
-        /// </summary>
-        private List<MarketDepth> _depths = new List<MarketDepth>();
-
-        /// <summary>
-        /// updated depth came
-        /// пришел обновленный стакан
-        /// </summary>
-        void _client_UpdateMarketDepth(BitMexQuotes quotes)
-        {
-            try
-            {
-                MarketDepth depth = _depths.Find(d => d.SecurityNameCode == quotes.data[0].symbol);
-
-                lock (_quoteLock)
-                {
-                    
-
-                    if (quotes.action == "partial")
-                    {
-                        if (depth == null)
-                        {
-                            depth = new MarketDepth();
-                            _depths.Add(depth);
-                        }
-                        else
-                        {
-                            depth.Asks.Clear();
-                            depth.Bids.Clear();
-                        }
-                        depth.SecurityNameCode = quotes.data[0].symbol;
-                        List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
-                        List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-
-                        for (int i = 0; i < quotes.data.Count; i++)
-                        {
-                            if (quotes.data[i].price == null ||
-                                quotes.data[i].price.ToDecimal() == 0)
-                            {
-                                continue;
-                            }
-                            if (quotes.data[i].side == "Sell")
-                            {
-                                ascs.Add(new MarketDepthLevel()
-                                {
-                                    Ask = quotes.data[i].size,
-                                    Price = quotes.data[i].price.ToDecimal(),
-                                    Id = quotes.data[i].id
-                                });
-
-                                if (depth.Bids != null && depth.Bids.Count > 2 &&
-                                    quotes.data[i].price.ToDecimal() < depth.Bids[0].Price)
-                                {
-                                    depth.Bids.RemoveAt(0);
-                                }
-                            }
-                            else
-                            {
-                                bids.Add(new MarketDepthLevel()
-                                {
-                                    Bid = quotes.data[i].size,
-                                    Price = quotes.data[i].price.ToDecimal(),
-                                    Id = quotes.data[i].id
-                                });
-
-                                if (depth.Asks != null && depth.Asks.Count > 2 &&
-                                    quotes.data[i].price.ToDecimal() > depth.Asks[0].Price)
-                                {
-                                    depth.Asks.RemoveAt(0);
-                                }
-                            }
-                        }
-
-                        ascs.Reverse();
-                        depth.Asks = ascs;
-                        depth.Bids = bids;
-                    }
-
-                    if (quotes.action == "update")
-                    {
-                        if (depth == null)
-                            return;
-
-                        for (int i = 0; i < quotes.data.Count; i++)
-                        {
-                            if (quotes.data[i].side == "Sell")
-                            {
-                                if (depth.Asks.Find(asc => asc.Id == quotes.data[i].id) != null)
-                                {
-                                    depth.Asks.Find(asc => asc.Id == quotes.data[i].id).Ask = quotes.data[i].size;
-                                }
-                                else
-                                {
-                                    if (quotes.data[i].price == null || 
-                                        quotes.data[i].price == "0")
-                                    {
-                                        continue;
-                                    }
-
-                                    long id = quotes.data[i].id;
-
-                                    for (int j = 0; j < depth.Asks.Count; j++)
-                                    {
-                                        if (j == 0 && id > depth.Asks[j].Id)
-                                        {
-                                            depth.Asks.Insert(j, new MarketDepthLevel()
-                                            {
-                                                Ask = quotes.data[i].size,
-                                                Price = quotes.data[i].price.ToDecimal(),
-                                                Id = quotes.data[i].id
-                                            });
-                                        }
-                                        else if (j != depth.Asks.Count - 1 && id < depth.Asks[j].Id && id > depth.Asks[j + 1].Id)
-                                        {
-                                            depth.Asks.Insert(j + 1, new MarketDepthLevel()
-                                            {
-                                                Ask = quotes.data[i].size,
-                                                Price = quotes.data[i].price.ToDecimal(),
-                                                Id = quotes.data[i].id
-                                            });
-                                        }
-                                        else if (j == depth.Asks.Count - 1 && id < depth.Asks[j].Id)
-                                        {
-                                            depth.Asks.Add(new MarketDepthLevel()
-                                            {
-                                                Ask = quotes.data[i].size,
-                                                Price = quotes.data[i].price.ToDecimal(),
-                                                Id = quotes.data[i].id
-                                            });
-                                        }
-
-                                        if (depth.Bids != null && depth.Bids.Count > 2 &&
-                                            quotes.data[i].price.ToDecimal() < depth.Bids[0].Price)
-                                        {
-                                            depth.Bids.RemoveAt(0);
-                                        }
-                                    }
-                                }
-                            }
-                            else // (quotes.data[i].side == "Buy")
-                            {
-                             if (depth.Bids.Find(asc => asc.Id == quotes.data[i].id) != null)
-                                {
-                                    depth.Bids.Find(asc => asc.Id == quotes.data[i].id).Bid = quotes.data[i].size;
-                                }
-                                else
-                                {
-                                if (quotes.data[i].price == null || 
-                                    quotes.data[i].price == "0")
-                                {
-                                    continue;
-                                }
-
-                                long id = quotes.data[i].id;
-
-                                for (int j = 0; j < depth.Bids.Count; j++)
-                                {
-                                    if (j == 0 && id < depth.Bids[i].Id)
-                                    {
-                                        depth.Bids.Insert(j, new MarketDepthLevel()
-                                        {
-                                            Bid = quotes.data[i].size,
-                                            Price = quotes.data[i].price.ToDecimal(),
-                                            Id = quotes.data[i].id
-                                        });
-                                    }
-                                    else if (j != depth.Bids.Count - 1 && id > depth.Bids[j].Id && id < depth.Bids[j + 1].Id)
-                                    {
-                                        depth.Bids.Insert(j + 1, new MarketDepthLevel()
-                                        {
-                                            Bid = quotes.data[i].size,
-                                            Price = quotes.data[i].price.ToDecimal(),
-                                            Id = quotes.data[i].id
-                                        });
-                                    }
-                                    else if (j == depth.Bids.Count - 1 && id > depth.Bids[j].Id)
-                                    {
-                                        depth.Bids.Add(new MarketDepthLevel()
-                                        {
-                                            Bid = quotes.data[i].size,
-                                            Price = quotes.data[i].price.ToDecimal(),
-                                            Id = quotes.data[i].id
-                                        });
-                                    }
-
-                                    if (depth.Asks != null && depth.Asks.Count > 2 &&
-                                        quotes.data[i].price.ToDecimal() > depth.Asks[0].Price)
-                                    {
-                                        depth.Asks.RemoveAt(0);
-                                    }
-                                }
-                            }
-                            }
-                        }
-
-                        depth.Time = ServerTime;
-                    }
-
-                    if (quotes.action == "delete")
-                    {
-                        if (depth == null)
-                            return;
-
-                        for (int i = 0; i < quotes.data.Count; i++)
-                        {
-                            if (quotes.data[i].side == "Sell")
-                            {
-                                depth.Asks.Remove(depth.Asks.Find(asc => asc.Id == quotes.data[i].id));
-                            }
-                            else
-                            {
-                                depth.Bids.Remove(depth.Bids.Find(bid => bid.Id == quotes.data[i].id));
-                            }
-                        }
-
-                        depth.Time = ServerTime;
-                    }
-                }
-
-                if (quotes.action == "insert")
-                {
-                    if (depth == null)
-                        return;
-
-                    for (int i = 0; i < quotes.data.Count; i++)
-                    {
-                        if (quotes.data[i].price == null || 
-                            quotes.data[i].price == "0")
-                        {
-                            continue;
-                        }
-                        if (quotes.data[i].side == "Sell")
-                        {
-                            long id = quotes.data[i].id;
-
-                            for (int j = 0; j < depth.Asks.Count; j++)
-                            {
-                                if (j == 0 && id > depth.Asks[j].Id)
-                                {
-                                    depth.Asks.Insert(j, new MarketDepthLevel()
-                                    {
-                                        Ask = quotes.data[i].size,
-                                        Price = quotes.data[i].price.ToDecimal(),
-                                        Id = quotes.data[i].id
-                                    });
-                                }
-                                else if (j != depth.Asks.Count - 1 && id < depth.Asks[j].Id && id > depth.Asks[j + 1].Id)
-                                {
-                                    depth.Asks.Insert(j + 1, new MarketDepthLevel()
-                                    {
-                                        Ask = quotes.data[i].size,
-                                        Price = quotes.data[i].price.ToDecimal(),
-                                        Id = quotes.data[i].id
-                                    });
-                                }
-                                else if (j == depth.Asks.Count - 1 && id < depth.Asks[j].Id)
-                                {
-                                    depth.Asks.Add(new MarketDepthLevel()
-                                    {
-                                        Ask = quotes.data[i].size,
-                                        Price = quotes.data[i].price.ToDecimal(),
-                                        Id = quotes.data[i].id
-                                    });
-                                }
-
-                                if (depth.Bids != null && depth.Bids.Count > 2 &&
-                                    quotes.data[i].price.ToDecimal() < depth.Bids[0].Price)
-                                {
-                                    depth.Bids.RemoveAt(0);
-                                }
-                            }
-                        }
-                        else // quotes.data[i].side == "Buy"
-                        {
-                            long id = quotes.data[i].id;
-
-                            for (int j = 0; j < depth.Bids.Count; j++)
-                            {
-                                if (j == 0 && id < depth.Bids[j].Id)
-                                {
-                                    depth.Bids.Insert(j, new MarketDepthLevel()
-                                    {
-                                        Bid = quotes.data[i].size,
-                                        Price = quotes.data[i].price.ToDecimal(),
-                                        Id = quotes.data[i].id
-                                    });
-                                }
-                                else if (j != depth.Bids.Count - 1 && id > depth.Bids[j].Id && id < depth.Bids[j + 1].Id)
-                                {
-                                    depth.Bids.Insert(j + 1, new MarketDepthLevel()
-                                    {
-                                        Bid = quotes.data[i].size,
-                                        Price = quotes.data[i].price.ToDecimal(),
-                                        Id = quotes.data[i].id
-                                    });
-                                }
-                                else if (j == depth.Bids.Count - 1 && id > depth.Bids[j].Id)
-                                {
-                                    depth.Bids.Add(new MarketDepthLevel()
-                                    {
-                                        Bid = quotes.data[i].size,
-                                        Price = quotes.data[i].price.ToDecimal(),
-                                        Id = quotes.data[i].id
-                                    });
-                                }
-
-                                if (depth.Asks != null && depth.Asks.Count > 2 &&
-                                    quotes.data[i].price.ToDecimal() > depth.Asks[0].Price)
-                                {
-                                    depth.Asks.RemoveAt(0);
-                                }
-                            }
-                        }
-                    }
-
-                    while (depth.Asks != null && depth.Asks.Count > 200)
-                    {
-                        depth.Asks.RemoveAt(200);
-                    }
-
-                    while (depth.Bids != null && depth.Bids.Count > 200)
-                    {
-                        depth.Bids.RemoveAt(200);
-                    }
-
-                    depth.Time = ServerTime;
-
-                    if (MarketDepthEvent != null)
-                    {
-                        MarketDepthEvent(depth.GetCopy());
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private readonly object _newTradesLoker = new object();
-
-        /// <summary>
-        /// trades updated
-        /// обновились трейды 
-        /// </summary>
-        void _client_NewTrades(BitMexTrades trades)
-        {
-            try
-            {
-                lock (_newTradesLoker)
-                {
-                    for (int j = 0; j < trades.data.Count; j++)
-                    {
-                        Trade trade = new Trade();
-                        trade.SecurityNameCode = trades.data[j].symbol;
-                        trade.Price = trades.data[j].price.ToDecimal();
-                        trade.Id = trades.data[j].trdMatchID;
-                        trade.Time = Convert.ToDateTime(trades.data[j].timestamp);
-                        trade.Volume = trades.data[j].size;
-                        trade.Side = trades.data[j].side == "Buy" ? Side.Buy : Side.Sell;
-
-                        ServerTime = trade.Time;
-
-                        if (NewTradesEvent != null)
-                        {
-                            NewTradesEvent(trade);
-                        }
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private object _myTradeLocker = new object();
-
-        private List<MyTrade> _myTrades;
-
-        /// <summary>
-        /// my trades updated
-        /// обновились мои трейды
-        /// </summary>
-        void _client_NewMyTrades(BitMexMyOrders order)
-        {
-            try
-            {
-                lock (_myTradeLocker)
-                {
-                    for (int i = 0; i < order.data.Count; i++)
-                    {
-                        if(order.data[i].lastQty == null ||
-                            order.data[i].lastQty == 0)
-                        {
-                            continue;
-                        }
-
-                        MyTrade trade = new MyTrade();
-                        trade.NumberTrade = order.data[i].execID;
-                        trade.NumberOrderParent = order.data[i].orderID;
-                        trade.SecurityNameCode = order.data[i].symbol;
-                        trade.Price = order.data[i].avgPx.ToDecimal();
-                        trade.Time = Convert.ToDateTime(order.data[i].transactTime);
-                        trade.Side = order.data[i].side == "Buy" ? Side.Buy : Side.Sell;
-
-                        if (order.data[i].lastQty != null)
-                        {
-                            trade.Volume = (int)order.data[i].lastQty;
-                        }
-
-                        if (_myTrades == null)
-                        {
-                            _myTrades = new List<MyTrade>();
-                        }
-                        _myTrades.Add(trade);
-
-                        if (MyTradeEvent != null)
-                        {
-                            MyTradeEvent(trade);
-                        }
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                _client_SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// securities updated
-        /// обновились бумаги
-        /// </summary>
-        void _client_UpdateSecurity(List<BitMexSecurity> bitmexSecurities)
-        {
-            if (_securities == null)
-            {
-                _securities = new List<Security>();
-            }
-
-            foreach (var sec in bitmexSecurities)
-            {
-                Security security = new Security();
-                security.Name = sec.symbol;
-                security.NameFull = sec.symbol;
-                security.NameClass = sec.typ;
-                security.NameId = sec.symbol + sec.expiry;
-                security.SecurityType = SecurityType.CurrencyPair;
-                security.Lot = 1;
-                security.PriceStep = sec.tickSize;
-                security.PriceStepCost = sec.tickSize;
-
-                if (security.PriceStep < 1)
-                {
-                    string prStep = security.PriceStep.ToString(CultureInfo.InvariantCulture);
-                    security.Decimals = Convert.ToString(prStep).Split('.')[1].Split('1')[0].Length + 1;
-                }
-                else
-                {
-                    security.Decimals = 0;
-                }
-
-                security.State = SecurityStateType.Activ;
-                _securities.Add(security);
-            }
-
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(_securities);
-            }
-        }
-
-        /// <summary>
-        /// client error
-        /// ошибка в клиенте
-        /// </summary>
-        private void _client_ErrorEvent(string error)
-        {
-            _client_SendLogMessage(error, LogMessageType.Error);
-
-            if (error ==
-             "{\"error\":{\"message\":\"The system is currently overloaded. Please try again later.\",\"name\":\"HTTPError\"}}")
-            { // stop for a minute / останавливаемся на минуту
-                //LastSystemOverload = DateTime.Now;
-            }
-
-
-            if (error == "{\"error\":{\"message\":\"This key is disabled.\",\"name\":\"HTTPError\"}}")
-            {
-                //_serverStatusNead = ServerConnectStatus.Disconnect;
-                Thread.Sleep(2500);
-            }
-        }
-
-        // work with orders
-        // работа с ордерами
-
-        /// <summary>
-        /// place of work thread on the queues of order execution and cancellation
-        /// место работы потока на очередях исполнения заявок и их отмены
-        /// </summary>
-        private void ExecutorOrdersThreadArea()
+        private void CheckAliveWebSocket()
         {
             while (true)
             {
                 try
                 {
-                    Thread.Sleep(400);
+                    Thread.Sleep(3000);
 
-                    if (_client == null ||
-                        LastSystemOverload.AddSeconds(30) > DateTime.Now)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        _timeLastSendPing = DateTime.Now;
+                        Thread.Sleep(1000);
                         continue;
                     }
 
-                    if (_ordersToExecute != null && _ordersToExecute.Count != 0)
+                    if (_webSocket != null && _webSocket.State == WebSocketState.Open ||
+                        _webSocket.State == WebSocketState.Connecting)
                     {
-                        Order order;
-                        if (_ordersToExecute.TryDequeue(out order))
+                        if (_timeLastSendPing.AddSeconds(25) < DateTime.Now)
                         {
-                            Dictionary<string, string> param = new Dictionary<string, string>();
-
-                            param["symbol"] = order.SecurityNameCode;
-                            param["side"] = order.Side == Side.Buy ? "Buy" : "Sell";
-                            //param["orderIDs"] = order.NumberUser.ToString();
-                            param["orderQty"] = order.Volume.ToString().Replace(",", ".");
-                            param["clOrdID"] = order.NumberUser.ToString();
-                            param["origClOrdID"] = order.NumberUser.ToString();
-
-                            if (order.TypeOrder == OrderPriceType.Market)
-                            {
-                                param["ordType"] =  "Market";
-                            }
-                            else
-                            {
-                                param["ordType"] = "Limit";
-                                param["price"] = order.Price.ToString().Replace(",", ".");
-                            }
-
-                            var res = _client.CreateQuery("POST", "/order", param, true);
-
-                            if (res == "")
-                            {
-                                //order.State = OrderStateType.Cancel;
-                                //_ordersToCheck.Remove(order);
-                                //_ordersToSend.Enqueue(order);
-                            }
+                            _webSocket.Send("ping");
+                            _timeLastSendPing = DateTime.Now;
                         }
                     }
-                    else if (_ordersToCansel != null && _ordersToCansel.Count != 0)
+                    else
                     {
-                        Order order;
-                        if (_ordersToCansel.TryDequeue(out order))
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
-                            Dictionary<string, string> param = new Dictionary<string, string>();
-                            //param["clOrdID"] = order.NumberUser.ToString();
-                            param["orderID"] = order.NumberMarket;
-
-                            var res = _client.CreateQuery("DELETE", "/order", param, true);
-
-                            order.State = OrderStateType.Cancel;
-                            _ordersToCheck.Remove(order);
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(order);
-                            }
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
                         }
-                    }
-
-                    if (_lastOrderCheck.AddSeconds(30) < DateTime.Now &&
-                        _ordersToCheck.Count != 0)
-                    {
-                        CheckOrders(_ordersToCheck[0].SecurityNameCode);
-                        _lastOrderCheck = DateTime.Now;
                     }
                 }
                 catch (Exception error)
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
 
-        public static DateTime LastSystemOverload;
+        #endregion
 
-        private DateTime _lastOrderCheck;
-        public void CheckOrders(string security)
+        #region 9 Security subscrible
+
+        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        public void Subscrible(Security security)
         {
-            lock (_orderLocker)
+            try
             {
-                if (_ordersToCheck.Count == 0)
+                rateGateSubscrible.WaitToProceed();
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
 
-                var param = new Dictionary<string, string>();
-                param["symbol"] = security;
-                //param["filter"] = "{\"open\":true}";
-                //param["columns"] = "";
-                param["count"] = 30.ToString();
-                //param["start"] = 0.ToString();
-                param["reverse"] = true.ToString();
-                //param["startTime"] = "";
-                //param["endTime"] = "";
-
-                var res = _client.CreateQuery("GET", "/order", param, true);
-
-                List<DatumOrder> myOrders =
-                    JsonConvert.DeserializeAnonymousType(res, new List<DatumOrder>());
-
-                List<Order> osaOrders = new List<Order>();
-
-                for (int i = 0; i < myOrders.Count; i++)
+                if (_subscribedSec != null)
                 {
-                    if (String.IsNullOrEmpty(myOrders[i].clOrdID))
+                    for (int i = 0; i < _subscribedSec.Count; i++)
                     {
-                        continue;
+                        if (_subscribedSec.Equals(security.Name))
+                        {
+                            return;
+                        }
                     }
-
-                    Order order = new Order();
-                    try
-                    {
-                        order.NumberUser = Convert.ToInt32(myOrders[i].clOrdID);
-                    }
-                    catch (Exception)
-                    {
-                        continue;
-                    }
-
-                    order.NumberMarket = myOrders[i].orderID;
-                    order.SecurityNameCode = myOrders[i].symbol;
-
-                    if (!string.IsNullOrEmpty(myOrders[i].price))
-                    {
-                        order.Price = myOrders[i].price.ToDecimal();
-                    }
-
-                    if (myOrders[i].ordStatus == "Filled")
-                    {
-                        order.State = OrderStateType.Done;
-                    }
-                    else if (myOrders[i].ordStatus == "Canceled")
-                    {
-                        order.State = OrderStateType.Cancel;
-                    }
-                    else if (myOrders[i].ordStatus == "New")
-                    {
-                        order.State = OrderStateType.Active;
-                    }
-
-                    if (myOrders[i].orderQty != null)
-                    {
-                        order.Volume = myOrders[i].orderQty.ToDecimal();
-                    }
-
-                    order.Comment = myOrders[i].text;
-                    order.TimeCallBack = Convert.ToDateTime(myOrders[0].transactTime);
-                    order.PortfolioNumber = myOrders[i].account.ToString();
-                    order.TypeOrder = myOrders[i].ordType == "Limit"
-                        ? OrderPriceType.Limit
-                        : OrderPriceType.Market;
-
-                    if (myOrders[i].side == "Sell")
-                    {
-                        order.Side = Side.Sell;
-                    }
-                    else if (myOrders[i].side == "Buy")
-                    {
-                        order.Side = Side.Buy;
-                    }
-                    osaOrders.Add(order);
                 }
 
-                for (int i = 0; i < _ordersToCheck.Count; i++)
+                _subscribedSec.Add(security.Name);
+
+                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"orderBookL2_25:" + security.Name + "\"]}");
+                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"trade:" + security.Name + "\"]}");
+                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"execution:" + security.Name + "\"]}");
+                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"order:" + security.Name + "\"]}");
+
+            }
+            catch (Exception exeption)
+            {
+                Thread.Sleep(5000);
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+            }
+        }
+
+
+        private List<string> _subscribedSec = new List<string>();
+
+        #endregion
+
+        #region 10 WebSocket parsing the messages
+
+        private ConcurrentQueue<string> FifoListWebSocketMessage = new ConcurrentQueue<string>();
+
+        private void MessageReader()
+        {
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
                 {
-                    Order osOrder = osaOrders.Find(o => o.NumberUser == _ordersToCheck[i].NumberUser);
-
-                    if (osOrder == null && string.IsNullOrEmpty(_ordersToCheck[i].NumberMarket))
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        if (_ordersToCheck[i].TimeCreate.AddMinutes(1) < ServerTime)
-                        {
-                            _ordersToCheck[i].State = OrderStateType.Cancel;
-
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
-
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
-                            CancelOrder(_ordersToCheck[i]);
-                            _ordersToCheck.RemoveAt(i);
-
-                            i--;
-                        }
+                        Thread.Sleep(1000);
+                        continue;
                     }
-                    else if (osOrder != null)
+
+                    if (FifoListWebSocketMessage.IsEmpty)
                     {
-                        if (!string.IsNullOrEmpty(osOrder.NumberMarket))
-                        {
-                            _ordersToCheck[i].NumberMarket = osOrder.NumberMarket;
-                        }
-
-                        if (osOrder.State == OrderStateType.Cancel)
-                        {
-
-                            _ordersToCheck[i].State = OrderStateType.Cancel;
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
-                            _ordersToCheck.RemoveAt(i);
-                            i--;
-                        }
-                        else if (osOrder.State == OrderStateType.Done)
-                        {
-                            _ordersToCheck[i].State = OrderStateType.Done;
-                            _ordersToCheck[i].TimeCallBack = ServerTime;
-                            _ordersToCheck[i].VolumeExecute = _ordersToCheck[i].Volume;
-
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
-
-                            if (_myTrades != null &&
-                                _myTrades.Count != 0)
-                            {
-                                List<MyTrade> myTrade =
-                                    _myTrades.FindAll(trade => trade.NumberOrderParent == _ordersToCheck[i].NumberMarket);
-
-                                for (int tradeNum = 0; tradeNum < myTrade.Count; tradeNum++)
-                                {
-                                    if (MyTradeEvent != null)
-                                    {
-                                        MyTradeEvent(myTrade[tradeNum]);
-                                    }
-                                }
-                            }
-
-                            _ordersToCheck.RemoveAt(i);
-                            i--;
-                        }
-                        else if (osOrder.State == OrderStateType.Active)
-                        {
-                            _ordersToCheck[i].State = OrderStateType.Active;
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(_ordersToCheck[i]);
-                            }
-
-                            if (_ordersCanseled.Find(o => o.NumberUser == osOrder.NumberUser) != null)
-                            {
-                                _ordersToCansel.Enqueue(osOrder);
-                            }
-                            // report about the order came. Delete order from orders needed to be checked / отчёт об ордере пришёл. Удаляем ордер из ордеров нужных к проверке
-                            _ordersToCheck.RemoveAt(i);
-                            i--;
-                        }
+                        Thread.Sleep(1);
+                        continue;
                     }
+
+                    string message;
+
+                    FifoListWebSocketMessage.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    if (message.Equals("pong"))
+                    {
+                        continue;
+                    }
+
+                    if (message.StartsWith("{\"table\"" + ":" + "\"execution\""))
+                    {
+                        BitMexMyOrders myOrder = JsonConvert.DeserializeAnonymousType(message, new BitMexMyOrders());
+
+                        if (myOrder.data.Count != 0 &&
+                            (myOrder.data[0].execType == "Trade"
+                            || myOrder.data[0].execType == "New"
+                            || myOrder.data[0].execType == "Filled"))
+                        {
+                            UpdateMyTrade(myOrder);
+                        }
+                        continue;
+                    }
+
+                    if (message.StartsWith("{\"table\"" + ":" + "\"order\""))
+                    {
+                        BitMexOrder order = JsonConvert.DeserializeAnonymousType(message, new BitMexOrder());
+
+                        if (order != null && order.data.Count != 0)
+                        {
+                            UpdateOrder(order);
+                        }
+                        continue;
+                    }
+
+                    if (message.StartsWith("{\"table\"" + ":" + "\"margin\""))
+                    {
+                        BitMexPortfolio portf = JsonConvert.DeserializeAnonymousType(message, new BitMexPortfolio());
+
+                        if (portf != null)
+                        {
+                            UpdatePortfolio(portf);
+                        }
+                        continue;
+                    }
+
+                    if (message.StartsWith("{\"table\"" + ":" + "\"position\""))
+                    {
+                        BitMexPosition pos = JsonConvert.DeserializeAnonymousType(message, new BitMexPosition());
+
+                        if (pos != null && pos.data.Count != 0)
+                        {
+                            UpdatePosition(pos);
+                        }
+                        continue;
+                    }
+
+                    if (message.StartsWith("{\"table\"" + ":" + "\"orderBookL2_25\""))
+                    {
+                        BitMexQuotes quotes = JsonConvert.DeserializeAnonymousType(message, new BitMexQuotes());
+
+                        if (quotes.data.Count != 0 && quotes.data != null)
+                        {
+                            UpdateMarketDepth(quotes);
+                        }
+                        continue;
+                    }
+
+                    if (message.StartsWith("{\"table\"" + ":" + "\"trade\""))
+                    {
+                        BitMexTrades trade = JsonConvert.DeserializeAnonymousType(message, new BitMexTrades());
+
+                        if (NewTradesEvent != null && trade != null)
+                        {
+                            UpdateTrade(trade);
+                        }
+                        continue;
+                    }
+
+                    if (message.Contains("error"))
+                    {
+                        SendLogMessage(message.ToString(), LogMessageType.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
 
-        /// <summary>
-        /// queue of orders for placing in the system
-        /// очередь ордеров для выставления в систему
-        /// </summary>
-        private ConcurrentQueue<Order> _ordersToExecute = new ConcurrentQueue<Order>();
-
-        /// <summary>
-        /// queue of orders for canceling in the system
-        /// очередь ордеров для отмены в системе
-        /// </summary>
-        private ConcurrentQueue<Order> _ordersToCansel = new ConcurrentQueue<Order>();
-
-        /// <summary>
-        /// needed check orders
-        /// ордера которые нужно проверить
-        /// </summary>
-        private List<Order> _ordersToCheck = new List<Order>();
-
-        /// <summary>
-        /// waiting for registration orders
-        /// ордера, ожидающие регистрации
-        /// </summary>
         private List<Order> _newOrders = new List<Order>();
-
-        private List<Order> _ordersCanseled = new List<Order>();
-
-        /// <summary>
-        /// блокиратор доступа к ордерам
-        /// </summary>
-        private object _orderLocker = new object();
-
-        /// <summary>
-        /// incoming from system orders
-        /// входящий из системы ордер
-        /// </summary>
-        private void _client_MyOrderEvent(BitMexOrder myOrder)
+        private void UpdateOrder(BitMexOrder myOrder)
         {
             lock (_orderLocker)
             {
                 try
                 {
-                    if (_lastStartServerTime.AddSeconds(15) > DateTime.Now)
-                    {
-                        return;
-                    }
+
 
                     for (int i = 0; i < myOrder.data.Count; i++)
                     {
-                        if (string.IsNullOrEmpty(myOrder.data[i].clOrdID))
-                        {
-                            continue;
-                        }
+                        decimal multiplier = GetMultiplierForSecurity(myOrder.data[i].symbol);
 
-                        try
-                        {
-                            Convert.ToInt32(myOrder.data[i].clOrdID);
-                        }
-                        catch
+                        if (string.IsNullOrEmpty(myOrder.data[i].clOrdID))
                         {
                             continue;
                         }
@@ -1829,52 +1155,41 @@ namespace OsEngine.Market.Servers.BitMex
                         if (myOrder.action == "insert")
                         {
                             Order order = new Order();
+                            order.SecurityNameCode = myOrder.data[i].symbol;
+                            order.TimeCallBack = Convert.ToDateTime(myOrder.data[i].transactTime);
                             order.NumberUser = Convert.ToInt32(myOrder.data[i].clOrdID);
                             order.NumberMarket = myOrder.data[i].orderID;
-                            order.SecurityNameCode = myOrder.data[i].symbol;
-                            order.ServerType = ServerType.BitMex;
+                            order.Side = myOrder.data[i].side == "Buy" ? Side.Buy : Side.Sell;
+
+                            order.State = OrderStateType.Pending;
+
+                            if (myOrder.data[i].orderQty != null)
+                            {
+                                order.Volume = myOrder.data[i].orderQty.ToDecimal() / multiplier;
+                            }
 
                             if (!string.IsNullOrEmpty(myOrder.data[i].price))
                             {
                                 order.Price = myOrder.data[i].price.ToDecimal();
                             }
 
-                            order.State = OrderStateType.Pending;
-
-                            if (myOrder.data[i].orderQty != null)
-                            {
-                                order.Volume = myOrder.data[i].orderQty.ToDecimal();
-                            }
+                            order.ServerType = ServerType.BitMex;
+                            order.PortfolioNumber = "BitMex";
 
                             order.Comment = myOrder.data[i].text;
-                            order.TimeCallBack = Convert.ToDateTime(myOrder.data[0].transactTime);
-                            order.PortfolioNumber = myOrder.data[i].account.ToString();
+
+
                             order.TypeOrder = myOrder.data[i].ordType == "Limit"
                                 ? OrderPriceType.Limit
                                 : OrderPriceType.Market;
 
-                            if (myOrder.data[i].side == "Sell")
+                            if (MyOrderEvent != null)
                             {
-                                order.Side = Side.Sell;
-                            }
-                            else if (myOrder.data[i].side == "Buy")
-                            {
-                                order.Side = Side.Buy;
+                                MyOrderEvent(order);
                             }
 
                             _newOrders.Add(order);
-
-                            if (_ordersToCheck != null && _ordersToCheck.Count != 0)
-                            {
-                                Order or = _ordersToCheck.Find(o => o.NumberUser == order.NumberUser);
-
-                                if (or != null && !string.IsNullOrEmpty(order.NumberMarket))
-                                {
-                                    or.NumberMarket = order.NumberMarket;
-                                }
-                            }
                         }
-
                         else if (myOrder.action == "update" ||
                            (myOrder.action == "partial" &&
                             (myOrder.data[i].ordStatus == "Canceled" || myOrder.data[i].ordStatus == "Rejected")
@@ -1885,7 +1200,7 @@ namespace OsEngine.Market.Servers.BitMex
                             if (needOrder == null)
                             {
                                 needOrder = new Order();
-                                
+
                                 needOrder.NumberUser = Convert.ToInt32(myOrder.data[i].clOrdID);
                                 needOrder.NumberMarket = myOrder.data[i].orderID;
                                 needOrder.SecurityNameCode = myOrder.data[i].symbol;
@@ -1905,7 +1220,7 @@ namespace OsEngine.Market.Servers.BitMex
                                     needOrder.TimeCallBack = Convert.ToDateTime(myOrder.data[0].transactTime);
                                 }
 
-                                needOrder.PortfolioNumber = myOrder.data[i].account.ToString();
+                                needOrder.PortfolioNumber = "BitMex";
 
                                 if (!string.IsNullOrEmpty(myOrder.data[i].ordType))
                                 {
@@ -1926,17 +1241,11 @@ namespace OsEngine.Market.Servers.BitMex
                                     }
                                 }
 
-                                _newOrders.Add(needOrder);
-                            }
-
-                            if (_ordersToCheck != null && _ordersToCheck.Count != 0)
-                            {
-                                Order or = _ordersToCheck.Find(o => o.NumberUser == needOrder.NumberUser);
-
-                                if (or != null && !string.IsNullOrEmpty(needOrder.NumberMarket))
+                                if (MyOrderEvent != null)
                                 {
-                                    or.NumberMarket = needOrder.NumberMarket;
+                                    MyOrderEvent(needOrder);
                                 }
+                                _newOrders.Add(needOrder);
                             }
 
                             if (needOrder != null)
@@ -1964,8 +1273,7 @@ namespace OsEngine.Market.Servers.BitMex
                                     {
                                         needOrder.VolumeExecute = myOrder.data[i].cumQty.ToDecimal();
                                     }
-
-                                 }
+                                }
 
                                 if (myOrder.data[i].ordStatus == "Filled")
                                 {
@@ -1975,34 +1283,6 @@ namespace OsEngine.Market.Servers.BitMex
                                         needOrder.VolumeExecute = myOrder.data[i].cumQty.ToDecimal();
                                     }
                                 }
-                                if (_myTrades != null &&
-                                    _myTrades.Count != 0)
-                                {
-                                    List<MyTrade> myTrade =
-                                        _myTrades.FindAll(trade => trade.NumberOrderParent == needOrder.NumberMarket);
-
-                                    for (int tradeNum = 0; tradeNum < myTrade.Count; tradeNum++)
-                                    {
-                                        if (MyTradeEvent != null)
-                                        {
-                                            MyTradeEvent(myTrade[tradeNum]);
-                                        }
-                                    }
-                                }
-
-                                if (needOrder.State == OrderStateType.Done ||
-                                    needOrder.State == OrderStateType.Cancel ||
-                                    needOrder.State == OrderStateType.Fail)
-                                {
-                                    for (int i2 = 0; i2 < _ordersToCheck.Count; i2++)
-                                    {
-                                        if (_ordersToCheck[i2].NumberUser == needOrder.NumberUser)
-                                        {
-                                            _ordersToCheck.RemoveAt(i2);
-                                            break;
-                                        }
-                                    }
-                                }
 
                                 if (MyOrderEvent != null)
                                 {
@@ -2010,8 +1290,6 @@ namespace OsEngine.Market.Servers.BitMex
                                 }
                             }
                         }
-
-
                     }
                 }
                 catch (Exception error)
@@ -2021,120 +1299,1286 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-        /// <summary>
-        /// sent order to execution in the trading systme
-        /// выслать ордер на исполнение в торговую систему
-        /// </summary>
-        /// <param name="order">order / ордер</param>
-        public void SendOrder(Order order)
+        private void UpdatePortfolio(BitMexPortfolio portf)
         {
-            order.TimeCreate = ServerTime;
-            _ordersToExecute.Enqueue(order);
+            try
+            {
+                Portfolio osPortf = new Portfolio();
 
-            _ordersToCheck.Add(order);
+                Portfolio portfolio = new Portfolio();
+                portfolio.Number = "BitMex";
+                portfolio.ValueBegin = 1;
+                portfolio.ValueCurrent = 1;
+
+                PositionOnBoard pos = new PositionOnBoard();
+
+                if (portf.action == "partial")
+                {
+                    pos.SecurityNameCode = portf.data[0].currency;
+                    pos.ValueBegin = portf.data[0].walletBalance.ToDecimal() / 1000000;
+                }
+                else if (portf.action == "update")
+                {
+                    pos.SecurityNameCode = portf.data[0].currency;
+                    // pos.ValueBegin = portf.data[0].initMargin.ToDecimal() / 1000000;
+                    pos.ValueCurrent = portf.data[0].availableMargin.ToDecimal() / 1000000;
+                    pos.ValueBlocked = pos.ValueBegin - pos.ValueCurrent;
+
+                }
+                else
+                {
+                    pos.SecurityNameCode = portf.data[0].currency;
+
+                    pos.ValueCurrent = portf.data[0].availableMargin.ToDecimal() / 1000000;
+                    pos.ValueBlocked = pos.ValueBegin - pos.ValueCurrent;
+                }
+
+                portfolio.SetNewPosition(pos);
+
+                if (PortfolioEvent != null)
+                {
+                    PortfolioEvent(new List<Portfolio> { portfolio });
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
+        private List<MarketDepth> _depths = new List<MarketDepth>();
+        private object _quoteLock = new object();
+
+        private void UpdateMarketDepth(BitMexQuotes quotes)
+        {
+            try
+            {
+                MarketDepth depth = null;
+
+                decimal vol = 1;
+
+                for (int i = 0; i < _depths.Count; i++)
+                {
+                    if (_depths[i].SecurityNameCode == quotes.data[0].symbol)
+                    {
+                        depth = _depths[i];
+                        break;
+                    }
+                }
+
+                lock (_quoteLock)
+                {
+                    if (quotes.action == "partial")
+                    {
+                        if (depth == null)
+                        {
+                            depth = new MarketDepth();
+                            _depths.Add(depth);
+                        }
+                        else
+                        {
+                            depth.Asks.Clear();
+                            depth.Bids.Clear();
+                        }
+                        depth.SecurityNameCode = quotes.data[0].symbol;
+                        List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                        List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                        for (int i = 0; i < quotes.data.Count; i++)
+                        {
+                            if (quotes.data[i].price == null ||
+                                quotes.data[i].price.ToDecimal() == 0)
+                            {
+                                continue;
+                            }
+
+                            if (quotes.data[i].symbol.Contains("USDT"))
+                            {
+                                vol = 1000000;
+                            }
+                            if (quotes.data[i].side == "Sell")
+                            {
+                                ascs.Add(new MarketDepthLevel()
+                                {
+                                    Ask = quotes.data[i].size.ToDecimal() / vol,
+                                    Price = quotes.data[i].price.ToDecimal(),
+                                    Id = quotes.data[i].id
+                                });
+
+                                if (depth.Bids != null && depth.Bids.Count > 2 &&
+                                    quotes.data[i].price.ToDecimal() < depth.Bids[0].Price)
+                                {
+                                    depth.Bids.RemoveAt(0);
+                                }
+                            }
+                            else
+                            {
+                                bids.Add(new MarketDepthLevel()
+                                {
+                                    Bid = quotes.data[i].size.ToDecimal() / vol,
+                                    Price = quotes.data[i].price.ToDecimal(),
+                                    Id = quotes.data[i].id
+                                });
+
+                                if (depth.Asks != null && depth.Asks.Count > 2 &&
+                                    quotes.data[i].price.ToDecimal() > depth.Asks[0].Price)
+                                {
+                                    depth.Asks.RemoveAt(0);
+                                }
+                            }
+                        }
+
+                        ascs.Reverse();
+                        depth.Asks = ascs;
+                        depth.Bids = bids;
+                    }
+
+                    if (quotes.action == "update")
+                    {
+                        if (depth == null)
+                            return;
+
+                        for (int i = 0; i < quotes.data.Count; i++)
+                        {
+                            if (quotes.data[i].symbol.Contains("USDT"))
+                            {
+                                vol = 1000000;
+                            }
+
+                            if (quotes.data[i].side == "Sell")
+                            {
+                                for (int j = 0; j < depth.Asks.Count; j++)
+                                {
+                                    if (depth.Asks[j].Id == quotes.data[i].id)
+                                    {
+                                        depth.Asks[j].Ask = quotes.data[i].size.ToDecimal() / vol;
+                                    }
+                                    else
+                                    {
+                                        if (quotes.data[i].price == null ||
+                                       quotes.data[i].price == "0")
+                                        {
+                                            continue;
+                                        }
+
+                                        decimal price = quotes.data[i].price.ToDecimal();
+
+                                        if (j == 0 && price < depth.Asks[j].Price)
+                                        {
+                                            depth.Asks.Insert(j, new MarketDepthLevel()
+                                            {
+                                                Ask = quotes.data[i].size.ToDecimal() / vol,
+                                                Price = quotes.data[i].price.ToDecimal(),
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                        else if (j != depth.Asks.Count - 1 && price > depth.Asks[j].Price && price < depth.Asks[j + 1].Price)
+                                        {
+                                            depth.Asks.Insert(j + 1, new MarketDepthLevel()
+                                            {
+                                                Ask = quotes.data[i].size.ToDecimal() / vol,
+                                                Price = quotes.data[i].price.ToDecimal(),
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                        else if (j == depth.Asks.Count - 1 && price > depth.Asks[j].Price)
+                                        {
+                                            depth.Asks.Add(new MarketDepthLevel()
+                                            {
+                                                Ask = quotes.data[i].size.ToDecimal() / vol,
+                                                Price = quotes.data[i].price.ToDecimal(),
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+
+                                        if (depth.Bids != null && depth.Bids.Count > 2 &&
+                                            quotes.data[i].price.ToDecimal() < depth.Bids[0].Price)
+                                        {
+                                            depth.Bids.RemoveAt(0);
+                                        }
+                                    }
+                                }
+                            }
+                            else if (quotes.data[i].side == "Buy")
+                            {
+                                for (int j = 0; j < depth.Bids.Count; j++)
+                                {
+                                    if (depth.Bids[j].Id == quotes.data[i].id)
+                                    {
+                                        depth.Bids[j].Bid = quotes.data[i].size.ToDecimal() / vol;
+                                    }
+                                    else
+                                    {
+                                        if (quotes.data[i].price == null ||
+                                            quotes.data[i].price == "0")
+                                        {
+                                            continue;
+                                        }
+
+                                        decimal price = quotes.data[i].price.ToDecimal();
+
+                                        if (j == 0 && price > depth.Bids[j].Price)
+                                        {
+                                            depth.Bids.Insert(j, new MarketDepthLevel()
+                                            {
+                                                Bid = quotes.data[i].size.ToDecimal() / vol,
+                                                Price = quotes.data[i].price.ToDecimal(),
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                        else if (j != depth.Bids.Count - 1 && price < depth.Bids[j].Price && price > depth.Bids[j + 1].Price)
+                                        {
+                                            depth.Bids.Insert(j + 1, new MarketDepthLevel()
+                                            {
+                                                Bid = quotes.data[i].size.ToDecimal() / vol,
+                                                Price = quotes.data[i].price.ToDecimal(),
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+                                        else if (j == depth.Bids.Count - 1 && price < depth.Bids[j].Price)
+                                        {
+                                            depth.Bids.Add(new MarketDepthLevel()
+                                            {
+                                                Bid = quotes.data[i].size.ToDecimal() / vol,
+                                                Price = quotes.data[i].price.ToDecimal(),
+                                                Id = quotes.data[i].id
+                                            });
+                                        }
+
+                                        if (depth.Asks != null && depth.Asks.Count > 2 &&
+                                            quotes.data[i].price.ToDecimal() > depth.Asks[0].Price)
+                                        {
+                                            depth.Asks.RemoveAt(0);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (quotes.action == "delete")
+                    {
+                        if (depth == null)
+                            return;
+
+                        for (int i = 0; i < quotes.data.Count; i++)
+                        {
+                            if (quotes.data[i].side == "Sell")
+                            {
+                                for (int j = 0; j < depth.Asks.Count; j++)
+                                {
+                                    if (depth.Asks[j].Id == quotes.data[i].id)
+                                    {
+                                        depth.Asks.RemoveAt(j);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (int j = 0; j < depth.Bids.Count; j++)
+                                {
+                                    if (depth.Bids[j].Id == quotes.data[i].id)
+                                    {
+                                        depth.Bids.RemoveAt(j);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (quotes.action == "insert")
+                {
+                    if (depth == null)
+                        return;
+
+                    for (int i = 0; i < quotes.data.Count; i++)
+                    {
+                        if (quotes.data[i].price == null ||
+                            quotes.data[i].price == "0")
+                        {
+                            continue;
+                        }
+
+                        if (quotes.data[i].symbol.Contains("USDT"))
+                        {
+                            vol = 1000000;
+                        }
+
+                        if (quotes.data[i].side == "Sell")
+                        {
+                            decimal price = quotes.data[i].price.ToDecimal();
+
+                            for (int j = 0; j < depth.Asks.Count; j++)
+                            {
+                                if (j == 0 && price < depth.Asks[j].Price)
+                                {
+                                    depth.Asks.Insert(j, new MarketDepthLevel()
+                                    {
+                                        Ask = quotes.data[i].size.ToDecimal() / vol,
+                                        Price = quotes.data[i].price.ToDecimal(),
+                                        Id = quotes.data[i].id
+                                    });
+                                }
+                                else if (j != depth.Asks.Count - 1 && price > depth.Asks[j].Price && price < depth.Asks[j + 1].Price)
+                                {
+                                    depth.Asks.Insert(j + 1, new MarketDepthLevel()
+                                    {
+                                        Ask = quotes.data[i].size.ToDecimal() / vol,
+                                        Price = quotes.data[i].price.ToDecimal(),
+                                        Id = quotes.data[i].id
+                                    });
+                                }
+                                else if (j == depth.Asks.Count - 1 && price > depth.Asks[j].Price)
+                                {
+                                    depth.Asks.Add(new MarketDepthLevel()
+                                    {
+                                        Ask = quotes.data[i].size.ToDecimal() / vol,
+                                        Price = quotes.data[i].price.ToDecimal(),
+                                        Id = quotes.data[i].id
+                                    });
+                                }
+
+                                if (depth.Bids != null && depth.Bids.Count > 2 &&
+                                    quotes.data[i].price.ToDecimal() < depth.Bids[0].Price)
+                                {
+                                    depth.Bids.RemoveAt(0);
+                                }
+                            }
+                        }
+                        else // quotes.data[i].side == "Buy"
+                        {
+                            decimal price = quotes.data[i].price.ToDecimal();
+
+                            for (int j = 0; j < depth.Bids.Count; j++)
+                            {
+                                if (j == 0 && price > depth.Bids[j].Price)
+                                {
+                                    depth.Bids.Insert(j, new MarketDepthLevel()
+                                    {
+                                        Bid = quotes.data[i].size.ToDecimal() / vol,
+                                        Price = quotes.data[i].price.ToDecimal(),
+                                        Id = quotes.data[i].id
+                                    });
+                                }
+                                else if (j != depth.Bids.Count - 1 && price < depth.Bids[j].Price && price > depth.Bids[j + 1].Price)
+                                {
+                                    depth.Bids.Insert(j + 1, new MarketDepthLevel()
+                                    {
+                                        Bid = quotes.data[i].size.ToDecimal() / vol,
+                                        Price = quotes.data[i].price.ToDecimal(),
+                                        Id = quotes.data[i].id
+                                    });
+                                }
+                                else if (j == depth.Bids.Count - 1 && price < depth.Bids[j].Price)
+                                {
+                                    depth.Bids.Add(new MarketDepthLevel()
+                                    {
+                                        Bid = quotes.data[i].size.ToDecimal() / vol,
+                                        Price = quotes.data[i].price.ToDecimal(),
+                                        Id = quotes.data[i].id
+                                    });
+                                }
+
+                                if (depth.Asks != null && depth.Asks.Count > 2 &&
+                                    quotes.data[i].price.ToDecimal() > depth.Asks[0].Price)
+                                {
+                                    depth.Asks.RemoveAt(0);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                depth.Time = Convert.ToDateTime(quotes.data[0].timestamp);
+
+                if (depth.Time == DateTime.MinValue)
+                {
+                    return;
+                }
+
+                if (depth.Time == _lastTimeMd)
+                {
+                    _lastTimeMd = _lastTimeMd.AddMilliseconds(1);
+                    depth.Time = _lastTimeMd;
+                }
+
+                _lastTimeMd = depth.Time;
+
+                if (MarketDepthEvent != null)
+                {
+                    MarketDepthEvent(depth.GetCopy());
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+        private DateTime _lastTimeMd = DateTime.MinValue;
+
+        private readonly object _newTradesLoker = new object();
+
+        private void UpdateTrade(BitMexTrades trades)
+        {
+            try
+            {
+                lock (_newTradesLoker)
+                {
+
+                    for (int i = 0; i < trades.data.Count; i++)
+                    {
+                        Trade trade = new Trade();
+                        trade.SecurityNameCode = trades.data[i].symbol;
+                        trade.Price = trades.data[i].price.ToDecimal();
+                        trade.Id = trades.data[i].trdMatchID;
+
+                        //trade.Time = DateTime.ParseExact(trades.data[i].timestamp, "yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
+
+                        //long timeMs = TimeManager.GetTimeStampMilliSecondsToDateTime(Convert.ToDateTime(trades.data[i].timestamp));
+                        //trade.Time = TimeManager.GetDateTimeFromTimeStamp(timeMs);
+
+                        trade.Time = Convert.ToDateTime(trades.data[i].timestamp).AddMilliseconds(1);
+                        trade.Volume = trades.data[i].size.ToDecimal(); ;
+                        trade.Side = trades.data[i].side == "Buy" ? Side.Buy : Side.Sell;
+
+                        ServerTime = trade.Time;
+
+                        if (NewTradesEvent != null)
+                        {
+                            NewTradesEvent(trade);
+                        }
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdatePosition(BitMexPosition pos)
+        {
+            Portfolio portfolio = new Portfolio();
+            portfolio.Number = "BitMex";
+            portfolio.ValueBegin = 1;
+            portfolio.ValueCurrent = 1;
+
+            for (int i = 0; i < pos.data.Count; i++)
+            {
+                decimal multiplier = GetMultiplierForSecurity(pos.data[i].symbol);
+                PositionOnBoard newPos = new PositionOnBoard();
+
+                if (pos.action == "partial")
+                {
+                    newPos.PortfolioName = "BitMex";
+                    newPos.SecurityNameCode = pos.data[i].symbol;
+                    //newPos.ValueBlocked = pos.data[i].posMargin.ToDecimal();
+                    newPos.ValueCurrent = pos.data[i].currentQty.ToDecimal() / multiplier;
+                }
+                else if (pos.action == "update")
+                {
+                    newPos.PortfolioName = "BitMex";
+                    newPos.SecurityNameCode = pos.data[i].symbol;
+                    //newPos.ValueBlocked = pos.data[i].posMargin.ToDecimal();
+                    newPos.ValueCurrent = pos.data[i].currentQty.ToDecimal() / multiplier;
+                }
+                else
+                {
+                    newPos.PortfolioName = "BitMex";
+                    newPos.SecurityNameCode = pos.data[i].symbol;
+                    newPos.ValueBlocked = pos.data[i].posMargin.ToDecimal();
+                    newPos.ValueCurrent = pos.data[i].currentQty.ToDecimal() / multiplier;
+                }
+
+                portfolio.SetNewPosition(newPos);
+
+            }
+
+            if (PortfolioEvent != null)
+            {
+                PortfolioEvent(new List<Portfolio> { portfolio });
+            }
+        }
+
+        private object _myTradeLocker = new object();
+
+        private void UpdateMyTrade(BitMexMyOrders myOrder)
+        {
+            try
+            {
+                lock (_myTradeLocker)
+                {
+
+
+                    for (int i = 0; i < myOrder.data.Count; i++)
+                    {
+                        if (myOrder.data[i].lastQty == null ||
+                            myOrder.data[i].lastQty.ToDecimal() == 0)
+                        {
+                            continue;
+                        }
+
+                        decimal multiplier = GetMultiplierForSecurity(myOrder.data[i].symbol);
+
+                        MyTrade myTrade = new MyTrade();
+                        myTrade.Time = Convert.ToDateTime(myOrder.data[i].transactTime);
+
+                        //myTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(orderOnBoard.data[i].transactTime.ToDouble());
+
+                        myTrade.NumberOrderParent = myOrder.data[i].orderID;
+                        myTrade.NumberTrade = myOrder.data[i].clOrdID;
+                        myTrade.Price = myOrder.data[i].avgPx.ToDecimal();
+                        myTrade.SecurityNameCode = myOrder.data[i].symbol;
+                        myTrade.Side = myOrder.data[i].side == "Buy" ? Side.Buy : Side.Sell;
+
+                        if (myOrder.data[i].lastQty != null)
+                        {
+                            myTrade.Volume = myOrder.data[i].lastQty.ToDecimal() / multiplier;
+                        }
+
+                        if (MyTradeEvent != null)
+                        {
+                            MyTradeEvent(myTrade);
+                        }
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+
+        #endregion
+
+        #region 11 Trade
+
+        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private object _orderLocker = new object();
+
+        public void SendOrder(Order order)
+        {
+            try
+            {
+                rateGateSendOrder.WaitToProceed();
+
+                decimal multiplier = GetMultiplierForSecurity(order.SecurityNameCode);
+
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param.Add("symbol", order.SecurityNameCode);
+                param.Add("side", order.Side == Side.Buy ? "Buy" : "Sell");
+                param.Add("orderQty", (order.Volume * multiplier).ToString().Replace(",", "."));
+                param.Add("clOrdID", order.NumberUser.ToString());
+                param.Add("origClOrdID", order.NumberUser.ToString());
+
+                if (order.TypeOrder == OrderPriceType.Market)
+                {
+                    param.Add("ordType", "Market");
+                }
+                else
+                {
+                    param.Add("ordType", "Limit");
+                    param.Add("timeInForce", "GoodTillCancel");
+                    param.Add("price", order.Price.ToString().Replace(",", "."));
+                }
+
+                var res = Query("POST", "/order", param, true);
+
+                if (res != null && res.Contains("clOrdID"))
+                {
+                    SendLogMessage(res, LogMessageType.Trade);
+                }
+                else
+                {
+                    order.State = OrderStateType.Fail;
+
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(order);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
 
         }
 
-        /// <summary>
-        /// cancel orders from the trading system
-        /// отозвать ордер из торговой системы
-        /// </summary>
-        /// <param name="order">order/ордер</param>
         public void CancelOrder(Order order)
         {
-            _ordersToCansel.Enqueue(order);
-            _ordersCanseled.Add(order);
+            try
+            {
+                rateGateCancelOrder.WaitToProceed();
+
+                if (string.IsNullOrEmpty(order.NumberMarket))
+                {
+                    Order onBoard = GetOrdersState(order);
+
+                    if (onBoard == null)
+                    {
+                        order.State = OrderStateType.Fail;
+                        SendLogMessage("When revoking an orderOnBoard, we didn't find it on the exchange. We think it's already been revoked.",
+                            LogMessageType.Error);
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+                        return;
+                    }
+                    else if (onBoard.State == OrderStateType.Cancel)
+                    {
+                        order.TimeCancel = onBoard.TimeCallBack;
+                        order.State = OrderStateType.Cancel;
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+                        return;
+                    }
+                    else if (onBoard.State == OrderStateType.Fail)
+                    {
+                        order.State = OrderStateType.Fail;
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+                        return;
+                    }
+
+                    order.NumberMarket = onBoard.NumberMarket;
+                    order = onBoard;
+                }
+
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param.Add("symbol", order.SecurityNameCode);
+                param.Add("orderID", order.NumberMarket);
+
+                Query("DELETE", "/order", param, true);
+
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+
+            }
         }
 
-        /// <summary>
-        /// cancel all orders from trading system
-        /// отозвать все ордера из торговой системы
-        /// </summary>
+        private Order GetOrdersState(Order oldOrder)
+        {
+            List<string> namesSec = new List<string>();
+            namesSec.Add(oldOrder.SecurityNameCode);
+
+            List<DatumOrder> allOrders = new List<DatumOrder>();
+
+            for (int i = 0; i < namesSec.Count; i++)
+            {
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param.Add("symbol", namesSec[i]);
+                param.Add("count", 500.ToString());
+                param.Add("reverse", true.ToString());
+
+                var res = Query("GET", "/order", param, true);
+
+                if (res == null)
+                {
+                    continue;
+                }
+
+                List<DatumOrder> orders = JsonConvert.DeserializeAnonymousType(res, new List<DatumOrder>());
+
+                if (orders != null && orders.Count != 0)
+                {
+                    allOrders.AddRange(orders);
+                }
+            }
+
+            DatumOrder orderOnBoard = new DatumOrder();
+            for (int i = 0; i < allOrders.Count; i++)
+            {
+                if (allOrders[i].clOrdID == oldOrder.NumberUser.ToString())
+                {
+                    orderOnBoard = allOrders[i];
+                }
+            }
+            //orderOnBoard = allOrders.Find(ord => ord.clOrdID == oldOrder.NumberUser.ToString());
+
+            if (orderOnBoard == null)
+            {
+                return null;
+            }
+
+            if (String.IsNullOrEmpty(orderOnBoard.clOrdID))
+            {
+                return null;
+            }
+
+            Order newOrder = new Order();
+            newOrder.NumberMarket = orderOnBoard.orderID;
+            newOrder.NumberUser = oldOrder.NumberUser;
+            newOrder.SecurityNameCode = oldOrder.SecurityNameCode;
+            newOrder.State = OrderStateType.Cancel;
+            newOrder.Volume = oldOrder.Volume;
+            newOrder.VolumeExecute = oldOrder.VolumeExecute;
+            newOrder.Price = oldOrder.Price;
+            newOrder.TypeOrder = oldOrder.TypeOrder;
+            newOrder.TimeCallBack = oldOrder.TimeCallBack;
+            newOrder.TimeCancel = newOrder.TimeCallBack;
+            newOrder.ServerType = ServerType.BitMex;
+            newOrder.PortfolioNumber = oldOrder.PortfolioNumber;
+
+
+            if (orderOnBoard.ordStatus == "New" ||
+                orderOnBoard.ordStatus == "PartiallyFilled")
+            {
+                newOrder.State = OrderStateType.Active;
+            }
+            else if (orderOnBoard.ordStatus == "Filled")
+            {
+                newOrder.State = OrderStateType.Done;
+                //MyTrade trade = new MyTrade();
+                //trade.NumberOrderParent = oldOrder.NumberMarket;
+                //trade.NumberTrade = NumberGen.GetNumberOrder(StartProgram.IsOsTrader).ToString();
+                //trade.SecurityNameCode = oldOrder.SecurityNameCode;
+                //trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orderOnBoard.timestamp));
+                //trade.Side = oldOrder.Side;
+
+                //if (MyTradeEvent != null)
+                //{
+                //    MyTradeEvent(trade);
+                //}
+            }
+            else //if (orderOnBoard.ordStatus == "Canceled")
+            {
+                newOrder.State = OrderStateType.Cancel;
+            }
+
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(newOrder);
+            }
+
+            return newOrder;
+        }
+
         public void CancelAllOrders()
         {
+            List<Order> openOrders = GetAllOpenOrders();
 
+            if (openOrders == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < openOrders.Count; i++)
+            {
+                CancelOrder(openOrders[i]);
+            }
+        }
+
+        public void GetAllActivOrders()
+        {
+            List<Order> openOrders = GetAllOpenOrders();
+
+            if (openOrders == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < openOrders.Count; i++)
+            {
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(openOrders[i]);
+                }
+            }
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+            List<Order> allSecurityOrders = GetAllOrdersToSecurity(order.SecurityNameCode);
+
+            if (allSecurityOrders == null)
+            {
+                return;
+            }
+
+            Order myOrderActualOnBoard = null;
+
+            for (int i = 0; i < allSecurityOrders.Count; i++)
+            {
+                Order curOrder = allSecurityOrders[i];
+
+                if (curOrder.NumberUser != 0 &&
+                    order.NumberUser != 0 &&
+                    curOrder.NumberUser == order.NumberUser)
+                {
+                    myOrderActualOnBoard = curOrder;
+                    break;
+                }
+
+                if (string.IsNullOrEmpty(curOrder.NumberMarket) == false &&
+                    string.IsNullOrEmpty(order.NumberMarket) == false
+                    && curOrder.NumberMarket == order.NumberMarket)
+                {
+                    myOrderActualOnBoard = curOrder;
+                    break;
+                }
+            }
+
+            if (myOrderActualOnBoard == null)
+            {
+                return;
+            }
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(myOrderActualOnBoard);
+            }
+
+            if (myOrderActualOnBoard.State == OrderStateType.Done ||
+                myOrderActualOnBoard.State == OrderStateType.Partial)
+            { // запрашиваем MyTrades, если по ордеру были исполнения
+
+                List<MyTrade> trades = GetAllMyTradesToOrder(myOrderActualOnBoard);
+
+                if (trades != null)
+                {
+                    for (int i = 0; i < trades.Count; i++)
+                    {
+                        if (MyTradeEvent != null)
+                        {
+                            MyTradeEvent(trades[i]);
+                        }
+                    }
+                }
+            }
         }
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-
-        }
-
-        // outgoing events
-        // исходящие события
-
-        /// <summary>
-        /// API connection established
-        /// соединение с API установлено
-        /// </summary>
-        public event Action ConnectEvent;
-
-        /// <summary>
-        /// API connection lost
-        /// соединение с API разорвано
-        /// </summary>
-        public event Action DisconnectEvent;
-
-        /// <summary>
-        /// called when order changed
-        /// вызывается когда изменился ордер
-        /// </summary>
-        public event Action<Order> MyOrderEvent;
-
-        /// <summary>
-        /// called when my trade changed
-        /// вызывается когда изменился мой трейд
-        /// </summary>
-        public event Action<MyTrade> MyTradeEvent;
-
-        /// <summary>
-        /// appear a new portfolio
-        /// появились новые портфели
-        /// </summary>
-        public event Action<List<Portfolio>> PortfolioEvent;
-
-        /// <summary>
-        /// new securities
-        /// новые бумаги
-        /// </summary>
-        public event Action<List<Security>> SecurityEvent;
-
-        /// <summary>
-        /// new depth
-        /// новый стакан
-        /// </summary>
-        public event Action<MarketDepth> MarketDepthEvent;
-
-        /// <summary>
-        /// new trade
-        /// новый трейд
-        /// </summary>
-        public event Action<Trade> NewTradesEvent;
-
-        private void _client_SendLogMessage(string message, LogMessageType type)
-        {
-            if (LogMessageEvent != null)
+            try
             {
-                LogMessageEvent(message, type);
+                rateGateCancelOrder.WaitToProceed();
+
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param.Add("symbol", security.Name);
+
+                Query("DELETE", "/order/all", param, true);
+            }
+            catch (Exception exeption)
+            {
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
         }
 
-        // work with log
-        // работа с логом
+        public List<MyTrade> GetAllMyTradesToOrder(Order order)
+        {
+            decimal multiplier = GetMultiplierForSecurity(order.SecurityNameCode);
 
-        /// <summary>
-        /// send a new message to up
-        /// выслать новое сообщение на верх
-        /// </summary>
+            var param = new Dictionary<string, string>();
+            param.Add("symbol", order.SecurityNameCode);
+            param.Add("count", 500.ToString());
+
+            var res = Query("GET", "/execution", param, true);
+
+            if (res == null)
+            {
+                return null;
+            }
+
+            List<DatumMyOrder> myTrades = JsonConvert.DeserializeAnonymousType(res, new List<DatumMyOrder>());
+
+            List<MyTrade> trades = new List<MyTrade>();
+
+            for (int i = 0; i < myTrades.Count; i++)
+            {
+                if (myTrades[i].orderID != order.NumberMarket)
+                {
+                    continue;
+                }
+
+                MyTrade newTrade = new MyTrade();
+                newTrade.SecurityNameCode = myTrades[i].symbol;
+                newTrade.NumberTrade = myTrades[i].clOrdID;
+                newTrade.NumberOrderParent = myTrades[i].orderID;
+                newTrade.Volume = myTrades[i].lastQty.ToDecimal() / multiplier;
+                newTrade.Price = myTrades[i].price.ToDecimal();
+                newTrade.Time = Convert.ToDateTime(myTrades[i].transactTime);
+                newTrade.Side = order.Side;
+                trades.Add(newTrade);
+            }
+
+            return trades;
+        }
+
+        public List<Order> GetAllOrdersToSecurity(string securityName)
+        {
+            decimal multiplier = GetMultiplierForSecurity(securityName);
+
+            var param = new Dictionary<string, string>();
+
+            param.Add("symbol", securityName);
+            param.Add("count", 500.ToString());
+            param.Add("reverse", true.ToString());
+
+            var res = Query("GET", "/order", param, true);
+
+            if (res == null)
+            {
+                return null;
+            }
+
+            List<DatumOrder> orders = JsonConvert.DeserializeAnonymousType(res, new List<DatumOrder>());
+
+            if (orders == null)
+            {
+                return null;
+            }
+
+            List<Order> result = new List<Order>();
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                DatumOrder myOrder = orders[i];
+
+                Order newOrder = new Order();
+                newOrder.NumberMarket = orders[i].orderID;
+
+                if (orders[i].clOrdID != null)
+                {
+                    string id = orders[i].clOrdID;
+                    try
+                    {
+                        newOrder.NumberUser = Convert.ToInt32(id);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                newOrder.SecurityNameCode = orders[i].symbol;
+                newOrder.Price = orders[i].price.ToDecimal();
+                newOrder.Volume = orders[i].orderQty.ToDecimal() / multiplier;
+                newOrder.ServerType = ServerType.BitMex;
+                newOrder.PortfolioNumber = "BitMex";
+
+                if (orders[i].side == "Buy")
+                {
+                    newOrder.Side = Side.Buy;
+                }
+                else
+                {
+                    newOrder.Side = Side.Sell;
+                }
+
+                if (orders[i].ordType == "Market")
+                {
+                    newOrder.TypeOrder = OrderPriceType.Market;
+                }
+                else
+                {
+                    newOrder.TypeOrder = OrderPriceType.Limit;
+                }
+                newOrder.TimeCallBack = Convert.ToDateTime(orders[i].transactTime);
+                newOrder.TimeCreate = Convert.ToDateTime(orders[i].timestamp);
+                //newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(orders[i].transactTime.ToDouble());
+                //newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(orders[i].timestamp.ToDouble());
+
+
+                if (myOrder.ordStatus == "New")
+                {
+                    newOrder.State = OrderStateType.Active;
+                }
+                else if (myOrder.ordStatus == "Filled")
+                {
+                    newOrder.State = OrderStateType.Done;
+                    newOrder.TimeDone = newOrder.TimeCallBack;
+                }
+                else if (myOrder.ordStatus == "PartiallyFilled")
+                {
+                    newOrder.State = OrderStateType.Partial;
+                }
+                else if (myOrder.ordStatus == "Canceled"
+                || myOrder.ordStatus == "Expired")
+                {
+                    newOrder.State = OrderStateType.Cancel;
+                    newOrder.TimeCancel = newOrder.TimeCallBack;
+                }
+                else if (myOrder.ordStatus == "Rejected")
+                {
+                    newOrder.State = OrderStateType.Fail;
+                }
+                else
+                {
+
+                }
+
+                result.Add(newOrder);
+            }
+
+            return result;
+        }
+
+        private List<Order> GetAllOpenOrders()
+        {
+            List<Order> openOrders = new List<Order>();
+
+            var param = new Dictionary<string, string>();
+            param.Add("filter", "{\"open\":true}");
+            param.Add("reverse", true.ToString());
+
+
+            var res = Query("GET", "/order", param, true);
+
+            if (res == null || res == "[]")
+            {
+                return openOrders;
+            }
+
+            List<DatumOrder> orders = JsonConvert.DeserializeAnonymousType(res, new List<DatumOrder>());
+
+            if (orders == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                if (orders[i] == null)
+                {
+                    return null;
+                }
+
+                Order newOrder = new Order();
+                newOrder.NumberMarket = orders[i].orderID;
+
+                if (orders[i].clOrdID != null)
+                {
+                    string id = orders[i].clOrdID;
+                    try
+                    {
+                        newOrder.NumberUser = Convert.ToInt32(id);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                decimal multiplier = GetMultiplierForSecurity(orders[i].symbol);
+
+                newOrder.SecurityNameCode = orders[i].symbol;
+                newOrder.State = OrderStateType.Active;
+                newOrder.Price = orders[i].price.ToDecimal();
+                newOrder.Volume = orders[i].orderQty.ToDecimal() / multiplier;
+                newOrder.ServerType = ServerType.BitMex;
+                newOrder.PortfolioNumber = "BitMex";
+
+                if (orders[i].side == "Buy")
+                {
+                    newOrder.Side = Side.Buy;
+                }
+                else
+                {
+                    newOrder.Side = Side.Sell;
+                }
+
+                newOrder.TimeCreate = Convert.ToDateTime(orders[i].transactTime);
+                newOrder.TimeCallBack = newOrder.TimeCreate;
+
+                try
+                {
+                    newOrder.Volume = orders[i].orderQty.ToDecimal() / multiplier;
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                openOrders.Add(newOrder);
+            }
+
+            return openOrders;
+        }
+
+        private decimal GetMultiplierForSecurity(string security)
+        {
+            string res11 = Query("GET", "/instrument/active");
+            List<BitMexSecurity> listSec = JsonConvert.DeserializeObject<List<BitMexSecurity>>(res11);
+            decimal multiplier = 1;
+            decimal underlyingToPositionMultiplier = 1;
+            decimal underlyingToSettleMultiplier = 1;
+            for (int i = 0; i < listSec.Count; i++)
+            {
+                if (security == listSec[i].symbol)
+                {
+                    underlyingToPositionMultiplier = listSec[i].underlyingToPositionMultiplier.ToDecimal();
+                    underlyingToSettleMultiplier = listSec[i].underlyingToSettleMultiplier.ToDecimal();
+                    break;
+                }
+            }
+
+            if (underlyingToPositionMultiplier != 0)
+            {
+                multiplier = underlyingToPositionMultiplier;
+            }
+            else if (underlyingToSettleMultiplier != 0)
+            {
+                multiplier = underlyingToSettleMultiplier;
+            }
+
+            return multiplier;
+        }
+
+        #endregion
+
+        #region 12 Queries
+
+        RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(500));
+        private object _queryHttpLocker = new object();
+        private string Query(string method, string function, Dictionary<string, string> param = null, bool auth = false, bool json = false)
+        {
+            lock (_queryHttpLocker)
+            {
+                _rateGate.WaitToProceed();
+                string paramData = json ? BuildJSON(param) : BuildQueryData(param);
+                string url = "/api/v1" + function + ((method == "GET" && paramData != "") ? "?" + paramData : "");
+                string postData = (method != "GET") ? paramData : "";
+
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(_domain + url);
+                webRequest.Method = method;
+
+                if (auth)
+                {
+                    string expires = GetExpires().ToString();
+                    string message = method + url + expires + postData;
+                    byte[] signatureBytes = hmacsha256(Encoding.UTF8.GetBytes(_secKey), Encoding.UTF8.GetBytes(message));
+                    string signatureString = ByteArrayToString(signatureBytes);
+
+                    webRequest.Headers.Add("api-expires", expires);
+                    webRequest.Headers.Add("api-key", _id);
+                    webRequest.Headers.Add("api-signature", signatureString);
+                }
+
+                try
+                {
+                    if (postData != "")
+                    {
+                        webRequest.ContentType = json ? "application/json" : "application/x-www-form-urlencoded";
+                        var data = Encoding.UTF8.GetBytes(postData);
+                        using (var stream = webRequest.GetRequestStream())
+                        {
+                            stream.Write(data, 0, data.Length);
+                        }
+                    }
+
+                    using (WebResponse webResponse = webRequest.GetResponse())
+                    using (Stream str = webResponse.GetResponseStream())
+                    using (StreamReader sr = new StreamReader(str))
+                    {
+                        return sr.ReadToEnd();
+                    }
+                }
+                catch (WebException wex)
+                {
+                    using (HttpWebResponse response = (HttpWebResponse)wex.Response)
+                    {
+                        if (response == null)
+                            throw;
+
+                        using (Stream str = response.GetResponseStream())
+                        {
+                            using (StreamReader sr = new StreamReader(str))
+                            {
+                                return sr.ReadToEnd();
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        private string BuildQueryData(Dictionary<string, string> param)
+        {
+            if (param == null)
+                return "";
+
+            StringBuilder b = new StringBuilder();
+            foreach (var item in param)
+                b.Append(string.Format("&{0}={1}", item.Key, WebUtility.UrlEncode(item.Value)));
+
+            try { return b.ToString().Substring(1); }
+            catch (Exception) { return ""; }
+        }
+
+        private string BuildJSON(Dictionary<string, string> param)
+        {
+            if (param == null)
+                return "";
+
+            var entries = new List<string>();
+            foreach (var item in param)
+                entries.Add(string.Format("\"{0}\":\"{1}\"", item.Key, item.Value));
+
+            return "{" + string.Join(",", entries) + "}";
+        }
+
+        public static string ByteArrayToString(byte[] ba)
+        {
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+
+        private long GetExpires()
+        {
+            return DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 3600; // set expires one hour in the future
+        }
+
+        private byte[] hmacsha256(byte[] keyByte, byte[] messageBytes)
+        {
+            using (var hash = new HMACSHA256(keyByte))
+            {
+                return hash.ComputeHash(messageBytes);
+            }
+        }
+
+
+
+        //private long GetNonce()
+        //{
+        //    DateTime yearBegin = new DateTime(1970, 1, 1);
+        //    var timeStamp = DateTime.UtcNow - yearBegin;
+        //    var r = timeStamp.TotalMilliseconds;
+        //    var re = Convert.ToInt64(r);
+
+        //    return re;
+        //}
+
+
+        #endregion
+
+        #region 13 Log
+
+        public event Action<string, LogMessageType> LogMessageEvent;
+
         private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -2143,53 +2587,7 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
+        #endregion
 
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// outgoing log message
-        /// исходящее сообщение для лога
-        /// </summary>
-        public event Action<string, LogMessageType> LogMessageEvent;
-    }
-
-    /// <summary>
-    /// one BitMex tick
-    /// один тик BitMex
-    /// </summary>
-    public class TradeBitMex
-    {
-        public string timestamp { get; set; }
-        public string symbol { get; set; }
-        public string side { get; set; }
-        public string size { get; set; }
-        public string price { get; set; }
-        public string tickDirection { get; set; }
-        public string trdMatchID { get; set; }
-        public object grossValue { get; set; }
-        public double homeNotional { get; set; }
-        public string foreignNotional { get; set; }
-    }
-
-    /// <summary>
-    /// BitMex candle
-    /// свеча BitMex
-    /// </summary>
-    public class BitMexCandle
-    {
-        public string timestamp { get; set; }
-        public string symbol { get; set; }
-        public decimal open { get; set; }
-        public decimal high { get; set; }
-        public decimal low { get; set; }
-        public decimal close { get; set; }
-        public int volume { get; set; }
     }
 }

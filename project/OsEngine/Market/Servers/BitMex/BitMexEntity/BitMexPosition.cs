@@ -133,25 +133,24 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
 
     public class DatumPos
     {
-        /// <summary>
-        /// account number
-        /// номер счета
-        /// </summary>
-        public int account { get; set; }
+        public string account { get; set; }    // Your unique account ID.
+        public string symbol { get; set; }     // The contract for this position.
+        public string currency { get; set; }   //The margin currency for this position.
+        public string currentQty { get; set; } // The current position amount in contracts.
+        public string markPrice { get; set; }  // The mark price of the symbol in quoteCurrency.
+        public string markValue { get; set; } // The currentQty at the mark price in the settlement currency of the symbol (currency).
+        public string riskValue { get; set; }
+        public string foreignNotional { get; set; } // Value of position in units of quoteCurrency.
+        public string posComm { get; set; }
+        public string posMargin { get; set; }
+        public string posMaint { get; set; }
+        public string maintMargin { get; set; }
+        public string unrealisedPnl { get; set; }
+        public string unrealisedPnlPcnt { get; set; }
+        public string unrealisedRoePcnt { get; set; }
+        public string liquidationPrice { get; set; }
+        public string timestamp { get; set; }
 
-        /// <summary>
-        /// instrument
-        /// инструмент
-        /// </summary>
-        public string symbol { get; set; }
-
-        /// <summary>
-        /// volume
-        /// объем
-        /// </summary>
-        public string currentQty { get; set; }
-
-        //public string currency { get; set; }
         //public string underlying { get; set; }
         //public string quoteCurrency { get; set; }
         //public double commission { get; set; }
@@ -191,24 +190,22 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         //public int grossOpenPremium { get; set; }
         //public int grossExecCost { get; set; }
         //public bool isOpen { get; set; }
-        //public double markPrice { get; set; }
-        //public int markValue { get; set; }
-        //public int riskValue { get; set; }
+
+
         //public double homeNotional { get; set; }
-        //public int foreignNotional { get; set; }
+
         //public string posState { get; set; }
         //public int posCost { get; set; }
         //public int posCost2 { get; set; }
         //public int posCross { get; set; }
         //public int posInit { get; set; }
-        //public int posComm { get; set; }
+
         //public int posLoss { get; set; }
-        //public int posMargin { get; set; }
-        //public int posMaint { get; set; }
+
         //public int posAllowance { get; set; }
         //public int taxableMargin { get; set; }
         //public int initMargin { get; set; }
-        //public int maintMargin { get; set; }
+
         //public int sessionMargin { get; set; }
         //public int targetExcessMargin { get; set; }
         //public int varMargin { get; set; }
@@ -222,9 +219,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         //public int indicativeTaxRate { get; set; }
         //public int indicativeTax { get; set; }
         //public int unrealisedTax { get; set; }
-        //public int unrealisedPnl { get; set; }
-        //public double unrealisedPnlPcnt { get; set; }
-        //public double unrealisedRoePcnt { get; set; }
+
         //public double simpleQty { get; set; }
         //public int simpleCost { get; set; }
         //public double simpleValue { get; set; }
@@ -234,9 +229,9 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         //public double avgEntryPrice { get; set; }
         //public double breakEvenPrice { get; set; }
         //public double marginCallPrice { get; set; }
-        //public double liquidationPrice { get; set; }
+
         //public double bankruptPrice { get; set; }
-        //public string timestamp { get; set; }
+
         //public double lastPrice { get; set; }
         //public int lastValue { get; set; }
     }

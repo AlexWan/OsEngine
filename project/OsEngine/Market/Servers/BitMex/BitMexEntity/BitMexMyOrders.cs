@@ -43,7 +43,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         /// trade volume
         /// объем сделки
         /// </summary>
-        public int? lastQty { get; set; }
+        public string lastQty { get; set; }
 
         /// <summary>
         /// trade time
@@ -82,7 +82,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         //public string lastMkt { get; set; }
         //public string lastLiquidityInd { get; set; }
         //public object simpleOrderQty { get; set; }
-        //public int orderQty { get; set; }
+        public string orderQty { get; set; }
         //public object displayQty { get; set; }
         //public object stopPx { get; set; }
         //public object pegOffsetValue { get; set; }
