@@ -163,7 +163,20 @@ namespace OsEngine.Market.Servers.OKX
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT",
+                    "USDC",
+                    "BTC",
+                    "ETH",
+                    "SOL",
+                    "BNB"
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect
