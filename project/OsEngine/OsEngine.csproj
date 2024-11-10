@@ -452,8 +452,6 @@
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexCandle.cs" />
-    <Compile Include="Market\Servers\BitMex\BitMexEntity\ResponseMessageRest.cs" />
-    <Compile Include="Market\Servers\BitMex\BitMexEntity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServerPermission.cs" />
     <Compile Include="Market\Servers\ComparePositionsModule.cs" />
     <Compile Include="Market\Servers\AServerOrdersHub.cs" />
