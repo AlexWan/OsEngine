@@ -91,29 +91,14 @@ namespace OsEngine.Market.Servers.OKX
             get { return true; }
         }
 
-        public bool MarketOrdersIsSupport
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return true; }
-        }
-
-        public bool IsTradeServer
-        {
-            get { return true; }
-        }
-
-        public bool IsCanChangeOrderPrice
-        {
-            get { return false; }
+            get { return 1; }
         }
 
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
-        }
-
-        public int WaitTimeSecondsAfterFirstStartToSendOrders
-        {
-            get { return 1; }
         }
 
         private TimeFramePermission _tradeTimeFramePermission
@@ -138,8 +123,23 @@ namespace OsEngine.Market.Servers.OKX
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = true,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = false
+                TimeFrameDayIsOn = true
             };
+
+        public bool MarketOrdersIsSupport
+        {
+            get { return true; }
+        }
+
+        public bool IsTradeServer
+        {
+            get { return true; }
+        }
+
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
+        }
 
         public bool UseStandartCandlesStarter
         {
@@ -163,16 +163,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get
-            {
-                string[] values = new string[]
-                {
-                    "USDT",
-                    "USDC"
-                };
-
-                return values;
-            }
+            get { return null; }
         }
 
         public bool CanQueryOrdersAfterReconnect

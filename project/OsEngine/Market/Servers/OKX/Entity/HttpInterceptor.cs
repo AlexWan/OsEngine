@@ -14,7 +14,6 @@ namespace OsEngine.Market.Servers.OKX.Entity
         private string _secret;
         private string _bodyStr;
 
-
         //Задерждка для рест запросов
         public RateGate _rateGateRest = new RateGate(1, TimeSpan.FromMilliseconds(200));
 

@@ -593,6 +593,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
+                _publicSocketOpen = false;
+                _privateSocketOpen = false;
+
                 if (_webSocketPublic != null)
                 {
                     return;

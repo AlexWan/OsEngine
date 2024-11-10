@@ -68,7 +68,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     LogMessageType.Error);
                 return;
             }
-
+                        
             ServicePointManager.SecurityProtocol =
                 SecurityProtocolType.Ssl3
                 | SecurityProtocolType.Tls11
@@ -228,7 +228,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
-
+           
         }
 
         private decimal GetVolumeStep(int quantityPrecision)
@@ -283,7 +283,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             CreateQueryPortfolio(true);
         }
-
+                
         private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
             try
@@ -323,7 +323,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         }
 
         private void ConvertPorfolio(ResponseRestMessage<List<RestMessageAccount>> json, bool IsUpdateValueBegin)
-        {
+        {           
             Portfolio portfolio = new Portfolio();
 
             portfolio.Number = "BitGetSpot";
@@ -346,7 +346,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 portfolio.SetNewPosition(pos);
             }
-
+        
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
@@ -614,6 +614,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             try
             {
+                _publicSocketOpen = false;
+                _privateSocketOpen = false;
+
                 if (_webSocketPublic != null)
                 {
                     return;
@@ -1044,7 +1047,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 try
                 {
-                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
+                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");                 
                 }
                 catch
                 {
@@ -1217,7 +1220,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                                 UpdateAccount(message);
                                 continue;
                             }
-
+                           
                             if (action.arg.channel.Equals("orders"))
                             {
                                 UpdateOrder(message);
@@ -1315,7 +1318,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     newOrder.PortfolioNumber = "BitGetSpot";
                     newOrder.SecurityClassCode = order.arg.instType.ToString();
                     newOrder.TypeOrder = OrderPriceType.Limit;
-
+                    
                     MyOrderEvent(newOrder);
 
                     if (newOrder.State == OrderStateType.Partial)
@@ -1345,7 +1348,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         {
                             myTrade.Volume = item.baseVolume.ToDecimal();
                         }
-
+                       
                         MyTradeEvent(myTrade);
                     }
                 }
@@ -1380,7 +1383,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 long time = 0;
 
                 for (int i = 0; i < responseTrade.data.Count; i++)
-                {
+                {                   
                     Trade trade = new Trade();
 
                     if (i == 0)
@@ -1402,12 +1405,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     {
                         return;
                     }
-
+                    
                     trade.Volume = responseTrade.data[i].size.ToDecimal();
                     trade.Side = responseTrade.data[i].side.Equals("buy") ? Side.Buy : Side.Sell;
 
                     NewTradesEvent(trade);
-                }
+                }                
             }
             catch (Exception ex)
             {
@@ -1524,7 +1527,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
 
                 jsonContent.Add("symbol", order.SecurityNameCode);
-                jsonContent.Add("side", order.Side.ToString().ToLower());
+                jsonContent.Add("side", order.Side.ToString().ToLower());               
                 jsonContent.Add("orderType", order.TypeOrder.ToString().ToLower());
                 jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
                 jsonContent.Add("size", order.Volume.ToString().Replace(",", "."));
@@ -1714,7 +1717,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         }
                     }
                 }
-
+                   
             }
             catch (Exception ex)
             {
@@ -1748,7 +1751,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             MyTrade myTrade = new MyTrade();
                             myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
                             myTrade.NumberOrderParent = item.orderId.ToString();
-                            myTrade.NumberTrade = item.tradeId;
+                            myTrade.NumberTrade = item.tradeId;                            
                             myTrade.Price = item.priceAvg.ToDecimal();
                             myTrade.SecurityNameCode = item.symbol.ToUpper();
                             myTrade.Side = item.side == "buy" ? Side.Buy : Side.Sell;
@@ -1788,13 +1791,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
-
+               
         public List<Order> GetAllOpenOrders()
-        {
+        {            
             try
-            {
+            {               
                 IRestResponse responseMessage = CreatePrivateQuery($"/api/v2/spot/trade/unfilled-orders", Method.GET, null, null);
-
+                
                 string json = responseMessage.Content;
 
                 ResponseRestMessage<List<RestMessageOrders>> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<RestMessageOrders>>());
@@ -1822,7 +1825,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     {
                         SendLogMessage($"Code: {stateResponse.code}\n"
                             + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                    }
+                    }                    
                 }
                 return null;
             }
@@ -1923,12 +1926,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
+        private HttpClient _httpClient = new HttpClient();
+
         private HttpResponseMessage CreatePrivateQueryOrders(string path, string method, string queryString, string body)
         {
             try
             {
-                HttpClient _httpClient = new HttpClient();
-
                 string requestPath = path;
                 string url = $"{BaseUrl}{requestPath}";
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -1971,7 +1974,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 return Convert.ToBase64String(hashBytes);
             }
         }
-
+       
         #endregion
 
         #region 13 Log
