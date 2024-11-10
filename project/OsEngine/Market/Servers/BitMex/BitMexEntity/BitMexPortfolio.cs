@@ -34,6 +34,8 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
     {
         public string account { get; set; }
         public string currency { get; set; }
+        public string unrealisedPnl { get; set; }
+        public string marginBalance { get; set; }
         public string grossOpenCost { get; set; }
         public string riskValue { get; set; }
         public string initMargin { get; set; }
@@ -44,6 +46,8 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
         public string availableMargin { get; set; }
         public string withdrawableMargin { get; set; }
         public string timestamp { get; set; }
+        
+
     }
 
     public class Filter
