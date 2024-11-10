@@ -262,18 +262,15 @@ namespace OsEngine.Market.Servers.BitMex
                 myPortfolio.Number = "BitMex";
                 myPortfolio.ValueBegin = 1;
                 myPortfolio.ValueCurrent = 1;
-                //_portfolios.Add(myPortfolio);
 
                 for (int i = 0; i < resp.Count; i++)
                 {
                     PositionOnBoard newPortf = new PositionOnBoard();
-
                     newPortf.SecurityNameCode = resp[i].currency;
                     newPortf.ValueBegin = resp[i].walletBalance.ToDecimal() / 1000000;
                     newPortf.ValueCurrent = resp[i].marginBalance.ToDecimal() / 1000000;
                     newPortf.ValueBlocked = newPortf.ValueBegin - resp[i].availableMargin.ToDecimal() / 1000000;
                     newPortf.PortfolioName = "BitMex";
-
                     myPortfolio.SetNewPosition(newPortf);
                 }
 
@@ -281,7 +278,6 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     PortfolioEvent(new List<Portfolio> { myPortfolio });
                 }
-
             }
             catch (Exception ex)
             {
@@ -936,7 +932,6 @@ namespace OsEngine.Market.Servers.BitMex
             _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"position\"]}"); // Position
         }
 
-
         #endregion
 
         #region 8 WebSocket check alive
@@ -1025,7 +1020,6 @@ namespace OsEngine.Market.Servers.BitMex
                 SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
         }
-
 
         private List<string> _subscribedSec = new List<string>();
 
@@ -1218,7 +1212,6 @@ namespace OsEngine.Market.Servers.BitMex
                                     needOrder = _newOrders[j];
                                 }
                             }
-                            //needOrder = _newOrders.Find(order => order.NumberUser == Convert.ToInt32(myOrder.data[i].clOrdID));
 
                             if (needOrder == null)
                             {
@@ -1335,25 +1328,15 @@ namespace OsEngine.Market.Servers.BitMex
 
                 PositionOnBoard pos = new PositionOnBoard();
 
-                if (portf.action == "partial")
+                if (portf.action == "update")
                 {
                     pos.SecurityNameCode = portf.data[0].currency;
-                    pos.ValueBegin = portf.data[0].walletBalance.ToDecimal() / 1000000;
-                }
-                else if (portf.action == "update")
-                {
-                    pos.SecurityNameCode = portf.data[0].currency;
-                    // pos.ValueBegin = portf.data[0].initMargin.ToDecimal() / 1000000;
-                    pos.ValueCurrent = portf.data[0].availableMargin.ToDecimal() / 1000000;
-                    pos.ValueBlocked = pos.ValueBegin - pos.ValueCurrent;
-
+                    pos.ValueCurrent = portf.data[0].marginBalance.ToDecimal() / 1000000;
+                    pos.ValueBlocked = portf.data[0].initMargin.ToDecimal() / 1000000;
                 }
                 else
                 {
-                    pos.SecurityNameCode = portf.data[0].currency;
-
-                    pos.ValueCurrent = portf.data[0].availableMargin.ToDecimal() / 1000000;
-                    pos.ValueBlocked = pos.ValueBegin - pos.ValueCurrent;
+                    return;
                 }
 
                 portfolio.SetNewPosition(pos);
@@ -1809,7 +1792,7 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     newPos.PortfolioName = "BitMex";
                     newPos.SecurityNameCode = pos.data[i].symbol;
-                    newPos.ValueBlocked = pos.data[i].posMargin.ToDecimal();
+                    //newPos.ValueBlocked = pos.data[i].posMargin.ToDecimal();
                     newPos.ValueCurrent = pos.data[i].currentQty.ToDecimal() / multiplier;
                 }
 
@@ -1831,8 +1814,6 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 lock (_myTradeLocker)
                 {
-
-
                     for (int i = 0; i < myOrder.data.Count; i++)
                     {
                         if (myOrder.data[i].lastQty == null ||
@@ -1845,9 +1826,6 @@ namespace OsEngine.Market.Servers.BitMex
 
                         MyTrade myTrade = new MyTrade();
                         myTrade.Time = Convert.ToDateTime(myOrder.data[i].transactTime);
-
-                        //myTrade.Time = new DateTime(1970, 1, 1).AddMilliseconds(orderOnBoard.data[i].transactTime.ToDouble());
-
                         myTrade.NumberOrderParent = myOrder.data[i].orderID;
                         myTrade.NumberTrade = myOrder.data[i].clOrdID;
                         myTrade.Price = myOrder.data[i].avgPx.ToDecimal();
@@ -1881,15 +1859,15 @@ namespace OsEngine.Market.Servers.BitMex
 
         #region 11 Trade
 
-        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
-        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
         private object _orderLocker = new object();
 
         public void SendOrder(Order order)
         {
             try
             {
-                rateGateSendOrder.WaitToProceed();
+                _rateGateSendOrder.WaitToProceed();
 
                 decimal multiplier = GetMultiplierForSecurity(order.SecurityNameCode);
 
@@ -1942,7 +1920,7 @@ namespace OsEngine.Market.Servers.BitMex
         {
             try
             {
-                rateGateCancelOrder.WaitToProceed();
+                _rateGateCancelOrder.WaitToProceed();
 
                 if (string.IsNullOrEmpty(order.NumberMarket))
                 {
@@ -1994,7 +1972,6 @@ namespace OsEngine.Market.Servers.BitMex
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
-
             }
         }
 
@@ -2035,7 +2012,6 @@ namespace OsEngine.Market.Servers.BitMex
                     orderOnBoard = allOrders[i];
                 }
             }
-            //orderOnBoard = allOrders.Find(ord => ord.clOrdID == oldOrder.NumberUser.ToString());
 
             if (orderOnBoard == null)
             {
@@ -2061,7 +2037,6 @@ namespace OsEngine.Market.Servers.BitMex
             newOrder.ServerType = ServerType.BitMex;
             newOrder.PortfolioNumber = oldOrder.PortfolioNumber;
 
-
             if (orderOnBoard.ordStatus == "New" ||
                 orderOnBoard.ordStatus == "PartiallyFilled")
             {
@@ -2086,7 +2061,6 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 newOrder.State = OrderStateType.Cancel;
             }
-
 
             if (MyOrderEvent != null)
             {
@@ -2194,7 +2168,7 @@ namespace OsEngine.Market.Servers.BitMex
         {
             try
             {
-                rateGateCancelOrder.WaitToProceed();
+                _rateGateCancelOrder.WaitToProceed();
 
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param.Add("symbol", security.Name);
@@ -2223,7 +2197,6 @@ namespace OsEngine.Market.Servers.BitMex
             }
 
             List<DatumMyOrder> myTrades = JsonConvert.DeserializeAnonymousType(res, new List<DatumMyOrder>());
-
             List<MyTrade> trades = new List<MyTrade>();
 
             for (int i = 0; i < myTrades.Count; i++)
@@ -2249,10 +2222,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         public List<Order> GetAllOrdersToSecurity(string securityName)
         {
-            decimal multiplier = GetMultiplierForSecurity(securityName);
-
             var param = new Dictionary<string, string>();
-
             param.Add("symbol", securityName);
             param.Add("count", 500.ToString());
             param.Add("reverse", true.ToString());
@@ -2270,6 +2240,8 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 return null;
             }
+
+            decimal multiplier = GetMultiplierForSecurity(securityName);
 
             List<Order> result = new List<Order>();
 
@@ -2318,9 +2290,6 @@ namespace OsEngine.Market.Servers.BitMex
                 }
                 newOrder.TimeCallBack = Convert.ToDateTime(orders[i].transactTime);
                 newOrder.TimeCreate = Convert.ToDateTime(orders[i].timestamp);
-                //newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(orders[i].transactTime.ToDouble());
-                //newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(orders[i].timestamp.ToDouble());
-
 
                 if (myOrder.ordStatus == "New")
                 {
@@ -2363,7 +2332,6 @@ namespace OsEngine.Market.Servers.BitMex
             var param = new Dictionary<string, string>();
             param.Add("filter", "{\"open\":true}");
             param.Add("reverse", true.ToString());
-
 
             var res = Query("GET", "/order", param, true);
 
@@ -2442,9 +2410,11 @@ namespace OsEngine.Market.Servers.BitMex
         {
             string res11 = Query("GET", "/instrument/active");
             List<BitMexSecurity> listSec = JsonConvert.DeserializeObject<List<BitMexSecurity>>(res11);
+
             decimal multiplier = 1;
             decimal underlyingToPositionMultiplier = 1;
             decimal underlyingToSettleMultiplier = 1;
+
             for (int i = 0; i < listSec.Count; i++)
             {
                 if (security == listSec[i].symbol)
@@ -2533,7 +2503,6 @@ namespace OsEngine.Market.Servers.BitMex
                     }
                 }
             }
-
         }
 
         private string BuildQueryData(Dictionary<string, string> param)
@@ -2582,8 +2551,6 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-
-
         //private long GetNonce()
         //{
         //    DateTime yearBegin = new DateTime(1970, 1, 1);
@@ -2593,7 +2560,6 @@ namespace OsEngine.Market.Servers.BitMex
 
         //    return re;
         //}
-
 
         #endregion
 
