@@ -14,74 +14,92 @@ namespace OsEngine.Market.Servers.BitMex
         {
             get { return false; }
         }
+
         public bool DataFeedTf2SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf20SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf30SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfDayCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return true; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return true; }
@@ -96,12 +114,22 @@ namespace OsEngine.Market.Servers.BitMex
             get { return true; }
         }
 
-        public bool IsTradeServer
+        public int WaitTimeSecondsAfterFirstStartToSendOrders
+        {
+            get { return 1; }
+        }
+
+        public bool IsCanChangeOrderPrice
+        {
+            get { return false; }
+        }
+       
+        public bool UseStandartCandlesStarter
         {
             get { return true; }
         }
 
-        public bool IsCanChangeOrderPrice
+        public bool IsUseLotToCalculateProfit
         {
             get { return false; }
         }
@@ -109,11 +137,6 @@ namespace OsEngine.Market.Servers.BitMex
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
-        }
-
-        public int WaitTimeSecondsAfterFirstStartToSendOrders
-        {
-            get { return 1; }
         }
 
         private TimeFramePermission _tradeTimeFramePermission
@@ -141,16 +164,6 @@ namespace OsEngine.Market.Servers.BitMex
                 TimeFrameDayIsOn = true
             };
 
-        public bool UseStandartCandlesStarter
-        {
-            get { return true; }
-        }
-
-        public bool IsUseLotToCalculateProfit
-        {
-            get { return false; }
-        }
-
         public bool ManuallyClosePositionOnBoard_IsOn
         {
             get { return false; }
@@ -164,6 +177,11 @@ namespace OsEngine.Market.Servers.BitMex
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
             get { return null; }
+        }
+
+        public bool IsTradeServer
+        {
+            get { return true; }
         }
 
         public bool CanQueryOrdersAfterReconnect

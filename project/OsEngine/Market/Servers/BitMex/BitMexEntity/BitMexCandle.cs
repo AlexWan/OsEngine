@@ -1,5 +1,4 @@
 ﻿
-
 namespace OsEngine.Market.Servers.BitMex.BitMexEntity
 {
     public class BitMexCandle
