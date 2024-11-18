@@ -21,14 +21,14 @@ namespace OsEngine.OsOptimizer
             WindowsFormsHost hostStepsOfOptimization, 
             WindowsFormsHost hostRobustness,
             System.Windows.Controls.ComboBox boxTypeSort, 
-            System.Windows.Controls.Label labelRobustnessMetricaValue,
+            System.Windows.Controls.Label labelRobustnessMetricValue,
             System.Windows.Controls.ComboBox boxTypeSortBotNum)
         {
             _sortBotsType = SortBotsType.TotalProfit;
             _currentCulture = OsLocalization.CurCulture;
             _hostStepsOfOptimization = hostStepsOfOptimization;
             _hostRobustness = hostRobustness;
-            _labelRobustnessMetricaValue = labelRobustnessMetricaValue;
+            _labelRobustnessMetricValue = labelRobustnessMetricValue;
 
             boxTypeSort.Items.Add(SortBotsType.PositionCount.ToString());
             boxTypeSort.Items.Add(SortBotsType.TotalProfit.ToString());
@@ -65,7 +65,7 @@ namespace OsEngine.OsOptimizer
 
         private System.Windows.Controls.ComboBox _boxTypeSortBotNum;
 
-        System.Windows.Controls.Label _labelRobustnessMetricaValue;
+        System.Windows.Controls.Label _labelRobustnessMetricValue;
 
         private void _boxTypeSortBotNum_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -531,6 +531,8 @@ namespace OsEngine.OsOptimizer
             _chartRobustness.Series.Add(series);
 
             _hostRobustness.Child = _chartRobustness;
+
+            _chartRobustness.SuppressExceptions = true;
         }
 
         private void UpdateRobustnessChart()
@@ -543,7 +545,7 @@ namespace OsEngine.OsOptimizer
 
             try
             {
-                _labelRobustnessMetricaValue.Content = "";
+                _labelRobustnessMetricValue.Content = "";
 
                 int countBestTwenty = 0;
                 int count20_40 = 0;
@@ -670,7 +672,7 @@ namespace OsEngine.OsOptimizer
                     robustness += count40_60 * oneBestP * 0.5m;
                     robustness += count60_80 * oneBestP * 0.25m;
 
-                    _labelRobustnessMetricaValue.Content = Math.Round(robustness, 2).ToString() + " %";
+                    _labelRobustnessMetricValue.Content = Math.Round(robustness, 2).ToString() + " %";
                 }
 
                 _chartRobustness.Series[0].Points.ClearFast();
@@ -772,6 +774,8 @@ namespace OsEngine.OsOptimizer
             _chartTotalProfit.Series.Add(series);
 
             _hostTotalProfit.Child = _chartTotalProfit;
+
+            _chartTotalProfit.SuppressExceptions = true;
         }
 
         private void UpdateTotalProfitChart()
@@ -1019,6 +1023,8 @@ namespace OsEngine.OsOptimizer
 
 
             _hostAverageProfitChart.Child = _chartAverageProfit;
+
+            _chartAverageProfit.SuppressExceptions = true;
         }
 
         private void UpdateAverageProfitChart()
@@ -1240,7 +1246,7 @@ namespace OsEngine.OsOptimizer
 
             _hostProfitFactor.Child = _chartProfitFactor;
 
-
+            _chartProfitFactor.SuppressExceptions = true;
         }
 
         private void UpdateProfitFactorChart()

@@ -587,6 +587,7 @@ namespace OsEngine.Charts.CandleChart
                 }
 
                 _chart = new Chart();
+                _chart.SuppressExceptions = true;
 
                 _chart.Series.Clear();
                 _chart.ChartAreas.Clear();
