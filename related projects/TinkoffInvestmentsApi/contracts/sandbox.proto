@@ -15,51 +15,51 @@ import "operations.proto";
 import "users.proto";
 import "google/api/field_behavior.proto";
 
-service SandboxService { //Сервис для работы с песочницей TINKOFF INVEST API
+service SandboxService { // Методы для работы с песочницей T-Invest API
 
-  //Метод регистрации счёта в песочнице.
+  //Зарегистрировать счёт.
   rpc OpenSandboxAccount(OpenSandboxAccountRequest) returns (OpenSandboxAccountResponse);
 
-  //Метод получения счетов в песочнице.
+  //Получить счета.
   rpc GetSandboxAccounts(GetAccountsRequest) returns (GetAccountsResponse);
 
-  //Метод закрытия счёта в песочнице.
+  //Закрыть счёт.
   rpc CloseSandboxAccount(CloseSandboxAccountRequest) returns (CloseSandboxAccountResponse);
 
-  //Метод выставления торгового поручения в песочнице.
+  //Выставить торговое поручение.
   rpc PostSandboxOrder(PostOrderRequest) returns (PostOrderResponse);
 
-  //Метод изменения выставленной заявки.
+  //Изменить выставленную заявку.
   rpc ReplaceSandboxOrder(ReplaceOrderRequest) returns (PostOrderResponse);
 
-  //Метод получения списка активных заявок по счёту в песочнице.
+  //Получить список активных заявок по счёту.
   rpc GetSandboxOrders(GetOrdersRequest) returns (GetOrdersResponse);
 
-  //Метод отмены торгового поручения в песочнице.
+  //Отменить торговое поручение.
   rpc CancelSandboxOrder(CancelOrderRequest) returns (CancelOrderResponse);
 
-  //Метод получения статуса заявки в песочнице. Заявки хранятся в таблице 7 дней.
+  //Поулчить статус заявки в песочнице. Заявки хранятся в таблице 7 дней.
   rpc GetSandboxOrderState(GetOrderStateRequest) returns (OrderState);
 
-  //Метод получения позиций по виртуальному счёту песочницы.
+  //Получить позиции по виртуальному счёту.
   rpc GetSandboxPositions(PositionsRequest) returns (PositionsResponse);
 
-  //Метод получения операций в песочнице по номеру счёта.
+  //Получить операции по номеру счёта.
   rpc GetSandboxOperations(OperationsRequest) returns (OperationsResponse);
 
-  //Метод получения операций в песочнице по номеру счета с пагинацией.
+  //Получить операции по номеру счёта с пагинацией.
   rpc GetSandboxOperationsByCursor(GetOperationsByCursorRequest) returns (GetOperationsByCursorResponse);
 
-  //Метод получения портфолио в песочнице.
+  //Получить портфель.
   rpc GetSandboxPortfolio(PortfolioRequest) returns (PortfolioResponse);
 
-  //Метод пополнения счёта в песочнице.
+  //Пополнить счёт.
   rpc SandboxPayIn(SandboxPayInRequest) returns (SandboxPayInResponse);
 
-  //Метод получения доступного остатка для вывода средств в песочнице.
+  //Получить доступный остаток для вывода средств.
   rpc GetSandboxWithdrawLimits(WithdrawLimitsRequest) returns (WithdrawLimitsResponse);
 
-  //расчет количества доступных для покупки/продажи лотов в песочнице.
+  //Расчёт количества доступных для покупки/продажи лотов в песочнице.
   rpc GetSandboxMaxLots(GetMaxLotsRequest) returns (GetMaxLotsResponse);
 }
 

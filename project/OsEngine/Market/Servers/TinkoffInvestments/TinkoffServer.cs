@@ -50,28 +50,32 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             ServerTime = DateTime.UtcNow;
             
             Thread worker = new Thread(ConnectionCheckThread);
-            worker.Name = "CheckAliveTinkoff";
+            worker.Name = "CheckAliveTInvest";
             worker.Start();
 
             Thread worker2 = new Thread(DataMessageReader);
-            worker2.Name = "DataMessageReaderTinkoff";
+            worker2.Name = "DataMessageReaderTInvest";
             worker2.Start();
 
             Thread worker3 = new Thread(PortfolioMessageReader);
-            worker3.Name = "PortfolioMessageReaderTinkoff";
+            worker3.Name = "PortfolioMessageReaderTInvest";
             worker3.Start();
 
             Thread worker4 = new Thread(PositionsMessageReader);
-            worker4.Name = "PositionsMessageReaderTinkoff";
+            worker4.Name = "PositionsMessageReaderTInvest";
             worker4.Start();
 
             Thread worker5 = new Thread(MyTradesMessageReader);
-            worker5.Name = "MyTradesAndOrdersMessageReaderTinkoff";
+            worker5.Name = "MyTradesMessageReaderTInvest";
             worker5.Start();
 
             Thread worker6 = new Thread(LastPricesPoller);
-            worker6.Name = "LastPricesPollingTinkoff";
+            worker6.Name = "LastPricesPollingTInvest";
             worker6.Start();
+
+            Thread worker7 = new Thread(OrderStateMessageReader);
+            worker5.Name = "OrderStateMessageReaderTInvest";
+            worker5.Start();
         }
 
         public void Connect()
@@ -81,7 +85,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 _myPortfolios.Clear();
                 _subscribedSecurities.Clear();
              
-                SendLogMessage("Start TinkoffInvestments Connection", LogMessageType.System);
+                SendLogMessage("Start T-Invest Connection", LogMessageType.System);
 
                 _accessToken = ((ServerParameterString)ServerParameters[0]).Value;
                 _customTerminalId = ((ServerParameterString)ServerParameters[5]).Value;
@@ -90,7 +94,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
                 if (string.IsNullOrEmpty(_accessToken))
                 {
-                    SendLogMessage("Connection terminated. You must specify the api token. You can get it on the TinkoffInvestments website",
+                    SendLogMessage("Connection terminated. You must specify the api token. You can get it on the T-Invest website",
                         LogMessageType.Error);
                     return;
                 }
@@ -227,12 +231,25 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 }
             }
 
+            if (_myOrderStateDataStream != null)
+            {
+                try
+                {
+                    _myOrderStateDataStream.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                }
+            }
+
             _marketDataStream = null;
             _portfolioDataStream = null;
             _positionsDataStream = null;
             _myTradesDataStream = null;
+            _myOrderStateDataStream = null;
             
-            SendLogMessage("Connection Closed by TinkoffInvestments. Data streams Closed Event", LogMessageType.System);
+            SendLogMessage("Connection Closed by T-Invest. Data streams Closed Event", LogMessageType.System);
 
             _subscribedSecurities.Clear();
             _myPortfolios.Clear();
@@ -1448,6 +1465,10 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 Accounts = { accountsList }
             }, _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
+            _myOrderStateDataStream = _ordersStreamClient.OrderStateStream(new OrderStateStreamRequest
+            {
+                Accounts = { accountsList }
+            }, _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
             
             _portfolioDataStream =
                 _operationsStreamClient.PortfolioStream(new PortfolioStreamRequest { Accounts = { accountsList } },
@@ -1478,6 +1499,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         private bool _useStreamForMarketData = true; // if we are over the limits, then stop using stream and turn to data polling (300+ subscribed secs)
         private AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse> _marketDataStream;
         private AsyncServerStreamingCall<TradesStreamResponse> _myTradesDataStream;
+        private AsyncServerStreamingCall<OrderStateStreamResponse> _myOrderStateDataStream;
         private AsyncServerStreamingCall<PortfolioStreamResponse> _portfolioDataStream;
         private AsyncServerStreamingCall<PositionsStreamResponse> _positionsDataStream;
 
@@ -1529,7 +1551,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 {
                     SubscriptionAction = SubscriptionAction.Subscribe, 
                     Instruments = { tradeInstrument }, 
-                    TradeType = _filterOutDealerTrades ? TradeSourceType.TradeSourceExchange : TradeSourceType.TradeSourceAll
+                    TradeSource = _filterOutDealerTrades ? TradeSourceType.TradeSourceExchange : TradeSourceType.TradeSourceAll
                 };
                 marketDataRequestTrades.SubscribeTradesRequest = subscribeTradesRequest;
                 
@@ -2227,91 +2249,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             Thread.Sleep(1);
                             continue;
                         }
-
-                        // запрашиваем состояние ордера
-                        GetOrderStateRequest getOrderStateRequest = new GetOrderStateRequest();
-                        getOrderStateRequest.OrderId = tradesResponse.OrderTrades.OrderId;
-                        getOrderStateRequest.AccountId = tradesResponse.OrderTrades.AccountId;
-
-                        OrderState state = null;
-                        try
-                        {
-                            _rateGateOrders.WaitToProceed();
-                            state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
-                        }
-                        catch (RpcException ex)
-                        {
-                            string message = GetGRPCErrorMessage(ex);
-                            SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.Error);
-
-                            Thread.Sleep(1);
-                            continue;
-                        }
-                        catch (Exception ex)
-                        {
-                            SendLogMessage("Error getting order state " + security.Name + " exception: " + ex.ToString(), LogMessageType.Error);
-                            SendLogMessage("Server data was: " + tradesResponse.ToString(), LogMessageType.Error);
-
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        Order order = new Order();
-
-                        if (!_orderNumbers.ContainsKey(state.OrderRequestId)) // значит сделка была вручную и это не наш ордер
-                        {
-                            continue;
-                        }
-
-                        order.NumberUser = _orderNumbers[state.OrderRequestId];
-                        order.NumberMarket = state.OrderId;
-                        order.SecurityNameCode = security.Name;
-                        order.PortfolioNumber = tradesResponse.OrderTrades.AccountId;
-                        order.Side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
-                        order.TypeOrder = state.OrderType == OrderType.Limit
-                            ? OrderPriceType.Limit
-                            : OrderPriceType.Market;
-
-                        order.Volume = state.LotsRequested;
-                        order.VolumeExecute = state.LotsExecuted;
-                        order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialSecurityPrice) : 0;
-                        order.TimeCallBack = state.OrderDate.ToDateTime();
-                        order.SecurityClassCode = security.NameClass;
-
-                        if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
-                        {
-                            order.State = OrderStateType.None;
-                        }
-                        else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusFill)
-                        {
-                            order.State = OrderStateType.Done;
-                            
-                        }
-                        else if (state.ExecutionReportStatus ==
-                                 OrderExecutionReportStatus.ExecutionReportStatusRejected)
-                        {
-                            order.State = OrderStateType.Fail;
-                        }
-                        else if (state.ExecutionReportStatus ==
-                                 OrderExecutionReportStatus.ExecutionReportStatusCancelled)
-                        {
-                            order.State = OrderStateType.Cancel;
-                        }
-                        else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
-                        {
-                            order.State = OrderStateType.Active;
-                        }
-                        else if (state.ExecutionReportStatus ==
-                                 OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
-                        {
-                            order.State = OrderStateType.Partial;
-                        }
-
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(order);
-                        }
-
+                        
                         for (int i = 0; i < tradesResponse.OrderTrades.Trades.Count; i++)
                         {
                             MyTrade trade = new MyTrade();
@@ -2358,6 +2296,142 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 }
             }
         }
+
+        private async void OrderStateMessageReader()
+        {
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (_myOrderStateDataStream == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (await _myOrderStateDataStream.ResponseStream.MoveNext() == false)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (_myOrderStateDataStream == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    OrderStateStreamResponse orderStateResponse = _myOrderStateDataStream.ResponseStream.Current;
+                    if (orderStateResponse == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    _lastMyTradesDataTime = DateTime.UtcNow;
+
+                    if (orderStateResponse.Ping != null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+                    
+                    if (orderStateResponse.OrderState != null)
+                    {
+                        Security security = GetSecurity(orderStateResponse.OrderState.InstrumentUid);
+                        OrderStateStreamResponse.Types.OrderState state = orderStateResponse.OrderState;
+
+                        if (security == null)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
+
+                        Order order = new Order();
+
+                        if (!_orderNumbers.ContainsKey(state.OrderRequestId)) // значит сделка была вручную и это не наш ордер
+                        {
+                            continue;
+                        }
+
+                        order.NumberUser = _orderNumbers[state.OrderRequestId];
+                        order.NumberMarket = state.OrderId;
+                        order.SecurityNameCode = security.Name;
+                        order.PortfolioNumber = state.AccountId;
+                        order.Side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
+                        order.TypeOrder = state.OrderType == OrderType.Limit
+                            ? OrderPriceType.Limit
+                            : OrderPriceType.Market;
+
+                        order.Volume = state.LotsRequested;
+                        order.VolumeExecute = state.LotsExecuted;
+                        order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialOrderPrice)/order.Volume : 0;
+                        order.TimeCallBack = state.CreatedAt.ToDateTime();
+                        order.SecurityClassCode = security.NameClass;
+
+                        if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
+                        {
+                            order.State = OrderStateType.None;
+                        }
+                        else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusFill)
+                        {
+                            order.State = OrderStateType.Done;
+                            
+                        }
+                        else if (state.ExecutionReportStatus ==
+                                 OrderExecutionReportStatus.ExecutionReportStatusRejected)
+                        {
+                            order.State = OrderStateType.Fail;
+                        }
+                        else if (state.ExecutionReportStatus ==
+                                 OrderExecutionReportStatus.ExecutionReportStatusCancelled)
+                        {
+                            order.State = OrderStateType.Cancel;
+                        }
+                        else if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
+                        {
+                            order.State = OrderStateType.Active;
+                        }
+                        else if (state.ExecutionReportStatus ==
+                                 OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
+                        {
+                            order.State = OrderStateType.Partial;
+                        }
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+                    }
+                }
+                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+                {
+                    // Handle the cancellation gracefully
+                    SendLogMessage("Order state data stream was cancelled", LogMessageType.System);
+                    Thread.Sleep(5000);
+                }
+                catch (RpcException exception)
+                {
+                    SendLogMessage("Order state data stream was disconnected", LogMessageType.Error);
+
+                    // need to reconnect everything
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                    Thread.Sleep(5000);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
         
         public event Action<Order> MyOrderEvent;
 
@@ -2385,6 +2459,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 request.Price = ConvertToQuotation(order.Price);
                 request.InstrumentId = security.NameId;
                 request.AccountId = order.PortfolioNumber;
+                request.TimeInForce = TimeInForceType.TimeInForceDay; // по-умолчанию сегодняшний день
 
                 // генерируем новый номер ордера и добавляем его в словарь
                 Guid newUid = Guid.NewGuid();
