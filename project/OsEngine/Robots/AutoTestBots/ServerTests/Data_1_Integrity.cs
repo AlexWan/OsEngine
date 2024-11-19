@@ -11,6 +11,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         public string SecName;
 
         public string SecClass;
+
         public DateTime StartDate;
 
         public override void Process()
