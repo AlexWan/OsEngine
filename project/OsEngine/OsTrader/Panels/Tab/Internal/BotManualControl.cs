@@ -605,7 +605,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             closeOrder.Side == Side.Buy)
                         {
                             decimal priceRedLine = closeOrder.Price -
-                                                   _botTab.Securiti.PriceStep * SetbackToClosePosition;
+                                                   _botTab.Security.PriceStep * SetbackToClosePosition;
 
                             if (_botTab.PriceBestBid <= priceRedLine)
                             {
@@ -619,7 +619,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             closeOrder.Side == Side.Sell)
                         {
                             decimal priceRedLine = closeOrder.Price +
-                                                   _botTab.Securiti.PriceStep * SetbackToClosePosition;
+                                                   _botTab.Security.PriceStep * SetbackToClosePosition;
 
                             if (_botTab.PriceBestAsk >= priceRedLine)
                             {
@@ -647,16 +647,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal priceRedLine = position.EntryPrice - GetStopDistance(position,bot.Securiti);
-                    decimal priceOrder = priceRedLine - GetStopSlippageDistance(position, bot.Securiti);
+                    decimal priceRedLine = position.EntryPrice - GetStopDistance(position,bot.Security);
+                    decimal priceOrder = priceRedLine - GetStopSlippageDistance(position, bot.Security);
 
                     bot.CloseAtStop(position, priceRedLine, priceOrder);
                 }
 
                 if (position.Direction == Side.Sell)
                 {
-                    decimal priceRedLine = position.EntryPrice + GetStopDistance(position, bot.Securiti);
-                    decimal priceOrder = priceRedLine + GetStopSlippageDistance(position, bot.Securiti);
+                    decimal priceRedLine = position.EntryPrice + GetStopDistance(position, bot.Security);
+                    decimal priceOrder = priceRedLine + GetStopSlippageDistance(position, bot.Security);
 
                     bot.CloseAtStop(position, priceRedLine, priceOrder);
                 }
@@ -666,16 +666,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 if (position.Direction == Side.Buy)
                 {
-                    decimal priceRedLine = position.EntryPrice + GetProfitDistance(position, bot.Securiti);
-                    decimal priceOrder = priceRedLine - GetProfitDistanceSlippage(position, bot.Securiti);
+                    decimal priceRedLine = position.EntryPrice + GetProfitDistance(position, bot.Security);
+                    decimal priceOrder = priceRedLine - GetProfitDistanceSlippage(position, bot.Security);
 
                     bot.CloseAtProfit(position, priceRedLine, priceOrder);
                 }
 
                 if (position.Direction == Side.Sell)
                 {
-                    decimal priceRedLine = position.EntryPrice - GetProfitDistance(position, bot.Securiti);
-                    decimal priceOrder = priceRedLine + GetProfitDistanceSlippage(position, bot.Securiti);
+                    decimal priceRedLine = position.EntryPrice - GetProfitDistance(position, bot.Security);
+                    decimal priceOrder = priceRedLine + GetProfitDistanceSlippage(position, bot.Security);
 
                     bot.CloseAtProfit(position, priceRedLine, priceOrder);
                 }
@@ -716,7 +716,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (ValuesType == ManualControlValuesType.MinPriceStep)
             {
-                result = bot.Securiti.PriceStep * DoubleExitSlipage;
+                result = bot.Security.PriceStep * DoubleExitSlipage;
             }
             else if (ValuesType == ManualControlValuesType.Absolute)
             {
@@ -842,7 +842,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (ValuesType == ManualControlValuesType.MinPriceStep)
             {
-                maxSpread = _botTab.Securiti.PriceStep * SetbackToOpenPosition;
+                maxSpread = _botTab.Security.PriceStep * SetbackToOpenPosition;
             }
             else if (ValuesType == ManualControlValuesType.Absolute)
             {

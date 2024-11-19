@@ -170,7 +170,7 @@ namespace OsEngine.Robots.TechSamples
             {
                 decimal price = _tab.PriceBestBid - _tab.PriceBestBid * (AntiSlippagePercent.ValueDecimal / 100);
 
-                price = Math.Round(price, _tab.Securiti.Decimals);
+                price = Math.Round(price, _tab.Security.Decimals);
 
                 _tab.ChangeOrderPrice(pos.OpenOrders[0], price);
             }
@@ -178,7 +178,7 @@ namespace OsEngine.Robots.TechSamples
             {
                 decimal price = _tab.PriceBestAsk + _tab.PriceBestAsk * (AntiSlippagePercent.ValueDecimal / 100);
 
-                price = Math.Round(price, _tab.Securiti.Decimals);
+                price = Math.Round(price, _tab.Security.Decimals);
 
                 _tab.ChangeOrderPrice(pos.OpenOrders[0], price);
             }

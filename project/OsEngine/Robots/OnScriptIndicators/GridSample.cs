@@ -242,7 +242,7 @@ namespace OsEngine.Robots.OnScriptIndicators
             _lastCandleCloseTime = candles[candles.Count - 1].TimeStart;
 
             // берём объём для закрытия в одной части
-            decimal closeVolume = Math.Round(pos.MaxVolume / ClosePosAverCount.ValueInt, _tab.Securiti.DecimalsVolume);
+            decimal closeVolume = Math.Round(pos.MaxVolume / ClosePosAverCount.ValueInt, _tab.Security.DecimalsVolume);
 
             if(closeVolume * 2 > pos.OpenVolume)
             { // приближаемся к завершению

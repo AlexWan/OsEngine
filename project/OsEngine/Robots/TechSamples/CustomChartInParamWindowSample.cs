@@ -94,7 +94,7 @@ namespace OsEngine.Robots.TechSamples
                 {
                     Thread.Sleep(1000);
 
-                    if (_tab0.Securiti != null && _tab1.Securiti != null)
+                    if (_tab0.Security != null && _tab1.Security != null)
                     {
                         if (_tab0.CandlesFinishedOnly != null && _tab1.CandlesFinishedOnly != null)
                         {

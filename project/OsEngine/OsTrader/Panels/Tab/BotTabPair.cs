@@ -920,16 +920,16 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             PairToTrade newPair = Pairs[Pairs.Count - 1];
 
-            newPair.Tab1.ComissionType = comissionType;
-            newPair.Tab1.ComissionValue = comissionValue;
+            newPair.Tab1.CommissionType = comissionType;
+            newPair.Tab1.CommissionValue = comissionValue;
             newPair.Tab1.Connector.ServerType = serverType;
             newPair.Tab1.Connector.TimeFrame = timeFrame;
             newPair.Tab1.Connector.SecurityName = sec1;
             newPair.Tab1.Connector.SecurityClass = secClass;
             newPair.Tab1.Connector.PortfolioName = portfolio;
 
-            newPair.Tab2.ComissionType = comissionType;
-            newPair.Tab2.ComissionValue = comissionValue;
+            newPair.Tab2.CommissionType = comissionType;
+            newPair.Tab2.CommissionValue = comissionValue;
             newPair.Tab2.Connector.ServerType = serverType;
             newPair.Tab2.Connector.TimeFrame = timeFrame;
             newPair.Tab2.Connector.SecurityName = sec2;
@@ -2269,7 +2269,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 volume = volumeValue / lastPrice;
 
-                Security mySec = tab.Securiti;
+                Security mySec = tab.Security;
 
                 if(mySec.Lot > 1)
                 {
@@ -2288,7 +2288,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else
             {
-                volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                volume = Math.Round(volume, tab.Security.DecimalsVolume);
             }
             return volume;
         }

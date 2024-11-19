@@ -152,12 +152,12 @@ namespace OsEngine.Robots.OnScriptIndicators
             if (lastCandlePrice > smaValue &&
                 lastCandlePrice > upChannel)
             {
-                _tab.BuyAtLimit(Volume.ValueDecimal, _tab.PriceBestAsk + _tab.Securiti.PriceStep * Slippage.ValueInt);
+                _tab.BuyAtLimit(Volume.ValueDecimal, _tab.PriceBestAsk + _tab.Security.PriceStep * Slippage.ValueInt);
             }
             if (lastCandlePrice < smaValue &&
                 lastCandlePrice < downChannel)
             {
-                _tab.SellAtLimit(Volume.ValueDecimal, _tab.PriceBestBid + _tab.Securiti.PriceStep * Slippage.ValueInt);
+                _tab.SellAtLimit(Volume.ValueDecimal, _tab.PriceBestBid + _tab.Security.PriceStep * Slippage.ValueInt);
             }
 
         }
@@ -199,11 +199,11 @@ namespace OsEngine.Robots.OnScriptIndicators
             {
                 if (position.Direction == Side.Buy)
                 {
-                    priceOrder = priceOrder - _tab.Securiti.PriceStep * Slippage.ValueInt;
+                    priceOrder = priceOrder - _tab.Security.PriceStep * Slippage.ValueInt;
                 }
                 if (position.Direction == Side.Sell)
                 {
-                    priceOrder = priceOrder + _tab.Securiti.PriceStep * Slippage.ValueInt;
+                    priceOrder = priceOrder + _tab.Security.PriceStep * Slippage.ValueInt;
                 }
             }
 

@@ -232,8 +232,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Volume = Convert.ToInt32(Math.Round(Convert.ToDecimal(_volume) / Convert.ToDecimal(realCountOrders)));
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
-                orders[i].SecurityNameCode = _bot.Securiti.Name;
-                orders[i].SecurityClassCode = _bot.Securiti.NameClass;
+                orders[i].SecurityNameCode = _bot.Security.Name;
+                orders[i].SecurityClassCode = _bot.Security.NameClass;
                 orders[i].OrderTypeTime = _bot.ManualPositionSupport.OrderTypeTime;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
   
@@ -285,8 +285,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Volume = Convert.ToInt32(Math.Round(Convert.ToDecimal(_volume) / Convert.ToDecimal(realCountOrders)));
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
-                orders[i].SecurityNameCode = _bot.Securiti.Name;
-                orders[i].SecurityClassCode = _bot.Securiti.NameClass;
+                orders[i].SecurityNameCode = _bot.Security.Name;
+                orders[i].SecurityClassCode = _bot.Security.NameClass;
                 orders[i].OrderTypeTime = _bot.ManualPositionSupport.OrderTypeTime;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
 
@@ -329,7 +329,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Volume = Convert.ToInt32(Math.Round(Convert.ToDecimal(_volume) / Convert.ToDecimal(realCountOrders)));
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
-                orders[i].SecurityNameCode = _bot.Securiti.Name;
+                orders[i].SecurityNameCode = _bot.Security.Name;
                 orders[i].OrderTypeTime = _bot.ManualPositionSupport.OrderTypeTime;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
 
@@ -372,7 +372,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].Volume = Convert.ToInt32(Math.Round(Convert.ToDecimal(_volume) / Convert.ToDecimal(realCountOrders)));
                 orders[i].Price = _price;
                 orders[i].PortfolioNumber = _bot.Portfolio.Number;
-                orders[i].SecurityNameCode = _bot.Securiti.Name;
+                orders[i].SecurityNameCode = _bot.Security.Name;
                 orders[i].OrderTypeTime = _bot.ManualPositionSupport.OrderTypeTime;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
 

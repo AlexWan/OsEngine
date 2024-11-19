@@ -112,7 +112,7 @@ namespace OsEngine.Robots.Trend
                 decimal activationPrice = _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] -
                     _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] * (TrailStop.ValueDecimal / 100);
 
-                decimal orderPrice = activationPrice - _tab.Securiti.PriceStep * Slippage.ValueInt;
+                decimal orderPrice = activationPrice - _tab.Security.PriceStep * Slippage.ValueInt;
 
                 _tab.CloseAtTrailingStop(position,
                     activationPrice, orderPrice);
@@ -122,7 +122,7 @@ namespace OsEngine.Robots.Trend
                 decimal activationPrice = _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] +
                     _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] * (TrailStop.ValueDecimal / 100);
 
-                decimal orderPrice = activationPrice + _tab.Securiti.PriceStep * Slippage.ValueInt;
+                decimal orderPrice = activationPrice + _tab.Security.PriceStep * Slippage.ValueInt;
 
                 _tab.CloseAtTrailingStop(position,
                     activationPrice, orderPrice);
@@ -147,13 +147,13 @@ namespace OsEngine.Robots.Trend
             { // open logic
                 _tab.BuyAtStop(Volume.ValueDecimal,
                     _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] + 
-                    Slippage.ValueInt * _tab.Securiti.PriceStep,
+                    Slippage.ValueInt * _tab.Security.PriceStep,
                     _envelop.ValuesUp[_envelop.ValuesUp.Count - 1],
                     StopActivateType.HigherOrEqual,1);
 
                 _tab.SellAtStop(Volume.ValueDecimal,
                      _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] -
-                     Slippage.ValueInt * _tab.Securiti.PriceStep,
+                     Slippage.ValueInt * _tab.Security.PriceStep,
                     _envelop.ValuesDown[_envelop.ValuesDown.Count - 1],
                     StopActivateType.LowerOrEqual, 1);
             }
@@ -170,7 +170,7 @@ namespace OsEngine.Robots.Trend
                     decimal activationPrice = _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] -
                         _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] * (TrailStop.ValueDecimal / 100);
 
-                    decimal orderPrice = activationPrice - _tab.Securiti.PriceStep * Slippage.ValueInt;
+                    decimal orderPrice = activationPrice - _tab.Security.PriceStep * Slippage.ValueInt;
 
                     _tab.CloseAtTrailingStop(positions[0],
                         activationPrice, orderPrice);
@@ -180,7 +180,7 @@ namespace OsEngine.Robots.Trend
                     decimal activationPrice = _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] +
                         _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] * (TrailStop.ValueDecimal / 100);
 
-                    decimal orderPrice = activationPrice + _tab.Securiti.PriceStep * Slippage.ValueInt;
+                    decimal orderPrice = activationPrice + _tab.Security.PriceStep * Slippage.ValueInt;
 
                     _tab.CloseAtTrailingStop(positions[0],
                         activationPrice, orderPrice);

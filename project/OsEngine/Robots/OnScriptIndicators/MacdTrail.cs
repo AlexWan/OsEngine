@@ -129,12 +129,12 @@ public class MacdTrail : BotPanel
         if (_lastMacdDown < 0 && _lastMacdUp > _lastMacdDown
                               && Regime.ValueString != "OnlyShort")
         {
-            _tab.BuyAtLimit(Volume.ValueDecimal, _lastClose + Slippage.ValueInt * _tab.Securiti.PriceStep);
+            _tab.BuyAtLimit(Volume.ValueDecimal, _lastClose + Slippage.ValueInt * _tab.Security.PriceStep);
         }
         if (_lastMacdDown > 0 && _lastMacdUp < _lastMacdDown
                               && Regime.ValueString != "OnlyLong")
         {
-            _tab.SellAtLimit(Volume.ValueDecimal, _lastClose - Slippage.ValueInt * _tab.Securiti.PriceStep);
+            _tab.SellAtLimit(Volume.ValueDecimal, _lastClose - Slippage.ValueInt * _tab.Security.PriceStep);
         }
     }
 

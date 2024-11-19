@@ -108,7 +108,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                     {
                         decimal volume = GetVolume(_tabToTrade);
                         decimal price = md.Bids[0].Price;
-                        price += _tabToTrade.Securiti.PriceStep * _slippagePriceStep.ValueInt;
+                        price += _tabToTrade.Security.PriceStep * _slippagePriceStep.ValueInt;
 
                         _tabToTrade.BuyAtLimit(volume, price);
                     }
@@ -131,10 +131,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
                     }
 
                     decimal stopPrice =
-                        pos.EntryPrice - _tabToTrade.Securiti.PriceStep * _stopPriceStep.ValueInt;
+                        pos.EntryPrice - _tabToTrade.Security.PriceStep * _stopPriceStep.ValueInt;
 
                     decimal profitPrice =
-                        pos.EntryPrice + _tabToTrade.Securiti.PriceStep * _profitPriceStep.ValueInt;
+                        pos.EntryPrice + _tabToTrade.Security.PriceStep * _profitPriceStep.ValueInt;
 
                     _tabToTrade.CloseAtStopMarket(pos, stopPrice);
                     _tabToTrade.CloseAtProfitMarket(pos, profitPrice);
@@ -171,13 +171,13 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Securiti.Lot != 0 &&
-                        tab.Securiti.Lot > 1)
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
                     {
-                        volume = _volume.ValueDecimal / (contractPrice * tab.Securiti.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
-                    volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
                 }
                 else // Tester or Optimizer
                 {
@@ -226,11 +226,11 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
                 decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
-                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Securiti.Lot;
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
                 if (tab.StartProgram == StartProgram.IsOsTrader)
                 {
-                    qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
                 }
                 else
                 {

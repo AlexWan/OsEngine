@@ -155,12 +155,12 @@ public class RviTrade : BotPanel
     {
         if (_lastRviDown < 0 && _lastRviUp > _lastRviDown && Regime.ValueString != "OnlyShort")
         {
-            _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+            _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
         }
 
         if (_lastRviDown > 0 && _lastRviUp < _lastRviDown && Regime.ValueString != "OnlyLong")
         {
-            _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+            _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
         }
     }
 
@@ -178,7 +178,7 @@ public class RviTrade : BotPanel
 
                 if (Regime.ValueString != "OnlyLong" && Regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
@@ -191,7 +191,7 @@ public class RviTrade : BotPanel
 
                 if (Regime.ValueString != "OnlyShort" && Regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }

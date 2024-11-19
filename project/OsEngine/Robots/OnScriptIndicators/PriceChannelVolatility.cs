@@ -219,7 +219,7 @@ public class PriceChannelVolatility : BotPanel
             {
                 decimal priceEnter = _lastPcUp;
                 _tab.BuyAtStop(VolumeFix1.ValueDecimal,
-                    priceEnter + Slippage.ValueInt * _tab.Securiti.PriceStep,
+                    priceEnter + Slippage.ValueInt * _tab.Security.PriceStep,
                     priceEnter, StopActivateType.HigherOrEqual);
             }
 
@@ -228,7 +228,7 @@ public class PriceChannelVolatility : BotPanel
             {
                 decimal priceEnter = _lastPcDown;
                 _tab.SellAtStop(VolumeFix1.ValueDecimal,
-                    priceEnter - Slippage.ValueInt * _tab.Securiti.PriceStep,
+                    priceEnter - Slippage.ValueInt * _tab.Security.PriceStep,
                     priceEnter, StopActivateType.LowerOrEqual);
             }
             return;
@@ -242,14 +242,14 @@ public class PriceChannelVolatility : BotPanel
             {
                 decimal priceEnter = _lastPcUp + (_lastAtr * KofAtr.ValueDecimal);
                 _tab.BuyAtStop(VolumeFix2.ValueDecimal,
-                    priceEnter + Slippage.ValueInt * _tab.Securiti.PriceStep,
+                    priceEnter + Slippage.ValueInt * _tab.Security.PriceStep,
                     priceEnter, StopActivateType.HigherOrEqual);
             }
             else
             {
                 decimal priceEnter = _lastPcDown - (_lastAtr * KofAtr.ValueDecimal);
                 _tab.SellAtStop(VolumeFix2.ValueDecimal,
-                    priceEnter - Slippage.ValueInt * _tab.Securiti.PriceStep,
+                    priceEnter - Slippage.ValueInt * _tab.Security.PriceStep,
                     priceEnter, StopActivateType.LowerOrEqual);
             }
         }
@@ -273,13 +273,13 @@ public class PriceChannelVolatility : BotPanel
             {
                 decimal priceClose = _lastPcDown;
                 _tab.CloseAtTrailingStop(openPositions[i], priceClose,
-                    priceClose - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    priceClose - Slippage.ValueInt * _tab.Security.PriceStep);
             }
             else
             {
                 decimal priceClose = _lastPcUp;
                 _tab.CloseAtTrailingStop(openPositions[i], priceClose,
-                    priceClose + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    priceClose + Slippage.ValueInt * _tab.Security.PriceStep);
             }
         }
 

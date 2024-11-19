@@ -291,13 +291,13 @@ namespace OsEngine.Robots.Trend
                 && _lastPrice > _lastFractalUp
                 && Regime.ValueString != "OnlyShort")
             {
-                _tab.BuyAtLimit(VolumeFirst.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.BuyAtLimit(VolumeFirst.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
             }
             if (_lastPrice < _lastUpAlligator && _lastPrice < _lastMiddleAlligator && _lastPrice < _lastDownAlligator
                 && _lastPrice < _lastFractalDown
                 && Regime.ValueString != "OnlyLong")
             {
-                _tab.SellAtLimit(VolumeFirst.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.SellAtLimit(VolumeFirst.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
             }
         }
 
@@ -312,7 +312,7 @@ namespace OsEngine.Robots.Trend
                 if (_secondAo < _lastAo &&
                     _secondAo < _thirdAo)
                 {
-                    _tab.BuyAtLimit(VolumeSecond.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.BuyAtLimit(VolumeSecond.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
 
@@ -321,7 +321,7 @@ namespace OsEngine.Robots.Trend
                 if (_secondAo > _lastAo &&
                     _secondAo > _thirdAo)
                 {
-                    _tab.SellAtLimit(VolumeSecond.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.SellAtLimit(VolumeSecond.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
@@ -341,7 +341,7 @@ namespace OsEngine.Robots.Trend
             {
                 if (_lastPrice < _lastMiddleAlligator)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
                 }
             }
 
@@ -349,7 +349,7 @@ namespace OsEngine.Robots.Trend
             {
                 if (_lastPrice > _lastMiddleAlligator)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
                 }
             }
         }

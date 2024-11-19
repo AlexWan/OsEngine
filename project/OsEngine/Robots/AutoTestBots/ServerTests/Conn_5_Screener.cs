@@ -365,8 +365,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for (int i = 0;i < _awaitableSecurities.Count;i++)
             {
-                if (_awaitableSecurities[i].Security.Name == tab.Securiti.Name
-                    && _awaitableSecurities[i].Security.NameClass == tab.Securiti.NameClass)
+                if (_awaitableSecurities[i].Security.Name == tab.Security.Name
+                    && _awaitableSecurities[i].Security.NameClass == tab.Security.NameClass)
                 {
                     mySec = _awaitableSecurities[i];
                     break;
@@ -394,8 +394,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for (int i = 0; i < _awaitableSecurities.Count; i++)
             {
-                if (_awaitableSecurities[i].Security.Name == tab.Securiti.Name
-                    && _awaitableSecurities[i].Security.NameClass == tab.Securiti.NameClass)
+                if (_awaitableSecurities[i].Security.Name == tab.Security.Name
+                    && _awaitableSecurities[i].Security.NameClass == tab.Security.NameClass)
                 {
                     mySec = _awaitableSecurities[i];
                     break;
@@ -427,8 +427,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for (int i = 0; i < _awaitableSecurities.Count; i++)
             {
-                if (_awaitableSecurities[i].Security.Name == tab.Securiti.Name
-                    && _awaitableSecurities[i].Security.NameClass == tab.Securiti.NameClass)
+                if (_awaitableSecurities[i].Security.Name == tab.Security.Name
+                    && _awaitableSecurities[i].Security.NameClass == tab.Security.NameClass)
                 {
                     mySec = _awaitableSecurities[i];
                     break;

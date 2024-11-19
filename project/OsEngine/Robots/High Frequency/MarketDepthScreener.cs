@@ -208,7 +208,7 @@ namespace OsEngine.Robots.High_Frequency
                 }
             }
 
-            decimal openOrderPrice = md.Bids[0].Price + tab.Securiti.PriceStep;
+            decimal openOrderPrice = md.Bids[0].Price + tab.Security.PriceStep;
             decimal volume = GetVolume(tab);
 
             tab.ManualPositionSupport.DisableManualSupport();
@@ -306,13 +306,13 @@ namespace OsEngine.Robots.High_Frequency
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Securiti.Lot != 0 &&
-                        tab.Securiti.Lot > 1)
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Securiti.Lot);
+                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
-                    volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
                 }
                 else // Tester or Optimizer
                 {
@@ -361,11 +361,11 @@ namespace OsEngine.Robots.High_Frequency
 
                 decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
 
-                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Securiti.Lot;
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
                 if (tab.StartProgram == StartProgram.IsOsTrader)
                 {
-                    qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
                 }
                 else
                 {

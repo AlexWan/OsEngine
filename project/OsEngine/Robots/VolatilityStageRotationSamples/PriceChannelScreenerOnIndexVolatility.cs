@@ -215,7 +215,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             for (int i = 0; i < tabs.Count; i++)
             {
                 SecurityRatingDataPc newData = new SecurityRatingDataPc();
-                newData.SecurityName = tabs[i].Securiti.Name;
+                newData.SecurityName = tabs[i].Security.Name;
                 newData.Volume = CalculateVolume(TopCandlesLookBack.ValueInt, tabs[i]);
                 newData.Volatility = GetVolatilityDiff(tabs[i].CandlesAll, candlesIndex, TopCandlesLookBack.ValueInt);
 
@@ -309,9 +309,9 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 }
             }
 
-            if (tab.Securiti.Lot > 1)
+            if (tab.Security.Lot > 1)
             {
-                volume = volume * tab.Securiti.Lot;
+                volume = volume * tab.Security.Lot;
             }
 
             return volume;
@@ -439,7 +439,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 return;
             }
 
-            if (SecuritiesToTrade.ValueString.Contains(tab.Securiti.Name) == false)
+            if (SecuritiesToTrade.ValueString.Contains(tab.Security.Name) == false)
             {
                 return;
             }
@@ -594,13 +594,13 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Securiti.Lot != 0 &&
-                        tab.Securiti.Lot > 1)
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Securiti.Lot);
+                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
-                    volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
                 }
                 else // Tester or Optimizer
                 {
@@ -649,11 +649,11 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                 decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
 
-                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Securiti.Lot;
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
                 if (tab.StartProgram == StartProgram.IsOsTrader)
                 {
-                    qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
                 }
                 else
                 {

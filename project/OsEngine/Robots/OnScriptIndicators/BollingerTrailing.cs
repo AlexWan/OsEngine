@@ -191,14 +191,14 @@ public class BollingerTrailing : BotPanel
 
                 _tab.CloseAtTrailingStop(
                     openPositions[i], valueDown,
-                    valueDown - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    valueDown - Slippage.ValueInt * _tab.Security.PriceStep);
             }
             else
             {
                 decimal valueUp = _bollinger.DataSeries[0].Values[_bollinger.DataSeries[0].Values.Count - 1];
                 _tab.CloseAtTrailingStop(
                     openPositions[i], valueUp,
-                    valueUp + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    valueUp + Slippage.ValueInt * _tab.Security.PriceStep);
             }
         }
     }
@@ -218,7 +218,7 @@ public class BollingerTrailing : BotPanel
             {
                 if (_lastPrice > _lastBbUp)
                 {
-                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
 
@@ -227,7 +227,7 @@ public class BollingerTrailing : BotPanel
             {
                 if (_lastPrice < _lastBbDown)
                 {
-                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
             return;

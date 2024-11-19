@@ -265,7 +265,7 @@ namespace OsEngine.Robots.TechSamples
         /// </summary>
         private void AddNewLineInTable(BotTabSimple tab)
         {
-            if(tab.Securiti == null)
+            if(tab.Security == null)
             {
                 return;
             }
@@ -274,7 +274,7 @@ namespace OsEngine.Robots.TechSamples
 
             for (int i = 0; _tableDataGrid.Rows != null && i < _tableDataGrid.Rows.Count; i++)
             {
-                if (_tableDataGrid.Rows[i].Cells[0].Value.ToString() == tab.Securiti.Name)
+                if (_tableDataGrid.Rows[i].Cells[0].Value.ToString() == tab.Security.Name)
                 {
                     GotLine = true;
                     break;
@@ -285,7 +285,7 @@ namespace OsEngine.Robots.TechSamples
             {
                 TableBotLine newLine = new TableBotLine();
 
-                newLine.Security = tab.Securiti.Name;
+                newLine.Security = tab.Security.Name;
 
                 newLine.CandleCount = 100;
 
@@ -390,7 +390,7 @@ namespace OsEngine.Robots.TechSamples
 
                     for (int j = 0; j < _tab.Tabs.Count; j++)
                     {
-                        if (_tableDataGrid.Rows[i].Cells[0].Value.ToString() == _tab.Tabs[j].Securiti.Name)
+                        if (_tableDataGrid.Rows[i].Cells[0].Value.ToString() == _tab.Tabs[j].Security.Name)
                         {
                             GotLine = true;
                         }
@@ -436,7 +436,7 @@ namespace OsEngine.Robots.TechSamples
 
                 for (int i = 0; i < Lines.Count; i++)
                 {
-                    if (Lines[i].Security == tab.Securiti.Name)
+                    if (Lines[i].Security == tab.Security.Name)
                     {
                         indexLine = i;
                         GotLine = true;
@@ -503,7 +503,7 @@ namespace OsEngine.Robots.TechSamples
 
             for(int i = 0;  i < Lines.Count; i++)
             {
-                if (Lines[i].Security == tab.Securiti.Name)
+                if (Lines[i].Security == tab.Security.Name)
                 {
                     indexLine = i; 
                     GotLine = true;
@@ -583,13 +583,13 @@ namespace OsEngine.Robots.TechSamples
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Securiti.Lot != 0 &&
-                        tab.Securiti.Lot > 1)
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Securiti.Lot);
+                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
-                    volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
                 }
                 else // Tester or Optimizer
                 {
@@ -638,11 +638,11 @@ namespace OsEngine.Robots.TechSamples
 
                 decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
 
-                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Securiti.Lot;
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
                 if (tab.StartProgram == StartProgram.IsOsTrader)
                 {
-                    qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
                 }
                 else
                 {

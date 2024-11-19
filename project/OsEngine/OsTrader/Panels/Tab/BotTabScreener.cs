@@ -826,8 +826,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.SaveTradesInCandles = SaveTradesInCandles;
             tab.Connector.ComissionType = ComissionType;
             tab.Connector.ComissionValue = ComissionValue;
-            tab.ComissionType = ComissionType;
-            tab.ComissionValue = ComissionValue;
+            tab.CommissionType = ComissionType;
+            tab.CommissionValue = ComissionValue;
             tab.IsCreatedByScreener = true;
         }
 
@@ -869,8 +869,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
             newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
             newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
-            newTab.ComissionType = ComissionType;
-            newTab.ComissionValue = ComissionValue;
+            newTab.CommissionType = ComissionType;
+            newTab.CommissionValue = ComissionValue;
             newTab.IsCreatedByScreener = true;
 
             curTabs.Add(newTab);
