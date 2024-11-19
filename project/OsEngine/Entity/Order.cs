@@ -532,42 +532,48 @@ namespace OsEngine.Entity
         /// <summary>
         /// None
         /// </summary>
-        None,
+        None = 1,
 
         /// <summary>
         /// Accepted by the exchange and exhibited in the system
         /// </summary>
-        Active,
+        Active = 2,
 
         /// <summary>
         /// Waiting for registration
         /// </summary>
-        Pending,
+        Pending = 3,
 
         /// <summary>
         /// Done
         /// </summary>
-        Done,
+        Done = 4,
 
         /// <summary>
         /// Partitial done
         /// </summary>
-        Partial,
+        Partial = 5,
 
         /// <summary>
         /// Error
         /// </summary>
-        Fail,
+        Fail = 6,
 
         /// <summary>
         /// Cancel
         /// </summary>
-        Cancel,
+        Cancel = 7,
 
         /// <summary>
         /// Status did not change after Active. Possible error
         /// </summary>
-        LostAfterActive
+        LostAfterActive = 8,
+
+        [Obsolete("Use Active")]
+        Activ = 2,
+
+        [Obsolete("Use Partial")]
+        Patrial = 5,
     }
 
     /// <summary>
