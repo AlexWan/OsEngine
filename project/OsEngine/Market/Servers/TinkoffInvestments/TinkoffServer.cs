@@ -70,12 +70,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             worker5.Start();
 
             Thread worker6 = new Thread(LastPricesPoller);
-            worker6.Name = "LastPricesPollingTInvest";
             worker6.Start();
 
             Thread worker7 = new Thread(OrderStateMessageReader);
-            worker5.Name = "OrderStateMessageReaderTInvest";
-            worker5.Start();
+            worker7.Name = "OrderStateMessageReaderTInvest";
+            worker7.Start();
         }
 
         public void Connect()
@@ -1124,6 +1123,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
+            // ensure all times are UTC
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
             if (startTime != actualTime)
             {
                 startTime = actualTime;
@@ -1196,8 +1200,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             if (requestedCandleInterval == CandleInterval.Unspecified)
                 return null;
             
-            Timestamp from = Timestamp.FromDateTime(fromDateTime.ToUniversalTime());
-            Timestamp to = Timestamp.FromDateTime(toDateTime.ToUniversalTime());
+            Timestamp from = Timestamp.FromDateTime(fromDateTime);
+            Timestamp to = Timestamp.FromDateTime(toDateTime);
 
             _rateGateMarketData.WaitToProceed();
             

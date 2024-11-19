@@ -38,6 +38,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             buttonDataTest1.UserClickOnButtonEvent += ButtonDataTest1_UserClickOnButtonEvent;
             D1_SecurityName = CreateParameter("Sec name data test 1", "ADAUSDT","D1");
             D1_SecurityClass = CreateParameter("Sec class data test 1", "Futures", "D1");
+            D1_StartDate = CreateParameter("Base date for data request", DateTime.Now.ToString(), "D1");
 
             StrategyParameterButton buttonDataTest2 = CreateParameterButton("Start test data 2", "D2");
             buttonDataTest2.UserClickOnButtonEvent += ButtonDataTest2_UserClickOnButtonEvent;
@@ -206,6 +207,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         StrategyParameterString D1_SecurityName;
         StrategyParameterString D1_SecurityClass;
+        StrategyParameterString D1_StartDate;
 
         StrategyParameterString D2_SecurityName;
         StrategyParameterString D2_SecurityClass;
@@ -714,6 +716,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     Data_1_Integrity tester = new Data_1_Integrity();
                     tester.SecName = D1_SecurityName.ValueString;
                     tester.SecClass = D1_SecurityClass.ValueString;
+                    tester.StartDate = DateTime.Parse(D1_StartDate.ValueString);
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);

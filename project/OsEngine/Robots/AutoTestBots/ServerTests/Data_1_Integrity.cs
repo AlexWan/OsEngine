@@ -11,6 +11,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         public string SecName;
 
         public string SecClass;
+        public DateTime StartDate;
 
         public override void Process()
         {
@@ -51,28 +52,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         private void StartTestSecurity(Security security)
         {
             //6.1.Тесты на коротком периоде. 2 дня
-            //6.1.1.Выкачивать все данные которые есть в SErverPermission как разрешённые к скачке
+            //6.1.1.Выкачивать все данные которые есть в ServerPermission как разрешённые к скачке
             //Взять один инструмент и попробовать скачать все за два дня. И по каждому источнику должно быть именно 2 дня.
             //6.1.2.Уметь скачивать трейды
             //6.1.3.Дата старта запроса должна совпадать с данными первых свечей, если данные точно есть.
             //6.1.4.Дата конца запроса должна совпадать с данными последней свечи, если данные точно есть.
 
-            DateTime lastMidnightTime = DateTime.Now;
+            DateTime lastMidnightTime = StartDate.Date;
 
-            while (lastMidnightTime.Hour != 0)
-            {
-                lastMidnightTime = lastMidnightTime.AddMinutes(-1);
-            }
-
-            while (lastMidnightTime.Minute != 1)
-            {
-                lastMidnightTime = lastMidnightTime.AddMinutes(-1);
-            }
-
-            while (lastMidnightTime.Second != 1)
-            {
-                lastMidnightTime = lastMidnightTime.AddSeconds(-1);
-            }
+            lastMidnightTime = lastMidnightTime + new TimeSpan(0, 0, 1, 1); // 1 минута и 1 секунда
 
             DateTime startTime = lastMidnightTime.AddDays(-3);
             DateTime endTime = lastMidnightTime.AddDays(-1).AddHours(-1);
