@@ -1213,6 +1213,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 getCandlesRequest.From = from;
                 getCandlesRequest.To = to;
                 getCandlesRequest.Interval = requestedCandleInterval;
+                getCandlesRequest.CandleSourceType = _filterOutNonMarketData ? GetCandlesRequest.Types.CandleSource.Exchange : GetCandlesRequest.Types.CandleSource.IncludeWeekend;
                 
                 candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
             }
@@ -1310,30 +1311,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 candle.High = GetValue(canTin.High);
                 candle.Low = GetValue(canTin.Low);
                 candle.Volume = canTin.Volume;
-                
                 candle.TimeStart = canTin.Time.ToDateTime();
-
-                if (_filterOutNonMarketData) // пока без учета календаря
-                {  
-                    bool isTradingDay = true;
-                    
-                    // брокер не дает расписание для исторических данных, поэтому для сегодняшних данных можно использовать расписание
-                    if (candle.TimeStart.Date.Equals(DateTime.UtcNow.Date))
-                    {
-                        isTradingDay = isTodayATradingDayForSecurity(security);
-                    }
-                    else
-                    {
-                        // а для исторических просто считаем, что выходные - неторговые дни
-                        if (candle.TimeStart.DayOfWeek == DayOfWeek.Saturday ||
-                            candle.TimeStart.DayOfWeek == DayOfWeek.Sunday)
-                            isTradingDay = false;
-                    }
-                    
-                    if (isTradingDay == false)   
-                        continue;
-                }
-
+               
                 candles.Add(candle);
             }
 
