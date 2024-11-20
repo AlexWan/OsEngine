@@ -92,9 +92,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ManualPositionSupport.LogMessageEvent += SetNewLogMessage;
                 ManualPositionSupport.DontOpenOrderDetectedEvent += _dealOpeningWatcher_DontOpenOrderDetectedEvent;
 
-                _acebergMaker = new IcebergMaker();
-                _acebergMaker.NewOrderNeedToExecute += _acebergMaker_NewOrderNeadToExecute;
-                _acebergMaker.NewOrderNeedToCancel += _acebergMaker_NewOrderNeadToCansel;
+                _icebergMaker = new IcebergMaker();
+                _icebergMaker.NewOrderNeedToExecute += _icebergMaker_NewOrderNeedToExecute;
+                _icebergMaker.NewOrderNeedToCancel += _icebergMaker_NewOrderNeedToCancel;
 
                 if (startProgram == StartProgram.IsOsTrader)
                 {// load the latest orders for robots to the general storage in ServerMaster
@@ -300,7 +300,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                ClearAceberg();
+                ClearIceberg();
 
                 BuyAtStopCancel();
 
@@ -377,11 +377,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _alerts = null;
                 }
 
-                if (_acebergMaker != null)
+                if (_icebergMaker != null)
                 {
-                    _acebergMaker.NewOrderNeedToExecute -= _acebergMaker_NewOrderNeadToExecute;
-                    _acebergMaker.NewOrderNeedToCancel -= _acebergMaker_NewOrderNeadToCansel;
-                    _acebergMaker = null;
+                    _icebergMaker.NewOrderNeedToExecute -= _icebergMaker_NewOrderNeedToExecute;
+                    _icebergMaker.NewOrderNeedToCancel -= _icebergMaker_NewOrderNeedToCancel;
+                    _icebergMaker = null;
                 }
 
                 if (ManualPositionSupport != null)
@@ -943,14 +943,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Stop-limit orders
-        /// </summary>
-        public List<PositionOpenerToStopLimit> PositionOpenerToStopsAll
-        {
-            get { return PositionOpenerToStop; }
-        }
-
-        /// <summary>
         /// All closed, error positions owned by bot
         /// </summary>
         public List<Position> PositionsCloseAll
@@ -1066,9 +1058,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Stop-limit orders
+        /// </summary>
+        public List<PositionOpenerToStopLimit> PositionOpenerToStopsAll
+        {
+            get { return PositionOpenerToStop; }
+        }
+
+        /// <summary>
         /// Net position recruited by the robot
         /// </summary>
-        public decimal VolumeNetto
+        public decimal VolumeNet
         {
             get
             {
@@ -1733,7 +1733,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
 
                 return newDeal;
             }
@@ -2074,7 +2074,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">order price</param>
         /// <param name="volume">volume</param>
         /// <param name="orderCount">iceberg orders count</param>
-        public void BuyAtAcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
+        public void BuyAtIcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
         {
             try
             {
@@ -2147,7 +2147,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifyBuy, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifyBuy, volume, this);
             }
             catch (Exception error)
             {
@@ -2521,7 +2521,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
 
                 return newDeal;
             }
@@ -2870,7 +2870,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">order price</param>
         /// <param name="volume">volum</param>
         /// <param name="orderCount">iceberg orders count</param>
-        public void SellAtAcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
+        public void SellAtIcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
         {
             try
             {
@@ -2942,7 +2942,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifySell, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifySell, volume, this);
             }
             catch (Exception error)
             {
@@ -3281,7 +3281,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceLimit">order price</param>
         /// <param name="volume">volume required to close</param>
         /// <param name="orderCount">iceberg orders count</param>
-        public void CloseAtAceberg(Position position, decimal priceLimit, decimal volume, int orderCount)
+        public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int orderCount)
         {
             try
             {
@@ -3304,11 +3304,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Buy)
                 {
-                    SellAtAcebergToPosition(position, priceLimit, volume, orderCount);
+                    SellAtIcebergToPosition(position, priceLimit, volume, orderCount);
                 }
                 else
                 {
-                    BuyAtAcebergToPosition(position, priceLimit, volume, orderCount);
+                    BuyAtIcebergToPosition(position, priceLimit, volume, orderCount);
                 }
             }
             catch (Exception error)
@@ -3325,10 +3325,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="volume">volume required to close</param>
         /// <param name="orderCount">iceberg orders count</param>
         /// <param name="signalType">close position signal name</param>
-        public void CloseAtAceberg(Position position, decimal priceLimit, decimal volume, int orderCount, string signalType)
+        public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int orderCount, string signalType)
         {
             position.SignalTypeClose = signalType;
-            CloseAtAceberg(position, priceLimit, volume, orderCount);
+            CloseAtIceberg(position, priceLimit, volume, orderCount);
         }
 
         /// <summary>
@@ -5028,12 +5028,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Icebergs master
         /// </summary>
-        private IcebergMaker _acebergMaker;
+        private IcebergMaker _icebergMaker;
 
         /// <summary>
         /// Iceberg Master Requests To Cancel Order
         /// </summary>
-        void _acebergMaker_NewOrderNeadToCansel(Order order)
+        void _icebergMaker_NewOrderNeedToCancel(Order order)
         {
             _connector.OrderCancel(order);
         }
@@ -5041,7 +5041,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Icebergs master requires you to place an order
         /// </summary>
-        void _acebergMaker_NewOrderNeadToExecute(Order order)
+        void _icebergMaker_NewOrderNeedToExecute(Order order)
         {
             _connector.OrderExecute(order);
         }
@@ -5049,11 +5049,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Clear all icebergs from the system
         /// </summary>
-        public void ClearAceberg()
+        public void ClearIceberg()
         {
             try
             {
-                _acebergMaker?.ClearIcebergs();
+                _icebergMaker?.ClearIcebergs();
             }
             catch (Exception error)
             {
@@ -5743,7 +5743,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
             _journal.SetNewOrder(order);
-            _acebergMaker.SetNewOrder(order);
+            _icebergMaker.SetNewOrder(order);
 
             if (OrderUpdateEvent != null)
             {

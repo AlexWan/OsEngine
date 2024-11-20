@@ -647,8 +647,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            TextBoxSec1Position.Text = _pair.Tab1.VolumeNetto.ToString();
-            TextBoxSec2Position.Text = _pair.Tab2.VolumeNetto.ToString();
+            TextBoxSec1Position.Text = _pair.Tab1.VolumeNet.ToString();
+            TextBoxSec2Position.Text = _pair.Tab2.VolumeNet.ToString();
         }
 
         private void UpdatePositionsOnChart()

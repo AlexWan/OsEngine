@@ -1519,7 +1519,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[4].Value = "pos: " + pair.Tab1.VolumeNetto.ToStringWithNoEndZero();
+            nRow.Cells[4].Value = "pos: " + pair.Tab1.VolumeNet.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
@@ -1557,7 +1557,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[4].Value = "pos: " + pair.Tab2.VolumeNetto.ToStringWithNoEndZero();
+            nRow.Cells[4].Value = "pos: " + pair.Tab2.VolumeNet.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
