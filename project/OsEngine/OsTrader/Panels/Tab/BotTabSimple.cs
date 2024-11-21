@@ -872,6 +872,61 @@ namespace OsEngine.OsTrader.Panels.Tab
         private Portfolio _portfolio;
 
         /// <summary>
+        /// Exchange position for security
+        /// </summary>
+        public List<PositionOnBoard> PositionsOnBoard
+        {
+            get
+            {
+                try
+                {
+                    if (Portfolio == null
+                        || Security == null)
+                    {
+                        return null;
+                    }
+
+                    List<PositionOnBoard> positionsOnBoard = Portfolio.GetPositionOnBoard();
+
+                    List<PositionOnBoard> posesWithMySecurity = new List<PositionOnBoard>();
+
+                    for (int i = 0; positionsOnBoard != null && i < positionsOnBoard.Count; i++)
+                    {
+                        if (positionsOnBoard[i] == null)
+                        {
+                            continue;
+                        }
+
+                        if (positionsOnBoard[i].ValueCurrent == 0)
+                        {
+                            continue;
+                        }
+
+                        string nameShort = Security.Name + "_SHORT";
+                        string nameLong = Security.Name + "_LONG";
+                        string nameBoth = Security.Name + "_BOTH";
+
+                        if (positionsOnBoard[i].SecurityNameCode.Equals(Security.Name)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameShort)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameLong)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameBoth))
+                        {
+                            posesWithMySecurity.Add(positionsOnBoard[i]);
+                        }
+                    }
+
+                    return posesWithMySecurity;
+                }
+                catch (Exception error)
+                {
+                    SetNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Commission type for positions
         /// </summary>
         public ComissionType CommissionType
@@ -1003,69 +1058,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Exchange position for security
-        /// </summary>
-        public List<PositionOnBoard> PositionsOnBoard
-        {
-            get
-            {
-                try
-                {
-                    if (Portfolio == null
-                        || Security == null)
-                    {
-                        return null;
-                    }
-
-                    List<PositionOnBoard> positionsOnBoard = Portfolio.GetPositionOnBoard();
-
-                    List<PositionOnBoard> posesWithMySecurity = new List<PositionOnBoard>();
-
-                    for (int i = 0; positionsOnBoard != null && i < positionsOnBoard.Count; i++)
-                    {
-                        if (positionsOnBoard[i] == null)
-                        {
-                            continue;
-                        }
-
-                        if (positionsOnBoard[i].ValueCurrent == 0)
-                        {
-                            continue;
-                        }
-
-                        string nameShort = Security.Name + "_SHORT";
-                        string nameLong = Security.Name + "_LONG";
-                        string nameBoth = Security.Name + "_BOTH";
-
-                        if (positionsOnBoard[i].SecurityNameCode.Equals(Security.Name)
-                            || positionsOnBoard[i].SecurityNameCode.Equals(nameShort)
-                            || positionsOnBoard[i].SecurityNameCode.Equals(nameLong)
-                            || positionsOnBoard[i].SecurityNameCode.Equals(nameBoth))
-                        {
-                            posesWithMySecurity.Add(positionsOnBoard[i]);
-                        }
-                    }
-
-                    return posesWithMySecurity;
-                }
-                catch (Exception error)
-                {
-                    SetNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Stop-limit orders
-        /// </summary>
-        public List<PositionOpenerToStopLimit> PositionOpenerToStopsAll
-        {
-            get { return PositionOpenerToStop; }
-        }
-
-        /// <summary>
         /// Net position recruited by the robot
         /// </summary>
         public decimal VolumeNet
@@ -1102,6 +1094,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return 0;
                 }
             }
+        }
+
+        /// <summary>
+        /// Stop-limit orders
+        /// </summary>
+        public List<PositionOpenerToStopLimit> PositionOpenerToStopsAll
+        {
+            get { return PositionOpenerToStop; }
         }
 
         /// <summary>
@@ -5077,7 +5077,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// New MarketDepth event handler
         /// </summary>
-        void _connector_GlassChangeEvent(MarketDepth marketDepth)
+        private void _connector_GlassChangeEvent(MarketDepth marketDepth)
         {
             if (_isDelete)
             {
@@ -5814,10 +5814,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private static List<BotTabSimple> _tabsToCheckPositionEvent = new List<BotTabSimple>();
 
-        ConcurrentQueue<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsQueue 
+        private ConcurrentQueue<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsQueue 
             = new ConcurrentQueue<PositionAwaitMyTradesToSendEvent> ();
 
-        List<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsList 
+        private List<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsList 
             = new List<PositionAwaitMyTradesToSendEvent>();
 
         public void CheckAwaitPositionsArea()
