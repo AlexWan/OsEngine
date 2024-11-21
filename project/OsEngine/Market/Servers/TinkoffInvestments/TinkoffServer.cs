@@ -20,6 +20,7 @@ using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
+using ru.micexrts.cgate.message;
 
 namespace OsEngine.Market.Servers.TinkoffInvestments
 {
@@ -2351,7 +2352,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         order.Volume = state.LotsRequested;
                         order.VolumeExecute = state.LotsExecuted;
                         order.Price = order.TypeOrder == OrderPriceType.Limit ? GetValue(state.InitialOrderPrice)/order.Volume : 0;
-                        order.TimeCallBack = state.CreatedAt.ToDateTime();
+                        order.TimeCallBack = state.CreatedAt?.ToDateTime() ?? DateTime.UtcNow;
                         order.SecurityClassCode = security.NameClass;
 
                         if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
@@ -2517,14 +2518,14 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     return;
                 }
 
-                int newOrderNumber = NumberGen.GetNumberOrder(StartProgram.IsOsTrader);
-
-                // Первым делом меняем номер ордера у старого
-                order.NumberUser = newOrderNumber;
-
-                if (MyOrderEvent != null)
+                // remove old Uuid/NumberUser from list
+                foreach (KeyValuePair<string, int> kvp in _orderNumbers)
                 {
-                    MyOrderEvent(order);
+                    if (kvp.Value == order.NumberUser)
+                    {
+                        _orderNumbers.Remove(kvp.Key);
+                        break;
+                    }
                 }
 
                 ReplaceOrderRequest request = new ReplaceOrderRequest();
@@ -2534,7 +2535,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 Guid newUid = Guid.NewGuid();
                 string orderId = newUid.ToString();
                 _orderNumbers.Add(orderId, order.NumberUser);
-                
+
                 request.IdempotencyKey = orderId;
                 request.Quantity = Convert.ToInt32(order.Volume - order.VolumeExecute);
 
@@ -2587,7 +2588,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                     // А теперь записываем новые данные для нового ордера
                     order.State = OrderStateType.Active;
                     order.NumberMarket = response.OrderId;
-                    order.NumberUser = newOrderNumber;
+                    order.NumberUser = _orderNumbers[response.OrderRequestId];
                     order.Price = newPrice;
                     order.Volume = request.Quantity;
                     order.VolumeExecute = 0;
