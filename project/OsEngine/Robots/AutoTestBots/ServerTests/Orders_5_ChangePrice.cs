@@ -293,7 +293,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWhait < DateTime.Now)
                 {
-                    this.SetNewError("Error 12. No new order whith new price from server");
+                    this.SetNewError("Error 12. No new order with new price from server");
                     return;
                 }
 
@@ -301,7 +301,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     if (_ordersActive[0].Price == newOrderPrice)
                     {
-                        this.SetNewServiceInfo("New order whith new price. Check!");
+                        this.SetNewServiceInfo("New order with new price. Check!");
                         break;
                     }
                 }
@@ -384,7 +384,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (order.State == OrderStateType.None)
             {
-                this.SetNewError("Error 14. Order whith state NONE");
+                this.SetNewError("Error 14. Order with state NONE");
                 return;
             }
 

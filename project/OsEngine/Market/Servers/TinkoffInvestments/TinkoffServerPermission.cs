@@ -125,7 +125,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
 
         public bool IsCanChangeOrderPrice
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool UseStandartCandlesStarter

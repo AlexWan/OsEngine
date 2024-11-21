@@ -13,24 +13,26 @@ import "google/protobuf/timestamp.proto";
 import "google/api/field_behavior.proto";
 import "common.proto";
 
-service UsersService { /*Сервис предназначен для получения: </br> **1**.
-                       списка счетов пользователя; </br> **2**. маржинальных показателей по счёту.*/
+service UsersService { /*С помощью сервиса можно получить: </br> 1.
+                       список счетов пользователя; </br> 2. маржинальные показатели по счёту.*/
 
-  //Метод получения счетов пользователя.
+  //Получить счета пользователя.
   rpc GetAccounts (GetAccountsRequest) returns (GetAccountsResponse);
 
-  //Расчёт маржинальных показателей по счёту.
+  //Рассчитать маржинальные показатели по счёту.
   rpc GetMarginAttributes (GetMarginAttributesRequest) returns (GetMarginAttributesResponse);
 
-  //Запрос тарифа пользователя.
+  //Запросить тариф пользователя.
   rpc GetUserTariff (GetUserTariffRequest) returns (GetUserTariffResponse);
 
-  //Метод получения информации о пользователе.
+  //Получить информацию о пользователе.
   rpc GetInfo (GetInfoRequest) returns (GetInfoResponse);
 }
 
 //Запрос получения счетов пользователя.
-message GetAccountsRequest {}
+message GetAccountsRequest {
+  optional AccountStatus status = 1; //Статус счета.
+}
 
 //Список счетов пользователя.
 message GetAccountsResponse {
@@ -66,9 +68,10 @@ message Account {
 //Тип счёта.
 enum AccountType {
   ACCOUNT_TYPE_UNSPECIFIED = 0; //Тип аккаунта не определён.
-  ACCOUNT_TYPE_TINKOFF = 1; //Брокерский счёт Тинькофф.
-  ACCOUNT_TYPE_TINKOFF_IIS = 2; //ИИС счёт.
+  ACCOUNT_TYPE_TINKOFF = 1; //Брокерский счёт Т-Инвестиций.
+  ACCOUNT_TYPE_TINKOFF_IIS = 2; //ИИС.
   ACCOUNT_TYPE_INVEST_BOX = 3; //Инвесткопилка.
+  ACCOUNT_TYPE_INVEST_FUND = 4; //Фонд денежного рынка.
 }
 
 //Статус счёта.
@@ -77,9 +80,10 @@ enum AccountStatus {
   ACCOUNT_STATUS_NEW = 1; //Новый, в процессе открытия.
   ACCOUNT_STATUS_OPEN = 2; //Открытый и активный счёт.
   ACCOUNT_STATUS_CLOSED = 3; //Закрытый счёт.
+  ACCOUNT_STATUS_ALL = 4; //Все счета.
 }
 
-//Запрос маржинальных показателей по счёту
+//Запрос маржинальных показателей по счёту.
 message GetMarginAttributesRequest {
 
   // Идентификатор счёта пользователя.
@@ -89,13 +93,13 @@ message GetMarginAttributesRequest {
 //Маржинальные показатели по счёту.
 message GetMarginAttributesResponse {
 
-  // Ликвидная стоимость портфеля. Подробнее: [что такое ликвидный портфель?](https://help.tinkoff.ru/margin-trade/short/liquid-portfolio/).
+  // Ликвидная стоимость портфеля. [Подробнее про ликвидный портфель](https://help.tbank.ru/margin-trade/short/liquid-portfolio/).
   MoneyValue liquid_portfolio = 1;
 
-  // Начальная маржа — начальное обеспечение для совершения новой сделки. Подробнее: [начальная и минимальная маржа](https://help.tinkoff.ru/margin-trade/short/initial-and-maintenance-margin/).
+  // Начальная маржа — начальное обеспечение для совершения новой сделки. [Подробнее про начальную и минимальную маржу](https://help.tbank.ru/margin-trade/short/initial-and-maintenance-margin/).
   MoneyValue starting_margin = 2;
 
-  // Минимальная маржа — это минимальное обеспечение для поддержания позиции, которую вы уже открыли. Подробнее: [начальная и минимальная маржа](https://help.tinkoff.ru/margin-trade/short/initial-and-maintenance-margin/).
+  // Минимальная маржа — это минимальное обеспечение для поддержания позиции, которую вы уже открыли. [Подробнее про начальную и минимальную маржу](https://help.tbank.ru/margin-trade/short/initial-and-maintenance-margin/).
   MoneyValue minimal_margin = 3;
 
   // Уровень достаточности средств. Соотношение стоимости ликвидного портфеля к начальной марже.
@@ -104,7 +108,7 @@ message GetMarginAttributesResponse {
   // Объем недостающих средств. Разница между стартовой маржой и ликвидной стоимости портфеля.
   MoneyValue amount_of_missing_funds = 5;
 
-  // Скорректированная маржа.Начальная маржа, в которой плановые позиции рассчитываются с учётом активных заявок на покупку позиций лонг или продажу позиций шорт.
+  // Скорректированная маржа. Начальная маржа, в которой плановые позиции рассчитываются с учётом активных заявок на покупку позиций лонг или продажу позиций шорт.
   MoneyValue corrected_margin = 6;
 }
 
@@ -147,6 +151,6 @@ message GetInfoResponse {
 enum AccessLevel {
   ACCOUNT_ACCESS_LEVEL_UNSPECIFIED = 0; //Уровень доступа не определён.
   ACCOUNT_ACCESS_LEVEL_FULL_ACCESS = 1; //Полный доступ к счёту.
-  ACCOUNT_ACCESS_LEVEL_READ_ONLY = 2; //Доступ с уровнем прав "только чтение".
-  ACCOUNT_ACCESS_LEVEL_NO_ACCESS = 3; //Доступ отсутствует.
+  ACCOUNT_ACCESS_LEVEL_READ_ONLY = 2; //Доступ с уровнем прав «только чтение».
+  ACCOUNT_ACCESS_LEVEL_NO_ACCESS = 3; //Доступа нет.
 }

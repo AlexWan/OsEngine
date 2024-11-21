@@ -263,7 +263,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // нормальное поведение коннектора - не высылать ничего вообще
             // и чтобы старый  ордер остался на месте
-            // нужно убедиться что не пришли никакие статусы по ордерам в течении минуты
+            // нужно убедиться что не пришли никакие статусы по ордерам в течение минуты
 
             DateTime timeEndWhait = DateTime.Now.AddSeconds(20);
 
@@ -285,9 +285,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     this.SetNewError("Error 15. Income Fail order");
                 }
-                if (_ordersPatrial.Count != 0)
+                if (_ordersPartial.Count != 0)
                 {
-                    this.SetNewError("Error 16. Income Patrial order");
+                    this.SetNewError("Error 16. Income Partial order");
                 }
                 if (_ordersPending.Count != 0)
                 {
@@ -351,7 +351,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         List<Order> _ordersCancel = new List<Order>();
         List<Order> _ordersDone = new List<Order>();
         List<Order> _ordersFail = new List<Order>();
-        List<Order> _ordersPatrial = new List<Order>();
+        List<Order> _ordersPartial = new List<Order>();
         List<Order> _ordersPending = new List<Order>();
 
         private void ClearOrders()
@@ -360,7 +360,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             _ordersCancel.Clear();
             _ordersDone.Clear();
             _ordersFail.Clear();
-            _ordersPatrial.Clear();
+            _ordersPartial.Clear();
             _ordersPending.Clear();
         }
 
@@ -395,7 +395,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             else if (order.State == OrderStateType.Partial)
             {
-                _ordersPatrial.Add(order);
+                _ordersPartial.Add(order);
             }
             else if (order.State == OrderStateType.Pending)
             {
