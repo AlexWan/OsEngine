@@ -14,6 +14,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public string SecuritiesSeparator = "_";
 
+        public DateTime StartDate;
+
         public override void Process()
         {
             if (string.IsNullOrEmpty(SecuritiesSeparator))
@@ -93,22 +95,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             //1.Скачать по N инструментам все имеющиеся свечи за 1 год.Просмотреть входящие в сет данные.Проверить время старта и конца данных.
             //2.Скачать по N инструментам все имеющиеся свечи за ПРОШЛЫЙ год.Просмотреть входящие в сет данные.Проверить время старта и конца данных.
 
-            DateTime lastMidnightTime = DateTime.Now;
-
-            while (lastMidnightTime.Hour != 0)
-            {
-                lastMidnightTime = lastMidnightTime.AddMinutes(-1);
-            }
-
-            while (lastMidnightTime.Minute != 1)
-            {
-                lastMidnightTime = lastMidnightTime.AddMinutes(-1);
-            }
-
-            while (lastMidnightTime.Second != 1)
-            {
-                lastMidnightTime = lastMidnightTime.AddSeconds(-1);
-            }
+            DateTime lastMidnightTime = StartDate.Date + new TimeSpan(0, 0, 1, 1); // 1 минута и 1 секунда
 
             SetNewServiceInfo("Security to load: " + security.Name);
 

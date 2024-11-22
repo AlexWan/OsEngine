@@ -38,6 +38,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             buttonDataTest1.UserClickOnButtonEvent += ButtonDataTest1_UserClickOnButtonEvent;
             D1_SecurityName = CreateParameter("Sec name data test 1", "ADAUSDT","D1");
             D1_SecurityClass = CreateParameter("Sec class data test 1", "Futures", "D1");
+            D1_StartDate = CreateParameter("Base date for data request test 1", DateTime.Now.ToString(), "D1");
 
             StrategyParameterButton buttonDataTest2 = CreateParameterButton("Start test data 2", "D2");
             buttonDataTest2.UserClickOnButtonEvent += ButtonDataTest2_UserClickOnButtonEvent;
@@ -54,6 +55,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             D4_SecuritiesSeparator = CreateParameter("Securities separator data test 4", "_", "D4");
             D4_SecuritiesNames = CreateParameter("Sec name data test 4", "ADAUSDT_BNBUSDT_ETHUSDT_BTCUSDT", "D4");
             D4_SecurityClass = CreateParameter("Sec class data test 4", "Futures", "D4");
+            D4_StartDate = CreateParameter("Base date for data request test 4", DateTime.Now.ToString(), "D4");
 
             StrategyParameterButton buttonDataTest5 = CreateParameterButton("Start test data 5", "D5");
             buttonDataTest5.UserClickOnButtonEvent += ButtonDataTest5_UserClickOnButtonEvent;
@@ -206,6 +208,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         StrategyParameterString D1_SecurityName;
         StrategyParameterString D1_SecurityClass;
+        StrategyParameterString D1_StartDate;
 
         StrategyParameterString D2_SecurityName;
         StrategyParameterString D2_SecurityClass;
@@ -216,6 +219,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString D4_SecuritiesNames;
         StrategyParameterString D4_SecuritiesSeparator;
         StrategyParameterString D4_SecurityClass;
+        StrategyParameterString D4_StartDate;
+
 
         StrategyParameterString D5_SecuritiesNames;
         StrategyParameterString D5_SecuritiesSeparator;
@@ -714,6 +719,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     Data_1_Integrity tester = new Data_1_Integrity();
                     tester.SecName = D1_SecurityName.ValueString;
                     tester.SecClass = D1_SecurityClass.ValueString;
+                    tester.StartDate = DateTime.Parse(D1_StartDate.ValueString);
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
@@ -751,6 +757,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     tester.SecNames = D4_SecuritiesNames.ValueString;
                     tester.SecClass = D4_SecurityClass.ValueString;
                     tester.SecuritiesSeparator = D4_SecuritiesSeparator.ValueString;
+                    tester.StartDate = DateTime.Parse(D4_StartDate.ValueString);
                     tester.LogMessage += SendNewLogMessage;
                     tester.TestEndEvent += Tester_TestEndEvent;
                     _testers.Add(tester);
