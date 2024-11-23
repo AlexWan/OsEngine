@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
-using OsEngine.Market.Servers;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -18,6 +16,11 @@ namespace OsEngine.Robots.BotsFromStartLessons
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
+
+            // Close positions
+
+            _closeAllMarketButton = CreateParameterButton("Close all positions", "Close");
+            _closeAllMarketButton.UserClickOnButtonEvent += _closeAllMarketButton_UserClickOnButtonEvent;
 
             // BuyAtMarket / SellAtMarket
 
@@ -54,146 +57,41 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             // BuyAtStop / SellAtStop
 
-            _buyAtStopButton = CreateParameterButton("Buy at Stop", "Stop");
+            _buyAtStopButton = CreateParameterButton("Buy at Stop", "Entry at Stop");
             _buyAtStopButton.UserClickOnButtonEvent += _buyAtStopButton_UserClickOnButtonEvent;
-            _sellAtStopButton = CreateParameterButton("Sell at Stop", "Stop");
+            _sellAtStopButton = CreateParameterButton("Sell at Stop", "Entry at Stop");
             _sellAtStopButton.UserClickOnButtonEvent += _sellAtStopButton_UserClickOnButtonEvent;
-            _openAtStopExpiresBars = CreateParameter("Open at stop expires bars", 0, 0, 10, 1, "Stop");
-            _isNoLifeTimeOrder = CreateParameter("Use no lifetime order", false, "Stop");
+            _openAtStopExpiresBars = CreateParameter("Open at stop expires bars", 0, 0, 10, 1, "Entry at Stop");
+            _openAtStopIsNoLifeTimeOrder = CreateParameter("Use no lifetime order", false, "Entry at Stop");
+            _openAtStopIsMarketOrder = CreateParameter("Is market order", false, "Entry at Stop");
         }
 
-        #region BuyAtStop / SellAtStop
+        #region Close positions
 
-        private StrategyParameterButton _buyAtStopButton;
+        private StrategyParameterButton _closeAllMarketButton;
 
-        private StrategyParameterButton _sellAtStopButton;
-
-        private StrategyParameterInt _openAtStopExpiresBars;
-
-        private StrategyParameterBool _isNoLifeTimeOrder;
-
-        private void _buyAtStopButton_UserClickOnButtonEvent()
+        private void _closeAllMarketButton_UserClickOnButtonEvent()
         {
+            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+
             if (_tabToTrade.IsReadyToTrade == false)
             {
                 _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal volume = 1;
-
-            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
-
-            if (candles.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal price = candles[candles.Count - 1].High;
-
-            if (price == 0)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
                 return;
             }
 
             _tabToTrade.BuyAtStopCancel();
-
-            if (_isNoLifeTimeOrder.ValueBool == true)
-            {
-                _tabToTrade.BuyAtStop(volume, price, price,
-                    StopActivateType.HigherOrEqual, 1, "No life time buy at stop", PositionOpenerToStopLifeTimeType.NoLifeTime);
-
-                return;
-            }
-
-
-            if (_openAtStopExpiresBars.ValueInt == 0)
-            {// время жизни ордера - одна свеча
-                if (_limitSignal.ValueBool == false)
-                {
-                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual);
-                }
-                else if (_limitSignal.ValueBool == true)
-                {
-                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, "User click button buy at stop");
-                }
-            }
-            else
-            {// время жизни ордера четко указано в количестве свечей. Может быть больше чем 1
-                int expireBars = _openAtStopExpiresBars.ValueInt;
-
-                if (_limitSignal.ValueBool == false)
-                {
-                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, expireBars);
-                }
-                else if (_limitSignal.ValueBool == true)
-                {
-                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, expireBars, "User click button buy at stop");
-                }
-            }
-        }
-
-        private void _sellAtStopButton_UserClickOnButtonEvent()
-        {
-            if (_tabToTrade.IsReadyToTrade == false)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal volume = 1;
-
-            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
-
-            if (candles.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal price = candles[candles.Count - 1].Low;
-
-            if (price == 0)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
-                return;
-            }
-
             _tabToTrade.SellAtStopCancel();
 
-            if (_isNoLifeTimeOrder.ValueBool == true)
+            for (int i = 0;i <  openPositions.Count;i++)
             {
-                _tabToTrade.SellAtStop(volume, price, price,
-                    StopActivateType.LowerOrEqual, 1, "No life time sell at stop", PositionOpenerToStopLifeTimeType.NoLifeTime);
+                Position position = openPositions[i];
 
-                return;
-            }
+                _tabToTrade.CloseAllOrderToPosition(position);
 
-
-            if (_openAtStopExpiresBars.ValueInt == 0)
-            {// время жизни ордера - одна свеча
-                if (_limitSignal.ValueBool == false)
+                if(position.OpenVolume > 0)
                 {
-                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual);
-                }
-                else if (_limitSignal.ValueBool == true)
-                {
-                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, "User click button sell at stop");
-                }
-            }
-            else
-            {// время жизни ордера четко указано в количестве свечей. Может быть больше чем 1
-                int expireBars = _openAtStopExpiresBars.ValueInt;
-
-                if (_limitSignal.ValueBool == false)
-                {
-                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, expireBars);
-                }
-                else if (_limitSignal.ValueBool == true)
-                {
-                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, expireBars, "User click button sell at stop");
+                    _tabToTrade.CloseAtMarket(position, position.OpenVolume);
                 }
             }
         }
@@ -346,11 +244,11 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             int ordersCount = _icebergCount.ValueInt;
 
-            if (_limitSignal.ValueBool == false)
+            if (_icebergSignal.ValueBool == false)
             {
                 _tabToTrade.BuyAtIceberg(volume, price, ordersCount);
             }
-            else if (_limitSignal.ValueBool == true)
+            else if (_icebergSignal.ValueBool == true)
             {
                 _tabToTrade.BuyAtIceberg(volume, price, ordersCount, "User click button buy iceberg");
             }
@@ -458,6 +356,160 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         #endregion
 
+        #region BuyAtStop / SellAtStop
+
+        private StrategyParameterButton _buyAtStopButton;
+
+        private StrategyParameterButton _sellAtStopButton;
+
+        private StrategyParameterInt _openAtStopExpiresBars;
+
+        private StrategyParameterBool _openAtStopIsNoLifeTimeOrder;
+
+        private StrategyParameterBool _openAtStopIsMarketOrder;
+
+        private void _buyAtStopButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
+
+            if (candles.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal price = candles[candles.Count - 1].High;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            _tabToTrade.BuyAtStopCancel();
+
+            if (_openAtStopIsMarketOrder.ValueBool == true)
+            {
+                _tabToTrade.BuyAtStopMarket(volume, price, price,
+                    StopActivateType.HigherOrEqual, 1, "Buy at stop market", PositionOpenerToStopLifeTimeType.NoLifeTime);
+
+                return;
+            }
+
+            if (_openAtStopIsNoLifeTimeOrder.ValueBool == true)
+            {
+                _tabToTrade.BuyAtStop(volume, price, price,
+                    StopActivateType.HigherOrEqual, 1, "No life time buy at stop", PositionOpenerToStopLifeTimeType.NoLifeTime);
+
+                return;
+            }
+
+            if (_openAtStopExpiresBars.ValueInt == 0)
+            {// время жизни ордера - одна свеча
+                if (_limitSignal.ValueBool == false)
+                {
+                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual);
+                }
+                else if (_limitSignal.ValueBool == true)
+                {
+                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, "User click button buy at stop");
+                }
+            }
+            else
+            {// время жизни ордера четко указано в количестве свечей. Может быть больше чем 1
+                int expireBars = _openAtStopExpiresBars.ValueInt;
+
+                if (_limitSignal.ValueBool == false)
+                {
+                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, expireBars);
+                }
+                else if (_limitSignal.ValueBool == true)
+                {
+                    _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual, expireBars, "User click button buy at stop");
+                }
+            }
+        }
+
+        private void _sellAtStopButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
+
+            if (candles.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal price = candles[candles.Count - 1].Low;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            _tabToTrade.SellAtStopCancel();
+
+            if (_openAtStopIsMarketOrder.ValueBool == true)
+            {
+                _tabToTrade.SellAtStopMarket(volume, price, price,
+                    StopActivateType.HigherOrEqual, 1, "Sell at stop market", PositionOpenerToStopLifeTimeType.NoLifeTime);
+
+                return;
+            }
+
+            if (_openAtStopIsNoLifeTimeOrder.ValueBool == true)
+            {
+                _tabToTrade.SellAtStop(volume, price, price,
+                    StopActivateType.LowerOrEqual, 1, "No life time sell at stop", PositionOpenerToStopLifeTimeType.NoLifeTime);
+
+                return;
+            }
+
+
+            if (_openAtStopExpiresBars.ValueInt == 0)
+            {// время жизни ордера - одна свеча
+                if (_limitSignal.ValueBool == false)
+                {
+                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual);
+                }
+                else if (_limitSignal.ValueBool == true)
+                {
+                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, "User click button sell at stop");
+                }
+            }
+            else
+            {// время жизни ордера четко указано в количестве свечей. Может быть больше чем 1
+                int expireBars = _openAtStopExpiresBars.ValueInt;
+
+                if (_limitSignal.ValueBool == false)
+                {
+                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, expireBars);
+                }
+                else if (_limitSignal.ValueBool == true)
+                {
+                    _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual, expireBars, "User click button sell at stop");
+                }
+            }
+        }
+
+        #endregion
 
         public override string GetNameStrategyType()
         {

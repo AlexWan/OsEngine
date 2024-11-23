@@ -2029,6 +2029,34 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Cancel all buyAtStop orders
+        /// </summary>
+        public void BuyAtStopCancel()
+        {
+            try
+            {
+                if (PositionOpenerToStop == null || PositionOpenerToStop.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count; i++)
+                {
+                    if (PositionOpenerToStop[i].Side == Side.Buy)
+                    {
+                        PositionOpenerToStop.RemoveAt(i);
+                        i--;
+                    }
+                }
+                UpdateStopLimits();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// Add new order to Long position at limit
         /// </summary>
         /// <param name="position">position to which the order will be added</param>
@@ -2172,8 +2200,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to which the order will be added</param>
         /// <param name="price">order price</param>
         /// <param name="volume">volume</param>
-        /// <param name="orderCount">iceberg orders count</param>
-        public void BuyAtIcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void BuyAtIcebergToPosition(Position position, decimal price, decimal volume, int ordersCount)
         {
             try
             {
@@ -2184,7 +2212,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
                     if (position.Direction == Side.Sell)
                     {
@@ -2246,35 +2274,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifyBuy, volume, this);
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// Cancel all purchase requisitions at level cross
-        /// </summary>
-        public void BuyAtStopCancel()
-        {
-            try
-            {
-                if (PositionOpenerToStop == null || PositionOpenerToStop.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count; i++)
-                {
-                    if (PositionOpenerToStop[i].Side == Side.Buy)
-                    {
-                        PositionOpenerToStop.RemoveAt(i);
-                        i--;
-                    }
-                }
-                UpdateStopLimits();
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifyBuy, volume, this);
             }
             catch (Exception error)
             {
@@ -2493,7 +2493,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// enter the short position at iceberg
+        /// Enter the short position at iceberg
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="price">price</param>
@@ -2787,6 +2787,35 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Cancel all sellAtStop orders
+        /// </summary>
+        public void SellAtStopCancel()
+        {
+            try
+            {
+                if (PositionOpenerToStop == null || PositionOpenerToStop.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count; i++)
+                {
+                    if (PositionOpenerToStop[i].Side == Side.Sell)
+                    {
+                        PositionOpenerToStop.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                UpdateStopLimits();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// Add new order to Short position at limit
         /// </summary>
         /// <param name="position">position to which the order will be added</param>
@@ -2930,8 +2959,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to which the order will be added</param>
         /// <param name="price">order price</param>
         /// <param name="volume">volum</param>
-        /// <param name="orderCount">iceberg orders count</param>
-        public void SellAtIcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void SellAtIcebergToPosition(Position position, decimal price, decimal volume, int ordersCount)
         {
             try
             {
@@ -2942,7 +2971,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
                     if (position.Direction == Side.Buy)
                     {
@@ -3003,36 +3032,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifySell, volume, this);
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// Cancel all purchase requisitions at level cross
-        /// </summary>
-        public void SellAtStopCancel()
-        {
-            try
-            {
-                if (PositionOpenerToStop == null || PositionOpenerToStop.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count; i++)
-                {
-                    if (PositionOpenerToStop[i].Side == Side.Sell)
-                    {
-                        PositionOpenerToStop.RemoveAt(i);
-                        i--;
-                    }
-                }
-
-                UpdateStopLimits();
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifySell, volume, this);
             }
             catch (Exception error)
             {
