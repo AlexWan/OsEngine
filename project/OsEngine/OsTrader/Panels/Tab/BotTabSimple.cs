@@ -1628,8 +1628,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Enter position Long at a limit price
         /// </summary>
         /// <param name="volume">volume</param>
-        /// <param name="priceLimit">opder price</param>
-        /// <param name="signalType">>open position signal nameа. Will be written to position property: SignalTypeOpen</param>
+        /// <param name="priceLimit">order price</param>
+        /// <param name="signalType">>open position signal name. Will be written to position property: SignalTypeOpen</param>
         public Position BuyAtLimit(decimal volume, decimal priceLimit, string signalType)
         {
             Position position = BuyAtLimit(volume, priceLimit);
@@ -1647,8 +1647,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volum</param>
         /// <param name="price">order price</param>
-        /// <param name="orderCount">iceberg orders count</param>
-        public Position BuyAtIceberg(decimal volume, decimal price, int orderCount)
+        /// <param name="ordersCount">iceberg orders count</param>
+        public Position BuyAtIceberg(decimal volume, decimal price, int ordersCount)
         {
             try
             {
@@ -1659,7 +1659,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
                     return BuyAtLimit(volume, price);
                 }
@@ -1733,7 +1733,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, newDeal, IcebergType.Open, volume, this);
 
                 return newDeal;
             }
@@ -1749,11 +1749,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="price">order price</param>
-        /// <param name="orderCount">iceberg orders count</param>
+        /// <param name="ordersCount">iceberg orders count</param>
         /// <param name="signalType">>open position signal nameа. Will be written to position property: SignalTypeOpen</param>
-        public Position BuyAtIceberg(decimal volume, decimal price, int orderCount, string signalType)
+        public Position BuyAtIceberg(decimal volume, decimal price, int ordersCount, string signalType)
         {
-            Position position = BuyAtIceberg(volume, price, orderCount);
+            Position position = BuyAtIceberg(volume, price, ordersCount);
 
             if (position != null)
             {
@@ -1761,6 +1761,105 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             return position;
+        }
+
+        /// <summary>
+        /// Create a FAKE long position
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        public Position BuyAtFake(decimal volume, decimal price, DateTime time)
+        {
+            try
+            {
+                Side direction = Side.Buy;
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
+                        LogMessageType.System);
+                    return null;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+                price = RoundPrice(price, Security, direction);
+
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+
+                _journal.SetNewDeal(newDeal);
+
+                OrderFakeExecute(newDeal.OpenOrders[0], time);
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+
+        }
+
+        /// <summary>
+        /// Create a FAKE long position
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        /// <param name="signalType">open position signal name. Will be written to position property: SignalTypeOpen</param>
+        public Position BuyAtFake(decimal volume, decimal price, DateTime time, string signalType)
+        {
+            try
+            {
+                Side direction = Side.Buy;
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
+                        LogMessageType.System);
+                    return null;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+                price = RoundPrice(price, Security, direction);
+
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+
+                newDeal.SignalTypeOpen = signalType;
+
+                _journal.SetNewDeal(newDeal);
+
+                OrderFakeExecute(newDeal.OpenOrders[0], time);
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+
         }
 
         /// <summary>
@@ -2184,145 +2283,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Enter a FAKE long position
-        /// </summary>
-        /// <param name="volume">volume</param>
-        public Position BuyAtFake(decimal volume, decimal price, DateTime time)
-        {
-            try
-            {
-                Side direction = Side.Buy;
-
-                if (volume == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label63,
-                        LogMessageType.System);
-                    return null;
-                }
-
-                if (price == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
-                    return null;
-                }
-
-                if (Security == null || Portfolio == null)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
-                    return null;
-                }
-                price = RoundPrice(price, Security, direction);
-
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
-
-                _journal.SetNewDeal(newDeal);
-
-                OrderFakeExecute(newDeal.OpenOrders[0], time);
-                return newDeal;
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            return null;
-
-        }
-
-        /// <summary>
-        /// Enter a FAKE long position
-        /// </summary>
-        /// <param name="volume">volume</param>
-        public Position SellAtFake(decimal volume, decimal price, DateTime time)
-        {
-            try
-            {
-                Side direction = Side.Sell;
-
-                if (volume == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label63,
-                        LogMessageType.System);
-                    return null;
-                }
-
-                if (price == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
-                    return null;
-                }
-
-                if (Security == null || Portfolio == null)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
-                    return null;
-                }
-
-                price = RoundPrice(price, Security, direction);
-
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
-
-                _journal.SetNewDeal(newDeal);
-
-                OrderFakeExecute(newDeal.OpenOrders[0], time);
-                return newDeal;
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            return null;
-
-        }
-
-        /// <summary>
-        /// Execute order in Fake mode
-        /// </summary>
-        public void OrderFakeExecute(Order order, DateTime timeExecute)
-        {
-            try
-            {
-                order.TimeCreate = timeExecute;
-                order.TimeCallBack = timeExecute;
-
-                Order newOrder = new Order();
-                newOrder.NumberMarket = "fakeOrder " + NumberGen.GetNumberOrder(StartProgram);
-                newOrder.NumberUser = order.NumberUser;
-                newOrder.State = OrderStateType.Done;
-                newOrder.Volume = order.Volume;
-                newOrder.VolumeExecute = order.Volume;
-                newOrder.Price = order.Price;
-                newOrder.TimeCreate = timeExecute;
-                newOrder.TypeOrder = order.TypeOrder;
-                newOrder.TimeCallBack = timeExecute;
-                newOrder.Side = order.Side;
-                newOrder.OrderTypeTime = order.OrderTypeTime;
-                newOrder.SecurityNameCode = order.SecurityNameCode;
-                newOrder.PortfolioNumber = order.PortfolioNumber;
-                newOrder.ServerType = order.ServerType;
-
-                _connector_OrderChangeEvent(newOrder);
-
-                MyTrade trade = new MyTrade();
-
-                trade.Volume = order.Volume;
-                trade.Time = timeExecute;
-                trade.Price = order.Price;
-                trade.SecurityNameCode = order.SecurityNameCode;
-                trade.NumberTrade = "fakeTrade " + NumberGen.GetNumberOrder(StartProgram);
-                trade.Side = order.Side;
-                trade.NumberOrderParent = newOrder.NumberMarket;
-
-                _connector_MyTradeEvent(trade);
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
         /// Enter the short position at any price
         /// </summary>
         /// <param name="volume">volume</param>
@@ -2556,6 +2516,107 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             return position;
+        }
+
+        /// <summary>
+        /// Create a FAKE short position
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        public Position SellAtFake(decimal volume, decimal price, DateTime time)
+        {
+            try
+            {
+                Side direction = Side.Sell;
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
+                        LogMessageType.System);
+                    return null;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+
+                price = RoundPrice(price, Security, direction);
+
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+
+                _journal.SetNewDeal(newDeal);
+
+                OrderFakeExecute(newDeal.OpenOrders[0], time);
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+
+        }
+
+        /// <summary>
+        /// Create a FAKE short position
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        /// <param name="signalType">open position signal name. Will be written to position property: SignalTypeOpen</param>
+        public Position SellAtFake(decimal volume, decimal price, DateTime time, string signalType)
+        {
+            try
+            {
+                Side direction = Side.Sell;
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
+                        LogMessageType.System);
+                    return null;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+
+                price = RoundPrice(price, Security, direction);
+
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+
+                newDeal.SignalTypeOpen = signalType;
+
+                _journal.SetNewDeal(newDeal);
+
+                OrderFakeExecute(newDeal.OpenOrders[0], time);
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+
         }
 
         /// <summary>
@@ -3739,6 +3800,52 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             _connector.ChangeOrderPrice(order, newPrice);
+        }
+
+        /// <summary>
+        /// Execute order in Fake mode
+        /// </summary>
+        public void OrderFakeExecute(Order order, DateTime timeExecute)
+        {
+            try
+            {
+                order.TimeCreate = timeExecute;
+                order.TimeCallBack = timeExecute;
+
+                Order newOrder = new Order();
+                newOrder.NumberMarket = "fakeOrder " + NumberGen.GetNumberOrder(StartProgram);
+                newOrder.NumberUser = order.NumberUser;
+                newOrder.State = OrderStateType.Done;
+                newOrder.Volume = order.Volume;
+                newOrder.VolumeExecute = order.Volume;
+                newOrder.Price = order.Price;
+                newOrder.TimeCreate = timeExecute;
+                newOrder.TypeOrder = order.TypeOrder;
+                newOrder.TimeCallBack = timeExecute;
+                newOrder.Side = order.Side;
+                newOrder.OrderTypeTime = order.OrderTypeTime;
+                newOrder.SecurityNameCode = order.SecurityNameCode;
+                newOrder.PortfolioNumber = order.PortfolioNumber;
+                newOrder.ServerType = order.ServerType;
+
+                _connector_OrderChangeEvent(newOrder);
+
+                MyTrade trade = new MyTrade();
+
+                trade.Volume = order.Volume;
+                trade.Time = timeExecute;
+                trade.Price = order.Price;
+                trade.SecurityNameCode = order.SecurityNameCode;
+                trade.NumberTrade = "fakeTrade " + NumberGen.GetNumberOrder(StartProgram);
+                trade.Side = order.Side;
+                trade.NumberOrderParent = newOrder.NumberMarket;
+
+                _connector_MyTradeEvent(trade);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         // internal position management functions
