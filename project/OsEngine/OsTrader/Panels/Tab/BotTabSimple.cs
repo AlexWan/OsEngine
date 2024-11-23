@@ -3341,8 +3341,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="priceLimit">order price</param>
         /// <param name="volume">volume required to close</param>
-        /// <param name="orderCount">iceberg orders count</param>
-        public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int orderCount)
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int ordersCount)
         {
             try
             {
@@ -3350,7 +3350,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
                     if (position.OpenVolume <= volume)
                     {
@@ -3365,11 +3365,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Buy)
                 {
-                    SellAtIcebergToPosition(position, priceLimit, volume, orderCount);
+                    SellAtIcebergToPosition(position, priceLimit, volume, ordersCount);
                 }
                 else
                 {
-                    BuyAtIcebergToPosition(position, priceLimit, volume, orderCount);
+                    BuyAtIcebergToPosition(position, priceLimit, volume, ordersCount);
                 }
             }
             catch (Exception error)
@@ -3384,12 +3384,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="priceLimit">order price</param>
         /// <param name="volume">volume required to close</param>
-        /// <param name="orderCount">iceberg orders count</param>
+        /// <param name="ordersCount">iceberg orders count</param>
         /// <param name="signalType">close position signal name</param>
-        public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int orderCount, string signalType)
+        public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int ordersCount, string signalType)
         {
             position.SignalTypeClose = signalType;
-            CloseAtIceberg(position, priceLimit, volume, orderCount);
+            CloseAtIceberg(position, priceLimit, volume, ordersCount);
         }
 
         /// <summary>
