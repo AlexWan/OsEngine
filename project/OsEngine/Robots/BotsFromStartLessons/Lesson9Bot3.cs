@@ -60,7 +60,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _icebergCount = CreateParameter("Iceberg orders count", 2, 1, 10, 1, "Iceberg");
         }
 
-
         #region BuyAtMarket / SellAtMarket
 
         private StrategyParameterButton _buyMarketButton;

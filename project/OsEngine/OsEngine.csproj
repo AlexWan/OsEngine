@@ -1145,6 +1145,7 @@
     <Compile Include="Robots\BotsFromStartLessons\Lesson9Bot1.cs" />
     <Compile Include="Robots\BotsFromStartLessons\Lesson9Bot2.cs" />
     <Compile Include="Robots\BotsFromStartLessons\Lesson9Bot3.cs" />
+    <Compile Include="Robots\BotsFromStartLessons\Lesson9Bot4.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
     <Compile Include="Robots\PositionsMicromanagement\AlligatorTrendAverage.cs" />
     <Compile Include="Robots\PositionsMicromanagement\CandlesTurnaroundPattern.cs" />
