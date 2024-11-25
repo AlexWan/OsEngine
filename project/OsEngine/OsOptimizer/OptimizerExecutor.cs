@@ -942,11 +942,11 @@ namespace OsEngine.OsOptimizer
                     }
 
                     bot.TabsSimple[i].ManualPositionSupport.DoubleExitIsOn = _master.ManualControl.DoubleExitIsOn;
-                    bot.TabsSimple[i].ManualPositionSupport.DoubleExitSlipage = _master.ManualControl.DoubleExitSlipage;
+                    bot.TabsSimple[i].ManualPositionSupport.DoubleExitSlippage = _master.ManualControl.DoubleExitSlippage;
 
                     bot.TabsSimple[i].ManualPositionSupport.ProfitDistance = _master.ManualControl.ProfitDistance;
                     bot.TabsSimple[i].ManualPositionSupport.ProfitIsOn = _master.ManualControl.ProfitIsOn;
-                    bot.TabsSimple[i].ManualPositionSupport.ProfitSlipage = _master.ManualControl.ProfitSlipage;
+                    bot.TabsSimple[i].ManualPositionSupport.ProfitSlippage = _master.ManualControl.ProfitSlippage;
 
                     bot.TabsSimple[i].ManualPositionSupport.SecondToCloseIsOn = _master.ManualControl.SecondToCloseIsOn;
                     bot.TabsSimple[i].ManualPositionSupport.SecondToClose = _master.ManualControl.SecondToClose;
@@ -962,11 +962,11 @@ namespace OsEngine.OsOptimizer
 
                     bot.TabsSimple[i].ManualPositionSupport.StopDistance = _master.ManualControl.StopDistance;
                     bot.TabsSimple[i].ManualPositionSupport.StopIsOn = _master.ManualControl.StopIsOn;
-                    bot.TabsSimple[i].ManualPositionSupport.StopSlipage = _master.ManualControl.StopSlipage;
+                    bot.TabsSimple[i].ManualPositionSupport.StopSlippage = _master.ManualControl.StopSlippage;
 
                     bot.TabsSimple[i].ManualPositionSupport.ProfitDistance = _master.ManualControl.ProfitDistance;
                     bot.TabsSimple[i].ManualPositionSupport.ProfitIsOn = _master.ManualControl.ProfitIsOn;
-                    bot.TabsSimple[i].ManualPositionSupport.ProfitSlipage = _master.ManualControl.ProfitSlipage;
+                    bot.TabsSimple[i].ManualPositionSupport.ProfitSlippage = _master.ManualControl.ProfitSlippage;
 
                     bot.TabsSimple[i].ManualPositionSupport.TypeDoubleExitOrder = _master.ManualControl.TypeDoubleExitOrder;
                     bot.TabsSimple[i].ManualPositionSupport.ValuesType = _master.ManualControl.ValuesType;

@@ -55,14 +55,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
               CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
                 TextBoxStopPercentLength.Text = _strategySettings.StopDistance.ToStringWithNoEndZero();
-                TextBoxSlipageStop.Text = _strategySettings.StopSlipage.ToStringWithNoEndZero();
+                TextBoxSlipageStop.Text = _strategySettings.StopSlippage.ToStringWithNoEndZero();
 
                 // profit
                 // профит
 
                 CheckBoxProfitIsOn.IsChecked = _strategySettings.ProfitIsOn;
                 TextBoxProfitPercentLength.Text = _strategySettings.ProfitDistance.ToStringWithNoEndZero();
-                TextBoxSlipageProfit.Text = _strategySettings.ProfitSlipage.ToStringWithNoEndZero();
+                TextBoxSlipageProfit.Text = _strategySettings.ProfitSlippage.ToStringWithNoEndZero();
 
                 // closing position
                 // закрытие позиции
@@ -77,7 +77,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ComboBoxTypeDoubleExitOrder.Items.Add(OrderPriceType.Limit);
                 ComboBoxTypeDoubleExitOrder.Items.Add(OrderPriceType.Market);
                 ComboBoxTypeDoubleExitOrder.SelectedItem = _strategySettings.TypeDoubleExitOrder;
-                TextBoxSlipageDoubleExit.Text = _strategySettings.DoubleExitSlipage.ToString();
+                TextBoxSlipageDoubleExit.Text = _strategySettings.DoubleExitSlippage.ToString();
 
                 // opening position
                 // открытие позиции
@@ -183,13 +183,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 // стоп
                 _strategySettings.StopIsOn = CheckBoxStopIsOn.IsChecked.Value;
                 _strategySettings.StopDistance = TextBoxStopPercentLength.Text.ToDecimal();
-                _strategySettings.StopSlipage =TextBoxSlipageStop.Text.ToDecimal();
+                _strategySettings.StopSlippage =TextBoxSlipageStop.Text.ToDecimal();
 
                 // profit
                 // профит
                 _strategySettings.ProfitIsOn = CheckBoxProfitIsOn.IsChecked.Value;
                 _strategySettings.ProfitDistance = TextBoxProfitPercentLength.Text.ToDecimal();
-                _strategySettings.ProfitSlipage = TextBoxSlipageProfit.Text.ToDecimal();
+                _strategySettings.ProfitSlippage = TextBoxSlipageProfit.Text.ToDecimal();
 
                 // closing position
                 // закрытие позиции
@@ -214,7 +214,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 Enum.TryParse(ComboBoxTypeDoubleExitOrder.SelectedItem.ToString(),
                     out _strategySettings.TypeDoubleExitOrder);
 
-                _strategySettings.DoubleExitSlipage = TextBoxSlipageDoubleExit.Text.ToDecimal();
+                _strategySettings.DoubleExitSlippage = TextBoxSlipageDoubleExit.Text.ToDecimal();
 
                 // opening position
                 // открытие позиции

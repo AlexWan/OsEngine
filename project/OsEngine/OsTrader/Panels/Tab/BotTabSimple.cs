@@ -1297,11 +1297,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             bool stopIsOnStartValue = ManualPositionSupport.StopIsOn;
             decimal stopDistance = ManualPositionSupport.StopDistance;
-            decimal stopSlipage = ManualPositionSupport.StopSlipage;
+            decimal stopSlipage = ManualPositionSupport.StopSlippage;
 
             bool profitOnStartValue = ManualPositionSupport.ProfitIsOn;
             decimal profitDistance = ManualPositionSupport.ProfitDistance;
-            decimal profitSlipage = ManualPositionSupport.ProfitSlipage;
+            decimal profitSlipage = ManualPositionSupport.ProfitSlippage;
 
             ManualPositionSupport.ShowDialog();
 
@@ -1318,7 +1318,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 neadToReplaceStop = true;
             }
             if (ManualPositionSupport.StopIsOn == true
-                && stopSlipage != ManualPositionSupport.StopSlipage)
+                && stopSlipage != ManualPositionSupport.StopSlippage)
             {
                 neadToReplaceStop = true;
             }
@@ -1334,7 +1334,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 neadToReplaceStop = true;
             }
             if (ManualPositionSupport.ProfitIsOn == true
-                && profitSlipage != ManualPositionSupport.ProfitSlipage)
+                && profitSlipage != ManualPositionSupport.ProfitSlippage)
             {
                 neadToReplaceStop = true;
             }

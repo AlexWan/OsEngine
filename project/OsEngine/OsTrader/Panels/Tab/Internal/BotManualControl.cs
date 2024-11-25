@@ -97,12 +97,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             SetbackToCloseIsOn = false;
 
             StopDistance = 30;
-            StopSlipage = 5;
+            StopSlippage = 5;
            
             ProfitDistance = 30;
-            ProfitSlipage = 5;
+            ProfitSlippage = 5;
            
-            DoubleExitSlipage = 10;
+            DoubleExitSlippage = 10;
             SecondToOpen = new TimeSpan(0, 0, 0, 50);
             SecondToClose = new TimeSpan(0, 0, 0, 50);
             SetbackToOpenPosition = 10;
@@ -147,10 +147,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                     StopIsOn = Convert.ToBoolean(reader.ReadLine());
                     StopDistance = reader.ReadLine().ToDecimal();
-                    StopSlipage = reader.ReadLine().ToDecimal();
+                    StopSlippage = reader.ReadLine().ToDecimal();
                     ProfitIsOn = Convert.ToBoolean(reader.ReadLine());
                     ProfitDistance = reader.ReadLine().ToDecimal();
-                    ProfitSlipage = reader.ReadLine().ToDecimal();
+                    ProfitSlippage = reader.ReadLine().ToDecimal();
                     TimeSpan.TryParse(reader.ReadLine(), out _secondToOpen);
                     TimeSpan.TryParse(reader.ReadLine(), out _secondToClose);
 
@@ -164,7 +164,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     SetbackToCloseIsOn = Convert.ToBoolean(reader.ReadLine());
                     SetbackToClosePosition = reader.ReadLine().ToDecimal();
 
-                    DoubleExitSlipage = reader.ReadLine().ToDecimal();
+                    DoubleExitSlippage = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), out TypeDoubleExitOrder);
                     Enum.TryParse(reader.ReadLine(), out ValuesType);
                     Enum.TryParse(reader.ReadLine(), out OrderTypeTime);
@@ -196,10 +196,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     CultureInfo myCultureInfo = new CultureInfo("ru-RU");
                     writer.WriteLine(StopIsOn);
                     writer.WriteLine(StopDistance.ToString(myCultureInfo));
-                    writer.WriteLine(StopSlipage.ToString(myCultureInfo));
+                    writer.WriteLine(StopSlippage.ToString(myCultureInfo));
                     writer.WriteLine(ProfitIsOn.ToString(myCultureInfo));
                     writer.WriteLine(ProfitDistance.ToString(myCultureInfo));
-                    writer.WriteLine(ProfitSlipage.ToString(myCultureInfo));
+                    writer.WriteLine(ProfitSlippage.ToString(myCultureInfo));
                     writer.WriteLine(SecondToOpen.ToString());
                     writer.WriteLine(SecondToClose.ToString());
 
@@ -212,7 +212,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     writer.WriteLine(SetbackToOpenPosition);
                     writer.WriteLine(SetbackToCloseIsOn);
                     writer.WriteLine(SetbackToClosePosition);
-                    writer.WriteLine(DoubleExitSlipage);
+                    writer.WriteLine(DoubleExitSlippage);
                     writer.WriteLine(TypeDoubleExitOrder);
                     writer.WriteLine(ValuesType);
                     writer.WriteLine(OrderTypeTime);
@@ -345,7 +345,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Slippage for stop
         /// </summary>
-        public decimal StopSlipage;
+        public decimal StopSlippage;
 
         /// <summary>
         /// Profit is enabled
@@ -360,7 +360,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Slippage
         /// </summary>
-        public decimal ProfitSlipage;
+        public decimal ProfitSlippage;
 
         /// <summary>
         /// Open orders life time is enabled
@@ -431,7 +431,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Slip to re-close
         /// </summary>
-        public decimal DoubleExitSlipage;
+        public decimal DoubleExitSlippage;
 
         /// <summary>
         /// Is revocation of orders for opening on price rollback included
@@ -716,21 +716,21 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (ValuesType == ManualControlValuesType.MinPriceStep)
             {
-                result = bot.Security.PriceStep * DoubleExitSlipage;
+                result = bot.Security.PriceStep * DoubleExitSlippage;
             }
             else if (ValuesType == ManualControlValuesType.Absolute)
             {
-                result = DoubleExitSlipage;
+                result = DoubleExitSlippage;
             }
             else if (ValuesType == ManualControlValuesType.Percent)
             {
                 if (position.Direction == Side.Buy)
                 {
-                    result = bot.PriceBestBid * DoubleExitSlipage / 100;
+                    result = bot.PriceBestBid * DoubleExitSlippage / 100;
                 }
                 else
                 {
-                    result = bot.PriceBestAsk * DoubleExitSlipage / 100;
+                    result = bot.PriceBestAsk * DoubleExitSlippage / 100;
                 }
             }
 
@@ -746,15 +746,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (ValuesType == ManualControlValuesType.MinPriceStep)
             {
-                result = security.PriceStep * ProfitSlipage;
+                result = security.PriceStep * ProfitSlippage;
             }
             else if (ValuesType == ManualControlValuesType.Absolute)
             {
-                result = ProfitSlipage;
+                result = ProfitSlippage;
             }
             else if (ValuesType == ManualControlValuesType.Percent)
             {
-                result = position.EntryPrice * ProfitSlipage / 100;
+                result = position.EntryPrice * ProfitSlippage / 100;
             }
 
             return result;
@@ -815,15 +815,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (ValuesType == ManualControlValuesType.MinPriceStep)
             {
-                result = security.PriceStep * StopSlipage;
+                result = security.PriceStep * StopSlippage;
             }
             else if (ValuesType == ManualControlValuesType.Absolute)
             {
-                result = StopSlipage;
+                result = StopSlippage;
             }
             else if (ValuesType == ManualControlValuesType.Percent)
             {
-                result = position.EntryPrice * StopSlipage / 100;
+                result = position.EntryPrice * StopSlippage / 100;
             }
 
             return result;

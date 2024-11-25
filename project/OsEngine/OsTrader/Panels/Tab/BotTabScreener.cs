@@ -1624,25 +1624,28 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 try
                 {
-                    if (ind.Params != null && ind.Params.Count != 0)
+                    if(ind.Params.Count == newIndicator.Parameters.Count)
                     {
-                        for (int i2 = 0; i2 < ind.Params.Count; i2++)
+                        if (ind.Params != null && ind.Params.Count != 0)
                         {
-                            if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Int)
+                            for (int i2 = 0; i2 < ind.Params.Count; i2++)
                             {
-                                ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Params[i2]);
-                            }
-                            if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
-                            {
-                                ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Params[i2]);
-                            }
-                            if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool)
-                            {
-                                ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Params[i2]);
-                            }
-                            if (newIndicator.Parameters[i2].Type == IndicatorParameterType.String)
-                            {
-                                ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Params[i2];
+                                if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Int)
+                                {
+                                    ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Params[i2]);
+                                }
+                                if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
+                                {
+                                    ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Params[i2]);
+                                }
+                                if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool)
+                                {
+                                    ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Params[i2]);
+                                }
+                                if (newIndicator.Parameters[i2].Type == IndicatorParameterType.String)
+                                {
+                                    ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Params[i2];
+                                }
                             }
                         }
                     }
@@ -1688,10 +1691,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             second.ManualPositionSupport.SecondToClose = first.ManualPositionSupport.SecondToClose;
             second.ManualPositionSupport.SecondToOpen = first.ManualPositionSupport.SecondToOpen;
             second.ManualPositionSupport.DoubleExitIsOn = first.ManualPositionSupport.DoubleExitIsOn;
-            second.ManualPositionSupport.DoubleExitSlipage = first.ManualPositionSupport.DoubleExitSlipage;
+            second.ManualPositionSupport.DoubleExitSlippage = first.ManualPositionSupport.DoubleExitSlippage;
             second.ManualPositionSupport.ProfitDistance = first.ManualPositionSupport.ProfitDistance;
             second.ManualPositionSupport.ProfitIsOn = first.ManualPositionSupport.ProfitIsOn;
-            second.ManualPositionSupport.ProfitSlipage = first.ManualPositionSupport.ProfitSlipage;
+            second.ManualPositionSupport.ProfitSlippage = first.ManualPositionSupport.ProfitSlippage;
             second.ManualPositionSupport.SecondToCloseIsOn = first.ManualPositionSupport.SecondToCloseIsOn;
             second.ManualPositionSupport.SecondToOpenIsOn = first.ManualPositionSupport.SecondToOpenIsOn;
             second.ManualPositionSupport.SetbackToCloseIsOn = first.ManualPositionSupport.SetbackToCloseIsOn;
@@ -1700,7 +1703,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             second.ManualPositionSupport.SetbackToOpenPosition = first.ManualPositionSupport.SetbackToOpenPosition;
             second.ManualPositionSupport.StopDistance = first.ManualPositionSupport.StopDistance;
             second.ManualPositionSupport.StopIsOn = first.ManualPositionSupport.StopIsOn;
-            second.ManualPositionSupport.StopSlipage = first.ManualPositionSupport.StopSlipage;
+            second.ManualPositionSupport.StopSlippage = first.ManualPositionSupport.StopSlippage;
             second.ManualPositionSupport.TypeDoubleExitOrder = first.ManualPositionSupport.TypeDoubleExitOrder;
             second.ManualPositionSupport.ValuesType = first.ManualPositionSupport.ValuesType;
             second.ManualPositionSupport.OrderTypeTime = first.ManualPositionSupport.OrderTypeTime;

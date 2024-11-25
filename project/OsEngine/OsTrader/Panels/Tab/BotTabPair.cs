@@ -572,10 +572,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.ManualPositionSupport.SecondToClose = control.SecondToClose;
                 tab.ManualPositionSupport.SecondToOpen = control.SecondToOpen;
                 tab.ManualPositionSupport.DoubleExitIsOn = control.DoubleExitIsOn;
-                tab.ManualPositionSupport.DoubleExitSlipage = control.DoubleExitSlipage;
+                tab.ManualPositionSupport.DoubleExitSlippage = control.DoubleExitSlippage;
                 tab.ManualPositionSupport.ProfitDistance = control.ProfitDistance;
                 tab.ManualPositionSupport.ProfitIsOn = control.ProfitIsOn;
-                tab.ManualPositionSupport.ProfitSlipage = control.ProfitSlipage;
+                tab.ManualPositionSupport.ProfitSlippage = control.ProfitSlippage;
                 tab.ManualPositionSupport.SecondToCloseIsOn = control.SecondToCloseIsOn;
                 tab.ManualPositionSupport.SecondToOpenIsOn = control.SecondToOpenIsOn;
                 tab.ManualPositionSupport.SetbackToCloseIsOn = control.SetbackToCloseIsOn;
@@ -584,7 +584,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.ManualPositionSupport.SetbackToOpenPosition = control.SetbackToOpenPosition;
                 tab.ManualPositionSupport.StopDistance = control.StopDistance;
                 tab.ManualPositionSupport.StopIsOn = control.StopIsOn;
-                tab.ManualPositionSupport.StopSlipage = control.StopSlipage;
+                tab.ManualPositionSupport.StopSlippage = control.StopSlippage;
                 tab.ManualPositionSupport.TypeDoubleExitOrder = control.TypeDoubleExitOrder;
                 tab.ManualPositionSupport.ValuesType = control.ValuesType;
                 tab.ManualPositionSupport.OrderTypeTime = control.OrderTypeTime;
