@@ -105,6 +105,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             ServicePointManager.SecurityProtocol =
                 SecurityProtocolType.Ssl3
                 | SecurityProtocolType.Tls11
+                | SecurityProtocolType.Tls12
+                | SecurityProtocolType.Tls13
                 | SecurityProtocolType.Tls;
 
             try
